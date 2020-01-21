@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -108,6 +109,18 @@ func (woq *WorkOrderQuery) QueryFiles() *FileQuery {
 		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, workorder.FilesTable, workorder.FilesColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
+	return query
+}
+
+// QueryHyperlinks chains the current query on the hyperlinks edge.
+func (woq *WorkOrderQuery) QueryHyperlinks() *HyperlinkQuery {
+	query := &HyperlinkQuery{config: woq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.HyperlinksTable, workorder.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query

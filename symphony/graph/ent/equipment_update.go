@@ -21,6 +21,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -47,6 +48,7 @@ type EquipmentUpdate struct {
 	work_order            map[string]struct{}
 	properties            map[string]struct{}
 	files                 map[string]struct{}
+	hyperlinks            map[string]struct{}
 	clearedType           bool
 	clearedLocation       bool
 	clearedParentPosition bool
@@ -55,6 +57,7 @@ type EquipmentUpdate struct {
 	clearedWorkOrder      bool
 	removedProperties     map[string]struct{}
 	removedFiles          map[string]struct{}
+	removedHyperlinks     map[string]struct{}
 	predicates            []predicate.Equipment
 }
 
@@ -293,6 +296,26 @@ func (eu *EquipmentUpdate) AddFiles(f ...*File) *EquipmentUpdate {
 	return eu.AddFileIDs(ids...)
 }
 
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (eu *EquipmentUpdate) AddHyperlinkIDs(ids ...string) *EquipmentUpdate {
+	if eu.hyperlinks == nil {
+		eu.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		eu.hyperlinks[ids[i]] = struct{}{}
+	}
+	return eu
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (eu *EquipmentUpdate) AddHyperlinks(h ...*Hyperlink) *EquipmentUpdate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return eu.AddHyperlinkIDs(ids...)
+}
+
 // ClearType clears the type edge to EquipmentType.
 func (eu *EquipmentUpdate) ClearType() *EquipmentUpdate {
 	eu.clearedType = true
@@ -395,6 +418,26 @@ func (eu *EquipmentUpdate) RemoveFiles(f ...*File) *EquipmentUpdate {
 		ids[i] = f[i].ID
 	}
 	return eu.RemoveFileIDs(ids...)
+}
+
+// RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
+func (eu *EquipmentUpdate) RemoveHyperlinkIDs(ids ...string) *EquipmentUpdate {
+	if eu.removedHyperlinks == nil {
+		eu.removedHyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		eu.removedHyperlinks[ids[i]] = struct{}{}
+	}
+	return eu
+}
+
+// RemoveHyperlinks removes hyperlinks edges to Hyperlink.
+func (eu *EquipmentUpdate) RemoveHyperlinks(h ...*Hyperlink) *EquipmentUpdate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return eu.RemoveHyperlinkIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -859,6 +902,52 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
+	if nodes := eu.removedHyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipment.HyperlinksTable,
+			Columns: []string{equipment.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := eu.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipment.HyperlinksTable,
+			Columns: []string{equipment.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, eu.driver, spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
@@ -889,6 +978,7 @@ type EquipmentUpdateOne struct {
 	work_order            map[string]struct{}
 	properties            map[string]struct{}
 	files                 map[string]struct{}
+	hyperlinks            map[string]struct{}
 	clearedType           bool
 	clearedLocation       bool
 	clearedParentPosition bool
@@ -897,6 +987,7 @@ type EquipmentUpdateOne struct {
 	clearedWorkOrder      bool
 	removedProperties     map[string]struct{}
 	removedFiles          map[string]struct{}
+	removedHyperlinks     map[string]struct{}
 }
 
 // SetName sets the name field.
@@ -1128,6 +1219,26 @@ func (euo *EquipmentUpdateOne) AddFiles(f ...*File) *EquipmentUpdateOne {
 	return euo.AddFileIDs(ids...)
 }
 
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (euo *EquipmentUpdateOne) AddHyperlinkIDs(ids ...string) *EquipmentUpdateOne {
+	if euo.hyperlinks == nil {
+		euo.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		euo.hyperlinks[ids[i]] = struct{}{}
+	}
+	return euo
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (euo *EquipmentUpdateOne) AddHyperlinks(h ...*Hyperlink) *EquipmentUpdateOne {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return euo.AddHyperlinkIDs(ids...)
+}
+
 // ClearType clears the type edge to EquipmentType.
 func (euo *EquipmentUpdateOne) ClearType() *EquipmentUpdateOne {
 	euo.clearedType = true
@@ -1230,6 +1341,26 @@ func (euo *EquipmentUpdateOne) RemoveFiles(f ...*File) *EquipmentUpdateOne {
 		ids[i] = f[i].ID
 	}
 	return euo.RemoveFileIDs(ids...)
+}
+
+// RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
+func (euo *EquipmentUpdateOne) RemoveHyperlinkIDs(ids ...string) *EquipmentUpdateOne {
+	if euo.removedHyperlinks == nil {
+		euo.removedHyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		euo.removedHyperlinks[ids[i]] = struct{}{}
+	}
+	return euo
+}
+
+// RemoveHyperlinks removes hyperlinks edges to Hyperlink.
+func (euo *EquipmentUpdateOne) RemoveHyperlinks(h ...*Hyperlink) *EquipmentUpdateOne {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return euo.RemoveHyperlinkIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -1676,6 +1807,52 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if nodes := euo.removedHyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipment.HyperlinksTable,
+			Columns: []string{equipment.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := euo.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipment.HyperlinksTable,
+			Columns: []string{equipment.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
 				},
 			},
 		}

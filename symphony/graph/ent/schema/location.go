@@ -79,6 +79,7 @@ func (Location) Edges() []ent.Edge {
 			From("parent").
 			Unique(),
 		edge.To("files", File.Type),
+		edge.To("hyperlinks", Hyperlink.Type),
 		edge.To("equipment", Equipment.Type),
 		edge.To("properties", Property.Type),
 		edge.From("survey", Survey.Type).

@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -47,6 +48,7 @@ type LocationUpdate struct {
 	parent                  map[string]struct{}
 	children                map[string]struct{}
 	files                   map[string]struct{}
+	hyperlinks              map[string]struct{}
 	equipment               map[string]struct{}
 	properties              map[string]struct{}
 	survey                  map[string]struct{}
@@ -58,6 +60,7 @@ type LocationUpdate struct {
 	clearedParent           bool
 	removedChildren         map[string]struct{}
 	removedFiles            map[string]struct{}
+	removedHyperlinks       map[string]struct{}
 	removedEquipment        map[string]struct{}
 	removedProperties       map[string]struct{}
 	removedSurvey           map[string]struct{}
@@ -246,6 +249,26 @@ func (lu *LocationUpdate) AddFiles(f ...*File) *LocationUpdate {
 		ids[i] = f[i].ID
 	}
 	return lu.AddFileIDs(ids...)
+}
+
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (lu *LocationUpdate) AddHyperlinkIDs(ids ...string) *LocationUpdate {
+	if lu.hyperlinks == nil {
+		lu.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		lu.hyperlinks[ids[i]] = struct{}{}
+	}
+	return lu
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (lu *LocationUpdate) AddHyperlinks(h ...*Hyperlink) *LocationUpdate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return lu.AddHyperlinkIDs(ids...)
 }
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
@@ -438,6 +461,26 @@ func (lu *LocationUpdate) RemoveFiles(f ...*File) *LocationUpdate {
 		ids[i] = f[i].ID
 	}
 	return lu.RemoveFileIDs(ids...)
+}
+
+// RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
+func (lu *LocationUpdate) RemoveHyperlinkIDs(ids ...string) *LocationUpdate {
+	if lu.removedHyperlinks == nil {
+		lu.removedHyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		lu.removedHyperlinks[ids[i]] = struct{}{}
+	}
+	return lu
+}
+
+// RemoveHyperlinks removes hyperlinks edges to Hyperlink.
+func (lu *LocationUpdate) RemoveHyperlinks(h ...*Hyperlink) *LocationUpdate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return lu.RemoveHyperlinkIDs(ids...)
 }
 
 // RemoveEquipmentIDs removes the equipment edge to Equipment by ids.
@@ -891,6 +934,52 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
+	if nodes := lu.removedHyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.HyperlinksTable,
+			Columns: []string{location.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := lu.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.HyperlinksTable,
+			Columns: []string{location.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
 	if nodes := lu.removedEquipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1241,6 +1330,7 @@ type LocationUpdateOne struct {
 	parent                  map[string]struct{}
 	children                map[string]struct{}
 	files                   map[string]struct{}
+	hyperlinks              map[string]struct{}
 	equipment               map[string]struct{}
 	properties              map[string]struct{}
 	survey                  map[string]struct{}
@@ -1252,6 +1342,7 @@ type LocationUpdateOne struct {
 	clearedParent           bool
 	removedChildren         map[string]struct{}
 	removedFiles            map[string]struct{}
+	removedHyperlinks       map[string]struct{}
 	removedEquipment        map[string]struct{}
 	removedProperties       map[string]struct{}
 	removedSurvey           map[string]struct{}
@@ -1433,6 +1524,26 @@ func (luo *LocationUpdateOne) AddFiles(f ...*File) *LocationUpdateOne {
 		ids[i] = f[i].ID
 	}
 	return luo.AddFileIDs(ids...)
+}
+
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (luo *LocationUpdateOne) AddHyperlinkIDs(ids ...string) *LocationUpdateOne {
+	if luo.hyperlinks == nil {
+		luo.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		luo.hyperlinks[ids[i]] = struct{}{}
+	}
+	return luo
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (luo *LocationUpdateOne) AddHyperlinks(h ...*Hyperlink) *LocationUpdateOne {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return luo.AddHyperlinkIDs(ids...)
 }
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
@@ -1625,6 +1736,26 @@ func (luo *LocationUpdateOne) RemoveFiles(f ...*File) *LocationUpdateOne {
 		ids[i] = f[i].ID
 	}
 	return luo.RemoveFileIDs(ids...)
+}
+
+// RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
+func (luo *LocationUpdateOne) RemoveHyperlinkIDs(ids ...string) *LocationUpdateOne {
+	if luo.removedHyperlinks == nil {
+		luo.removedHyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		luo.removedHyperlinks[ids[i]] = struct{}{}
+	}
+	return luo
+}
+
+// RemoveHyperlinks removes hyperlinks edges to Hyperlink.
+func (luo *LocationUpdateOne) RemoveHyperlinks(h ...*Hyperlink) *LocationUpdateOne {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return luo.RemoveHyperlinkIDs(ids...)
 }
 
 // RemoveEquipmentIDs removes the equipment edge to Equipment by ids.
@@ -2060,6 +2191,52 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if nodes := luo.removedHyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.HyperlinksTable,
+			Columns: []string{location.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := luo.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.HyperlinksTable,
+			Columns: []string{location.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
 				},
 			},
 		}

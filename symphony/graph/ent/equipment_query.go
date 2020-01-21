@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -153,6 +154,18 @@ func (eq *EquipmentQuery) QueryFiles() *FileQuery {
 		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, equipment.FilesTable, equipment.FilesColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	return query
+}
+
+// QueryHyperlinks chains the current query on the hyperlinks edge.
+func (eq *EquipmentQuery) QueryHyperlinks() *HyperlinkQuery {
+	query := &HyperlinkQuery{config: eq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.HyperlinksTable, equipment.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query

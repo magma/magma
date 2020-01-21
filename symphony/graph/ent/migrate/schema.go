@@ -512,6 +512,47 @@ var (
 		PrimaryKey:  []*schema.Column{FloorPlanScalesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// HyperlinksColumns holds the columns for the "hyperlinks" table.
+	HyperlinksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "url", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "category", Type: field.TypeString, Nullable: true},
+		{Name: "equipment_hyperlink_id", Type: field.TypeInt, Nullable: true},
+		{Name: "location_hyperlink_id", Type: field.TypeInt, Nullable: true},
+		{Name: "work_order_hyperlink_id", Type: field.TypeInt, Nullable: true},
+	}
+	// HyperlinksTable holds the schema information for the "hyperlinks" table.
+	HyperlinksTable = &schema.Table{
+		Name:       "hyperlinks",
+		Columns:    HyperlinksColumns,
+		PrimaryKey: []*schema.Column{HyperlinksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "hyperlinks_equipment_hyperlinks",
+				Columns: []*schema.Column{HyperlinksColumns[6]},
+
+				RefColumns: []*schema.Column{EquipmentColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "hyperlinks_locations_hyperlinks",
+				Columns: []*schema.Column{HyperlinksColumns[7]},
+
+				RefColumns: []*schema.Column{LocationsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "hyperlinks_work_orders_hyperlinks",
+				Columns: []*schema.Column{HyperlinksColumns[8]},
+
+				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// LinksColumns holds the columns for the "links" table.
 	LinksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1382,6 +1423,7 @@ var (
 		FloorPlansTable,
 		FloorPlanReferencePointsTable,
 		FloorPlanScalesTable,
+		HyperlinksTable,
 		LinksTable,
 		LocationsTable,
 		LocationTypesTable,
@@ -1434,6 +1476,9 @@ func init() {
 	FloorPlansTable.ForeignKeys[1].RefTable = FloorPlanReferencePointsTable
 	FloorPlansTable.ForeignKeys[2].RefTable = FloorPlanScalesTable
 	FloorPlansTable.ForeignKeys[3].RefTable = FilesTable
+	HyperlinksTable.ForeignKeys[0].RefTable = EquipmentTable
+	HyperlinksTable.ForeignKeys[1].RefTable = LocationsTable
+	HyperlinksTable.ForeignKeys[2].RefTable = WorkOrdersTable
 	LinksTable.ForeignKeys[0].RefTable = WorkOrdersTable
 	LocationsTable.ForeignKeys[0].RefTable = LocationTypesTable
 	LocationsTable.ForeignKeys[1].RefTable = LocationsTable

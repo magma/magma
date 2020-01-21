@@ -159,6 +159,10 @@ func (equipmentResolver) Files(ctx context.Context, obj *ent.Equipment) ([]*ent.
 	return obj.QueryFiles().Where(file.Type(models.FileTypeFile.String())).All(ctx)
 }
 
+func (equipmentResolver) Hyperlinks(ctx context.Context, obj *ent.Equipment) ([]*ent.Hyperlink, error) {
+	return obj.QueryHyperlinks().All(ctx)
+}
+
 func (equipmentResolver) PositionHierarchy(ctx context.Context, eq *ent.Equipment) ([]*ent.EquipmentPosition, error) {
 	var positions []*ent.EquipmentPosition
 	ppos, err := eq.QueryParentPosition().Only(ctx)

@@ -18,6 +18,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -107,6 +108,18 @@ func (lq *LocationQuery) QueryFiles() *FileQuery {
 		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, location.FilesTable, location.FilesColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	return query
+}
+
+// QueryHyperlinks chains the current query on the hyperlinks edge.
+func (lq *LocationQuery) QueryHyperlinks() *HyperlinkQuery {
+	query := &HyperlinkQuery{config: lq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.HyperlinksTable, location.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query

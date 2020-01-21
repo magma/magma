@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -42,6 +43,7 @@ type EquipmentCreate struct {
 	work_order      map[string]struct{}
 	properties      map[string]struct{}
 	files           map[string]struct{}
+	hyperlinks      map[string]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -278,6 +280,26 @@ func (ec *EquipmentCreate) AddFiles(f ...*File) *EquipmentCreate {
 		ids[i] = f[i].ID
 	}
 	return ec.AddFileIDs(ids...)
+}
+
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (ec *EquipmentCreate) AddHyperlinkIDs(ids ...string) *EquipmentCreate {
+	if ec.hyperlinks == nil {
+		ec.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		ec.hyperlinks[ids[i]] = struct{}{}
+	}
+	return ec
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (ec *EquipmentCreate) AddHyperlinks(h ...*Hyperlink) *EquipmentCreate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return ec.AddHyperlinkIDs(ids...)
 }
 
 // Save creates the Equipment in the database.
@@ -554,6 +576,29 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges = append(spec.Edges, edge)
+	}
+	if nodes := ec.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipment.HyperlinksTable,
+			Columns: []string{equipment.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
 				},
 			},
 		}

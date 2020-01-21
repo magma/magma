@@ -133,6 +133,11 @@ func (e *Equipment) QueryFiles() *FileQuery {
 	return (&EquipmentClient{e.config}).QueryFiles(e)
 }
 
+// QueryHyperlinks queries the hyperlinks edge of the Equipment.
+func (e *Equipment) QueryHyperlinks() *HyperlinkQuery {
+	return (&EquipmentClient{e.config}).QueryHyperlinks(e)
+}
+
 // Update returns a builder for updating this Equipment.
 // Note that, you need to call Equipment.Unwrap() before calling this method, if this Equipment
 // was returned from a transaction, and the transaction was committed or rolled back.

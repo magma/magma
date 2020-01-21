@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/project"
@@ -46,6 +47,7 @@ type WorkOrderCreate struct {
 	equipment        map[string]struct{}
 	links            map[string]struct{}
 	files            map[string]struct{}
+	hyperlinks       map[string]struct{}
 	location         map[string]struct{}
 	comments         map[string]struct{}
 	properties       map[string]struct{}
@@ -264,6 +266,26 @@ func (woc *WorkOrderCreate) AddFiles(f ...*File) *WorkOrderCreate {
 		ids[i] = f[i].ID
 	}
 	return woc.AddFileIDs(ids...)
+}
+
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (woc *WorkOrderCreate) AddHyperlinkIDs(ids ...string) *WorkOrderCreate {
+	if woc.hyperlinks == nil {
+		woc.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		woc.hyperlinks[ids[i]] = struct{}{}
+	}
+	return woc
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (woc *WorkOrderCreate) AddHyperlinks(h ...*Hyperlink) *WorkOrderCreate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return woc.AddHyperlinkIDs(ids...)
 }
 
 // SetLocationID sets the location edge to Location by id.
@@ -625,6 +647,29 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges = append(spec.Edges, edge)
+	}
+	if nodes := woc.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.HyperlinksTable,
+			Columns: []string{workorder.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
 				},
 			},
 		}

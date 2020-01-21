@@ -18,6 +18,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -41,6 +42,7 @@ type LocationCreate struct {
 	parent             map[string]struct{}
 	children           map[string]struct{}
 	files              map[string]struct{}
+	hyperlinks         map[string]struct{}
 	equipment          map[string]struct{}
 	properties         map[string]struct{}
 	survey             map[string]struct{}
@@ -214,6 +216,26 @@ func (lc *LocationCreate) AddFiles(f ...*File) *LocationCreate {
 		ids[i] = f[i].ID
 	}
 	return lc.AddFileIDs(ids...)
+}
+
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (lc *LocationCreate) AddHyperlinkIDs(ids ...string) *LocationCreate {
+	if lc.hyperlinks == nil {
+		lc.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		lc.hyperlinks[ids[i]] = struct{}{}
+	}
+	return lc
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (lc *LocationCreate) AddHyperlinks(h ...*Hyperlink) *LocationCreate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return lc.AddHyperlinkIDs(ids...)
 }
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
@@ -558,6 +580,29 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges = append(spec.Edges, edge)
+	}
+	if nodes := lc.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.HyperlinksTable,
+			Columns: []string{location.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
 				},
 			},
 		}

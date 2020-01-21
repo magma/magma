@@ -115,6 +115,14 @@ type AddFloorPlanInput struct {
 	ScaleInMeters    float64        `json:"scaleInMeters"`
 }
 
+type AddHyperlinkInput struct {
+	EntityType  ImageEntity `json:"entityType"`
+	EntityID    string      `json:"entityId"`
+	URL         string      `json:"url"`
+	DisplayName *string     `json:"displayName"`
+	Category    *string     `json:"category"`
+}
+
 type AddImageInput struct {
 	EntityType  ImageEntity `json:"entityType"`
 	EntityID    string      `json:"entityId"`

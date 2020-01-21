@@ -153,6 +153,11 @@ func (wo *WorkOrder) QueryFiles() *FileQuery {
 	return (&WorkOrderClient{wo.config}).QueryFiles(wo)
 }
 
+// QueryHyperlinks queries the hyperlinks edge of the WorkOrder.
+func (wo *WorkOrder) QueryHyperlinks() *HyperlinkQuery {
+	return (&WorkOrderClient{wo.config}).QueryHyperlinks(wo)
+}
+
 // QueryLocation queries the location edge of the WorkOrder.
 func (wo *WorkOrder) QueryLocation() *LocationQuery {
 	return (&WorkOrderClient{wo.config}).QueryLocation(wo)

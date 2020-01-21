@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -53,6 +54,7 @@ type WorkOrderUpdate struct {
 	equipment             map[string]struct{}
 	links                 map[string]struct{}
 	files                 map[string]struct{}
+	hyperlinks            map[string]struct{}
 	location              map[string]struct{}
 	comments              map[string]struct{}
 	properties            map[string]struct{}
@@ -63,6 +65,7 @@ type WorkOrderUpdate struct {
 	removedEquipment      map[string]struct{}
 	removedLinks          map[string]struct{}
 	removedFiles          map[string]struct{}
+	removedHyperlinks     map[string]struct{}
 	clearedLocation       bool
 	removedComments       map[string]struct{}
 	removedProperties     map[string]struct{}
@@ -301,6 +304,26 @@ func (wou *WorkOrderUpdate) AddFiles(f ...*File) *WorkOrderUpdate {
 	return wou.AddFileIDs(ids...)
 }
 
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (wou *WorkOrderUpdate) AddHyperlinkIDs(ids ...string) *WorkOrderUpdate {
+	if wou.hyperlinks == nil {
+		wou.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		wou.hyperlinks[ids[i]] = struct{}{}
+	}
+	return wou
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (wou *WorkOrderUpdate) AddHyperlinks(h ...*Hyperlink) *WorkOrderUpdate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return wou.AddHyperlinkIDs(ids...)
+}
+
 // SetLocationID sets the location edge to Location by id.
 func (wou *WorkOrderUpdate) SetLocationID(id string) *WorkOrderUpdate {
 	if wou.location == nil {
@@ -491,6 +514,26 @@ func (wou *WorkOrderUpdate) RemoveFiles(f ...*File) *WorkOrderUpdate {
 		ids[i] = f[i].ID
 	}
 	return wou.RemoveFileIDs(ids...)
+}
+
+// RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
+func (wou *WorkOrderUpdate) RemoveHyperlinkIDs(ids ...string) *WorkOrderUpdate {
+	if wou.removedHyperlinks == nil {
+		wou.removedHyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		wou.removedHyperlinks[ids[i]] = struct{}{}
+	}
+	return wou
+}
+
+// RemoveHyperlinks removes hyperlinks edges to Hyperlink.
+func (wou *WorkOrderUpdate) RemoveHyperlinks(h ...*Hyperlink) *WorkOrderUpdate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return wou.RemoveHyperlinkIDs(ids...)
 }
 
 // ClearLocation clears the location edge to Location.
@@ -915,6 +958,52 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
+	if nodes := wou.removedHyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.HyperlinksTable,
+			Columns: []string{workorder.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := wou.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.HyperlinksTable,
+			Columns: []string{workorder.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
 	if wou.clearedLocation {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1203,6 +1292,7 @@ type WorkOrderUpdateOne struct {
 	equipment             map[string]struct{}
 	links                 map[string]struct{}
 	files                 map[string]struct{}
+	hyperlinks            map[string]struct{}
 	location              map[string]struct{}
 	comments              map[string]struct{}
 	properties            map[string]struct{}
@@ -1213,6 +1303,7 @@ type WorkOrderUpdateOne struct {
 	removedEquipment      map[string]struct{}
 	removedLinks          map[string]struct{}
 	removedFiles          map[string]struct{}
+	removedHyperlinks     map[string]struct{}
 	clearedLocation       bool
 	removedComments       map[string]struct{}
 	removedProperties     map[string]struct{}
@@ -1444,6 +1535,26 @@ func (wouo *WorkOrderUpdateOne) AddFiles(f ...*File) *WorkOrderUpdateOne {
 	return wouo.AddFileIDs(ids...)
 }
 
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (wouo *WorkOrderUpdateOne) AddHyperlinkIDs(ids ...string) *WorkOrderUpdateOne {
+	if wouo.hyperlinks == nil {
+		wouo.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		wouo.hyperlinks[ids[i]] = struct{}{}
+	}
+	return wouo
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (wouo *WorkOrderUpdateOne) AddHyperlinks(h ...*Hyperlink) *WorkOrderUpdateOne {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return wouo.AddHyperlinkIDs(ids...)
+}
+
 // SetLocationID sets the location edge to Location by id.
 func (wouo *WorkOrderUpdateOne) SetLocationID(id string) *WorkOrderUpdateOne {
 	if wouo.location == nil {
@@ -1634,6 +1745,26 @@ func (wouo *WorkOrderUpdateOne) RemoveFiles(f ...*File) *WorkOrderUpdateOne {
 		ids[i] = f[i].ID
 	}
 	return wouo.RemoveFileIDs(ids...)
+}
+
+// RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
+func (wouo *WorkOrderUpdateOne) RemoveHyperlinkIDs(ids ...string) *WorkOrderUpdateOne {
+	if wouo.removedHyperlinks == nil {
+		wouo.removedHyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		wouo.removedHyperlinks[ids[i]] = struct{}{}
+	}
+	return wouo
+}
+
+// RemoveHyperlinks removes hyperlinks edges to Hyperlink.
+func (wouo *WorkOrderUpdateOne) RemoveHyperlinks(h ...*Hyperlink) *WorkOrderUpdateOne {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return wouo.RemoveHyperlinkIDs(ids...)
 }
 
 // ClearLocation clears the location edge to Location.
@@ -2040,6 +2171,52 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if nodes := wouo.removedHyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.HyperlinksTable,
+			Columns: []string{workorder.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := wouo.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.HyperlinksTable,
+			Columns: []string{workorder.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
 				},
 			},
 		}

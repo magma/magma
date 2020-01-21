@@ -121,6 +121,11 @@ func (l *Location) QueryFiles() *FileQuery {
 	return (&LocationClient{l.config}).QueryFiles(l)
 }
 
+// QueryHyperlinks queries the hyperlinks edge of the Location.
+func (l *Location) QueryHyperlinks() *HyperlinkQuery {
+	return (&LocationClient{l.config}).QueryHyperlinks(l)
+}
+
 // QueryEquipment queries the equipment edge of the Location.
 func (l *Location) QueryEquipment() *EquipmentQuery {
 	return (&LocationClient{l.config}).QueryEquipment(l)

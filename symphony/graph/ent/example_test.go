@@ -235,6 +235,15 @@ func ExampleEquipment() {
 		SetCategory("string").
 		SaveX(ctx)
 	log.Println("file created:", f7)
+	h8 := client.Hyperlink.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetURL("string").
+		SetName("string").
+		SetCategory("string").
+		SaveX(ctx)
+	log.Println("hyperlink created:", h8)
 
 	// create equipment vertex with its edges.
 	e := client.Equipment.
@@ -251,6 +260,7 @@ func ExampleEquipment() {
 		SetWorkOrder(wo5).
 		AddProperties(pr6).
 		AddFiles(f7).
+		AddHyperlinks(h8).
 		SaveX(ctx)
 	log.Println("equipment created:", e)
 
@@ -290,6 +300,12 @@ func ExampleEquipment() {
 		log.Fatalf("failed querying files: %v", err)
 	}
 	log.Println("files found:", f7)
+
+	h8, err = e.QueryHyperlinks().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying hyperlinks: %v", err)
+	}
+	log.Println("hyperlinks found:", h8)
 
 	// Output:
 }
@@ -897,6 +913,34 @@ func ExampleFloorPlanScale() {
 
 	// Output:
 }
+func ExampleHyperlink() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the hyperlink's edges.
+
+	// create hyperlink vertex with its edges.
+	h := client.Hyperlink.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetURL("string").
+		SetName("string").
+		SetCategory("string").
+		SaveX(ctx)
+	log.Println("hyperlink created:", h)
+
+	// query edges.
+
+	// Output:
+}
 func ExampleLink() {
 	if dsn == "" {
 		return
@@ -1014,7 +1058,16 @@ func ExampleLocation() {
 		SetCategory("string").
 		SaveX(ctx)
 	log.Println("file created:", f3)
-	e4 := client.Equipment.
+	h4 := client.Hyperlink.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetURL("string").
+		SetName("string").
+		SetCategory("string").
+		SaveX(ctx)
+	log.Println("hyperlink created:", h4)
+	e5 := client.Equipment.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
@@ -1023,8 +1076,8 @@ func ExampleLocation() {
 		SetDeviceID("string").
 		SetExternalID("string").
 		SaveX(ctx)
-	log.Println("equipment created:", e4)
-	pr5 := client.Property.
+	log.Println("equipment created:", e5)
+	pr6 := client.Property.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
@@ -1037,7 +1090,7 @@ func ExampleLocation() {
 		SetRangeToVal(1).
 		SetStringVal("string").
 		SaveX(ctx)
-	log.Println("property created:", pr5)
+	log.Println("property created:", pr6)
 
 	// create location vertex with its edges.
 	l := client.Location.
@@ -1052,8 +1105,9 @@ func ExampleLocation() {
 		SetType(lt0).
 		AddChildren(l2).
 		AddFiles(f3).
-		AddEquipment(e4).
-		AddProperties(pr5).
+		AddHyperlinks(h4).
+		AddEquipment(e5).
+		AddProperties(pr6).
 		SaveX(ctx)
 	log.Println("location created:", l)
 
@@ -1076,17 +1130,23 @@ func ExampleLocation() {
 	}
 	log.Println("files found:", f3)
 
-	e4, err = l.QueryEquipment().First(ctx)
+	h4, err = l.QueryHyperlinks().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying hyperlinks: %v", err)
+	}
+	log.Println("hyperlinks found:", h4)
+
+	e5, err = l.QueryEquipment().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying equipment: %v", err)
 	}
-	log.Println("equipment found:", e4)
+	log.Println("equipment found:", e5)
 
-	pr5, err = l.QueryProperties().First(ctx)
+	pr6, err = l.QueryProperties().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying properties: %v", err)
 	}
-	log.Println("properties found:", pr5)
+	log.Println("properties found:", pr6)
 
 	// Output:
 }
@@ -2179,7 +2239,16 @@ func ExampleWorkOrder() {
 		SetCategory("string").
 		SaveX(ctx)
 	log.Println("file created:", f3)
-	l4 := client.Location.
+	h4 := client.Hyperlink.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetURL("string").
+		SetName("string").
+		SetCategory("string").
+		SaveX(ctx)
+	log.Println("hyperlink created:", h4)
+	l5 := client.Location.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
@@ -2189,16 +2258,16 @@ func ExampleWorkOrder() {
 		SetLongitude(1).
 		SetSiteSurveyNeeded(true).
 		SaveX(ctx)
-	log.Println("location created:", l4)
-	c5 := client.Comment.
+	log.Println("location created:", l5)
+	c6 := client.Comment.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetAuthorName("string").
 		SetText("string").
 		SaveX(ctx)
-	log.Println("comment created:", c5)
-	pr6 := client.Property.
+	log.Println("comment created:", c6)
+	pr7 := client.Property.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
@@ -2211,8 +2280,8 @@ func ExampleWorkOrder() {
 		SetRangeToVal(1).
 		SetStringVal("string").
 		SaveX(ctx)
-	log.Println("property created:", pr6)
-	cli7 := client.CheckListItem.
+	log.Println("property created:", pr7)
+	cli8 := client.CheckListItem.
 		Create().
 		SetTitle("string").
 		SetType("string").
@@ -2222,15 +2291,15 @@ func ExampleWorkOrder() {
 		SetEnumValues("string").
 		SetHelpText("string").
 		SaveX(ctx)
-	log.Println("checklistitem created:", cli7)
-	t8 := client.Technician.
+	log.Println("checklistitem created:", cli8)
+	t9 := client.Technician.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetName("string").
 		SetEmail("string").
 		SaveX(ctx)
-	log.Println("technician created:", t8)
+	log.Println("technician created:", t9)
 
 	// create workorder vertex with its edges.
 	wo := client.WorkOrder.
@@ -2248,11 +2317,12 @@ func ExampleWorkOrder() {
 		SetIndex(1).
 		SetType(wot0).
 		AddFiles(f3).
-		SetLocation(l4).
-		AddComments(c5).
-		AddProperties(pr6).
-		AddCheckListItems(cli7).
-		SetTechnician(t8).
+		AddHyperlinks(h4).
+		SetLocation(l5).
+		AddComments(c6).
+		AddProperties(pr7).
+		AddCheckListItems(cli8).
+		SetTechnician(t9).
 		SaveX(ctx)
 	log.Println("workorder created:", wo)
 
@@ -2269,35 +2339,41 @@ func ExampleWorkOrder() {
 	}
 	log.Println("files found:", f3)
 
-	l4, err = wo.QueryLocation().First(ctx)
+	h4, err = wo.QueryHyperlinks().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying hyperlinks: %v", err)
+	}
+	log.Println("hyperlinks found:", h4)
+
+	l5, err = wo.QueryLocation().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying location: %v", err)
 	}
-	log.Println("location found:", l4)
+	log.Println("location found:", l5)
 
-	c5, err = wo.QueryComments().First(ctx)
+	c6, err = wo.QueryComments().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying comments: %v", err)
 	}
-	log.Println("comments found:", c5)
+	log.Println("comments found:", c6)
 
-	pr6, err = wo.QueryProperties().First(ctx)
+	pr7, err = wo.QueryProperties().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying properties: %v", err)
 	}
-	log.Println("properties found:", pr6)
+	log.Println("properties found:", pr7)
 
-	cli7, err = wo.QueryCheckListItems().First(ctx)
+	cli8, err = wo.QueryCheckListItems().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying check_list_items: %v", err)
 	}
-	log.Println("check_list_items found:", cli7)
+	log.Println("check_list_items found:", cli8)
 
-	t8, err = wo.QueryTechnician().First(ctx)
+	t9, err = wo.QueryTechnician().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying technician: %v", err)
 	}
-	log.Println("technician found:", t8)
+	log.Println("technician found:", t9)
 
 	// Output:
 }
