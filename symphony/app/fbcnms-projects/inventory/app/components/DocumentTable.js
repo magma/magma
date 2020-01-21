@@ -57,7 +57,8 @@ class DocumentTable extends React.Component<Props> {
       isFile: true,
       sortingValue: getFileSortingValue(file, categoriesEnabled),
     }));
-    const hyperlinks = this.props.hyperlinks.map(hyperlink => ({
+    const hyperlinkDocuments = this.props.hyperlinks || [];
+    const hyperlinks = hyperlinkDocuments.map(hyperlink => ({
       ...hyperlink,
       isHyperlink: true,
       sortingValue: getHyperlinkSortingValue(hyperlink, categoriesEnabled),
