@@ -97,6 +97,8 @@ class RedisClient {
     const std::string& key,
     google::protobuf::Message& proto_msg);
 
+  int clear_keys(const std::vector<std::string>& keys_to_clear);
+
   bool is_connected() { return is_connected_; }
 
  private:

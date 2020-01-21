@@ -138,5 +138,18 @@ int RedisClient::read_proto(const std::string& key, Message& proto_msg)
   }
 }
 
+int RedisClient::clear_keys(const std::vector<std::string>& keys_to_clear)
+{
+  auto db_write = db_client_->del(keys_to_clear);
+  db_client_->sync_commit();
+  auto reply = db_write.get();
+
+  if (reply.is_error()) {
+    return RETURNerror;
+  }
+
+  return RETURNok;
+}
+
 } // namespace lte
 } // namespace magma
