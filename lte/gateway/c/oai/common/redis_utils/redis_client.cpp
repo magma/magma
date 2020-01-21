@@ -101,9 +101,11 @@ std::string RedisClient::read(const std::string& key)
   db_client_->sync_commit();
   auto db_read_reply = db_read_fut.get();
 
-  if (
-    db_read_reply.is_null() || db_read_reply.is_error() ||
-    !db_read_reply.is_string()) {
+  if (db_read_reply.is_null()) {
+    return "";
+  }
+
+  if(db_read_reply.is_error() || !db_read_reply.is_string()) {
     throw std::runtime_error("Could not read from redis");
   }
 

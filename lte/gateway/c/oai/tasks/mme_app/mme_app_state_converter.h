@@ -40,7 +40,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-class MmeNasStateConverter : StateConverter {
+class MmeNasStateConverter : public StateConverter {
  public:
   // Constructor
   MmeNasStateConverter();
@@ -49,13 +49,13 @@ class MmeNasStateConverter : StateConverter {
   ~MmeNasStateConverter();
 
   // Serialize mme_app_desc_t to MmeNasState proto
-  static void mme_nas_state_to_proto(
-    mme_app_desc_t* mme_nas_state_p,
+  static void state_to_proto(
+    const mme_app_desc_t* mme_nas_state_p,
     MmeNasState* state_proto);
 
   // Deserialize mme_app_desc_t from MmeNasState proto
-  static void mme_nas_proto_to_state(
-    MmeNasState* state_proto,
+  static void proto_to_state(
+    const MmeNasState& state_proto,
     mme_app_desc_t* mme_nas_state_p);
 
  private:
