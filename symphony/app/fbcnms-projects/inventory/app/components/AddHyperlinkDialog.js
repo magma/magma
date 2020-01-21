@@ -69,7 +69,7 @@ const AddHyperlinkDialog = (props: Props) => {
             fieldDisplayName: Strings.common.fields.url.label,
             value: url,
             required: true,
-            checkCallbalck: value => {
+            checkCallback: value => {
               const rightFormat = value && isUrl(value);
               return rightFormat
                 ? ''

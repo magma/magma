@@ -252,7 +252,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
                 fieldId: 'status',
                 fieldDisplayName: 'Status',
                 value: workOrder.status,
-                checkCallbalck: value =>
+                checkCallback: value =>
                   value === 'DONE' ? 'Work order is on DONE state' : '',
               });
               return (
