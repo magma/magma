@@ -13,11 +13,13 @@ import type {
   LocationDocumentsCard_location$key,
 } from './__generated__/LocationDocumentsCard_location.graphql';
 
+import AddHyperlinkButton from '../AddHyperlinkButton';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import DocumentsAddButton from '../DocumentsAddButton';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import React, {useMemo} from 'react';
+import Strings from '../../common/CommonStrings';
 import classNames from 'classnames';
 import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
@@ -25,6 +27,11 @@ import {makeStyles} from '@material-ui/styles';
 const useStyles = makeStyles(_theme => ({
   cardHasNoContent: {
     marginBottom: '0px',
+  },
+  actionButtonsContainer: {
+    '&>*': {
+      marginLeft: '8px',
+    },
   },
 }));
 
@@ -64,9 +71,12 @@ const LocationDocumentsCard = (props: Props) => {
           [classes.cardHasNoContent]: documents.length === 0,
         })}
         rightContent={
-          <DocumentsAddButton entityType="LOCATION" entityId={data.id} />
+          <div className={classes.actionButtonsContainer}>
+            <AddHyperlinkButton entityType="LOCATION" entityId={data.id} />
+            <DocumentsAddButton entityType="LOCATION" entityId={data.id} />
+          </div>
         }>
-        Documents
+        {Strings.documents.viewHeader}
       </CardHeader>
       <EntityDocumentsTable
         entityType="LOCATION"

@@ -21,6 +21,7 @@
     "classnames": "^2.2.5",
     "d3": "^5.9.2",
     "immutability-helper": "^2.9.0",
+    "is-url": "^1.2.4",
     "lodash": "^4.17.11",
     "mapbox-gl": "^0.53.0",
     "moment": "^2.24.0",
