@@ -123,7 +123,8 @@ void MmeNasStateConverter::hashtable_uint64_ts_to_proto(
     if (ht_rc == HASH_TABLE_OK) {
       (*proto_map)[keys->keys[i]] = mme_ue_id;
     } else {
-      OAILOG_ERROR(LOG_MME_APP, "Key %lu not in %s", keys->keys[i], table_name);
+      OAILOG_ERROR(LOG_MME_APP, "Key %lu not in %s", keys->keys[i],
+        table_name.c_str());
     }
   }
 
@@ -146,7 +147,7 @@ void MmeNasStateConverter::proto_to_hashtable_uint64_ts(
         LOG_MME_APP,
         "Failed to insert mme_ue_s1ap_id %u in table %s: error: %s\n",
         mme_ue_id,
-        table_name,
+        table_name.c_str(),
         hashtable_rc_code2string(ht_rc));
     }
   }
@@ -747,8 +748,8 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
 * Functions to serialize/desearialize MME app state      *
 * The caller is responsible for all memory management    *
 **********************************************************/
-void MmeNasStateConverter::mme_nas_state_to_proto(
-  mme_app_desc_t* mme_nas_state_p,
+void MmeNasStateConverter::state_to_proto(
+  const mme_app_desc_t* mme_nas_state_p,
   MmeNasState* state_proto)
 {
   state_proto->set_nb_enb_connected(mme_nas_state_p->nb_enb_connected);
@@ -790,24 +791,23 @@ void MmeNasStateConverter::mme_nas_state_to_proto(
     guti_table_to_proto(
     mme_nas_state_p->mme_ue_contexts.guti_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_guti_ue_id_htbl());*/
-  return;
 }
 
-void MmeNasStateConverter::mme_nas_proto_to_state(
-  MmeNasState* state_proto,
+void MmeNasStateConverter::proto_to_state(
+  const MmeNasState& state_proto,
   mme_app_desc_t* mme_nas_state_p)
 {
   OAILOG_INFO(LOG_MME_APP, "Converting proto to state");
-  mme_nas_state_p->nb_enb_connected = state_proto->nb_enb_connected();
-  mme_nas_state_p->nb_ue_attached = state_proto->nb_ue_attached();
-  mme_nas_state_p->nb_ue_connected = state_proto->nb_ue_connected();
+  mme_nas_state_p->nb_enb_connected = state_proto.nb_enb_connected();
+  mme_nas_state_p->nb_ue_attached = state_proto.nb_ue_attached();
+  mme_nas_state_p->nb_ue_connected = state_proto.nb_ue_connected();
   mme_nas_state_p->nb_default_eps_bearers =
-    state_proto->nb_default_eps_bearers();
-  mme_nas_state_p->nb_s1u_bearers = state_proto->nb_s1u_bearers();
+    state_proto.nb_default_eps_bearers();
+  mme_nas_state_p->nb_s1u_bearers = state_proto.nb_s1u_bearers();
   OAILOG_INFO(LOG_MME_APP, "Read MME statistics from data store");
 
   // copy mme_ue_contexts
-  MmeUeContext mme_ue_ctxts_proto = state_proto->mme_ue_contexts();
+  MmeUeContext mme_ue_ctxts_proto = state_proto.mme_ue_contexts();
   mme_nas_state_p->mme_ue_contexts.nb_ue_managed =
     mme_ue_ctxts_proto.nb_ue_managed();
   mme_nas_state_p->mme_ue_contexts.nb_ue_idle = mme_ue_ctxts_proto.nb_ue_idle();
