@@ -41,6 +41,13 @@ const addNewHyperlink = (input: AddHyperlinkInput, onError: string => void) => {
     input,
   };
 
+  const updater = store => {
+    const newNode = store.getRootField('addHyperlink');
+    const entityProxy = store.get(input.entityId);
+    const hyperlinkNodes = entityProxy.getLinkedRecords('hyperlinks') || [];
+    entityProxy.setLinkedRecords([...hyperlinkNodes, newNode], 'hyperlinks');
+  };
+
   const callbacks: MutationCallbacks<AddHyperlinkMutationResponse> = {
     onCompleted: (_, errors) => {
       if (errors && errors[0]) {
@@ -50,7 +57,7 @@ const addNewHyperlink = (input: AddHyperlinkInput, onError: string => void) => {
     onError: error => onError(error.message),
   };
 
-  AddHyperlinkMutation(variables, callbacks);
+  AddHyperlinkMutation(variables, callbacks, updater);
 };
 
 const AddHyperlinkButton = (props: Props) => {
