@@ -31,6 +31,7 @@ const styles = _theme => ({
 });
 
 type Props = WithStyles<typeof styles> & {
+  entityId: string,
   files: DocumentTable_files,
   hyperlinks: DocumentTable_hyperlinks,
   onDocumentDeleted: (file: DocumentTable_files) => void,
@@ -49,7 +50,7 @@ class DocumentTable extends React.Component<Props> {
   context: AppContextType;
 
   render() {
-    const {classes, onDocumentDeleted} = this.props;
+    const {classes, onDocumentDeleted, entityId} = this.props;
     const categoriesEnabled = this.context.isFeatureEnabled('file_categories');
     const files = this.props.files.map(file => ({
       ...file,
@@ -77,7 +78,11 @@ class DocumentTable extends React.Component<Props> {
                 />
               )) ||
               (doc.isHyperlink && (
-                <HyperlinkTableRow key={doc.id} hyperlink={doc} />
+                <HyperlinkTableRow
+                  key={doc.id}
+                  hyperlink={doc}
+                  entityId={entityId}
+                />
               )),
           )}
         </TableBody>

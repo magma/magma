@@ -2013,7 +2013,8 @@ type Mutation {
   ): EquipmentPosition
   addComment(input: CommentInput!): Comment!
   addImage(input: AddImageInput!): File
-  addHyperlink(input: AddHyperlinkInput!): Hyperlink
+  addHyperlink(input: AddHyperlinkInput!): Hyperlink!
+  deleteHyperlink(id: ID!): Hyperlink!
   deleteImage(
     """
     type of the entity whre image is at

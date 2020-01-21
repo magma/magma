@@ -31,6 +31,7 @@ const useStyles = makeStyles({
 
 type Props<TValue> = {
   className?: string,
+  menuClassName?: string,
   menuDockRight?: boolean,
   children: React.Node,
   options: Array<OptionProps<TValue>>,
@@ -44,6 +45,7 @@ type Props<TValue> = {
 
 const PopoverMenu = <TValue>({
   className,
+  menuClassName,
   children,
   leftIcon,
   rightIcon,
@@ -62,7 +64,7 @@ const PopoverMenu = <TValue>({
           {...selectMenuProps}
           onChange={onChange || emptyFunction}
           size="normal"
-          className={classNames(classes.menu, {
+          className={classNames(classes.menu, menuClassName, {
             [classes.menuDockRight]: menuDockRight,
           })}
         />

@@ -1122,6 +1122,18 @@ func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInp
 	return nil, nil
 }
 
+func (r mutationResolver) DeleteHyperlink(ctx context.Context, id string) (*ent.Hyperlink, error) {
+	client := r.ClientFrom(ctx).Hyperlink
+	h, err := client.Get(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying hyperlink: id=%q", id)
+	}
+	if err := client.DeleteOne(h).Exec(ctx); err != nil {
+		return nil, errors.Wrapf(err, "deleting hyperlink: id=%q", id)
+	}
+	return h, nil
+}
+
 func (r mutationResolver) DeleteImage(ctx context.Context, _ models.ImageEntity, _ string, id string) (*ent.File, error) {
 	client := r.ClientFrom(ctx).File
 	f, err := client.Get(ctx, id)

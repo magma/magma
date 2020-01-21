@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash e1e483b6da6dd97a02cacd9e7f6b8572
+ * @relayHash a4722d92648e451717219d1d56b50701
  */
 
 /* eslint-disable */
@@ -27,7 +27,7 @@ export type AddHyperlinkMutationVariables = {|
   input: AddHyperlinkInput
 |};
 export type AddHyperlinkMutationResponse = {|
-  +addHyperlink: ?{|
+  +addHyperlink: {|
     +id: string,
     +url: string,
     +displayName: ?string,

@@ -466,6 +466,7 @@ type ComplexityRoot struct {
 		CreateProjectType                        func(childComplexity int, input models.AddProjectTypeInput) int
 		CreateSurvey                             func(childComplexity int, data models.SurveyCreateData) int
 		DeleteFloorPlan                          func(childComplexity int, id string) int
+		DeleteHyperlink                          func(childComplexity int, id string) int
 		DeleteImage                              func(childComplexity int, entityType models.ImageEntity, entityID string, id string) int
 		DeleteProject                            func(childComplexity int, id string) int
 		DeleteProjectType                        func(childComplexity int, id string) int
@@ -1031,6 +1032,7 @@ type MutationResolver interface {
 	AddComment(ctx context.Context, input models.CommentInput) (*ent.Comment, error)
 	AddImage(ctx context.Context, input models.AddImageInput) (*ent.File, error)
 	AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error)
+	DeleteHyperlink(ctx context.Context, id string) (*ent.Hyperlink, error)
 	DeleteImage(ctx context.Context, entityType models.ImageEntity, entityID string, id string) (*ent.File, error)
 	RemoveWorkOrder(ctx context.Context, id string) (string, error)
 	ExecuteWorkOrder(ctx context.Context, id string) (*models.WorkOrderExecutionResult, error)
@@ -3000,6 +3002,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteFloorPlan(childComplexity, args["id"].(string)), true
+
+	case "Mutation.deleteHyperlink":
+		if e.complexity.Mutation.DeleteHyperlink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteHyperlink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteHyperlink(childComplexity, args["id"].(string)), true
 
 	case "Mutation.deleteImage":
 		if e.complexity.Mutation.DeleteImage == nil {
@@ -7609,7 +7623,8 @@ type Mutation {
   ): EquipmentPosition
   addComment(input: CommentInput!): Comment!
   addImage(input: AddImageInput!): File
-  addHyperlink(input: AddHyperlinkInput!): Hyperlink
+  addHyperlink(input: AddHyperlinkInput!): Hyperlink!
+  deleteHyperlink(id: ID!): Hyperlink!
   deleteImage(
     """
     type of the entity whre image is at
@@ -8187,6 +8202,20 @@ func (ec *executionContext) field_Mutation_createSurvey_args(ctx context.Context
 }
 
 func (ec *executionContext) field_Mutation_deleteFloorPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteHyperlink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -18708,12 +18737,59 @@ func (ec *executionContext) _Mutation_addHyperlink(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Hyperlink)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOHyperlink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx, field.Selections, res)
+	return ec.marshalNHyperlink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteHyperlink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteHyperlink_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteHyperlink(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Hyperlink)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNHyperlink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteImage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -37348,6 +37424,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addImage(ctx, field)
 		case "addHyperlink":
 			out.Values[i] = ec._Mutation_addHyperlink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteHyperlink":
+			out.Values[i] = ec._Mutation_deleteHyperlink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "deleteImage":
 			out.Values[i] = ec._Mutation_deleteImage(ctx, field)
 		case "removeWorkOrder":
@@ -45039,17 +45123,6 @@ func (ec *executionContext) marshalOFutureState2ᚖgithubᚗcomᚋfacebookincuba
 		return graphql.Null
 	}
 	return v
-}
-
-func (ec *executionContext) marshalOHyperlink2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx context.Context, sel ast.SelectionSet, v ent.Hyperlink) graphql.Marshaler {
-	return ec._Hyperlink(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOHyperlink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx context.Context, sel ast.SelectionSet, v *ent.Hyperlink) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Hyperlink(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {

@@ -43,10 +43,11 @@ class EntityDocumentsTable extends React.Component<Props> {
   }
 
   render() {
-    const {files, hyperlinks, className} = this.props;
+    const {files, hyperlinks, className, entityId} = this.props;
     return (
       <div className={className}>
         <DocumentTable
+          entityId={entityId}
           files={files}
           hyperlinks={hyperlinks}
           onDocumentDeleted={this.onDocumentDeleted}

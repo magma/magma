@@ -13,7 +13,8 @@ import type {HyperlinkTableRow_hyperlink} from './__generated__/HyperlinkTableRo
 import type {WithStyles} from '@material-ui/core';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
-import InsertDriveFileIcon from '@material-ui/icons/InsertDriveFile';
+import HyperlinkTableMenu from './HyperlinkTableMenu';
+import InsertLinkIcon from '@material-ui/icons/InsertLink';
 import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
@@ -24,12 +25,12 @@ import {withStyles} from '@material-ui/core/styles';
 const styles = () => ({
   cell: {
     height: '48px',
-    ...symphony.typography.caption,
   },
   nameCell: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    ...symphony.typography.caption,
   },
   thumbnail: {
     marginRight: '20px',
@@ -49,6 +50,7 @@ const styles = () => ({
 });
 
 type Props = {
+  entityId: string,
   hyperlink: HyperlinkTableRow_hyperlink,
 } & WithStyles<typeof styles>;
 
@@ -62,7 +64,7 @@ class HyperlinkTableRow extends React.Component<Props, State> {
 
   render() {
     const categoriesEnabled = this.context.isFeatureEnabled('file_categories');
-    const {classes, hyperlink} = this.props;
+    const {classes, hyperlink, entityId} = this.props;
     if (hyperlink === null) {
       return null;
     }
@@ -82,23 +84,30 @@ class HyperlinkTableRow extends React.Component<Props, State> {
           component="th"
           scope="row"
           className={classes.cell}>
-          <div className={classes.nameCell}>
+          <a
+            className={classes.nameCell}
+            href={hyperlink.url}
+            target="_blank"
+            title={hyperlink.url}>
             <div className={classes.thumbnail}>
-              <InsertDriveFileIcon color="primary" className={classes.icon} />
+              <InsertLinkIcon color="primary" className={classes.icon} />
             </div>
-            <a
-              className={classes.displayName}
-              href={hyperlink.url}
-              target="_blank"
-              title={hyperlink.url}>
+            <div className={classes.displayName}>
               {hyperlink.displayName || hyperlink.url}
-            </a>
-          </div>
+            </div>
+          </a>
         </TableCell>
         <TableCell className={classes.cell} />
         <TableCell className={classes.cell} />
         <TableCell className={classes.cell} />
-        <TableCell className={classes.cell} />
+        <TableCell
+          padding="none"
+          className={classes.cell}
+          scope="row"
+          align="right"
+          component="th">
+          <HyperlinkTableMenu entityId={entityId} hyperlink={hyperlink} />
+        </TableCell>
       </TableRow>
     );
   }
