@@ -42,6 +42,13 @@ var (
 		Labels:      map[string]string{"label": "value"},
 		Annotations: map[string]string{"annotation": "value"},
 	}
+	sampleJSONRule = alert.RuleJSONWrapper{
+		Alert:       "testAlert1",
+		Expr:        "up == 0",
+		For:         "5s",
+		Labels:      map[string]string{"label": "value"},
+		Annotations: map[string]string{"annotation": "value"},
+	}
 )
 
 const (
@@ -293,6 +300,81 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 	err = json.Unmarshal(rec.Body.Bytes(), &results)
 	assert.NoError(t, err)
 	assert.Equal(t, sampleUpdateResult, results)
+}
+
+type tenancyTestCase struct {
+	name           string
+	client         *mocks.PrometheusAlertClient
+	tenantProvider paramProvider
+	context        *echo.Context
+	expectedTenant string
+	expectedError  error
+}
+
+func (tc *tenancyTestCase) RunTest(t *testing.T) {
+	handler := func(c echo.Context) error { return nil }
+
+	tenancyFunc := tenancyMiddlewareProvider(tc.tenantProvider)
+	if tc.expectedError != nil {
+		assert.EqualError(t, tenancyFunc(handler)(*tc.context), tc.expectedError.Error())
+	} else {
+		assert.NoError(t, tenancyFunc(handler)(*tc.context))
+		assert.Equal(t, (*tc.context).Get(tenantIDParam), tc.expectedTenant)
+	}
+}
+
+func TestTenancyMiddleware(t *testing.T) {
+	e := echo.New()
+	rec := httptest.NewRecorder()
+
+	plainReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	plainContext := e.NewContext(plainReq, rec)
+
+	pathTenantContext := e.NewContext(plainReq, rec)
+	pathTenantContext.SetParamNames(tenantIDParam)
+	pathTenantContext.SetParamValues(testNID)
+
+	mtClient := &mocks.PrometheusAlertClient{}
+	mtClient.On("Tenancy").Return(&alert.TenancyConfig{RestrictorLabel: testNID})
+
+	tests := []tenancyTestCase{{
+		name:           "multi-tenant with path provided tenant",
+		client:         mtClient,
+		tenantProvider: pathTenantProvider,
+		context:        &pathTenantContext,
+		expectedTenant: testNID,
+	}, {
+		name:           "multi-tenant without path provided tenant",
+		client:         mtClient,
+		tenantProvider: pathTenantProvider,
+		context:        &plainContext,
+		expectedError:  errors.New("code=400, message=Must provide tenant_id parameter"),
+	}}
+
+	for _, test := range tests {
+		t.Run(test.name, test.RunTest)
+	}
+}
+
+func TestDecodeRulePostRequest(t *testing.T) {
+	// Successful Decode
+	c, _ := buildContext(sampleAlert1, http.MethodPost, "/", v1alertPath, testNID)
+	conf, err := decodeRulePostRequest(c)
+	assert.NoError(t, err)
+	assert.Equal(t, sampleAlert1, conf)
+
+	// Decode JSONWrapped Route
+	c, _ = buildContext(sampleJSONRule, http.MethodPost, "/", v1alertPath, testNID)
+	conf, err = decodeRulePostRequest(c)
+	assert.NoError(t, err)
+	assert.Equal(t, sampleAlert1, conf)
+
+	// error decoding route
+	c, _ = buildContext(struct {
+		Alert int `json:"alert"`
+	}{0}, http.MethodPost, "/", v1alertPath, testNID)
+	conf, err = decodeRulePostRequest(c)
+	assert.EqualError(t, err, `error unmarshalling payload: json: cannot unmarshal number into Go struct field RuleJSONWrapper.alert of type string`)
 }
 
 func buildContext(body interface{}, method, target, path, tenantID string) (echo.Context, *httptest.ResponseRecorder) {

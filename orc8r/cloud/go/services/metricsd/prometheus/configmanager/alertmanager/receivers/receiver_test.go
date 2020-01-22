@@ -199,6 +199,56 @@ func TestRouteJSONWrapper_ToPrometheusConfig(t *testing.T) {
 	route, err := jsonRoute.ToPrometheusConfig()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedRoute, route)
+
+	badGroupWait := RouteJSONWrapper{
+		Receiver:  "receiver",
+		GroupWait: "abcd",
+	}
+	route, err = badGroupWait.ToPrometheusConfig()
+	assert.EqualError(t, err, "Invalid GroupWait 'abcd': not a valid duration string: \"abcd\"")
+
+	badGroupInterval := RouteJSONWrapper{
+		Receiver:      "receiver",
+		GroupInterval: "abcd",
+	}
+	route, err = badGroupInterval.ToPrometheusConfig()
+	assert.EqualError(t, err, "Invalid GroupInterval 'abcd': not a valid duration string: \"abcd\"")
+
+	zeroGroupInterval := RouteJSONWrapper{
+		Receiver:      "receiver",
+		GroupInterval: "0s",
+	}
+	route, err = zeroGroupInterval.ToPrometheusConfig()
+	assert.EqualError(t, err, "GroupInterval cannot be 0")
+
+	badRepeatInterval := RouteJSONWrapper{
+		Receiver:       "receiver",
+		RepeatInterval: "abcd",
+	}
+	route, err = badRepeatInterval.ToPrometheusConfig()
+	assert.EqualError(t, err, "Invalid RepeatInterval 'abcd': not a valid duration string: \"abcd\"")
+
+	zeroRepeatInterval := RouteJSONWrapper{
+		Receiver:       "receiver",
+		RepeatInterval: "0s",
+	}
+	route, err = zeroRepeatInterval.ToPrometheusConfig()
+	assert.EqualError(t, err, "RepeatInterval cannot be 0")
+
+	childRoutes := RouteJSONWrapper{
+		Receiver: "parent",
+		Routes:   []*RouteJSONWrapper{{Receiver: "child1"}, {Receiver: "child2"}},
+	}
+	route, err = childRoutes.ToPrometheusConfig()
+	assert.Equal(t, 2, len(route.Routes))
+	assert.NoError(t, err)
+
+	childrenWithErrors := RouteJSONWrapper{
+		Receiver: "parent",
+		Routes:   []*RouteJSONWrapper{{Receiver: "child", RepeatInterval: "0s"}},
+	}
+	route, err = childrenWithErrors.ToPrometheusConfig()
+	assert.EqualError(t, err, "error converting child route: RepeatInterval cannot be 0")
 }
 
 func TestNewRouteJSONWrapper(t *testing.T) {
@@ -214,6 +264,7 @@ func TestNewRouteJSONWrapper(t *testing.T) {
 		GroupWait:      &fiveSeconds,
 		GroupInterval:  &sixSeconds,
 		RepeatInterval: &sevenSeconds,
+		Routes:         []*config.Route{{Receiver: "child"}},
 	}
 
 	expectedJSONRoute := RouteJSONWrapper{
@@ -224,6 +275,7 @@ func TestNewRouteJSONWrapper(t *testing.T) {
 		GroupWait:      "5s",
 		GroupInterval:  "6s",
 		RepeatInterval: "7s",
+		Routes:         []*RouteJSONWrapper{{Receiver: "child"}},
 	}
 	wrappedRoute := NewRouteJSONWrapper(origRoute)
 	assert.Equal(t, expectedJSONRoute, *wrappedRoute)

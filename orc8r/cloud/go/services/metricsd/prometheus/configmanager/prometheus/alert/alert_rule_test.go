@@ -116,6 +116,17 @@ func TestSecureRule(t *testing.T) {
 	err = alert.SecureRule(false, "tenantID", "test", &rule)
 	assert.NoError(t, err)
 	assert.Equal(t, origRule, rule.Expr)
+
+	rule = rulefmt.Rule{
+		Alert: "test",
+		Expr:  "up == 0",
+	}
+	restricted, _ = queryRestrictor.RestrictQuery(rule.Expr)
+	err = alert.SecureRule(true, "tenantID", "test", &rule)
+	assert.NoError(t, err)
+	assert.Equal(t, restricted, rule.Expr)
+	assert.Equal(t, 1, len(rule.Labels))
+	assert.Equal(t, "test", rule.Labels["tenantID"])
 }
 
 func TestRuleJSONWrapper_ToRuleFmt(t *testing.T) {

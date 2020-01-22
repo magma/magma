@@ -20,6 +20,7 @@ import (
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/config"
@@ -62,6 +63,15 @@ var (
 		GroupWait:      &fiveSeconds,
 		GroupInterval:  &fiveSeconds,
 		RepeatInterval: &fiveSeconds,
+	}
+
+	sampleJSONRoute = receivers.RouteJSONWrapper{
+		Receiver:  "testSlackReceiver",
+		GroupWait: "5s",
+	}
+	convertedSampleJSONRoute = config.Route{
+		Receiver:  "testSlackReceiver",
+		GroupWait: &fiveSeconds,
 	}
 )
 
@@ -316,12 +326,72 @@ func TestDecodeRoutePostRequest(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, sampleRoute, conf)
 
+	// Decode JSONWrapped Route
+	c, _ = buildContext(sampleJSONRoute, http.MethodPost, "/", v1receiverPath, testNID)
+	conf, err = decodeRoutePostRequest(c)
+	assert.NoError(t, err)
+	assert.Equal(t, convertedSampleJSONRoute, conf)
+
 	// error decoding route
 	c, _ = buildContext(struct {
 		Receiver bool `json:"receiver"`
 	}{false}, http.MethodPost, "/", v1receiverPath, testNID)
 	conf, err = decodeRoutePostRequest(c)
 	assert.EqualError(t, err, `error unmarshalling route: json: cannot unmarshal bool into Go struct field RouteJSONWrapper.receiver of type string`)
+}
+
+type tenancyTestCase struct {
+	name           string
+	client         *mocks.AlertmanagerClient
+	tenantProvider paramProvider
+	context        *echo.Context
+	expectedTenant string
+	expectedError  error
+}
+
+func TestTenancyMiddleware(t *testing.T) {
+	e := echo.New()
+	rec := httptest.NewRecorder()
+
+	plainReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	plainContext := e.NewContext(plainReq, rec)
+
+	pathTenantContext := e.NewContext(plainReq, rec)
+	pathTenantContext.SetParamNames(tenantIDParam)
+	pathTenantContext.SetParamValues(testNID)
+
+	mtClient := &mocks.AlertmanagerClient{}
+	mtClient.On("Tenancy").Return(&alert.TenancyConfig{RestrictorLabel: testNID})
+
+	tests := []tenancyTestCase{{
+		name:           "multi-tenant with path provided tenant",
+		client:         mtClient,
+		tenantProvider: pathTenantProvider,
+		context:        &pathTenantContext,
+		expectedTenant: testNID,
+	}, {
+		name:           "multi-tenant without path provided tenant",
+		client:         mtClient,
+		tenantProvider: pathTenantProvider,
+		context:        &plainContext,
+		expectedError:  errors.New("code=400, message=Must provide tenant_id parameter"),
+	}}
+
+	for _, test := range tests {
+		t.Run(test.name, test.runTest)
+	}
+}
+
+func (tc *tenancyTestCase) runTest(t *testing.T) {
+	handler := func(c echo.Context) error { return nil }
+
+	tenancyFunc := tenancyMiddlewareProvider(tc.client, tc.tenantProvider)
+	if tc.expectedError != nil {
+		assert.EqualError(t, tenancyFunc(handler)(*tc.context), tc.expectedError.Error())
+	} else {
+		assert.NoError(t, tenancyFunc(handler)(*tc.context))
+		assert.Equal(t, (*tc.context).Get(tenantIDParam), tc.expectedTenant)
+	}
 }
 
 func buildContext(body interface{}, method, target, path, tenantID string) (echo.Context, *httptest.ResponseRecorder) {
