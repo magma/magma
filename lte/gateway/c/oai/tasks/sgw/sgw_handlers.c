@@ -2168,7 +2168,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
       "Did not find hash table entry for teid %u"
       "for S11_NW_INITIATED_BEARER_ACTV_REQUEST\n",
       itti_s5_actv_bearer_req->s_gw_teid_S11_S4);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
   //Send ITTI message to MME APP
@@ -2179,7 +2179,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
       LOG_SPGW_APP,
       "Failed to allocate message_p for"
       "S11_NW_INITIATED_BEARER_ACTV_REQUEST\n");
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   if (message_p) {
     itti_s11_nw_init_actv_bearer_request_t* s11_actv_bearer_request =
@@ -2226,7 +2226,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
     if (!eps_bearer_ctxt_p) {
       OAILOG_ERROR(
         LOG_SPGW_APP, "Failed to allocate memory for eps_bearer_ctxt_p\n");
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
     }
     // Copy PAA from default bearer cntxt
     sgw_eps_bearer_ctxt_t* default_eps_bearer_entry_p =
@@ -2238,7 +2238,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
 
     if (!default_eps_bearer_entry_p) {
       OAILOG_ERROR(LOG_SPGW_APP, "Failed to get default bearer context\n");
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
     }
 
     eps_bearer_ctxt_p->eps_bearer_id = 0;
@@ -2273,7 +2273,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
         OAILOG_ERROR(
           LOG_SPGW_APP,
           "Failed to create temporary eps bearer context entry\n");
-        OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
       }
     }
     struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p =
@@ -2281,7 +2281,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
     if (!sgw_eps_bearer_entry_p) {
       OAILOG_ERROR(
         LOG_SPGW_APP, "Failed to allocate memory for sgw_eps_bearer_entry_p\n");
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
     }
     sgw_eps_bearer_entry_p->sgw_eps_bearer_entry = eps_bearer_ctxt_p;
     LIST_INSERT_HEAD(
