@@ -77,16 +77,6 @@ class MmeNasStateConverter : public StateConverter {
     const google::protobuf::Map<unsigned long, UeContext>& proto_map,
     hash_table_ts_t* state_htbl);
 
-  static void hashtable_uint64_ts_to_proto(
-    hash_table_uint64_ts_t* htbl,
-    google::protobuf::Map<unsigned long, unsigned long>* proto_map,
-    const std::string& table_name);
-
-  static void proto_to_hashtable_uint64_ts(
-    const google::protobuf::Map<unsigned long, unsigned long>& proto_map,
-    hash_table_uint64_ts_t* state_htbl,
-    const std::string& table_name);
-
   static void guti_table_to_proto(
     const obj_hash_table_uint64_t* guti_htbl,
     google::protobuf::Map<std::string, unsigned long>* proto_map);

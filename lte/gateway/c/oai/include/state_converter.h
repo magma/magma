@@ -135,6 +135,14 @@ class StateConverter {
     }
   }
 
+  static void hashtable_uint64_ts_to_proto(
+    hash_table_uint64_ts_t* htbl,
+    google::protobuf::Map<unsigned long, unsigned long>* proto_map);
+
+  static void proto_to_hashtable_uint64_ts(
+    const google::protobuf::Map<unsigned long, unsigned long>& proto_map,
+    hash_table_uint64_ts_t* state_htbl);
+
   static void guti_to_proto(const guti_t& guti_state, Guti* guti_proto);
 
   static void ecgi_to_proto(const ecgi_t& state_ecgi, Ecgi* ecgi_proto);
