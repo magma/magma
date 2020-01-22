@@ -68,6 +68,9 @@ class Engine : public channels::Engine {
   shared_ptr<ModelRegistry> mreg;
 
  public:
+  /*
+   * Get executor for cli layer
+   */
   shared_ptr<folly::Executor> getExecutor(
       executorRequestType requestType) const;
 
