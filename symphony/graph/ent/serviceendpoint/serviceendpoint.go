@@ -43,12 +43,18 @@ const (
 	ServiceColumn = "service_id"
 )
 
-// Columns holds all SQL columns are serviceendpoint fields.
+// Columns holds all SQL columns for serviceendpoint fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldRole,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the ServiceEndpoint type.
+var ForeignKeys = []string{
+	"service_id",
+	"port_id",
 }
 
 var (

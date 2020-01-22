@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -31,6 +33,12 @@ type SurveyQuestionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyQuestion
+	// eager-loading edges.
+	withSurvey    *SurveyQuery
+	withWifiScan  *SurveyWiFiScanQuery
+	withCellScan  *SurveyCellScanQuery
+	withPhotoData *FileQuery
+	withFKs       bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -276,6 +284,50 @@ func (sqq *SurveyQuestionQuery) Clone() *SurveyQuestionQuery {
 	}
 }
 
+//  WithSurvey tells the query-builder to eager-loads the nodes that are connected to
+// the "survey" edge. The optional arguments used to configure the query builder of the edge.
+func (sqq *SurveyQuestionQuery) WithSurvey(opts ...func(*SurveyQuery)) *SurveyQuestionQuery {
+	query := &SurveyQuery{config: sqq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sqq.withSurvey = query
+	return sqq
+}
+
+//  WithWifiScan tells the query-builder to eager-loads the nodes that are connected to
+// the "wifi_scan" edge. The optional arguments used to configure the query builder of the edge.
+func (sqq *SurveyQuestionQuery) WithWifiScan(opts ...func(*SurveyWiFiScanQuery)) *SurveyQuestionQuery {
+	query := &SurveyWiFiScanQuery{config: sqq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sqq.withWifiScan = query
+	return sqq
+}
+
+//  WithCellScan tells the query-builder to eager-loads the nodes that are connected to
+// the "cell_scan" edge. The optional arguments used to configure the query builder of the edge.
+func (sqq *SurveyQuestionQuery) WithCellScan(opts ...func(*SurveyCellScanQuery)) *SurveyQuestionQuery {
+	query := &SurveyCellScanQuery{config: sqq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sqq.withCellScan = query
+	return sqq
+}
+
+//  WithPhotoData tells the query-builder to eager-loads the nodes that are connected to
+// the "photo_data" edge. The optional arguments used to configure the query builder of the edge.
+func (sqq *SurveyQuestionQuery) WithPhotoData(opts ...func(*FileQuery)) *SurveyQuestionQuery {
+	query := &FileQuery{config: sqq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sqq.withPhotoData = query
+	return sqq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -319,30 +371,167 @@ func (sqq *SurveyQuestionQuery) Select(field string, fields ...string) *SurveyQu
 
 func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, error) {
 	var (
-		nodes []*SurveyQuestion
-		spec  = sqq.querySpec()
+		nodes   []*SurveyQuestion
+		withFKs = sqq.withFKs
+		_spec   = sqq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if sqq.withSurvey != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, surveyquestion.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &SurveyQuestion{config: sqq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, sqq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, sqq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := sqq.withSurvey; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*SurveyQuestion)
+		for i := range nodes {
+			if fk := nodes[i].survey_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(survey.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Survey = n
+			}
+		}
+	}
+
+	if query := sqq.withWifiScan; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*SurveyQuestion)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SurveyWiFiScan(func(s *sql.Selector) {
+			s.Where(sql.InValues(surveyquestion.WifiScanColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.survey_question_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_question_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.WifiScan = append(node.Edges.WifiScan, n)
+		}
+	}
+
+	if query := sqq.withCellScan; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*SurveyQuestion)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SurveyCellScan(func(s *sql.Selector) {
+			s.Where(sql.InValues(surveyquestion.CellScanColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.survey_question_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_question_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.CellScan = append(node.Edges.CellScan, n)
+		}
+	}
+
+	if query := sqq.withPhotoData; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*SurveyQuestion)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.File(func(s *sql.Selector) {
+			s.Where(sql.InValues(surveyquestion.PhotoDataColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.survey_question_photo_datum_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_question_photo_datum_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_photo_datum_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PhotoData = append(node.Edges.PhotoData, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (sqq *SurveyQuestionQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := sqq.querySpec()
-	return sqlgraph.CountNodes(ctx, sqq.driver, spec)
+	_spec := sqq.querySpec()
+	return sqlgraph.CountNodes(ctx, sqq.driver, _spec)
 }
 
 func (sqq *SurveyQuestionQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -354,7 +543,7 @@ func (sqq *SurveyQuestionQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (sqq *SurveyQuestionQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   surveyquestion.Table,
 			Columns: surveyquestion.Columns,
@@ -367,26 +556,26 @@ func (sqq *SurveyQuestionQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := sqq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := sqq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := sqq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := sqq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (sqq *SurveyQuestionQuery) sqlQuery() *sql.Selector {

@@ -33,25 +33,39 @@ type SurveyTemplateQuestion struct {
 	QuestionType string `json:"question_type,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyTemplateQuestionQuery when eager-loading is set.
+	Edges struct {
+		// Category holds the value of the category edge.
+		Category *SurveyTemplateCategory
+	} `json:"edges"`
+	category_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SurveyTemplateQuestion) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // question_title
+		&sql.NullString{}, // question_description
+		&sql.NullString{}, // question_type
+		&sql.NullInt64{},  // index
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyTemplateQuestion) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // category_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the SurveyTemplateQuestion fields.
 func (stq *SurveyTemplateQuestion) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(surveytemplatequestion.Columns); m != n {
+	if m, n := len(values), len(surveytemplatequestion.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -89,6 +103,15 @@ func (stq *SurveyTemplateQuestion) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field index", values[5])
 	} else if value.Valid {
 		stq.Index = int(value.Int64)
+	}
+	values = values[6:]
+	if len(values) == len(surveytemplatequestion.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field category_id", value)
+		} else if value.Valid {
+			stq.category_id = new(string)
+			*stq.category_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

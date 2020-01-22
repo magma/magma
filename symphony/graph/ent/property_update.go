@@ -687,7 +687,7 @@ func (pu *PropertyUpdate) ExecX(ctx context.Context) {
 }
 
 func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   property.Table,
 			Columns: property.Columns,
@@ -698,161 +698,161 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		},
 	}
 	if ps := pu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := pu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: property.FieldUpdateTime,
 		})
 	}
 	if value := pu.int_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: property.FieldIntVal,
 		})
 	}
 	if value := pu.addint_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: property.FieldIntVal,
 		})
 	}
 	if pu.clearint_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: property.FieldIntVal,
 		})
 	}
 	if value := pu.bool_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: property.FieldBoolVal,
 		})
 	}
 	if pu.clearbool_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: property.FieldBoolVal,
 		})
 	}
 	if value := pu.float_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldFloatVal,
 		})
 	}
 	if value := pu.addfloat_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldFloatVal,
 		})
 	}
 	if pu.clearfloat_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldFloatVal,
 		})
 	}
 	if value := pu.latitude_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLatitudeVal,
 		})
 	}
 	if value := pu.addlatitude_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLatitudeVal,
 		})
 	}
 	if pu.clearlatitude_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldLatitudeVal,
 		})
 	}
 	if value := pu.longitude_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLongitudeVal,
 		})
 	}
 	if value := pu.addlongitude_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLongitudeVal,
 		})
 	}
 	if pu.clearlongitude_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldLongitudeVal,
 		})
 	}
 	if value := pu.range_from_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeFromVal,
 		})
 	}
 	if value := pu.addrange_from_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeFromVal,
 		})
 	}
 	if pu.clearrange_from_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldRangeFromVal,
 		})
 	}
 	if value := pu.range_to_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeToVal,
 		})
 	}
 	if value := pu.addrange_to_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeToVal,
 		})
 	}
 	if pu.clearrange_to_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldRangeToVal,
 		})
 	}
 	if value := pu.string_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: property.FieldStringVal,
 		})
 	}
 	if pu.clearstring_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: property.FieldStringVal,
 		})
@@ -871,7 +871,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -894,7 +894,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedLocation {
 		edge := &sqlgraph.EdgeSpec{
@@ -910,7 +910,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -933,7 +933,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedEquipment {
 		edge := &sqlgraph.EdgeSpec{
@@ -949,7 +949,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -972,7 +972,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedService {
 		edge := &sqlgraph.EdgeSpec{
@@ -988,7 +988,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1011,7 +1011,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedEquipmentPort {
 		edge := &sqlgraph.EdgeSpec{
@@ -1027,7 +1027,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.equipment_port; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1050,7 +1050,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedLink {
 		edge := &sqlgraph.EdgeSpec{
@@ -1066,7 +1066,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1089,7 +1089,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedWorkOrder {
 		edge := &sqlgraph.EdgeSpec{
@@ -1105,7 +1105,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1128,7 +1128,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedProject {
 		edge := &sqlgraph.EdgeSpec{
@@ -1144,7 +1144,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.project; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1167,7 +1167,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedEquipmentValue {
 		edge := &sqlgraph.EdgeSpec{
@@ -1183,7 +1183,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.equipment_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1206,7 +1206,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedLocationValue {
 		edge := &sqlgraph.EdgeSpec{
@@ -1222,7 +1222,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.location_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1245,7 +1245,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedServiceValue {
 		edge := &sqlgraph.EdgeSpec{
@@ -1261,7 +1261,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := pu.service_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1284,9 +1284,9 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -1949,7 +1949,7 @@ func (puo *PropertyUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   property.Table,
 			Columns: property.Columns,
@@ -1961,154 +1961,154 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 		},
 	}
 	if value := puo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: property.FieldUpdateTime,
 		})
 	}
 	if value := puo.int_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: property.FieldIntVal,
 		})
 	}
 	if value := puo.addint_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: property.FieldIntVal,
 		})
 	}
 	if puo.clearint_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: property.FieldIntVal,
 		})
 	}
 	if value := puo.bool_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: property.FieldBoolVal,
 		})
 	}
 	if puo.clearbool_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: property.FieldBoolVal,
 		})
 	}
 	if value := puo.float_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldFloatVal,
 		})
 	}
 	if value := puo.addfloat_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldFloatVal,
 		})
 	}
 	if puo.clearfloat_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldFloatVal,
 		})
 	}
 	if value := puo.latitude_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLatitudeVal,
 		})
 	}
 	if value := puo.addlatitude_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLatitudeVal,
 		})
 	}
 	if puo.clearlatitude_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldLatitudeVal,
 		})
 	}
 	if value := puo.longitude_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLongitudeVal,
 		})
 	}
 	if value := puo.addlongitude_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLongitudeVal,
 		})
 	}
 	if puo.clearlongitude_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldLongitudeVal,
 		})
 	}
 	if value := puo.range_from_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeFromVal,
 		})
 	}
 	if value := puo.addrange_from_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeFromVal,
 		})
 	}
 	if puo.clearrange_from_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldRangeFromVal,
 		})
 	}
 	if value := puo.range_to_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeToVal,
 		})
 	}
 	if value := puo.addrange_to_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeToVal,
 		})
 	}
 	if puo.clearrange_to_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: property.FieldRangeToVal,
 		})
 	}
 	if value := puo.string_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: property.FieldStringVal,
 		})
 	}
 	if puo.clearstring_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: property.FieldStringVal,
 		})
@@ -2127,7 +2127,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2150,7 +2150,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedLocation {
 		edge := &sqlgraph.EdgeSpec{
@@ -2166,7 +2166,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2189,7 +2189,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedEquipment {
 		edge := &sqlgraph.EdgeSpec{
@@ -2205,7 +2205,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2228,7 +2228,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedService {
 		edge := &sqlgraph.EdgeSpec{
@@ -2244,7 +2244,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2267,7 +2267,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedEquipmentPort {
 		edge := &sqlgraph.EdgeSpec{
@@ -2283,7 +2283,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.equipment_port; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2306,7 +2306,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedLink {
 		edge := &sqlgraph.EdgeSpec{
@@ -2322,7 +2322,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2345,7 +2345,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedWorkOrder {
 		edge := &sqlgraph.EdgeSpec{
@@ -2361,7 +2361,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2384,7 +2384,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedProject {
 		edge := &sqlgraph.EdgeSpec{
@@ -2400,7 +2400,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.project; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2423,7 +2423,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedEquipmentValue {
 		edge := &sqlgraph.EdgeSpec{
@@ -2439,7 +2439,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.equipment_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2462,7 +2462,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedLocationValue {
 		edge := &sqlgraph.EdgeSpec{
@@ -2478,7 +2478,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.location_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2501,7 +2501,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedServiceValue {
 		edge := &sqlgraph.EdgeSpec{
@@ -2517,7 +2517,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := puo.service_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2540,12 +2540,12 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	pr = &Property{config: puo.config}
-	spec.Assign = pr.assignValues
-	spec.ScanValues = pr.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, puo.driver, spec); err != nil {
+	_spec.Assign = pr.assignValues
+	_spec.ScanValues = pr.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, puo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

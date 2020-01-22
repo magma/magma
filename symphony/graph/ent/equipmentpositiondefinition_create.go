@@ -165,8 +165,8 @@ func (epdc *EquipmentPositionDefinitionCreate) SaveX(ctx context.Context) *Equip
 
 func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*EquipmentPositionDefinition, error) {
 	var (
-		epd  = &EquipmentPositionDefinition{config: epdc.config}
-		spec = &sqlgraph.CreateSpec{
+		epd   = &EquipmentPositionDefinition{config: epdc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipmentpositiondefinition.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -175,7 +175,7 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 		}
 	)
 	if value := epdc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldCreateTime,
@@ -183,7 +183,7 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 		epd.CreateTime = *value
 	}
 	if value := epdc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldUpdateTime,
@@ -191,7 +191,7 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 		epd.UpdateTime = *value
 	}
 	if value := epdc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldName,
@@ -199,7 +199,7 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 		epd.Name = *value
 	}
 	if value := epdc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
@@ -207,7 +207,7 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 		epd.Index = *value
 	}
 	if value := epdc.visibility_label; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
@@ -235,7 +235,7 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epdc.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -258,15 +258,15 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, epdc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, epdc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	epd.ID = strconv.FormatInt(id, 10)
 	return epd, nil
 }

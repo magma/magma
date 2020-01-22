@@ -2,9 +2,10 @@
 # pyre-strict
 
 
+import glob
 import os.path
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Generator
 
 import filetype
 
@@ -84,6 +85,66 @@ def _add_image(
             contentType=file_type,
         ),
     )
+
+
+def list_dir(directory_path: str) -> Generator[str, None, None]:
+    files = list(glob.glob(os.path.join(directory_path, "**/**"), recursive=True))
+    for file_path in set(files):
+        if os.path.isfile(file_path):
+            yield file_path
+
+
+def add_file(
+    client: GraphqlClient, local_file_path: str, entity_type: str, entity_id: str
+) -> None:
+    """This function adds file to an entity of a given type.
+
+        Args:
+            client (object):
+                Client object
+            local_file_path (str):
+                local system path to the file
+            entity_type (str):
+                one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
+            entity_id (string):
+                valid entity ID
+
+        Returns: None
+
+        Example:
+            client.add_file(client, './document.pdf', 'LOCATION', location.id)
+    """
+    entity = {
+        "LOCATION": AddImageEntity.LOCATION,
+        "WORK_ORDER": AddImageEntity.WORK_ORDER,
+        "SITE_SURVEY": AddImageEntity.SITE_SURVEY,
+        "EQUIPMENT": AddImageEntity.EQUIPMENT,
+    }.get(entity_type, AddImageEntity.LOCATION)
+    _add_image(client, local_file_path, entity, entity_id)
+
+
+def add_files(
+    client: GraphqlClient, local_directory_path: str, entity_type: str, entity_id: str
+) -> None:
+    """This function adds all files located in folder to an entity of a given type.
+
+        Args:
+            client (object):
+                Client object
+            local_file_path (str):
+                local system path to the file
+            entity_type (str):
+                one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
+            entity_id (string):
+                valid entity ID
+
+        Returns: None
+
+        Example:
+            client.add_files(client, './documents_folder/', 'LOCATION', location.id)
+    """
+    for file in list_dir(local_directory_path):
+        add_file(client, file, entity_type, entity_id)
 
 
 def add_location_image(

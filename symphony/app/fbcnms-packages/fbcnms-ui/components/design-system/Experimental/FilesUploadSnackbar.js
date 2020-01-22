@@ -12,7 +12,7 @@ import type {UploadStatus} from './FileUploadStatus';
 
 import * as React from 'react';
 import CloseIcon from '../Icons/Navigation/CloseIcon';
-import FileUploadStatus from './FileUploadStatus';
+import FileUploadStatus, {FileUploadStatuses} from './FileUploadStatus';
 import Portal from '../Core/Portal';
 import Text from '../Text';
 import fbt from 'fbt';
@@ -24,7 +24,7 @@ import {useRef} from 'react';
 const useStyles = makeStyles({
   root: {
     position: 'absolute',
-    zIndex: 1400,
+    zIndex: 1200,
     left: '96px',
     bottom: '16px',
     backgroundColor: symphony.palette.white,
@@ -57,6 +57,7 @@ const useStyles = makeStyles({
 });
 
 export type FileItem = {
+  id: string,
   name: React.Node,
   status: UploadStatus,
   errorMessage?: React.Node,
@@ -77,7 +78,7 @@ const FilesUploadSnackbar = ({files, onClose}: Props) => {
       <div className={classes.root}>
         <div className={classes.header}>
           <Text variant="body2" color="light" className={classes.headerText}>
-            {files.every(f => f.status === 'done') ? (
+            {files.every(f => f.status === FileUploadStatuses.DONE) ? (
               <fbt desc="Amount of uploaded files">
                 <fbt:param name="Total number of files" number={true}>
                   {files.length}
@@ -85,14 +86,22 @@ const FilesUploadSnackbar = ({files, onClose}: Props) => {
                 Uploads Complete
               </fbt>
             ) : files.every(
-                f => f.status === 'done' || f.status === 'error',
+                f =>
+                  f.status === FileUploadStatuses.DONE ||
+                  f.status === FileUploadStatuses.ERROR,
               ) ? (
               <fbt desc="Amount of files uploading">
                 <fbt:param name="Number of successfuly uploaded files">
-                  {files.filter(f => f.status === 'done').length}
+                  {
+                    files.filter(f => f.status === FileUploadStatuses.DONE)
+                      .length
+                  }
                 </fbt:param>
                 Files Uploaded (<fbt:param name="Total number of files">
-                  {files.filter(f => f.status === 'error').length}
+                  {
+                    files.filter(f => f.status === FileUploadStatuses.ERROR)
+                      .length
+                  }
                 </fbt:param>{' '}
                 Errors)
               </fbt>
@@ -100,7 +109,10 @@ const FilesUploadSnackbar = ({files, onClose}: Props) => {
               <fbt desc="Amount of files uploading">
                 Uploading
                 <fbt:param name="Number of successfuly uploaded files">
-                  {files.filter(f => f.status === 'uploading').length}
+                  {
+                    files.filter(f => f.status === FileUploadStatuses.UPLOADING)
+                      .length
+                  }
                 </fbt:param>
                 {' / '}
                 <fbt:param name="Total number of files">
@@ -118,7 +130,7 @@ const FilesUploadSnackbar = ({files, onClose}: Props) => {
         <div className={classes.content} ref={thisElement}>
           {files.map(file => (
             <FileUploadStatus
-              key={String(file.name)}
+              key={file.id}
               name={file.name}
               status={file.status}
               errorMessage={file.errorMessage}

@@ -12,15 +12,22 @@ import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo"
 	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/migrate"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	client, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	client, err := ent.Open(
+		"sqlite3",
+		"file:ent?mode=memory&cache=shared&_fk=1",
+	)
 	if err != nil {
 		log.Fatal("opening ent client", err)
 	}
-	if err := client.Schema.Create(context.Background()); err != nil {
+	if err := client.Schema.Create(
+		context.Background(),
+		migrate.WithGlobalUniqueID(true),
+	); err != nil {
 		log.Fatalln("running schema migration", err)
 	}
 

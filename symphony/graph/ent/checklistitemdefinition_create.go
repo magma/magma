@@ -129,8 +129,8 @@ func (clidc *CheckListItemDefinitionCreate) SaveX(ctx context.Context) *CheckLis
 
 func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*CheckListItemDefinition, error) {
 	var (
-		clid = &CheckListItemDefinition{config: clidc.config}
-		spec = &sqlgraph.CreateSpec{
+		clid  = &CheckListItemDefinition{config: clidc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: checklistitemdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -139,7 +139,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		}
 	)
 	if value := clidc.title; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldTitle,
@@ -147,7 +147,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		clid.Title = *value
 	}
 	if value := clidc._type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldType,
@@ -155,7 +155,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		clid.Type = *value
 	}
 	if value := clidc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldIndex,
@@ -163,7 +163,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		clid.Index = *value
 	}
 	if value := clidc.enum_values; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldEnumValues,
@@ -171,7 +171,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		clid.EnumValues = value
 	}
 	if value := clidc.help_text; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldHelpText,
@@ -199,15 +199,15 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, clidc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, clidc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	clid.ID = strconv.FormatInt(id, 10)
 	return clid, nil
 }

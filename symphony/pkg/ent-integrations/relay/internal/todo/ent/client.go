@@ -26,6 +26,9 @@ type Client struct {
 	Schema *migrate.Schema
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
+
+	// additional fields for node api
+	tables tables
 }
 
 // NewClient creates a new client configured with the given options.

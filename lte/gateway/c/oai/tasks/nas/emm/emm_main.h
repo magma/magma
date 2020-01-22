@@ -62,7 +62,7 @@ emm_data_t _emm_data;
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void emm_main_initialize(mme_config_t *mme_config_p);
+void emm_main_initialize(const mme_config_t *mme_config_p);
 void emm_main_cleanup(void);
 
 #endif /* __EMM_MAIN_H__*/

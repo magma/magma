@@ -56,7 +56,7 @@ const (
 	QuestionsColumn = "survey_id"
 )
 
-// Columns holds all SQL columns are survey fields.
+// Columns holds all SQL columns for survey fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -65,6 +65,12 @@ var Columns = []string{
 	FieldOwnerName,
 	FieldCreationTimestamp,
 	FieldCompletionTimestamp,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Survey type.
+var ForeignKeys = []string{
+	"location_id",
+	"survey_source_file_id",
 }
 
 var (

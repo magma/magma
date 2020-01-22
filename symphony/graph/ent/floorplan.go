@@ -27,22 +27,48 @@ type FloorPlan struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the FloorPlanQuery when eager-loading is set.
+	Edges struct {
+		// Location holds the value of the location edge.
+		Location *Location
+		// ReferencePoint holds the value of the reference_point edge.
+		ReferencePoint *FloorPlanReferencePoint
+		// Scale holds the value of the scale edge.
+		Scale *FloorPlanScale
+		// Image holds the value of the image edge.
+		Image *File
+	} `json:"edges"`
+	location_id                   *string
+	floor_plan_reference_point_id *string
+	floor_plan_scale_id           *string
+	floor_plan_image_id           *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FloorPlan) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*FloorPlan) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // location_id
+		&sql.NullInt64{}, // floor_plan_reference_point_id
+		&sql.NullInt64{}, // floor_plan_scale_id
+		&sql.NullInt64{}, // floor_plan_image_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the FloorPlan fields.
 func (fp *FloorPlan) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(floorplan.Columns); m != n {
+	if m, n := len(values), len(floorplan.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -65,6 +91,33 @@ func (fp *FloorPlan) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field name", values[2])
 	} else if value.Valid {
 		fp.Name = value.String
+	}
+	values = values[3:]
+	if len(values) == len(floorplan.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+		} else if value.Valid {
+			fp.location_id = new(string)
+			*fp.location_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field floor_plan_reference_point_id", value)
+		} else if value.Valid {
+			fp.floor_plan_reference_point_id = new(string)
+			*fp.floor_plan_reference_point_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[2].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field floor_plan_scale_id", value)
+		} else if value.Valid {
+			fp.floor_plan_scale_id = new(string)
+			*fp.floor_plan_scale_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[3].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field floor_plan_image_id", value)
+		} else if value.Valid {
+			fp.floor_plan_image_id = new(string)
+			*fp.floor_plan_image_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

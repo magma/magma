@@ -108,8 +108,8 @@ func (ecc *EquipmentCategoryCreate) SaveX(ctx context.Context) *EquipmentCategor
 
 func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCategory, error) {
 	var (
-		ec   = &EquipmentCategory{config: ecc.config}
-		spec = &sqlgraph.CreateSpec{
+		ec    = &EquipmentCategory{config: ecc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipmentcategory.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -118,7 +118,7 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 		}
 	)
 	if value := ecc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentcategory.FieldCreateTime,
@@ -126,7 +126,7 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 		ec.CreateTime = *value
 	}
 	if value := ecc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentcategory.FieldUpdateTime,
@@ -134,7 +134,7 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 		ec.UpdateTime = *value
 	}
 	if value := ecc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentcategory.FieldName,
@@ -162,15 +162,15 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, ecc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, ecc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	ec.ID = strconv.FormatInt(id, 10)
 	return ec, nil
 }

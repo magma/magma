@@ -44,7 +44,6 @@
 #include "common_types.h"
 #include "common_defs.h"
 #include "s1ap_messages_types.h"
-#include "nas_messages_types.h"
 #include "s6a_messages_types.h"
 #include "security_types.h"
 #include "sgw_ie_defs.h"
@@ -351,9 +350,6 @@ typedef struct sgs_context_s {
  * according to 3GPP TS.23.401 #5.7.2
  */
 typedef struct ue_mm_context_s {
-  /* mutex on the ue_mm_context_t + emm_context_s + esm_context_t */
-  pthread_mutex_t recmutex;
-
   /* msisdn: The basic MSISDN of the UE. The presence is dictated by its storage
    *         in the HSS, set by S6A UPDATE LOCATION ANSWER
    */
@@ -594,10 +590,6 @@ void mme_notify_ue_context_released(
 void mme_remove_ue_context(
   mme_ue_context_t *const mme_ue_context,
   struct ue_mm_context_s *const ue_context_p);
-
-int lock_ue_contexts(ue_mm_context_t *const ue_context_p);
-
-int unlock_ue_contexts(ue_mm_context_t *const ue_context_p);
 
 /** \brief Allocate memory for a new UE context
  * @returns Pointer to the new structure, NULL if allocation failed

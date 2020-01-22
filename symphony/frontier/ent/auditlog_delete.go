@@ -43,7 +43,7 @@ func (ald *AuditLogDelete) ExecX(ctx context.Context) int {
 }
 
 func (ald *AuditLogDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: auditlog.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (ald *AuditLogDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := ald.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ald.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ald.driver, _spec)
 }
 
 // AuditLogDeleteOne is the builder for deleting a single AuditLog entity.

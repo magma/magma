@@ -112,6 +112,10 @@ func (workOrderResolver) Files(ctx context.Context, obj *ent.WorkOrder) ([]*ent.
 	return obj.QueryFiles().Where(file.Type(models.FileTypeFile.String())).All(ctx)
 }
 
+func (workOrderResolver) Hyperlinks(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Hyperlink, error) {
+	return obj.QueryHyperlinks().All(ctx)
+}
+
 func (workOrderResolver) Comments(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Comment, error) {
 	return obj.QueryComments().All(ctx)
 }

@@ -1,4 +1,8 @@
-type Todo {
+interface Node {
+  id: ID!
+}
+
+type Todo implements Node {
   id: ID!
   text: String!
 }
@@ -27,7 +31,7 @@ type TodoEdge {
 }
 
 type Query {
-  todo(id: ID!): Todo
+  node(id: ID!): Node
   todos(after: Cursor, first: Int, before: Cursor, last: Int): TodoConnection
 }
 

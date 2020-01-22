@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -34,6 +36,16 @@ type PropertyTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.PropertyType
+	// eager-loading edges.
+	withProperties            *PropertyQuery
+	withLocationType          *LocationTypeQuery
+	withEquipmentPortType     *EquipmentPortTypeQuery
+	withLinkEquipmentPortType *EquipmentPortTypeQuery
+	withEquipmentType         *EquipmentTypeQuery
+	withServiceType           *ServiceTypeQuery
+	withWorkOrderType         *WorkOrderTypeQuery
+	withProjectType           *ProjectTypeQuery
+	withFKs                   bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -327,6 +339,94 @@ func (ptq *PropertyTypeQuery) Clone() *PropertyTypeQuery {
 	}
 }
 
+//  WithProperties tells the query-builder to eager-loads the nodes that are connected to
+// the "properties" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *PropertyTypeQuery) WithProperties(opts ...func(*PropertyQuery)) *PropertyTypeQuery {
+	query := &PropertyQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withProperties = query
+	return ptq
+}
+
+//  WithLocationType tells the query-builder to eager-loads the nodes that are connected to
+// the "location_type" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *PropertyTypeQuery) WithLocationType(opts ...func(*LocationTypeQuery)) *PropertyTypeQuery {
+	query := &LocationTypeQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withLocationType = query
+	return ptq
+}
+
+//  WithEquipmentPortType tells the query-builder to eager-loads the nodes that are connected to
+// the "equipment_port_type" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *PropertyTypeQuery) WithEquipmentPortType(opts ...func(*EquipmentPortTypeQuery)) *PropertyTypeQuery {
+	query := &EquipmentPortTypeQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withEquipmentPortType = query
+	return ptq
+}
+
+//  WithLinkEquipmentPortType tells the query-builder to eager-loads the nodes that are connected to
+// the "link_equipment_port_type" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *PropertyTypeQuery) WithLinkEquipmentPortType(opts ...func(*EquipmentPortTypeQuery)) *PropertyTypeQuery {
+	query := &EquipmentPortTypeQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withLinkEquipmentPortType = query
+	return ptq
+}
+
+//  WithEquipmentType tells the query-builder to eager-loads the nodes that are connected to
+// the "equipment_type" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *PropertyTypeQuery) WithEquipmentType(opts ...func(*EquipmentTypeQuery)) *PropertyTypeQuery {
+	query := &EquipmentTypeQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withEquipmentType = query
+	return ptq
+}
+
+//  WithServiceType tells the query-builder to eager-loads the nodes that are connected to
+// the "service_type" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *PropertyTypeQuery) WithServiceType(opts ...func(*ServiceTypeQuery)) *PropertyTypeQuery {
+	query := &ServiceTypeQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withServiceType = query
+	return ptq
+}
+
+//  WithWorkOrderType tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order_type" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *PropertyTypeQuery) WithWorkOrderType(opts ...func(*WorkOrderTypeQuery)) *PropertyTypeQuery {
+	query := &WorkOrderTypeQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withWorkOrderType = query
+	return ptq
+}
+
+//  WithProjectType tells the query-builder to eager-loads the nodes that are connected to
+// the "project_type" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *PropertyTypeQuery) WithProjectType(opts ...func(*ProjectTypeQuery)) *PropertyTypeQuery {
+	query := &ProjectTypeQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withProjectType = query
+	return ptq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -370,30 +470,253 @@ func (ptq *PropertyTypeQuery) Select(field string, fields ...string) *PropertyTy
 
 func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, error) {
 	var (
-		nodes []*PropertyType
-		spec  = ptq.querySpec()
+		nodes   []*PropertyType
+		withFKs = ptq.withFKs
+		_spec   = ptq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if ptq.withLocationType != nil || ptq.withEquipmentPortType != nil || ptq.withLinkEquipmentPortType != nil || ptq.withEquipmentType != nil || ptq.withServiceType != nil || ptq.withWorkOrderType != nil || ptq.withProjectType != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, propertytype.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &PropertyType{config: ptq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, ptq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, ptq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := ptq.withProperties; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*PropertyType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Property(func(s *sql.Selector) {
+			s.Where(sql.InValues(propertytype.PropertiesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Properties = append(node.Edges.Properties, n)
+		}
+	}
+
+	if query := ptq.withLocationType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*PropertyType)
+		for i := range nodes {
+			if fk := nodes[i].location_type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(locationtype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.LocationType = n
+			}
+		}
+	}
+
+	if query := ptq.withEquipmentPortType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*PropertyType)
+		for i := range nodes {
+			if fk := nodes[i].equipment_port_type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipmentporttype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.EquipmentPortType = n
+			}
+		}
+	}
+
+	if query := ptq.withLinkEquipmentPortType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*PropertyType)
+		for i := range nodes {
+			if fk := nodes[i].link_equipment_port_type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipmentporttype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "link_equipment_port_type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.LinkEquipmentPortType = n
+			}
+		}
+	}
+
+	if query := ptq.withEquipmentType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*PropertyType)
+		for i := range nodes {
+			if fk := nodes[i].equipment_type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipmenttype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.EquipmentType = n
+			}
+		}
+	}
+
+	if query := ptq.withServiceType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*PropertyType)
+		for i := range nodes {
+			if fk := nodes[i].service_type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(servicetype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.ServiceType = n
+			}
+		}
+	}
+
+	if query := ptq.withWorkOrderType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*PropertyType)
+		for i := range nodes {
+			if fk := nodes[i].work_order_type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workordertype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrderType = n
+			}
+		}
+	}
+
+	if query := ptq.withProjectType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*PropertyType)
+		for i := range nodes {
+			if fk := nodes[i].project_type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(projecttype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.ProjectType = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
 func (ptq *PropertyTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := ptq.querySpec()
-	return sqlgraph.CountNodes(ctx, ptq.driver, spec)
+	_spec := ptq.querySpec()
+	return sqlgraph.CountNodes(ctx, ptq.driver, _spec)
 }
 
 func (ptq *PropertyTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -405,7 +728,7 @@ func (ptq *PropertyTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (ptq *PropertyTypeQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   propertytype.Table,
 			Columns: propertytype.Columns,
@@ -418,26 +741,26 @@ func (ptq *PropertyTypeQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := ptq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := ptq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := ptq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := ptq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (ptq *PropertyTypeQuery) sqlQuery() *sql.Selector {

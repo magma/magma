@@ -35,7 +35,6 @@
 #include "emm_proc.h"
 #include "emm_sap.h"
 #include "esm_sap.h"
-#include "nas_itti_messaging.h"
 #include "service303.h"
 #include "3gpp_36.401.h"
 #include "DetachRequest.h"
@@ -301,7 +300,6 @@ int emm_proc_sgs_detach_request(
         sgs_detach_type);
     }
   }
-  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 /****************************************************************************
@@ -415,7 +413,6 @@ int emm_proc_detach_request(
         "Do not clear emm context for UE Initiated IMSI Detach Request "
         " for the UE (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
         ue_id);
-      emm_context_unlock(emm_ctx);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
   }
@@ -429,13 +426,11 @@ int emm_proc_detach_request(
     emm_sap.u.emm_reg.ue_id = ue_id;
     emm_sap.u.emm_reg.ctx = emm_ctx;
     rc = emm_sap_send(&emm_sap);
-    emm_context_unlock(emm_ctx);
-    // Notify MME APP to trigger Session release towards SGW and S1 signaling release towards S1AP.
+    /* Notify MME APP to trigger Session release towards SGW and S1 signaling
+     * release towards S1AP.
+     */
     mme_app_handle_detach_req(ue_id);
-  } else {
-    emm_context_unlock(emm_ctx);
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
@@ -493,12 +488,10 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id)
     emm_sap.u.emm_reg.ue_id = ue_id;
     emm_sap.u.emm_reg.ctx = emm_ctx;
     emm_sap_send(&emm_sap);
-    emm_context_unlock(emm_ctx);
     // Notify MME APP to trigger Session release towards SGW and S1 signaling release towards S1AP.
     mme_app_handle_detach_req(ue_id);
   } else {
     emm_ctx->is_imsi_only_detach = false;
-    emm_context_unlock(emm_ctx);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
@@ -591,7 +584,6 @@ int emm_proc_nw_initiated_detach_request(
       emm_ctx->t3422_arg = (void *) data;
     }
   }
-  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 //------------------------------------------------------------------------------

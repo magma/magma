@@ -28,24 +28,34 @@ type Comment struct {
 	// AuthorName holds the value of the "author_name" field.
 	AuthorName string `json:"author_name,omitempty"`
 	// Text holds the value of the "text" field.
-	Text string `json:"text,omitempty"`
+	Text                  string `json:"text,omitempty"`
+	project_comment_id    *string
+	work_order_comment_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Comment) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // author_name
+		&sql.NullString{}, // text
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Comment) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // project_comment_id
+		&sql.NullInt64{}, // work_order_comment_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Comment fields.
 func (c *Comment) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(comment.Columns); m != n {
+	if m, n := len(values), len(comment.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -73,6 +83,21 @@ func (c *Comment) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field text", values[3])
 	} else if value.Valid {
 		c.Text = value.String
+	}
+	values = values[4:]
+	if len(values) == len(comment.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_comment_id", value)
+		} else if value.Valid {
+			c.project_comment_id = new(string)
+			*c.project_comment_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_comment_id", value)
+		} else if value.Valid {
+			c.work_order_comment_id = new(string)
+			*c.work_order_comment_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

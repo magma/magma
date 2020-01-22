@@ -1115,6 +1115,36 @@ func HasFilesWith(preds ...predicate.File) predicate.Equipment {
 	)
 }
 
+// HasHyperlinks applies the HasEdge predicate on the "hyperlinks" edge.
+func HasHyperlinks() predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HyperlinksTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HyperlinksTable, HyperlinksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	},
+	)
+}
+
+// HasHyperlinksWith applies the HasEdge predicate on the "hyperlinks" edge with a given conditions (other predicates).
+func HasHyperlinksWith(preds ...predicate.Hyperlink) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HyperlinksInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HyperlinksTable, HyperlinksColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	},
+	)
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.Equipment) predicate.Equipment {
 	return predicate.Equipment(

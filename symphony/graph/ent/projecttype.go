@@ -29,23 +29,33 @@ type ProjectType struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description *string `json:"description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProjectTypeQuery when eager-loading is set.
+	Edges struct {
+		// Projects holds the value of the projects edge.
+		Projects []*Project
+		// Properties holds the value of the properties edge.
+		Properties []*PropertyType
+		// WorkOrders holds the value of the work_orders edge.
+		WorkOrders []*WorkOrderDefinition
+	} `json:"edges"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ProjectType) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // description
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ProjectType fields.
 func (pt *ProjectType) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(projecttype.Columns); m != n {
+	if m, n := len(values), len(projecttype.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

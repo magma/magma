@@ -35,6 +35,7 @@ setup(
         'magma.pipelined.qos',
         'magma.pkt_tester',
         'magma.policydb',
+        'magma.policydb.servicers',
         'magma.redirectd',
         'magma.redirectd.templates',
         'magma.subscriberdb',

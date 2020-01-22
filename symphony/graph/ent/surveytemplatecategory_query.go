@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -28,6 +30,9 @@ type SurveyTemplateCategoryQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyTemplateCategory
+	// eager-loading edges.
+	withSurveyTemplateQuestions *SurveyTemplateQuestionQuery
+	withFKs                     bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -237,6 +242,17 @@ func (stcq *SurveyTemplateCategoryQuery) Clone() *SurveyTemplateCategoryQuery {
 	}
 }
 
+//  WithSurveyTemplateQuestions tells the query-builder to eager-loads the nodes that are connected to
+// the "survey_template_questions" edge. The optional arguments used to configure the query builder of the edge.
+func (stcq *SurveyTemplateCategoryQuery) WithSurveyTemplateQuestions(opts ...func(*SurveyTemplateQuestionQuery)) *SurveyTemplateCategoryQuery {
+	query := &SurveyTemplateQuestionQuery{config: stcq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stcq.withSurveyTemplateQuestions = query
+	return stcq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -280,30 +296,75 @@ func (stcq *SurveyTemplateCategoryQuery) Select(field string, fields ...string) 
 
 func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyTemplateCategory, error) {
 	var (
-		nodes []*SurveyTemplateCategory
-		spec  = stcq.querySpec()
+		nodes   []*SurveyTemplateCategory
+		withFKs = stcq.withFKs
+		_spec   = stcq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, surveytemplatecategory.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &SurveyTemplateCategory{config: stcq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, stcq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, stcq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := stcq.withSurveyTemplateQuestions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*SurveyTemplateCategory)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SurveyTemplateQuestion(func(s *sql.Selector) {
+			s.Where(sql.InValues(surveytemplatecategory.SurveyTemplateQuestionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.category_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "category_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.SurveyTemplateQuestions = append(node.Edges.SurveyTemplateQuestions, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (stcq *SurveyTemplateCategoryQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := stcq.querySpec()
-	return sqlgraph.CountNodes(ctx, stcq.driver, spec)
+	_spec := stcq.querySpec()
+	return sqlgraph.CountNodes(ctx, stcq.driver, _spec)
 }
 
 func (stcq *SurveyTemplateCategoryQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -315,7 +376,7 @@ func (stcq *SurveyTemplateCategoryQuery) sqlExist(ctx context.Context) (bool, er
 }
 
 func (stcq *SurveyTemplateCategoryQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   surveytemplatecategory.Table,
 			Columns: surveytemplatecategory.Columns,
@@ -328,26 +389,26 @@ func (stcq *SurveyTemplateCategoryQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := stcq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := stcq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := stcq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := stcq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (stcq *SurveyTemplateCategoryQuery) sqlQuery() *sql.Selector {

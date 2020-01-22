@@ -116,20 +116,6 @@ func newResolver(t *testing.T, drv dialect.Driver) (*TestExporterResolver, error
 	return &TestExporterResolver{r, drv, client, e}, nil
 }
 
-/*
-	helper: data now is of type:
-	loc(grandParent):
-		loc(parent):
-			loc(child):
-					parentEquipment(equipmentType): with portType1 (has 2 string props)
-					childEquipment(equipmentType2): (no props props)
-					these ports are linked together
-	services:
-		firstService:
-				endpoints: parentEquipment consumer, childEquipment provider
-		secondService:
-				endpoints: parentEquipment consumer
-*/
 func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	mr := r.Mutation()
 
@@ -351,6 +337,20 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 		PortID: portID2,
 		Role:   models.ServiceEndpointRoleProvider,
 	})
+	/*
+		helper: data now is of type:
+		loc(grandParent):
+			loc(parent):
+				loc(child):
+						parentEquipment(equipmentType): with portType1 (has 2 string props)
+						childEquipment(equipmentType2): (no props props)
+						these ports are linked together
+		services:
+			firstService:
+					endpoints: parentEquipment consumer, childEquipment provider
+			secondService:
+					endpoints: parentEquipment consumer
+	*/
 }
 
 func prepareLinksPortsAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
@@ -371,13 +371,13 @@ func prepareLinksPortsAndExport(t *testing.T, r *TestExporterResolver, e http.Ha
 	return ctx, res
 }
 
-func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity importer.ImportEntity) {
+func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity importer.ImportEntity, method method) {
 	readr := csv.NewReader(r)
 	var buf *bytes.Buffer
 	var contentType, url string
 	switch entity {
 	case importer.ImportEntityLink:
-		buf, contentType = writeModifiedLinksCSV(t, readr)
+		buf, contentType = writeModifiedLinksCSV(t, readr, method)
 	case importer.ImportEntityPort:
 		buf, contentType = writeModifiedPortsCSV(t, readr)
 		fmt.Println("contentType", contentType)

@@ -184,8 +184,8 @@ func (lc *LinkCreate) SaveX(ctx context.Context) *Link {
 
 func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 	var (
-		l    = &Link{config: lc.config}
-		spec = &sqlgraph.CreateSpec{
+		l     = &Link{config: lc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: link.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -194,7 +194,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 		}
 	)
 	if value := lc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: link.FieldCreateTime,
@@ -202,7 +202,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 		l.CreateTime = *value
 	}
 	if value := lc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: link.FieldUpdateTime,
@@ -210,7 +210,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 		l.UpdateTime = *value
 	}
 	if value := lc.future_state; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: link.FieldFutureState,
@@ -238,7 +238,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -261,7 +261,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -284,7 +284,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -307,15 +307,15 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, lc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, lc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	l.ID = strconv.FormatInt(id, 10)
 	return l, nil
 }

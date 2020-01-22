@@ -27,6 +27,7 @@ type FileQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.File
+	withFKs    bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -267,30 +268,42 @@ func (fq *FileQuery) Select(field string, fields ...string) *FileSelect {
 
 func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
 	var (
-		nodes []*File
-		spec  = fq.querySpec()
+		nodes   []*File
+		withFKs = fq.withFKs
+		_spec   = fq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, file.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &File{config: fq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, fq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, fq.driver, _spec); err != nil {
 		return nil, err
+	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (fq *FileQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := fq.querySpec()
-	return sqlgraph.CountNodes(ctx, fq.driver, spec)
+	_spec := fq.querySpec()
+	return sqlgraph.CountNodes(ctx, fq.driver, _spec)
 }
 
 func (fq *FileQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,7 +315,7 @@ func (fq *FileQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   file.Table,
 			Columns: file.Columns,
@@ -315,26 +328,26 @@ func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := fq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := fq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := fq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := fq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (fq *FileQuery) sqlQuery() *sql.Selector {

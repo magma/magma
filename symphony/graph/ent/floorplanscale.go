@@ -40,21 +40,21 @@ type FloorPlanScale struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FloorPlanScale) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullFloat64{},
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullInt64{},   // reference_point1_x
+		&sql.NullInt64{},   // reference_point1_y
+		&sql.NullInt64{},   // reference_point2_x
+		&sql.NullInt64{},   // reference_point2_y
+		&sql.NullFloat64{}, // scale_in_meters
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the FloorPlanScale fields.
 func (fps *FloorPlanScale) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(floorplanscale.Columns); m != n {
+	if m, n := len(values), len(floorplanscale.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

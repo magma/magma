@@ -145,8 +145,8 @@ func (wodc *WorkOrderDefinitionCreate) SaveX(ctx context.Context) *WorkOrderDefi
 
 func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderDefinition, error) {
 	var (
-		wod  = &WorkOrderDefinition{config: wodc.config}
-		spec = &sqlgraph.CreateSpec{
+		wod   = &WorkOrderDefinition{config: wodc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: workorderdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -155,7 +155,7 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 		}
 	)
 	if value := wodc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workorderdefinition.FieldCreateTime,
@@ -163,7 +163,7 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 		wod.CreateTime = *value
 	}
 	if value := wodc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workorderdefinition.FieldUpdateTime,
@@ -171,7 +171,7 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 		wod.UpdateTime = *value
 	}
 	if value := wodc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: workorderdefinition.FieldIndex,
@@ -199,7 +199,7 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := wodc.project_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -222,15 +222,15 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, wodc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, wodc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	wod.ID = strconv.FormatInt(id, 10)
 	return wod, nil
 }

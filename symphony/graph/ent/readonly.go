@@ -38,6 +38,7 @@ func (c *Client) ReadOnly() *Client {
 		FloorPlan:                   NewFloorPlanClient(cfg),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
 		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),

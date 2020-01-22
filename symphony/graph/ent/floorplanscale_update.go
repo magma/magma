@@ -158,7 +158,7 @@ func (fpsu *FloorPlanScaleUpdate) ExecX(ctx context.Context) {
 }
 
 func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   floorplanscale.Table,
 			Columns: floorplanscale.Columns,
@@ -169,90 +169,90 @@ func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error
 		},
 	}
 	if ps := fpsu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := fpsu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplanscale.FieldUpdateTime,
 		})
 	}
 	if value := fpsu.reference_point1_x; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1X,
 		})
 	}
 	if value := fpsu.addreference_point1_x; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1X,
 		})
 	}
 	if value := fpsu.reference_point1_y; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1Y,
 		})
 	}
 	if value := fpsu.addreference_point1_y; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1Y,
 		})
 	}
 	if value := fpsu.reference_point2_x; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2X,
 		})
 	}
 	if value := fpsu.addreference_point2_x; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2X,
 		})
 	}
 	if value := fpsu.reference_point2_y; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2Y,
 		})
 	}
 	if value := fpsu.addreference_point2_y; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2Y,
 		})
 	}
 	if value := fpsu.scale_in_meters; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
 	}
 	if value := fpsu.addscale_in_meters; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, fpsu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, fpsu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -396,7 +396,7 @@ func (fpsuo *FloorPlanScaleUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (fpsuo *FloorPlanScaleUpdateOne) sqlSave(ctx context.Context) (fps *FloorPlanScale, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   floorplanscale.Table,
 			Columns: floorplanscale.Columns,
@@ -408,86 +408,86 @@ func (fpsuo *FloorPlanScaleUpdateOne) sqlSave(ctx context.Context) (fps *FloorPl
 		},
 	}
 	if value := fpsuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplanscale.FieldUpdateTime,
 		})
 	}
 	if value := fpsuo.reference_point1_x; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1X,
 		})
 	}
 	if value := fpsuo.addreference_point1_x; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1X,
 		})
 	}
 	if value := fpsuo.reference_point1_y; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1Y,
 		})
 	}
 	if value := fpsuo.addreference_point1_y; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1Y,
 		})
 	}
 	if value := fpsuo.reference_point2_x; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2X,
 		})
 	}
 	if value := fpsuo.addreference_point2_x; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2X,
 		})
 	}
 	if value := fpsuo.reference_point2_y; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2Y,
 		})
 	}
 	if value := fpsuo.addreference_point2_y; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2Y,
 		})
 	}
 	if value := fpsuo.scale_in_meters; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
 	}
 	if value := fpsuo.addscale_in_meters; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
 	}
 	fps = &FloorPlanScale{config: fpsuo.config}
-	spec.Assign = fps.assignValues
-	spec.ScanValues = fps.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, fpsuo.driver, spec); err != nil {
+	_spec.Assign = fps.assignValues
+	_spec.ScanValues = fps.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, fpsuo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

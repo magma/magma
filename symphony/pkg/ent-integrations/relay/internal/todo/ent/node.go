@@ -1,9 +1,21 @@
-{{ define "node" }}
-{{ template "header" $ }}
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// Code generated (@generated) by entc, DO NOT EDIT.
+
+package ent
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"sync"
+	"sync/atomic"
+
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
 
 	"golang.org/x/sync/semaphore"
 )
@@ -15,7 +27,7 @@ type Noder interface {
 
 // Node in the graph.
 type Node struct {
-	ID 	   {{ $.IDType }} `json:"id,omitemty"` // node id.
+	ID     int      `json:"id,omitemty"`      // node id.
 	Type   string   `json:"type,omitempty"`   // node type.
 	Fields []*Field `json:"fields,omitempty"` // node fields.
 	Edges  []*Edge  `json:"edges,omitempty"`  // node edges.
@@ -30,57 +42,31 @@ type Field struct {
 
 // Edges between two nodes.
 type Edge struct {
-	Type string   `json:"type,omitempty"` // edge type.
-	Name string   `json:"name,omitempty"` // edge name.
-	IDs  []{{ $.IDType }} `json:"ids,omitempty"`  // node ids (where this edge point to).
+	Type string `json:"type,omitempty"` // edge type.
+	Name string `json:"name,omitempty"` // edge name.
+	IDs  []int  `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
-{{/* loop over all types and add implement the Node interface. */}}
-{{ range $_, $n := $.Nodes -}}
-	{{ $receiver := $n.Receiver }}
-	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
-		node = &Node{
-			ID: {{ $receiver }}.ID,
-			Type: "{{ $n.Name }}",
-			Fields: make([]*Field, {{ len $n.Fields }}),
-			Edges: make([]*Edge, {{ len $n.Edges }}),
-		}
-		{{- with $n.Fields }}
-			var buf []byte
-			{{- range $i, $f := $n.Fields }}
-				if buf, err = json.Marshal({{ $receiver }}.{{ pascal $f.Name }}); err != nil {
-					return nil, err
-				}
-				node.Fields[{{ $i }}] = &Field{
-					Type:  "{{ $f.Type }}",
-					Name:  "{{ pascal $f.Name }}",
-					Value: string(buf),
-				}
-			{{- end }}
-		{{- end }}
-		{{- with $n.Edges }}
-			var ids []{{ $.IDType }}
-			{{- range $i, $e := $n.Edges }}
-				ids, err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
-					Select({{ $e.Type.Package }}.FieldID).
-					{{ pascal $.IDType.String }}s(ctx)
-				if err != nil {
-					return nil, err
-				}
-				node.Edges[{{ $i }}] = &Edge{
-					IDs: ids,
-					Type: "{{ $e.Type.Name }}",
-					Name: "{{ pascal $e.Name }}",
-				}
-			{{- end }}
-		{{- end }}
-		return node, nil
+func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     t.ID,
+		Type:   "Todo",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 0),
 	}
-{{ end }}
+	var buf []byte
+	if buf, err = json.Marshal(t.Text); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "Text",
+		Value: string(buf),
+	}
+	return node, nil
+}
 
-{{/* add the node api to the client */}}
-
-func (c *Client) Node(ctx context.Context, id {{ $.IDType }}) (*Node, error) {
+func (c *Client) Node(ctx context.Context, id int) (*Node, error) {
 	n, err := c.Noder(ctx, id)
 	if err != nil {
 		return nil, err
@@ -88,36 +74,26 @@ func (c *Client) Node(ctx context.Context, id {{ $.IDType }}) (*Node, error) {
 	return n.Node(ctx)
 }
 
-func (c *Client) Noder(ctx context.Context, id {{ $.IDType }}) (Noder, error) {
+func (c *Client) Noder(ctx context.Context, id int) (Noder, error) {
 	tables, err := c.tables.Load(ctx, c.driver)
 	if err != nil {
 		return nil, err
 	}
-	{{- if not $.IDType.Numeric }}
-		idv, err := strconv.Atoi(id)
-		if err != nil {
-			return nil, fmt.Errorf("%v: %w", err, &ErrNotFound{"invalid/unknown"})
-		}
-		idx := idv/(1<<32 - 1)
-	{{- else }}
-		idx := id/(1<<32 - 1)
-	{{- end }}
+	idx := id / (1<<32 - 1)
 	if idx < 0 || idx >= len(tables) {
 		return nil, fmt.Errorf("cannot resolve table from id %v: %w", id, &ErrNotFound{"invalid/unknown"})
 	}
 	return c.noder(ctx, tables[idx], id)
 }
 
-func (c *Client) noder(ctx context.Context, tbl string, id {{ $.IDType }}) (Noder, error) {
+func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 	switch tbl {
-	{{- range $_, $n := $.Nodes }}
-	case {{ $n.Package }}.Table:
-		n, err := c.{{ $n.Name }}.Get(ctx, id)
+	case todo.Table:
+		n, err := c.Todo.Get(ctx, id)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
-	{{- end }}
 	default:
 		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", tbl, &ErrNotFound{"invalid/unknown"})
 	}
@@ -125,8 +101,8 @@ func (c *Client) noder(ctx context.Context, tbl string, id {{ $.IDType }}) (Node
 
 type (
 	tables struct {
-		once sync.Once
-		sem *semaphore.Weighted
+		once  sync.Once
+		sem   *semaphore.Weighted
 		value atomic.Value
 	}
 
@@ -167,9 +143,3 @@ func (tables) load(ctx context.Context, querier querier) ([]string, error) {
 	var tables []string
 	return tables, sql.ScanSlice(rows, &tables)
 }
-{{ end }}
-
-{{ define "client/fields/additional" }}
-	// additional fields for node api
-	tables tables
-{{ end }}

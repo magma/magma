@@ -268,29 +268,34 @@ func (fpsq *FloorPlanScaleQuery) Select(field string, fields ...string) *FloorPl
 func (fpsq *FloorPlanScaleQuery) sqlAll(ctx context.Context) ([]*FloorPlanScale, error) {
 	var (
 		nodes []*FloorPlanScale
-		spec  = fpsq.querySpec()
+		_spec = fpsq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &FloorPlanScale{config: fpsq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, fpsq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, fpsq.driver, _spec); err != nil {
 		return nil, err
+	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := fpsq.querySpec()
-	return sqlgraph.CountNodes(ctx, fpsq.driver, spec)
+	_spec := fpsq.querySpec()
+	return sqlgraph.CountNodes(ctx, fpsq.driver, _spec)
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,7 +307,7 @@ func (fpsq *FloorPlanScaleQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (fpsq *FloorPlanScaleQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   floorplanscale.Table,
 			Columns: floorplanscale.Columns,
@@ -315,26 +320,26 @@ func (fpsq *FloorPlanScaleQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := fpsq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := fpsq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := fpsq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := fpsq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlQuery() *sql.Selector {

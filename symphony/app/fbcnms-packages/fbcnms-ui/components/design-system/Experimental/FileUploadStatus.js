@@ -55,7 +55,13 @@ const useStyles = makeStyles({
   },
 });
 
-export type UploadStatus = 'uploading' | 'error' | 'done';
+export const FileUploadStatuses = {
+  UPLOADING: 'uploading',
+  ERROR: 'error',
+  DONE: 'done',
+};
+
+export type UploadStatus = $Values<typeof FileUploadStatuses>;
 
 type Props = {
   name: React.Node,
@@ -65,7 +71,7 @@ type Props = {
 
 const StatusIcon = ({status}) => {
   const classes = useStyles();
-  if (status === 'uploading') {
+  if (status === FileUploadStatuses.UPLOADING) {
     return (
       <div className={classes.icon}>
         <CircularProgress color="primary" size={16.67} />
@@ -73,7 +79,7 @@ const StatusIcon = ({status}) => {
     );
   }
 
-  return status === 'done' ? (
+  return status === FileUploadStatuses.DONE ? (
     <CheckCircleIcon fontSize="small" color="primary" />
   ) : (
     <ErrorIcon fontSize="small" color="error" />

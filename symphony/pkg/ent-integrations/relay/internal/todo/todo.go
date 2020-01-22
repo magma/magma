@@ -6,6 +6,7 @@ package todo
 
 import (
 	"context"
+	"errors"
 
 	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent"
 )
@@ -13,29 +14,40 @@ import (
 func New(client *ent.Client) Config {
 	return Config{
 		Resolvers: &resolvers{
-			client: client.Todo,
+			client: client,
 		},
 	}
 }
 
-type resolvers struct{ client *ent.TodoClient }
+type resolvers struct{ client *ent.Client }
 
-func (r *resolvers) Todo(ctx context.Context, id int) (*ent.Todo, error) {
-	return r.client.Get(ctx, id)
+func (r *resolvers) Node(ctx context.Context, id int) (ent.Noder, error) {
+	node, err := r.client.Noder(ctx, id)
+	if err == nil {
+		return node, nil
+	}
+	var e *ent.ErrNotFound
+	if errors.As(err, &e) {
+		err = nil
+	}
+	return nil, err
 }
 
 func (r *resolvers) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.TodoConnection, error) {
-	return r.client.Query().Paginate(ctx, after, first, before, last)
+	return r.client.Todo.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (r *resolvers) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
-	return r.client.Create().
+	return r.client.Todo.
+		Create().
 		SetText(todo.Text).
 		Save(ctx)
 }
 
 func (r *resolvers) ClearTodos(ctx context.Context) (int, error) {
-	return r.client.Delete().
+	return r.client.Todo.
+		Delete().
 		Exec(ctx)
 }
 

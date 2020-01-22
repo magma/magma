@@ -28,7 +28,7 @@ export type FormInputValueValidation = {
   required?: boolean,
   range?: Range,
   // eslint-disable-next-line flowtype/no-weak-types
-  checkCallbalck?: (value?: ?any) => string,
+  checkCallback?: (value?: ?any) => string,
 };
 
 type FormIssuesContainer = {
@@ -116,8 +116,8 @@ const FormValidationMaintainer = function() {
   );
   const checkOuterCallback = useCallback(
     validationInfo =>
-      (validationInfo.checkCallbalck &&
-        validationInfo.checkCallbalck(validationInfo.value)) ||
+      (validationInfo.checkCallback &&
+        validationInfo.checkCallback(validationInfo.value)) ||
       null,
     [],
   );

@@ -68,7 +68,7 @@ const (
 	EndpointsColumn = "service_id"
 )
 
-// Columns holds all SQL columns are service fields.
+// Columns holds all SQL columns for service fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -76,6 +76,11 @@ var Columns = []string{
 	FieldName,
 	FieldExternalID,
 	FieldStatus,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Service type.
+var ForeignKeys = []string{
+	"type_id",
 }
 
 var (

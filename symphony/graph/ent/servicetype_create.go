@@ -149,8 +149,8 @@ func (stc *ServiceTypeCreate) SaveX(ctx context.Context) *ServiceType {
 
 func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error) {
 	var (
-		st   = &ServiceType{config: stc.config}
-		spec = &sqlgraph.CreateSpec{
+		st    = &ServiceType{config: stc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: servicetype.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -159,7 +159,7 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 		}
 	)
 	if value := stc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: servicetype.FieldCreateTime,
@@ -167,7 +167,7 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 		st.CreateTime = *value
 	}
 	if value := stc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: servicetype.FieldUpdateTime,
@@ -175,7 +175,7 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 		st.UpdateTime = *value
 	}
 	if value := stc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: servicetype.FieldName,
@@ -183,7 +183,7 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 		st.Name = *value
 	}
 	if value := stc.has_customer; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: servicetype.FieldHasCustomer,
@@ -211,7 +211,7 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := stc.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -234,15 +234,15 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, stc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, stc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	st.ID = strconv.FormatInt(id, 10)
 	return st, nil
 }

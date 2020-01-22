@@ -96,6 +96,10 @@ func (locationResolver) Files(ctx context.Context, obj *ent.Location) ([]*ent.Fi
 	return obj.QueryFiles().Where(file.Type(models.FileTypeFile.String())).All(ctx)
 }
 
+func (locationResolver) Hyperlinks(ctx context.Context, obj *ent.Location) ([]*ent.Hyperlink, error) {
+	return obj.QueryHyperlinks().All(ctx)
+}
+
 type topologist struct {
 	equipment sync.Map
 	links     sync.Map

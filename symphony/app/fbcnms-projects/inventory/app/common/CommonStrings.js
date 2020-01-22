@@ -20,6 +20,10 @@ const Strings = {
       'Unassigned',
       'Text to be displayed in case an assignable item was not assigned yet',
     )}`,
+    okButton: `${fbt(
+      'OK',
+      'Text for button approving message or dialog content',
+    )}`,
     cancelButton: `${fbt(
       'Cancel',
       'Text for button that cancels current operation',
@@ -30,9 +34,23 @@ const Strings = {
       'Text for button that go to previous operation',
     )}`,
     addButton: `${fbt('Add', 'Text for button that adds an item')}`,
+    fields: {
+      url: {
+        label: 'URL',
+        placeholder: `${fbt(
+          'https://example.com/',
+          'Example text for URL input field',
+        )}`,
+      },
+    },
   },
   documents: {
-    uploadButton: `${fbt('Upload', 'Upload files button caption')}`,
+    viewHeader: `${fbt(
+      'Documents',
+      'Header text for a view showing documents',
+    )}`,
+    uploadButton: `${fbt('Upload File', 'Upload files button caption')}`,
+    addLinkButton: `${fbt('Add URL', 'Open Add URL dialog button caption')}`,
     categories: [
       'Archivos de Estudios Pre-instalación',
       'Archivos de Contratos',

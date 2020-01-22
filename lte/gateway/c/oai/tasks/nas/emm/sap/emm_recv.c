@@ -768,7 +768,6 @@ int emm_recv_service_request(
       "cause",
       "bearer_reestablish_failure");
   }
-  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

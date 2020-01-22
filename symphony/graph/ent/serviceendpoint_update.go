@@ -140,7 +140,7 @@ func (seu *ServiceEndpointUpdate) ExecX(ctx context.Context) {
 }
 
 func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   serviceendpoint.Table,
 			Columns: serviceendpoint.Columns,
@@ -151,21 +151,21 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 		},
 	}
 	if ps := seu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := seu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: serviceendpoint.FieldUpdateTime,
 		})
 	}
 	if value := seu.role; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: serviceendpoint.FieldRole,
@@ -185,7 +185,7 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := seu.port; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -208,7 +208,7 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if seu.clearedService {
 		edge := &sqlgraph.EdgeSpec{
@@ -224,7 +224,7 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := seu.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -247,9 +247,9 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, seu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, seu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -371,7 +371,7 @@ func (seuo *ServiceEndpointUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceEndpoint, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   serviceendpoint.Table,
 			Columns: serviceendpoint.Columns,
@@ -383,14 +383,14 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 		},
 	}
 	if value := seuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: serviceendpoint.FieldUpdateTime,
 		})
 	}
 	if value := seuo.role; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: serviceendpoint.FieldRole,
@@ -410,7 +410,7 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := seuo.port; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -433,7 +433,7 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if seuo.clearedService {
 		edge := &sqlgraph.EdgeSpec{
@@ -449,7 +449,7 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := seuo.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -472,12 +472,12 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	se = &ServiceEndpoint{config: seuo.config}
-	spec.Assign = se.assignValues
-	spec.ScanValues = se.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, seuo.driver, spec); err != nil {
+	_spec.Assign = se.assignValues
+	_spec.ScanValues = se.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, seuo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

@@ -420,8 +420,8 @@ func (scsc *SurveyCellScanCreate) SaveX(ctx context.Context) *SurveyCellScan {
 
 func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan, error) {
 	var (
-		scs  = &SurveyCellScan{config: scsc.config}
-		spec = &sqlgraph.CreateSpec{
+		scs   = &SurveyCellScan{config: scsc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: surveycellscan.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -430,7 +430,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		}
 	)
 	if value := scsc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveycellscan.FieldCreateTime,
@@ -438,7 +438,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.CreateTime = *value
 	}
 	if value := scsc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveycellscan.FieldUpdateTime,
@@ -446,7 +446,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.UpdateTime = *value
 	}
 	if value := scsc.network_type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldNetworkType,
@@ -454,7 +454,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.NetworkType = *value
 	}
 	if value := scsc.signal_strength; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveycellscan.FieldSignalStrength,
@@ -462,7 +462,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.SignalStrength = *value
 	}
 	if value := scsc.timestamp; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveycellscan.FieldTimestamp,
@@ -470,7 +470,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.Timestamp = *value
 	}
 	if value := scsc.base_station_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldBaseStationID,
@@ -478,7 +478,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.BaseStationID = *value
 	}
 	if value := scsc.network_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldNetworkID,
@@ -486,7 +486,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.NetworkID = *value
 	}
 	if value := scsc.system_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldSystemID,
@@ -494,7 +494,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.SystemID = *value
 	}
 	if value := scsc.cell_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldCellID,
@@ -502,7 +502,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.CellID = *value
 	}
 	if value := scsc.location_area_code; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldLocationAreaCode,
@@ -510,7 +510,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.LocationAreaCode = *value
 	}
 	if value := scsc.mobile_country_code; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldMobileCountryCode,
@@ -518,7 +518,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.MobileCountryCode = *value
 	}
 	if value := scsc.mobile_network_code; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldMobileNetworkCode,
@@ -526,7 +526,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.MobileNetworkCode = *value
 	}
 	if value := scsc.primary_scrambling_code; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldPrimaryScramblingCode,
@@ -534,7 +534,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.PrimaryScramblingCode = *value
 	}
 	if value := scsc.operator; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldOperator,
@@ -542,7 +542,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.Operator = *value
 	}
 	if value := scsc.arfcn; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveycellscan.FieldArfcn,
@@ -550,7 +550,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.Arfcn = *value
 	}
 	if value := scsc.physical_cell_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldPhysicalCellID,
@@ -558,7 +558,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.PhysicalCellID = *value
 	}
 	if value := scsc.tracking_area_code; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveycellscan.FieldTrackingAreaCode,
@@ -566,7 +566,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.TrackingAreaCode = *value
 	}
 	if value := scsc.timing_advance; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveycellscan.FieldTimingAdvance,
@@ -574,7 +574,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.TimingAdvance = *value
 	}
 	if value := scsc.earfcn; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveycellscan.FieldEarfcn,
@@ -582,7 +582,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.Earfcn = *value
 	}
 	if value := scsc.uarfcn; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveycellscan.FieldUarfcn,
@@ -590,7 +590,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.Uarfcn = *value
 	}
 	if value := scsc.latitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: surveycellscan.FieldLatitude,
@@ -598,7 +598,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		scs.Latitude = *value
 	}
 	if value := scsc.longitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: surveycellscan.FieldLongitude,
@@ -626,7 +626,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := scsc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -649,15 +649,15 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, scsc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, scsc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	scs.ID = strconv.FormatInt(id, 10)
 	return scs, nil
 }

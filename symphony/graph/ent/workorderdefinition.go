@@ -27,22 +27,40 @@ type WorkOrderDefinition struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the WorkOrderDefinitionQuery when eager-loading is set.
+	Edges struct {
+		// Type holds the value of the type edge.
+		Type *WorkOrderType
+		// ProjectType holds the value of the project_type edge.
+		ProjectType *ProjectType
+	} `json:"edges"`
+	project_type_id *string
+	type_id         *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*WorkOrderDefinition) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullInt64{},
+		&sql.NullInt64{}, // id
+		&sql.NullTime{},  // create_time
+		&sql.NullTime{},  // update_time
+		&sql.NullInt64{}, // index
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*WorkOrderDefinition) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // project_type_id
+		&sql.NullInt64{}, // type_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the WorkOrderDefinition fields.
 func (wod *WorkOrderDefinition) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(workorderdefinition.Columns); m != n {
+	if m, n := len(values), len(workorderdefinition.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -65,6 +83,21 @@ func (wod *WorkOrderDefinition) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field index", values[2])
 	} else if value.Valid {
 		wod.Index = int(value.Int64)
+	}
+	values = values[3:]
+	if len(values) == len(workorderdefinition.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_type_id", value)
+		} else if value.Valid {
+			wod.project_type_id = new(string)
+			*wod.project_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+		} else if value.Valid {
+			wod.type_id = new(string)
+			*wod.type_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

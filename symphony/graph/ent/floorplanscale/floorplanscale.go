@@ -37,7 +37,7 @@ const (
 	Table = "floor_plan_scales"
 )
 
-// Columns holds all SQL columns are floorplanscale fields.
+// Columns holds all SQL columns for floorplanscale fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

@@ -31,6 +31,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -1515,6 +1516,90 @@ func (fps *FloorPlanScaleQuery) Paginate(ctx context.Context, after *Cursor, fir
 	conn.Edges = make([]*FloorPlanScaleEdge, len(nodes))
 	for i, node := range nodes {
 		conn.Edges[i] = &FloorPlanScaleEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+// HyperlinkEdge is the edge representation of Hyperlink.
+type HyperlinkEdge struct {
+	Node   *Hyperlink `json:"node"`
+	Cursor Cursor     `json:"cursor"`
+}
+
+// HyperlinkConnection is the connection containing edges to Hyperlink.
+type HyperlinkConnection struct {
+	Edges    []*HyperlinkEdge `json:"edges"`
+	PageInfo PageInfo         `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Hyperlink.
+func (h *HyperlinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*HyperlinkConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &HyperlinkConnection{
+				Edges: []*HyperlinkEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &HyperlinkConnection{
+				Edges: []*HyperlinkEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		h = h.Where(hyperlink.IDGT(after.ID))
+	}
+	if before != nil {
+		h = h.Where(hyperlink.IDLT(before.ID))
+	}
+	if first != nil {
+		h = h.Order(Asc(hyperlink.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		h = h.Order(Desc(hyperlink.FieldID)).Limit(*last + 1)
+	}
+
+	nodes, err := h.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &HyperlinkConnection{
+			Edges: []*HyperlinkEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn HyperlinkConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*HyperlinkEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &HyperlinkEdge{
 			Node: node,
 			Cursor: Cursor{
 				ID: node.ID,

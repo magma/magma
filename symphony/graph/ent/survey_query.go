@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -30,6 +32,11 @@ type SurveyQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Survey
+	// eager-loading edges.
+	withLocation   *LocationQuery
+	withSourceFile *FileQuery
+	withQuestions  *SurveyQuestionQuery
+	withFKs        bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -263,6 +270,39 @@ func (sq *SurveyQuery) Clone() *SurveyQuery {
 	}
 }
 
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *SurveyQuery) WithLocation(opts ...func(*LocationQuery)) *SurveyQuery {
+	query := &LocationQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withLocation = query
+	return sq
+}
+
+//  WithSourceFile tells the query-builder to eager-loads the nodes that are connected to
+// the "source_file" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *SurveyQuery) WithSourceFile(opts ...func(*FileQuery)) *SurveyQuery {
+	query := &FileQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withSourceFile = query
+	return sq
+}
+
+//  WithQuestions tells the query-builder to eager-loads the nodes that are connected to
+// the "questions" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *SurveyQuery) WithQuestions(opts ...func(*SurveyQuestionQuery)) *SurveyQuery {
+	query := &SurveyQuestionQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withQuestions = query
+	return sq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -306,30 +346,128 @@ func (sq *SurveyQuery) Select(field string, fields ...string) *SurveySelect {
 
 func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	var (
-		nodes []*Survey
-		spec  = sq.querySpec()
+		nodes   []*Survey
+		withFKs = sq.withFKs
+		_spec   = sq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if sq.withLocation != nil || sq.withSourceFile != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, survey.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &Survey{config: sq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, sq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, sq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := sq.withLocation; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*Survey)
+		for i := range nodes {
+			if fk := nodes[i].location_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
+	}
+
+	if query := sq.withSourceFile; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*Survey)
+		for i := range nodes {
+			if fk := nodes[i].survey_source_file_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(file.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_source_file_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.SourceFile = n
+			}
+		}
+	}
+
+	if query := sq.withQuestions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Survey)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SurveyQuestion(func(s *sql.Selector) {
+			s.Where(sql.InValues(survey.QuestionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.survey_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Questions = append(node.Edges.Questions, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (sq *SurveyQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := sq.querySpec()
-	return sqlgraph.CountNodes(ctx, sq.driver, spec)
+	_spec := sq.querySpec()
+	return sqlgraph.CountNodes(ctx, sq.driver, _spec)
 }
 
 func (sq *SurveyQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -341,7 +479,7 @@ func (sq *SurveyQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (sq *SurveyQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   survey.Table,
 			Columns: survey.Columns,
@@ -354,26 +492,26 @@ func (sq *SurveyQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := sq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := sq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := sq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := sq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (sq *SurveyQuery) sqlQuery() *sql.Selector {

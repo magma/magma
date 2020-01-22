@@ -65,41 +65,59 @@ type SurveyCellScan struct {
 	Latitude float64 `json:"latitude,omitempty"`
 	// Longitude holds the value of the "longitude" field.
 	Longitude float64 `json:"longitude,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyCellScanQuery when eager-loading is set.
+	Edges struct {
+		// SurveyQuestion holds the value of the survey_question edge.
+		SurveyQuestion *SurveyQuestion
+		// Location holds the value of the location edge.
+		Location *Location
+	} `json:"edges"`
+	survey_question_id *string
+	location_id        *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SurveyCellScan) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullString{},  // network_type
+		&sql.NullInt64{},   // signal_strength
+		&sql.NullTime{},    // timestamp
+		&sql.NullString{},  // base_station_id
+		&sql.NullString{},  // network_id
+		&sql.NullString{},  // system_id
+		&sql.NullString{},  // cell_id
+		&sql.NullString{},  // location_area_code
+		&sql.NullString{},  // mobile_country_code
+		&sql.NullString{},  // mobile_network_code
+		&sql.NullString{},  // primary_scrambling_code
+		&sql.NullString{},  // operator
+		&sql.NullInt64{},   // arfcn
+		&sql.NullString{},  // physical_cell_id
+		&sql.NullString{},  // tracking_area_code
+		&sql.NullInt64{},   // timing_advance
+		&sql.NullInt64{},   // earfcn
+		&sql.NullInt64{},   // uarfcn
+		&sql.NullFloat64{}, // latitude
+		&sql.NullFloat64{}, // longitude
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyCellScan) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // survey_question_id
+		&sql.NullInt64{}, // location_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the SurveyCellScan fields.
 func (scs *SurveyCellScan) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(surveycellscan.Columns); m != n {
+	if m, n := len(values), len(surveycellscan.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -217,6 +235,21 @@ func (scs *SurveyCellScan) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field longitude", values[21])
 	} else if value.Valid {
 		scs.Longitude = value.Float64
+	}
+	values = values[22:]
+	if len(values) == len(surveycellscan.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_id", value)
+		} else if value.Valid {
+			scs.survey_question_id = new(string)
+			*scs.survey_question_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+		} else if value.Valid {
+			scs.location_id = new(string)
+			*scs.location_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

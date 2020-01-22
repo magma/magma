@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +21,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -37,6 +40,19 @@ type WorkOrderQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.WorkOrder
+	// eager-loading edges.
+	withType           *WorkOrderTypeQuery
+	withEquipment      *EquipmentQuery
+	withLinks          *LinkQuery
+	withFiles          *FileQuery
+	withHyperlinks     *HyperlinkQuery
+	withLocation       *LocationQuery
+	withComments       *CommentQuery
+	withProperties     *PropertyQuery
+	withCheckListItems *CheckListItemQuery
+	withTechnician     *TechnicianQuery
+	withProject        *ProjectQuery
+	withFKs            bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -108,6 +124,18 @@ func (woq *WorkOrderQuery) QueryFiles() *FileQuery {
 		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, workorder.FilesTable, workorder.FilesColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
+	return query
+}
+
+// QueryHyperlinks chains the current query on the hyperlinks edge.
+func (woq *WorkOrderQuery) QueryHyperlinks() *HyperlinkQuery {
+	query := &HyperlinkQuery{config: woq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.HyperlinksTable, workorder.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
@@ -354,6 +382,127 @@ func (woq *WorkOrderQuery) Clone() *WorkOrderQuery {
 	}
 }
 
+//  WithType tells the query-builder to eager-loads the nodes that are connected to
+// the "type" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithType(opts ...func(*WorkOrderTypeQuery)) *WorkOrderQuery {
+	query := &WorkOrderTypeQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withType = query
+	return woq
+}
+
+//  WithEquipment tells the query-builder to eager-loads the nodes that are connected to
+// the "equipment" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithEquipment(opts ...func(*EquipmentQuery)) *WorkOrderQuery {
+	query := &EquipmentQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withEquipment = query
+	return woq
+}
+
+//  WithLinks tells the query-builder to eager-loads the nodes that are connected to
+// the "links" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithLinks(opts ...func(*LinkQuery)) *WorkOrderQuery {
+	query := &LinkQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withLinks = query
+	return woq
+}
+
+//  WithFiles tells the query-builder to eager-loads the nodes that are connected to
+// the "files" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithFiles(opts ...func(*FileQuery)) *WorkOrderQuery {
+	query := &FileQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withFiles = query
+	return woq
+}
+
+//  WithHyperlinks tells the query-builder to eager-loads the nodes that are connected to
+// the "hyperlinks" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithHyperlinks(opts ...func(*HyperlinkQuery)) *WorkOrderQuery {
+	query := &HyperlinkQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withHyperlinks = query
+	return woq
+}
+
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithLocation(opts ...func(*LocationQuery)) *WorkOrderQuery {
+	query := &LocationQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withLocation = query
+	return woq
+}
+
+//  WithComments tells the query-builder to eager-loads the nodes that are connected to
+// the "comments" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithComments(opts ...func(*CommentQuery)) *WorkOrderQuery {
+	query := &CommentQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withComments = query
+	return woq
+}
+
+//  WithProperties tells the query-builder to eager-loads the nodes that are connected to
+// the "properties" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithProperties(opts ...func(*PropertyQuery)) *WorkOrderQuery {
+	query := &PropertyQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withProperties = query
+	return woq
+}
+
+//  WithCheckListItems tells the query-builder to eager-loads the nodes that are connected to
+// the "check_list_items" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithCheckListItems(opts ...func(*CheckListItemQuery)) *WorkOrderQuery {
+	query := &CheckListItemQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withCheckListItems = query
+	return woq
+}
+
+//  WithTechnician tells the query-builder to eager-loads the nodes that are connected to
+// the "technician" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithTechnician(opts ...func(*TechnicianQuery)) *WorkOrderQuery {
+	query := &TechnicianQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withTechnician = query
+	return woq
+}
+
+//  WithProject tells the query-builder to eager-loads the nodes that are connected to
+// the "project" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithProject(opts ...func(*ProjectQuery)) *WorkOrderQuery {
+	query := &ProjectQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withProject = query
+	return woq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -397,30 +546,370 @@ func (woq *WorkOrderQuery) Select(field string, fields ...string) *WorkOrderSele
 
 func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 	var (
-		nodes []*WorkOrder
-		spec  = woq.querySpec()
+		nodes   []*WorkOrder
+		withFKs = woq.withFKs
+		_spec   = woq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if woq.withType != nil || woq.withLocation != nil || woq.withTechnician != nil || woq.withProject != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, workorder.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &WorkOrder{config: woq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, woq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, woq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := woq.withType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*WorkOrder)
+		for i := range nodes {
+			if fk := nodes[i].type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workordertype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Type = n
+			}
+		}
+	}
+
+	if query := woq.withEquipment; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrder)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Equipment(func(s *sql.Selector) {
+			s.Where(sql.InValues(workorder.EquipmentColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Equipment = append(node.Edges.Equipment, n)
+		}
+	}
+
+	if query := woq.withLinks; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrder)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Link(func(s *sql.Selector) {
+			s.Where(sql.InValues(workorder.LinksColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Links = append(node.Edges.Links, n)
+		}
+	}
+
+	if query := woq.withFiles; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrder)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.File(func(s *sql.Selector) {
+			s.Where(sql.InValues(workorder.FilesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_file_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_file_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_file_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Files = append(node.Edges.Files, n)
+		}
+	}
+
+	if query := woq.withHyperlinks; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrder)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Hyperlink(func(s *sql.Selector) {
+			s.Where(sql.InValues(workorder.HyperlinksColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_hyperlink_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_hyperlink_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_hyperlink_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Hyperlinks = append(node.Edges.Hyperlinks, n)
+		}
+	}
+
+	if query := woq.withLocation; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*WorkOrder)
+		for i := range nodes {
+			if fk := nodes[i].location_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
+	}
+
+	if query := woq.withComments; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrder)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Comment(func(s *sql.Selector) {
+			s.Where(sql.InValues(workorder.CommentsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_comment_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_comment_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_comment_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Comments = append(node.Edges.Comments, n)
+		}
+	}
+
+	if query := woq.withProperties; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrder)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Property(func(s *sql.Selector) {
+			s.Where(sql.InValues(workorder.PropertiesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Properties = append(node.Edges.Properties, n)
+		}
+	}
+
+	if query := woq.withCheckListItems; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrder)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.CheckListItem(func(s *sql.Selector) {
+			s.Where(sql.InValues(workorder.CheckListItemsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.CheckListItems = append(node.Edges.CheckListItems, n)
+		}
+	}
+
+	if query := woq.withTechnician; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*WorkOrder)
+		for i := range nodes {
+			if fk := nodes[i].technician_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(technician.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "technician_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Technician = n
+			}
+		}
+	}
+
+	if query := woq.withProject; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*WorkOrder)
+		for i := range nodes {
+			if fk := nodes[i].project_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(project.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Project = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
 func (woq *WorkOrderQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := woq.querySpec()
-	return sqlgraph.CountNodes(ctx, woq.driver, spec)
+	_spec := woq.querySpec()
+	return sqlgraph.CountNodes(ctx, woq.driver, _spec)
 }
 
 func (woq *WorkOrderQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -432,7 +921,7 @@ func (woq *WorkOrderQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (woq *WorkOrderQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   workorder.Table,
 			Columns: workorder.Columns,
@@ -445,26 +934,26 @@ func (woq *WorkOrderQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := woq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := woq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := woq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := woq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (woq *WorkOrderQuery) sqlQuery() *sql.Selector {

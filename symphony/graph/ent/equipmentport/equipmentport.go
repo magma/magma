@@ -62,11 +62,18 @@ const (
 	EndpointsColumn = "port_id"
 )
 
-// Columns holds all SQL columns are equipmentport fields.
+// Columns holds all SQL columns for equipmentport fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentPort type.
+var ForeignKeys = []string{
+	"parent_id",
+	"definition_id",
+	"link_id",
 }
 
 var (

@@ -38,20 +38,20 @@ type FloorPlanReferencePoint struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FloorPlanReferencePoint) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullInt64{},   // x
+		&sql.NullInt64{},   // y
+		&sql.NullFloat64{}, // latitude
+		&sql.NullFloat64{}, // longitude
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the FloorPlanReferencePoint fields.
 func (fprp *FloorPlanReferencePoint) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(floorplanreferencepoint.Columns); m != n {
+	if m, n := len(values), len(floorplanreferencepoint.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

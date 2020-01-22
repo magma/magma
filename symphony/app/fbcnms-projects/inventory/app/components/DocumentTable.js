@@ -10,10 +10,12 @@
 
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {DocumentTable_files} from './__generated__/DocumentTable_files.graphql';
+import type {DocumentTable_hyperlinks} from './__generated__/DocumentTable_hyperlinks.graphql';
 import type {WithStyles} from '@material-ui/core';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
 import FileAttachment from './FileAttachment';
+import HyperlinkTableRow from './HyperlinkTableRow';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -29,8 +31,18 @@ const styles = _theme => ({
 });
 
 type Props = WithStyles<typeof styles> & {
+  entityId: string,
   files: DocumentTable_files,
+  hyperlinks: DocumentTable_hyperlinks,
   onDocumentDeleted: (file: DocumentTable_files) => void,
+};
+
+const getHyperlinkSortingValue = (hyperlink, categoriesEnabled) => {
+  return `${(categoriesEnabled && hyperlink.category) ||
+    ''}${hyperlink.displayName || hyperlink.url}`;
+};
+const getFileSortingValue = (file, categoriesEnabled) => {
+  return `${(categoriesEnabled && file.category) || ''}${file.fileName}`;
 };
 
 class DocumentTable extends React.Component<Props> {
@@ -38,29 +50,42 @@ class DocumentTable extends React.Component<Props> {
   context: AppContextType;
 
   render() {
-    const {classes, onDocumentDeleted} = this.props;
-    const files = [...this.props.files].filter(Boolean);
+    const {classes, onDocumentDeleted, entityId} = this.props;
     const categoriesEnabled = this.context.isFeatureEnabled('file_categories');
-    let sortedFiles = files;
-    if (categoriesEnabled) {
-      sortedFiles = files.sort((fileA, fileB) =>
-        sortLexicographically(fileA.category ?? '', fileB.category ?? ''),
-      );
-    } else {
-      sortedFiles = files.sort((fileA, fileB) =>
-        sortLexicographically(fileA.fileName, fileB.fileName),
-      );
-    }
-    return files.length > 0 ? (
+    const files = this.props.files.map(file => ({
+      ...file,
+      isFile: true,
+      sortingValue: getFileSortingValue(file, categoriesEnabled),
+    }));
+    const hyperlinkDocuments = this.props.hyperlinks || [];
+    const hyperlinks = hyperlinkDocuments.map(hyperlink => ({
+      ...hyperlink,
+      isHyperlink: true,
+      sortingValue: getHyperlinkSortingValue(hyperlink, categoriesEnabled),
+    }));
+    const allDocuments = [...files, ...hyperlinks].sort((docA, docB) =>
+      sortLexicographically(docA.sortingValue, docB.sortingValue),
+    );
+    return allDocuments.length > 0 ? (
       <Table className={classes.table}>
         <TableBody>
-          {sortedFiles.map(file => (
-            <FileAttachment
-              key={file.id}
-              file={file}
-              onDocumentDeleted={onDocumentDeleted}
-            />
-          ))}
+          {allDocuments.map(
+            doc =>
+              (doc.isFile && (
+                <FileAttachment
+                  key={doc.id}
+                  file={doc}
+                  onDocumentDeleted={onDocumentDeleted}
+                />
+              )) ||
+              (doc.isHyperlink && (
+                <HyperlinkTableRow
+                  key={doc.id}
+                  hyperlink={doc}
+                  entityId={entityId}
+                />
+              )),
+          )}
         </TableBody>
       </Table>
     ) : null;
@@ -75,6 +100,15 @@ export default withStyles(styles)(
         fileName
         category
         ...FileAttachment_file
+      }
+    `,
+    hyperlinks: graphql`
+      fragment DocumentTable_hyperlinks on Hyperlink @relay(plural: true) {
+        id
+        category
+        url
+        displayName
+        ...HyperlinkTableRow_hyperlink
       }
     `,
   }),

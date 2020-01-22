@@ -19,7 +19,6 @@ import type {WithSnackbarProps} from 'notistack';
 
 import AddImageMutation from '../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import FileUpload from './FileUpload';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import React from 'react';
@@ -34,7 +33,6 @@ type Props = {
 } & WithSnackbarProps;
 
 type State = {
-  isLoadingDocument: boolean,
   isMenuOpened: boolean,
 };
 
@@ -49,7 +47,6 @@ class DocumentsAddButton extends React.Component<Props, State> {
   menuButtonRef = React.createRef();
 
   state = {
-    isLoadingDocument: false,
     isMenuOpened: false,
   };
 
@@ -59,10 +56,6 @@ class DocumentsAddButton extends React.Component<Props, State> {
 
     if (!entityId) {
       return null;
-    }
-
-    if (this.state.isLoadingDocument) {
-      return <CircularProgress />;
     }
 
     return (
@@ -77,7 +70,6 @@ class DocumentsAddButton extends React.Component<Props, State> {
                   key={category}
                   button={category}
                   onFileUploaded={this.onDocumentUploaded(category)}
-                  onProgress={() => this.setState({isLoadingDocument: true})}
                 />
               ),
               value: category,
@@ -88,7 +80,6 @@ class DocumentsAddButton extends React.Component<Props, State> {
           <FileUpload
             button={Strings.documents.uploadButton}
             onFileUploaded={this.onDocumentUploaded(null)}
-            onProgress={() => this.setState({isLoadingDocument: true})}
           />
         )}
       </>
@@ -114,7 +105,6 @@ class DocumentsAddButton extends React.Component<Props, State> {
     };
 
     const updater = store => {
-      this.setState({isLoadingDocument: false});
       const newNode = store.getRootField('addImage');
       const fileType = newNode.getValue('fileType');
       const entityProxy = store.get(this.props.entityId);

@@ -61,39 +61,59 @@ type SurveyQuestion struct {
 	IntData int `json:"int_data,omitempty"`
 	// DateData holds the value of the "date_data" field.
 	DateData time.Time `json:"date_data,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyQuestionQuery when eager-loading is set.
+	Edges struct {
+		// Survey holds the value of the survey edge.
+		Survey *Survey
+		// WifiScan holds the value of the wifi_scan edge.
+		WifiScan []*SurveyWiFiScan
+		// CellScan holds the value of the cell_scan edge.
+		CellScan []*SurveyCellScan
+		// PhotoData holds the value of the photo_data edge.
+		PhotoData []*File
+	} `json:"edges"`
+	survey_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SurveyQuestion) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullBool{},
-		&sql.NullString{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullFloat64{},
-		&sql.NullInt64{},
-		&sql.NullTime{},
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullString{},  // form_name
+		&sql.NullString{},  // form_description
+		&sql.NullInt64{},   // form_index
+		&sql.NullString{},  // question_type
+		&sql.NullString{},  // question_format
+		&sql.NullString{},  // question_text
+		&sql.NullInt64{},   // question_index
+		&sql.NullBool{},    // bool_data
+		&sql.NullString{},  // email_data
+		&sql.NullFloat64{}, // latitude
+		&sql.NullFloat64{}, // longitude
+		&sql.NullFloat64{}, // location_accuracy
+		&sql.NullFloat64{}, // altitude
+		&sql.NullString{},  // phone_data
+		&sql.NullString{},  // text_data
+		&sql.NullFloat64{}, // float_data
+		&sql.NullInt64{},   // int_data
+		&sql.NullTime{},    // date_data
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyQuestion) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // survey_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the SurveyQuestion fields.
 func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(surveyquestion.Columns); m != n {
+	if m, n := len(values), len(surveyquestion.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -201,6 +221,15 @@ func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field date_data", values[19])
 	} else if value.Valid {
 		sq.DateData = value.Time
+	}
+	values = values[20:]
+	if len(values) == len(surveyquestion.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_id", value)
+		} else if value.Valid {
+			sq.survey_id = new(string)
+			*sq.survey_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

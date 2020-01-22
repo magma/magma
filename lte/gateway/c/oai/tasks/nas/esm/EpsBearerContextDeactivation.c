@@ -43,7 +43,6 @@
 #include "common_defs.h"
 #include "emm_esmDef.h"
 #include "esm_sapDef.h"
-#include "nas_itti_messaging.h"
 #include "esm_pt.h"
 #include "mme_app_state.h"
 
@@ -483,7 +482,6 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
           "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d), \n",
           ue_id,
           ebi);
-        unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_OUT(LOG_NAS_ESM);
       }
       // Fetch pdn id using bearer index
@@ -533,7 +531,6 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
           ue_id,
           ebi);
       }
-      unlock_ue_contexts(ue_mm_context);
     }
   }
 

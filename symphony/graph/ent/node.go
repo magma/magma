@@ -33,6 +33,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -388,7 +389,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 		ID:     e.ID,
 		Type:   "Equipment",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 8),
+		Edges:  make([]*Edge, 9),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(e.CreateTime); err != nil {
@@ -527,6 +528,17 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "File",
 		Name: "Files",
+	}
+	ids, err = e.QueryHyperlinks().
+		Select(hyperlink.FieldID).
+		Strings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[8] = &Edge{
+		IDs:  ids,
+		Type: "Hyperlink",
+		Name: "Hyperlinks",
 	}
 	return node, nil
 }
@@ -1346,6 +1358,57 @@ func (fps *FloorPlanScale) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (h *Hyperlink) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     h.ID,
+		Type:   "Hyperlink",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(h.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(h.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(h.URL); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "URL",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(h.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(h.Category); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "Category",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
 func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     l.ID,
@@ -1431,7 +1494,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 		ID:     l.ID,
 		Type:   "Location",
 		Fields: make([]*Field, 7),
-		Edges:  make([]*Edge, 11),
+		Edges:  make([]*Edge, 12),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(l.CreateTime); err != nil {
@@ -1535,13 +1598,24 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 		Type: "File",
 		Name: "Files",
 	}
+	ids, err = l.QueryHyperlinks().
+		Select(hyperlink.FieldID).
+		Strings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		IDs:  ids,
+		Type: "Hyperlink",
+		Name: "Hyperlinks",
+	}
 	ids, err = l.QueryEquipment().
 		Select(equipment.FieldID).
 		Strings(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[4] = &Edge{
+	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
 		Name: "Equipment",
@@ -1552,7 +1626,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[5] = &Edge{
+	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "Property",
 		Name: "Properties",
@@ -1563,7 +1637,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[6] = &Edge{
+	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "Survey",
 		Name: "Survey",
@@ -1574,7 +1648,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[7] = &Edge{
+	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "SurveyWiFiScan",
 		Name: "WifiScan",
@@ -1585,7 +1659,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[8] = &Edge{
+	node.Edges[9] = &Edge{
 		IDs:  ids,
 		Type: "SurveyCellScan",
 		Name: "CellScan",
@@ -1596,7 +1670,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[9] = &Edge{
+	node.Edges[10] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
 		Name: "WorkOrders",
@@ -1607,7 +1681,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[10] = &Edge{
+	node.Edges[11] = &Edge{
 		IDs:  ids,
 		Type: "FloorPlan",
 		Name: "FloorPlans",
@@ -3453,7 +3527,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		ID:     wo.ID,
 		Type:   "WorkOrder",
 		Fields: make([]*Field, 11),
-		Edges:  make([]*Edge, 10),
+		Edges:  make([]*Edge, 11),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(wo.CreateTime); err != nil {
@@ -3589,13 +3663,24 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		Type: "File",
 		Name: "Files",
 	}
+	ids, err = wo.QueryHyperlinks().
+		Select(hyperlink.FieldID).
+		Strings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		IDs:  ids,
+		Type: "Hyperlink",
+		Name: "Hyperlinks",
+	}
 	ids, err = wo.QueryLocation().
 		Select(location.FieldID).
 		Strings(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[4] = &Edge{
+	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "Location",
 		Name: "Location",
@@ -3606,7 +3691,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[5] = &Edge{
+	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "Comment",
 		Name: "Comments",
@@ -3617,7 +3702,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[6] = &Edge{
+	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "Property",
 		Name: "Properties",
@@ -3628,7 +3713,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[7] = &Edge{
+	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "CheckListItem",
 		Name: "CheckListItems",
@@ -3639,7 +3724,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[8] = &Edge{
+	node.Edges[9] = &Edge{
 		IDs:  ids,
 		Type: "Technician",
 		Name: "Technician",
@@ -3650,7 +3735,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[9] = &Edge{
+	node.Edges[10] = &Edge{
 		IDs:  ids,
 		Type: "Project",
 		Name: "Project",
@@ -3928,6 +4013,12 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 		return n, nil
 	case floorplanscale.Table:
 		n, err := c.FloorPlanScale.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case hyperlink.Table:
+		n, err := c.Hyperlink.Get(ctx, id)
 		if err != nil {
 			return nil, err
 		}

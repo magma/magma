@@ -87,6 +87,7 @@ type Location implements Node {
   cellData: [SurveyCellScan]!
   distanceKm(latitude: Float!, longitude: Float!): Float!
   floorPlans: [FloorPlan]!
+  hyperlinks: [Hyperlink!]!
 }
 
 input AddLocationInput {
@@ -175,6 +176,22 @@ type File implements Node {
   category: String
 }
 
+type Hyperlink implements Node {
+  id: ID!
+  url: String!
+  displayName: String
+  category: String
+  createTime: Time!
+}
+
+input AddHyperlinkInput {
+  entityType: ImageEntity!
+  entityId: ID!
+  url: String!
+  displayName: String
+  category: String
+}
+
 input AddImageInput {
   entityType: ImageEntity!
   entityId: ID!
@@ -218,6 +235,7 @@ type Equipment implements Node {
   services: [Service]!
   images: [File]!
   files: [File]!
+  hyperlinks: [Hyperlink!]!
 }
 
 type Device {
@@ -917,6 +935,7 @@ type WorkOrder implements Node {
   properties: [Property]!
   project: Project
   checkList: [CheckListItem]!
+  hyperlinks: [Hyperlink!]!
 }
 
 """
@@ -1995,6 +2014,8 @@ type Mutation {
   ): EquipmentPosition
   addComment(input: CommentInput!): Comment!
   addImage(input: AddImageInput!): File
+  addHyperlink(input: AddHyperlinkInput!): Hyperlink!
+  deleteHyperlink(id: ID!): Hyperlink!
   deleteImage(
     """
     type of the entity whre image is at

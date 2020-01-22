@@ -11,6 +11,7 @@
 import Button from '../../components/design-system/Button';
 import FilesUploadSnackbar from '../../components/design-system/Experimental/FilesUploadSnackbar';
 import React, {useState} from 'react';
+import {FileUploadStatuses} from '../../components/design-system/Experimental/FileUploadStatus';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -32,32 +33,37 @@ const FilesUploadSnackbarRoot = () => {
           onClose={() => setIsShown(false)}
           files={[
             {
+              id: '0',
               name: 'Blue_bird.jpg',
-              status: 'done',
+              status: FileUploadStatuses.DONE,
             },
             {
+              id: '1',
               name: 'Blue_bird2.jpg',
-              status: 'error',
+              status: FileUploadStatuses.ERROR,
               errorMessage: 'We had a problem uploading this file',
             },
             {
+              id: '2',
               name: 'Blue_bird_singing_in_the_dead_of_night.jpg',
-              status: 'uploading',
-              status: 'error',
+              status: FileUploadStatuses.ERROR,
               errorMessage:
                 'We had a problem uploading this file, long error message',
             },
             {
-              name: 'Blue_bird4.jpg',
-              status: 'uploading',
+              id: '3',
+              name: 'Blue_bird.jpg',
+              status: FileUploadStatuses.UPLOADING,
             },
             {
-              name: 'Blue_bird5.jpg',
-              status: 'uploading',
+              id: '4',
+              name: 'Blue_bird.jpg',
+              status: FileUploadStatuses.UPLOADING,
             },
             {
-              name: 'Blue_bird6.jpg',
-              status: 'uploading',
+              id: '5',
+              name: 'Blue_bird.jpg',
+              status: FileUploadStatuses.UPLOADING,
             },
           ]}
         />

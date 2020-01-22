@@ -266,7 +266,7 @@ func (wotu *WorkOrderTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   workordertype.Table,
 			Columns: workordertype.Columns,
@@ -277,35 +277,35 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 		},
 	}
 	if ps := wotu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := wotu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workordertype.FieldUpdateTime,
 		})
 	}
 	if value := wotu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workordertype.FieldName,
 		})
 	}
 	if value := wotu.description; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workordertype.FieldDescription,
 		})
 	}
 	if wotu.cleardescription {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: workordertype.FieldDescription,
 		})
@@ -331,7 +331,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wotu.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -354,7 +354,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := wotu.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -377,7 +377,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wotu.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -400,7 +400,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := wotu.removedDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -423,7 +423,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wotu.definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -446,7 +446,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := wotu.removedCheckListDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -469,7 +469,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wotu.check_list_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -492,9 +492,9 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, wotu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, wotu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -741,7 +741,7 @@ func (wotuo *WorkOrderTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrderType, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   workordertype.Table,
 			Columns: workordertype.Columns,
@@ -753,28 +753,28 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 		},
 	}
 	if value := wotuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workordertype.FieldUpdateTime,
 		})
 	}
 	if value := wotuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workordertype.FieldName,
 		})
 	}
 	if value := wotuo.description; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workordertype.FieldDescription,
 		})
 	}
 	if wotuo.cleardescription {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: workordertype.FieldDescription,
 		})
@@ -800,7 +800,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wotuo.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -823,7 +823,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := wotuo.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -846,7 +846,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wotuo.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -869,7 +869,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := wotuo.removedDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -892,7 +892,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wotuo.definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -915,7 +915,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := wotuo.removedCheckListDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -938,7 +938,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wotuo.check_list_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -961,12 +961,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	wot = &WorkOrderType{config: wotuo.config}
-	spec.Assign = wot.assignValues
-	spec.ScanValues = wot.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, wotuo.driver, spec); err != nil {
+	_spec.Assign = wot.assignValues
+	_spec.ScanValues = wot.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, wotuo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

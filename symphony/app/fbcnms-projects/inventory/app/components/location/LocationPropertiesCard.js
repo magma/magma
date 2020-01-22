@@ -156,6 +156,9 @@ const locationsPropertiesCardQuery = graphql`
         files {
           id
         }
+        hyperlinks {
+          id
+        }
         surveys {
           id
         }

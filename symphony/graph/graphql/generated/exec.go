@@ -209,6 +209,7 @@ type ComplexityRoot struct {
 		ExternalID        func(childComplexity int) int
 		Files             func(childComplexity int) int
 		FutureState       func(childComplexity int) int
+		Hyperlinks        func(childComplexity int) int
 		ID                func(childComplexity int) int
 		Images            func(childComplexity int) int
 		LocationHierarchy func(childComplexity int) int
@@ -350,6 +351,14 @@ type ComplexityRoot struct {
 		ScaleInMeters    func(childComplexity int) int
 	}
 
+	Hyperlink struct {
+		Category   func(childComplexity int) int
+		CreateTime func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Name       func(childComplexity int) int
+		URL        func(childComplexity int) int
+	}
+
 	LatestPythonPackageResult struct {
 		LastBreakingPythonPackage func(childComplexity int) int
 		LastPythonPackage         func(childComplexity int) int
@@ -377,6 +386,7 @@ type ComplexityRoot struct {
 		ExternalID        func(childComplexity int) int
 		Files             func(childComplexity int) int
 		FloorPlans        func(childComplexity int) int
+		Hyperlinks        func(childComplexity int) int
 		ID                func(childComplexity int) int
 		Images            func(childComplexity int) int
 		Latitude          func(childComplexity int) int
@@ -440,6 +450,7 @@ type ComplexityRoot struct {
 		AddEquipmentPortType                     func(childComplexity int, input models.AddEquipmentPortTypeInput) int
 		AddEquipmentType                         func(childComplexity int, input models.AddEquipmentTypeInput) int
 		AddFloorPlan                             func(childComplexity int, input models.AddFloorPlanInput) int
+		AddHyperlink                             func(childComplexity int, input models.AddHyperlinkInput) int
 		AddImage                                 func(childComplexity int, input models.AddImageInput) int
 		AddLink                                  func(childComplexity int, input models.AddLinkInput) int
 		AddLocation                              func(childComplexity int, input models.AddLocationInput) int
@@ -456,6 +467,7 @@ type ComplexityRoot struct {
 		CreateProjectType                        func(childComplexity int, input models.AddProjectTypeInput) int
 		CreateSurvey                             func(childComplexity int, data models.SurveyCreateData) int
 		DeleteFloorPlan                          func(childComplexity int, id string) int
+		DeleteHyperlink                          func(childComplexity int, id string) int
 		DeleteImage                              func(childComplexity int, entityType models.ImageEntity, entityID string, id string) int
 		DeleteProject                            func(childComplexity int, id string) int
 		DeleteProjectType                        func(childComplexity int, id string) int
@@ -819,6 +831,7 @@ type ComplexityRoot struct {
 		EquipmentToAdd    func(childComplexity int) int
 		EquipmentToRemove func(childComplexity int) int
 		Files             func(childComplexity int) int
+		Hyperlinks        func(childComplexity int) int
 		ID                func(childComplexity int) int
 		Images            func(childComplexity int) int
 		Index             func(childComplexity int) int
@@ -915,6 +928,7 @@ type EquipmentResolver interface {
 	Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error)
 	Images(ctx context.Context, obj *ent.Equipment) ([]*ent.File, error)
 	Files(ctx context.Context, obj *ent.Equipment) ([]*ent.File, error)
+	Hyperlinks(ctx context.Context, obj *ent.Equipment) ([]*ent.Hyperlink, error)
 }
 type EquipmentPortResolver interface {
 	Definition(ctx context.Context, obj *ent.EquipmentPort) (*ent.EquipmentPortDefinition, error)
@@ -978,6 +992,7 @@ type LocationResolver interface {
 	CellData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyCellScan, error)
 	DistanceKm(ctx context.Context, obj *ent.Location, latitude float64, longitude float64) (float64, error)
 	FloorPlans(ctx context.Context, obj *ent.Location) ([]*ent.FloorPlan, error)
+	Hyperlinks(ctx context.Context, obj *ent.Location) ([]*ent.Hyperlink, error)
 }
 type LocationTypeResolver interface {
 	PropertyTypes(ctx context.Context, obj *ent.LocationType) ([]*ent.PropertyType, error)
@@ -1017,6 +1032,8 @@ type MutationResolver interface {
 	MoveEquipmentToPosition(ctx context.Context, parentEquipmentID *string, positionDefinitionID *string, equipmentID string) (*ent.EquipmentPosition, error)
 	AddComment(ctx context.Context, input models.CommentInput) (*ent.Comment, error)
 	AddImage(ctx context.Context, input models.AddImageInput) (*ent.File, error)
+	AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error)
+	DeleteHyperlink(ctx context.Context, id string) (*ent.Hyperlink, error)
 	DeleteImage(ctx context.Context, entityType models.ImageEntity, entityID string, id string) (*ent.File, error)
 	RemoveWorkOrder(ctx context.Context, id string) (string, error)
 	ExecuteWorkOrder(ctx context.Context, id string) (*models.WorkOrderExecutionResult, error)
@@ -1183,6 +1200,7 @@ type WorkOrderResolver interface {
 	Properties(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Property, error)
 	Project(ctx context.Context, obj *ent.WorkOrder) (*ent.Project, error)
 	CheckList(ctx context.Context, obj *ent.WorkOrder) ([]*ent.CheckListItem, error)
+	Hyperlinks(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Hyperlink, error)
 }
 type WorkOrderDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.WorkOrderDefinition) (*ent.WorkOrderType, error)
@@ -1676,6 +1694,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Equipment.FutureState(childComplexity), true
+
+	case "Equipment.hyperlinks":
+		if e.complexity.Equipment.Hyperlinks == nil {
+			break
+		}
+
+		return e.complexity.Equipment.Hyperlinks(childComplexity), true
 
 	case "Equipment.id":
 		if e.complexity.Equipment.ID == nil {
@@ -2272,6 +2297,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FloorPlanScale.ScaleInMeters(childComplexity), true
 
+	case "Hyperlink.category":
+		if e.complexity.Hyperlink.Category == nil {
+			break
+		}
+
+		return e.complexity.Hyperlink.Category(childComplexity), true
+
+	case "Hyperlink.createTime":
+		if e.complexity.Hyperlink.CreateTime == nil {
+			break
+		}
+
+		return e.complexity.Hyperlink.CreateTime(childComplexity), true
+
+	case "Hyperlink.id":
+		if e.complexity.Hyperlink.ID == nil {
+			break
+		}
+
+		return e.complexity.Hyperlink.ID(childComplexity), true
+
+	case "Hyperlink.displayName":
+		if e.complexity.Hyperlink.Name == nil {
+			break
+		}
+
+		return e.complexity.Hyperlink.Name(childComplexity), true
+
+	case "Hyperlink.url":
+		if e.complexity.Hyperlink.URL == nil {
+			break
+		}
+
+		return e.complexity.Hyperlink.URL(childComplexity), true
+
 	case "LatestPythonPackageResult.lastBreakingPythonPackage":
 		if e.complexity.LatestPythonPackageResult.LastBreakingPythonPackage == nil {
 			break
@@ -2395,6 +2455,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Location.FloorPlans(childComplexity), true
+
+	case "Location.hyperlinks":
+		if e.complexity.Location.Hyperlinks == nil {
+			break
+		}
+
+		return e.complexity.Location.Hyperlinks(childComplexity), true
 
 	case "Location.id":
 		if e.complexity.Location.ID == nil {
@@ -2740,6 +2807,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddFloorPlan(childComplexity, args["input"].(models.AddFloorPlanInput)), true
 
+	case "Mutation.addHyperlink":
+		if e.complexity.Mutation.AddHyperlink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addHyperlink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddHyperlink(childComplexity, args["input"].(models.AddHyperlinkInput)), true
+
 	case "Mutation.addImage":
 		if e.complexity.Mutation.AddImage == nil {
 			break
@@ -2931,6 +3010,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteFloorPlan(childComplexity, args["id"].(string)), true
+
+	case "Mutation.deleteHyperlink":
+		if e.complexity.Mutation.DeleteHyperlink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteHyperlink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteHyperlink(childComplexity, args["id"].(string)), true
 
 	case "Mutation.deleteImage":
 		if e.complexity.Mutation.DeleteImage == nil {
@@ -5197,6 +5288,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkOrder.Files(childComplexity), true
 
+	case "WorkOrder.hyperlinks":
+		if e.complexity.WorkOrder.Hyperlinks == nil {
+			break
+		}
+
+		return e.complexity.WorkOrder.Hyperlinks(childComplexity), true
+
 	case "WorkOrder.id":
 		if e.complexity.WorkOrder.ID == nil {
 			break
@@ -5607,6 +5705,7 @@ type Location implements Node {
   cellData: [SurveyCellScan]!
   distanceKm(latitude: Float!, longitude: Float!): Float!
   floorPlans: [FloorPlan]!
+  hyperlinks: [Hyperlink!]!
 }
 
 input AddLocationInput {
@@ -5695,6 +5794,22 @@ type File implements Node {
   category: String
 }
 
+type Hyperlink implements Node {
+  id: ID!
+  url: String!
+  displayName: String
+  category: String
+  createTime: Time!
+}
+
+input AddHyperlinkInput {
+  entityType: ImageEntity!
+  entityId: ID!
+  url: String!
+  displayName: String
+  category: String
+}
+
 input AddImageInput {
   entityType: ImageEntity!
   entityId: ID!
@@ -5738,6 +5853,7 @@ type Equipment implements Node {
   services: [Service]!
   images: [File]!
   files: [File]!
+  hyperlinks: [Hyperlink!]!
 }
 
 type Device {
@@ -6437,6 +6553,7 @@ type WorkOrder implements Node {
   properties: [Property]!
   project: Project
   checkList: [CheckListItem]!
+  hyperlinks: [Hyperlink!]!
 }
 
 """
@@ -7515,6 +7632,8 @@ type Mutation {
   ): EquipmentPosition
   addComment(input: CommentInput!): Comment!
   addImage(input: AddImageInput!): File
+  addHyperlink(input: AddHyperlinkInput!): Hyperlink!
+  deleteHyperlink(id: ID!): Hyperlink!
   deleteImage(
     """
     type of the entity whre image is at
@@ -7851,6 +7970,20 @@ func (ec *executionContext) field_Mutation_addFloorPlan_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addHyperlink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.AddHyperlinkInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNAddHyperlinkInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddHyperlinkInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addImage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -8078,6 +8211,20 @@ func (ec *executionContext) field_Mutation_createSurvey_args(ctx context.Context
 }
 
 func (ec *executionContext) field_Mutation_deleteFloorPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteHyperlink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -12545,6 +12692,43 @@ func (ec *executionContext) _Equipment_files(ctx context.Context, field graphql.
 	return ec.marshalNFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Equipment_hyperlinks(ctx context.Context, field graphql.CollectedField, obj *ent.Equipment) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Equipment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Equipment().Hyperlinks(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Hyperlink)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNHyperlink2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlinkᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _EquipmentPort_id(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPort) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -15192,6 +15376,185 @@ func (ec *executionContext) _FloorPlanScale_scaleInMeters(ctx context.Context, f
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Hyperlink_id(ctx context.Context, field graphql.CollectedField, obj *ent.Hyperlink) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Hyperlink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Hyperlink_url(ctx context.Context, field graphql.CollectedField, obj *ent.Hyperlink) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Hyperlink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Hyperlink_displayName(ctx context.Context, field graphql.CollectedField, obj *ent.Hyperlink) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Hyperlink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Hyperlink_category(ctx context.Context, field graphql.CollectedField, obj *ent.Hyperlink) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Hyperlink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Category, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Hyperlink_createTime(ctx context.Context, field graphql.CollectedField, obj *ent.Hyperlink) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Hyperlink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreateTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _LatestPythonPackageResult_lastPythonPackage(ctx context.Context, field graphql.CollectedField, obj *models.LatestPythonPackageResult) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -16333,6 +16696,43 @@ func (ec *executionContext) _Location_floorPlans(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNFloorPlan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_hyperlinks(ctx context.Context, field graphql.CollectedField, obj *ent.Location) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Location",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Location().Hyperlinks(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Hyperlink)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNHyperlink2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlinkᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LocationConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.LocationConnection) (ret graphql.Marshaler) {
@@ -18348,6 +18748,94 @@ func (ec *executionContext) _Mutation_addImage(ctx context.Context, field graphq
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addHyperlink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addHyperlink_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddHyperlink(rctx, args["input"].(models.AddHyperlinkInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Hyperlink)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNHyperlink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteHyperlink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteHyperlink_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteHyperlink(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Hyperlink)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNHyperlink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteImage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -28799,6 +29287,43 @@ func (ec *executionContext) _WorkOrder_checkList(ctx context.Context, field grap
 	return ec.marshalNCheckListItem2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItem(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _WorkOrder_hyperlinks(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkOrder().Hyperlinks(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Hyperlink)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNHyperlink2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlinkᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _WorkOrderConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -31196,6 +31721,48 @@ func (ec *executionContext) unmarshalInputAddFloorPlanInput(ctx context.Context,
 		case "scaleInMeters":
 			var err error
 			it.ScaleInMeters, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputAddHyperlinkInput(ctx context.Context, obj interface{}) (models.AddHyperlinkInput, error) {
+	var it models.AddHyperlinkInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "entityType":
+			var err error
+			it.EntityType, err = ec.unmarshalNImageEntity2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐImageEntity(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "entityId":
+			var err error
+			it.EntityID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "url":
+			var err error
+			it.URL, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "displayName":
+			var err error
+			it.DisplayName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "category":
+			var err error
+			it.Category, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34090,6 +34657,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._File(ctx, sel, obj)
+	case *ent.Hyperlink:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Hyperlink(ctx, sel, obj)
 	case *ent.Comment:
 		if obj == nil {
 			return graphql.Null
@@ -35160,6 +35732,20 @@ func (ec *executionContext) _Equipment(ctx context.Context, sel ast.SelectionSet
 				}
 				return res
 			})
+		case "hyperlinks":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Equipment_hyperlinks(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36085,6 +36671,47 @@ func (ec *executionContext) _FloorPlanScale(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var hyperlinkImplementors = []string{"Hyperlink", "Node"}
+
+func (ec *executionContext) _Hyperlink(ctx context.Context, sel ast.SelectionSet, obj *ent.Hyperlink) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, hyperlinkImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Hyperlink")
+		case "id":
+			out.Values[i] = ec._Hyperlink_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "url":
+			out.Values[i] = ec._Hyperlink_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "displayName":
+			out.Values[i] = ec._Hyperlink_displayName(ctx, field, obj)
+		case "category":
+			out.Values[i] = ec._Hyperlink_category(ctx, field, obj)
+		case "createTime":
+			out.Values[i] = ec._Hyperlink_createTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var latestPythonPackageResultImplementors = []string{"LatestPythonPackageResult"}
 
 func (ec *executionContext) _LatestPythonPackageResult(ctx context.Context, sel ast.SelectionSet, obj *models.LatestPythonPackageResult) graphql.Marshaler {
@@ -36479,6 +37106,20 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 				}
 				return res
 			})
+		case "hyperlinks":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Location_hyperlinks(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36832,6 +37473,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addImage":
 			out.Values[i] = ec._Mutation_addImage(ctx, field)
+		case "addHyperlink":
+			out.Values[i] = ec._Mutation_addHyperlink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteHyperlink":
+			out.Values[i] = ec._Mutation_deleteHyperlink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "deleteImage":
 			out.Values[i] = ec._Mutation_deleteImage(ctx, field)
 		case "removeWorkOrder":
@@ -39399,6 +40050,20 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 				}
 				return res
 			})
+		case "hyperlinks":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_hyperlinks(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -40329,6 +40994,10 @@ func (ec *executionContext) unmarshalNAddEquipmentTypeInput2githubᚗcomᚋfaceb
 
 func (ec *executionContext) unmarshalNAddFloorPlanInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddFloorPlanInput(ctx context.Context, v interface{}) (models.AddFloorPlanInput, error) {
 	return ec.unmarshalInputAddFloorPlanInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNAddHyperlinkInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddHyperlinkInput(ctx context.Context, v interface{}) (models.AddHyperlinkInput, error) {
+	return ec.unmarshalInputAddHyperlinkInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNAddImageInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddImageInput(ctx context.Context, v interface{}) (models.AddImageInput, error) {
@@ -41554,6 +42223,57 @@ func (ec *executionContext) marshalNFloorPlanScale2ᚖgithubᚗcomᚋfacebookinc
 		return graphql.Null
 	}
 	return ec._FloorPlanScale(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNHyperlink2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx context.Context, sel ast.SelectionSet, v ent.Hyperlink) graphql.Marshaler {
+	return ec._Hyperlink(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNHyperlink2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlinkᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Hyperlink) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNHyperlink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNHyperlink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx context.Context, sel ast.SelectionSet, v *ent.Hyperlink) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Hyperlink(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {

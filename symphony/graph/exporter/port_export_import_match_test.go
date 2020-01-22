@@ -68,7 +68,7 @@ func TestImportAndEditPorts(t *testing.T) {
 	ctx, res := prepareLinksPortsAndExport(t, r, e)
 
 	defer res.Body.Close()
-	importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityPort)
+	importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityPort, MethodEdit)
 	locs := r.client.Location.Query().AllX(ctx)
 	require.Len(t, locs, 3)
 	ports, err := r.Query().PortSearch(ctx, nil, nil)

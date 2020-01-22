@@ -56,7 +56,7 @@ const (
 	EquipmentTypeColumn = "equipment_type_id"
 )
 
-// Columns holds all SQL columns are equipmentportdefinition fields.
+// Columns holds all SQL columns for equipmentportdefinition fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -65,6 +65,12 @@ var Columns = []string{
 	FieldIndex,
 	FieldBandwidth,
 	FieldVisibilityLabel,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentPortDefinition type.
+var ForeignKeys = []string{
+	"equipment_port_type_id",
+	"equipment_type_id",
 }
 
 var (

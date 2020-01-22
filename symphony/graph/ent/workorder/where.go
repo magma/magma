@@ -1551,6 +1551,36 @@ func HasFilesWith(preds ...predicate.File) predicate.WorkOrder {
 	)
 }
 
+// HasHyperlinks applies the HasEdge predicate on the "hyperlinks" edge.
+func HasHyperlinks() predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HyperlinksTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HyperlinksTable, HyperlinksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	},
+	)
+}
+
+// HasHyperlinksWith applies the HasEdge predicate on the "hyperlinks" edge with a given conditions (other predicates).
+func HasHyperlinksWith(preds ...predicate.Hyperlink) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HyperlinksInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HyperlinksTable, HyperlinksColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	},
+	)
+}
+
 // HasLocation applies the HasEdge predicate on the "location" edge.
 func HasLocation() predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {

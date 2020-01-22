@@ -28,6 +28,9 @@ type SurveyTemplateQuestionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyTemplateQuestion
+	// eager-loading edges.
+	withCategory *SurveyTemplateCategoryQuery
+	withFKs      bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -237,6 +240,17 @@ func (stqq *SurveyTemplateQuestionQuery) Clone() *SurveyTemplateQuestionQuery {
 	}
 }
 
+//  WithCategory tells the query-builder to eager-loads the nodes that are connected to
+// the "category" edge. The optional arguments used to configure the query builder of the edge.
+func (stqq *SurveyTemplateQuestionQuery) WithCategory(opts ...func(*SurveyTemplateCategoryQuery)) *SurveyTemplateQuestionQuery {
+	query := &SurveyTemplateCategoryQuery{config: stqq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stqq.withCategory = query
+	return stqq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -280,30 +294,71 @@ func (stqq *SurveyTemplateQuestionQuery) Select(field string, fields ...string) 
 
 func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyTemplateQuestion, error) {
 	var (
-		nodes []*SurveyTemplateQuestion
-		spec  = stqq.querySpec()
+		nodes   []*SurveyTemplateQuestion
+		withFKs = stqq.withFKs
+		_spec   = stqq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if stqq.withCategory != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, surveytemplatequestion.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &SurveyTemplateQuestion{config: stqq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, stqq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, stqq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := stqq.withCategory; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*SurveyTemplateQuestion)
+		for i := range nodes {
+			if fk := nodes[i].category_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(surveytemplatecategory.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Category = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
 func (stqq *SurveyTemplateQuestionQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := stqq.querySpec()
-	return sqlgraph.CountNodes(ctx, stqq.driver, spec)
+	_spec := stqq.querySpec()
+	return sqlgraph.CountNodes(ctx, stqq.driver, _spec)
 }
 
 func (stqq *SurveyTemplateQuestionQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -315,7 +370,7 @@ func (stqq *SurveyTemplateQuestionQuery) sqlExist(ctx context.Context) (bool, er
 }
 
 func (stqq *SurveyTemplateQuestionQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   surveytemplatequestion.Table,
 			Columns: surveytemplatequestion.Columns,
@@ -328,26 +383,26 @@ func (stqq *SurveyTemplateQuestionQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := stqq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := stqq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := stqq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := stqq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (stqq *SurveyTemplateQuestionQuery) sqlQuery() *sql.Selector {
