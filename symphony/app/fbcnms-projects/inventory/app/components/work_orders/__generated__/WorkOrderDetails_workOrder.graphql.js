@@ -17,6 +17,7 @@ import type { ReaderFragment } from 'relay-runtime';
 type CheckListItem_item$ref = any;
 type CommentsBox_comments$ref = any;
 type EntityDocumentsTable_files$ref = any;
+type EntityDocumentsTable_hyperlinks$ref = any;
 type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type WorkOrderDetailsPane_workOrder$ref = any;
 export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
@@ -88,6 +89,9 @@ export type WorkOrderDetails_workOrder = {|
   |}>,
   +files: $ReadOnlyArray<?{|
     +$fragmentRefs: EntityDocumentsTable_files$ref
+  |}>,
+  +hyperlinks: $ReadOnlyArray<{|
+    +$fragmentRefs: EntityDocumentsTable_hyperlinks$ref
   |}>,
   +comments: $ReadOnlyArray<?{|
     +$fragmentRefs: CommentsBox_comments$ref
@@ -438,6 +442,22 @@ return {
     {
       "kind": "LinkedField",
       "alias": null,
+      "name": "hyperlinks",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Hyperlink",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "FragmentSpread",
+          "name": "EntityDocumentsTable_hyperlinks",
+          "args": null
+        }
+      ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
       "name": "comments",
       "storageKey": null,
       "args": null,
@@ -522,5 +542,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '6d5b85a397a803ac802745f16cdeeee2';
+(node/*: any*/).hash = 'b6efe5a6c650b662c2cd23f4c0c72d07';
 module.exports = node;

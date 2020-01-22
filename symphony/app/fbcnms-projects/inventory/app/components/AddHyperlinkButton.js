@@ -13,6 +13,7 @@ import type {
   AddHyperlinkMutationResponse,
   AddHyperlinkMutationVariables,
 } from './../mutations/__generated__/AddHyperlinkMutation.graphql';
+import type {ButtonProps} from '@fbcnms/ui/components/design-system/Button';
 import type {ImageEntity} from '../mutations/__generated__/AddImageMutation.graphql';
 import type {MutationCallbacks} from '../mutations/MutationCallbacks.js';
 import type {WithSnackbarProps} from 'notistack';
@@ -32,9 +33,12 @@ import {withSnackbar} from 'notistack';
 type addLinkProps = {
   entityId: string,
   entityType: ImageEntity,
+  allowCategories?: boolean,
+  children?: ?React.Node,
+  className?: string,
 };
 
-type Props = addLinkProps & WithSnackbarProps;
+type Props = addLinkProps & ButtonProps & WithSnackbarProps;
 
 const addNewHyperlink = (input: AddHyperlinkInput, onError: string => void) => {
   const variables: AddHyperlinkMutationVariables = {
@@ -61,13 +65,26 @@ const addNewHyperlink = (input: AddHyperlinkInput, onError: string => void) => {
 };
 
 const AddHyperlinkButton = (props: Props) => {
+  const {
+    entityId,
+    entityType,
+    allowCategories = true,
+    enqueueSnackbar,
+    className,
+    skin = 'gray',
+    variant,
+    disabled,
+    children,
+  } = props;
+
   const [addHyperlinkDialogOpened, setAddHyperlinkDialogOpened] = useState(
     false,
   );
   const [dialogKey, setDialogKey] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const appContext = useContext(AppContext);
-  const categoriesEnabled = appContext.isFeatureEnabled('file_categories');
+  const categoriesEnabled =
+    allowCategories && appContext.isFeatureEnabled('file_categories');
 
   const openDialog = useCallback((category: ?string) => {
     setSelectedCategory(category);
@@ -78,7 +95,6 @@ const AddHyperlinkButton = (props: Props) => {
 
   const callAddNewHyperlink = useCallback(
     (url: string, displayName: ?string) => {
-      const {entityId, entityType, enqueueSnackbar} = props;
       const onError = errorMessage => {
         enqueueSnackbar(errorMessage, {
           children: key => (
@@ -95,25 +111,30 @@ const AddHyperlinkButton = (props: Props) => {
       };
       addNewHyperlink(input, onError);
     },
-    [props, selectedCategory],
+    [enqueueSnackbar, entityId, entityType, selectedCategory],
   );
 
   return (
     <>
       {categoriesEnabled && Strings.documents.categories.length ? (
         <PopoverMenu
-          skin="gray"
+          skin={skin}
           menuDockRight={true}
           options={Strings.documents.categories.map(category => ({
             label: category,
             value: category,
           }))}
           onChange={openDialog}>
-          {Strings.documents.addLinkButton}
+          {children ?? Strings.documents.addLinkButton}
         </PopoverMenu>
       ) : (
-        <Button skin="gray" onClick={openDialog}>
-          {Strings.documents.addLinkButton}
+        <Button
+          onClick={() => openDialog()}
+          className={className}
+          skin={skin}
+          variant={variant}
+          disabled={disabled}>
+          {children ?? Strings.documents.addLinkButton}
         </Button>
       )}
       <AddHyperlinkDialog
