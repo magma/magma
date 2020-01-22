@@ -14,7 +14,7 @@ namespace cli {
 using namespace std;
 
 ModelRegistry::ModelRegistry() {
-  // Set plugin directory for libyang according to:
+  // Set plugin directory for YDK libyang according to:
   // https://github.com/CESNET/libyang/blob/c38295963669219b7aad2618b9f1dd31fa667caa/FAQ.md
   // and CMakeLists.ydk
   setenv("LIBYANG_EXTENSIONS_PLUGINS_DIR", LIBYANG_PLUGINS_DIR, false);

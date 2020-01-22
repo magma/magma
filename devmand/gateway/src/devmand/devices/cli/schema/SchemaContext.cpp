@@ -74,6 +74,9 @@ SchemaContext::~SchemaContext() {
 }
 
 SchemaContext::SchemaContext(const Model& _model) : model(_model.getDir()) {
+  // set extensions and user_types for non-YDK libyang
+  setenv("LLLIBYANG_EXTENSIONS_PLUGINS_DIR", LLLIBYANG_EXTENSIONS_PLUGINS_DIR, false);
+  setenv("LIBYANG_USER_TYPES_PLUGINS_DIR", LIBYANG_USER_TYPES_PLUGINS_DIR, false);
   ctx = llly_ctx_new(_model.getDir().c_str(), LLLY_CTX_ALLIMPLEMENTED);
 
   int modelCount = 0;
