@@ -11,7 +11,6 @@ package alert_test
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
@@ -90,27 +89,33 @@ func TestFile_DeleteRule(t *testing.T) {
 
 func TestSecureRule(t *testing.T) {
 	rule := sampleRule
-	err := alert.SecureRule("test", &rule)
+	err := alert.SecureRule(true, "tenantID", "test", &rule)
 	assert.NoError(t, err)
 
-	networkLabels := map[string]string{metrics.NetworkLabelName: "test"}
-	restrictor := security.NewQueryRestrictor(networkLabels)
+	restrictorLabels := map[string]string{"tenantID": "test"}
+	restrictor := security.NewQueryRestrictor(restrictorLabels)
 	expectedExpr, _ := restrictor.RestrictQuery(sampleRule.Expr)
 
 	assert.Equal(t, expectedExpr, rule.Expr)
 	assert.Equal(t, 2, len(rule.Labels))
-	assert.Equal(t, "test", rule.Labels[metrics.NetworkLabelName])
+	assert.Equal(t, "test", rule.Labels["tenantID"])
 
 	existingNetworkIDRule := rulefmt.Rule{
 		Alert:  alertName2,
-		Expr:   `up{networkID="test"} == 0`,
-		Labels: map[string]string{"name": "value", "networkID": "test"},
+		Expr:   `up{tenantID="test"} == 0`,
+		Labels: map[string]string{"name": "value", "tenantID": "test"},
 	}
 	restricted, _ := restrictor.RestrictQuery(existingNetworkIDRule.Expr)
-	// assert networkID isn't appended twice
+	// assert tenantID isn't appended twice
 	assert.Equal(t, expectedExpr, restricted)
 	assert.Equal(t, 2, len(rule.Labels))
 
+	// assert expression is not restricted when restrictQueries is false
+	rule = sampleRule
+	origRule := sampleRule.Expr
+	err = alert.SecureRule(false, "tenantID", "test", &rule)
+	assert.NoError(t, err)
+	assert.Equal(t, origRule, rule.Expr)
 }
 
 func TestRuleJSONWrapper_ToRuleFmt(t *testing.T) {
