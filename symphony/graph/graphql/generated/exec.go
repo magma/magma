@@ -352,10 +352,11 @@ type ComplexityRoot struct {
 	}
 
 	Hyperlink struct {
-		Category func(childComplexity int) int
-		ID       func(childComplexity int) int
-		Name     func(childComplexity int) int
-		URL      func(childComplexity int) int
+		Category   func(childComplexity int) int
+		CreateTime func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Name       func(childComplexity int) int
+		URL        func(childComplexity int) int
 	}
 
 	LatestPythonPackageResult struct {
@@ -2302,6 +2303,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Hyperlink.Category(childComplexity), true
+
+	case "Hyperlink.createTime":
+		if e.complexity.Hyperlink.CreateTime == nil {
+			break
+		}
+
+		return e.complexity.Hyperlink.CreateTime(childComplexity), true
 
 	case "Hyperlink.id":
 		if e.complexity.Hyperlink.ID == nil {
@@ -5791,6 +5799,7 @@ type Hyperlink implements Node {
   url: String!
   displayName: String
   category: String
+  createTime: Time!
 }
 
 input AddHyperlinkInput {
@@ -15507,6 +15516,43 @@ func (ec *executionContext) _Hyperlink_category(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Hyperlink_createTime(ctx context.Context, field graphql.CollectedField, obj *ent.Hyperlink) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Hyperlink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreateTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LatestPythonPackageResult_lastPythonPackage(ctx context.Context, field graphql.CollectedField, obj *models.LatestPythonPackageResult) (ret graphql.Marshaler) {
@@ -36650,6 +36696,11 @@ func (ec *executionContext) _Hyperlink(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._Hyperlink_displayName(ctx, field, obj)
 		case "category":
 			out.Values[i] = ec._Hyperlink_category(ctx, field, obj)
+		case "createTime":
+			out.Values[i] = ec._Hyperlink_createTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

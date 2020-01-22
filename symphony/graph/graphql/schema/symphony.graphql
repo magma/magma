@@ -181,6 +181,7 @@ type Hyperlink implements Node {
   url: String!
   displayName: String
   category: String
+  createTime: Time!
 }
 
 input AddHyperlinkInput {

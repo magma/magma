@@ -22,6 +22,7 @@ export type HyperlinkTableRow_hyperlink = {|
   +category: ?string,
   +url: string,
   +displayName: ?string,
+  +createTime: any,
   +$refType: HyperlinkTableRow_hyperlink$ref,
 |};
 export type HyperlinkTableRow_hyperlink$data = HyperlinkTableRow_hyperlink;
@@ -66,9 +67,16 @@ const node/*: ReaderFragment*/ = {
       "name": "displayName",
       "args": null,
       "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "createTime",
+      "args": null,
+      "storageKey": null
     }
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = '7301a541a568dc830f99469757b6e087';
+(node/*: any*/).hash = '2d5c354e88fc77b9dda1bf10b0d518fa';
 module.exports = node;
