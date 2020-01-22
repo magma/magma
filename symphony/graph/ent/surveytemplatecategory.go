@@ -29,23 +29,37 @@ type SurveyTemplateCategory struct {
 	CategoryTitle string `json:"category_title,omitempty"`
 	// CategoryDescription holds the value of the "category_description" field.
 	CategoryDescription string `json:"category_description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyTemplateCategoryQuery when eager-loading is set.
+	Edges struct {
+		// SurveyTemplateQuestions holds the value of the survey_template_questions edge.
+		SurveyTemplateQuestions []*SurveyTemplateQuestion
+	} `json:"edges"`
+	location_type_survey_template_category_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SurveyTemplateCategory) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // category_title
+		&sql.NullString{}, // category_description
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyTemplateCategory) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // location_type_survey_template_category_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the SurveyTemplateCategory fields.
 func (stc *SurveyTemplateCategory) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(surveytemplatecategory.Columns); m != n {
+	if m, n := len(values), len(surveytemplatecategory.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -73,6 +87,15 @@ func (stc *SurveyTemplateCategory) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field category_description", values[3])
 	} else if value.Valid {
 		stc.CategoryDescription = value.String
+	}
+	values = values[4:]
+	if len(values) == len(surveytemplatecategory.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_type_survey_template_category_id", value)
+		} else if value.Valid {
+			stc.location_type_survey_template_category_id = new(string)
+			*stc.location_type_survey_template_category_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

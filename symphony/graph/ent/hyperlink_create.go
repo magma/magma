@@ -116,8 +116,8 @@ func (hc *HyperlinkCreate) SaveX(ctx context.Context) *Hyperlink {
 
 func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 	var (
-		h    = &Hyperlink{config: hc.config}
-		spec = &sqlgraph.CreateSpec{
+		h     = &Hyperlink{config: hc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: hyperlink.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -126,7 +126,7 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 		}
 	)
 	if value := hc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: hyperlink.FieldCreateTime,
@@ -134,7 +134,7 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 		h.CreateTime = *value
 	}
 	if value := hc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: hyperlink.FieldUpdateTime,
@@ -142,7 +142,7 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 		h.UpdateTime = *value
 	}
 	if value := hc.url; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: hyperlink.FieldURL,
@@ -150,7 +150,7 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 		h.URL = *value
 	}
 	if value := hc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: hyperlink.FieldName,
@@ -158,20 +158,20 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 		h.Name = *value
 	}
 	if value := hc.category; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: hyperlink.FieldCategory,
 		})
 		h.Category = *value
 	}
-	if err := sqlgraph.CreateNode(ctx, hc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, hc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	h.ID = strconv.FormatInt(id, 10)
 	return h, nil
 }

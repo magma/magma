@@ -63,7 +63,7 @@ const (
 	LocationColumn = "location_id"
 )
 
-// Columns holds all SQL columns are surveywifiscan fields.
+// Columns holds all SQL columns for surveywifiscan fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -79,6 +79,12 @@ var Columns = []string{
 	FieldStrength,
 	FieldLatitude,
 	FieldLongitude,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the SurveyWiFiScan type.
+var ForeignKeys = []string{
+	"survey_question_id",
+	"location_id",
 }
 
 var (

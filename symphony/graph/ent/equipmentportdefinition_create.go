@@ -207,8 +207,8 @@ func (epdc *EquipmentPortDefinitionCreate) SaveX(ctx context.Context) *Equipment
 
 func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*EquipmentPortDefinition, error) {
 	var (
-		epd  = &EquipmentPortDefinition{config: epdc.config}
-		spec = &sqlgraph.CreateSpec{
+		epd   = &EquipmentPortDefinition{config: epdc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipmentportdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -217,7 +217,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		}
 	)
 	if value := epdc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldCreateTime,
@@ -225,7 +225,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.CreateTime = *value
 	}
 	if value := epdc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldUpdateTime,
@@ -233,7 +233,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.UpdateTime = *value
 	}
 	if value := epdc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldName,
@@ -241,7 +241,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.Name = *value
 	}
 	if value := epdc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldIndex,
@@ -249,7 +249,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.Index = *value
 	}
 	if value := epdc.bandwidth; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldBandwidth,
@@ -257,7 +257,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.Bandwidth = *value
 	}
 	if value := epdc.visibility_label; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldVisibilityLabel,
@@ -285,7 +285,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epdc.ports; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -308,7 +308,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epdc.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -331,15 +331,15 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, epdc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, epdc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	epd.ID = strconv.FormatInt(id, 10)
 	return epd, nil
 }

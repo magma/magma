@@ -28,6 +28,9 @@ type TokenQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Token
+	// eager-loading edges.
+	withUser *UserQuery
+	withFKs  bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -237,6 +240,17 @@ func (tq *TokenQuery) Clone() *TokenQuery {
 	}
 }
 
+//  WithUser tells the query-builder to eager-loads the nodes that are connected to
+// the "user" edge. The optional arguments used to configure the query builder of the edge.
+func (tq *TokenQuery) WithUser(opts ...func(*UserQuery)) *TokenQuery {
+	query := &UserQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withUser = query
+	return tq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -280,30 +294,71 @@ func (tq *TokenQuery) Select(field string, fields ...string) *TokenSelect {
 
 func (tq *TokenQuery) sqlAll(ctx context.Context) ([]*Token, error) {
 	var (
-		nodes []*Token
-		spec  = tq.querySpec()
+		nodes   []*Token
+		withFKs = tq.withFKs
+		_spec   = tq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if tq.withUser != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, token.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &Token{config: tq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, tq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := tq.withUser; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Token)
+		for i := range nodes {
+			if fk := nodes[i].user_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.User = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
 func (tq *TokenQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := tq.querySpec()
-	return sqlgraph.CountNodes(ctx, tq.driver, spec)
+	_spec := tq.querySpec()
+	return sqlgraph.CountNodes(ctx, tq.driver, _spec)
 }
 
 func (tq *TokenQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -315,7 +370,7 @@ func (tq *TokenQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (tq *TokenQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   token.Table,
 			Columns: token.Columns,
@@ -328,26 +383,26 @@ func (tq *TokenQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := tq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := tq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := tq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := tq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (tq *TokenQuery) sqlQuery() *sql.Selector {

@@ -38,7 +38,7 @@ const (
 	WorkOrdersColumn = "technician_id"
 )
 
-// Columns holds all SQL columns are technician fields.
+// Columns holds all SQL columns for technician fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

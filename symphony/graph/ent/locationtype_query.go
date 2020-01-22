@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -30,6 +32,10 @@ type LocationTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.LocationType
+	// eager-loading edges.
+	withLocations                *LocationQuery
+	withPropertyTypes            *PropertyTypeQuery
+	withSurveyTemplateCategories *SurveyTemplateCategoryQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -263,6 +269,39 @@ func (ltq *LocationTypeQuery) Clone() *LocationTypeQuery {
 	}
 }
 
+//  WithLocations tells the query-builder to eager-loads the nodes that are connected to
+// the "locations" edge. The optional arguments used to configure the query builder of the edge.
+func (ltq *LocationTypeQuery) WithLocations(opts ...func(*LocationQuery)) *LocationTypeQuery {
+	query := &LocationQuery{config: ltq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ltq.withLocations = query
+	return ltq
+}
+
+//  WithPropertyTypes tells the query-builder to eager-loads the nodes that are connected to
+// the "property_types" edge. The optional arguments used to configure the query builder of the edge.
+func (ltq *LocationTypeQuery) WithPropertyTypes(opts ...func(*PropertyTypeQuery)) *LocationTypeQuery {
+	query := &PropertyTypeQuery{config: ltq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ltq.withPropertyTypes = query
+	return ltq
+}
+
+//  WithSurveyTemplateCategories tells the query-builder to eager-loads the nodes that are connected to
+// the "survey_template_categories" edge. The optional arguments used to configure the query builder of the edge.
+func (ltq *LocationTypeQuery) WithSurveyTemplateCategories(opts ...func(*SurveyTemplateCategoryQuery)) *LocationTypeQuery {
+	query := &SurveyTemplateCategoryQuery{config: ltq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ltq.withSurveyTemplateCategories = query
+	return ltq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -307,29 +346,131 @@ func (ltq *LocationTypeQuery) Select(field string, fields ...string) *LocationTy
 func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, error) {
 	var (
 		nodes []*LocationType
-		spec  = ltq.querySpec()
+		_spec = ltq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &LocationType{config: ltq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, ltq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, ltq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := ltq.withLocations; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*LocationType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Location(func(s *sql.Selector) {
+			s.Where(sql.InValues(locationtype.LocationsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Locations = append(node.Edges.Locations, n)
+		}
+	}
+
+	if query := ltq.withPropertyTypes; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*LocationType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.PropertyType(func(s *sql.Selector) {
+			s.Where(sql.InValues(locationtype.PropertyTypesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.location_type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "location_type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
+		}
+	}
+
+	if query := ltq.withSurveyTemplateCategories; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*LocationType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SurveyTemplateCategory(func(s *sql.Selector) {
+			s.Where(sql.InValues(locationtype.SurveyTemplateCategoriesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.location_type_survey_template_category_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "location_type_survey_template_category_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_survey_template_category_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.SurveyTemplateCategories = append(node.Edges.SurveyTemplateCategories, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (ltq *LocationTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := ltq.querySpec()
-	return sqlgraph.CountNodes(ctx, ltq.driver, spec)
+	_spec := ltq.querySpec()
+	return sqlgraph.CountNodes(ctx, ltq.driver, _spec)
 }
 
 func (ltq *LocationTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -341,7 +482,7 @@ func (ltq *LocationTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (ltq *LocationTypeQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   locationtype.Table,
 			Columns: locationtype.Columns,
@@ -354,26 +495,26 @@ func (ltq *LocationTypeQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := ltq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := ltq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := ltq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := ltq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (ltq *LocationTypeQuery) sqlQuery() *sql.Selector {

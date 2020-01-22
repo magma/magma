@@ -30,25 +30,37 @@ type Hyperlink struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" gqlgen:"displayName"`
 	// Category holds the value of the "category" field.
-	Category string `json:"category,omitempty"`
+	Category                string `json:"category,omitempty"`
+	equipment_hyperlink_id  *string
+	location_hyperlink_id   *string
+	work_order_hyperlink_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Hyperlink) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // url
+		&sql.NullString{}, // name
+		&sql.NullString{}, // category
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Hyperlink) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // equipment_hyperlink_id
+		&sql.NullInt64{}, // location_hyperlink_id
+		&sql.NullInt64{}, // work_order_hyperlink_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Hyperlink fields.
 func (h *Hyperlink) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(hyperlink.Columns); m != n {
+	if m, n := len(values), len(hyperlink.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -81,6 +93,27 @@ func (h *Hyperlink) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field category", values[4])
 	} else if value.Valid {
 		h.Category = value.String
+	}
+	values = values[5:]
+	if len(values) == len(hyperlink.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_hyperlink_id", value)
+		} else if value.Valid {
+			h.equipment_hyperlink_id = new(string)
+			*h.equipment_hyperlink_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_hyperlink_id", value)
+		} else if value.Valid {
+			h.location_hyperlink_id = new(string)
+			*h.location_hyperlink_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[2].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_hyperlink_id", value)
+		} else if value.Valid {
+			h.work_order_hyperlink_id = new(string)
+			*h.work_order_hyperlink_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

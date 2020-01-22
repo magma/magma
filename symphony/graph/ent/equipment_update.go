@@ -492,7 +492,7 @@ func (eu *EquipmentUpdate) ExecX(ctx context.Context) {
 }
 
 func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipment.Table,
 			Columns: equipment.Columns,
@@ -503,61 +503,61 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		},
 	}
 	if ps := eu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := eu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipment.FieldUpdateTime,
 		})
 	}
 	if value := eu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldName,
 		})
 	}
 	if value := eu.future_state; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldFutureState,
 		})
 	}
 	if eu.clearfuture_state {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldFutureState,
 		})
 	}
 	if value := eu.device_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldDeviceID,
 		})
 	}
 	if eu.cleardevice_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldDeviceID,
 		})
 	}
 	if value := eu.external_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldExternalID,
 		})
 	}
 	if eu.clearexternal_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldExternalID,
 		})
@@ -576,7 +576,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eu._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -599,7 +599,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if eu.clearedLocation {
 		edge := &sqlgraph.EdgeSpec{
@@ -615,7 +615,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eu.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -638,7 +638,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if eu.clearedParentPosition {
 		edge := &sqlgraph.EdgeSpec{
@@ -654,7 +654,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eu.parent_position; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -677,7 +677,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := eu.removedPositions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -700,7 +700,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eu.positions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -723,7 +723,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := eu.removedPorts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -746,7 +746,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eu.ports; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -769,7 +769,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if eu.clearedWorkOrder {
 		edge := &sqlgraph.EdgeSpec{
@@ -785,7 +785,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eu.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -808,7 +808,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := eu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -831,7 +831,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -854,7 +854,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := eu.removedFiles; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -877,7 +877,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eu.files; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -900,7 +900,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := eu.removedHyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -923,7 +923,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eu.hyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -946,9 +946,9 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, eu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, eu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -1415,7 +1415,7 @@ func (euo *EquipmentUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipment.Table,
 			Columns: equipment.Columns,
@@ -1427,54 +1427,54 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 		},
 	}
 	if value := euo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipment.FieldUpdateTime,
 		})
 	}
 	if value := euo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldName,
 		})
 	}
 	if value := euo.future_state; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldFutureState,
 		})
 	}
 	if euo.clearfuture_state {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldFutureState,
 		})
 	}
 	if value := euo.device_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldDeviceID,
 		})
 	}
 	if euo.cleardevice_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldDeviceID,
 		})
 	}
 	if value := euo.external_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldExternalID,
 		})
 	}
 	if euo.clearexternal_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldExternalID,
 		})
@@ -1493,7 +1493,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := euo._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1516,7 +1516,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if euo.clearedLocation {
 		edge := &sqlgraph.EdgeSpec{
@@ -1532,7 +1532,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := euo.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1555,7 +1555,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if euo.clearedParentPosition {
 		edge := &sqlgraph.EdgeSpec{
@@ -1571,7 +1571,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := euo.parent_position; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1594,7 +1594,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := euo.removedPositions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1617,7 +1617,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := euo.positions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1640,7 +1640,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := euo.removedPorts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1663,7 +1663,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := euo.ports; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1686,7 +1686,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if euo.clearedWorkOrder {
 		edge := &sqlgraph.EdgeSpec{
@@ -1702,7 +1702,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := euo.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1725,7 +1725,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := euo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1748,7 +1748,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := euo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1771,7 +1771,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := euo.removedFiles; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1794,7 +1794,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := euo.files; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1817,7 +1817,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := euo.removedHyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1840,7 +1840,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := euo.hyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1863,12 +1863,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	e = &Equipment{config: euo.config}
-	spec.Assign = e.assignValues
-	spec.ScanValues = e.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, euo.driver, spec); err != nil {
+	_spec.Assign = e.assignValues
+	_spec.ScanValues = e.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, euo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

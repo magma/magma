@@ -435,8 +435,8 @@ func (lc *LocationCreate) SaveX(ctx context.Context) *Location {
 
 func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 	var (
-		l    = &Location{config: lc.config}
-		spec = &sqlgraph.CreateSpec{
+		l     = &Location{config: lc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: location.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -445,7 +445,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		}
 	)
 	if value := lc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: location.FieldCreateTime,
@@ -453,7 +453,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		l.CreateTime = *value
 	}
 	if value := lc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: location.FieldUpdateTime,
@@ -461,7 +461,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		l.UpdateTime = *value
 	}
 	if value := lc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: location.FieldName,
@@ -469,7 +469,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		l.Name = *value
 	}
 	if value := lc.external_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: location.FieldExternalID,
@@ -477,7 +477,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		l.ExternalID = *value
 	}
 	if value := lc.latitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: location.FieldLatitude,
@@ -485,7 +485,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		l.Latitude = *value
 	}
 	if value := lc.longitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: location.FieldLongitude,
@@ -493,7 +493,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		l.Longitude = *value
 	}
 	if value := lc.site_survey_needed; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: location.FieldSiteSurveyNeeded,
@@ -521,7 +521,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -544,7 +544,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.children; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -567,7 +567,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.files; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -590,7 +590,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.hyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -613,7 +613,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -636,7 +636,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -659,7 +659,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.survey; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -682,7 +682,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.wifi_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -705,7 +705,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.cell_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -728,7 +728,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -751,7 +751,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.floor_plans; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -774,15 +774,15 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, lc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, lc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	l.ID = strconv.FormatInt(id, 10)
 	return l, nil
 }

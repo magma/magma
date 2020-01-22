@@ -300,7 +300,7 @@ func (ltu *LocationTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   locationtype.Table,
 			Columns: locationtype.Columns,
@@ -311,75 +311,75 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		},
 	}
 	if ps := ltu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := ltu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: locationtype.FieldUpdateTime,
 		})
 	}
 	if value := ltu.site; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: locationtype.FieldSite,
 		})
 	}
 	if value := ltu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: locationtype.FieldName,
 		})
 	}
 	if value := ltu.map_type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: locationtype.FieldMapType,
 		})
 	}
 	if ltu.clearmap_type {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: locationtype.FieldMapType,
 		})
 	}
 	if value := ltu.map_zoom_level; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
 	if value := ltu.addmap_zoom_level; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
 	if ltu.clearmap_zoom_level {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
 	if value := ltu.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldIndex,
 		})
 	}
 	if value := ltu.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldIndex,
@@ -406,7 +406,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ltu.locations; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -429,7 +429,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ltu.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -452,7 +452,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ltu.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -475,7 +475,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ltu.removedSurveyTemplateCategories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -498,7 +498,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ltu.survey_template_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -521,9 +521,9 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, ltu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, ltu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -805,7 +805,7 @@ func (ltuo *LocationTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationType, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   locationtype.Table,
 			Columns: locationtype.Columns,
@@ -817,68 +817,68 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 		},
 	}
 	if value := ltuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: locationtype.FieldUpdateTime,
 		})
 	}
 	if value := ltuo.site; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: locationtype.FieldSite,
 		})
 	}
 	if value := ltuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: locationtype.FieldName,
 		})
 	}
 	if value := ltuo.map_type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: locationtype.FieldMapType,
 		})
 	}
 	if ltuo.clearmap_type {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: locationtype.FieldMapType,
 		})
 	}
 	if value := ltuo.map_zoom_level; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
 	if value := ltuo.addmap_zoom_level; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
 	if ltuo.clearmap_zoom_level {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
 	if value := ltuo.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldIndex,
 		})
 	}
 	if value := ltuo.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldIndex,
@@ -905,7 +905,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ltuo.locations; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -928,7 +928,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ltuo.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -951,7 +951,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ltuo.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -974,7 +974,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ltuo.removedSurveyTemplateCategories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -997,7 +997,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ltuo.survey_template_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1020,12 +1020,12 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	lt = &LocationType{config: ltuo.config}
-	spec.Assign = lt.assignValues
-	spec.ScanValues = lt.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, ltuo.driver, spec); err != nil {
+	_spec.Assign = lt.assignValues
+	_spec.ScanValues = lt.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, ltuo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

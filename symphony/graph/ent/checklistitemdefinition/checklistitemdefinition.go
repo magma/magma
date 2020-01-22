@@ -33,7 +33,7 @@ const (
 	WorkOrderTypeColumn = "work_order_type_id"
 )
 
-// Columns holds all SQL columns are checklistitemdefinition fields.
+// Columns holds all SQL columns for checklistitemdefinition fields.
 var Columns = []string{
 	FieldID,
 	FieldTitle,
@@ -41,4 +41,9 @@ var Columns = []string{
 	FieldIndex,
 	FieldEnumValues,
 	FieldHelpText,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the CheckListItemDefinition type.
+var ForeignKeys = []string{
+	"work_order_type_id",
 }

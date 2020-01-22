@@ -168,7 +168,7 @@ func (wodu *WorkOrderDefinitionUpdate) ExecX(ctx context.Context) {
 }
 
 func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   workorderdefinition.Table,
 			Columns: workorderdefinition.Columns,
@@ -179,35 +179,35 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 		},
 	}
 	if ps := wodu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := wodu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workorderdefinition.FieldUpdateTime,
 		})
 	}
 	if value := wodu.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
 	if value := wodu.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
 	if wodu.clearindex {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: workorderdefinition.FieldIndex,
 		})
@@ -226,7 +226,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wodu._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -249,7 +249,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if wodu.clearedProjectType {
 		edge := &sqlgraph.EdgeSpec{
@@ -265,7 +265,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := wodu.project_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -288,9 +288,9 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, wodu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, wodu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -440,7 +440,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *WorkOrderDefinition, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   workorderdefinition.Table,
 			Columns: workorderdefinition.Columns,
@@ -452,28 +452,28 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 		},
 	}
 	if value := woduo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workorderdefinition.FieldUpdateTime,
 		})
 	}
 	if value := woduo.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
 	if value := woduo.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
 	if woduo.clearindex {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: workorderdefinition.FieldIndex,
 		})
@@ -492,7 +492,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := woduo._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -515,7 +515,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if woduo.clearedProjectType {
 		edge := &sqlgraph.EdgeSpec{
@@ -531,7 +531,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := woduo.project_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -554,12 +554,12 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	wod = &WorkOrderDefinition{config: woduo.config}
-	spec.Assign = wod.assignValues
-	spec.ScanValues = wod.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, woduo.driver, spec); err != nil {
+	_spec.Assign = wod.assignValues
+	_spec.ScanValues = wod.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, woduo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

@@ -202,8 +202,8 @@ func (sc *SurveyCreate) SaveX(ctx context.Context) *Survey {
 
 func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 	var (
-		s    = &Survey{config: sc.config}
-		spec = &sqlgraph.CreateSpec{
+		s     = &Survey{config: sc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: survey.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -212,7 +212,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		}
 	)
 	if value := sc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: survey.FieldCreateTime,
@@ -220,7 +220,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.CreateTime = *value
 	}
 	if value := sc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: survey.FieldUpdateTime,
@@ -228,7 +228,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.UpdateTime = *value
 	}
 	if value := sc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: survey.FieldName,
@@ -236,7 +236,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.Name = *value
 	}
 	if value := sc.owner_name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: survey.FieldOwnerName,
@@ -244,7 +244,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.OwnerName = *value
 	}
 	if value := sc.creation_timestamp; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: survey.FieldCreationTimestamp,
@@ -252,7 +252,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.CreationTimestamp = *value
 	}
 	if value := sc.completion_timestamp; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: survey.FieldCompletionTimestamp,
@@ -280,7 +280,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sc.source_file; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -303,7 +303,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sc.questions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -326,15 +326,15 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, sc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, sc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	s.ID = strconv.FormatInt(id, 10)
 	return s, nil
 }

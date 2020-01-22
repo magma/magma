@@ -229,7 +229,7 @@ func (ptu *ProjectTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   projecttype.Table,
 			Columns: projecttype.Columns,
@@ -240,35 +240,35 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		},
 	}
 	if ps := ptu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := ptu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: projecttype.FieldUpdateTime,
 		})
 	}
 	if value := ptu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldName,
 		})
 	}
 	if value := ptu.description; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldDescription,
 		})
 	}
 	if ptu.cleardescription {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: projecttype.FieldDescription,
 		})
@@ -294,7 +294,7 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.projects; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -317,7 +317,7 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ptu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -340,7 +340,7 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -363,7 +363,7 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ptu.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -386,7 +386,7 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -409,9 +409,9 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, ptu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, ptu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -621,7 +621,7 @@ func (ptuo *ProjectTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   projecttype.Table,
 			Columns: projecttype.Columns,
@@ -633,28 +633,28 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 		},
 	}
 	if value := ptuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: projecttype.FieldUpdateTime,
 		})
 	}
 	if value := ptuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldName,
 		})
 	}
 	if value := ptuo.description; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldDescription,
 		})
 	}
 	if ptuo.cleardescription {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: projecttype.FieldDescription,
 		})
@@ -680,7 +680,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.projects; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -703,7 +703,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ptuo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -726,7 +726,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -749,7 +749,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ptuo.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -772,7 +772,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -795,12 +795,12 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	pt = &ProjectType{config: ptuo.config}
-	spec.Assign = pt.assignValues
-	spec.ScanValues = pt.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, ptuo.driver, spec); err != nil {
+	_spec.Assign = pt.assignValues
+	_spec.ScanValues = pt.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, ptuo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

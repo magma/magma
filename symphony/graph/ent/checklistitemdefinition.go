@@ -30,24 +30,38 @@ type CheckListItemDefinition struct {
 	EnumValues *string `json:"enum_values,omitempty" gqlgen:"enumValues"`
 	// HelpText holds the value of the "help_text" field.
 	HelpText *string `json:"help_text,omitempty" gqlgen:"helpText"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CheckListItemDefinitionQuery when eager-loading is set.
+	Edges struct {
+		// WorkOrderType holds the value of the work_order_type edge.
+		WorkOrderType *WorkOrderType
+	} `json:"edges"`
+	work_order_type_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*CheckListItemDefinition) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullString{}, // title
+		&sql.NullString{}, // type
+		&sql.NullInt64{},  // index
+		&sql.NullString{}, // enum_values
+		&sql.NullString{}, // help_text
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*CheckListItemDefinition) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // work_order_type_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the CheckListItemDefinition fields.
 func (clid *CheckListItemDefinition) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(checklistitemdefinition.Columns); m != n {
+	if m, n := len(values), len(checklistitemdefinition.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -82,6 +96,15 @@ func (clid *CheckListItemDefinition) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		clid.HelpText = new(string)
 		*clid.HelpText = value.String
+	}
+	values = values[5:]
+	if len(values) == len(checklistitemdefinition.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_type_id", value)
+		} else if value.Valid {
+			clid.work_order_type_id = new(string)
+			*clid.work_order_type_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

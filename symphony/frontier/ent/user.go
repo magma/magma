@@ -37,27 +37,33 @@ type User struct {
 	Networks []string `json:"networks,omitempty"`
 	// Tabs holds the value of the "tabs" field.
 	Tabs []string `json:"tabs,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges struct {
+		// Tokens holds the value of the tokens edge.
+		Tokens []*Token
+	} `json:"edges"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&[]byte{},
-		&[]byte{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // created_at
+		&sql.NullTime{},   // updated_at
+		&sql.NullString{}, // email
+		&sql.NullString{}, // password
+		&sql.NullInt64{},  // role
+		&sql.NullString{}, // tenant
+		&[]byte{},         // networks
+		&[]byte{},         // tabs
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the User fields.
 func (u *User) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(user.Columns); m != n {
+	if m, n := len(values), len(user.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

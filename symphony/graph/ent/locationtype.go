@@ -35,26 +35,36 @@ type LocationType struct {
 	MapZoomLevel int `json:"map_zoom_level,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the LocationTypeQuery when eager-loading is set.
+	Edges struct {
+		// Locations holds the value of the locations edge.
+		Locations []*Location
+		// PropertyTypes holds the value of the property_types edge.
+		PropertyTypes []*PropertyType
+		// SurveyTemplateCategories holds the value of the survey_template_categories edge.
+		SurveyTemplateCategories []*SurveyTemplateCategory
+	} `json:"edges"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*LocationType) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullBool{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullBool{},   // site
+		&sql.NullString{}, // name
+		&sql.NullString{}, // map_type
+		&sql.NullInt64{},  // map_zoom_level
+		&sql.NullInt64{},  // index
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the LocationType fields.
 func (lt *LocationType) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(locationtype.Columns); m != n {
+	if m, n := len(values), len(locationtype.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

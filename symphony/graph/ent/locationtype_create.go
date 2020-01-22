@@ -224,8 +224,8 @@ func (ltc *LocationTypeCreate) SaveX(ctx context.Context) *LocationType {
 
 func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, error) {
 	var (
-		lt   = &LocationType{config: ltc.config}
-		spec = &sqlgraph.CreateSpec{
+		lt    = &LocationType{config: ltc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: locationtype.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -234,7 +234,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		}
 	)
 	if value := ltc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: locationtype.FieldCreateTime,
@@ -242,7 +242,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.CreateTime = *value
 	}
 	if value := ltc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: locationtype.FieldUpdateTime,
@@ -250,7 +250,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.UpdateTime = *value
 	}
 	if value := ltc.site; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: locationtype.FieldSite,
@@ -258,7 +258,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.Site = *value
 	}
 	if value := ltc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: locationtype.FieldName,
@@ -266,7 +266,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.Name = *value
 	}
 	if value := ltc.map_type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: locationtype.FieldMapType,
@@ -274,7 +274,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.MapType = *value
 	}
 	if value := ltc.map_zoom_level; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
@@ -282,7 +282,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.MapZoomLevel = *value
 	}
 	if value := ltc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldIndex,
@@ -310,7 +310,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ltc.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -333,7 +333,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ltc.survey_template_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -356,15 +356,15 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, ltc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, ltc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	lt.ID = strconv.FormatInt(id, 10)
 	return lt, nil
 }

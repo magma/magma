@@ -29,23 +29,29 @@ type Technician struct {
 	Name string `json:"name,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the TechnicianQuery when eager-loading is set.
+	Edges struct {
+		// WorkOrders holds the value of the work_orders edge.
+		WorkOrders []*WorkOrder
+	} `json:"edges"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Technician) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // email
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Technician fields.
 func (t *Technician) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(technician.Columns); m != n {
+	if m, n := len(values), len(technician.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

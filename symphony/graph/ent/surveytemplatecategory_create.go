@@ -118,8 +118,8 @@ func (stcc *SurveyTemplateCategoryCreate) SaveX(ctx context.Context) *SurveyTemp
 
 func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyTemplateCategory, error) {
 	var (
-		stc  = &SurveyTemplateCategory{config: stcc.config}
-		spec = &sqlgraph.CreateSpec{
+		stc   = &SurveyTemplateCategory{config: stcc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: surveytemplatecategory.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -128,7 +128,7 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 		}
 	)
 	if value := stcc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveytemplatecategory.FieldCreateTime,
@@ -136,7 +136,7 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 		stc.CreateTime = *value
 	}
 	if value := stcc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveytemplatecategory.FieldUpdateTime,
@@ -144,7 +144,7 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 		stc.UpdateTime = *value
 	}
 	if value := stcc.category_title; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatecategory.FieldCategoryTitle,
@@ -152,7 +152,7 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 		stc.CategoryTitle = *value
 	}
 	if value := stcc.category_description; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatecategory.FieldCategoryDescription,
@@ -180,15 +180,15 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, stcc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, stcc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	stc.ID = strconv.FormatInt(id, 10)
 	return stc, nil
 }

@@ -199,7 +199,7 @@ func (eptu *EquipmentPortTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentporttype.Table,
 			Columns: equipmentporttype.Columns,
@@ -210,21 +210,21 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 		},
 	}
 	if ps := eptu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := eptu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentporttype.FieldUpdateTime,
 		})
 	}
 	if value := eptu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentporttype.FieldName,
@@ -251,7 +251,7 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eptu.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -274,7 +274,7 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := eptu.removedLinkPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -297,7 +297,7 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eptu.link_property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -320,7 +320,7 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := eptu.removedPortDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -343,7 +343,7 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eptu.port_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -366,9 +366,9 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, eptu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, eptu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -550,7 +550,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *EquipmentPortType, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentporttype.Table,
 			Columns: equipmentporttype.Columns,
@@ -562,14 +562,14 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 		},
 	}
 	if value := eptuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentporttype.FieldUpdateTime,
 		})
 	}
 	if value := eptuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentporttype.FieldName,
@@ -596,7 +596,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eptuo.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -619,7 +619,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := eptuo.removedLinkPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -642,7 +642,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eptuo.link_property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -665,7 +665,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := eptuo.removedPortDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -688,7 +688,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := eptuo.port_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -711,12 +711,12 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	ept = &EquipmentPortType{config: eptuo.config}
-	spec.Assign = ept.assignValues
-	spec.ScanValues = ept.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, eptuo.driver, spec); err != nil {
+	_spec.Assign = ept.assignValues
+	_spec.ScanValues = ept.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, eptuo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

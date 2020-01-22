@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -32,6 +34,13 @@ type ProjectQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Project
+	// eager-loading edges.
+	withType       *ProjectTypeQuery
+	withLocation   *LocationQuery
+	withComments   *CommentQuery
+	withWorkOrders *WorkOrderQuery
+	withProperties *PropertyQuery
+	withFKs        bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -289,6 +298,61 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 	}
 }
 
+//  WithType tells the query-builder to eager-loads the nodes that are connected to
+// the "type" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithType(opts ...func(*ProjectTypeQuery)) *ProjectQuery {
+	query := &ProjectTypeQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withType = query
+	return pq
+}
+
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithLocation(opts ...func(*LocationQuery)) *ProjectQuery {
+	query := &LocationQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withLocation = query
+	return pq
+}
+
+//  WithComments tells the query-builder to eager-loads the nodes that are connected to
+// the "comments" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithComments(opts ...func(*CommentQuery)) *ProjectQuery {
+	query := &CommentQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withComments = query
+	return pq
+}
+
+//  WithWorkOrders tells the query-builder to eager-loads the nodes that are connected to
+// the "work_orders" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithWorkOrders(opts ...func(*WorkOrderQuery)) *ProjectQuery {
+	query := &WorkOrderQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withWorkOrders = query
+	return pq
+}
+
+//  WithProperties tells the query-builder to eager-loads the nodes that are connected to
+// the "properties" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithProperties(opts ...func(*PropertyQuery)) *ProjectQuery {
+	query := &PropertyQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withProperties = query
+	return pq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -332,30 +396,192 @@ func (pq *ProjectQuery) Select(field string, fields ...string) *ProjectSelect {
 
 func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 	var (
-		nodes []*Project
-		spec  = pq.querySpec()
+		nodes   []*Project
+		withFKs = pq.withFKs
+		_spec   = pq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if pq.withType != nil || pq.withLocation != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, project.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &Project{config: pq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, pq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := pq.withType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*Project)
+		for i := range nodes {
+			if fk := nodes[i].type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(projecttype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Type = n
+			}
+		}
+	}
+
+	if query := pq.withLocation; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*Project)
+		for i := range nodes {
+			if fk := nodes[i].project_location_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_location_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
+	}
+
+	if query := pq.withComments; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Project)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Comment(func(s *sql.Selector) {
+			s.Where(sql.InValues(project.CommentsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_comment_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_comment_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_comment_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Comments = append(node.Edges.Comments, n)
+		}
+	}
+
+	if query := pq.withWorkOrders; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Project)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrder(func(s *sql.Selector) {
+			s.Where(sql.InValues(project.WorkOrdersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
+		}
+	}
+
+	if query := pq.withProperties; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Project)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Property(func(s *sql.Selector) {
+			s.Where(sql.InValues(project.PropertiesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Properties = append(node.Edges.Properties, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (pq *ProjectQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := pq.querySpec()
-	return sqlgraph.CountNodes(ctx, pq.driver, spec)
+	_spec := pq.querySpec()
+	return sqlgraph.CountNodes(ctx, pq.driver, _spec)
 }
 
 func (pq *ProjectQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -367,7 +593,7 @@ func (pq *ProjectQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (pq *ProjectQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   project.Table,
 			Columns: project.Columns,
@@ -380,26 +606,26 @@ func (pq *ProjectQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := pq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := pq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := pq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := pq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (pq *ProjectQuery) sqlQuery() *sql.Selector {

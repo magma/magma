@@ -36,7 +36,7 @@ const (
 	TypesColumn = "category_id"
 )
 
-// Columns holds all SQL columns are equipmentcategory fields.
+// Columns holds all SQL columns for equipmentcategory fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

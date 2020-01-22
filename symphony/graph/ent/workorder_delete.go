@@ -43,7 +43,7 @@ func (wod *WorkOrderDelete) ExecX(ctx context.Context) int {
 }
 
 func (wod *WorkOrderDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: workorder.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (wod *WorkOrderDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := wod.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, wod.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, wod.driver, _spec)
 }
 
 // WorkOrderDeleteOne is the builder for deleting a single WorkOrder entity.

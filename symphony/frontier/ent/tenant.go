@@ -44,23 +44,23 @@ type Tenant struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Tenant) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&[]byte{},
-		&[]byte{},
-		&[]byte{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // created_at
+		&sql.NullTime{},   // updated_at
+		&sql.NullString{}, // name
+		&[]byte{},         // domains
+		&[]byte{},         // networks
+		&[]byte{},         // tabs
+		&sql.NullString{}, // SSOCert
+		&sql.NullString{}, // SSOEntryPoint
+		&sql.NullString{}, // SSOIssuer
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Tenant fields.
 func (t *Tenant) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(tenant.Columns); m != n {
+	if m, n := len(values), len(tenant.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

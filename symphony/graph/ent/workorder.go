@@ -43,30 +43,70 @@ type WorkOrder struct {
 	Assignee string `json:"assignee,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the WorkOrderQuery when eager-loading is set.
+	Edges struct {
+		// Type holds the value of the type edge.
+		Type *WorkOrderType
+		// Equipment holds the value of the equipment edge.
+		Equipment []*Equipment
+		// Links holds the value of the links edge.
+		Links []*Link
+		// Files holds the value of the files edge.
+		Files []*File
+		// Hyperlinks holds the value of the hyperlinks edge.
+		Hyperlinks []*Hyperlink
+		// Location holds the value of the location edge.
+		Location *Location
+		// Comments holds the value of the comments edge.
+		Comments []*Comment
+		// Properties holds the value of the properties edge.
+		Properties []*Property
+		// CheckListItems holds the value of the check_list_items edge.
+		CheckListItems []*CheckListItem
+		// Technician holds the value of the technician edge.
+		Technician *Technician
+		// Project holds the value of the project edge.
+		Project *Project
+	} `json:"edges"`
+	project_id    *string
+	type_id       *string
+	location_id   *string
+	technician_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*WorkOrder) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullInt64{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // status
+		&sql.NullString{}, // priority
+		&sql.NullString{}, // description
+		&sql.NullString{}, // owner_name
+		&sql.NullTime{},   // install_date
+		&sql.NullTime{},   // creation_date
+		&sql.NullString{}, // assignee
+		&sql.NullInt64{},  // index
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*WorkOrder) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // project_id
+		&sql.NullInt64{}, // type_id
+		&sql.NullInt64{}, // location_id
+		&sql.NullInt64{}, // technician_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the WorkOrder fields.
 func (wo *WorkOrder) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(workorder.Columns); m != n {
+	if m, n := len(values), len(workorder.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -129,6 +169,33 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field index", values[10])
 	} else if value.Valid {
 		wo.Index = int(value.Int64)
+	}
+	values = values[11:]
+	if len(values) == len(workorder.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_id", value)
+		} else if value.Valid {
+			wo.project_id = new(string)
+			*wo.project_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+		} else if value.Valid {
+			wo.type_id = new(string)
+			*wo.type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[2].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+		} else if value.Valid {
+			wo.location_id = new(string)
+			*wo.location_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[3].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field technician_id", value)
+		} else if value.Valid {
+			wo.technician_id = new(string)
+			*wo.technician_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

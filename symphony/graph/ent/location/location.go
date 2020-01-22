@@ -115,7 +115,7 @@ const (
 	FloorPlansColumn = "location_id"
 )
 
-// Columns holds all SQL columns are location fields.
+// Columns holds all SQL columns for location fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -125,6 +125,12 @@ var Columns = []string{
 	FieldLatitude,
 	FieldLongitude,
 	FieldSiteSurveyNeeded,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Location type.
+var ForeignKeys = []string{
+	"type_id",
+	"parent_id",
 }
 
 var (

@@ -116,7 +116,7 @@ func (hu *HyperlinkUpdate) ExecX(ctx context.Context) {
 }
 
 func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   hyperlink.Table,
 			Columns: hyperlink.Columns,
@@ -127,53 +127,53 @@ func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		},
 	}
 	if ps := hu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := hu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: hyperlink.FieldUpdateTime,
 		})
 	}
 	if value := hu.url; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: hyperlink.FieldURL,
 		})
 	}
 	if value := hu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: hyperlink.FieldName,
 		})
 	}
 	if hu.clearname {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: hyperlink.FieldName,
 		})
 	}
 	if value := hu.category; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: hyperlink.FieldCategory,
 		})
 	}
 	if hu.clearcategory {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: hyperlink.FieldCategory,
 		})
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, hu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, hu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -275,7 +275,7 @@ func (huo *HyperlinkUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (huo *HyperlinkUpdateOne) sqlSave(ctx context.Context) (h *Hyperlink, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   hyperlink.Table,
 			Columns: hyperlink.Columns,
@@ -287,49 +287,49 @@ func (huo *HyperlinkUpdateOne) sqlSave(ctx context.Context) (h *Hyperlink, err e
 		},
 	}
 	if value := huo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: hyperlink.FieldUpdateTime,
 		})
 	}
 	if value := huo.url; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: hyperlink.FieldURL,
 		})
 	}
 	if value := huo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: hyperlink.FieldName,
 		})
 	}
 	if huo.clearname {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: hyperlink.FieldName,
 		})
 	}
 	if value := huo.category; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: hyperlink.FieldCategory,
 		})
 	}
 	if huo.clearcategory {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: hyperlink.FieldCategory,
 		})
 	}
 	h = &Hyperlink{config: huo.config}
-	spec.Assign = h.assignValues
-	spec.ScanValues = h.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, huo.driver, spec); err != nil {
+	_spec.Assign = h.assignValues
+	_spec.ScanValues = h.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, huo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

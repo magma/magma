@@ -208,7 +208,7 @@ func (fpu *FloorPlanUpdate) ExecX(ctx context.Context) {
 }
 
 func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   floorplan.Table,
 			Columns: floorplan.Columns,
@@ -219,21 +219,21 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		},
 	}
 	if ps := fpu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := fpu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplan.FieldUpdateTime,
 		})
 	}
 	if value := fpu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: floorplan.FieldName,
@@ -253,7 +253,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := fpu.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -276,7 +276,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if fpu.clearedReferencePoint {
 		edge := &sqlgraph.EdgeSpec{
@@ -292,7 +292,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := fpu.reference_point; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -315,7 +315,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if fpu.clearedScale {
 		edge := &sqlgraph.EdgeSpec{
@@ -331,7 +331,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := fpu.scale; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -354,7 +354,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if fpu.clearedImage {
 		edge := &sqlgraph.EdgeSpec{
@@ -370,7 +370,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := fpu.image; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -393,9 +393,9 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, fpu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, fpu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -583,7 +583,7 @@ func (fpuo *FloorPlanUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   floorplan.Table,
 			Columns: floorplan.Columns,
@@ -595,14 +595,14 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 		},
 	}
 	if value := fpuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplan.FieldUpdateTime,
 		})
 	}
 	if value := fpuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: floorplan.FieldName,
@@ -622,7 +622,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := fpuo.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -645,7 +645,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if fpuo.clearedReferencePoint {
 		edge := &sqlgraph.EdgeSpec{
@@ -661,7 +661,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := fpuo.reference_point; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -684,7 +684,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if fpuo.clearedScale {
 		edge := &sqlgraph.EdgeSpec{
@@ -700,7 +700,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := fpuo.scale; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -723,7 +723,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if fpuo.clearedImage {
 		edge := &sqlgraph.EdgeSpec{
@@ -739,7 +739,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := fpuo.image; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -762,12 +762,12 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	fp = &FloorPlan{config: fpuo.config}
-	spec.Assign = fp.assignValues
-	spec.ScanValues = fp.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, fpuo.driver, spec); err != nil {
+	_spec.Assign = fp.assignValues
+	_spec.ScanValues = fp.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, fpuo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

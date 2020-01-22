@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -31,6 +33,11 @@ type WorkOrderTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.WorkOrderType
+	// eager-loading edges.
+	withWorkOrders           *WorkOrderQuery
+	withPropertyTypes        *PropertyTypeQuery
+	withDefinitions          *WorkOrderDefinitionQuery
+	withCheckListDefinitions *CheckListItemDefinitionQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -276,6 +283,50 @@ func (wotq *WorkOrderTypeQuery) Clone() *WorkOrderTypeQuery {
 	}
 }
 
+//  WithWorkOrders tells the query-builder to eager-loads the nodes that are connected to
+// the "work_orders" edge. The optional arguments used to configure the query builder of the edge.
+func (wotq *WorkOrderTypeQuery) WithWorkOrders(opts ...func(*WorkOrderQuery)) *WorkOrderTypeQuery {
+	query := &WorkOrderQuery{config: wotq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	wotq.withWorkOrders = query
+	return wotq
+}
+
+//  WithPropertyTypes tells the query-builder to eager-loads the nodes that are connected to
+// the "property_types" edge. The optional arguments used to configure the query builder of the edge.
+func (wotq *WorkOrderTypeQuery) WithPropertyTypes(opts ...func(*PropertyTypeQuery)) *WorkOrderTypeQuery {
+	query := &PropertyTypeQuery{config: wotq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	wotq.withPropertyTypes = query
+	return wotq
+}
+
+//  WithDefinitions tells the query-builder to eager-loads the nodes that are connected to
+// the "definitions" edge. The optional arguments used to configure the query builder of the edge.
+func (wotq *WorkOrderTypeQuery) WithDefinitions(opts ...func(*WorkOrderDefinitionQuery)) *WorkOrderTypeQuery {
+	query := &WorkOrderDefinitionQuery{config: wotq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	wotq.withDefinitions = query
+	return wotq
+}
+
+//  WithCheckListDefinitions tells the query-builder to eager-loads the nodes that are connected to
+// the "check_list_definitions" edge. The optional arguments used to configure the query builder of the edge.
+func (wotq *WorkOrderTypeQuery) WithCheckListDefinitions(opts ...func(*CheckListItemDefinitionQuery)) *WorkOrderTypeQuery {
+	query := &CheckListItemDefinitionQuery{config: wotq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	wotq.withCheckListDefinitions = query
+	return wotq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -320,29 +371,163 @@ func (wotq *WorkOrderTypeQuery) Select(field string, fields ...string) *WorkOrde
 func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, error) {
 	var (
 		nodes []*WorkOrderType
-		spec  = wotq.querySpec()
+		_spec = wotq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &WorkOrderType{config: wotq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, wotq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, wotq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := wotq.withWorkOrders; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrderType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrder(func(s *sql.Selector) {
+			s.Where(sql.InValues(workordertype.WorkOrdersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
+		}
+	}
+
+	if query := wotq.withPropertyTypes; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrderType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.PropertyType(func(s *sql.Selector) {
+			s.Where(sql.InValues(workordertype.PropertyTypesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
+		}
+	}
+
+	if query := wotq.withDefinitions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrderType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrderDefinition(func(s *sql.Selector) {
+			s.Where(sql.InValues(workordertype.DefinitionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Definitions = append(node.Edges.Definitions, n)
+		}
+	}
+
+	if query := wotq.withCheckListDefinitions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*WorkOrderType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.CheckListItemDefinition(func(s *sql.Selector) {
+			s.Where(sql.InValues(workordertype.CheckListDefinitionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.CheckListDefinitions = append(node.Edges.CheckListDefinitions, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (wotq *WorkOrderTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := wotq.querySpec()
-	return sqlgraph.CountNodes(ctx, wotq.driver, spec)
+	_spec := wotq.querySpec()
+	return sqlgraph.CountNodes(ctx, wotq.driver, _spec)
 }
 
 func (wotq *WorkOrderTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -354,7 +539,7 @@ func (wotq *WorkOrderTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (wotq *WorkOrderTypeQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   workordertype.Table,
 			Columns: workordertype.Columns,
@@ -367,26 +552,26 @@ func (wotq *WorkOrderTypeQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := wotq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := wotq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := wotq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := wotq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (wotq *WorkOrderTypeQuery) sqlQuery() *sql.Selector {

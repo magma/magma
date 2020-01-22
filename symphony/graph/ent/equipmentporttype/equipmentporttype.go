@@ -50,7 +50,7 @@ const (
 	PortDefinitionsColumn = "equipment_port_type_id"
 )
 
-// Columns holds all SQL columns are equipmentporttype fields.
+// Columns holds all SQL columns for equipmentporttype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

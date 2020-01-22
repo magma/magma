@@ -139,7 +139,7 @@ func (stqu *SurveyTemplateQuestionUpdate) ExecX(ctx context.Context) {
 }
 
 func (stqu *SurveyTemplateQuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   surveytemplatequestion.Table,
 			Columns: surveytemplatequestion.Columns,
@@ -150,49 +150,49 @@ func (stqu *SurveyTemplateQuestionUpdate) sqlSave(ctx context.Context) (n int, e
 		},
 	}
 	if ps := stqu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := stqu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldUpdateTime,
 		})
 	}
 	if value := stqu.question_title; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldQuestionTitle,
 		})
 	}
 	if value := stqu.question_description; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldQuestionDescription,
 		})
 	}
 	if value := stqu.question_type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldQuestionType,
 		})
 	}
 	if value := stqu.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldIndex,
 		})
 	}
 	if value := stqu.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldIndex,
@@ -212,7 +212,7 @@ func (stqu *SurveyTemplateQuestionUpdate) sqlSave(ctx context.Context) (n int, e
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := stqu.category; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -235,9 +235,9 @@ func (stqu *SurveyTemplateQuestionUpdate) sqlSave(ctx context.Context) (n int, e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, stqu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, stqu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -359,7 +359,7 @@ func (stquo *SurveyTemplateQuestionUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (stquo *SurveyTemplateQuestionUpdateOne) sqlSave(ctx context.Context) (stq *SurveyTemplateQuestion, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   surveytemplatequestion.Table,
 			Columns: surveytemplatequestion.Columns,
@@ -371,42 +371,42 @@ func (stquo *SurveyTemplateQuestionUpdateOne) sqlSave(ctx context.Context) (stq 
 		},
 	}
 	if value := stquo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldUpdateTime,
 		})
 	}
 	if value := stquo.question_title; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldQuestionTitle,
 		})
 	}
 	if value := stquo.question_description; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldQuestionDescription,
 		})
 	}
 	if value := stquo.question_type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldQuestionType,
 		})
 	}
 	if value := stquo.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldIndex,
 		})
 	}
 	if value := stquo.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldIndex,
@@ -426,7 +426,7 @@ func (stquo *SurveyTemplateQuestionUpdateOne) sqlSave(ctx context.Context) (stq 
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := stquo.category; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -449,12 +449,12 @@ func (stquo *SurveyTemplateQuestionUpdateOne) sqlSave(ctx context.Context) (stq 
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	stq = &SurveyTemplateQuestion{config: stquo.config}
-	spec.Assign = stq.assignValues
-	spec.ScanValues = stq.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, stquo.driver, spec); err != nil {
+	_spec.Assign = stq.assignValues
+	_spec.ScanValues = stq.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, stquo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

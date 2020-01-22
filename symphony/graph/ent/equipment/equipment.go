@@ -98,7 +98,7 @@ const (
 	HyperlinksColumn = "equipment_hyperlink_id"
 )
 
-// Columns holds all SQL columns are equipment fields.
+// Columns holds all SQL columns for equipment fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -107,6 +107,14 @@ var Columns = []string{
 	FieldFutureState,
 	FieldDeviceID,
 	FieldExternalID,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Equipment type.
+var ForeignKeys = []string{
+	"type_id",
+	"work_order_id",
+	"parent_position_id",
+	"location_id",
 }
 
 var (

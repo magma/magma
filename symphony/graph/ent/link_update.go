@@ -251,7 +251,7 @@ func (lu *LinkUpdate) ExecX(ctx context.Context) {
 }
 
 func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   link.Table,
 			Columns: link.Columns,
@@ -262,28 +262,28 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		},
 	}
 	if ps := lu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := lu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: link.FieldUpdateTime,
 		})
 	}
 	if value := lu.future_state; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: link.FieldFutureState,
 		})
 	}
 	if lu.clearfuture_state {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: link.FieldFutureState,
 		})
@@ -309,7 +309,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := lu.ports; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -332,7 +332,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if lu.clearedWorkOrder {
 		edge := &sqlgraph.EdgeSpec{
@@ -348,7 +348,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := lu.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -371,7 +371,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := lu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -394,7 +394,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := lu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -417,7 +417,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := lu.removedService; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -440,7 +440,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := lu.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -463,9 +463,9 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, lu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, lu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -696,7 +696,7 @@ func (luo *LinkUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   link.Table,
 			Columns: link.Columns,
@@ -708,21 +708,21 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 		},
 	}
 	if value := luo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: link.FieldUpdateTime,
 		})
 	}
 	if value := luo.future_state; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: link.FieldFutureState,
 		})
 	}
 	if luo.clearfuture_state {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: link.FieldFutureState,
 		})
@@ -748,7 +748,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := luo.ports; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -771,7 +771,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if luo.clearedWorkOrder {
 		edge := &sqlgraph.EdgeSpec{
@@ -787,7 +787,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := luo.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -810,7 +810,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := luo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -833,7 +833,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := luo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -856,7 +856,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := luo.removedService; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -879,7 +879,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := luo.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -902,12 +902,12 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	l = &Link{config: luo.config}
-	spec.Assign = l.assignValues
-	spec.ScanValues = l.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, luo.driver, spec); err != nil {
+	_spec.Assign = l.assignValues
+	_spec.ScanValues = l.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, luo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

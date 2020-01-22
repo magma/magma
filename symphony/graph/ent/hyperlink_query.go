@@ -27,6 +27,7 @@ type HyperlinkQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Hyperlink
+	withFKs    bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -267,30 +268,42 @@ func (hq *HyperlinkQuery) Select(field string, fields ...string) *HyperlinkSelec
 
 func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 	var (
-		nodes []*Hyperlink
-		spec  = hq.querySpec()
+		nodes   []*Hyperlink
+		withFKs = hq.withFKs
+		_spec   = hq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, hyperlink.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &Hyperlink{config: hq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, hq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, hq.driver, _spec); err != nil {
 		return nil, err
+	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (hq *HyperlinkQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := hq.querySpec()
-	return sqlgraph.CountNodes(ctx, hq.driver, spec)
+	_spec := hq.querySpec()
+	return sqlgraph.CountNodes(ctx, hq.driver, _spec)
 }
 
 func (hq *HyperlinkQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,7 +315,7 @@ func (hq *HyperlinkQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (hq *HyperlinkQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   hyperlink.Table,
 			Columns: hyperlink.Columns,
@@ -315,26 +328,26 @@ func (hq *HyperlinkQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := hq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := hq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := hq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := hq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (hq *HyperlinkQuery) sqlQuery() *sql.Selector {

@@ -33,7 +33,7 @@ const (
 	Table = "hyperlinks"
 )
 
-// Columns holds all SQL columns are hyperlink fields.
+// Columns holds all SQL columns for hyperlink fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -41,6 +41,13 @@ var Columns = []string{
 	FieldURL,
 	FieldName,
 	FieldCategory,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Hyperlink type.
+var ForeignKeys = []string{
+	"equipment_hyperlink_id",
+	"location_hyperlink_id",
+	"work_order_hyperlink_id",
 }
 
 var (

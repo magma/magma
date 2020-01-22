@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -29,6 +31,9 @@ type ServiceTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.ServiceType
+	// eager-loading edges.
+	withServices      *ServiceQuery
+	withPropertyTypes *PropertyTypeQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -250,6 +255,28 @@ func (stq *ServiceTypeQuery) Clone() *ServiceTypeQuery {
 	}
 }
 
+//  WithServices tells the query-builder to eager-loads the nodes that are connected to
+// the "services" edge. The optional arguments used to configure the query builder of the edge.
+func (stq *ServiceTypeQuery) WithServices(opts ...func(*ServiceQuery)) *ServiceTypeQuery {
+	query := &ServiceQuery{config: stq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stq.withServices = query
+	return stq
+}
+
+//  WithPropertyTypes tells the query-builder to eager-loads the nodes that are connected to
+// the "property_types" edge. The optional arguments used to configure the query builder of the edge.
+func (stq *ServiceTypeQuery) WithPropertyTypes(opts ...func(*PropertyTypeQuery)) *ServiceTypeQuery {
+	query := &PropertyTypeQuery{config: stq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stq.withPropertyTypes = query
+	return stq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -294,29 +321,99 @@ func (stq *ServiceTypeQuery) Select(field string, fields ...string) *ServiceType
 func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error) {
 	var (
 		nodes []*ServiceType
-		spec  = stq.querySpec()
+		_spec = stq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &ServiceType{config: stq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, stq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, stq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := stq.withServices; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*ServiceType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Service(func(s *sql.Selector) {
+			s.Where(sql.InValues(servicetype.ServicesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Services = append(node.Edges.Services, n)
+		}
+	}
+
+	if query := stq.withPropertyTypes; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*ServiceType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.PropertyType(func(s *sql.Selector) {
+			s.Where(sql.InValues(servicetype.PropertyTypesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.service_type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "service_type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (stq *ServiceTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := stq.querySpec()
-	return sqlgraph.CountNodes(ctx, stq.driver, spec)
+	_spec := stq.querySpec()
+	return sqlgraph.CountNodes(ctx, stq.driver, _spec)
 }
 
 func (stq *ServiceTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -328,7 +425,7 @@ func (stq *ServiceTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (stq *ServiceTypeQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   servicetype.Table,
 			Columns: servicetype.Columns,
@@ -341,26 +438,26 @@ func (stq *ServiceTypeQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := stq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := stq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := stq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := stq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (stq *ServiceTypeQuery) sqlQuery() *sql.Selector {

@@ -29,23 +29,31 @@ type ServiceType struct {
 	Name string `json:"name,omitempty"`
 	// HasCustomer holds the value of the "has_customer" field.
 	HasCustomer bool `json:"has_customer,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ServiceTypeQuery when eager-loading is set.
+	Edges struct {
+		// Services holds the value of the services edge.
+		Services []*Service
+		// PropertyTypes holds the value of the property_types edge.
+		PropertyTypes []*PropertyType
+	} `json:"edges"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ServiceType) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullBool{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullBool{},   // has_customer
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ServiceType fields.
 func (st *ServiceType) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(servicetype.Columns); m != n {
+	if m, n := len(values), len(servicetype.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

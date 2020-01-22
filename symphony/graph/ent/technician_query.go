@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -28,6 +30,8 @@ type TechnicianQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Technician
+	// eager-loading edges.
+	withWorkOrders *WorkOrderQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -237,6 +241,17 @@ func (tq *TechnicianQuery) Clone() *TechnicianQuery {
 	}
 }
 
+//  WithWorkOrders tells the query-builder to eager-loads the nodes that are connected to
+// the "work_orders" edge. The optional arguments used to configure the query builder of the edge.
+func (tq *TechnicianQuery) WithWorkOrders(opts ...func(*WorkOrderQuery)) *TechnicianQuery {
+	query := &WorkOrderQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withWorkOrders = query
+	return tq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -281,29 +296,67 @@ func (tq *TechnicianQuery) Select(field string, fields ...string) *TechnicianSel
 func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 	var (
 		nodes []*Technician
-		spec  = tq.querySpec()
+		_spec = tq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &Technician{config: tq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, tq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := tq.withWorkOrders; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Technician)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrder(func(s *sql.Selector) {
+			s.Where(sql.InValues(technician.WorkOrdersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.technician_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "technician_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "technician_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (tq *TechnicianQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := tq.querySpec()
-	return sqlgraph.CountNodes(ctx, tq.driver, spec)
+	_spec := tq.querySpec()
+	return sqlgraph.CountNodes(ctx, tq.driver, _spec)
 }
 
 func (tq *TechnicianQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -315,7 +368,7 @@ func (tq *TechnicianQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (tq *TechnicianQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   technician.Table,
 			Columns: technician.Columns,
@@ -328,26 +381,26 @@ func (tq *TechnicianQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := tq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := tq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := tq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := tq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (tq *TechnicianQuery) sqlQuery() *sql.Selector {

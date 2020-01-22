@@ -43,7 +43,7 @@ func (td *TechnicianDelete) ExecX(ctx context.Context) int {
 }
 
 func (td *TechnicianDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: technician.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (td *TechnicianDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := td.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, td.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, td.driver, _spec)
 }
 
 // TechnicianDeleteOne is the builder for deleting a single Technician entity.

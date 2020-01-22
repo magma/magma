@@ -31,24 +31,40 @@ type EquipmentPositionDefinition struct {
 	Index int `json:"index,omitempty"`
 	// VisibilityLabel holds the value of the "visibility_label" field.
 	VisibilityLabel string `json:"visibility_label,omitempty" gqlgen:"visibleLabel"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentPositionDefinitionQuery when eager-loading is set.
+	Edges struct {
+		// Positions holds the value of the positions edge.
+		Positions []*EquipmentPosition
+		// EquipmentType holds the value of the equipment_type edge.
+		EquipmentType *EquipmentType
+	} `json:"edges"`
+	equipment_type_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*EquipmentPositionDefinition) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullInt64{},  // index
+		&sql.NullString{}, // visibility_label
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*EquipmentPositionDefinition) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // equipment_type_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the EquipmentPositionDefinition fields.
 func (epd *EquipmentPositionDefinition) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(equipmentpositiondefinition.Columns); m != n {
+	if m, n := len(values), len(equipmentpositiondefinition.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -81,6 +97,15 @@ func (epd *EquipmentPositionDefinition) assignValues(values ...interface{}) erro
 		return fmt.Errorf("unexpected type %T for field visibility_label", values[4])
 	} else if value.Valid {
 		epd.VisibilityLabel = value.String
+	}
+	values = values[5:]
+	if len(values) == len(equipmentpositiondefinition.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type_id", value)
+		} else if value.Valid {
+			epd.equipment_type_id = new(string)
+			*epd.equipment_type_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

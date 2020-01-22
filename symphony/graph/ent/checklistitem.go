@@ -34,26 +34,40 @@ type CheckListItem struct {
 	EnumValues string `json:"enum_values,omitempty" gqlgen:"enumValues"`
 	// HelpText holds the value of the "help_text" field.
 	HelpText *string `json:"help_text,omitempty" gqlgen:"helpText"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CheckListItemQuery when eager-loading is set.
+	Edges struct {
+		// WorkOrder holds the value of the work_order edge.
+		WorkOrder *WorkOrder
+	} `json:"edges"`
+	work_order_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*CheckListItem) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullBool{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullString{}, // title
+		&sql.NullString{}, // type
+		&sql.NullInt64{},  // index
+		&sql.NullBool{},   // checked
+		&sql.NullString{}, // string_val
+		&sql.NullString{}, // enum_values
+		&sql.NullString{}, // help_text
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*CheckListItem) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // work_order_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the CheckListItem fields.
 func (cli *CheckListItem) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(checklistitem.Columns); m != n {
+	if m, n := len(values), len(checklistitem.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -97,6 +111,15 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		cli.HelpText = new(string)
 		*cli.HelpText = value.String
+	}
+	values = values[7:]
+	if len(values) == len(checklistitem.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_id", value)
+		} else if value.Valid {
+			cli.work_order_id = new(string)
+			*cli.work_order_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

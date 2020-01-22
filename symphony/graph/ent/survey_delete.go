@@ -43,7 +43,7 @@ func (sd *SurveyDelete) ExecX(ctx context.Context) int {
 }
 
 func (sd *SurveyDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: survey.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (sd *SurveyDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := sd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, sd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, sd.driver, _spec)
 }
 
 // SurveyDeleteOne is the builder for deleting a single Survey entity.
