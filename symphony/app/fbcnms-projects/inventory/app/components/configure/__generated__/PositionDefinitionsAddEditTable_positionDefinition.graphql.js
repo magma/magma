@@ -22,11 +22,13 @@ export type PositionDefinitionsAddEditTable_positionDefinition = {
   +name: string,
   +index: ?number,
   +visibleLabel: ?string,
+  ...
 };
 export type PositionDefinitionsAddEditTable_positionDefinition$data = PositionDefinitionsAddEditTable_positionDefinition;
 export type PositionDefinitionsAddEditTable_positionDefinition$key = {
   +$data?: PositionDefinitionsAddEditTable_positionDefinition$data,
   +$fragmentRefs: PositionDefinitionsAddEditTable_positionDefinition$ref,
+  ...
 };
 */
 

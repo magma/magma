@@ -30,6 +30,7 @@ export type DocumentTable_hyperlinks$data = DocumentTable_hyperlinks;
 export type DocumentTable_hyperlinks$key = $ReadOnlyArray<{
   +$data?: DocumentTable_hyperlinks$data,
   +$fragmentRefs: DocumentTable_hyperlinks$ref,
+  ...
 }>;
 */
 

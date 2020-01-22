@@ -35,6 +35,7 @@ export type ForceNetworkTopology_topology$data = ForceNetworkTopology_topology;
 export type ForceNetworkTopology_topology$key = {
   +$data?: ForceNetworkTopology_topology$data,
   +$fragmentRefs: ForceNetworkTopology_topology$ref,
+  ...
 };
 */
 

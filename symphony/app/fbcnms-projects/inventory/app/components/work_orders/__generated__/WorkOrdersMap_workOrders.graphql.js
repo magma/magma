@@ -40,6 +40,7 @@ export type WorkOrdersMap_workOrders$data = WorkOrdersMap_workOrders;
 export type WorkOrdersMap_workOrders$key = $ReadOnlyArray<{
   +$data?: WorkOrdersMap_workOrders$data,
   +$fragmentRefs: WorkOrdersMap_workOrders$ref,
+  ...
 }>;
 */
 

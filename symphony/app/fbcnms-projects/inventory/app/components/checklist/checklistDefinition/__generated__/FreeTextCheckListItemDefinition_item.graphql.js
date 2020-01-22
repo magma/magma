@@ -28,6 +28,7 @@ export type FreeTextCheckListItemDefinition_item$data = FreeTextCheckListItemDef
 export type FreeTextCheckListItemDefinition_item$key = {
   +$data?: FreeTextCheckListItemDefinition_item$data,
   +$fragmentRefs: FreeTextCheckListItemDefinition_item$ref,
+  ...
 };
 */
 

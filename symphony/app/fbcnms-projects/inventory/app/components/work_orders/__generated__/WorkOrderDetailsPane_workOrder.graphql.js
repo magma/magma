@@ -44,6 +44,7 @@ export type WorkOrderDetailsPane_workOrder$data = WorkOrderDetailsPane_workOrder
 export type WorkOrderDetailsPane_workOrder$key = {
   +$data?: WorkOrderDetailsPane_workOrder$data,
   +$fragmentRefs: WorkOrderDetailsPane_workOrder$ref,
+  ...
 };
 */
 

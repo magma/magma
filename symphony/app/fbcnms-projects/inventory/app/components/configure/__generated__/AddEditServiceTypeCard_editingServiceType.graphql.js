@@ -45,6 +45,7 @@ export type AddEditServiceTypeCard_editingServiceType$data = AddEditServiceTypeC
 export type AddEditServiceTypeCard_editingServiceType$key = {
   +$data?: AddEditServiceTypeCard_editingServiceType$data,
   +$fragmentRefs: AddEditServiceTypeCard_editingServiceType$ref,
+  ...
 };
 */
 

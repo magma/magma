@@ -221,6 +221,7 @@ export type EquipmentPortsTable_port$data = EquipmentPortsTable_port;
 export type EquipmentPortsTable_port$key = {
   +$data?: EquipmentPortsTable_port$data,
   +$fragmentRefs: EquipmentPortsTable_port$ref,
+  ...
 };
 */
 

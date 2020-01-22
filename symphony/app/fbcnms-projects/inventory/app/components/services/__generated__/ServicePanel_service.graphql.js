@@ -44,6 +44,7 @@ export type ServicePanel_service$data = ServicePanel_service;
 export type ServicePanel_service$key = {
   +$data?: ServicePanel_service$data,
   +$fragmentRefs: ServicePanel_service$ref,
+  ...
 };
 */
 

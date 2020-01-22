@@ -36,6 +36,7 @@ export type ServiceEquipmentTopology_endpoints$data = ServiceEquipmentTopology_e
 export type ServiceEquipmentTopology_endpoints$key = $ReadOnlyArray<{
   +$data?: ServiceEquipmentTopology_endpoints$data,
   +$fragmentRefs: ServiceEquipmentTopology_endpoints$ref,
+  ...
 }>;
 */
 

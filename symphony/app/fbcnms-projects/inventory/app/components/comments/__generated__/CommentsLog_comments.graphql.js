@@ -27,6 +27,7 @@ export type CommentsLog_comments$data = CommentsLog_comments;
 export type CommentsLog_comments$key = $ReadOnlyArray<{
   +$data?: CommentsLog_comments$data,
   +$fragmentRefs: CommentsLog_comments$ref,
+  ...
 }>;
 */
 

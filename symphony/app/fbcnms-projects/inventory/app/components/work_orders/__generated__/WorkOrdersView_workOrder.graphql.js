@@ -45,6 +45,7 @@ export type WorkOrdersView_workOrder$data = WorkOrdersView_workOrder;
 export type WorkOrdersView_workOrder$key = $ReadOnlyArray<{
   +$data?: WorkOrdersView_workOrder$data,
   +$fragmentRefs: WorkOrdersView_workOrder$ref,
+  ...
 }>;
 */
 

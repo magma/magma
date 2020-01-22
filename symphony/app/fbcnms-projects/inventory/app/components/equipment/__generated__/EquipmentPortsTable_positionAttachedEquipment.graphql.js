@@ -233,6 +233,7 @@ export type EquipmentPortsTable_positionAttachedEquipment$data = EquipmentPortsT
 export type EquipmentPortsTable_positionAttachedEquipment$key = {
   +$data?: EquipmentPortsTable_positionAttachedEquipment$data,
   +$fragmentRefs: EquipmentPortsTable_positionAttachedEquipment$ref,
+  ...
 };
 */
 
