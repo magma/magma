@@ -4,7 +4,7 @@
 
 // The @material-ui/core/SvgItem/SvgItem type is declared to
 // require children, but the implementations of it dont.
-type SvgIconExports = {
+export type SvgIconExports = {
   children?: React$Node,
   classes?: Object,
   className?: string,
