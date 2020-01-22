@@ -347,7 +347,9 @@ class AddWorkOrderCard extends React.Component<Props, State> {
                                     required={
                                       !!property.propertyType.isMandatory
                                     }
-                                    disabled={false}
+                                    disabled={
+                                      !property.propertyType.isInstanceProperty
+                                    }
                                     label={property.propertyType.name}
                                     className={classes.gridInput}
                                     margin="dense"
