@@ -91,11 +91,6 @@ class TunnelLearnController(MagmaController):
                         n_bits=32
                     ),
                     parser.NXFlowSpecLoad(
-                        src=('tunnel_id_nxm', 0),
-                        dst=('tunnel_id_nxm', 0),
-                        n_bits=32
-                    ),
-                    parser.NXFlowSpecLoad(
                         src=('tun_ipv4_src', 0),
                         dst=('tun_ipv4_dst', 0),
                         n_bits=32
