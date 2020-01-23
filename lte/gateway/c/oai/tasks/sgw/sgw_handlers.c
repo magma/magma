@@ -928,7 +928,8 @@ int sgw_handle_sgi_endpoint_updated(
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u,
           imsi,
-          NULL);
+          NULL,
+          DEFAULT_PRECEDENCE);
         if (rv < 0) {
           OAILOG_ERROR(LOG_SPGW_APP, "ERROR in setting up TUNNEL err=%d\n", rv);
         }
@@ -942,7 +943,7 @@ int sgw_handle_sgi_endpoint_updated(
       if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
             .pdn_connection.ue_suspended_for_ps_handover) {
         rv = gtp_tunnel_ops->forward_data_on_tunnel(
-          ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL);
+          ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL, DEFAULT_PRECEDENCE);
         if (rv < 0) {
           OAILOG_ERROR(
             LOG_SPGW_APP, "ERROR in forwarding data on TUNNEL err=%d\n", rv);
@@ -954,7 +955,8 @@ int sgw_handle_sgi_endpoint_updated(
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u,
           imsi,
-          NULL);
+          NULL,
+          DEFAULT_PRECEDENCE);
         if (rv < 0) {
           OAILOG_ERROR(LOG_SPGW_APP, "ERROR in setting up TUNNEL err=%d\n", rv);
         }
@@ -2043,7 +2045,8 @@ int sgw_handle_create_bearer_response(
                       eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
                       eps_bearer_ctxt_p->enb_teid_S1u,
                       imsi,
-                      NULL);
+                      NULL,
+                      DEFAULT_PRECEDENCE);
                     if (rv < 0) {
                       OAILOG_ERROR(
                         LOG_SPGW_APP,

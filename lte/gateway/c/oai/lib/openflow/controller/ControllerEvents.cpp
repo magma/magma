@@ -138,6 +138,7 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
   imsi_(imsi),
   dl_flow_valid_(false),
   dl_flow_(),
+  dl_flow_precedence_(DEFAULT_PRECEDENCE),
   ExternalEvent(EVENT_ADD_GTP_TUNNEL)
 {
 }
@@ -148,7 +149,8 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
     const uint32_t in_tei,
     const uint32_t out_tei,
     const char *imsi,
-    const struct ipv4flow_dl *dl_flow):
+    const struct ipv4flow_dl *dl_flow,
+    const uint32_t dl_flow_precedence):
   ue_ip_(ue_ip),
   enb_ip_(enb_ip),
   in_tei_(in_tei),
@@ -156,6 +158,7 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
   imsi_(imsi),
   dl_flow_valid_(true),
   dl_flow_(*dl_flow),
+  dl_flow_precedence_(dl_flow_precedence),
   ExternalEvent(EVENT_ADD_GTP_TUNNEL)
 {
 }
@@ -193,6 +196,11 @@ const bool AddGTPTunnelEvent::is_dl_flow_valid() const
 const struct ipv4flow_dl &AddGTPTunnelEvent::get_dl_flow() const
 {
   return dl_flow_;
+}
+
+const uint32_t AddGTPTunnelEvent::get_dl_flow_precedence() const
+{
+  return dl_flow_precedence_;
 }
 
 DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
@@ -242,11 +250,13 @@ HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(
     const struct in_addr ue_ip,
     const uint32_t in_tei,
     const ControllerEventType event_type,
-    const struct ipv4flow_dl *dl_flow):
+    const struct ipv4flow_dl *dl_flow,
+    const uint32_t dl_flow_precedence):
   ue_ip_(ue_ip),
   in_tei_(in_tei),
   dl_flow_valid_(true),
   dl_flow_(*dl_flow),
+  dl_flow_precedence_(dl_flow_precedence),
   ExternalEvent(event_type)
 {
 }
@@ -259,6 +269,7 @@ HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(
   in_tei_(in_tei),
   dl_flow_valid_(false),
   dl_flow_(),
+  dl_flow_precedence_(DEFAULT_PRECEDENCE),
   ExternalEvent(event_type)
 {
 }
@@ -281,6 +292,11 @@ const bool HandleDataOnGTPTunnelEvent::is_dl_flow_valid() const
 const struct ipv4flow_dl &HandleDataOnGTPTunnelEvent::get_dl_flow() const
 {
   return dl_flow_;
+}
+
+const uint32_t HandleDataOnGTPTunnelEvent::get_dl_flow_precedence() const
+{
+  return dl_flow_precedence_;
 }
 
 } // namespace openflow
