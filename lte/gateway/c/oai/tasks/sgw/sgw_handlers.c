@@ -2146,7 +2146,8 @@ int sgw_handle_nw_initiated_actv_bearer_req(
   spgw_state_t *state,
   const itti_s5_nw_init_actv_bearer_request_t *const itti_s5_actv_bearer_req)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -2155,9 +2156,23 @@ int sgw_handle_nw_initiated_actv_bearer_req(
     "Received Dedicated Bearer Req Activation from PGW for LBI %d\n",
     itti_s5_actv_bearer_req->lbi);
 
-  /*Create dedicated bearer context-Bearer Context will be created
-   * after receiving response from MME
-  */
+  s_plus_p_gw_eps_bearer_context_information_t*
+    s_plus_p_gw_eps_bearer_ctxt_info_p = NULL;
+  hashtable_rc_t hash_rc = HASH_TABLE_OK;
+
+  hash_rc = hashtable_ts_get(
+    state->sgw_state.s11_bearer_context_information,
+    itti_s5_actv_bearer_req->s_gw_teid_S11_S4,
+    (void**) &s_plus_p_gw_eps_bearer_ctxt_info_p);
+
+  if (HASH_TABLE_OK != hash_rc) {
+    OAILOG_ERROR(
+      LOG_SPGW_APP,
+      "Did not find hash table entry for teid %u"
+      "for S11_NW_INITIATED_BEARER_ACTV_REQUEST\n",
+      itti_s5_actv_bearer_req->s_gw_teid_S11_S4);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
 
   //Send ITTI message to MME APP
   message_p = itti_alloc_new_message(
@@ -2167,10 +2182,10 @@ int sgw_handle_nw_initiated_actv_bearer_req(
       LOG_SPGW_APP,
       "Failed to allocate message_p for"
       "S11_NW_INITIATED_BEARER_ACTV_REQUEST\n");
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   if (message_p) {
-    itti_s11_nw_init_actv_bearer_request_t *s11_actv_bearer_request =
+    itti_s11_nw_init_actv_bearer_request_t* s11_actv_bearer_request =
       &message_p->ittiMsg.s11_nw_init_actv_bearer_request;
     memset(
       s11_actv_bearer_request,
@@ -2186,10 +2201,10 @@ int sgw_handle_nw_initiated_actv_bearer_req(
       &s11_actv_bearer_request->pco,
       &itti_s5_actv_bearer_req->pco,
       sizeof(protocol_configuration_options_t));
-    //TFT
+    //UL TFT to be sent to UE
     memcpy(
       &s11_actv_bearer_request->tft,
-      &itti_s5_actv_bearer_req->tft,
+      &itti_s5_actv_bearer_req->ul_tft,
       sizeof(traffic_flow_template_t));
     //QoS
     memcpy(
@@ -2207,6 +2222,74 @@ int sgw_handle_nw_initiated_actv_bearer_req(
     s11_actv_bearer_request->s1_u_sgw_fteid.ipv4_address.s_addr =
       state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
 
+    // Create temporary dedicated bearer context
+    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p =
+      calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+
+    if (!eps_bearer_ctxt_p) {
+      OAILOG_ERROR(
+        LOG_SPGW_APP, "Failed to allocate memory for eps_bearer_ctxt_p\n");
+      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+    }
+    // Copy PAA from default bearer cntxt
+    sgw_eps_bearer_ctxt_t* default_eps_bearer_entry_p =
+      sgw_cm_get_eps_bearer_entry(
+        &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+           .pdn_connection,
+        s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+          .pdn_connection.default_bearer);
+
+    if (!default_eps_bearer_entry_p) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to get default bearer context\n");
+      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+    }
+
+    eps_bearer_ctxt_p->eps_bearer_id = 0;
+    eps_bearer_ctxt_p->paa = default_eps_bearer_entry_p->paa;
+    // SGW FTEID
+    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up =
+      s11_actv_bearer_request->s1_u_sgw_fteid.teid;
+
+    eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv4;
+    eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address.ipv4_address
+      .s_addr = state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
+    // DL TFT
+    memcpy(
+      &eps_bearer_ctxt_p->tft,
+      &itti_s5_actv_bearer_req->dl_tft,
+      sizeof(traffic_flow_template_t));
+    // QoS
+    memcpy(
+      &eps_bearer_ctxt_p->eps_bearer_qos,
+      &itti_s5_actv_bearer_req->eps_bearer_qos,
+      sizeof(bearer_qos_t));
+
+    // Create temporary spgw bearer context entry
+    pgw_ni_cbr_proc =
+      pgw_get_procedure_create_bearer(s_plus_p_gw_eps_bearer_ctxt_info_p);
+    if (!pgw_ni_cbr_proc) {
+      OAILOG_DEBUG(
+        LOG_SPGW_APP, "Creating a new temporary eps bearer context entry\n");
+      pgw_ni_cbr_proc =
+        pgw_create_procedure_create_bearer(s_plus_p_gw_eps_bearer_ctxt_info_p);
+      if (!pgw_ni_cbr_proc) {
+        OAILOG_ERROR(
+          LOG_SPGW_APP,
+          "Failed to create temporary eps bearer context entry\n");
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+      }
+    }
+    struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p =
+      calloc(1, sizeof(*sgw_eps_bearer_entry_p));
+    if (!sgw_eps_bearer_entry_p) {
+      OAILOG_ERROR(
+        LOG_SPGW_APP, "Failed to allocate memory for sgw_eps_bearer_entry_p\n");
+      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+    }
+    sgw_eps_bearer_entry_p->sgw_eps_bearer_entry = eps_bearer_ctxt_p;
+    LIST_INSERT_HEAD(
+      (pgw_ni_cbr_proc->pending_eps_bearers), sgw_eps_bearer_entry_p, entries);
+
     OAILOG_INFO(
       LOG_SPGW_APP,
       "Sending S11_PCRF_DED_BEARER_ACTV_REQUEST to MME with LBI %d\n",
@@ -2216,115 +2299,29 @@ int sgw_handle_nw_initiated_actv_bearer_req(
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
-/*
- * Handle NW initiated Dedicated Bearer Activation Rsp from MME
- */
-
-int sgw_handle_nw_initiated_actv_bearer_rsp(
-  spgw_state_t *state,
-  const itti_s11_nw_init_actv_bearer_rsp_t *const s11_actv_bearer_rsp)
+int send_activate_dedicated_bearer_rsp_to_pgw(
+  spgw_state_t* state,
+  gtpv2c_cause_value_t cause,
+  teid_t sgw_s11_teid,
+  ebi_t ebi,
+  teid_t enb_u_teid,
+  teid_t sgw_u_teid)
 {
-  s_plus_p_gw_eps_bearer_context_information_t *spgw_context = NULL;
-  uint32_t msg_bearer_index = 0;
   uint32_t rc = RETURNok;
-
-  OAILOG_INFO(
-    LOG_SPGW_APP,
-    "Received nw_initiated_bearer_actv_rsp from MME with EBI %d\n",
-    s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-      .eps_bearer_id);
+  MessageDef* message_p = NULL;
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_context = NULL;
+
   hash_rc = hashtable_ts_get(
     state->sgw_state.s11_bearer_context_information,
-    s11_actv_bearer_rsp->sgw_s11_teid,
-    (void **) &spgw_context);
-  if ((spgw_context == NULL) || (hash_rc != HASH_TABLE_OK)) {
+    sgw_s11_teid,
+    (void**) &spgw_context);
+
+  if (hash_rc != HASH_TABLE_OK) {
     OAILOG_ERROR(LOG_SPGW_APP, "Error in retrieving s_plus_p_gw context\n");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-  //--------------------------------------
-  // EPS bearer entry
-  //--------------------------------------
-  // TODO several bearers
-  if (s11_actv_bearer_rsp->cause.cause_value == REQUEST_ACCEPTED) {
-    sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p =
-      sgw_cm_create_eps_bearer_ctxt_in_collection(
-        &spgw_context->sgw_eps_bearer_context_information.pdn_connection,
-        s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-          .eps_bearer_id);
 
-    if (eps_bearer_ctxt_p == NULL) {
-      OAILOG_ERROR(LOG_SPGW_APP, "Failed to create new EPS bearer entry\n");
-      increment_counter(
-        "s11_actv_bearer_rsp",
-        1,
-        2,
-        "result",
-        "failure",
-        "cause",
-        "internal_software_error");
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-    } else {
-      OAILOG_INFO(
-        LOG_SPGW_APP,
-        "Successfully created new EPS bearer entry with EBI %d\n",
-        eps_bearer_ctxt_p->eps_bearer_id);
-    }
-
-    //S1U SGW TEID
-    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up =
-      s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-        .s1u_sgw_fteid.teid;
-    //S1U SGW IPv4 addr
-    eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv4;
-    eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address.ipv4_address
-        .s_addr = state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
-
-    //S1U enb TEID
-    get_fteid_ip_address(
-      &s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-         .s1u_enb_fteid,
-      &eps_bearer_ctxt_p->enb_ip_address_S1u);
-    eps_bearer_ctxt_p->enb_teid_S1u =
-      s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-        .s1u_enb_fteid.teid;
-
-    //QoS
-    memcpy(
-      &eps_bearer_ctxt_p->eps_bearer_qos,
-      &s11_actv_bearer_rsp->eps_bearer_qos,
-      sizeof(bearer_qos_t));
-
-    //TFT
-    memcpy(
-      &eps_bearer_ctxt_p->tft,
-      &s11_actv_bearer_rsp->tft,
-      sizeof(traffic_flow_template_t));
-
-    //PAA
-    /*Copy PAA from default bearer context as the ip address remains same for
-      dedicated bearer as well
-     */
-    sgw_eps_bearer_ctxt_t *default_eps_bearer_ctxt_p =
-      sgw_cm_get_eps_bearer_entry(
-      &spgw_context->sgw_eps_bearer_context_information.pdn_connection,
-      spgw_context->sgw_eps_bearer_context_information
-      .pdn_connection.default_bearer);
-    memcpy(
-      &eps_bearer_ctxt_p->paa,
-      &default_eps_bearer_ctxt_p->paa,
-      sizeof(paa_t));
-
-  } else {
-    OAILOG_INFO(
-      LOG_SPGW_APP,
-      "Did not create new EPS bearer entry as "
-      "UE rejected the request for EBI %d\n",
-      s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-        .eps_bearer_id);
-  }
-  //Send ACTIVATE_DEDICATED_BEARER_RSP to PGW
-  MessageDef *message_p = NULL;
   message_p =
     itti_alloc_new_message(TASK_PGW_APP, S5_NW_INITIATED_ACTIVATE_BEARER_RESP);
   if (message_p == NULL) {
@@ -2333,34 +2330,164 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
       "itti_alloc_new_message failed for S5_ACTIVATE_DEDICATED_BEARER_RSP\n");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-  itti_s5_nw_init_actv_bearer_rsp_t *act_ded_bearer_rsp =
+  itti_s5_nw_init_actv_bearer_rsp_t* act_ded_bearer_rsp =
     &message_p->ittiMsg.s5_nw_init_actv_bearer_response;
   memset(act_ded_bearer_rsp, 0, sizeof(itti_s5_nw_init_actv_bearer_rsp_t));
-  //Cause
-  act_ded_bearer_rsp->cause = s11_actv_bearer_rsp->cause.cause_value;
-  //EBI
-  act_ded_bearer_rsp->ebi =
-    s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-      .eps_bearer_id;
-  // S1-U enb TEID
-  memcpy(
-    &act_ded_bearer_rsp->S1_U_enb_teid,
-    &s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-       .s1u_enb_fteid.teid,
-    sizeof(teid_t));
-  //S1-U sgw TEID
-  memcpy(
-    &act_ded_bearer_rsp->S1_U_sgw_teid,
-    &s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-       .s1u_sgw_fteid.teid,
-    sizeof(teid_t));
+  // Cause
+  act_ded_bearer_rsp->cause = cause;
+  // IMSI
+  act_ded_bearer_rsp->imsi =
+    spgw_context->sgw_eps_bearer_context_information.imsi;
+  // LBI
+  act_ded_bearer_rsp->lbi = spgw_context->sgw_eps_bearer_context_information
+                              .pdn_connection.default_bearer;
+  // Fill EBI and TEID values if request is accepted by the UE else send 0
+  if (cause == REQUEST_ACCEPTED) {
+    // EBI
+    act_ded_bearer_rsp->ebi = ebi;
+    // S1-U enb TEID
+    act_ded_bearer_rsp->S1_U_enb_teid = enb_u_teid;
+    // S1-U sgw TEID
+    act_ded_bearer_rsp->S1_U_sgw_teid = sgw_u_teid;
+  }
+  OAILOG_INFO(
+    LOG_SPGW_APP,
+    "Sending S5_NW_INIT_ACTIVATE_BEARER_RSP to PGW for EBI %u with cause %d \n",
+    ebi,
+    cause);
+  rc = itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
+
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+}
+
+/*
+ * Handle NW initiated Dedicated Bearer Activation Rsp from MME
+ */
+
+int sgw_handle_nw_initiated_actv_bearer_rsp(
+  spgw_state_t* state,
+  const itti_s11_nw_init_actv_bearer_rsp_t* const s11_actv_bearer_rsp)
+{
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_context = NULL;
+  uint32_t msg_bearer_index = 0;
+  uint32_t rc = RETURNok;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p = NULL;
+  struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
+  gtpv2c_cause_value_t cause = REQUEST_REJECTED;
+  hashtable_rc_t hash_rc = HASH_TABLE_OK;
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
 
   OAILOG_INFO(
     LOG_SPGW_APP,
-    "Sending S5_NW_INIT_ACTIVATE_BEARER_RSP to PGW with EBI %d\n",
-    act_ded_bearer_rsp->ebi);
-  rc = itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
+    "Received nw_initiated_bearer_actv_rsp from MME with EBI %d\n",
+    s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+      .eps_bearer_id);
+  hash_rc = hashtable_ts_get(
+    state->sgw_state.s11_bearer_context_information,
+    s11_actv_bearer_rsp->sgw_s11_teid,
+    (void**) &spgw_context);
+  if ((spgw_context == NULL) || (hash_rc != HASH_TABLE_OK)) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Error in retrieving s_plus_p_gw context\n");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
+  //--------------------------------------
+  // EPS bearer entry
+  //--------------------------------------
+  // TODO multiple bearers
+  pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(spgw_context);
 
+  if (pgw_ni_cbr_proc) {
+    sgw_eps_bearer_entry_p = LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
+    while (sgw_eps_bearer_entry_p != NULL) {
+      if ((s11_actv_bearer_rsp->bearer_contexts
+             .bearer_contexts[msg_bearer_index]
+             .s1u_sgw_fteid.teid == sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
+                                      ->s_gw_teid_S1u_S12_S4_up)) {
+        /* If UE accepted the request create eps bearer context.
+        * If UE did not accept the request send reject to NW
+        */
+        if (s11_actv_bearer_rsp->cause.cause_value == REQUEST_ACCEPTED) {
+          eps_bearer_ctxt_p = sgw_eps_bearer_entry_p->sgw_eps_bearer_entry;
+          if (eps_bearer_ctxt_p) {
+            eps_bearer_ctxt_p->eps_bearer_id =
+              s11_actv_bearer_rsp->bearer_contexts
+                .bearer_contexts[msg_bearer_index]
+                .eps_bearer_id;
+
+            // Store enb-s1u teid and ip address
+            get_fteid_ip_address(
+              &s11_actv_bearer_rsp->bearer_contexts
+                 .bearer_contexts[msg_bearer_index]
+                 .s1u_enb_fteid,
+              &eps_bearer_ctxt_p->enb_ip_address_S1u);
+            eps_bearer_ctxt_p->enb_teid_S1u =
+              s11_actv_bearer_rsp->bearer_contexts
+                .bearer_contexts[msg_bearer_index]
+                .s1u_enb_fteid.teid;
+
+            eps_bearer_ctxt_entry_p =
+              sgw_cm_insert_eps_bearer_ctxt_in_collection(
+                &spgw_context->sgw_eps_bearer_context_information
+                   .pdn_connection,
+                eps_bearer_ctxt_p);
+            if (eps_bearer_ctxt_entry_p == NULL) {
+              OAILOG_ERROR(
+                LOG_SPGW_APP, "Failed to create new EPS bearer entry\n");
+              increment_counter(
+                "s11_actv_bearer_rsp",
+                1,
+                2,
+                "result",
+                "failure",
+                "cause",
+                "internal_software_error");
+            } else {
+              OAILOG_INFO(
+                LOG_SPGW_APP,
+                "Successfully created new EPS bearer entry with EBI %d\n",
+                eps_bearer_ctxt_p->eps_bearer_id);
+              cause = REQUEST_ACCEPTED;
+            }
+          }
+        } else {
+          OAILOG_ERROR(
+            LOG_SPGW_APP,
+            "Did not create new EPS bearer entry as "
+            "UE rejected the request for EBI %d\n",
+            s11_actv_bearer_rsp->bearer_contexts
+              .bearer_contexts[msg_bearer_index]
+              .eps_bearer_id);
+        }
+        // Remove the temporary spgw entry
+        LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
+        free_wrapper((void**) &sgw_eps_bearer_entry_p);
+        break;
+      }
+      sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
+    }
+  } else {
+    OAILOG_ERROR(
+      LOG_SPGW_APP,
+      "Did not create new EPS bearer entry for EBI %u\n",
+      s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+        .eps_bearer_id);
+  }
+  // Send ACTIVATE_DEDICATED_BEARER_RSP to PGW
+  rc = send_activate_dedicated_bearer_rsp_to_pgw(
+    state,
+    cause,
+    s11_actv_bearer_rsp->sgw_s11_teid,
+    s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+      .eps_bearer_id,
+    s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+      .s1u_enb_fteid.teid,
+    s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+      .s1u_sgw_fteid.teid);
+  if (rc != RETURNok) {
+    OAILOG_ERROR(
+      LOG_SPGW_APP, "Did not send ACTIVATE_DEDICATED_BEARER_RSP to PGW\n");
+  }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
@@ -2368,10 +2495,10 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
  * Handle NW-initiated dedicated bearer deactivation from PGW
  */
 uint32_t sgw_handle_nw_initiated_deactv_bearer_req(
-  const itti_s5_nw_init_deactv_bearer_request_t
-    *const itti_s5_deactiv_ded_bearer_req)
+  const itti_s5_nw_init_deactv_bearer_request_t* const
+    itti_s5_deactiv_ded_bearer_req)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
   uint32_t rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -2384,7 +2511,7 @@ uint32_t sgw_handle_nw_initiated_deactv_bearer_req(
   message_p = itti_alloc_new_message(
     TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
   if (message_p) {
-    itti_s11_nw_init_deactv_bearer_request_t *s11_pcrf_bearer_deactv_request =
+    itti_s11_nw_init_deactv_bearer_request_t* s11_pcrf_bearer_deactv_request =
       &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;
     memset(
       s11_pcrf_bearer_deactv_request,

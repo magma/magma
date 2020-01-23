@@ -149,9 +149,21 @@ static void* sgw_intertask_interface(void* args_p)
 
       case S5_NW_INITIATED_ACTIVATE_BEARER_REQ: {
         //Handle Dedicated bearer activation from PCRF
-        sgw_handle_nw_initiated_actv_bearer_req(
-          spgw_state_p,
-          &received_message_p->ittiMsg.s5_nw_init_actv_bearer_request);
+        if (
+          sgw_handle_nw_initiated_actv_bearer_req(
+            spgw_state_p,
+            &received_message_p->ittiMsg.s5_nw_init_actv_bearer_request) !=
+          RETURNok) {
+          // If request handling fails send reject to PGW
+          send_activate_dedicated_bearer_rsp_to_pgw(
+            spgw_state_p,
+            REQUEST_REJECTED /*Cause*/,
+            received_message_p->ittiMsg.s5_nw_init_actv_bearer_request
+              .s_gw_teid_S11_S4, /*SGW C-plane teid to fetch spgw context*/
+            0 /*EBI*/,
+            0 /*enb teid*/,
+            0 /*sgw teid*/);
+        }
       } break;
 
       case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
