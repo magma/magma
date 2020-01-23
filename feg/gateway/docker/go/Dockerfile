@@ -42,7 +42,7 @@ RUN apt-get update && apt-get install -y \
 # Install Golang 1.13.
 WORKDIR /usr/local
 RUN curl https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz -O && \
-    tar xvf go1.13.4.linux-amd64.tar.gz && \
+    tar xf go1.13.4.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 
 # Install protobuf compiler.
