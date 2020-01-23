@@ -13,8 +13,8 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 )
 
 // TodoUpdate is the builder for updating Todo entities.
@@ -69,7 +69,7 @@ func (tu *TodoUpdate) ExecX(ctx context.Context) {
 }
 
 func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   todo.Table,
 			Columns: todo.Columns,
@@ -80,20 +80,20 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		},
 	}
 	if ps := tu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := tu.text; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: todo.FieldText,
 		})
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -148,7 +148,7 @@ func (tuo *TodoUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   todo.Table,
 			Columns: todo.Columns,
@@ -160,16 +160,16 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
 		},
 	}
 	if value := tuo.text; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: todo.FieldText,
 		})
 	}
 	t = &Todo{config: tuo.config}
-	spec.Assign = t.assignValues
-	spec.ScanValues = t.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, tuo.driver, spec); err != nil {
+	_spec.Assign = t.assignValues
+	_spec.ScanValues = t.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, tuo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

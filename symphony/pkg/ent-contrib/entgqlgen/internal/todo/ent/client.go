@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/migrate"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/migrate"
 
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"

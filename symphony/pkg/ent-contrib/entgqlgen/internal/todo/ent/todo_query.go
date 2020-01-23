@@ -15,8 +15,8 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 )
 
 // TodoQuery is the builder for querying Todo entities.
@@ -268,29 +268,34 @@ func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {
 func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 	var (
 		nodes []*Todo
-		spec  = tq.querySpec()
+		_spec = tq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &Todo{config: tq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, tq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
+	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (tq *TodoQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := tq.querySpec()
-	return sqlgraph.CountNodes(ctx, tq.driver, spec)
+	_spec := tq.querySpec()
+	return sqlgraph.CountNodes(ctx, tq.driver, _spec)
 }
 
 func (tq *TodoQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,7 +307,7 @@ func (tq *TodoQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   todo.Table,
 			Columns: todo.Columns,
@@ -315,26 +320,26 @@ func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := tq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := tq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := tq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := tq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (tq *TodoQuery) sqlQuery() *sql.Selector {

@@ -12,8 +12,8 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 )
 
 // TodoDelete is the builder for deleting a Todo entity.
@@ -43,7 +43,7 @@ func (td *TodoDelete) ExecX(ctx context.Context) int {
 }
 
 func (td *TodoDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: todo.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (td *TodoDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := td.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, td.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, td.driver, _spec)
 }
 
 // TodoDeleteOne is the builder for deleting a single Todo entity.

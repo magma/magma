@@ -16,7 +16,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -332,7 +332,7 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 	args := map[string]interface{}{}
 	var arg0 TodoInput
 	if tmp, ok := rawArgs["todo"]; ok {
-		arg0, err = ec.unmarshalNTodoInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚐTodoInput(ctx, tmp)
+		arg0, err = ec.unmarshalNTodoInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚐTodoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -374,7 +374,7 @@ func (ec *executionContext) field_Query_todos_args(ctx context.Context, rawArgs 
 	args := map[string]interface{}{}
 	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -390,7 +390,7 @@ func (ec *executionContext) field_Query_todos_args(ctx context.Context, rawArgs 
 	args["first"] = arg1
 	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -484,7 +484,7 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	res := resTmp.(*ent.Todo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodo(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_clearTodos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -629,7 +629,7 @@ func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field gra
 	res := resTmp.(*ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx, field.Selections, res)
+	return ec.marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *ent.PageInfo) (ret graphql.Marshaler) {
@@ -663,7 +663,7 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	res := resTmp.(*ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx, field.Selections, res)
+	return ec.marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -704,7 +704,7 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	res := resTmp.(ent.Noder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalONode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐNoder(ctx, field.Selections, res)
+	return ec.marshalONode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐNoder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -745,7 +745,7 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 	res := resTmp.(*ent.TodoConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOTodoConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodoConnection(ctx, field.Selections, res)
+	return ec.marshalOTodoConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodoConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -931,7 +931,7 @@ func (ec *executionContext) _TodoConnection_pageInfo(ctx context.Context, field 
 	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TodoConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.TodoConnection) (ret graphql.Marshaler) {
@@ -965,7 +965,7 @@ func (ec *executionContext) _TodoConnection_edges(ctx context.Context, field gra
 	res := resTmp.([]*ent.TodoEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOTodoEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodoEdge(ctx, field.Selections, res)
+	return ec.marshalOTodoEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodoEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TodoEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.TodoEdge) (ret graphql.Marshaler) {
@@ -999,7 +999,7 @@ func (ec *executionContext) _TodoEdge_node(ctx context.Context, field graphql.Co
 	res := resTmp.(*ent.Todo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodo(ctx, field.Selections, res)
+	return ec.marshalOTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TodoEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.TodoEdge) (ret graphql.Marshaler) {
@@ -1036,7 +1036,7 @@ func (ec *executionContext) _TodoEdge_cursor(ctx context.Context, field graphql.
 	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2703,12 +2703,12 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
+func (ec *executionContext) unmarshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
 	var res ent.Cursor
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
+func (ec *executionContext) marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
 	return v
 }
 
@@ -2740,7 +2740,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v ent.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v ent.PageInfo) graphql.Marshaler {
 	return ec._PageInfo(ctx, sel, &v)
 }
 
@@ -2758,11 +2758,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNTodo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v ent.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v ent.Todo) graphql.Marshaler {
 	return ec._Todo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v *ent.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v *ent.Todo) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2772,7 +2772,7 @@ func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋs
 	return ec._Todo(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTodoInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚐTodoInput(ctx context.Context, v interface{}) (TodoInput, error) {
+func (ec *executionContext) unmarshalNTodoInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚐTodoInput(ctx context.Context, v interface{}) (TodoInput, error) {
 	return ec.unmarshalInputTodoInput(ctx, v)
 }
 
@@ -3025,24 +3025,24 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
+func (ec *executionContext) unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
 	var res ent.Cursor
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
+func (ec *executionContext) marshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, v interface{}) (*ent.Cursor, error) {
+func (ec *executionContext) unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, v interface{}) (*ent.Cursor, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx, v)
+	res, err := ec.unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v *ent.Cursor) graphql.Marshaler {
+func (ec *executionContext) marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v *ent.Cursor) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3072,7 +3072,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalONode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {
+func (ec *executionContext) marshalONode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3102,33 +3102,33 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return ec.marshalOString2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOTodo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v ent.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalOTodo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v ent.Todo) graphql.Marshaler {
 	return ec._Todo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v *ent.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalOTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v *ent.Todo) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Todo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOTodoConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v ent.TodoConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOTodoConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v ent.TodoConnection) graphql.Marshaler {
 	return ec._TodoConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOTodoConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v *ent.TodoConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOTodoConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v *ent.TodoConnection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._TodoConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOTodoEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodoEdge(ctx context.Context, sel ast.SelectionSet, v ent.TodoEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOTodoEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodoEdge(ctx context.Context, sel ast.SelectionSet, v ent.TodoEdge) graphql.Marshaler {
 	return ec._TodoEdge(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOTodoEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodoEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.TodoEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOTodoEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodoEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.TodoEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3155,7 +3155,7 @@ func (ec *executionContext) marshalOTodoEdge2ᚕᚖgithubᚗcomᚋfacebookincuba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOTodoEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodoEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalOTodoEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodoEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3168,7 +3168,7 @@ func (ec *executionContext) marshalOTodoEdge2ᚕᚖgithubᚗcomᚋfacebookincuba
 	return ret
 }
 
-func (ec *executionContext) marshalOTodoEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodoEdge(ctx context.Context, sel ast.SelectionSet, v *ent.TodoEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOTodoEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodoEdge(ctx context.Context, sel ast.SelectionSet, v *ent.TodoEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

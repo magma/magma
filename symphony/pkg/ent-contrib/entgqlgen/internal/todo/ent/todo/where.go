@@ -8,7 +8,7 @@ package todo
 
 import (
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/predicate"
 )
 
 // ID filters vertices based on their identifier.

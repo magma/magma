@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 )
 
 // Todo is the model entity for the Todo schema.
@@ -26,15 +26,15 @@ type Todo struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Todo) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullString{}, // text
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Todo fields.
 func (t *Todo) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(todo.Columns); m != n {
+	if m, n := len(values), len(todo.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

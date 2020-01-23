@@ -13,7 +13,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 )
 
 // TodoCreate is the builder for creating a Todo entity.
@@ -50,8 +50,8 @@ func (tc *TodoCreate) SaveX(ctx context.Context) *Todo {
 
 func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 	var (
-		t    = &Todo{config: tc.config}
-		spec = &sqlgraph.CreateSpec{
+		t     = &Todo{config: tc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: todo.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
@@ -60,20 +60,20 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 		}
 	)
 	if value := tc.text; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: todo.FieldText,
 		})
 		t.Text = *value
 	}
-	if err := sqlgraph.CreateNode(ctx, tc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	t.ID = int(id)
 	return t, nil
 }

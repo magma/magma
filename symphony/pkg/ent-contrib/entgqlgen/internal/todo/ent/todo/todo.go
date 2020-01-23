@@ -7,7 +7,7 @@
 package todo
 
 import (
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/schema"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/schema"
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 	Table = "todos"
 )
 
-// Columns holds all SQL columns are todo fields.
+// Columns holds all SQL columns for todo fields.
 var Columns = []string{
 	FieldID,
 	FieldText,

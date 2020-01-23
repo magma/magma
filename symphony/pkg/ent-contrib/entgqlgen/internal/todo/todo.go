@@ -8,7 +8,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
 )
 
 func New(client *ent.Client) Config {

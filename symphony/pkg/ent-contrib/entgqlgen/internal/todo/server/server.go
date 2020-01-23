@@ -10,9 +10,9 @@ import (
 	"net/http"
 
 	"github.com/99designs/gqlgen/handler"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent"
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/migrate"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/migrate"
 	_ "github.com/mattn/go-sqlite3"
 )
 

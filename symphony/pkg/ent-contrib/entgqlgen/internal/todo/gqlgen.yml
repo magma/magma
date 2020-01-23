@@ -6,7 +6,7 @@ schema:
   - todo.graphql
 
 autobind:
-  - github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent
+  - github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent
 
 models:
   ID:
@@ -14,4 +14,4 @@ models:
       - github.com/99designs/gqlgen/graphql.IntID
   Node:
     model:
-      - github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent.Noder
+      - github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent.Noder

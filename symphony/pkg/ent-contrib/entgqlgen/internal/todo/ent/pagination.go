@@ -14,7 +14,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 	"github.com/ugorji/go/codec"
 )
 
