@@ -14,18 +14,21 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/stretchr/testify/require"
 )
 
-func writeModifiedPortsCSV(t *testing.T, r *csv.Reader) (*bytes.Buffer, string) {
+func writeModifiedPortsCSV(t *testing.T, r *csv.Reader, skipLines bool) (*bytes.Buffer, string) {
 	var newLine []string
 	var lines = make([][]string, 3)
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
-
+	if skipLines {
+		bw.WriteField("skip_lines", "[2]")
+	}
 	fileWriter, err := bw.CreateFormFile("file_0", "name1")
 	require.Nil(t, err)
 	for i := 0; ; i++ {
@@ -60,42 +63,50 @@ func writeModifiedPortsCSV(t *testing.T, r *csv.Reader) (*bytes.Buffer, string) 
 }
 
 func TestImportAndEditPorts(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
+	for _, skipLines := range []bool{true, false} {
 
-	log := r.exporter.log
-	e := &exporter{log, portsRower{log}}
-	ctx, res := prepareLinksPortsAndExport(t, r, e)
+		r, err := newExporterTestResolver(t)
+		require.NoError(t, err)
 
-	defer res.Body.Close()
-	importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityPort, MethodEdit)
-	locs := r.client.Location.Query().AllX(ctx)
-	require.Len(t, locs, 3)
-	ports, err := r.Query().PortSearch(ctx, nil, nil)
-	require.NoError(t, err)
-	require.Equal(t, 2, ports.Count)
-	for _, port := range ports.Ports {
-		def := port.QueryDefinition().OnlyX(ctx)
-		switch def.Name {
-		case portName1:
-			typ := def.QueryEquipmentPortType().OnlyX(ctx)
-			propTyps := typ.QueryPropertyTypes().AllX(ctx)
-			require.Len(t, propTyps, 2)
+		log := r.exporter.log
+		e := &exporter{log, portsRower{log}}
+		ctx, res := prepareLinksPortsAndExport(t, r, e)
 
-			props := port.QueryProperties().AllX(ctx)
-			require.Len(t, props, 2)
+		defer res.Body.Close()
+		importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityPort, MethodEdit, skipLines)
+		locs := r.client.Location.Query().AllX(ctx)
+		require.Len(t, locs, 3)
+		ports, err := r.Query().PortSearch(ctx, nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, 2, ports.Count)
+		for _, port := range ports.Ports {
+			def := port.QueryDefinition().OnlyX(ctx)
+			switch def.Name {
+			case portName1:
+				typ := def.QueryEquipmentPortType().OnlyX(ctx)
+				propTyps := typ.QueryPropertyTypes().AllX(ctx)
+				require.Len(t, propTyps, 2)
 
-			p1 := typ.QueryPropertyTypes().Where(propertytype.Name(propStr)).OnlyX(ctx)
-			p2 := typ.QueryPropertyTypes().Where(propertytype.Name(propStr2)).OnlyX(ctx)
+				props := port.QueryProperties().AllX(ctx)
+				require.Len(t, props, 2)
 
-			require.Equal(t, port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p1.ID))).OnlyX(ctx).StringVal, "new-prop-value")
-			require.Equal(t, port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p2.ID))).OnlyX(ctx).StringVal, "new-prop-value2")
-		case portName2:
-			typ, _ := def.QueryEquipmentPortType().Only(ctx)
-			require.Nil(t, typ)
-			s := port.QueryEndpoints().Where(serviceendpoint.Role(models.ServiceEndpointRoleConsumer.String())).QueryService().OnlyX(ctx)
-			require.Equal(t, s.Name, secondServiceName)
-			require.False(t, port.QueryEndpoints().Where(serviceendpoint.Role(models.ServiceEndpointRoleProvider.String())).ExistX(ctx))
+				p1 := typ.QueryPropertyTypes().Where(propertytype.Name(propStr)).OnlyX(ctx)
+				p2 := typ.QueryPropertyTypes().Where(propertytype.Name(propStr2)).OnlyX(ctx)
+
+				require.Equal(t, port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p1.ID))).OnlyX(ctx).StringVal, "new-prop-value")
+				require.Equal(t, port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p2.ID))).OnlyX(ctx).StringVal, "new-prop-value2")
+			case portName2:
+				typ, _ := def.QueryEquipmentPortType().Only(ctx)
+				require.Nil(t, typ)
+				s, err := port.QueryEndpoints().Where(serviceendpoint.Role(models.ServiceEndpointRoleConsumer.String())).QueryService().Only(ctx)
+				if skipLines {
+					require.Error(t, err)
+					require.Nil(t, s)
+				} else {
+					require.Equal(t, s.Name, secondServiceName)
+					require.False(t, port.QueryEndpoints().Where(serviceendpoint.Role(models.ServiceEndpointRoleProvider.String())).ExistX(ctx))
+				}
+			}
 		}
 	}
 }
