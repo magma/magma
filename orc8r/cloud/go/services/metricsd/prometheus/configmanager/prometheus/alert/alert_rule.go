@@ -11,7 +11,7 @@ package alert
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
@@ -84,8 +84,8 @@ func SecureRule(restrictQueries bool, matcherName, matcherValue string, rule *ru
 	var err error
 	if restrictQueries {
 		tenantLabels := map[string]string{matcherName: matcherValue}
-		restrictor := security.NewQueryRestrictor(tenantLabels)
-		expr, err = restrictor.RestrictQuery(rule.Expr)
+		queryRestrictor := restrictor.NewQueryRestrictor(tenantLabels)
+		expr, err = queryRestrictor.RestrictQuery(rule.Expr)
 		if err != nil {
 			return err
 		}
