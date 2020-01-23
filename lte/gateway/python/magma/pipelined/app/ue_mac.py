@@ -34,14 +34,9 @@ class UEMacAddressController(MagmaController):
 
     APP_NAME = "ue_mac"
     APP_TYPE = ControllerType.SPECIAL
-    UEMacConfig = namedtuple(
-        'UEMacConfig',
-        ['gre_tunnel_port'],
-    )
 
     def __init__(self, *args, **kwargs):
         super(UEMacAddressController, self).__init__(*args, **kwargs)
-        self.config = self._get_config(kwargs['config'])
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
             self._service_manager.get_table_num(INGRESS)
@@ -50,12 +45,6 @@ class UEMacAddressController(MagmaController):
         self._datapath = None
         self._dhcp_learn_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
-
-    def _get_config(self, config_dict):
-        return self.UEMacConfig(
-            # TODO: rename port number to a tunneling protocol agnostic name
-            gre_tunnel_port=config_dict['ovs_gtp_port_number'],
-        )
 
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)
