@@ -31,6 +31,7 @@ static_services: [
   'arpd',
   'access_control',
   'tunnel_learn',
+  'vlan_learn',
   'ryu_rest_service',
   'startup_flows',
 #  'packet_tracer',
