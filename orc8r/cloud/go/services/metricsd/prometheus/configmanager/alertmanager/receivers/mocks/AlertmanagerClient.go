@@ -135,13 +135,13 @@ func (_m *AlertmanagerClient) Tenancy() *alert.TenancyConfig {
 	return r0
 }
 
-// UpdateReceiver provides a mock function with given fields: tenantID, newRec
-func (_m *AlertmanagerClient) UpdateReceiver(tenantID string, newRec *receivers.Receiver) error {
-	ret := _m.Called(tenantID, newRec)
+// UpdateReceiver provides a mock function with given fields: tenantID, receiverName, newRec
+func (_m *AlertmanagerClient) UpdateReceiver(tenantID string, receiverName string, newRec *receivers.Receiver) error {
+	ret := _m.Called(tenantID, receiverName, newRec)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *receivers.Receiver) error); ok {
-		r0 = rf(tenantID, newRec)
+	if rf, ok := ret.Get(0).(func(string, string, *receivers.Receiver) error); ok {
+		r0 = rf(tenantID, receiverName, newRec)
 	} else {
 		r0 = ret.Error(0)
 	}

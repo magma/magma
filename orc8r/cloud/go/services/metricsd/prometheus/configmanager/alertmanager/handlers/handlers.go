@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -21,37 +21,78 @@ import (
 )
 
 const (
-	rootPath     = "/:tenant_id"
-	ReceiverPath = rootPath + "/receiver"
-	RoutePath    = ReceiverPath + "/route"
+	v0rootPath               = "/:tenant_id"
+	v0receiverPath           = "/receiver"
+	v0RoutePath              = "/receiver/route"
+	v0receiverNameQueryParam = "receiver"
 
-	receiverNamePathParam  = "receiver"
-	receiverNameQueryParam = "receiver"
+	v1rootPath         = "/v1"
+	v1receiverPath     = "/receiver"
+	v1receiverNamePath = v1receiverPath + "/:" + receiverNameParam
+	v1routePath        = "/route"
 
-	tenantIDParam = "tenant_id"
+	receiverNameParam = "receiver_name"
+	tenantIDParam     = "tenant_id"
 )
 
-func RegisterV0Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
+func RegisterBaseHandlers(e *echo.Echo) {
 	e.GET("/", statusHandler)
+}
 
-	e.POST(ReceiverPath, GetReceiverPostHandler(client))
-	e.GET(ReceiverPath, GetGetReceiversHandler(client))
-	e.DELETE(ReceiverPath, GetDeleteReceiverHandler(client))
-	e.PUT(ReceiverPath+"/:"+receiverNamePathParam, GetUpdateReceiverHandler(client))
+func RegisterV0Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
+	v0 := e.Group(v0rootPath)
+	v0.Use(tenancyMiddlewareProvider(client, pathTenantProvider))
 
-	e.POST(RoutePath, GetUpdateRouteHandler(client))
-	e.GET(RoutePath, GetGetRouteHandler(client))
+	v0.POST(v0receiverPath, GetReceiverPostHandler(client))
+	v0.GET(v0receiverPath, GetGetReceiversHandler(client))
+	v0.DELETE(v0receiverPath, GetDeleteReceiverHandler(client, v0receiverNameQueryProvider))
+	v0.PUT(v0receiverPath+"/:"+receiverNameParam, GetUpdateReceiverHandler(client, receiverNamePathProvider))
 
-	e.Use(tenancyMiddlewareProvider(client))
+	v0.POST(v0RoutePath, GetUpdateRouteHandler(client))
+	v0.GET(v0RoutePath, GetGetRouteHandler(client))
+}
+
+func RegisterV1Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
+	v1 := e.Group(v1rootPath)
+	v1.Use(tenancyMiddlewareProvider(client, pathTenantProvider))
+
+	v1.POST(v1receiverPath, GetReceiverPostHandler(client))
+	v1.GET(v1receiverPath, GetGetReceiversHandler(client))
+
+	v1.DELETE(v1receiverNamePath, GetDeleteReceiverHandler(client, receiverNamePathProvider))
+	v1.PUT(v1receiverNamePath, GetUpdateReceiverHandler(client, receiverNamePathProvider))
+	v1.GET(v1receiverNamePath, GetGetReceiversHandler(client))
+
+	v1.POST(v1routePath, GetUpdateRouteHandler(client))
+	v1.GET(v1routePath, GetGetRouteHandler(client))
+}
+
+func statusHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "Alertmanager Config server")
+}
+
+type paramProvider func(c echo.Context) string
+
+// For v0 tenant_id field in path
+var pathTenantProvider = func(c echo.Context) string {
+	return c.Param(tenantIDParam)
+}
+
+var v0receiverNameQueryProvider = func(c echo.Context) string {
+	return c.QueryParam(v0receiverNameQueryParam)
+}
+
+var receiverNamePathProvider = func(c echo.Context) string {
+	return c.Param(receiverNameParam)
 }
 
 // Returns middleware func to check for tenant_id dependent on tenancy of the client
-func tenancyMiddlewareProvider(client receivers.AlertmanagerClient) echo.MiddlewareFunc {
+func tenancyMiddlewareProvider(client receivers.AlertmanagerClient, getTenantID paramProvider) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			providedTenantID := c.Param(tenantIDParam)
+			providedTenantID := getTenantID(c)
 			if client.Tenancy() != nil && providedTenantID == "" {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide tenant_id parameter"))
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide %s parameter", tenantIDParam))
 			}
 			c.Set(tenantIDParam, providedTenantID)
 			return next(c)
@@ -87,26 +128,37 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient) func(c echo.Con
 func GetGetReceiversHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenantID := c.Get(tenantIDParam).(string)
+		receiverName := c.Param(receiverNameParam)
 
 		recs, err := client.GetReceivers(tenantID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		if receiverName != "" {
+			for _, rec := range recs {
+				if rec.Name == receiverName {
+					return c.JSON(http.StatusOK, rec)
+				}
+			}
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Receiver %s not found", receiverName))
 		}
 		return c.JSON(http.StatusOK, recs)
 	}
 }
 
 // GetUpdateReceiverHandler returns a handler function to update a receivers
-func GetUpdateReceiverHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
+func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, getReceiverName paramProvider) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenantID := c.Get(tenantIDParam).(string)
+		receiverName := getReceiverName(c)
 
 		newReceiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = client.UpdateReceiver(tenantID, &newReceiver)
+		err = client.UpdateReceiver(tenantID, receiverName, &newReceiver)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -119,11 +171,11 @@ func GetUpdateReceiverHandler(client receivers.AlertmanagerClient) func(c echo.C
 	}
 }
 
-func GetDeleteReceiverHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
+func GetDeleteReceiverHandler(client receivers.AlertmanagerClient, getReceiverName paramProvider) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenantID := c.Get(tenantIDParam).(string)
 
-		err := client.DeleteReceiver(tenantID, c.QueryParam(receiverNameQueryParam))
+		err := client.DeleteReceiver(tenantID, getReceiverName(c))
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}

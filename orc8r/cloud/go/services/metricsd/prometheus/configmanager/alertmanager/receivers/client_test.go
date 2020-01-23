@@ -117,11 +117,11 @@ func TestClient_GetReceivers(t *testing.T) {
 
 func TestClient_UpdateReceiver(t *testing.T) {
 	client, fsClient := newTestClient()
-	err := client.UpdateReceiver(testNID, &Receiver{Name: "slack"})
+	err := client.UpdateReceiver(testNID, "slack", &Receiver{Name: "slack"})
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 	assert.NoError(t, err)
 
-	err = client.UpdateReceiver(testNID, &Receiver{Name: "nonexistent"})
+	err = client.UpdateReceiver(testNID, "nonexistent", &Receiver{Name: "nonexistent"})
 	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
 	assert.Error(t, err)
 }

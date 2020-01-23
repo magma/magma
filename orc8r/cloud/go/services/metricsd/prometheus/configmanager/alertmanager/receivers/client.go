@@ -31,7 +31,7 @@ const (
 type AlertmanagerClient interface {
 	CreateReceiver(tenantID string, rec Receiver) error
 	GetReceivers(tenantID string) ([]Receiver, error)
-	UpdateReceiver(tenantID string, newRec *Receiver) error
+	UpdateReceiver(tenantID, receiverName string, newRec *Receiver) error
 	DeleteReceiver(tenantID, receiverName string) error
 
 	// ModifyNetworkRoute updates an existing routing tree for the given
@@ -107,7 +107,7 @@ func (c *client) GetReceivers(tenantID string) ([]Receiver, error) {
 }
 
 // UpdateReceiver modifies an existing receiver
-func (c *client) UpdateReceiver(tenantID string, newRec *Receiver) error {
+func (c *client) UpdateReceiver(tenantID, receiverName string, newRec *Receiver) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
@@ -117,9 +117,10 @@ func (c *client) UpdateReceiver(tenantID string, newRec *Receiver) error {
 
 	newRec.Secure(tenantID)
 
+	receiverToUpdate := secureReceiverName(receiverName, tenantID)
 	receiverIdx := -1
 	for idx, rec := range conf.Receivers {
-		if rec.Name == newRec.Name {
+		if rec.Name == receiverToUpdate {
 			receiverIdx = idx
 			break
 		}
