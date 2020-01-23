@@ -55,6 +55,7 @@ export type PropertyFormField_property$data = PropertyFormField_property;
 export type PropertyFormField_property$key = {
   +$data?: PropertyFormField_property$data,
   +$fragmentRefs: PropertyFormField_property$ref,
+  ...
 };
 */
 

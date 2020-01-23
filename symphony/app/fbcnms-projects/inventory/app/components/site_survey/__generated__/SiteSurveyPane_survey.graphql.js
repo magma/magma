@@ -35,6 +35,7 @@ export type SiteSurveyPane_survey$data = SiteSurveyPane_survey;
 export type SiteSurveyPane_survey$key = {
   +$data?: SiteSurveyPane_survey$data,
   +$fragmentRefs: SiteSurveyPane_survey$ref,
+  ...
 };
 */
 

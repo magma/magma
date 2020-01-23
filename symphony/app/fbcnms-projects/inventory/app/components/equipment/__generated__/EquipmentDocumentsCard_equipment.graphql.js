@@ -36,6 +36,7 @@ export type EquipmentDocumentsCard_equipment$data = EquipmentDocumentsCard_equip
 export type EquipmentDocumentsCard_equipment$key = {
   +$data?: EquipmentDocumentsCard_equipment$data,
   +$fragmentRefs: EquipmentDocumentsCard_equipment$ref,
+  ...
 };
 */
 

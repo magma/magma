@@ -33,6 +33,7 @@ export type ProjectsMap_projects$data = ProjectsMap_projects;
 export type ProjectsMap_projects$key = $ReadOnlyArray<{
   +$data?: ProjectsMap_projects$data,
   +$fragmentRefs: ProjectsMap_projects$ref,
+  ...
 }>;
 */
 

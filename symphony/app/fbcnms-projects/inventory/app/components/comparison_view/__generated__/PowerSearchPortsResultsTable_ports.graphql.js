@@ -115,6 +115,7 @@ export type PowerSearchPortsResultsTable_ports$data = PowerSearchPortsResultsTab
 export type PowerSearchPortsResultsTable_ports$key = $ReadOnlyArray<{
   +$data?: PowerSearchPortsResultsTable_ports$data,
   +$fragmentRefs: PowerSearchPortsResultsTable_ports$ref,
+  ...
 }>;
 */
 

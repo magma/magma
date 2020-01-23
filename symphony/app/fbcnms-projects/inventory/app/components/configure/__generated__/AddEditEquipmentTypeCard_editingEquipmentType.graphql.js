@@ -59,6 +59,7 @@ export type AddEditEquipmentTypeCard_editingEquipmentType$data = AddEditEquipmen
 export type AddEditEquipmentTypeCard_editingEquipmentType$key = {
   +$data?: AddEditEquipmentTypeCard_editingEquipmentType$data,
   +$fragmentRefs: AddEditEquipmentTypeCard_editingEquipmentType$ref,
+  ...
 };
 */
 
