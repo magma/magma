@@ -18,7 +18,7 @@ import {fetchQuery, graphql} from 'relay-runtime';
 
 const locationTypesQuery = graphql`
   query PowerSearchLocationTypeFilterQuery {
-    locationTypes(first: 50) {
+    locationTypes {
       edges {
         node {
           id

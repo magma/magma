@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 2e3cf20523c3a767895ea1ec78626d96
+ * @relayHash 00ed11c77a864b85d1e6ceb9681281bc
  */
 
 /* eslint-disable */
@@ -38,7 +38,7 @@ export type ServiceTypesQuery = {|
 
 /*
 query ServiceTypesQuery {
-  serviceTypes(first: 50) {
+  serviceTypes(first: 500) {
     edges {
       node {
         ...ServiceTypeItem_serviceType
@@ -166,7 +166,7 @@ v5 = [
   {
     "kind": "Literal",
     "name": "first",
-    "value": 50
+    "value": 500
   }
 ];
 return {
@@ -237,7 +237,7 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "serviceTypes",
-        "storageKey": "serviceTypes(first:50)",
+        "storageKey": "serviceTypes(first:500)",
         "args": (v5/*: any*/),
         "concreteType": "ServiceTypeConnection",
         "plural": false,
@@ -397,7 +397,7 @@ return {
     "operationKind": "query",
     "name": "ServiceTypesQuery",
     "id": null,
-    "text": "query ServiceTypesQuery {\n  serviceTypes(first: 50) {\n    edges {\n      node {\n        ...ServiceTypeItem_serviceType\n        ...AddEditServiceTypeCard_editingServiceType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditServiceTypeCard_editingServiceType on ServiceType {\n  id\n  name\n  numberOfServices\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n\nfragment ServiceTypeItem_serviceType on ServiceType {\n  id\n  name\n  propertyTypes {\n    ...PropertyTypeFormField_propertyType\n    id\n  }\n  numberOfServices\n}\n",
+    "text": "query ServiceTypesQuery {\n  serviceTypes(first: 500) {\n    edges {\n      node {\n        ...ServiceTypeItem_serviceType\n        ...AddEditServiceTypeCard_editingServiceType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditServiceTypeCard_editingServiceType on ServiceType {\n  id\n  name\n  numberOfServices\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n\nfragment ServiceTypeItem_serviceType on ServiceType {\n  id\n  name\n  propertyTypes {\n    ...PropertyTypeFormField_propertyType\n    id\n  }\n  numberOfServices\n}\n",
     "metadata": {
       "connection": [
         {
@@ -414,5 +414,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'f0d68ffd745408308a64469103971091';
+(node/*: any*/).hash = 'e999faea7c30e4abdb32ffb7757c25f5';
 module.exports = node;
