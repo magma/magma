@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -22,47 +22,83 @@ import (
 )
 
 const (
-	rootPath        = "/:tenant_id"
-	AlertPath       = rootPath + "/alert"
-	AlertUpdatePath = AlertPath + "/:" + RuleNamePathParam
-	AlertBulkPath   = AlertPath + "/bulk"
+	v0rootPath        = "/:tenant_id"
+	v0alertPath       = "/alert"
+	v0alertUpdatePath = v0alertPath + "/:" + ruleNameParam
+	v0alertBulkPath   = v0alertPath + "/bulk"
 
-	ruleNameQueryParam = "alert_name"
-	RuleNamePathParam  = "alert_name"
+	ruleNameParam = "alert_name"
 
 	tenantIDParam = "tenant_id"
+
+	v1rootPath      = "/v1/:tenant_id"
+	v1alertPath     = "/alert"
+	v1alertBulkPath = v1alertPath + "/bulk"
+	v1alertNamePath = v1alertPath + "/:" + ruleNameParam
 )
 
 func statusHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "Prometheus Config server")
 }
 
-func RegisterV0Handlers(e *echo.Echo, alertClient alert.PrometheusAlertClient) {
+func RegisterBaseHandlers(e *echo.Echo) {
 	e.GET("/", statusHandler)
-
-	e.POST(AlertPath, GetConfigureAlertHandler(alertClient))
-	e.GET(AlertPath, GetRetrieveAlertHandler(alertClient))
-	e.DELETE(AlertPath, GetDeleteAlertHandler(alertClient))
-
-	e.PUT(AlertUpdatePath, GetUpdateAlertHandler(alertClient))
-
-	e.PUT(AlertBulkPath, GetBulkAlertUpdateHandler(alertClient))
-
-	e.Use(tenancyMiddlewareProvider(alertClient))
 }
 
-// Returns middleware func to check for tenant_id dependent on tenancy of the client
-func tenancyMiddlewareProvider(client alert.PrometheusAlertClient) echo.MiddlewareFunc {
+func RegisterV0Handlers(e *echo.Echo, alertClient alert.PrometheusAlertClient) {
+	v0 := e.Group(v0rootPath)
+	v0.Use(tenancyMiddlewareProvider(pathTenantProvider))
+
+	v0.POST(v0alertPath, GetConfigureAlertHandler(alertClient))
+	v0.GET(v0alertPath, GetRetrieveAlertHandler(alertClient))
+	v0.DELETE(v0alertPath, GetDeleteAlertHandler(alertClient, queryAlertNameProvider))
+
+	v0.PUT(v0alertUpdatePath, GetUpdateAlertHandler(alertClient))
+
+	v0.PUT(v0alertBulkPath, GetBulkAlertUpdateHandler(alertClient))
+}
+
+func RegisterV1Handlers(e *echo.Echo, alertClient alert.PrometheusAlertClient) {
+	v1 := e.Group(v1rootPath)
+	v1.Use(tenancyMiddlewareProvider(pathTenantProvider))
+
+	v1.POST(v1alertPath, GetConfigureAlertHandler(alertClient))
+	v1.GET(v1alertPath, GetRetrieveAlertHandler(alertClient))
+
+	v1.DELETE(v1alertNamePath, GetDeleteAlertHandler(alertClient, pathAlertNameProvider))
+	v1.PUT(v1alertNamePath, GetUpdateAlertHandler(alertClient))
+	v1.GET(v1alertNamePath, GetRetrieveAlertHandler(alertClient))
+
+	v1.POST(v1alertBulkPath, GetBulkAlertUpdateHandler(alertClient))
+}
+
+// Returns middleware func to check for tenant_id
+func tenancyMiddlewareProvider(getTenantID paramProvider) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			providedTenantID := c.Param(tenantIDParam)
-			if client.Tenancy().RestrictorLabel != "" && providedTenantID == "" {
+			providedTenantID := getTenantID(c)
+			if providedTenantID == "" {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide tenant_id parameter"))
 			}
 			c.Set(tenantIDParam, providedTenantID)
 			return next(c)
 		}
 	}
+}
+
+type paramProvider func(c echo.Context) string
+
+// V0 tenantID is a path parameter
+var pathTenantProvider = func(c echo.Context) string {
+	return c.Param(tenantIDParam)
+}
+
+var pathAlertNameProvider = func(c echo.Context) string {
+	return c.Param(ruleNameParam)
+}
+
+var queryAlertNameProvider = func(c echo.Context) string {
+	return c.QueryParam(ruleNameParam)
 }
 
 // GetConfigureAlertHandler returns a handler that calls the client method WriteAlert() to
@@ -99,7 +135,7 @@ func GetConfigureAlertHandler(client alert.PrometheusAlertClient) func(c echo.Co
 
 func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		ruleName := c.QueryParam(ruleNameQueryParam)
+		ruleName := c.QueryParam(ruleNameParam)
 		tenantID := c.Get(tenantIDParam).(string)
 
 		rules, err := client.ReadRules(tenantID, ruleName)
@@ -115,9 +151,9 @@ func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Con
 	}
 }
 
-func GetDeleteAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
+func GetDeleteAlertHandler(client alert.PrometheusAlertClient, getRuleName paramProvider) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		ruleName := c.QueryParam(ruleNameQueryParam)
+		ruleName := getRuleName(c)
 		tenantID := c.Get(tenantIDParam).(string)
 
 		if ruleName == "" {
@@ -131,13 +167,13 @@ func GetDeleteAlertHandler(client alert.PrometheusAlertClient) func(c echo.Conte
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		return c.String(http.StatusOK, fmt.Sprintf("rule %s deleted", ruleName))
+		return c.String(http.StatusNoContent, fmt.Sprintf("rule %s deleted", ruleName))
 	}
 }
 
 func GetUpdateAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		ruleName := c.Param(RuleNamePathParam)
+		ruleName := c.Param(ruleNameParam)
 		tenantID := c.Get(tenantIDParam).(string)
 
 		if ruleName == "" {
@@ -167,7 +203,7 @@ func GetUpdateAlertHandler(client alert.PrometheusAlertClient) func(c echo.Conte
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		return c.NoContent(http.StatusOK)
+		return c.NoContent(http.StatusNoContent)
 	}
 }
 
