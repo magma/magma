@@ -75,6 +75,8 @@ services:
     depends_on:
       - pcrf
       - ocs
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
 
   hss:
