@@ -583,7 +583,13 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
 
   OAILOG_INFO(LOG_MME_APP, "Received MME_APP_INITIAL_UE_MESSAGE from S1AP\n");
 
-  DevAssert(INVALID_MME_UE_S1AP_ID == initial_pP->mme_ue_s1ap_id);
+  if (INVALID_MME_UE_S1AP_ID != initial_pP->mme_ue_s1ap_id) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "MME UE S1AP Id (" MME_UE_S1AP_ID_FMT ") is already assigned\n",
+      initial_pP->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
 
   // Check if there is any existing UE context using S-TMSI/GUTI
   if (initial_pP->is_s_tmsi_valid) {
@@ -611,7 +617,6 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
         // Get the UE context using mme_ue_s1ap_id
         ue_context_p =
           PARENT_STRUCT(ue_nas_ctx, struct ue_mm_context_s, emm_context);
-        DevAssert(ue_context_p != NULL);
         if (ue_context_p != NULL) {
           initial_pP->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
           if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
@@ -667,6 +672,12 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
             }
             ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
           }
+        } else {
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            "Failed to get the UE context using MME UE S1AP Id "
+            "(" MME_UE_S1AP_ID_FMT ")\n",
+            initial_pP->mme_ue_s1ap_id);
         }
       } else {
         OAILOG_DEBUG(
@@ -718,9 +729,17 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
       ue_context_p->enb_s1ap_id_key,
       initial_pP->enb_id,
       initial_pP->enb_ue_s1ap_id);
-    DevAssert(
-      mme_insert_ue_context(&mme_app_desc_p->mme_ue_contexts, ue_context_p) ==
-      0);
+
+    if (
+      mme_insert_ue_context(&mme_app_desc_p->mme_ue_contexts, ue_context_p) !=
+      RETURNok) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "Failed to insert UE context for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
+        "\n",
+        ue_context_p->mme_ue_s1ap_id);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
   }
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
   ue_context_p->e_utran_cgi = initial_pP->ecgi;
@@ -998,7 +1017,13 @@ int mme_app_handle_create_sess_resp(
 
   OAILOG_INFO(
     LOG_MME_APP, "Received S11_CREATE_SESSION_RESPONSE from S+P-GW\n");
-  DevAssert(create_sess_resp_pP);
+
+  if (create_sess_resp_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP, "Invalid Create Session Response object received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
   ue_context_p = mme_ue_context_exists_s11_teid(
     &mme_app_desc_p->mme_ue_contexts, create_sess_resp_pP->teid);
 
@@ -1080,15 +1105,28 @@ int mme_app_handle_create_sess_resp(
     if (
       create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
         .cause.cause_value != REQUEST_ACCEPTED) {
-      DevMessage(
+      OAILOG_ERROR(
+        LOG_MME_APP,
         "Cases where bearer cause != REQUEST_ACCEPTED are not handled\n");
     }
-    DevAssert(
+    if (
       create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
-        .s1u_sgw_fteid.interface_type == S1_U_SGW_GTP_U);
+        .s1u_sgw_fteid.interface_type != S1_U_SGW_GTP_U) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid S1U SGW GTP F-TEID interface type: %d (Expected: %d)\n",
+        create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
+          .s1u_sgw_fteid.interface_type,
+        S1_U_SGW_GTP_U);
+    }
 
     current_bearer_p = mme_app_get_bearer_context(ue_context_p, bearer_id);
-    AssertFatal(current_bearer_p, "Could not get bearer context");
+    if (current_bearer_p == NULL) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "Failed to get bearer context for bearer Id (%d)\n",
+        bearer_id);
+    }
 
     update_mme_app_stats_default_bearer_add();
 
@@ -1098,9 +1136,10 @@ int mme_app_handle_create_sess_resp(
       /*
        * Store the S-GW teid
        */
-      AssertFatal(
-        (pdn_cx_id >= 0) && (pdn_cx_id < MAX_APN_PER_UE),
-        "Bad pdn id for bearer");
+      if ((pdn_cx_id < 0) || (pdn_cx_id >= MAX_APN_PER_UE)) {
+        OAILOG_ERROR(LOG_MME_APP, "Bad pdn id (%d) for bearer\n", pdn_cx_id);
+        continue;
+      }
       ue_context_p->pdn_contexts[pdn_cx_id]->s_gw_teid_s11_s4 =
         create_sess_resp_pP->s11_sgw_fteid.teid;
       transaction_identifier = current_bearer_p->transaction_identifier;
@@ -1238,7 +1277,14 @@ void mme_app_handle_initial_context_setup_rsp(mme_app_desc_t *mme_app_desc_p,
   }
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for S11 Modify Bearer Request "
+      "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   itti_s11_modify_bearer_request_t *s11_modify_bearer_request =
     &message_p->ittiMsg.s11_modify_bearer_request;
   s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
@@ -1291,10 +1337,13 @@ void mme_app_handle_initial_context_setup_rsp(mme_app_desc_t *mme_app_desc_p,
         initial_ctxt_setup_rsp_pP->transport_layer_address[item]->data,
         blength(initial_ctxt_setup_rsp_pP->transport_layer_address[item]));
     } else {
-      AssertFatal(
-        0,
-        "TODO IP address %d bytes",
-        blength(initial_ctxt_setup_rsp_pP->transport_layer_address[item]));
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid IP address of %d bytes found for MME UE S1AP "
+        "Id: " MME_UE_S1AP_ID_FMT " (4 or 16 bytes was expected)\n",
+        blength(initial_ctxt_setup_rsp_pP->transport_layer_address[item]),
+        ue_context_p->mme_ue_s1ap_id);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     bdestroy_wrapper(&initial_ctxt_setup_rsp_pP->transport_layer_address[item]);
   }
@@ -1530,14 +1579,24 @@ void mme_app_handle_e_rab_setup_rsp(
             &enb_ip_address.address.ipv6_address,
             sizeof(enb_ip_address.address.ipv6_address));
           break;
-        default: AssertFatal(0, "Bug enb_ip_address->pdn_type");
+        default:
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            "Invalid eNB IP address PDN type received for MME UE S1AP "
+            "Id: " MME_UE_S1AP_ID_FMT "\n",
+            e_rab_setup_rsp->mme_ue_s1ap_id);
+          OAILOG_FUNC_OUT(LOG_MME_APP);
       }
       bdestroy_wrapper(
         &e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address);
 
-      AssertFatal(
-        bc->bearer_state & BEARER_STATE_MME_CREATED,
-        "TO DO check bearer state");
+      if (!(bc->bearer_state & BEARER_STATE_MME_CREATED)) {
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "Bearer not created in MME for bearer Id: %u\n",
+          e_rab_id);
+        OAILOG_FUNC_OUT(LOG_MME_APP);
+      }
       bc->bearer_state |= BEARER_STATE_ENB_CREATED;
     }
   }
@@ -1548,9 +1607,14 @@ void mme_app_handle_e_rab_setup_rsp(
     bearer_context_t* bc =
       mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
     if (bc->bearer_state & BEARER_STATE_SGW_CREATED) {
-      AssertFatal(
-        bc->bearer_state & BEARER_STATE_MME_CREATED,
-        "TO DO check bearer state");
+      if (!(bc->bearer_state & BEARER_STATE_MME_CREATED)) {
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "Bearer creation failed in eNB, but successfully created in "
+          "MME/SGW for bearer Id: %u\n",
+          e_rab_id);
+        OAILOG_FUNC_OUT(LOG_MME_APP);
+      }
       bc->bearer_state &= (~BEARER_STATE_ENB_CREATED);
       bc->bearer_state &= (~BEARER_STATE_MME_CREATED);
     }
@@ -1560,7 +1624,14 @@ void mme_app_handle_e_rab_setup_rsp(
   if (send_s11_response) {
     MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, S11_CREATE_BEARER_RESPONSE);
-    AssertFatal(message_p, "itti_alloc_new_message Failed");
+    if (message_p == NULL) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "Failed to allocate new ITTI message for S11 Create Bearer Response "
+        "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        e_rab_setup_rsp->mme_ue_s1ap_id);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
     itti_s11_create_bearer_response_t *s11_create_bearer_response =
       &message_p->ittiMsg.s11_create_bearer_response;
     s11_create_bearer_response->local_teid = ue_context_p->mme_teid_s11;
@@ -1633,6 +1704,11 @@ void mme_app_handle_mobile_reachability_timer_expiry(void* args)
     mme_ue_s1ap_id,
     "Mobile reachability timer");
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid UE context received for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
+      "\n",
+      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -1679,6 +1755,11 @@ void mme_app_handle_implicit_detach_timer_expiry(void* args)
     mme_ue_s1ap_id,
     "Implicit detach timer");
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid UE context received for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
+      "\n",
+      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -1696,6 +1777,11 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(void* args)
     mme_ue_s1ap_id,
     "Initial context setup response timer");
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid UE context received for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
+      "\n",
+      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -2078,14 +2164,24 @@ int mme_app_send_s11_suspend_notification(
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_pP);
+  if (ue_context_pP == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   OAILOG_DEBUG(
     LOG_MME_APP,
     "Preparing to send Suspend Notification for imsi " IMSI_64_FMT "\n",
     ue_context_pP->emm_context._imsi64);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_SUSPEND_NOTIFICATION);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for S11 Suspend Notification "
+      "for IMSI: " IMSI_64_FMT "\n",
+      ue_context_pP->emm_context._imsi64);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   suspend_notification_p = &message_p->ittiMsg.s11_suspend_notification;
   memset(suspend_notification_p, 0, sizeof(itti_s11_suspend_notification_t));
@@ -2359,6 +2455,11 @@ void mme_app_handle_ue_context_modification_timer_expiry(void* args)
     mme_ue_s1ap_id,
     "UE context modification timer");
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid UE context received for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
+      "\n",
+      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -2612,7 +2713,14 @@ void mme_app_handle_modify_ue_ambr_request(mme_app_desc_t *mme_app_desc_p,
   } else {
     message_p = itti_alloc_new_message(
       TASK_MME_APP, S1AP_UE_CONTEXT_MODIFICATION_REQUEST);
-    DevAssert(message_p != NULL);
+    if (message_p == NULL) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "Failed to allocate new ITTI message for S1AP UE Context Modification "
+        "Request for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        ue_context_p->mme_ue_s1ap_id);
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
     memset(
       (void *) &message_p->ittiMsg.s1ap_ue_context_mod_request,
       0,
@@ -2970,7 +3078,14 @@ void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
   }
   /*Build and send Modify Bearer Request*/
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for S11 Modify Bearer Request "
+      "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+      path_switch_req_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   itti_s11_modify_bearer_request_t *s11_modify_bearer_request =
     &message_p->ittiMsg.s11_modify_bearer_request;
   s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
@@ -3011,10 +3126,14 @@ void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
           ->data, blength(e_rab_to_be_switched_dl_list.item[idx]
           .transport_layer_address));
       } else {
-        AssertFatal(
-          0, "TODO IP address %d bytes",
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "Invalid IP address of %d bytes found for MME UE S1AP "
+          "Id: " MME_UE_S1AP_ID_FMT " (4 or 16 bytes was expected)\n",
           blength(
-            e_rab_to_be_switched_dl_list.item[idx].transport_layer_address));
+            e_rab_to_be_switched_dl_list.item[idx].transport_layer_address),
+          path_switch_req_p->mme_ue_s1ap_id);
+        OAILOG_FUNC_OUT(LOG_MME_APP);
       }
       s11_modify_bearer_request->bearer_contexts_to_be_modified
         .num_bearer_context++;
@@ -3245,7 +3364,14 @@ void mme_app_handle_path_switch_req_ack(
     ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(
     TASK_MME_APP, S1AP_PATH_SWITCH_REQUEST_ACK);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for S1AP Path Switch Request Ack "
+      "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   itti_s1ap_path_switch_request_ack_t *s1ap_path_switch_req_ack =
     &message_p->ittiMsg.s1ap_path_switch_request_ack;
 
@@ -3286,7 +3412,14 @@ void mme_app_handle_path_switch_req_failure(
     ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(
     TASK_MME_APP, S1AP_PATH_SWITCH_REQUEST_FAILURE);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for S1AP Path Switch Request "
+      "Failure for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   itti_s1ap_path_switch_request_failure_t *s1ap_path_switch_req_failure =
     &message_p->ittiMsg.s1ap_path_switch_request_failure;
 
