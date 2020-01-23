@@ -42,7 +42,7 @@
     "@babel/core": "^7.4.5",
     "@fbcnms/relay": "^0.1.0",
     "@mapbox/geojson-types": "^1.0.2",
-    "@testing-library/react": "^8.0.2",
+    "@testing-library/react": "^9.4.0",
     "@testing-library/react-hooks": "^3.2.1",
     "fbcnms-webpack-config": "^0.1.0",
     "graphql": "^14.5.8",
