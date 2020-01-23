@@ -464,6 +464,7 @@ jobs:
               --grid "<<parameters.grid>>" \
               --token "$<<parameters.token>>" \
               --report-file ~/test-results/testim.xml \
+              --base-url testimio.staging.thesymphony.cloud/ \
               <<#parameters.options>><<parameters.options>><</parameters.options>>
       - *storetestdir
 
