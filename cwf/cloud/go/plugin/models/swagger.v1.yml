@@ -665,7 +665,6 @@ definitions:
     type: object
     required:
       - ip
-      - key
     properties:
       ip:
         type: string
