@@ -331,7 +331,7 @@ func TestCwfGateways(t *testing.T) {
 		Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1", Key: swag.Uint32(123)},
+				{IP: "1.1.1.1"},
 			},
 		},
 		Magmad: &models.MagmadGatewayConfigs{
@@ -367,7 +367,7 @@ func TestCwfGateways(t *testing.T) {
 			Name: "foobar", Description: "foo bar",
 			CarrierWifi: &models2.GatewayCwfConfigs{
 				AllowedGrePeers: models2.AllowedGrePeers{
-					{IP: "1.1.1.1", Key: swag.Uint32(123)},
+					{IP: "1.1.1.1"},
 				},
 			},
 			Tier: "t1",
@@ -403,7 +403,7 @@ func TestCwfGateways(t *testing.T) {
 		Name: "foobar", Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1", Key: swag.Uint32(123)},
+				{IP: "1.1.1.1"},
 			},
 		},
 		Tier: "t1",
@@ -438,9 +438,7 @@ func TestCwfGateways(t *testing.T) {
 		Name:        "newname",
 		Description: "bar baz",
 		CarrierWifi: &models2.GatewayCwfConfigs{
-			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1", Key: swag.Uint32(123)},
-			},
+			AllowedGrePeers: models2.AllowedGrePeers{{IP: "1.1.1.1"},},
 		},
 		Magmad: &models.MagmadGatewayConfigs{
 			AutoupgradeEnabled:      swag.Bool(true),
@@ -478,7 +476,7 @@ func TestCwfGateways(t *testing.T) {
 	// Test get gateway CarrierWifi config
 	expectedGwConfGet := &models2.GatewayCwfConfigs{
 		AllowedGrePeers: models2.AllowedGrePeers{
-			{IP: "1.1.1.1", Key: swag.Uint32(123)},
+			{IP: "1.1.1.1"},
 		},
 	}
 	tc = tests.Test{
@@ -650,7 +648,7 @@ func seedCwfGateway(t *testing.T) {
 		Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1/24", Key: swag.Uint32(123)},
+				{IP: "1.1.1.1/24"},
 			},
 		},
 		Magmad: &models.MagmadGatewayConfigs{
