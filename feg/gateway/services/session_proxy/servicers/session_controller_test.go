@@ -255,7 +255,7 @@ func standardUsageTest(
 
 	maxReqBWUL := uint32(128000)
 	maxReqBWDL := uint32(128000)
-	key1 := "key1"
+	key1 := []byte("key1")
 
 	// send static rules back
 	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -285,7 +285,7 @@ func standardUsageTest(
 						RatingGroup:         &rg20,
 						ServiceIdentifier:   &si20,
 						Precedence:          100,
-						MonitoringKey:       &key1,
+						MonitoringKey:       key1,
 						RedirectInformation: &redirect,
 						Qos:                 &qos,
 						FlowDescriptions: []string{

@@ -244,7 +244,7 @@ func addMissingGxResponses(
 			SessionId: ccr.SessionID,
 			Sid:       credit_control.AddIMSIPrefix(ccr.IMSI),
 			Credit: &protos.UsageMonitoringCredit{
-				MonitoringKey: []byte(ccr.UsageReports[0].MonitoringKey),
+				MonitoringKey: ccr.UsageReports[0].MonitoringKey,
 				Level:         protos.MonitoringLevel(ccr.UsageReports[0].Level),
 			},
 		})
@@ -277,7 +277,7 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer
 		res.Credit =
 			&protos.UsageMonitoringCredit{
 				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: []byte(request.UsageReports[0].MonitoringKey),
+				MonitoringKey: request.UsageReports[0].MonitoringKey,
 				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
 	} else {
 		res.Credit = answer.UsageMonitors[0].ToUsageMonitoringCredit()

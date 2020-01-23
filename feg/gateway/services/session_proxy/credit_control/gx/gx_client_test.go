@@ -86,7 +86,7 @@ func TestGxClient(t *testing.T) {
 	assert.ElementsMatch(t, imsi1BaseRules, ruleBaseNames)
 	assert.Equal(t, 1, len(ruleDefinitions))
 	assert.Equal(t, "dynrule1", ruleDefinitions[0].RuleName)
-	assert.Equal(t, "mkey", *ruleDefinitions[0].MonitoringKey)
+	assert.Equal(t, "mkey", string(ruleDefinitions[0].MonitoringKey))
 	assert.Equal(t, uint32(128000), *ruleDefinitions[0].Qos.MaxReqBwUL)
 	assert.Equal(t, uint32(128000), *ruleDefinitions[0].Qos.MaxReqBwDL)
 	if ruleDefinitions[0].Qos.GbrUL != nil {
@@ -140,7 +140,7 @@ func TestGxClient(t *testing.T) {
 	assert.ElementsMatch(t, imsi3BaseRules, ruleBaseNames)
 	assert.Equal(t, 1, len(ruleDefinitions))
 	assert.Equal(t, "dynrule3", ruleDefinitions[0].RuleName)
-	assert.Equal(t, "mkey3", *ruleDefinitions[0].MonitoringKey)
+	assert.Equal(t, "mkey3", string(ruleDefinitions[0].MonitoringKey))
 	assert.Equal(t, uint32(1), ruleDefinitions[0].RedirectInformation.RedirectSupport)
 	assert.Equal(t, uint32(2), ruleDefinitions[0].RedirectInformation.RedirectAddressType)
 	assert.Equal(t, "http://www.example.com/", ruleDefinitions[0].RedirectInformation.RedirectServerAddress)
@@ -207,10 +207,10 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 	assert.Equal(t, init.RequestNumber, initAnswer.RequestNumber)
 	assert.Equal(t, 2, len(initAnswer.UsageMonitors))
 	for _, monitor := range initAnswer.UsageMonitors {
-		if monitor.MonitoringKey == "mkey" {
+		if string(monitor.MonitoringKey) == "mkey" {
 			assert.Equal(t, *(*monitor.GrantedServiceUnit).TotalOctets, uint64(1024))
 			assert.Equal(t, monitor.Level, gx.RuleLevel)
-		} else if monitor.MonitoringKey == "mkey3" {
+		} else if string(monitor.MonitoringKey) == "mkey3" {
 			assert.Equal(t, *(*monitor.GrantedServiceUnit).TotalOctets, uint64(2048))
 			assert.Equal(t, monitor.Level, gx.SessionLevel)
 		} else {
@@ -226,14 +226,14 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 		IPAddr:        "192.168.1.1",
 		UsageReports: []*gx.UsageReport{
 			{
-				MonitoringKey: "mkey",
+				MonitoringKey: []byte("mkey"),
 				Level:         gx.RuleLevel,
 				InputOctets:   24,
 				OutputOctets:  0,
 				TotalOctets:   24,
 			},
 			{
-				MonitoringKey: "mkey3",
+				MonitoringKey: []byte("mkey3"),
 				Level:         gx.SessionLevel,
 				InputOctets:   4000,
 				OutputOctets:  0,
@@ -247,10 +247,10 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 	assert.Equal(t, update.RequestNumber, updateAnswer.RequestNumber)
 	assert.Equal(t, 2, len(updateAnswer.UsageMonitors))
 	for _, monitor := range updateAnswer.UsageMonitors {
-		if monitor.MonitoringKey == "mkey" {
+		if string(monitor.MonitoringKey) == "mkey" {
 			assert.Equal(t, *(*monitor.GrantedServiceUnit).TotalOctets, uint64(1024))
 			assert.Equal(t, monitor.Level, gx.RuleLevel)
-		} else if monitor.MonitoringKey == "mkey3" {
+		} else if string(monitor.MonitoringKey) == "mkey3" {
 			assert.Equal(t, *(*monitor.GrantedServiceUnit).TotalOctets, uint64(96))
 			assert.Equal(t, monitor.Level, gx.SessionLevel)
 		} else {
