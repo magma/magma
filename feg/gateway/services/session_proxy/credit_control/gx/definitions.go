@@ -73,7 +73,7 @@ type CreditControlAnswer struct {
 }
 
 type UsageReport struct {
-	MonitoringKey string
+	MonitoringKey []byte
 	Level         MonitoringLevel
 	InputOctets   uint64
 	OutputOctets  uint64
@@ -104,7 +104,7 @@ type RuleDefinition struct {
 	RuleName            string               `avp:"Charging-Rule-Name"`
 	RatingGroup         *uint32              `avp:"Rating-Group"`
 	Precedence          uint32               `avp:"Precedence"`
-	MonitoringKey       *string              `avp:"Monitoring-Key"`
+	MonitoringKey       []byte               `avp:"Monitoring-Key"`
 	FlowDescriptions    []string             `avp:"Flow-Description"`
 	FlowInformations    []*FlowInformation   `avp:"Flow-Information"`
 	RedirectInformation *RedirectInformation `avp:"Redirect-Information"`
@@ -138,7 +138,7 @@ type RuleRemoveAVP struct {
 }
 
 type UsageMonitoringInfo struct {
-	MonitoringKey      string                             `avp:"Monitoring-Key"`
+	MonitoringKey      []byte                             `avp:"Monitoring-Key"`
 	GrantedServiceUnit *credit_control.GrantedServiceUnit `avp:"Granted-Service-Unit"`
 	Level              MonitoringLevel                    `avp:"Usage-Monitoring-Level"`
 }
