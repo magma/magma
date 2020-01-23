@@ -285,10 +285,13 @@ func getQoSInfo(qosInfo *QosInformation) *protos.QoSInformation {
 	if qosInfo == nil {
 		return nil
 	}
-	return &protos.QoSInformation{
+	res := &protos.QoSInformation{
 		BearerId: qosInfo.BearerIdentifier,
-		Qci:      protos.QCI(*qosInfo.Qci),
 	}
+	if qosInfo.Qci != nil {
+		res.Qci = protos.QCI(*qosInfo.Qci)
+	}
+	return res
 }
 
 func (report *UsageReport) FromUsageMonitorUpdate(update *protos.UsageMonitorUpdate) *UsageReport {
