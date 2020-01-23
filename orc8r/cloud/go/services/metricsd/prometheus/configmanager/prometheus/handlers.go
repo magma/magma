@@ -22,14 +22,48 @@ import (
 )
 
 const (
-	rootPath        = "/:file_prefix"
+	rootPath        = "/:tenant_id"
 	AlertPath       = rootPath + "/alert"
 	AlertUpdatePath = AlertPath + "/:" + RuleNamePathParam
 	AlertBulkPath   = AlertPath + "/bulk"
 
 	ruleNameQueryParam = "alert_name"
 	RuleNamePathParam  = "alert_name"
+
+	tenantIDParam = "tenant_id"
 )
+
+func statusHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "Prometheus Config server")
+}
+
+func RegisterV0Handlers(e *echo.Echo, alertClient alert.PrometheusAlertClient) {
+	e.GET("/", statusHandler)
+
+	e.POST(AlertPath, GetConfigureAlertHandler(alertClient))
+	e.GET(AlertPath, GetRetrieveAlertHandler(alertClient))
+	e.DELETE(AlertPath, GetDeleteAlertHandler(alertClient))
+
+	e.PUT(AlertUpdatePath, GetUpdateAlertHandler(alertClient))
+
+	e.PUT(AlertBulkPath, GetBulkAlertUpdateHandler(alertClient))
+
+	e.Use(tenancyMiddlewareProvider(alertClient))
+}
+
+// Returns middleware func to check for tenant_id dependent on tenancy of the client
+func tenancyMiddlewareProvider(client alert.PrometheusAlertClient) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			providedTenantID := c.Param(tenantIDParam)
+			if client.Tenancy().RestrictorLabel != "" && providedTenantID == "" {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide tenant_id parameter"))
+			}
+			c.Set(tenantIDParam, providedTenantID)
+			return next(c)
+		}
+	}
+}
 
 // GetConfigureAlertHandler returns a handler that calls the client method WriteAlert() to
 // write the alert configuration from the body of this request
@@ -39,18 +73,18 @@ func GetConfigureAlertHandler(client alert.PrometheusAlertClient) func(c echo.Co
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		filePrefix := getFilePrefix(c)
+		tenantID := c.Get(tenantIDParam).(string)
 
 		err = client.ValidateRule(rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		if client.RuleExists(filePrefix, rule.Alert) {
+		if client.RuleExists(tenantID, rule.Alert) {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Rule '%s' already exists", rule.Alert))
 		}
 
-		err = client.WriteRule(filePrefix, rule)
+		err = client.WriteRule(tenantID, rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -66,8 +100,9 @@ func GetConfigureAlertHandler(client alert.PrometheusAlertClient) func(c echo.Co
 func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.QueryParam(ruleNameQueryParam)
-		filePrefix := getFilePrefix(c)
-		rules, err := client.ReadRules(filePrefix, ruleName)
+		tenantID := c.Get(tenantIDParam).(string)
+
+		rules, err := client.ReadRules(tenantID, ruleName)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -83,11 +118,12 @@ func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Con
 func GetDeleteAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.QueryParam(ruleNameQueryParam)
-		filePrefix := getFilePrefix(c)
+		tenantID := c.Get(tenantIDParam).(string)
+
 		if ruleName == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
 		}
-		err := client.DeleteRule(filePrefix, ruleName)
+		err := client.DeleteRule(tenantID, ruleName)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -102,12 +138,13 @@ func GetDeleteAlertHandler(client alert.PrometheusAlertClient) func(c echo.Conte
 func GetUpdateAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.Param(RuleNamePathParam)
-		filePrefix := getFilePrefix(c)
+		tenantID := c.Get(tenantIDParam).(string)
+
 		if ruleName == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
 		}
 
-		if !client.RuleExists(filePrefix, ruleName) {
+		if !client.RuleExists(tenantID, ruleName) {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Rule '%s' does not exist", ruleName))
 		}
 
@@ -121,7 +158,7 @@ func GetUpdateAlertHandler(client alert.PrometheusAlertClient) func(c echo.Conte
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = client.UpdateRule(filePrefix, rule)
+		err = client.UpdateRule(tenantID, rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -136,7 +173,7 @@ func GetUpdateAlertHandler(client alert.PrometheusAlertClient) func(c echo.Conte
 
 func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		filePrefix := getFilePrefix(c)
+		tenantID := c.Get(tenantIDParam).(string)
 
 		rules, err := decodeBulkRulesPostRequest(c)
 		if err != nil {
@@ -150,7 +187,7 @@ func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient) func(c echo.C
 			}
 		}
 
-		results, err := client.BulkUpdateRules(filePrefix, rules)
+		results, err := client.BulkUpdateRules(tenantID, rules)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -196,10 +233,6 @@ func decodeBulkRulesPostRequest(c echo.Context) ([]rulefmt.Rule, error) {
 	return payload, nil
 }
 
-func getFilePrefix(c echo.Context) string {
-	return c.Param("file_prefix")
-}
-
 func rulesToJSON(rules []rulefmt.Rule) ([]alert.RuleJSONWrapper, error) {
 	ret := make([]alert.RuleJSONWrapper, 0)
 
@@ -226,5 +259,4 @@ func rulefmtToJSON(rule rulefmt.Rule) (*alert.RuleJSONWrapper, error) {
 		Labels:      rule.Labels,
 		Annotations: rule.Annotations,
 	}, nil
-
 }

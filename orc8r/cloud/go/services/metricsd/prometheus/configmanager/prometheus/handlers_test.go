@@ -276,9 +276,10 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	c := echo.New().NewContext(req, rec)
-	c.SetPath("/networks/:file_prefix/prometheus/alert_config/bulk")
+	c.SetPath("/:file_prefix/alert/bulk")
 	c.SetParamNames("file_prefix")
 	c.SetParamValues(testNID)
+	c.Set(tenantIDParam, testNID)
 
 	err = GetBulkAlertUpdateHandler(client)(c)
 	assert.NoError(t, err)
@@ -291,13 +292,14 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 	assert.Equal(t, sampleUpdateResult, results)
 }
 
-func buildContext(body interface{}, method, target, path, networkID string) (echo.Context, *httptest.ResponseRecorder) {
+func buildContext(body interface{}, method, target, path, tenantID string) (echo.Context, *httptest.ResponseRecorder) {
 	bytes, _ := json.Marshal(body)
 	req := httptest.NewRequest(method, target, strings.NewReader(string(bytes)))
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
 	c.SetPath(path)
 	c.SetParamNames("file_prefix")
-	c.SetParamValues(networkID)
+	c.SetParamValues(tenantID)
+	c.Set(tenantIDParam, tenantID) // to emulate middleware
 	return c, rec
 }
