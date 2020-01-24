@@ -673,7 +673,8 @@ definitions:
       features:
         $ref: './orc8r-swagger.yml#/definitions/network_features'
       subscriber_config:
-       $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+        x-omitempty: true
+        $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
 
   cwf_gateway:
     type: object

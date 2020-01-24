@@ -58,6 +58,13 @@ func NewDefaultFDDNetworkConfig() *NetworkCellularConfigs {
 	}
 }
 
+func NewDefaultSubscriberConfig() *NetworkSubscriberConfig {
+	return &NetworkSubscriberConfig{
+		NetworkWideBaseNames: []BaseName{"base1"},
+		NetworkWideRuleNames: []string{"rule1"},
+	}
+}
+
 func NewDefaultEnodebStatus() *EnodebState {
 	return &EnodebState{
 		EnodebConfigured: swag.Bool(true),

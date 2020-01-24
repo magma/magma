@@ -587,6 +587,7 @@ definitions:
       features:
         $ref: './orc8r-swagger.yml#/definitions/network_features'
       subscriber_config:
+        x-omitempty: true
         $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
 
   feg_lte_network:

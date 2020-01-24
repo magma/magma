@@ -19,6 +19,7 @@ import (
 	"magma/feg/cloud/go/feg"
 	plugin3 "magma/feg/cloud/go/plugin"
 	models3 "magma/feg/cloud/go/plugin/models"
+	plugin4 "magma/lte/cloud/go/plugin"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -45,6 +46,7 @@ import (
 
 func TestCwfNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin4.LteOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin3.FegOrchestratorPlugin{})
 	test_init.StartTestService(t)
