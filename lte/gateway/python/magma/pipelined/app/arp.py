@@ -72,7 +72,7 @@ class ArpController(MagmaController):
             virtual_iface=virtual_iface,
             virtual_mac=virtual_mac,
             ue_ip_blocks=[cidr_to_ip_netmask_tuple(mconfig.ue_ip_block)],
-            cwf_check_quota_ip=config_dict['quota_check_ip'],
+            cwf_check_quota_ip=config_dict.get('quota_check_ip', None),
             cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
         )
 
