@@ -440,7 +440,7 @@ func TestCwfGateways(t *testing.T) {
 		Name:        "newname",
 		Description: "bar baz",
 		CarrierWifi: &models2.GatewayCwfConfigs{
-			AllowedGrePeers: models2.AllowedGrePeers{{IP: "1.1.1.1"},},
+			AllowedGrePeers: models2.AllowedGrePeers{{IP: "1.1.1.1"}},
 		},
 		Magmad: &models.MagmadGatewayConfigs{
 			AutoupgradeEnabled:      swag.Bool(true),

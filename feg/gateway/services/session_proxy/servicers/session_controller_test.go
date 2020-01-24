@@ -82,6 +82,11 @@ func (client *MockPolicyDBClient) GetPolicyRuleByID(id string) (*protos.PolicyRu
 	return nil, nil
 }
 
+func (client *MockPolicyDBClient) GetOmnipresentRules() ([]string, []string) {
+	args := client.Called()
+	return args.Get(0).([]string), nil
+}
+
 type MockCreditClient struct {
 	mock.Mock
 }
