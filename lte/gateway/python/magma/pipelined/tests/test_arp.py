@@ -88,6 +88,7 @@ class ArpTableTest(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'virtual_interface': cls.BRIDGE,
                 'local_ue_eth_addr': True,
+                'quota_check_ip': '1.2.3.4',
                 'clean_restart': True,
             },
             mconfig=PipelineD(
