@@ -54,6 +54,7 @@ from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.app.subscriber import SubscriberController
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.startup_flows import StartupFlows
+from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
 from ryu.base.app_manager import AppManager
@@ -108,7 +109,7 @@ class TableRange():
         tables = [self.allocate_table() for i in range(0, count)]
         return tables
 
-    def get_next_table(self, table:int):
+    def get_next_table(self, table: int):
         if table + 1 < self._next_table:
             return table + 1
         else:
@@ -195,7 +196,6 @@ class _TableManager:
                 return self._table_ranges[ControllerType.LOGICAL].get_next_table(app.main_table)
             else:
                 raise TableNumException('No next table found for %s' % app_name)
-
         return self._table_ranges[app.type].get_next_table(app.main_table)
 
     def is_app_enabled(self, app_name: str) -> bool:
@@ -283,6 +283,11 @@ class ServiceManager:
             App(name=UEMacAddressController.APP_NAME,
                 module=UEMacAddressController.__module__,
                 type=None),
+        ],
+        CHECK_QUOTA_SERVICE_NAME: [
+            App(name=CheckQuotaController.APP_NAME,
+                module=CheckQuotaController.__module__,
+                type=CheckQuotaController.APP_TYPE),
         ],
         ARP_SERVICE_NAME: [
             App(name=ArpController.APP_NAME, module=ArpController.__module__,
