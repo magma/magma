@@ -13,6 +13,9 @@ add_library(TASK_S6A
     s6a_service_handler.c
     s6a_purge_ue.c
     s6a_hss_reset.c
+    s6a_fd_iface.cpp
+    s6a_grpc_iface.cpp
+    s6a_iface.cpp
     )
 target_link_libraries(TASK_S6A
     COMMON

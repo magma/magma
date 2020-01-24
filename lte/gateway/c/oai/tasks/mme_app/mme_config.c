@@ -172,6 +172,7 @@ void s6a_config_init(s6a_config_t *s6a_conf)
 {
   s6a_conf->hss_host_name = NULL;
   s6a_conf->conf_file = bfromcstr(S6A_CONF_FILE);
+  s6a_conf->s6a_iface_type = S6A_OVER_GRPC_E; //default
 }
 
 void itti_config_init(itti_config_t *itti_conf)
@@ -616,6 +617,25 @@ int mme_config_parse_file(mme_config_t *config_pP)
             1 == 0,
             "You have to provide a valid HSS hostname %s=...\n",
             MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
+      }
+
+      if ((config_setting_lookup_string(
+            setting,
+            MME_CONFIG_STRING_S6A_PROTOCOL,
+            (const char **) &astring))) {
+        if (astring != NULL) {
+          if ( 0 == strcasecmp(
+              (const char *) astring, MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_GRPC)) {
+            config_pP->s6a_config.s6a_iface_type = S6A_OVER_GRPC_E;
+          } else if ( 0 == strcasecmp(
+              (const char *) astring, MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_FD)) {
+            config_pP->s6a_config.s6a_iface_type = S6A_OVER_FREE_DIAMETER;
+          } else
+          AssertFatal(
+            1 == 0,
+            "You have to provide a valid S6A over protocol %s=...\n",
+            MME_CONFIG_STRING_S6A_PROTOCOL);
+        }
       }
     }
 
@@ -1430,6 +1450,11 @@ void mme_config_display(mme_config_t *config_pP)
     LOG_CONFIG,
     "    conf file ........: %s\n",
     bdata(config_pP->s6a_config.conf_file));
+  OAILOG_INFO(
+    LOG_CONFIG,
+    "    protocol .........: %s\n",
+    (config_pP->s6a_config.s6a_iface_type == S6A_OVER_GRPC_E) ? MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_GRPC :
+    (config_pP->s6a_config.s6a_iface_type == S6A_OVER_FREE_DIAMETER) ? MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_FD : "unknown");
   OAILOG_INFO(LOG_CONFIG, "- Service303:\n");
   OAILOG_INFO(
     LOG_CONFIG,

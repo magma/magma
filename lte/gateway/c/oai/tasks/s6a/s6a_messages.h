@@ -30,10 +30,13 @@
 
 #include "s6a_messages_types.h"
 
+#include <freeDiameter/freeDiameter-host.h>
+#include <freeDiameter/libfdproto.h>
+
 int s6a_generate_update_location(s6a_update_location_req_t *ulr_p);
 int s6a_generate_authentication_info_req(s6a_auth_info_req_t *uar_p);
 int s6a_send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP);
-int s6a_generate_purge_ue_req(s6a_purge_ue_req_t *pur_pP);
+int s6a_generate_purge_ue_req(const char *imsi);
 
 int s6a_ula_cb(
   struct msg **msg,
