@@ -191,6 +191,14 @@ func ConvertToProtoTimestamp(unixTime *time.Time) *timestamp.Timestamp {
 	return protoTimestamp
 }
 
+func RuleIDsToProtosRuleInstalls(ruleIDs []string) []*protos.StaticRuleInstall {
+	ruleInstalls := make([]*protos.StaticRuleInstall, len(ruleIDs))
+	for idx, ruleID := range ruleIDs {
+		ruleInstalls[idx] = &protos.StaticRuleInstall{RuleId: ruleID}
+	}
+	return ruleInstalls
+}
+
 func ParseRuleInstallAVPs(
 	policyDBClient policydb.PolicyDBClient,
 	ruleInstalls []*RuleInstallAVP,

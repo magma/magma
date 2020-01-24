@@ -140,6 +140,11 @@ func (srv *CentralSessionController) CreateSession(
 		gxCCAInit.RuleInstallAVP,
 	)
 
+	// These rules should not be tracked by OCS or PCRF, they come directly from the orc8r
+	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
+	omnipresentRuleIDs = append(omnipresentRuleIDs, srv.dbClient.GetRuleIDsForBaseNames(omnipresentBaseNames)...)
+	staticRules = append(staticRules, gx.RuleIDsToProtosRuleInstalls(omnipresentRuleIDs)...)
+
 	return &protos.CreateSessionResponse{
 		Credits:       credits,
 		StaticRules:   staticRules,
