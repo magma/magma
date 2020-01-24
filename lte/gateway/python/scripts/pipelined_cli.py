@@ -17,6 +17,7 @@ import subprocess
 
 import re
 from magma.common.rpc_utils import grpc_wrapper
+from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.subscriberdb.sid import SIDUtils
@@ -189,6 +190,41 @@ def create_ue_mac_parser(apps):
     subcmd.set_defaults(func=add_ue_mac_flow)
 
 
+# -------------
+# Check Quota APP
+# -------------
+
+@grpc_wrapper
+def update_quota(client, args):
+    request = SubscriberQuotaUpdate(
+        sid=SIDUtils.to_pb(args.imsi),
+        mac_addr=args.mac,
+        update_type=args.update_type
+    )
+    res = client.UpdateSubscriberQuotaState(request)
+    if res is None:
+        print("Error updating check quota flows")
+
+
+def create_check_flows_parser(apps):
+    """
+    Creates the argparse subparser for the MAC App
+    """
+    app = apps.add_parser('check_quota')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    # Add subcommands
+    subcmd = subparsers.add_parser('update_quota',
+                                   help='Add flow to match UE MAC \
+                                   with a subscriber')
+    subcmd.add_argument('imsi', help='Subscriber ID')
+    subcmd.add_argument('mac', help='Subscriber mac')
+    subcmd.add_argument('update_type', type=int,
+                        help='0 - valid quota, 1 -no quota, 2 - terminate')
+    subcmd.set_defaults(func=update_quota)
+
+
+
 # --------------------------
 # Debugging
 # --------------------------
@@ -301,6 +337,7 @@ def create_parser():
     create_metering_parser(apps)
     create_enforcement_parser(apps)
     create_ue_mac_parser(apps)
+    create_check_flows_parser(apps)
     create_debug_parser(apps)
     return parser
 
