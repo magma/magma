@@ -89,6 +89,9 @@ class PipelinedController(Enum):
     VlanLearn = Controller(
         'magma.pipelined.app.vlan_learn', 'vlan_learn'
     )
+    CheckQuotaController = Controller(
+        'magma.pipelined.app.check_quota', 'check_quota'
+    )
     PacketTracer = Controller(
         'magma.pipelined.app.packet_tracer', 'packet_tracer'
     )
