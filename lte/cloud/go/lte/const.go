@@ -13,9 +13,10 @@ const ModuleName = "lte"
 const (
 	LteNetworkType = "lte"
 
-	CellularNetworkType = "cellular_network"
-	CellularGatewayType = "cellular_gateway"
-	CellularEnodebType  = "cellular_enodeb"
+	CellularNetworkType         = "cellular_network"
+	CellularGatewayType         = "cellular_gateway"
+	CellularEnodebType          = "cellular_enodeb"
+	NetworkSubscriberConfigType = "network_subscriber_config"
 
 	EnodebStateType      = "single_enodeb"
 	SubscriberStateType  = "subscriber"
