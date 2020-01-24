@@ -27,10 +27,9 @@ namespace cli {
 using namespace folly;
 using namespace std;
 
-typedef std::function<Future<dynamic>(const Path&, const DeviceAccess& device)>
+typedef std::function<Future<dynamic>(const Path&, const DeviceAccess&)>
     ReaderFunction;
-typedef std::function<
-    Future<vector<dynamic>>(const Path&, const DeviceAccess& device)>
+typedef std::function<Future<vector<dynamic>>(const Path&, const DeviceAccess&)>
     ListReaderFunction;
 
 // TODO extract client-facing SPI into a separate *SPI header file

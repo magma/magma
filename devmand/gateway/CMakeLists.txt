@@ -129,6 +129,7 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/SchemaContext.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/BindingContext.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/ReaderRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/BindingReaderRegistry.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/DeviceAccess.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/PluginRegistry.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/Spd2Glog.cpp
