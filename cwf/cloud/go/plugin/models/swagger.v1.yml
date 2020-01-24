@@ -6,6 +6,7 @@ magma-gen-meta:
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
     - 'orc8r/cloud/go/pluginimpl/models/swagger.v1.yml'
+    - 'lte/cloud/go/plugin/models/swagger.v1.yml'
     - 'feg/cloud/go/plugin/models/swagger.v1.yml'
   temp-gen-filename: cwf-swagger.yml
   output-dir: cwf/cloud/go/plugin
@@ -222,6 +223,102 @@ paths:
       - Carrier Wifi Networks
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config:
+    get:
+      summary: Get a network-wide subscriber config
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a network-wide subscriber config
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/rule_names:
+    get:
+      summary: Get network-wide rule names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-swagger.yml#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide rule names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-swagger.yml#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/base_names:
+    get:
+      summary: Get network-wide base names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-swagger.yml#/definitions/base_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide base names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-swagger.yml#/definitions/base_names'
       responses:
         '204':
           description: Success
@@ -575,6 +672,8 @@ definitions:
         $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       features:
         $ref: './orc8r-swagger.yml#/definitions/network_features'
+      subscriber_config:
+       $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
 
   cwf_gateway:
     type: object
