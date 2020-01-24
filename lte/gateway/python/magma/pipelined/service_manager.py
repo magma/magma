@@ -245,6 +245,7 @@ class ServiceManager:
     VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
+    CHECK_QUOTA_SERVICE_NAME = 'check_quota'
 
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
