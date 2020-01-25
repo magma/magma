@@ -253,7 +253,7 @@ func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID
 	}
 	typ := equipment.QueryType().OnlyX(ctx)
 	if typ.Name != importLine.TypeName() {
-		return nil, errors.Errorf("wrong equipment type. should be %v, but %v", importLine.TypeName(), typ.Name)
+		return nil, errors.Errorf("wrong equipment type. should be %v, but %v", typ.Name, importLine.TypeName())
 	}
 	err = m.verifyPositionHierarchy(ctx, equipment, importLine)
 	if err != nil {
