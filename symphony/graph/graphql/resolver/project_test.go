@@ -311,10 +311,16 @@ func TestAddProjectWithProperties(t *testing.T) {
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.Project()
 
-	strValue := "Foo"
 	strPropType := models.PropertyTypeInput{
 		Name: "str_prop",
 		Type: "string",
+	}
+	strFixedValue := "FixedFoo"
+	strFixedPropType := models.PropertyTypeInput{
+		Name:               "str_fixed_prop",
+		Type:               "string",
+		IsInstanceProperty: pointer.ToBool(false),
+		StringValue:        &strFixedValue,
 	}
 	intPropType := models.PropertyTypeInput{
 		Name: "int_prop",
@@ -324,13 +330,18 @@ func TestAddProjectWithProperties(t *testing.T) {
 		Name: "rng_prop",
 		Type: "range",
 	}
-	propTypeInputs := []*models.PropertyTypeInput{&strPropType, &intPropType, &rangePropType}
+	propTypeInputs := []*models.PropertyTypeInput{&strPropType, &strFixedPropType, &intPropType, &rangePropType}
 	typ, err := mr.CreateProjectType(ctx, models.AddProjectTypeInput{Name: "example_type", Properties: propTypeInputs})
 	require.NoError(t, err, "Adding project type")
 
+	strValue := "Foo"
 	strProp := models.PropertyInput{
 		PropertyTypeID: typ.QueryProperties().Where(propertytype.Name("str_prop")).OnlyXID(ctx),
 		StringValue:    &strValue,
+	}
+	strFixedProp := models.PropertyInput{
+		PropertyTypeID: typ.QueryProperties().Where(propertytype.Name("str_fixed_prop")).OnlyXID(ctx),
+		StringValue:    &strFixedValue,
 	}
 	intValue := 5
 	intProp := models.PropertyInput{
@@ -344,7 +355,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 		RangeFromValue: &fl1,
 		RangeToValue:   &fl2,
 	}
-	propInputs := []*models.PropertyInput{&strProp, &intProp, &rngProp}
+	propInputs := []*models.PropertyInput{&strProp, &strFixedProp, &intProp, &rngProp}
 	input := models.AddProjectInput{
 		Name:        "test",
 		Description: pointer.ToString("desc"),
@@ -366,6 +377,10 @@ func TestAddProjectWithProperties(t *testing.T) {
 	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
 	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
 
+	fixedStrFetchProp := fetchedProj.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
+	require.Equal(t, fixedStrFetchProp.StringVal, *strFixedProp.StringValue, "Comparing properties: fixed string value")
+	require.Equal(t, fixedStrFetchProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing properties: PropertyType value")
+
 	rngFetchProp := fetchedProj.QueryProperties().Where(property.HasTypeWith(propertytype.Name("rng_prop"))).OnlyX(ctx)
 	require.Equal(t, rngFetchProp.RangeFromVal, *rngProp.RangeFromValue, "Comparing properties: range value")
 	require.Equal(t, rngFetchProp.RangeToVal, *rngProp.RangeToValue, "Comparing properties: range value")
@@ -373,7 +388,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 
 	fetchedProps, err := pr.Properties(ctx, fetchedProj)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(fetchedProps))
+	require.Equal(t, len(propInputs), len(fetchedProps))
 }
 
 func TestEditProjectType(t *testing.T) {

@@ -1156,10 +1156,16 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
 
-	strValue := "Foo"
 	strPropType := models.PropertyTypeInput{
 		Name: "str_prop",
 		Type: "string",
+	}
+	strFixedValue := "FixedFoo"
+	strFixedPropType := models.PropertyTypeInput{
+		Name:               "str_fixed_prop",
+		Type:               "string",
+		IsInstanceProperty: pointer.ToBool(false),
+		StringValue:        &strFixedValue,
 	}
 	intPropType := models.PropertyTypeInput{
 		Name: "int_prop",
@@ -1169,14 +1175,21 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 		Name: "rng_prop",
 		Type: "range",
 	}
-	propTypeInputs := []*models.PropertyTypeInput{&strPropType, &intPropType, &rangePropType}
+	propTypeInputs := []*models.PropertyTypeInput{&strPropType, &strFixedPropType, &intPropType, &rangePropType}
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type", Properties: propTypeInputs})
 	require.NoError(t, err, "Adding location type")
 
+	strValue := "Foo"
 	strProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyXID(ctx),
 		StringValue:    &strValue,
 	}
+
+	strFixedProp := models.PropertyInput{
+		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("str_fixed_prop")).OnlyXID(ctx),
+		StringValue:    &strFixedValue,
+	}
+
 	intValue := 5
 	intProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("int_prop")).OnlyXID(ctx),
@@ -1189,7 +1202,7 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 		RangeFromValue: &fl1,
 		RangeToValue:   &fl2,
 	}
-	propInputs := []*models.PropertyInput{&strProp, &intProp, &rngProp}
+	propInputs := []*models.PropertyInput{&strProp, &strFixedProp, &intProp, &rngProp}
 	wo, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            "location_name_1",
 		WorkOrderTypeID: woType.ID,
@@ -1208,6 +1221,10 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
 	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
 
+	fixedStrFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
+	require.Equal(t, fixedStrFetchProp.StringVal, *strFixedProp.StringValue, "Comparing properties: fixed string value")
+	require.Equal(t, fixedStrFetchProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing properties: PropertyType value")
+
 	rngFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("rng_prop"))).OnlyX(ctx)
 	require.Equal(t, rngFetchProp.RangeFromVal, *rngProp.RangeFromValue, "Comparing properties: range value")
 	require.Equal(t, rngFetchProp.RangeToVal, *rngProp.RangeToValue, "Comparing properties: range value")
@@ -1215,7 +1232,7 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 
 	fetchedProps, err := wr.Properties(ctx, fetchedWo)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(fetchedProps))
+	require.Equal(t, len(propInputs), len(fetchedProps))
 }
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
