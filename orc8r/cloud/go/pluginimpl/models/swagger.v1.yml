@@ -58,6 +58,10 @@ magma-gen-meta:
       filename: tier_version_swaggergen.go
     - go-struct-name: TierGateways
       filename: tier_gateways_swaggergen.go
+    - go-struct-name: GatewayLoggingConfigs
+      filename: gateway_logging_configs_swaggergen.go
+    - go-struct-name: AggregationLoggingConfigs
+      filename: aggregation_logging_configs_swaggergen.go
 
 info:
   title: Orchestrator Network Management
@@ -1273,6 +1277,8 @@ definitions:
           minLength: 1
           x-nullable: false
         example: []
+      logging:
+        $ref: '#/definitions/gateway_logging_configs'
       feature_flags:
         type: object
         additionalProperties:
@@ -1280,6 +1286,35 @@ definitions:
         example:
           newfeature1: true
           newfeature2: false
+
+  gateway_logging_configs:
+    type: object
+    description: Configuration for gateway logging (local and aggregation configs)
+    required:
+      - log_level
+    properties:
+      log_level:
+        type: string
+        enum:
+          - DEBUG
+          - INFO
+          - WARNING
+          - ERROR
+          - FATAL
+      aggregation:
+        $ref: '#/definitions/aggregation_logging_configs'
+
+  aggregation_logging_configs:
+    type: object
+    description: Configuration for log aggregation
+    properties:
+      target_files_by_tag:
+        type: object
+        additionalProperties:
+          type: string
+        example:
+          mme: '/var/log/mme.log'
+          otherlog: '/var/log/otherlog.log'
 
   tier_id:
     type: string
