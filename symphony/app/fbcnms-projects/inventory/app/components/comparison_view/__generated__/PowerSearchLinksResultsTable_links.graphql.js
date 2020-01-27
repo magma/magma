@@ -111,6 +111,7 @@ export type PowerSearchLinksResultsTable_links$data = PowerSearchLinksResultsTab
 export type PowerSearchLinksResultsTable_links$key = $ReadOnlyArray<{
   +$data?: PowerSearchLinksResultsTable_links$data,
   +$fragmentRefs: PowerSearchLinksResultsTable_links$ref,
+  ...
 }>;
 */
 

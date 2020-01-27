@@ -56,6 +56,7 @@ export type AddEditWorkOrderTypeCard_editingWorkOrderType$data = AddEditWorkOrde
 export type AddEditWorkOrderTypeCard_editingWorkOrderType$key = {
   +$data?: AddEditWorkOrderTypeCard_editingWorkOrderType$data,
   +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
+  ...
 };
 */
 

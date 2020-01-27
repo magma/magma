@@ -34,6 +34,7 @@ export type PowerSearchLinkFirstEquipmentResultsTable_equipment$data = PowerSear
 export type PowerSearchLinkFirstEquipmentResultsTable_equipment$key = $ReadOnlyArray<{
   +$data?: PowerSearchLinkFirstEquipmentResultsTable_equipment$data,
   +$fragmentRefs: PowerSearchLinkFirstEquipmentResultsTable_equipment$ref,
+  ...
 }>;
 */
 

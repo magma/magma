@@ -13,8 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"magma/orc8r/cloud/go/metrics"
-
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"
 	"gopkg.in/yaml.v2"
@@ -49,15 +47,18 @@ func (c *Config) GetRouteIdx(name string) int {
 	return -1
 }
 
-func (c *Config) initializeNetworkBaseRoute(route *config.Route, networkID string) error {
-	baseRouteName := makeBaseRouteName(networkID)
+func (c *Config) initializeNetworkBaseRoute(route *config.Route, matcherLabel, tenantID string) error {
+	baseRouteName := makeBaseRouteName(tenantID)
 	if c.GetReceiver(baseRouteName) != nil {
-		return fmt.Errorf("Base route for network %s already exists", networkID)
+		return fmt.Errorf("Base route for tenant %s already exists", tenantID)
 	}
 
 	c.Receivers = append(c.Receivers, &Receiver{Name: baseRouteName})
 	route.Receiver = baseRouteName
-	route.Match = map[string]string{metrics.NetworkLabelName: networkID}
+
+	if matcherLabel != "" {
+		route.Match = map[string]string{matcherLabel: tenantID}
+	}
 
 	c.Route.Routes = append(c.Route.Routes, route)
 
@@ -88,23 +89,23 @@ type Receiver struct {
 	EmailConfigs   []*EmailConfig          `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
 }
 
-// Secure replaces the receiver's name with a networkID prefix
-func (r *Receiver) Secure(networkID string) {
-	r.Name = secureReceiverName(r.Name, networkID)
+// Secure replaces the receiver's name with a tenantID prefix
+func (r *Receiver) Secure(tenantID string) {
+	r.Name = secureReceiverName(r.Name, tenantID)
 }
 
-// Unsecure removes the networkID prefix from the receiver name
-func (r *Receiver) Unsecure(networkID string) {
-	r.Name = unsecureReceiverName(r.Name, networkID)
+// Unsecure removes the tenantID prefix from the receiver name
+func (r *Receiver) Unsecure(tenantID string) {
+	r.Name = unsecureReceiverName(r.Name, tenantID)
 }
 
-func secureReceiverName(name, networkID string) string {
-	return receiverNetworkPrefix(networkID) + name
+func secureReceiverName(name, tenantID string) string {
+	return receiverTenantPrefix(tenantID) + name
 }
 
-func unsecureReceiverName(name, networkID string) string {
-	if strings.HasPrefix(name, receiverNetworkPrefix(networkID)) {
-		return name[len(receiverNetworkPrefix(networkID)):]
+func unsecureReceiverName(name, tenantID string) string {
+	if strings.HasPrefix(name, receiverTenantPrefix(tenantID)) {
+		return name[len(receiverTenantPrefix(tenantID)):]
 	}
 	return name
 }

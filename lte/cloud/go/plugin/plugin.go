@@ -48,6 +48,7 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),
+		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &lteModels.NetworkSubscriberConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lteModels.GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lteModels.EnodebConfiguration{}),
 
@@ -81,5 +82,6 @@ func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider 
 		&policyStreamer.PoliciesProvider{},
 		&policyStreamer.BaseNamesProvider{},
 		&policyStreamer.RuleMappingsProvider{},
+		&policyStreamer.NetworkWideRulesProvider{},
 	}
 }

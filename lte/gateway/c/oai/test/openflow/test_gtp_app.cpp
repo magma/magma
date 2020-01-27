@@ -236,6 +236,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow)
   uint32_t out_tei = 2;
   char imsi[] = "001010000000013";
   struct ipv4flow_dl dl_flow;
+  uint32_t dl_flow_precedence = 0;
 
   dl_flow.dst_ip.s_addr = inet_addr("0.0.0.3");
   dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
@@ -245,7 +246,8 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow)
   dl_flow.set_params = SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT |
     TCP_DST_PORT | IP_PROTO;
 
-  AddGTPTunnelEvent add_tunnel(ue_ip, enb_ip, in_tei, out_tei, imsi, &dl_flow);
+  AddGTPTunnelEvent add_tunnel(
+    ue_ip, enb_ip, in_tei, out_tei, imsi, &dl_flow, dl_flow_precedence);
   // Uplink
   EXPECT_CALL(
     *messenger,

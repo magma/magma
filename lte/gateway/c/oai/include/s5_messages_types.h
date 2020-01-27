@@ -63,20 +63,24 @@ typedef struct itti_s5_create_bearer_response_s {
 typedef struct itti_s5_nw_init_actv_bearer_request_s {
   ebi_t lbi;///< linked Bearer ID
   teid_t mme_teid_S11;
-  bearer_qos_t eps_bearer_qos; ///< Bearer QoS
-  traffic_flow_template_t tft; ///< Traffic Flow Template
+  teid_t s_gw_teid_S11_S4;
+  bearer_qos_t eps_bearer_qos;          ///< Bearer QoS
+  traffic_flow_template_t ul_tft;       ///< UL TFT will be sent to UE
+  traffic_flow_template_t dl_tft;       ///< DL TFT will be stored at SPGW
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
 } itti_s5_nw_init_actv_bearer_request_t;
 
 typedef struct itti_s5_nw_init_actv_bearer_rsp_s {
   gtpv2c_cause_value_t cause;
-  ebi_t ebi; ///<EPS Bearer ID
+  Imsi_t imsi;
+  ebi_t lbi;
+  ebi_t ebi;            ///<EPS Bearer ID
   teid_t S1_U_sgw_teid; ///< S1U sge TEID
   teid_t S1_U_enb_teid; ///< S1U enb TEID
 } itti_s5_nw_init_actv_bearer_rsp_t;
 
 typedef struct itti_s5_nw_init_deactv_bearer_request_s {
-  uint32_t no_of_bearers;
+  uint8_t no_of_bearers;
   ebi_t ebi[BEARERS_PER_UE]; ///<EPS Bearer ID
   teid_t s11_mme_teid;
   bool delete_default_bearer; ///<True:Delete all bearers
@@ -84,7 +88,7 @@ typedef struct itti_s5_nw_init_deactv_bearer_request_s {
 } itti_s5_nw_init_deactv_bearer_request_t;
 
 typedef struct itti_s5_nw_init_deactv_bearer_rsp_s {
-  uint32_t no_of_bearers;
+  uint8_t no_of_bearers;
   ebi_t ebi[BEARERS_PER_UE]; ///<EPS Bearer ID
   bool default_bearer_deleted; ///<True:Delete all bearers
                               ///<False:Delele ded bearer

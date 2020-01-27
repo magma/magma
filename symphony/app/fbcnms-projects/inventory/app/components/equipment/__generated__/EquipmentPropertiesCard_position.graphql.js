@@ -26,6 +26,7 @@ export type EquipmentPropertiesCard_position = {
     +name: string,
     +index: ?number,
     +visibleLabel: ?string,
+    ...
   },
   +attachedEquipment: ?{
     +id: string,
@@ -34,13 +35,17 @@ export type EquipmentPropertiesCard_position = {
     +workOrder: ?{
       +id: string,
       +status: WorkOrderStatus,
+      ...
     },
+    ...
   },
+  ...
 };
 export type EquipmentPropertiesCard_position$data = EquipmentPropertiesCard_position;
 export type EquipmentPropertiesCard_position$key = {
   +$data?: EquipmentPropertiesCard_position$data,
   +$fragmentRefs: EquipmentPropertiesCard_position$ref,
+  ...
 };
 */
 

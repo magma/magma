@@ -263,8 +263,9 @@ void LocalSessionManagerHandlerImpl::send_create_session(
             Status(
               grpc::FAILED_PRECONDITION, "Failed to initialize session");
         } else {
-          MLOG(MINFO) << "Successfully initialized new session "
-                      << "in sessiond for subscriber " << imsi;
+          MLOG(MINFO) << "Successfully initialized new session " << sid
+                      << " in sessiond for subscriber " << imsi
+                      << " with default bearer id" << cfg.bearer_id;
           add_session_to_directory_record(imsi, sid);
         }
       } else {

@@ -632,9 +632,7 @@ bool LocalEnforcer::init_session_credit(
   // to deactivate, because pipelined deactivates all rules
   // when no rule is provided as the parameter
   bool deactivate_success = true;
-  if (
-    rules_to_deactivate.static_rules.size() > 0 ||
-    rules_to_deactivate.dynamic_rules.size() > 0) {
+  if (rules_to_process_is_not_empty(rules_to_deactivate)) {
     for (const auto &static_rule : rules_to_deactivate.static_rules) {
       if (!session_state->deactivate_static_rule(static_rule))
         MLOG(MWARNING) << "Could not find rule " << static_rule  << "for IMSI "

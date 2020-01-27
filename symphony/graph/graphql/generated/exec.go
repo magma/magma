@@ -204,24 +204,25 @@ type ComplexityRoot struct {
 	}
 
 	Equipment struct {
-		Device            func(childComplexity int) int
-		EquipmentType     func(childComplexity int) int
-		ExternalID        func(childComplexity int) int
-		Files             func(childComplexity int) int
-		FutureState       func(childComplexity int) int
-		Hyperlinks        func(childComplexity int) int
-		ID                func(childComplexity int) int
-		Images            func(childComplexity int) int
-		LocationHierarchy func(childComplexity int) int
-		Name              func(childComplexity int) int
-		ParentLocation    func(childComplexity int) int
-		ParentPosition    func(childComplexity int) int
-		Ports             func(childComplexity int) int
-		PositionHierarchy func(childComplexity int) int
-		Positions         func(childComplexity int) int
-		Properties        func(childComplexity int) int
-		Services          func(childComplexity int) int
-		WorkOrder         func(childComplexity int) int
+		DescendentsIncludingSelf func(childComplexity int) int
+		Device                   func(childComplexity int) int
+		EquipmentType            func(childComplexity int) int
+		ExternalID               func(childComplexity int) int
+		Files                    func(childComplexity int) int
+		FutureState              func(childComplexity int) int
+		Hyperlinks               func(childComplexity int) int
+		ID                       func(childComplexity int) int
+		Images                   func(childComplexity int) int
+		LocationHierarchy        func(childComplexity int) int
+		Name                     func(childComplexity int) int
+		ParentLocation           func(childComplexity int) int
+		ParentPosition           func(childComplexity int) int
+		Ports                    func(childComplexity int, availableOnly *bool) int
+		PositionHierarchy        func(childComplexity int) int
+		Positions                func(childComplexity int) int
+		Properties               func(childComplexity int) int
+		Services                 func(childComplexity int) int
+		WorkOrder                func(childComplexity int) int
 	}
 
 	EquipmentPort struct {
@@ -918,7 +919,8 @@ type EquipmentResolver interface {
 	ParentPosition(ctx context.Context, obj *ent.Equipment) (*ent.EquipmentPosition, error)
 	EquipmentType(ctx context.Context, obj *ent.Equipment) (*ent.EquipmentType, error)
 	Positions(ctx context.Context, obj *ent.Equipment) ([]*ent.EquipmentPosition, error)
-	Ports(ctx context.Context, obj *ent.Equipment) ([]*ent.EquipmentPort, error)
+	Ports(ctx context.Context, obj *ent.Equipment, availableOnly *bool) ([]*ent.EquipmentPort, error)
+	DescendentsIncludingSelf(ctx context.Context, obj *ent.Equipment) ([]*ent.Equipment, error)
 	Properties(ctx context.Context, obj *ent.Equipment) ([]*ent.Property, error)
 	FutureState(ctx context.Context, obj *ent.Equipment) (*models.FutureState, error)
 	WorkOrder(ctx context.Context, obj *ent.Equipment) (*ent.WorkOrder, error)
@@ -1660,6 +1662,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Edge.Type(childComplexity), true
 
+	case "Equipment.descendentsIncludingSelf":
+		if e.complexity.Equipment.DescendentsIncludingSelf == nil {
+			break
+		}
+
+		return e.complexity.Equipment.DescendentsIncludingSelf(childComplexity), true
+
 	case "Equipment.device":
 		if e.complexity.Equipment.Device == nil {
 			break
@@ -1749,7 +1758,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Equipment.Ports(childComplexity), true
+		args, err := ec.field_Equipment_ports_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Equipment.Ports(childComplexity, args["availableOnly"].(*bool)), true
 
 	case "Equipment.positionHierarchy":
 		if e.complexity.Equipment.PositionHierarchy == nil {
@@ -5843,7 +5857,8 @@ type Equipment implements Node {
   parentPosition: EquipmentPosition
   equipmentType: EquipmentType!
   positions: [EquipmentPosition]!
-  ports: [EquipmentPort]!
+  ports(availableOnly: Boolean = false): [EquipmentPort]!
+  descendentsIncludingSelf: [Equipment]!
   properties: [Property]!
   futureState: FutureState
   workOrder: WorkOrder
@@ -7797,6 +7812,20 @@ func (ec *executionContext) dir_uniqueField_args(ctx context.Context, rawArgs ma
 		}
 	}
 	args["field"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Equipment_ports_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["availableOnly"]; ok {
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["availableOnly"] = arg0
 	return args, nil
 }
 
@@ -12347,10 +12376,17 @@ func (ec *executionContext) _Equipment_ports(ctx context.Context, field graphql.
 		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Equipment_ports_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Equipment().Ports(rctx, obj)
+		return ec.resolvers.Equipment().Ports(rctx, obj, args["availableOnly"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12366,6 +12402,43 @@ func (ec *executionContext) _Equipment_ports(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNEquipmentPort2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPort(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Equipment_descendentsIncludingSelf(ctx context.Context, field graphql.CollectedField, obj *ent.Equipment) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Equipment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Equipment().DescendentsIncludingSelf(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Equipment)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEquipment2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Equipment_properties(ctx context.Context, field graphql.CollectedField, obj *ent.Equipment) (ret graphql.Marshaler) {
@@ -35610,6 +35683,20 @@ func (ec *executionContext) _Equipment(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._Equipment_ports(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "descendentsIncludingSelf":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Equipment_descendentsIncludingSelf(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

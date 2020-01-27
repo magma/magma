@@ -29,6 +29,7 @@ export type HyperlinkTableMenu_hyperlink$data = HyperlinkTableMenu_hyperlink;
 export type HyperlinkTableMenu_hyperlink$key = {
   +$data?: HyperlinkTableMenu_hyperlink$data,
   +$fragmentRefs: HyperlinkTableMenu_hyperlink$ref,
+  ...
 };
 */
 

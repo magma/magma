@@ -26,6 +26,7 @@ export type ImageDialog_img$data = ImageDialog_img;
 export type ImageDialog_img$key = {
   +$data?: ImageDialog_img$data,
   +$fragmentRefs: ImageDialog_img$ref,
+  ...
 };
 */
 

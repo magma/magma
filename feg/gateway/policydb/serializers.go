@@ -100,3 +100,31 @@ func GetBaseNameDeserializer() object_store.Deserializer {
 	}
 	return getRedisStateDeserializer(deserializer)
 }
+
+func GetRuleMappingSerializer() object_store.Serializer {
+	serializer := func(object interface{}) (string, error) {
+		setPtr, ok := object.(*lteProtos.AssignedPolicies)
+		if !ok {
+			return "", fmt.Errorf("Could not cast object to protobuf")
+		}
+		bytes, err := proto.Marshal(setPtr)
+		if err != nil {
+			return "", fmt.Errorf("Could not marshal message")
+		}
+		return string(bytes[:]), nil
+	}
+	return getRedisStateSerializer(serializer)
+}
+
+func GetRuleMappingDeserializer() object_store.Deserializer {
+	deserializer := func(serialized string) (interface{}, error) {
+		setPtr := &lteProtos.AssignedPolicies{}
+		bytes := []byte(serialized)
+		err := proto.Unmarshal(bytes, setPtr)
+		if err != nil {
+			return nil, err
+		}
+		return setPtr, nil
+	}
+	return getRedisStateDeserializer(deserializer)
+}

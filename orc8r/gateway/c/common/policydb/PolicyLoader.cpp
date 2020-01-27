@@ -56,7 +56,7 @@ bool do_loop(
     return false;
   }
   processor(rules);
-  MLOG(MDEBUG) << "Rules synced";
+  MLOG(MDEBUG) << rules.size() << " rules synced";
   return true;
 }
 

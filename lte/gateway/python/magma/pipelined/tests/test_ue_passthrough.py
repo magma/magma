@@ -93,6 +93,7 @@ class UEMacAddressTest(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'virtual_interface': 'testing_br',
                 'local_ue_eth_addr': False,
+                'quota_check_ip': '1.2.3.4',
                 'clean_restart': True,
             },
             mconfig=PipelineD(

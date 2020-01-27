@@ -9,9 +9,11 @@
 package receivers
 
 import (
+	"regexp"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/prometheus/alertmanager/config"
 	"github.com/stretchr/testify/assert"
@@ -39,13 +41,14 @@ route:
   group_interval: 10s
   repeat_interval: 1h
   routes:
-  - receiver: other_network_base_route
+  - receiver: other_tenant_base_route
     match:
-      networkID: other
+      tenantID: other
 receivers:
 - name: null_receiver
 - name: test_receiver
-- name: other_network_base_route
+- name: receiver
+- name: other_tenant_base_route
 - name: test_slack
   slack_configs:
   - api_url: http://slack.com/12345
@@ -72,27 +75,25 @@ templates: []`
 )
 
 func TestClient_CreateReceiver(t *testing.T) {
-	// Create Slack Receiver
 	client, fsClient := newTestClient()
+	// Create Slack Receiver
 	err := client.CreateReceiver(testNID, sampleSlackReceiver)
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
 	// Create Webhook Receiver
-	client, fsClient = newTestClient()
 	err = client.CreateReceiver(testNID, sampleWebhookReceiver)
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
 	// Create Email receiver
-	client, fsClient = newTestClient()
 	err = client.CreateReceiver(testNID, sampleEmailReceiver)
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
 	// create duplicate receiver
 	err = client.CreateReceiver(testNID, Receiver{Name: "receiver"})
-	assert.EqualError(t, err, `notification config name "test_receiver" is not unique`)
+	assert.Regexp(t, regexp.MustCompile("notification config name \".*receiver\" is not unique"), err.Error())
 }
 
 func TestClient_GetReceivers(t *testing.T) {
@@ -116,19 +117,17 @@ func TestClient_GetReceivers(t *testing.T) {
 
 func TestClient_UpdateReceiver(t *testing.T) {
 	client, fsClient := newTestClient()
-
-	err := client.UpdateReceiver(testNID, &Receiver{Name: "slack"})
+	err := client.UpdateReceiver(testNID, "slack", &Receiver{Name: "slack"})
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 	assert.NoError(t, err)
 
-	err = client.UpdateReceiver(testNID, &Receiver{Name: "nonexistent"})
+	err = client.UpdateReceiver(testNID, "nonexistent", &Receiver{Name: "nonexistent"})
 	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
 	assert.Error(t, err)
 }
 
 func TestClient_DeleteReceiver(t *testing.T) {
 	client, fsClient := newTestClient()
-
 	err := client.DeleteReceiver(testNID, "slack")
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 	assert.NoError(t, err)
@@ -136,19 +135,17 @@ func TestClient_DeleteReceiver(t *testing.T) {
 	err = client.DeleteReceiver(testNID, "nonexistent")
 	assert.Error(t, err)
 	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
-
 }
 
-func TestClient_ModifyNetworkRoute(t *testing.T) {
+func TestClient_ModifyTenantRoute(t *testing.T) {
 	client, fsClient := newTestClient()
-
-	err := client.ModifyNetworkRoute(testNID, &config.Route{
+	err := client.ModifyTenantRoute(testNID, &config.Route{
 		Receiver: "slack",
 	})
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
-	err = client.ModifyNetworkRoute(testNID, &config.Route{
+	err = client.ModifyTenantRoute(testNID, &config.Route{
 		Receiver: "test",
 		Routes: []*config.Route{{
 			Receiver: "nonexistent",
@@ -160,9 +157,10 @@ func TestClient_ModifyNetworkRoute(t *testing.T) {
 
 func TestClient_GetRoute(t *testing.T) {
 	client, _ := newTestClient()
+
 	route, err := client.GetRoute(otherNID)
 	assert.NoError(t, err)
-	assert.Equal(t, config.Route{Receiver: "network_base_route", Match: map[string]string{"networkID": "other"}}, *route)
+	assert.Equal(t, config.Route{Receiver: "tenant_base_route", Match: map[string]string{"tenantID": "other"}}, *route)
 
 	route, err = client.GetRoute("no-network")
 	assert.Error(t, err)
@@ -172,5 +170,8 @@ func newTestClient() (AlertmanagerClient, *mocks.FSClient) {
 	fsClient := &mocks.FSClient{}
 	fsClient.On("ReadFile", mock.Anything).Return([]byte(testAlertmanagerFile), nil)
 	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	return NewClient("test/alertmanager.yml", "alertmanager-host:9093", fsClient), fsClient
+	tenancy := &alert.TenancyConfig{
+		RestrictorLabel: "tenantID",
+	}
+	return NewClient("test/alertmanager.yml", "alertmanager-host:9093", tenancy, fsClient), fsClient
 }

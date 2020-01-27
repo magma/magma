@@ -29,6 +29,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 	ctx := r.Context()
 	log := m.log.For(ctx)
 
+	nextLineToSkipIndex := -1
 	log.Debug("exported ports-started")
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
 		log.Warn("parsing multipart form", zap.Error(err))
@@ -36,6 +37,20 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	count, numRows := 0, 0
+
+	err := r.ParseForm()
+	if err != nil {
+		errorReturn(w, "can't parse form", log, err)
+		return
+	}
+	skipLines, err := getLinesToSkip(r)
+	if err != nil {
+		errorReturn(w, "can't parse skipped lines", log, err)
+		return
+	}
+	if len(skipLines) > 0 {
+		nextLineToSkipIndex = 0
+	}
 
 	for fileName := range r.MultipartForm.File {
 		first, reader, err := m.newReader(fileName, r)
@@ -65,6 +80,11 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 				continue
 			}
 			numRows++
+			if shouldSkipLine(skipLines, numRows, nextLineToSkipIndex) {
+				log.Warn("skipping line", zap.Error(err), zap.Int("line_number", numRows))
+				nextLineToSkipIndex++
+				continue
+			}
 			importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
 
 			id := importLine.ID()
@@ -130,7 +150,8 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 	}
 	log.Debug("Exported ports - Done")
 	w.WriteHeader(http.StatusOK)
-	err := writeSuccessMessage(w, count, numRows, nil, true)
+	err = writeSuccessMessage(w, count, numRows, nil, true)
+
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return

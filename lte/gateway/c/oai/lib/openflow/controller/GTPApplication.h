@@ -101,13 +101,20 @@ class GTPApplication : public Application {
     const HandleDataOnGTPTunnelEvent &ev,
     const OpenflowMessenger &messenger);
   /*
-   * DRemove the rule inserted to discard data for UE in suspended state
+   * Remove the rule inserted to discard data for UE in suspended state
    * And Forward data existing rule
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
    */
   void forward_uplink_tunnel_flow(
     const HandleDataOnGTPTunnelEvent &ev,
     const OpenflowMessenger &messenger);
+  /*
+   * Convert flow rule precedence to OF flow priority
+   * @param precedence - can be between 0 and DEFAULT_PRECEDENCE
+   *
+   * @return uint32_t flow priority (minimum value set to DEFAULT_PRIORITY)
+   */
+  uint32_t convert_precedence_to_priority(const uint32_t precedence);
 
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;

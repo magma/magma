@@ -466,6 +466,102 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /feg_lte/{network_id}/subscriber_config:
+    get:
+      summary: Get a network-wide subscriber config
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a network-wide subscriber config
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte/{network_id}/subscriber_config/rule_names:
+    get:
+      summary: Get network-wide rule names
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-swagger.yml#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide rule names
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-swagger.yml#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte/{network_id}/subscriber_config/base_names:
+    get:
+      summary: Get network-wide base names
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-swagger.yml#/definitions/base_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide base names
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-swagger.yml#/definitions/base_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 
 definitions:
   feg_network:
@@ -490,6 +586,9 @@ definitions:
         $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       features:
         $ref: './orc8r-swagger.yml#/definitions/network_features'
+      subscriber_config:
+        x-omitempty: true
+        $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
 
   feg_lte_network:
     type: object

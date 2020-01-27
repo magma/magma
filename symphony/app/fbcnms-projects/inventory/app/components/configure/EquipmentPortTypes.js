@@ -76,7 +76,7 @@ type State = {
 
 const equipmentPortTypesQuery = graphql`
   query EquipmentPortTypesQuery {
-    equipmentPortTypes(first: 50)
+    equipmentPortTypes(first: 500)
       @connection(key: "EquipmentPortTypes_equipmentPortTypes") {
       edges {
         node {

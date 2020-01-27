@@ -44,7 +44,7 @@ const useStyles = makeStyles(theme => ({
 
 const locationTypesQuery = graphql`
   query LocationsMapTypesQuery {
-    locationTypes(first: 50) {
+    locationTypes {
       edges {
         node {
           id

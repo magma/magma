@@ -191,6 +191,14 @@ func ConvertToProtoTimestamp(unixTime *time.Time) *timestamp.Timestamp {
 	return protoTimestamp
 }
 
+func RuleIDsToProtosRuleInstalls(ruleIDs []string) []*protos.StaticRuleInstall {
+	ruleInstalls := make([]*protos.StaticRuleInstall, len(ruleIDs))
+	for idx, ruleID := range ruleIDs {
+		ruleInstalls[idx] = &protos.StaticRuleInstall{RuleId: ruleID}
+	}
+	return ruleInstalls
+}
+
 func ParseRuleInstallAVPs(
 	policyDBClient policydb.PolicyDBClient,
 	ruleInstalls []*RuleInstallAVP,
@@ -285,10 +293,13 @@ func getQoSInfo(qosInfo *QosInformation) *protos.QoSInformation {
 	if qosInfo == nil {
 		return nil
 	}
-	return &protos.QoSInformation{
+	res := &protos.QoSInformation{
 		BearerId: qosInfo.BearerIdentifier,
-		Qci:      protos.QCI(*qosInfo.Qci),
 	}
+	if qosInfo.Qci != nil {
+		res.Qci = protos.QCI(*qosInfo.Qci)
+	}
+	return res
 }
 
 func (report *UsageReport) FromUsageMonitorUpdate(update *protos.UsageMonitorUpdate) *UsageReport {

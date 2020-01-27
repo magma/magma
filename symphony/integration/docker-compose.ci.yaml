@@ -102,5 +102,7 @@ services:
     build:
       context: ..
       dockerfile: integration/pytests/Dockerfile
+    volumes:
+      - ..:/src/symphony:delegated
     environment:
       PLATFORM_SERVER_HEALTH_CHECK_URL: http://front/healthz

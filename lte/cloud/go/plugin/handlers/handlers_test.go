@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"magma/lte/cloud/go/lte"
-	plugin2 "magma/lte/cloud/go/plugin"
+	ltePlugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/plugin/handlers"
-	models2 "magma/lte/cloud/go/plugin/models"
+	lteModels "magma/lte/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -46,7 +46,7 @@ import (
 
 func TestListNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	e := echo.New()
 
@@ -80,7 +80,7 @@ func TestListNetworks(t *testing.T) {
 
 func TestCreateNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	e := echo.New()
 
@@ -88,15 +88,15 @@ func TestCreateNetwork(t *testing.T) {
 	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte", obsidian.POST).HandlerFunc
 
 	// test validation - include TDD and FDD configs
-	payload := &models2.LteNetwork{
-		Cellular:    models2.NewDefaultTDDNetworkConfig(),
+	payload := &lteModels.LteNetwork{
+		Cellular:    lteModels.NewDefaultTDDNetworkConfig(),
 		Description: "blah",
 		DNS:         models.NewDefaultDNSConfig(),
 		Features:    models.NewDefaultFeaturesConfig(),
 		ID:          "n1",
 		Name:        "foobar",
 	}
-	payload.Cellular.Ran.FddConfig = &models2.NetworkRanConfigsFddConfig{
+	payload.Cellular.Ran.FddConfig = &lteModels.NetworkRanConfigsFddConfig{
 		Earfcndl: 17000,
 		Earfcnul: 18000,
 	}
@@ -112,8 +112,8 @@ func TestCreateNetwork(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// happy path
-	payload = &models2.LteNetwork{
-		Cellular:    models2.NewDefaultTDDNetworkConfig(),
+	payload = &lteModels.LteNetwork{
+		Cellular:    lteModels.NewDefaultTDDNetworkConfig(),
 		Description: "Foo Bar",
 		DNS:         models.NewDefaultDNSConfig(),
 		Features:    models.NewDefaultFeaturesConfig(),
@@ -137,7 +137,7 @@ func TestCreateNetwork(t *testing.T) {
 		Name:        "foobar",
 		Description: "Foo Bar",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType:     models2.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkType:     lteModels.NewDefaultTDDNetworkConfig(),
 			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 			orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
 		},
@@ -147,7 +147,7 @@ func TestCreateNetwork(t *testing.T) {
 
 func TestGetNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	e := echo.New()
 
@@ -168,8 +168,8 @@ func TestGetNetwork(t *testing.T) {
 
 	seedNetworks(t)
 
-	expectedN1 := &models2.LteNetwork{
-		Cellular:    models2.NewDefaultTDDNetworkConfig(),
+	expectedN1 := &lteModels.LteNetwork{
+		Cellular:    lteModels.NewDefaultTDDNetworkConfig(),
 		Description: "Foo Bar",
 		DNS:         models.NewDefaultDNSConfig(),
 		Features:    models.NewDefaultFeaturesConfig(),
@@ -202,7 +202,7 @@ func TestGetNetwork(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// get a network without any configs (poorly formed data)
-	expectedN3 := &models2.LteNetwork{
+	expectedN3 := &lteModels.LteNetwork{
 		Description: "Bar Foo",
 		ID:          "n3",
 		Name:        "barfoo",
@@ -222,7 +222,7 @@ func TestGetNetwork(t *testing.T) {
 
 func TestUpdateNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	e := echo.New()
 
@@ -230,11 +230,11 @@ func TestUpdateNetwork(t *testing.T) {
 	updateNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id", obsidian.PUT).HandlerFunc
 
 	// Test validation failure
-	payloadN1 := &models2.LteNetwork{
+	payloadN1 := &lteModels.LteNetwork{
 		ID:          "n1",
 		Name:        "updated foobar",
 		Description: "Updated Foo Bar",
-		Cellular:    models2.NewDefaultFDDNetworkConfig(),
+		Cellular:    lteModels.NewDefaultFDDNetworkConfig(),
 		Features: &models.NetworkFeatures{
 			Features: map[string]string{
 				"bar": "baz",
@@ -321,7 +321,7 @@ func TestUpdateNetwork(t *testing.T) {
 		Name:        "updated foobar",
 		Description: "Updated Foo Bar",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType:     models2.NewDefaultFDDNetworkConfig(),
+			lte.CellularNetworkType:     lteModels.NewDefaultFDDNetworkConfig(),
 			orc8r.DnsdNetworkType:       payloadN1.DNS,
 			orc8r.NetworkFeaturesConfig: payloadN1.Features,
 		},
@@ -345,7 +345,7 @@ func TestUpdateNetwork(t *testing.T) {
 
 func TestDeleteNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	e := echo.New()
 
@@ -393,7 +393,7 @@ func TestDeleteNetwork(t *testing.T) {
 
 func TestCellularPartialGet(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -420,7 +420,7 @@ func TestCellularPartialGet(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        getCellular,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(models2.NewDefaultTDDNetworkConfig()),
+		ExpectedResult: tests.JSONMarshaler(lteModels.NewDefaultTDDNetworkConfig()),
 		ExpectedError:  "",
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -447,7 +447,7 @@ func TestCellularPartialGet(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        getEpc,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(models2.NewDefaultTDDNetworkConfig().Epc),
+		ExpectedResult: tests.JSONMarshaler(lteModels.NewDefaultTDDNetworkConfig().Epc),
 		ExpectedError:  "",
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -474,7 +474,7 @@ func TestCellularPartialGet(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        getRan,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(models2.NewDefaultTDDNetworkConfig().Ran),
+		ExpectedResult: tests.JSONMarshaler(lteModels.NewDefaultTDDNetworkConfig().Ran),
 		ExpectedError:  "",
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -493,7 +493,7 @@ func TestCellularPartialGet(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// add 'n2' as FegNetworkID to n1
-	cellularConfig := models2.NewDefaultTDDNetworkConfig()
+	cellularConfig := lteModels.NewDefaultTDDNetworkConfig()
 	cellularConfig.FegNetworkID = "n2"
 	err := configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{
 		{
@@ -522,7 +522,7 @@ func TestCellularPartialGet(t *testing.T) {
 
 func TestCellularPartialUpdate(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -543,7 +543,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	tc := tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/%s/cellular/", testURLRoot, "n2"),
-		Payload:        models2.NewDefaultFDDNetworkConfig(),
+		Payload:        lteModels.NewDefaultFDDNetworkConfig(),
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n2"},
 		Handler:        updateCellular,
@@ -559,15 +559,15 @@ func TestCellularPartialUpdate(t *testing.T) {
 		Name:        "foobar",
 		Description: "Foo Bar",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: models2.NewDefaultFDDNetworkConfig(),
+			lte.CellularNetworkType: lteModels.NewDefaultFDDNetworkConfig(),
 		},
 		Version: 1,
 	}
 	assert.Equal(t, expected, actualN2)
 
 	// Validation error (celullar config has both tdd and fdd config)
-	badCellularConfig := models2.NewDefaultTDDNetworkConfig()
-	badCellularConfig.Ran.FddConfig = &models2.NetworkRanConfigsFddConfig{
+	badCellularConfig := lteModels.NewDefaultTDDNetworkConfig()
+	badCellularConfig.Ran.FddConfig = &lteModels.NetworkRanConfigsFddConfig{
 		Earfcndl: 1,
 		Earfcnul: 18001,
 	}
@@ -587,7 +587,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/%s/cellular/epc/", testURLRoot, "n3"),
-		Payload:        models2.NewDefaultTDDNetworkConfig().Epc,
+		Payload:        lteModels.NewDefaultTDDNetworkConfig().Epc,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n3"},
 		Handler:        updateEpc,
@@ -597,7 +597,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// happy path update epc config
-	epcConfig := models2.NewDefaultTDDNetworkConfig().Epc
+	epcConfig := lteModels.NewDefaultTDDNetworkConfig().Epc
 	epcConfig.RelayEnabled = swag.Bool(true)
 	tc = tests.Test{
 		Method:         "PUT",
@@ -612,7 +612,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 
 	actualN2, err = configurator.LoadNetwork("n2", true, true)
 	assert.NoError(t, err)
-	expected.Configs[lte.CellularNetworkType].(*models2.NetworkCellularConfigs).Epc = epcConfig
+	expected.Configs[lte.CellularNetworkType].(*lteModels.NetworkCellularConfigs).Epc = epcConfig
 	expected.Version = 2
 	assert.Equal(t, expected, actualN2)
 
@@ -620,7 +620,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/%s/cellular/ran/", testURLRoot, "n3"),
-		Payload:        models2.NewDefaultTDDNetworkConfig().Ran,
+		Payload:        lteModels.NewDefaultTDDNetworkConfig().Ran,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n3"},
 		Handler:        updateRan,
@@ -630,8 +630,8 @@ func TestCellularPartialUpdate(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Validation error
-	ranConfig := models2.NewDefaultTDDNetworkConfig().Ran
-	ranConfig.FddConfig = models2.NewDefaultFDDNetworkConfig().Ran.FddConfig
+	ranConfig := lteModels.NewDefaultTDDNetworkConfig().Ran
+	ranConfig.FddConfig = lteModels.NewDefaultFDDNetworkConfig().Ran.FddConfig
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/%s/cellular/ran/", testURLRoot, "n2"),
@@ -645,7 +645,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// happy case update ran config
-	ranConfig = models2.NewDefaultFDDNetworkConfig().Ran
+	ranConfig = lteModels.NewDefaultFDDNetworkConfig().Ran
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/%s/cellular/ran/", testURLRoot, "n2"),
@@ -658,7 +658,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 	actualN2, err = configurator.LoadNetwork("n2", true, true)
 	assert.NoError(t, err)
-	expected.Configs[lte.CellularNetworkType].(*models2.NetworkCellularConfigs).Ran = ranConfig
+	expected.Configs[lte.CellularNetworkType].(*lteModels.NetworkCellularConfigs).Ran = ranConfig
 	expected.Version = 3
 	assert.Equal(t, expected, actualN2)
 
@@ -690,7 +690,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 
 func TestCellularDelete(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -716,9 +716,191 @@ func TestCellularDelete(t *testing.T) {
 	assert.EqualError(t, err, "Not found")
 }
 
+func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	seedNetworks(t)
+
+	obsidianHandlers := handlers.GetHandlers()
+	getSubscriberConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config", obsidian.GET).HandlerFunc
+	getRuleNames := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/rule_names", obsidian.GET).HandlerFunc
+	getBaseNames := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/base_names", obsidian.GET).HandlerFunc
+
+	// 404
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/", testURLRoot, "n1"),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getSubscriberConfig,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	subscriberConfig := &lteModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []lteModels.BaseName{"base1"},
+		NetworkWideRuleNames: []string{"rule1"},
+	}
+	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, subscriberConfig))
+
+	// happy case
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/", testURLRoot, "n1"),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getSubscriberConfig,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(subscriberConfig),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/", testURLRoot, "n1"),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getBaseNames,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(subscriberConfig.NetworkWideBaseNames),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/rule_names/", testURLRoot, "n1"),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getRuleNames,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(subscriberConfig.NetworkWideRuleNames),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func Test_PutNetworkSubscriberConfigHandlers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	seedNetworks(t)
+
+	obsidianHandlers := handlers.GetHandlers()
+	putSubscriberConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config", obsidian.PUT).HandlerFunc
+	putRuleNames := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/rule_names", obsidian.PUT).HandlerFunc
+	putBaseNames := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/base_names", obsidian.PUT).HandlerFunc
+
+	subscriberConfig := &lteModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []lteModels.BaseName{"base1"},
+		NetworkWideRuleNames: []string{"rule1"},
+	}
+
+	// 404
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(subscriberConfig.NetworkWideBaseNames),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        putBaseNames,
+		ExpectedStatus: 400,
+		ExpectedError:  "No Subscriber Config registered for this network",
+	}
+	tests.RunUnitTest(t, e, tc)
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/rule_names/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(subscriberConfig.NetworkWideRuleNames),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        putRuleNames,
+		ExpectedStatus: 400,
+		ExpectedError:  "No Subscriber Config registered for this network",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, subscriberConfig))
+
+	newRuleNames := []string{"rule2"}
+	// happy case
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/rule_names/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(newRuleNames),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        putRuleNames,
+		ExpectedStatus: 204,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	newBaseNames := []lteModels.BaseName{"base2"}
+	// happy case
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(newBaseNames),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        putBaseNames,
+		ExpectedStatus: 204,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	iSubscriberConfig, err := configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	assert.NoError(t, err)
+	actualSubscriberConfig := iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+
+	assert.ElementsMatch(t, newRuleNames, actualSubscriberConfig.NetworkWideRuleNames)
+	assert.ElementsMatch(t, newBaseNames, actualSubscriberConfig.NetworkWideBaseNames)
+
+	newSubscriberConfig := &lteModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []lteModels.BaseName{"base3"},
+		NetworkWideRuleNames: []string{"rule3"},
+	}
+	// happy case
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(newSubscriberConfig),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        putSubscriberConfig,
+		ExpectedStatus: 204,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	assert.NoError(t, err)
+	actualSubscriberConfig = iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+
+	assert.Equal(t, newSubscriberConfig, actualSubscriberConfig)
+}
+
 func TestCreateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -748,7 +930,7 @@ func TestCreateGateway(t *testing.T) {
 	createGateway := tests.GetHandlerByPathAndMethod(t, hands, testURLRoot, obsidian.POST).HandlerFunc
 
 	// happy path, no device
-	payload := &models2.MutableLteGateway{
+	payload := &lteModels.MutableLteGateway{
 		Device: &models.GatewayDevice{
 			HardwareID: "hw1",
 			Key:        &models.ChallengeKey{KeyType: "ECHO"},
@@ -813,7 +995,7 @@ func TestCreateGateway(t *testing.T) {
 	assert.Equal(t, payload.Device, actualDevice)
 
 	// valid magmad gateway, invalid cellular - nothing should change on backend
-	payload = &models2.MutableLteGateway{
+	payload = &lteModels.MutableLteGateway{
 		Device: &models.GatewayDevice{
 			HardwareID: "hw2",
 			Key:        &models.ChallengeKey{KeyType: "ECHO"},
@@ -862,7 +1044,7 @@ func TestCreateGateway(t *testing.T) {
 	// Some composite validation failures - bad device key, missing required
 	// non-EPS control fields when non-EPS service control is on
 	pubkeyB64 := strfmt.Base64("fake key")
-	payload = &models2.MutableLteGateway{
+	payload = &lteModels.MutableLteGateway{
 		Device: &models.GatewayDevice{
 			HardwareID: "foo-bar-baz-890",
 			Key: &models.ChallengeKey{
@@ -883,7 +1065,7 @@ func TestCreateGateway(t *testing.T) {
 		ConnectedEnodebSerials: []string{},
 		Tier:                   "t1",
 	}
-	payload.Cellular.NonEpsService = &models2.GatewayNonEpsConfigs{
+	payload.Cellular.NonEpsService = &lteModels.GatewayNonEpsConfigs{
 		NonEpsServiceControl: swag.Uint32(1),
 	}
 
@@ -909,7 +1091,7 @@ func TestCreateGateway(t *testing.T) {
 
 func TestListAndGetGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.GetUnfreezeClockDeferFunc(t)()
 
@@ -935,16 +1117,16 @@ func TestListAndGetGateways(t *testing.T) {
 			{Type: lte.CellularEnodebType, Key: "enb2"},
 			{
 				Type: lte.CellularGatewayType, Key: "g1",
-				Config: &models2.GatewayCellularConfigs{
-					Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-					Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				Config: &lteModels.GatewayCellularConfigs{
+					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				},
 			},
 			{
 				Type: lte.CellularGatewayType, Key: "g2",
-				Config: &models2.GatewayCellularConfigs{
-					Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-					Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				Config: &lteModels.GatewayCellularConfigs{
+					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				},
 				Associations: []storage.TypeAndKey{
 					{Type: lte.CellularEnodebType, Key: "enb1"},
@@ -990,7 +1172,7 @@ func TestListAndGetGateways(t *testing.T) {
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
 
-	expected := map[string]*models2.LteGateway{
+	expected := map[string]*lteModels.LteGateway{
 		"g1": {
 			ID: "g1",
 			Device: &models.GatewayDevice{
@@ -1005,9 +1187,9 @@ func TestListAndGetGateways(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Cellular: &models2.GatewayCellularConfigs{
-				Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-				Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+			Cellular: &lteModels.GatewayCellularConfigs{
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
 			Status: models.NewDefaultGatewayStatus("hw1"),
 		},
@@ -1021,9 +1203,9 @@ func TestListAndGetGateways(t *testing.T) {
 				CheckinInterval:         15,
 				CheckinTimeout:          5,
 			},
-			Cellular: &models2.GatewayCellularConfigs{
-				Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-				Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+			Cellular: &lteModels.GatewayCellularConfigs{
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
 			ConnectedEnodebSerials: []string{"enb1", "enb2"},
 		},
@@ -1042,7 +1224,7 @@ func TestListAndGetGateways(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expectedGet := &models2.LteGateway{
+	expectedGet := &lteModels.LteGateway{
 		ID: "g1",
 		Device: &models.GatewayDevice{
 			HardwareID: "hw1",
@@ -1056,9 +1238,9 @@ func TestListAndGetGateways(t *testing.T) {
 			CheckinInterval:         15,
 			CheckinTimeout:          5,
 		},
-		Cellular: &models2.GatewayCellularConfigs{
-			Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-			Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+		Cellular: &lteModels.GatewayCellularConfigs{
+			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 		},
 		Status: models.NewDefaultGatewayStatus("hw1"),
 	}
@@ -1075,7 +1257,7 @@ func TestListAndGetGateways(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expectedGet = &models2.LteGateway{
+	expectedGet = &lteModels.LteGateway{
 		ID:   "g2",
 		Name: "barfoo", Description: "bar foo",
 		Tier: "t1",
@@ -1085,9 +1267,9 @@ func TestListAndGetGateways(t *testing.T) {
 			CheckinInterval:         15,
 			CheckinTimeout:          5,
 		},
-		Cellular: &models2.GatewayCellularConfigs{
-			Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-			Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+		Cellular: &lteModels.GatewayCellularConfigs{
+			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 		},
 		ConnectedEnodebSerials: []string{"enb1", "enb2"},
 	}
@@ -1105,7 +1287,7 @@ func TestListAndGetGateways(t *testing.T) {
 
 func TestUpdateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.GetUnfreezeClockDeferFunc(t)()
 
@@ -1127,9 +1309,9 @@ func TestUpdateGateway(t *testing.T) {
 			{Type: lte.CellularEnodebType, Key: "enb3"},
 			{
 				Type: lte.CellularGatewayType, Key: "g1",
-				Config: &models2.GatewayCellularConfigs{
-					Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-					Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				Config: &lteModels.GatewayCellularConfigs{
+					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				},
 				Associations: []storage.TypeAndKey{
 					{Type: lte.CellularEnodebType, Key: "enb1"},
@@ -1166,7 +1348,7 @@ func TestUpdateGateway(t *testing.T) {
 	marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(privateKey))
 	assert.NoError(t, err)
 	pubkeyB64 := strfmt.Base64(marshaledPubKey)
-	payload := &models2.MutableLteGateway{
+	payload := &lteModels.MutableLteGateway{
 		Device: &models.GatewayDevice{
 			HardwareID: "hw1",
 			Key:        &models.ChallengeKey{KeyType: "SOFTWARE_ECDSA_SHA256", Key: &pubkeyB64},
@@ -1183,9 +1365,9 @@ func TestUpdateGateway(t *testing.T) {
 			DynamicServices:         []string{"d1", "d2"},
 		},
 		Tier: "t1",
-		Cellular: &models2.GatewayCellularConfigs{
-			Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(false), IPBlock: "172.10.10.0/24"},
-			Ran: &models2.GatewayRanConfigs{Pci: 123, TransmitEnabled: swag.Bool(false)},
+		Cellular: &lteModels.GatewayCellularConfigs{
+			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(false), IPBlock: "172.10.10.0/24"},
+			Ran: &lteModels.GatewayRanConfigs{Pci: 123, TransmitEnabled: swag.Bool(false)},
 		},
 		ConnectedEnodebSerials: []string{"enb1", "enb3"},
 	}
@@ -1249,7 +1431,7 @@ func TestUpdateGateway(t *testing.T) {
 
 func TestDeleteGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.GetUnfreezeClockDeferFunc(t)()
 
@@ -1270,9 +1452,9 @@ func TestDeleteGateway(t *testing.T) {
 			{Type: lte.CellularEnodebType, Key: "enb2"},
 			{
 				Type: lte.CellularGatewayType, Key: "g1",
-				Config: &models2.GatewayCellularConfigs{
-					Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
-					Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				Config: &lteModels.GatewayCellularConfigs{
+					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				},
 				Associations: []storage.TypeAndKey{
 					{Type: lte.CellularEnodebType, Key: "enb1"},
@@ -1335,7 +1517,7 @@ func TestDeleteGateway(t *testing.T) {
 
 func TestGetCellularGatewayConfig(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -1445,7 +1627,7 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 
 func TestUpdateCellularGatewayConfig(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -1769,7 +1951,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 
 func TestListAndGetEnodebs(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -1789,7 +1971,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Key:        "abcdefg",
 			Name:       "abc enodeb",
 			PhysicalID: "abcdefg",
-			Config: &models2.EnodebConfiguration{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
 				CellID:                 swag.Uint32(1234),
 				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
@@ -1806,7 +1988,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Key:        "vwxyz",
 			Name:       "xyz enodeb",
 			PhysicalID: "vwxyz",
-			Config: &models2.EnodebConfiguration{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           15,
 				CellID:                 swag.Uint32(4321),
 				DeviceClass:            "Baicells Nova-243 OD TDD",
@@ -1825,10 +2007,10 @@ func TestListAndGetEnodebs(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	expected := map[string]*models2.Enodeb{
+	expected := map[string]*lteModels.Enodeb{
 		"abcdefg": {
 			AttachedGatewayID: "gw1",
-			Config: &models2.EnodebConfiguration{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
 				CellID:                 swag.Uint32(1234),
 				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
@@ -1843,7 +2025,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Serial: "abcdefg",
 		},
 		"vwxyz": {
-			Config: &models2.EnodebConfiguration{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           15,
 				CellID:                 swag.Uint32(4321),
 				DeviceClass:            "Baicells Nova-243 OD TDD",
@@ -1905,7 +2087,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 
 func TestCreateEnodeb(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -1922,8 +2104,8 @@ func TestCreateEnodeb(t *testing.T) {
 		Method:  "POST",
 		URL:     testURLRoot,
 		Handler: createEnodeb,
-		Payload: &models2.Enodeb{
-			Config: &models2.EnodebConfiguration{
+		Payload: &lteModels.Enodeb{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           15,
 				CellID:                 swag.Uint32(4321),
 				DeviceClass:            "Baicells Nova-243 OD TDD",
@@ -1951,7 +2133,7 @@ func TestCreateEnodeb(t *testing.T) {
 		Name:       "foobar",
 		PhysicalID: "abcdef",
 		GraphID:    "2",
-		Config: &models2.EnodebConfiguration{
+		Config: &lteModels.EnodebConfiguration{
 			BandwidthMhz:           15,
 			CellID:                 swag.Uint32(4321),
 			DeviceClass:            "Baicells Nova-243 OD TDD",
@@ -1969,8 +2151,8 @@ func TestCreateEnodeb(t *testing.T) {
 		Method:  "POST",
 		URL:     testURLRoot,
 		Handler: createEnodeb,
-		Payload: &models2.Enodeb{
-			Config: &models2.EnodebConfiguration{
+		Payload: &lteModels.Enodeb{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           15,
 				CellID:                 swag.Uint32(4321),
 				DeviceClass:            "Baicells Nova-243 OD TDD",
@@ -1995,7 +2177,7 @@ func TestCreateEnodeb(t *testing.T) {
 
 func TestUpdateEnodeb(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2014,7 +2196,7 @@ func TestUpdateEnodeb(t *testing.T) {
 			Key:        "abcdefg",
 			Name:       "abc enodeb",
 			PhysicalID: "abcdefg",
-			Config: &models2.EnodebConfiguration{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
 				CellID:                 swag.Uint32(1234),
 				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
@@ -2033,8 +2215,8 @@ func TestUpdateEnodeb(t *testing.T) {
 		Method:  "PUT",
 		URL:     testURLRoot,
 		Handler: updateEnodeb,
-		Payload: &models2.Enodeb{
-			Config: &models2.EnodebConfiguration{
+		Payload: &lteModels.Enodeb{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           15,
 				CellID:                 swag.Uint32(4321),
 				DeviceClass:            "Baicells Nova-243 OD TDD",
@@ -2062,7 +2244,7 @@ func TestUpdateEnodeb(t *testing.T) {
 		Name:       "foobar",
 		PhysicalID: "abcdefg",
 		GraphID:    "2",
-		Config: &models2.EnodebConfiguration{
+		Config: &lteModels.EnodebConfiguration{
 			BandwidthMhz:           15,
 			CellID:                 swag.Uint32(4321),
 			DeviceClass:            "Baicells Nova-243 OD TDD",
@@ -2081,8 +2263,8 @@ func TestUpdateEnodeb(t *testing.T) {
 		Method:  "PUT",
 		URL:     testURLRoot,
 		Handler: updateEnodeb,
-		Payload: &models2.Enodeb{
-			Config: &models2.EnodebConfiguration{
+		Payload: &lteModels.Enodeb{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           15,
 				CellID:                 swag.Uint32(4321),
 				DeviceClass:            "Baicells Nova-243 OD TDD",
@@ -2106,7 +2288,7 @@ func TestUpdateEnodeb(t *testing.T) {
 
 func TestDeleteEnodeb(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2125,7 +2307,7 @@ func TestDeleteEnodeb(t *testing.T) {
 			Key:        "abcdefg",
 			Name:       "abc enodeb",
 			PhysicalID: "abcdefg",
-			Config: &models2.EnodebConfiguration{
+			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
 				CellID:                 swag.Uint32(1234),
 				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
@@ -2156,7 +2338,7 @@ func TestDeleteEnodeb(t *testing.T) {
 
 func TestGetEnodebState(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2202,8 +2384,8 @@ func TestGetEnodebState(t *testing.T) {
 
 	// encode the appropriate certificate into context
 	ctx := test_utils.GetContextWithCertificate(t, "hwid1")
-	reportEnodebState(t, ctx, "serial1", models2.NewDefaultEnodebStatus())
-	expected := models2.NewDefaultEnodebStatus()
+	reportEnodebState(t, ctx, "serial1", lteModels.NewDefaultEnodebStatus())
+	expected := lteModels.NewDefaultEnodebStatus()
 	expected.TimeReported = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
 	expected.ReportingGatewayID = "gw1"
 
@@ -2221,7 +2403,7 @@ func TestGetEnodebState(t *testing.T) {
 
 func TestCreateSubscriber(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2234,9 +2416,9 @@ func TestCreateSubscriber(t *testing.T) {
 	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
 	// default sub profile should always succeed
-	payload := &models2.Subscriber{
+	payload := &lteModels.Subscriber{
 		ID: "IMSI1234567890",
-		Lte: &models2.LteSubscription{
+		Lte: &lteModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2267,9 +2449,9 @@ func TestCreateSubscriber(t *testing.T) {
 	assert.Equal(t, expected, actual)
 
 	// no cellular config on network and a non-default sub profile should be 500
-	payload = &models2.Subscriber{
+	payload = &lteModels.Subscriber{
 		ID: "IMSI0987654321",
-		Lte: &models2.LteSubscription{
+		Lte: &lteModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2295,9 +2477,9 @@ func TestCreateSubscriber(t *testing.T) {
 	// nonexistent sub profile should be 400
 	err = configurator.UpdateNetworkConfig(
 		"n1", lte.CellularNetworkType,
-		&models2.NetworkCellularConfigs{
-			Epc: &models2.NetworkEpcConfigs{
-				SubProfiles: map[string]models2.NetworkEpcConfigsSubProfilesAnon{
+		&lteModels.NetworkCellularConfigs{
+			Epc: &lteModels.NetworkEpcConfigs{
+				SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
 					"blah": {
 						MaxDlBitRate: 100,
 						MaxUlBitRate: 100,
@@ -2307,9 +2489,9 @@ func TestCreateSubscriber(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	payload = &models2.Subscriber{
+	payload = &lteModels.Subscriber{
 		ID: "IMSI0987654321",
-		Lte: &models2.LteSubscription{
+		Lte: &lteModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2333,9 +2515,9 @@ func TestCreateSubscriber(t *testing.T) {
 	tc = tests.Test{
 		Method: "POST",
 		URL:    testURLRoot,
-		Payload: &models2.Subscriber{
+		Payload: &lteModels.Subscriber{
 			ID: "IMSI1234567898",
-			Lte: &models2.LteSubscription{
+			Lte: &lteModels.LteSubscription{
 				AuthAlgo:   "MILENAGE",
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2354,7 +2536,7 @@ func TestCreateSubscriber(t *testing.T) {
 
 func TestListSubscribers(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2373,7 +2555,7 @@ func TestListSubscribers(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*models2.Subscriber{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.Subscriber{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -2382,7 +2564,7 @@ func TestListSubscribers(t *testing.T) {
 		[]configurator.NetworkEntity{
 			{
 				Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-				Config: &models2.LteSubscription{
+				Config: &lteModels.LteSubscription{
 					AuthAlgo: "MILENAGE",
 					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2391,7 +2573,7 @@ func TestListSubscribers(t *testing.T) {
 			},
 			{
 				Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
-				Config: &models2.LteSubscription{
+				Config: &lteModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
@@ -2410,10 +2592,10 @@ func TestListSubscribers(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*models2.Subscriber{
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.Subscriber{
 			"IMSI1234567890": {
 				ID: "IMSI1234567890",
-				Lte: &models2.LteSubscription{
+				Lte: &lteModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
 					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2423,7 +2605,7 @@ func TestListSubscribers(t *testing.T) {
 			},
 			"IMSI0987654321": {
 				ID: "IMSI0987654321",
-				Lte: &models2.LteSubscription{
+				Lte: &lteModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
@@ -2438,7 +2620,7 @@ func TestListSubscribers(t *testing.T) {
 
 func TestGetSubscriber(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2466,7 +2648,7 @@ func TestGetSubscriber(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &models2.LteSubscription{
+			Config: &lteModels.LteSubscription{
 				AuthAlgo: "MILENAGE",
 				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2483,9 +2665,9 @@ func TestGetSubscriber(t *testing.T) {
 		ParamNames:     []string{"network_id", "subscriber_id"},
 		ParamValues:    []string{"n1", "IMSI1234567890"},
 		ExpectedStatus: 200,
-		ExpectedResult: &models2.Subscriber{
+		ExpectedResult: &lteModels.Subscriber{
 			ID: "IMSI1234567890",
-			Lte: &models2.LteSubscription{
+			Lte: &lteModels.LteSubscription{
 				AuthAlgo:   "MILENAGE",
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2499,7 +2681,7 @@ func TestGetSubscriber(t *testing.T) {
 
 func TestUpdateSubscriber(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2512,9 +2694,9 @@ func TestUpdateSubscriber(t *testing.T) {
 	updateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	// 404
-	payload := &models2.Subscriber{
+	payload := &lteModels.Subscriber{
 		ID: "IMSI1234567890",
-		Lte: &models2.LteSubscription{
+		Lte: &lteModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2537,9 +2719,9 @@ func TestUpdateSubscriber(t *testing.T) {
 	// Happy path
 	err = configurator.UpdateNetworkConfig(
 		"n1", lte.CellularNetworkType,
-		&models2.NetworkCellularConfigs{
-			Epc: &models2.NetworkEpcConfigs{
-				SubProfiles: map[string]models2.NetworkEpcConfigsSubProfilesAnon{
+		&lteModels.NetworkCellularConfigs{
+			Epc: &lteModels.NetworkEpcConfigs{
+				SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
 					"foo": {
 						MaxUlBitRate: 100,
 						MaxDlBitRate: 100,
@@ -2553,7 +2735,7 @@ func TestUpdateSubscriber(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &models2.LteSubscription{
+			Config: &lteModels.LteSubscription{
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
@@ -2563,9 +2745,9 @@ func TestUpdateSubscriber(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	payload = &models2.Subscriber{
+	payload = &lteModels.Subscriber{
 		ID: "IMSI1234567890",
-		Lte: &models2.LteSubscription{
+		Lte: &lteModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
@@ -2613,7 +2795,7 @@ func TestUpdateSubscriber(t *testing.T) {
 
 func TestDeleteSubscriber(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2629,7 +2811,7 @@ func TestDeleteSubscriber(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &models2.LteSubscription{
+			Config: &lteModels.LteSubscription{
 				AuthAlgo: "MILENAGE",
 				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2655,7 +2837,7 @@ func TestDeleteSubscriber(t *testing.T) {
 
 func TestActivateDeactivateSubscriber(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2670,7 +2852,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	expected := configurator.NetworkEntity{
 		Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-		Config: &models2.LteSubscription{
+		Config: &lteModels.LteSubscription{
 			AuthAlgo: "MILENAGE",
 			AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -2705,7 +2887,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
-	expected.Config.(*models2.LteSubscription).State = "INACTIVE"
+	expected.Config.(*lteModels.LteSubscription).State = "INACTIVE"
 	expected.Version = 2
 	assert.Equal(t, expected, actual)
 
@@ -2713,7 +2895,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
-	expected.Config.(*models2.LteSubscription).State = "INACTIVE"
+	expected.Config.(*lteModels.LteSubscription).State = "INACTIVE"
 	expected.Version = 3
 	assert.Equal(t, expected, actual)
 
@@ -2723,14 +2905,14 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
-	expected.Config.(*models2.LteSubscription).State = "ACTIVE"
+	expected.Config.(*lteModels.LteSubscription).State = "ACTIVE"
 	expected.Version = 4
 	assert.Equal(t, expected, actual)
 }
 
 func TestUpdateSubscriberProfile(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
@@ -2738,9 +2920,9 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	assert.NoError(t, err)
 	err = configurator.UpdateNetworkConfig(
 		"n1", lte.CellularNetworkType,
-		&models2.NetworkCellularConfigs{
-			Epc: &models2.NetworkEpcConfigs{
-				SubProfiles: map[string]models2.NetworkEpcConfigsSubProfilesAnon{
+		&lteModels.NetworkCellularConfigs{
+			Epc: &lteModels.NetworkEpcConfigs{
+				SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
 					"foo": {
 						MaxUlBitRate: 100,
 						MaxDlBitRate: 100,
@@ -2754,7 +2936,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &models2.LteSubscription{
+			Config: &lteModels.LteSubscription{
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
@@ -2814,7 +2996,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-		Config: &models2.LteSubscription{
+		Config: &lteModels.LteSubscription{
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
@@ -2841,7 +3023,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	expected = configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-		Config: &models2.LteSubscription{
+		Config: &lteModels.LteSubscription{
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
@@ -2853,7 +3035,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *models2.EnodebState) {
+func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *lteModels.EnodebState) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
@@ -2883,7 +3065,7 @@ func seedNetworks(t *testing.T) {
 				Name:        "foobar",
 				Description: "Foo Bar",
 				Configs: map[string]interface{}{
-					lte.CellularNetworkType:     models2.NewDefaultTDDNetworkConfig(),
+					lte.CellularNetworkType:     lteModels.NewDefaultTDDNetworkConfig(),
 					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
 					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 				},
@@ -2907,17 +3089,17 @@ func seedNetworks(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func newDefaultGatewayConfig() *models2.GatewayCellularConfigs {
-	return &models2.GatewayCellularConfigs{
-		Ran: &models2.GatewayRanConfigs{
+func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
+	return &lteModels.GatewayCellularConfigs{
+		Ran: &lteModels.GatewayRanConfigs{
 			Pci:             260,
 			TransmitEnabled: swag.Bool(true),
 		},
-		Epc: &models2.GatewayEpcConfigs{
+		Epc: &lteModels.GatewayEpcConfigs{
 			NatEnabled: swag.Bool(true),
 			IPBlock:    "192.168.128.0/24",
 		},
-		NonEpsService: &models2.GatewayNonEpsConfigs{
+		NonEpsService: &lteModels.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
 			CsfbMnc:              "01",
 			Lac:                  swag.Uint32(1),

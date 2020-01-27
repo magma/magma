@@ -41,6 +41,8 @@ services:
       - '-port=9100'
       - '-rules-dir=/etc/configs/alert_rules'
       - '-prometheusURL=prometheus:9090'
+      - '-multitenant-label=networkID'
+      - '-restrict-queries'
     restart: always
 
   alertmanager-configurer:
@@ -53,6 +55,7 @@ services:
       - '-port=9101'
       - '-alertmanager-conf=/etc/configs/alertmanager.yml'
       - '-alertmanagerURL=alertmanager:9093'
+      - '-multitenant-label=networkID'
     restart: always
 
   grafana:

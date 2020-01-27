@@ -56,6 +56,7 @@ export type EquipmentPositionsGrid_equipment$data = EquipmentPositionsGrid_equip
 export type EquipmentPositionsGrid_equipment$key = {
   +$data?: EquipmentPositionsGrid_equipment$data,
   +$fragmentRefs: EquipmentPositionsGrid_equipment$ref,
+  ...
 };
 */
 

@@ -88,6 +88,7 @@ export type ProjectDetails_project$data = ProjectDetails_project;
 export type ProjectDetails_project$key = {
   +$data?: ProjectDetails_project$data,
   +$fragmentRefs: ProjectDetails_project$ref,
+  ...
 };
 */
 

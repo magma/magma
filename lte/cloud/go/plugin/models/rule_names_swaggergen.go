@@ -9,7 +9,7 @@ import (
 	strfmt "github.com/go-openapi/strfmt"
 )
 
-// RuleNames rule names
+// RuleNames List of rule names
 // swagger:model rule_names
 type RuleNames []string
 

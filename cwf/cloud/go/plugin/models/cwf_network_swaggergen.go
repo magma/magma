@@ -8,6 +8,7 @@ package models
 import (
 	strfmt "github.com/go-openapi/strfmt"
 	models2 "magma/feg/cloud/go/plugin/models"
+	models3 "magma/lte/cloud/go/plugin/models"
 	models4 "magma/orc8r/cloud/go/models"
 	models5 "magma/orc8r/cloud/go/pluginimpl/models"
 
@@ -46,6 +47,9 @@ type CwfNetwork struct {
 	// name
 	// Required: true
 	Name models4.NetworkName `json:"name"`
+
+	// subscriber config
+	SubscriberConfig *models3.NetworkSubscriberConfig `json:"subscriber_config,omitempty"`
 }
 
 // Validate validates this cwf network
@@ -77,6 +81,10 @@ func (m *CwfNetwork) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSubscriberConfig(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -189,6 +197,24 @@ func (m *CwfNetwork) validateName(formats strfmt.Registry) error {
 			return ve.ValidateName("name")
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *CwfNetwork) validateSubscriberConfig(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.SubscriberConfig) { // not required
+		return nil
+	}
+
+	if m.SubscriberConfig != nil {
+		if err := m.SubscriberConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("subscriber_config")
+			}
+			return err
+		}
 	}
 
 	return nil

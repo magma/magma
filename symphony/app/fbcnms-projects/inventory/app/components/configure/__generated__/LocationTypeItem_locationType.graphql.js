@@ -32,6 +32,7 @@ export type LocationTypeItem_locationType$data = LocationTypeItem_locationType;
 export type LocationTypeItem_locationType$key = {
   +$data?: LocationTypeItem_locationType$data,
   +$fragmentRefs: LocationTypeItem_locationType$ref,
+  ...
 };
 */
 

@@ -59,14 +59,15 @@ void SessionState::add_used_credit(
 
   CreditKey charging_key;
   if (session_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
-    MLOG(MDEBUG) << "Rule " << rule_id << "Rating Group"
-                 << charging_key.rating_group << " Service Indentifier "
-                 << charging_key.service_identifier;
+    MLOG(MDEBUG) << "Updating used charging credit for Rule=" << rule_id
+                 << " Rating Group=" << charging_key.rating_group
+                 << " Service Identifier=" << charging_key.service_identifier;
     charging_pool_.add_used_credit(charging_key, used_tx, used_rx);
   }
   std::string monitoring_key;
   if (session_rules_.get_monitoring_key_for_rule_id(rule_id, &monitoring_key)) {
-    MLOG(MDEBUG) << "Rule " << rule_id << " Monitoring Key " << monitoring_key;
+    MLOG(MDEBUG) << "Updating used monitoring credit for Rule=" << rule_id
+                 << " Monitoring Key=" << monitoring_key;
     monitor_pool_.add_used_credit(monitoring_key, used_tx, used_rx);
   }
   auto session_level_key_p = monitor_pool_.get_session_level_key();

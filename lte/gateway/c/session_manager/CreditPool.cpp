@@ -181,6 +181,8 @@ bool ChargingCreditPool::init_new_credit(const CreditUpdateResponse &update)
                  << " and charging key " << update.charging_key();
     return false;
   }
+  MLOG(MDEBUG) << "Initialized a charging credit for imsi" << imsi_
+               << " and charging key " << update.charging_key();
   // unless defined, volume is defined as the maximum possible value
   // uint64_t default_volume = std::numeric_limits<uint64_t>::max();
   /*
@@ -220,7 +222,7 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
     return false;
   }
   const auto &gsu = update.credit().granted_units();
-  MLOG(MDEBUG) << "Received credit of " << gsu.total().volume()
+  MLOG(MDEBUG) << "Received charging credit of " << gsu.total().volume()
                << " total bytes, " << gsu.tx().volume() << " tx bytes, and "
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " rating group "
@@ -411,6 +413,8 @@ bool UsageMonitoringCreditPool::init_new_credit(
                    << update.credit().monitoring_key();
     return false;
   }
+  MLOG(MDEBUG) << "Initialized a monitoring credit for imsi" << imsi_
+             << " and monitoring key " << update.credit().monitoring_key();
   auto monitor = std::make_unique<UsageMonitoringCreditPool::Monitor>();
   monitor->level = update.credit().level();
   // validity time and final units not used for monitors
@@ -438,7 +442,7 @@ bool UsageMonitoringCreditPool::receive_credit(
     return false;
   }
   const auto &gsu = update.credit().granted_units();
-  MLOG(MDEBUG) << "Received monitor of " << gsu.total().volume()
+  MLOG(MDEBUG) << "Received monitor credit of " << gsu.total().volume()
                << " total bytes, " << gsu.tx().volume() << " tx bytes, and "
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " monitoring key "
