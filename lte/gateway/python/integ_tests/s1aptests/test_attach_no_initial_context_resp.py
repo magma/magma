@@ -14,7 +14,6 @@ import s1ap_wrapper
 
 
 class TestAttachNoInitialContextSetupResp(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -37,39 +36,57 @@ class TestAttachNoInitialContextSetupResp(unittest.TestCase):
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
 
-        self._s1ap_wrapper._s1_util.\
-            issue_cmd(s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+        )
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
         sqnrecvd = s1ap_types.ueSqnRcvd_t()
         sqnrecvd.pres = 0
         auth_res.sqnRcvd = sqnrecvd
-        self._s1ap_wrapper._s1_util.\
-            issue_cmd(s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
 
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+        )
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete)
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+        )
 
-        print("************************* Receive Initial context Setup request ",
-              "for UE id ", ue_id)
+        print(
+            "************************* Receive Initial context Setup request ",
+            "for UE id ",
+            ue_id,
+        )
         # Send SCTP ABORT to MME
         sctp_abort = s1ap_types.FwSctpAbortReq_t()
         sctp_abort.cause = 0
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.SCTP_ABORT_REQ, sctp_abort)
-        print("************************* Send Initial context Setup response ",
-              "for UE id ", ue_id)
+            s1ap_types.tfwCmd.SCTP_ABORT_REQ, sctp_abort
+        )
+        print(
+            "************************* Send Initial context Setup response ",
+            "for UE id ",
+            ue_id,
+        )
         print("***************** Attach Aborted and UE Context released")
 
 

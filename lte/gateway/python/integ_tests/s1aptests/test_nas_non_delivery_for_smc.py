@@ -15,7 +15,6 @@ from integ_tests.s1aptests import s1ap_wrapper
 
 
 class TestNasNonDeliverySmc(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -28,8 +27,11 @@ class TestNasNonDeliverySmc(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
 
         req = self._s1ap_wrapper.ue_req
-        print("************************* Running Nas Non Delivery of Security"
-              "Mode Command message for a single UE with UE id", req.ue_id)
+        print(
+            "************************* Running Nas Non Delivery of Security"
+            "Mode Command message for a single UE with UE id",
+            req.ue_id,
+        )
 
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = req.ue_id
@@ -41,15 +43,18 @@ class TestNasNonDeliverySmc(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         print("Sending Attach Request ue-id", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req)
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+        )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+        )
         print("Received auth req ind ue-Id", req.ue_id)
 
         """ The purpose of UE_SET_NAS_NON_DELIVERY command is to prepare
-        enbapp to send S1ap-nas non delivery message for next receiving 
-        downlink nas message 
+        enbapp to send S1ap-nas non delivery message for next receiving
+        downlink nas message
         For testing of nas non delivery of SMC, the NasNonDel flag is set at
         enbApp, before sending Auth Response, to avoid race condition of SMC
         receiving first and then setting NasNonDel flag """
@@ -57,12 +62,14 @@ class TestNasNonDeliverySmc(unittest.TestCase):
         nas_non_del = s1ap_types.UeNasNonDel()
         nas_non_del.ue_Id = req.ue_id
         nas_non_del.flag = 1
-        nas_non_del.causeType = \
+        nas_non_del.causeType = (
             s1ap_types.NasNonDelCauseType.TFW_CAUSE_RADIONW.value
+        )
         nas_non_del.causeVal = 3
         print("Sending Set Nas Non Del to enbApp for ue-id", nas_non_del.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del)
+            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del
+        )
 
         print("Send Auth Resp", req.ue_id)
         auth_res = s1ap_types.ueAuthResp_t()
@@ -71,23 +78,28 @@ class TestNasNonDeliverySmc(unittest.TestCase):
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
 
-        self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_AUTH_RESP,
-                                              auth_res)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+        )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
         print("Received UE_CTX_REL_IND")
 
         # Reset the nas non delivery flag
         nas_non_del = s1ap_types.UeNasNonDel()
         nas_non_del.ue_id = req.ue_id
         nas_non_del.flag = 0
-        nas_non_del.causeType = \
+        nas_non_del.causeType = (
             s1ap_types.NasNonDelCauseType.TFW_CAUSE_RADIONW.value
+        )
         nas_non_del.causeVal = 3
         print("Sending Reset Nas Non Del ind to enb")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del)
+            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del
+        )
 
 
 if __name__ == "__main__":
