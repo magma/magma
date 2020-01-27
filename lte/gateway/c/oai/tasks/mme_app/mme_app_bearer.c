@@ -250,27 +250,12 @@ int _send_pcrf_bearer_actv_rsp(
   s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
     .s1u_sgw_fteid = bc->s_gw_fteid_s1u;
   s11_nw_init_actv_bearer_rsp->bearer_contexts.num_bearer_context++;
-  //Saved TFT to be sent to SGW in order to save in the SPGW context
-  if (bc->saved_tft) {
-    memcpy(
-      &s11_nw_init_actv_bearer_rsp->tft,
-      bc->saved_tft,
-      sizeof(traffic_flow_template_t));
-  }
-  //Saved QoS to be sent to SGW in order to save in the SPGW context
-  if (bc->saved_qos) {
-    memcpy(
-      &s11_nw_init_actv_bearer_rsp->eps_bearer_qos,
-      bc->saved_qos,
-      sizeof(bearer_qos_t));
-  }
 
   OAILOG_INFO(
     LOG_MME_APP,
-    "Sending create_dedicated_bearer_rsp to SGW with EBI %u\n",
-    s11_nw_init_actv_bearer_rsp->bearer_contexts
-      .bearer_contexts[msg_bearer_index]
-      .eps_bearer_id);
+    "Sending create_dedicated_bearer_rsp to SGW with EBI %u s1u teid %u\n",
+    ebi,
+    bc->s_gw_fteid_s1u.teid);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }

@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
@@ -115,6 +117,23 @@ func (equipmentTypeResolver) NumberOfEquipment(ctx context.Context, obj *ent.Equ
 
 type equipmentResolver struct{ resolver }
 
+func (r equipmentResolver) DescendentsIncludingSelf(ctx context.Context, obj *ent.Equipment) ([]*ent.Equipment, error) {
+	equip := *obj
+	var err error
+	var ret []*ent.Equipment
+	children, err := equip.QueryPositions().QueryAttachment().All(ctx)
+	if err == nil {
+		for _, child := range children {
+			grandChildren, err := r.DescendentsIncludingSelf(ctx, child)
+			if err == nil {
+				ret = append(ret, grandChildren...)
+			}
+		}
+	}
+	ret = append(ret, obj)
+	return ret, err
+}
+
 func (equipmentResolver) ParentLocation(ctx context.Context, obj *ent.Equipment) (*ent.Location, error) {
 	l, err := obj.QueryLocation().Only(ctx)
 	return l, ent.MaskNotFound(err)
@@ -133,8 +152,15 @@ func (equipmentResolver) Positions(ctx context.Context, obj *ent.Equipment) ([]*
 	return obj.QueryPositions().All(ctx)
 }
 
-func (equipmentResolver) Ports(ctx context.Context, obj *ent.Equipment) ([]*ent.EquipmentPort, error) {
-	return obj.QueryPorts().All(ctx)
+func (equipmentResolver) Ports(ctx context.Context, obj *ent.Equipment, availableOnly *bool) ([]*ent.EquipmentPort, error) {
+	q := obj.QueryPorts()
+	if availableOnly == nil {
+		availableOnly = pointer.ToBool(false)
+	}
+	if *availableOnly {
+		q.Where(equipmentport.Not(equipmentport.HasLink()))
+	}
+	return q.All(ctx)
 }
 
 func (equipmentResolver) Properties(ctx context.Context, obj *ent.Equipment) ([]*ent.Property, error) {

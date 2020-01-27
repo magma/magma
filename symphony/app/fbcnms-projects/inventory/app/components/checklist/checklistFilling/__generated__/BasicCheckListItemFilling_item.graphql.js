@@ -28,6 +28,7 @@ export type BasicCheckListItemFilling_item$data = BasicCheckListItemFilling_item
 export type BasicCheckListItemFilling_item$key = {
   +$data?: BasicCheckListItemFilling_item$data,
   +$fragmentRefs: BasicCheckListItemFilling_item$ref,
+  ...
 };
 */
 

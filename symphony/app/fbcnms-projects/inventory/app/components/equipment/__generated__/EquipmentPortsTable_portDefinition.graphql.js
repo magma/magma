@@ -67,6 +67,7 @@ export type EquipmentPortsTable_portDefinition$data = EquipmentPortsTable_portDe
 export type EquipmentPortsTable_portDefinition$key = {
   +$data?: EquipmentPortsTable_portDefinition$data,
   +$fragmentRefs: EquipmentPortsTable_portDefinition$ref,
+  ...
 };
 */
 

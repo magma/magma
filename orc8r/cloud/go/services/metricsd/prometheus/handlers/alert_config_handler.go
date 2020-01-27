@@ -125,7 +125,7 @@ func configurePrometheusAlert(networkID, url string, c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("misconfigured rule: %v", err), http.StatusBadRequest)
 	}
 
-	err = alert.SecureRule(networkID, &rule)
+	err = alert.SecureRule(true, metrics.NetworkLabelName, networkID, &rule)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}

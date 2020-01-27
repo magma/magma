@@ -30,6 +30,7 @@ export type TriggerFilterOperator_data$data = TriggerFilterOperator_data;
 export type TriggerFilterOperator_data$key = {
   +$data?: TriggerFilterOperator_data$data,
   +$fragmentRefs: TriggerFilterOperator_data$ref,
+  ...
 };
 */
 

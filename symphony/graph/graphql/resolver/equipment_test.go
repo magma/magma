@@ -854,6 +854,16 @@ func TestEquipmentParentEquipment(t *testing.T) {
 
 	descendantEqPosition, _ := er.ParentPosition(ctx, descendantEquipment)
 	assert.Equal(t, childEquipment.ID, descendantEqPosition.QueryParent().OnlyXID(ctx))
+
+	pDescendants, err := er.DescendentsIncludingSelf(ctx, parentEquipment)
+	require.NoError(t, err)
+	require.Len(t, pDescendants, 3)
+	cdescendants, err := er.DescendentsIncludingSelf(ctx, childEquipment)
+	require.NoError(t, err)
+	require.Len(t, cdescendants, 2)
+	ddescendants, err := er.DescendentsIncludingSelf(ctx, descendantEquipment)
+	require.NoError(t, err)
+	require.Len(t, ddescendants, 1)
 }
 
 func TestEditEquipment(t *testing.T) {

@@ -26,6 +26,7 @@ export type WorkOrderTypesListQuery_workOrderType$data = WorkOrderTypesListQuery
 export type WorkOrderTypesListQuery_workOrderType$key = {
   +$data?: WorkOrderTypesListQuery_workOrderType$data,
   +$fragmentRefs: WorkOrderTypesListQuery_workOrderType$ref,
+  ...
 };
 */
 

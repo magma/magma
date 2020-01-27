@@ -26,6 +26,7 @@ export type EntityDocumentsTable_hyperlinks$data = EntityDocumentsTable_hyperlin
 export type EntityDocumentsTable_hyperlinks$key = $ReadOnlyArray<{
   +$data?: EntityDocumentsTable_hyperlinks$data,
   +$fragmentRefs: EntityDocumentsTable_hyperlinks$ref,
+  ...
 }>;
 */
 

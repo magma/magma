@@ -97,7 +97,7 @@ describe('Receiver select', () => {
       </SymphonyWrapper>,
     );
     act(() => {
-      fireEvent.click(getByLabelText(/send notification to/i));
+      fireEvent.mouseDown(getByLabelText(/send notification to/i));
     });
     act(() => {
       fireEvent.click(getByText('new_receiver'));
@@ -124,7 +124,7 @@ describe('Receiver select', () => {
     );
 
     act(() => {
-      fireEvent.click(getByLabelText(/send notification to/i));
+      fireEvent.mouseDown(getByLabelText(/send notification to/i));
     });
     act(() => {
       fireEvent.click(getByText('test_receiver'));
@@ -174,7 +174,7 @@ describe('Receiver select', () => {
     );
 
     act(() => {
-      fireEvent.click(getByLabelText(/send notification to/i));
+      fireEvent.mouseDown(getByLabelText(/send notification to/i));
     });
     await act(async () => {
       fireEvent.click(getByText('new_receiver'));
@@ -223,7 +223,7 @@ describe('Receiver select', () => {
     );
 
     act(() => {
-      fireEvent.click(getByLabelText(/send notification to/i));
+      fireEvent.mouseDown(getByLabelText(/send notification to/i));
     });
     await act(async () => {
       fireEvent.click(getByText('None'));

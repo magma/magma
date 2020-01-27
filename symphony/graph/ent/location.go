@@ -39,29 +39,29 @@ type Location struct {
 	// The values are being populated by the LocationQuery when eager-loading is set.
 	Edges struct {
 		// Type holds the value of the type edge.
-		Type *LocationType
+		Type *LocationType `gqlgen:"locationType"`
 		// Parent holds the value of the parent edge.
-		Parent *Location
+		Parent *Location `gqlgen:"parent"`
 		// Children holds the value of the children edge.
-		Children []*Location
+		Children []*Location `gqlgen:"children"`
 		// Files holds the value of the files edge.
-		Files []*File
+		Files []*File `gqlgen:"files,images"`
 		// Hyperlinks holds the value of the hyperlinks edge.
-		Hyperlinks []*Hyperlink
+		Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
 		// Equipment holds the value of the equipment edge.
-		Equipment []*Equipment
+		Equipment []*Equipment `gqlgen:"equipments"`
 		// Properties holds the value of the properties edge.
-		Properties []*Property
+		Properties []*Property `gqlgen:"properties"`
 		// Survey holds the value of the survey edge.
-		Survey []*Survey
+		Survey []*Survey `gqlgen:"surveys"`
 		// WifiScan holds the value of the wifi_scan edge.
-		WifiScan []*SurveyWiFiScan
+		WifiScan []*SurveyWiFiScan `gqlgen:"wifiData"`
 		// CellScan holds the value of the cell_scan edge.
-		CellScan []*SurveyCellScan
+		CellScan []*SurveyCellScan `gqlgen:"cellData"`
 		// WorkOrders holds the value of the work_orders edge.
-		WorkOrders []*WorkOrder
+		WorkOrders []*WorkOrder `gqlgen:"workOrders"`
 		// FloorPlans holds the value of the floor_plans edge.
-		FloorPlans []*FloorPlan
+		FloorPlans []*FloorPlan `gqlgen:"floorPlans"`
 	} `json:"edges"`
 	type_id   *string
 	parent_id *string

@@ -371,16 +371,15 @@ func prepareLinksPortsAndExport(t *testing.T, r *TestExporterResolver, e http.Ha
 	return ctx, res
 }
 
-func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity importer.ImportEntity, method method) {
+func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity importer.ImportEntity, method method, skipLines bool) {
 	readr := csv.NewReader(r)
 	var buf *bytes.Buffer
 	var contentType, url string
 	switch entity {
 	case importer.ImportEntityLink:
-		buf, contentType = writeModifiedLinksCSV(t, readr, method)
+		buf, contentType = writeModifiedLinksCSV(t, readr, method, skipLines)
 	case importer.ImportEntityPort:
-		buf, contentType = writeModifiedPortsCSV(t, readr)
-		fmt.Println("contentType", contentType)
+		buf, contentType = writeModifiedPortsCSV(t, readr, skipLines)
 	}
 
 	h, _ := importer.NewHandler(logtest.NewTestLogger(t))
@@ -399,7 +398,6 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 
 	req.Header.Set(tenantHeader, "fb-test")
 	req.Header.Set("Content-Type", contentType)
-
 	resp, err := http.DefaultClient.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, resp.StatusCode, http.StatusOK)

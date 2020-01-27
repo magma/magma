@@ -34,6 +34,7 @@ export type SiteSurveyQuestionReplyCellData_data$data = SiteSurveyQuestionReplyC
 export type SiteSurveyQuestionReplyCellData_data$key = {
   +$data?: SiteSurveyQuestionReplyCellData_data$data,
   +$fragmentRefs: SiteSurveyQuestionReplyCellData_data$ref,
+  ...
 };
 */
 

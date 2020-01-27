@@ -361,7 +361,8 @@ class AccessControlTestCWF(unittest.TestCase):
                 }
             },
             mconfig=PipelineD(
-                allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
+                allowed_gre_peers=[{'ip': '2.2.2.2/24'},
+                                   {'ip': '1.2.3.4/24', 'key': 123}],
             ),
             loop=None,
             service_manager=cls.service_manager,

@@ -26,6 +26,7 @@ export type ServiceTypesListQuery_serviceType$data = ServiceTypesListQuery_servi
 export type ServiceTypesListQuery_serviceType$key = {
   +$data?: ServiceTypesListQuery_serviceType$data,
   +$fragmentRefs: ServiceTypesListQuery_serviceType$ref,
+  ...
 };
 */
 

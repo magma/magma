@@ -63,7 +63,7 @@ graphql`
 
 const locationsTreeQuery = graphql`
   query LocationsTreeQuery {
-    locations(first: 50, onlyTopLevel: true)
+    locations(first: 500, onlyTopLevel: true)
       @connection(key: "LocationsTree_locations") {
       edges {
         node {

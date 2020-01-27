@@ -43,7 +43,8 @@ class ArpController(MagmaController):
 
     ArpdConfig = namedtuple(
         'ArpdConfig',
-        ['virtual_iface', 'virtual_mac', 'ue_ip_blocks'],
+        ['virtual_iface', 'virtual_mac', 'ue_ip_blocks', 'cwf_check_quota_ip',
+         'cwf_bridge_mac'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -55,20 +56,24 @@ class ArpController(MagmaController):
         self.local_eth_addr = kwargs['config']['local_ue_eth_addr']
         self.setup_type = kwargs['config']['setup_type']
         self.allow_unknown_uplink_arps = kwargs['config']['allow_unknown_arps']
-        if self.local_eth_addr:
-            self.config = self._get_config(kwargs['config'], kwargs['mconfig'])
+        self.config = self._get_config(kwargs['config'], kwargs['mconfig'])
         self._current_ues = []
 
     def _get_config(self, config_dict, mconfig):
-        def get_virtual_iface_mac():
-            virtual_iface = config_dict['virtual_interface']
-            virt_ifaddresses = netifaces.ifaddresses(virtual_iface)
+        def get_virtual_iface_mac(iface):
+            virt_ifaddresses = netifaces.ifaddresses(iface)
             return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
-
+        virtual_iface = config_dict.get('virtual_interface', None)
+        virtual_mac = None
+        if virtual_iface:
+            virtual_mac = get_virtual_iface_mac(virtual_iface)
         return self.ArpdConfig(
-            virtual_iface=config_dict['virtual_interface'],
-            virtual_mac=get_virtual_iface_mac(),
+            #TODO failsafes for fields not existing or yml updates
+            virtual_iface=virtual_iface,
+            virtual_mac=virtual_mac,
             ue_ip_blocks=[cidr_to_ip_netmask_tuple(mconfig.ue_ip_block)],
+            cwf_check_quota_ip=config_dict.get('quota_check_ip', None),
+            cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
         )
 
     def initialize_on_connect(self, datapath):
@@ -78,8 +83,11 @@ class ArpController(MagmaController):
                 self.add_ue_arp_flows(datapath, ip_block,
                                        self.config.virtual_mac)
             self._install_default_eth_dst_flow(datapath)
-        if self.setup_type == 'CWF' and self.allow_unknown_uplink_arps:
-            self._install_allow_incoming_arp_flow(datapath)
+        if self.setup_type == 'CWF':
+            self._set_incoming_arp_flows(datapath,
+                self.config.cwf_check_quota_ip, self.config.cwf_bridge_mac)
+            if self.allow_unknown_uplink_arps:
+                self._install_allow_incoming_arp_flow(datapath)
 
         self._install_default_forward_flow(datapath)
         self._install_default_arp_drop_flow(datapath)

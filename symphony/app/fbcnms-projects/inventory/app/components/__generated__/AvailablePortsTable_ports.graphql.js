@@ -39,6 +39,7 @@ export type AvailablePortsTable_ports$data = AvailablePortsTable_ports;
 export type AvailablePortsTable_ports$key = $ReadOnlyArray<{
   +$data?: AvailablePortsTable_ports$data,
   +$fragmentRefs: AvailablePortsTable_ports$ref,
+  ...
 }>;
 */
 

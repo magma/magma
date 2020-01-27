@@ -38,7 +38,6 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		err                   error
 		affectedRows, numRows int
 		errs                  Errors
-		skipLines             []int
 		verifyBeforeCommit    bool
 		commitRuns            []bool
 	)
@@ -53,17 +52,12 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	skipLinesParam := r.FormValue("skip_lines")
-	if skipLinesParam != "" {
-		err := json.Unmarshal([]byte(skipLinesParam), &skipLines)
-		if err != nil {
-			errorReturn(w, "can't parse skipped lines", log, err)
-			return
-		}
+	skipLines, err := getLinesToSkip(r)
+	if err != nil {
+		errorReturn(w, "can't parse skipped lines", log, err)
+		return
 	}
-
 	if len(skipLines) > 0 {
-		skipLines = sortSlice(skipLines, true)
 		nextLineToSkipIndex = 0
 	}
 	commitParam := r.FormValue("verify_before_commit")
@@ -80,6 +74,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 	} else {
 		commitRuns = []bool{true}
 	}
+
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
 		importHeader := NewImportHeader(first, ImportEntityEquipment)
@@ -258,7 +253,7 @@ func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID
 	}
 	typ := equipment.QueryType().OnlyX(ctx)
 	if typ.Name != importLine.TypeName() {
-		return nil, errors.Errorf("wrong equipment type. should be %v, but %v", importLine.TypeName(), typ.Name)
+		return nil, errors.Errorf("wrong equipment type. should be %v, but %v", typ.Name, importLine.TypeName())
 	}
 	err = m.verifyPositionHierarchy(ctx, equipment, importLine)
 	if err != nil {

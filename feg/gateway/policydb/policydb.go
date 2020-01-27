@@ -37,13 +37,16 @@ type PolicyDBClient interface {
 	GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]ChargingKey, error)
 	GetPolicyRuleByID(id string) (*protos.PolicyRule, error)
 	GetRuleIDsForBaseNames(baseNames []string) []string
+	// This gets a list of rules that should be active for all subscribers in the network
+	GetOmnipresentRules() ([]string, []string)
 }
 
 // RedisPolicyDBClient is a policy client that loads policies from Redis
 type RedisPolicyDBClient struct {
-	PolicyMap      object_store.ObjectMap
-	BaseNameMap    object_store.ObjectMap
-	StreamerClient streamer.Client
+	PolicyMap        object_store.ObjectMap
+	BaseNameMap      object_store.ObjectMap
+	OmnipresentRules object_store.ObjectMap
+	StreamerClient   streamer.Client
 }
 
 // CreateChargingKey creates & returns ChargingKey from a given policy
@@ -74,10 +77,17 @@ func NewRedisPolicyDBClient(reg registry.CloudRegistry) (*RedisPolicyDBClient, e
 			GetBaseNameSerializer(),
 			GetBaseNameDeserializer(),
 		),
+		OmnipresentRules: object_store.NewRedisMap(
+			redisClient,
+			"policydb:omnipresent_rules",
+			GetRuleMappingSerializer(),
+			GetRuleMappingDeserializer(),
+		),
 		StreamerClient: streamer.NewStreamerClient(reg),
 	}
 	client.StreamerClient.AddListener(NewBaseNameStreamListener(client.BaseNameMap))
 	client.StreamerClient.AddListener(NewPolicyDBStreamListener(client.PolicyMap))
+	client.StreamerClient.AddListener(NewOmnipresentRulesListener(client.OmnipresentRules))
 	return client, nil
 }
 
@@ -118,8 +128,22 @@ func (client *RedisPolicyDBClient) GetChargingKeysForRules(
 	return keys, nil
 }
 
-func needsCharging(rule *protos.PolicyRule) bool {
-	return rule.TrackingType == protos.PolicyRule_ONLY_OCS || rule.TrackingType == protos.PolicyRule_OCS_AND_PCRF
+func (client *RedisPolicyDBClient) GetOmnipresentRules() ([]string, []string) {
+	assignmentMap, err := client.OmnipresentRules.GetAll()
+	if err != nil {
+		glog.Errorf("Failed to lookup OmnipresentRules: %v", err)
+		return []string{}, []string{}
+	}
+	// there should at most be one entry
+	for _, setRaw := range assignmentMap {
+		assignedRules, ok := setRaw.(*protos.AssignedPolicies)
+		if !ok {
+			glog.Errorf("Could not cast object to *protos.AssignedPolicies")
+			return []string{}, []string{}
+		}
+		return assignedRules.AssignedPolicies, assignedRules.AssignedBaseNames
+	}
+	return []string{}, []string{}
 }
 
 // GetRuleIDsForBaseNames gets the policy rule ids for given charging rule base names.
@@ -140,4 +164,8 @@ func (client *RedisPolicyDBClient) GetRuleIDsForBaseNames(baseNames []string) []
 		policyIDs = append(policyIDs, nameSet.GetRuleNames()...)
 	}
 	return policyIDs
+}
+
+func needsCharging(rule *protos.PolicyRule) bool {
+	return rule.TrackingType == protos.PolicyRule_ONLY_OCS || rule.TrackingType == protos.PolicyRule_OCS_AND_PCRF
 }

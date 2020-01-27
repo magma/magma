@@ -40,6 +40,7 @@ export type PropertyTypeFormField_propertyType$data = PropertyTypeFormField_prop
 export type PropertyTypeFormField_propertyType$key = {
   +$data?: PropertyTypeFormField_propertyType$data,
   +$fragmentRefs: PropertyTypeFormField_propertyType$ref,
+  ...
 };
 */
 

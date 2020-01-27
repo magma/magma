@@ -11,8 +11,7 @@ package alert
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/metrics"
-	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
@@ -22,10 +21,10 @@ type File struct {
 	RuleGroups []rulefmt.RuleGroup `yaml:"groups"`
 }
 
-func NewFile(networkID string) *File {
+func NewFile(tenantID string) *File {
 	return &File{
 		RuleGroups: []rulefmt.RuleGroup{{
-			Name: networkID,
+			Name: tenantID,
 		}},
 	}
 }
@@ -78,21 +77,25 @@ func (f *File) DeleteRule(name string) error {
 	return fmt.Errorf("alert with name %s not found", name)
 }
 
-// SecureRule attaches a label for networkID to the given alert expression to
-// to ensure that only metrics owned by this network can be alerted on
-func SecureRule(networkID string, rule *rulefmt.Rule) error {
-	networkLabels := map[string]string{metrics.NetworkLabelName: networkID}
-	restrictor := security.NewQueryRestrictor(networkLabels)
-
-	restrictedExpression, err := restrictor.RestrictQuery(rule.Expr)
-	if err != nil {
-		return err
+// SecureRule attaches a label for tenantID to the given alert expression to
+// to ensure that only metrics owned by this tenant can be alerted on
+func SecureRule(restrictQueries bool, matcherName, matcherValue string, rule *rulefmt.Rule) error {
+	expr := rule.Expr
+	var err error
+	if restrictQueries {
+		tenantLabels := map[string]string{matcherName: matcherValue}
+		queryRestrictor := restrictor.NewQueryRestrictor(tenantLabels)
+		expr, err = queryRestrictor.RestrictQuery(rule.Expr)
+		if err != nil {
+			return err
+		}
 	}
-	rule.Expr = restrictedExpression
+
+	rule.Expr = expr
 	if rule.Labels == nil {
 		rule.Labels = make(map[string]string)
 	}
-	rule.Labels[metrics.NetworkLabelName] = networkID
+	rule.Labels[matcherName] = matcherValue
 	return nil
 }
 

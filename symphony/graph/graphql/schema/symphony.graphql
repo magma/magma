@@ -225,7 +225,8 @@ type Equipment implements Node {
   parentPosition: EquipmentPosition
   equipmentType: EquipmentType!
   positions: [EquipmentPosition]!
-  ports: [EquipmentPort]!
+  ports(availableOnly: Boolean = false): [EquipmentPort]!
+  descendentsIncludingSelf: [Equipment]!
   properties: [Property]!
   futureState: FutureState
   workOrder: WorkOrder

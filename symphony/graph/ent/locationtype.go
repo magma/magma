@@ -39,11 +39,11 @@ type LocationType struct {
 	// The values are being populated by the LocationTypeQuery when eager-loading is set.
 	Edges struct {
 		// Locations holds the value of the locations edge.
-		Locations []*Location
+		Locations []*Location `gqlgen:"locations"`
 		// PropertyTypes holds the value of the property_types edge.
-		PropertyTypes []*PropertyType
+		PropertyTypes []*PropertyType `gqlgen:"propertyTypes"`
 		// SurveyTemplateCategories holds the value of the survey_template_categories edge.
-		SurveyTemplateCategories []*SurveyTemplateCategory
+		SurveyTemplateCategories []*SurveyTemplateCategory `gqlgen:"surveyTemplateCategories"`
 	} `json:"edges"`
 }
 

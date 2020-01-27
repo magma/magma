@@ -119,6 +119,7 @@ export type WorkOrderDetails_workOrder$data = WorkOrderDetails_workOrder;
 export type WorkOrderDetails_workOrder$key = {
   +$data?: WorkOrderDetails_workOrder$data,
   +$fragmentRefs: WorkOrderDetails_workOrder$ref,
+  ...
 };
 */
 

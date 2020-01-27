@@ -81,6 +81,21 @@ type ErrorLine struct {
 // ErrorLine represents a summary of the errors while uploading a CSV file
 type Errors []ErrorLine
 
+func getLinesToSkip(r *http.Request) ([]int, error) {
+	var skipLines []int
+	arg := r.FormValue("skip_lines")
+	if arg != "" {
+		err := json.Unmarshal([]byte(arg), &skipLines)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(skipLines) > 0 {
+		skipLines = sortSlice(skipLines, true)
+	}
+	return skipLines, nil
+}
+
 func shouldSkipLine(a []int, currRow, nextLineToSkipIndex int) bool {
 	if nextLineToSkipIndex >= 0 && nextLineToSkipIndex < len(a) {
 		return currRow == a[nextLineToSkipIndex]

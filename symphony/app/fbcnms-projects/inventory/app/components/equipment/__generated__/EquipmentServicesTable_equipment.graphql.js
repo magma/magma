@@ -38,6 +38,7 @@ export type EquipmentServicesTable_equipment$data = EquipmentServicesTable_equip
 export type EquipmentServicesTable_equipment$key = {
   +$data?: EquipmentServicesTable_equipment$data,
   +$fragmentRefs: EquipmentServicesTable_equipment$ref,
+  ...
 };
 */
 
