@@ -1,4 +1,12 @@
 ---
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
 - name: Set up Magma dev build environment on a local machine
   hosts: dev
   become: yes
@@ -9,6 +17,7 @@
     full_provision: true
 
   roles:
+    - role: stretch_snapshot
     - role: gateway_dev
       vars:
         distribution: "stretch"
