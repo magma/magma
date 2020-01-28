@@ -125,3 +125,4 @@ class Document(NamedTuple):
     name: str
     parentId: str
     parentEntity: ImageEntity
+    category: Optional[str]

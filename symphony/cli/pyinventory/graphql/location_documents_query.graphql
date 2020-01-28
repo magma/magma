@@ -4,6 +4,7 @@ query LocationDocumentsQuery($id: ID!) {
       files {
         id
         fileName
+        category
       }
     }
   }

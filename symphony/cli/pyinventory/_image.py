@@ -5,7 +5,7 @@
 import glob
 import os.path
 from datetime import datetime
-from typing import Dict, Generator
+from typing import Dict, Generator, Optional
 
 import filetype
 
@@ -67,6 +67,7 @@ def _add_image(
     local_file_path: str,
     entity_type: AddImageEntity,
     entity_id: str,
+    category: Optional[str] = None,
 ) -> None:
     file_type = filetype.guess(local_file_path)
     file_type = file_type.MIME if file_type is not None else ""
@@ -83,6 +84,7 @@ def _add_image(
             fileSize=file_size,
             modified=datetime.utcnow(),
             contentType=file_type,
+            category=category,
         ),
     )
 
@@ -95,7 +97,11 @@ def list_dir(directory_path: str) -> Generator[str, None, None]:
 
 
 def add_file(
-    client: GraphqlClient, local_file_path: str, entity_type: str, entity_id: str
+    client: GraphqlClient,
+    local_file_path: str,
+    entity_type: str,
+    entity_id: str,
+    category: Optional[str] = None,
 ) -> None:
     """This function adds file to an entity of a given type.
 
@@ -120,11 +126,15 @@ def add_file(
         "SITE_SURVEY": AddImageEntity.SITE_SURVEY,
         "EQUIPMENT": AddImageEntity.EQUIPMENT,
     }.get(entity_type, AddImageEntity.LOCATION)
-    _add_image(client, local_file_path, entity, entity_id)
+    _add_image(client, local_file_path, entity, entity_id, category)
 
 
 def add_files(
-    client: GraphqlClient, local_directory_path: str, entity_type: str, entity_id: str
+    client: GraphqlClient,
+    local_directory_path: str,
+    entity_type: str,
+    entity_id: str,
+    category: Optional[str] = None,
 ) -> None:
     """This function adds all files located in folder to an entity of a given type.
 
@@ -144,7 +154,7 @@ def add_files(
             client.add_files(client, './documents_folder/', 'LOCATION', location.id)
     """
     for file in list_dir(local_directory_path):
-        add_file(client, file, entity_type, entity_id)
+        add_file(client, file, entity_type, entity_id, category)
 
 
 def add_location_image(
