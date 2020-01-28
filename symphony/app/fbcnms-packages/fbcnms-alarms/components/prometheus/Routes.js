@@ -15,11 +15,10 @@ import React from 'react';
 import SimpleTable, {toLabels} from '../SimpleTable';
 import TableActionDialog from '../TableActionDialog';
 import {makeStyles} from '@material-ui/styles';
+import {useAlarmContext} from '../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
-
-import type {ApiUtil} from '../AlarmsApi';
 
 const useStyles = makeStyles({
   loading: {
@@ -30,12 +29,8 @@ const useStyles = makeStyles({
   },
 });
 
-type Props = {
-  apiUtil: ApiUtil,
-};
-
-export default function Routes(props: Props) {
-  const {apiUtil} = props;
+export default function Routes() {
+  const {apiUtil} = useAlarmContext();
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
   const [currentRow, setCurrentRow] = useState<{}>({});
   const [showDialog, setShowDialog] = useState<?'view'>(null);

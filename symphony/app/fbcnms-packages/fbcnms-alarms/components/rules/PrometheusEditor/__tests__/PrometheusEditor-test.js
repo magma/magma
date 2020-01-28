@@ -8,16 +8,15 @@
  * @format
  */
 import 'jest-dom/extend-expect';
+import 'jest-dom/extend-expect';
 import * as React from 'react';
 import PrometheusEditor from '../PrometheusEditor';
-import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
+import {alarmTestUtil} from '../../../../test/testHelpers';
 import {cleanup, render} from '@testing-library/react';
-import {mockApiUtil} from '../../../../test/testHelpers';
+import {parseTimeString} from '../PrometheusEditor';
+
 import type {AlertConfig} from '../../../AlarmAPIType';
 import type {GenericRule} from '../../RuleInterface';
-
-import 'jest-dom/extend-expect';
-import {parseTimeString} from '../PrometheusEditor';
 
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 jest.mock('@fbcnms/ui/hooks/useRouter');
@@ -26,6 +25,8 @@ afterEach(() => {
   cleanup();
   jest.clearAllMocks();
 });
+
+const {AlarmsWrapper} = alarmTestUtil();
 
 const enqueueSnackbarMock = jest.fn();
 jest
@@ -47,11 +48,9 @@ jest.mock('@material-ui/core/TextField', () => {
 });
 
 const commonProps = {
-  apiUtil: mockApiUtil(),
   onRuleUpdated: () => {},
   onExit: () => {},
   isNew: false,
-  thresholdEditorEnabled: true,
   onRuleSaved: jest.fn(),
 };
 
@@ -66,9 +65,9 @@ test('editing a threshold alert opens the PrometheusEditor with the threshold ex
     expression: 'metric > 123',
   };
   const {getByDisplayValue} = render(
-    <SymphonyWrapper>
+    <AlarmsWrapper thresholdEditorEnabled={true}>
       <PrometheusEditor {...commonProps} rule={testThresholdRule} />
-    </SymphonyWrapper>,
+    </AlarmsWrapper>,
   );
   expect(getByDisplayValue('metric')).toBeInTheDocument();
   expect(getByDisplayValue('123')).toBeInTheDocument();
@@ -85,9 +84,9 @@ test('editing a non-threshold alert opens the PrometheusEditor with the advanced
     expression: 'vector(1)',
   };
   const {getByDisplayValue} = render(
-    <SymphonyWrapper>
+    <AlarmsWrapper thresholdEditorEnabled={true}>
       <PrometheusEditor {...commonProps} rule={testThresholdRule} />
-    </SymphonyWrapper>,
+    </AlarmsWrapper>,
   );
   expect(getByDisplayValue('vector(1)')).toBeInTheDocument();
 });

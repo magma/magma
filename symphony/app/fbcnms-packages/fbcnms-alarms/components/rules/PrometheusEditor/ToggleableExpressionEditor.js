@@ -27,10 +27,10 @@ import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import Tooltip from '@material-ui/core/Tooltip';
 import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
+import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks/index';
 
-import type {ApiUtil} from '../../AlarmsApi';
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 import type {InputChangeFunc} from './PrometheusEditor';
 import type {prometheus_labelset} from '@fbcnms/magma-api';
@@ -82,16 +82,15 @@ export default function ToggleableExpressionEditor(props: {
   onThresholdExpressionChange: (expresion: ThresholdExpression) => void,
   expression: ThresholdExpression,
   stringExpression: string,
-  apiUtil: ApiUtil,
   toggleOn: boolean,
   onToggleChange: boolean => void,
 }) {
+  const {apiUtil} = useAlarmContext();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const {response, error} = props.apiUtil.useAlarmsApi(
-    props.apiUtil.getMetricSeries,
-    {networkId: match.params.networkId},
-  );
+  const {response, error} = apiUtil.useAlarmsApi(apiUtil.getMetricSeries, {
+    networkId: match.params.networkId,
+  });
   if (error) {
     enqueueSnackbar('Error retrieving metrics: ' + error);
   }
