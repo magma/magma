@@ -114,14 +114,14 @@ func (wotq *WorkOrderTypeQuery) QueryCheckListDefinitions() *CheckListItemDefini
 	return query
 }
 
-// First returns the first WorkOrderType entity in the query. Returns *ErrNotFound when no workordertype was found.
+// First returns the first WorkOrderType entity in the query. Returns *NotFoundError when no workordertype was found.
 func (wotq *WorkOrderTypeQuery) First(ctx context.Context) (*WorkOrderType, error) {
 	wots, err := wotq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(wots) == 0 {
-		return nil, &ErrNotFound{workordertype.Label}
+		return nil, &NotFoundError{workordertype.Label}
 	}
 	return wots[0], nil
 }
@@ -135,14 +135,14 @@ func (wotq *WorkOrderTypeQuery) FirstX(ctx context.Context) *WorkOrderType {
 	return wot
 }
 
-// FirstID returns the first WorkOrderType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first WorkOrderType id in the query. Returns *NotFoundError when no id was found.
 func (wotq *WorkOrderTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = wotq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{workordertype.Label}
+		err = &NotFoundError{workordertype.Label}
 		return
 	}
 	return ids[0], nil
@@ -167,9 +167,9 @@ func (wotq *WorkOrderTypeQuery) Only(ctx context.Context) (*WorkOrderType, error
 	case 1:
 		return wots[0], nil
 	case 0:
-		return nil, &ErrNotFound{workordertype.Label}
+		return nil, &NotFoundError{workordertype.Label}
 	default:
-		return nil, &ErrNotSingular{workordertype.Label}
+		return nil, &NotSingularError{workordertype.Label}
 	}
 }
 
@@ -192,9 +192,9 @@ func (wotq *WorkOrderTypeQuery) OnlyID(ctx context.Context) (id string, err erro
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{workordertype.Label}
+		err = &NotFoundError{workordertype.Label}
 	default:
-		err = &ErrNotSingular{workordertype.Label}
+		err = &NotSingularError{workordertype.Label}
 	}
 	return
 }
@@ -370,8 +370,8 @@ func (wotq *WorkOrderTypeQuery) Select(field string, fields ...string) *WorkOrde
 
 func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, error) {
 	var (
-		nodes []*WorkOrderType
-		_spec = wotq.querySpec()
+		nodes []*WorkOrderType = []*WorkOrderType{}
+		_spec                  = wotq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &WorkOrderType{config: wotq.config}
@@ -389,7 +389,6 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 	if err := sqlgraph.QueryNodes(ctx, wotq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

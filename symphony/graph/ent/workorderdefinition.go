@@ -29,14 +29,17 @@ type WorkOrderDefinition struct {
 	Index int `json:"index,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderDefinitionQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *WorkOrderType
-		// ProjectType holds the value of the project_type edge.
-		ProjectType *ProjectType
-	} `json:"edges"`
+	Edges           WorkOrderDefinitionEdges `json:"edges"`
 	project_type_id *string
 	type_id         *string
+}
+
+// WorkOrderDefinitionEdges holds the relations/edges for other nodes in the graph.
+type WorkOrderDefinitionEdges struct {
+	// Type holds the value of the type edge.
+	Type *WorkOrderType
+	// ProjectType holds the value of the project_type edge.
+	ProjectType *ProjectType
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

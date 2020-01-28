@@ -26,7 +26,7 @@ func (r *resolvers) Node(ctx context.Context, id int) (ent.Noder, error) {
 	if err == nil {
 		return node, nil
 	}
-	var e *ent.ErrNotFound
+	var e *ent.NotFoundError
 	if errors.As(err, &e) {
 		err = nil
 	}

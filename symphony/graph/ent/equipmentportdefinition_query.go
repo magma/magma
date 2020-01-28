@@ -101,14 +101,14 @@ func (epdq *EquipmentPortDefinitionQuery) QueryEquipmentType() *EquipmentTypeQue
 	return query
 }
 
-// First returns the first EquipmentPortDefinition entity in the query. Returns *ErrNotFound when no equipmentportdefinition was found.
+// First returns the first EquipmentPortDefinition entity in the query. Returns *NotFoundError when no equipmentportdefinition was found.
 func (epdq *EquipmentPortDefinitionQuery) First(ctx context.Context) (*EquipmentPortDefinition, error) {
 	epds, err := epdq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(epds) == 0 {
-		return nil, &ErrNotFound{equipmentportdefinition.Label}
+		return nil, &NotFoundError{equipmentportdefinition.Label}
 	}
 	return epds[0], nil
 }
@@ -122,14 +122,14 @@ func (epdq *EquipmentPortDefinitionQuery) FirstX(ctx context.Context) *Equipment
 	return epd
 }
 
-// FirstID returns the first EquipmentPortDefinition id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first EquipmentPortDefinition id in the query. Returns *NotFoundError when no id was found.
 func (epdq *EquipmentPortDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = epdq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmentportdefinition.Label}
+		err = &NotFoundError{equipmentportdefinition.Label}
 		return
 	}
 	return ids[0], nil
@@ -154,9 +154,9 @@ func (epdq *EquipmentPortDefinitionQuery) Only(ctx context.Context) (*EquipmentP
 	case 1:
 		return epds[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmentportdefinition.Label}
+		return nil, &NotFoundError{equipmentportdefinition.Label}
 	default:
-		return nil, &ErrNotSingular{equipmentportdefinition.Label}
+		return nil, &NotSingularError{equipmentportdefinition.Label}
 	}
 }
 
@@ -179,9 +179,9 @@ func (epdq *EquipmentPortDefinitionQuery) OnlyID(ctx context.Context) (id string
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmentportdefinition.Label}
+		err = &NotFoundError{equipmentportdefinition.Label}
 	default:
-		err = &ErrNotSingular{equipmentportdefinition.Label}
+		err = &NotSingularError{equipmentportdefinition.Label}
 	}
 	return
 }
@@ -346,9 +346,9 @@ func (epdq *EquipmentPortDefinitionQuery) Select(field string, fields ...string)
 
 func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*EquipmentPortDefinition, error) {
 	var (
-		nodes   []*EquipmentPortDefinition
-		withFKs = epdq.withFKs
-		_spec   = epdq.querySpec()
+		nodes   []*EquipmentPortDefinition = []*EquipmentPortDefinition{}
+		withFKs                            = epdq.withFKs
+		_spec                              = epdq.querySpec()
 	)
 	if epdq.withEquipmentPortType != nil || epdq.withEquipmentType != nil {
 		withFKs = true
@@ -375,7 +375,6 @@ func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*Equipm
 	if err := sqlgraph.QueryNodes(ctx, epdq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

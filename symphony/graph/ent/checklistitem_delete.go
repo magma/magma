@@ -74,7 +74,7 @@ func (clido *CheckListItemDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{checklistitem.Label}
+		return &NotFoundError{checklistitem.Label}
 	default:
 		return nil
 	}

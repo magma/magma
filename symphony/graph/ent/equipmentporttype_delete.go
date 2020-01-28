@@ -74,7 +74,7 @@ func (eptdo *EquipmentPortTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{equipmentporttype.Label}
+		return &NotFoundError{equipmentporttype.Label}
 	default:
 		return nil
 	}

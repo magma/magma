@@ -213,14 +213,14 @@ func (woq *WorkOrderQuery) QueryProject() *ProjectQuery {
 	return query
 }
 
-// First returns the first WorkOrder entity in the query. Returns *ErrNotFound when no workorder was found.
+// First returns the first WorkOrder entity in the query. Returns *NotFoundError when no workorder was found.
 func (woq *WorkOrderQuery) First(ctx context.Context) (*WorkOrder, error) {
 	wos, err := woq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(wos) == 0 {
-		return nil, &ErrNotFound{workorder.Label}
+		return nil, &NotFoundError{workorder.Label}
 	}
 	return wos[0], nil
 }
@@ -234,14 +234,14 @@ func (woq *WorkOrderQuery) FirstX(ctx context.Context) *WorkOrder {
 	return wo
 }
 
-// FirstID returns the first WorkOrder id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first WorkOrder id in the query. Returns *NotFoundError when no id was found.
 func (woq *WorkOrderQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = woq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{workorder.Label}
+		err = &NotFoundError{workorder.Label}
 		return
 	}
 	return ids[0], nil
@@ -266,9 +266,9 @@ func (woq *WorkOrderQuery) Only(ctx context.Context) (*WorkOrder, error) {
 	case 1:
 		return wos[0], nil
 	case 0:
-		return nil, &ErrNotFound{workorder.Label}
+		return nil, &NotFoundError{workorder.Label}
 	default:
-		return nil, &ErrNotSingular{workorder.Label}
+		return nil, &NotSingularError{workorder.Label}
 	}
 }
 
@@ -291,9 +291,9 @@ func (woq *WorkOrderQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{workorder.Label}
+		err = &NotFoundError{workorder.Label}
 	default:
-		err = &ErrNotSingular{workorder.Label}
+		err = &NotSingularError{workorder.Label}
 	}
 	return
 }
@@ -546,9 +546,9 @@ func (woq *WorkOrderQuery) Select(field string, fields ...string) *WorkOrderSele
 
 func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 	var (
-		nodes   []*WorkOrder
-		withFKs = woq.withFKs
-		_spec   = woq.querySpec()
+		nodes   []*WorkOrder = []*WorkOrder{}
+		withFKs              = woq.withFKs
+		_spec                = woq.querySpec()
 	)
 	if woq.withType != nil || woq.withLocation != nil || woq.withTechnician != nil || woq.withProject != nil {
 		withFKs = true
@@ -575,7 +575,6 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 	if err := sqlgraph.QueryNodes(ctx, woq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

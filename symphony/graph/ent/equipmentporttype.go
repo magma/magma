@@ -29,14 +29,17 @@ type EquipmentPortType struct {
 	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPortTypeQuery when eager-loading is set.
-	Edges struct {
-		// PropertyTypes holds the value of the property_types edge.
-		PropertyTypes []*PropertyType
-		// LinkPropertyTypes holds the value of the link_property_types edge.
-		LinkPropertyTypes []*PropertyType
-		// PortDefinitions holds the value of the port_definitions edge.
-		PortDefinitions []*EquipmentPortDefinition
-	} `json:"edges"`
+	Edges EquipmentPortTypeEdges `json:"edges"`
+}
+
+// EquipmentPortTypeEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPortTypeEdges struct {
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType
+	// LinkPropertyTypes holds the value of the link_property_types edge.
+	LinkPropertyTypes []*PropertyType
+	// PortDefinitions holds the value of the port_definitions edge.
+	PortDefinitions []*EquipmentPortDefinition
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

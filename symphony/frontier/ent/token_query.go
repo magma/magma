@@ -71,14 +71,14 @@ func (tq *TokenQuery) QueryUser() *UserQuery {
 	return query
 }
 
-// First returns the first Token entity in the query. Returns *ErrNotFound when no token was found.
+// First returns the first Token entity in the query. Returns *NotFoundError when no token was found.
 func (tq *TokenQuery) First(ctx context.Context) (*Token, error) {
 	ts, err := tq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ts) == 0 {
-		return nil, &ErrNotFound{token.Label}
+		return nil, &NotFoundError{token.Label}
 	}
 	return ts[0], nil
 }
@@ -92,14 +92,14 @@ func (tq *TokenQuery) FirstX(ctx context.Context) *Token {
 	return t
 }
 
-// FirstID returns the first Token id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Token id in the query. Returns *NotFoundError when no id was found.
 func (tq *TokenQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{token.Label}
+		err = &NotFoundError{token.Label}
 		return
 	}
 	return ids[0], nil
@@ -124,9 +124,9 @@ func (tq *TokenQuery) Only(ctx context.Context) (*Token, error) {
 	case 1:
 		return ts[0], nil
 	case 0:
-		return nil, &ErrNotFound{token.Label}
+		return nil, &NotFoundError{token.Label}
 	default:
-		return nil, &ErrNotSingular{token.Label}
+		return nil, &NotSingularError{token.Label}
 	}
 }
 
@@ -149,9 +149,9 @@ func (tq *TokenQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{token.Label}
+		err = &NotFoundError{token.Label}
 	default:
-		err = &ErrNotSingular{token.Label}
+		err = &NotSingularError{token.Label}
 	}
 	return
 }
@@ -294,9 +294,9 @@ func (tq *TokenQuery) Select(field string, fields ...string) *TokenSelect {
 
 func (tq *TokenQuery) sqlAll(ctx context.Context) ([]*Token, error) {
 	var (
-		nodes   []*Token
-		withFKs = tq.withFKs
-		_spec   = tq.querySpec()
+		nodes   []*Token = []*Token{}
+		withFKs          = tq.withFKs
+		_spec            = tq.querySpec()
 	)
 	if tq.withUser != nil {
 		withFKs = true
@@ -323,7 +323,6 @@ func (tq *TokenQuery) sqlAll(ctx context.Context) ([]*Token, error) {
 	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

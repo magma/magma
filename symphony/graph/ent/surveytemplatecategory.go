@@ -31,11 +31,14 @@ type SurveyTemplateCategory struct {
 	CategoryDescription string `json:"category_description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyTemplateCategoryQuery when eager-loading is set.
-	Edges struct {
-		// SurveyTemplateQuestions holds the value of the survey_template_questions edge.
-		SurveyTemplateQuestions []*SurveyTemplateQuestion
-	} `json:"edges"`
+	Edges                                     SurveyTemplateCategoryEdges `json:"edges"`
 	location_type_survey_template_category_id *string
+}
+
+// SurveyTemplateCategoryEdges holds the relations/edges for other nodes in the graph.
+type SurveyTemplateCategoryEdges struct {
+	// SurveyTemplateQuestions holds the value of the survey_template_questions edge.
+	SurveyTemplateQuestions []*SurveyTemplateQuestion
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

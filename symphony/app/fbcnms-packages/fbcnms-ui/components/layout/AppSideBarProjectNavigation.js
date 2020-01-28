@@ -131,7 +131,6 @@ export default function AppSideBarProjectNavigation(props: Props) {
                   [classes.menuItem]: true,
                   [classes.selected]: item.id === selected?.id,
                 })}
-                disabled={match.url.startsWith(item.url)}
                 onClick={_event => history.push(item.url)}>
                 <Text className={classes.menuItemText} variant="body2">
                   {item.secondary}
@@ -139,7 +138,8 @@ export default function AppSideBarProjectNavigation(props: Props) {
               </div>
             ))}
           </div>
-        }>
+        }
+        contentClickTriggerClose={true}>
         <div className={classes.appsButton}>
           <AppsIcon />
         </div>

@@ -85,14 +85,14 @@ func (seq *ServiceEndpointQuery) QueryService() *ServiceQuery {
 	return query
 }
 
-// First returns the first ServiceEndpoint entity in the query. Returns *ErrNotFound when no serviceendpoint was found.
+// First returns the first ServiceEndpoint entity in the query. Returns *NotFoundError when no serviceendpoint was found.
 func (seq *ServiceEndpointQuery) First(ctx context.Context) (*ServiceEndpoint, error) {
 	ses, err := seq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ses) == 0 {
-		return nil, &ErrNotFound{serviceendpoint.Label}
+		return nil, &NotFoundError{serviceendpoint.Label}
 	}
 	return ses[0], nil
 }
@@ -106,14 +106,14 @@ func (seq *ServiceEndpointQuery) FirstX(ctx context.Context) *ServiceEndpoint {
 	return se
 }
 
-// FirstID returns the first ServiceEndpoint id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first ServiceEndpoint id in the query. Returns *NotFoundError when no id was found.
 func (seq *ServiceEndpointQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = seq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{serviceendpoint.Label}
+		err = &NotFoundError{serviceendpoint.Label}
 		return
 	}
 	return ids[0], nil
@@ -138,9 +138,9 @@ func (seq *ServiceEndpointQuery) Only(ctx context.Context) (*ServiceEndpoint, er
 	case 1:
 		return ses[0], nil
 	case 0:
-		return nil, &ErrNotFound{serviceendpoint.Label}
+		return nil, &NotFoundError{serviceendpoint.Label}
 	default:
-		return nil, &ErrNotSingular{serviceendpoint.Label}
+		return nil, &NotSingularError{serviceendpoint.Label}
 	}
 }
 
@@ -163,9 +163,9 @@ func (seq *ServiceEndpointQuery) OnlyID(ctx context.Context) (id string, err err
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{serviceendpoint.Label}
+		err = &NotFoundError{serviceendpoint.Label}
 	default:
-		err = &ErrNotSingular{serviceendpoint.Label}
+		err = &NotSingularError{serviceendpoint.Label}
 	}
 	return
 }
@@ -319,9 +319,9 @@ func (seq *ServiceEndpointQuery) Select(field string, fields ...string) *Service
 
 func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint, error) {
 	var (
-		nodes   []*ServiceEndpoint
-		withFKs = seq.withFKs
-		_spec   = seq.querySpec()
+		nodes   []*ServiceEndpoint = []*ServiceEndpoint{}
+		withFKs                    = seq.withFKs
+		_spec                      = seq.querySpec()
 	)
 	if seq.withPort != nil || seq.withService != nil {
 		withFKs = true
@@ -348,7 +348,6 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 	if err := sqlgraph.QueryNodes(ctx, seq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

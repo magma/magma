@@ -72,14 +72,14 @@ func (ecq *EquipmentCategoryQuery) QueryTypes() *EquipmentTypeQuery {
 	return query
 }
 
-// First returns the first EquipmentCategory entity in the query. Returns *ErrNotFound when no equipmentcategory was found.
+// First returns the first EquipmentCategory entity in the query. Returns *NotFoundError when no equipmentcategory was found.
 func (ecq *EquipmentCategoryQuery) First(ctx context.Context) (*EquipmentCategory, error) {
 	ecs, err := ecq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ecs) == 0 {
-		return nil, &ErrNotFound{equipmentcategory.Label}
+		return nil, &NotFoundError{equipmentcategory.Label}
 	}
 	return ecs[0], nil
 }
@@ -93,14 +93,14 @@ func (ecq *EquipmentCategoryQuery) FirstX(ctx context.Context) *EquipmentCategor
 	return ec
 }
 
-// FirstID returns the first EquipmentCategory id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first EquipmentCategory id in the query. Returns *NotFoundError when no id was found.
 func (ecq *EquipmentCategoryQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = ecq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmentcategory.Label}
+		err = &NotFoundError{equipmentcategory.Label}
 		return
 	}
 	return ids[0], nil
@@ -125,9 +125,9 @@ func (ecq *EquipmentCategoryQuery) Only(ctx context.Context) (*EquipmentCategory
 	case 1:
 		return ecs[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmentcategory.Label}
+		return nil, &NotFoundError{equipmentcategory.Label}
 	default:
-		return nil, &ErrNotSingular{equipmentcategory.Label}
+		return nil, &NotSingularError{equipmentcategory.Label}
 	}
 }
 
@@ -150,9 +150,9 @@ func (ecq *EquipmentCategoryQuery) OnlyID(ctx context.Context) (id string, err e
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmentcategory.Label}
+		err = &NotFoundError{equipmentcategory.Label}
 	default:
-		err = &ErrNotSingular{equipmentcategory.Label}
+		err = &NotSingularError{equipmentcategory.Label}
 	}
 	return
 }
@@ -295,8 +295,8 @@ func (ecq *EquipmentCategoryQuery) Select(field string, fields ...string) *Equip
 
 func (ecq *EquipmentCategoryQuery) sqlAll(ctx context.Context) ([]*EquipmentCategory, error) {
 	var (
-		nodes []*EquipmentCategory
-		_spec = ecq.querySpec()
+		nodes []*EquipmentCategory = []*EquipmentCategory{}
+		_spec                      = ecq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &EquipmentCategory{config: ecq.config}
@@ -314,7 +314,6 @@ func (ecq *EquipmentCategoryQuery) sqlAll(ctx context.Context) ([]*EquipmentCate
 	if err := sqlgraph.QueryNodes(ctx, ecq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

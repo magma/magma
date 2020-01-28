@@ -74,7 +74,7 @@ func (epddo *EquipmentPositionDefinitionDeleteOne) Exec(ctx context.Context) err
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{equipmentpositiondefinition.Label}
+		return &NotFoundError{equipmentpositiondefinition.Label}
 	default:
 		return nil
 	}

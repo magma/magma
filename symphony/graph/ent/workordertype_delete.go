@@ -74,7 +74,7 @@ func (wotdo *WorkOrderTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{workordertype.Label}
+		return &NotFoundError{workordertype.Label}
 	default:
 		return nil
 	}

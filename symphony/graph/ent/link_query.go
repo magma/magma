@@ -115,14 +115,14 @@ func (lq *LinkQuery) QueryService() *ServiceQuery {
 	return query
 }
 
-// First returns the first Link entity in the query. Returns *ErrNotFound when no link was found.
+// First returns the first Link entity in the query. Returns *NotFoundError when no link was found.
 func (lq *LinkQuery) First(ctx context.Context) (*Link, error) {
 	ls, err := lq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ls) == 0 {
-		return nil, &ErrNotFound{link.Label}
+		return nil, &NotFoundError{link.Label}
 	}
 	return ls[0], nil
 }
@@ -136,14 +136,14 @@ func (lq *LinkQuery) FirstX(ctx context.Context) *Link {
 	return l
 }
 
-// FirstID returns the first Link id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Link id in the query. Returns *NotFoundError when no id was found.
 func (lq *LinkQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = lq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{link.Label}
+		err = &NotFoundError{link.Label}
 		return
 	}
 	return ids[0], nil
@@ -168,9 +168,9 @@ func (lq *LinkQuery) Only(ctx context.Context) (*Link, error) {
 	case 1:
 		return ls[0], nil
 	case 0:
-		return nil, &ErrNotFound{link.Label}
+		return nil, &NotFoundError{link.Label}
 	default:
-		return nil, &ErrNotSingular{link.Label}
+		return nil, &NotSingularError{link.Label}
 	}
 }
 
@@ -193,9 +193,9 @@ func (lq *LinkQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{link.Label}
+		err = &NotFoundError{link.Label}
 	default:
-		err = &ErrNotSingular{link.Label}
+		err = &NotSingularError{link.Label}
 	}
 	return
 }
@@ -371,9 +371,9 @@ func (lq *LinkQuery) Select(field string, fields ...string) *LinkSelect {
 
 func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 	var (
-		nodes   []*Link
-		withFKs = lq.withFKs
-		_spec   = lq.querySpec()
+		nodes   []*Link = []*Link{}
+		withFKs         = lq.withFKs
+		_spec           = lq.querySpec()
 	)
 	if lq.withWorkOrder != nil {
 		withFKs = true
@@ -400,7 +400,6 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 	if err := sqlgraph.QueryNodes(ctx, lq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

@@ -74,7 +74,7 @@ func (ardo *ActionsRuleDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{actionsrule.Label}
+		return &NotFoundError{actionsrule.Label}
 	default:
 		return nil
 	}

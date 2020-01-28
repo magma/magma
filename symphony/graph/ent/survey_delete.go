@@ -74,7 +74,7 @@ func (sdo *SurveyDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{survey.Label}
+		return &NotFoundError{survey.Label}
 	default:
 		return nil
 	}

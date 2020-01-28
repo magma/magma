@@ -121,7 +121,8 @@ func TestExportAndAddLinks(t *testing.T) {
 		links, err := r.Query().LinkSearch(ctx, nil, nil)
 		require.NoError(t, err)
 		if skipLines {
-			require.Empty(t, links)
+			require.Zero(t, links.Count)
+			require.Empty(t, links.Links)
 		} else {
 			require.Equal(t, 1, links.Count)
 			for _, link := range links.Links {

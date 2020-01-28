@@ -83,10 +83,10 @@ func TestTenantHandler(t *testing.T) {
 	t.Run("LoadError", func(t *testing.T) {
 		var m testHandler
 		m.On("Load", mock.Anything, "test").
-			Return(nil, &ent.ErrNotFound{}).
+			Return(nil, &ent.NotFoundError{}).
 			Once()
 		m.On("Load", mock.Anything, "test").
-			Return(nil, &ent.ErrNotSingular{}).
+			Return(nil, &ent.NotSingularError{}).
 			Once()
 		defer m.AssertExpectations(t)
 		h := TenantHandler(&m, &m)

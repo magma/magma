@@ -29,10 +29,13 @@ type EquipmentCategory struct {
 	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentCategoryQuery when eager-loading is set.
-	Edges struct {
-		// Types holds the value of the types edge.
-		Types []*EquipmentType
-	} `json:"edges"`
+	Edges EquipmentCategoryEdges `json:"edges"`
+}
+
+// EquipmentCategoryEdges holds the relations/edges for other nodes in the graph.
+type EquipmentCategoryEdges struct {
+	// Types holds the value of the types edge.
+	Types []*EquipmentType
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

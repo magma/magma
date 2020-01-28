@@ -35,16 +35,19 @@ type Survey struct {
 	CompletionTimestamp time.Time `json:"completion_timestamp,omitempty" gqlgen:"completionTimestamp"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuery when eager-loading is set.
-	Edges struct {
-		// Location holds the value of the location edge.
-		Location *Location
-		// SourceFile holds the value of the source_file edge.
-		SourceFile *File
-		// Questions holds the value of the questions edge.
-		Questions []*SurveyQuestion
-	} `json:"edges"`
+	Edges                 SurveyEdges `json:"edges"`
 	location_id           *string
 	survey_source_file_id *string
+}
+
+// SurveyEdges holds the relations/edges for other nodes in the graph.
+type SurveyEdges struct {
+	// Location holds the value of the location edge.
+	Location *Location
+	// SourceFile holds the value of the source_file edge.
+	SourceFile *File
+	// Questions holds the value of the questions edge.
+	Questions []*SurveyQuestion
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

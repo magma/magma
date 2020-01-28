@@ -3904,11 +3904,11 @@ func (c *Client) Noder(ctx context.Context, id string) (Noder, error) {
 	}
 	idv, err := strconv.Atoi(id)
 	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, &ErrNotFound{"invalid/unknown"})
+		return nil, fmt.Errorf("%v: %w", err, &NotFoundError{"invalid/unknown"})
 	}
 	idx := idv / (1<<32 - 1)
 	if idx < 0 || idx >= len(tables) {
-		return nil, fmt.Errorf("cannot resolve table from id %v: %w", id, &ErrNotFound{"invalid/unknown"})
+		return nil, fmt.Errorf("cannot resolve table from id %v: %w", id, &NotFoundError{"invalid/unknown"})
 	}
 	return c.noder(ctx, tables[idx], id)
 }
@@ -4144,7 +4144,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 		}
 		return n, nil
 	default:
-		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", tbl, &ErrNotFound{"invalid/unknown"})
+		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", tbl, &NotFoundError{"invalid/unknown"})
 	}
 }
 

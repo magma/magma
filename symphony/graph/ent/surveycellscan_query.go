@@ -85,14 +85,14 @@ func (scsq *SurveyCellScanQuery) QueryLocation() *LocationQuery {
 	return query
 }
 
-// First returns the first SurveyCellScan entity in the query. Returns *ErrNotFound when no surveycellscan was found.
+// First returns the first SurveyCellScan entity in the query. Returns *NotFoundError when no surveycellscan was found.
 func (scsq *SurveyCellScanQuery) First(ctx context.Context) (*SurveyCellScan, error) {
 	scsSlice, err := scsq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(scsSlice) == 0 {
-		return nil, &ErrNotFound{surveycellscan.Label}
+		return nil, &NotFoundError{surveycellscan.Label}
 	}
 	return scsSlice[0], nil
 }
@@ -106,14 +106,14 @@ func (scsq *SurveyCellScanQuery) FirstX(ctx context.Context) *SurveyCellScan {
 	return scs
 }
 
-// FirstID returns the first SurveyCellScan id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first SurveyCellScan id in the query. Returns *NotFoundError when no id was found.
 func (scsq *SurveyCellScanQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = scsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{surveycellscan.Label}
+		err = &NotFoundError{surveycellscan.Label}
 		return
 	}
 	return ids[0], nil
@@ -138,9 +138,9 @@ func (scsq *SurveyCellScanQuery) Only(ctx context.Context) (*SurveyCellScan, err
 	case 1:
 		return scsSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{surveycellscan.Label}
+		return nil, &NotFoundError{surveycellscan.Label}
 	default:
-		return nil, &ErrNotSingular{surveycellscan.Label}
+		return nil, &NotSingularError{surveycellscan.Label}
 	}
 }
 
@@ -163,9 +163,9 @@ func (scsq *SurveyCellScanQuery) OnlyID(ctx context.Context) (id string, err err
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{surveycellscan.Label}
+		err = &NotFoundError{surveycellscan.Label}
 	default:
-		err = &ErrNotSingular{surveycellscan.Label}
+		err = &NotSingularError{surveycellscan.Label}
 	}
 	return
 }
@@ -319,9 +319,9 @@ func (scsq *SurveyCellScanQuery) Select(field string, fields ...string) *SurveyC
 
 func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan, error) {
 	var (
-		nodes   []*SurveyCellScan
-		withFKs = scsq.withFKs
-		_spec   = scsq.querySpec()
+		nodes   []*SurveyCellScan = []*SurveyCellScan{}
+		withFKs                   = scsq.withFKs
+		_spec                     = scsq.querySpec()
 	)
 	if scsq.withSurveyQuestion != nil || scsq.withLocation != nil {
 		withFKs = true
@@ -348,7 +348,6 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 	if err := sqlgraph.QueryNodes(ctx, scsq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

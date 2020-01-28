@@ -35,16 +35,19 @@ type EquipmentPortDefinition struct {
 	VisibilityLabel string `json:"visibility_label,omitempty" gqlgen:"visibleLabel"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPortDefinitionQuery when eager-loading is set.
-	Edges struct {
-		// EquipmentPortType holds the value of the equipment_port_type edge.
-		EquipmentPortType *EquipmentPortType
-		// Ports holds the value of the ports edge.
-		Ports []*EquipmentPort
-		// EquipmentType holds the value of the equipment_type edge.
-		EquipmentType *EquipmentType
-	} `json:"edges"`
+	Edges                  EquipmentPortDefinitionEdges `json:"edges"`
 	equipment_port_type_id *string
 	equipment_type_id      *string
+}
+
+// EquipmentPortDefinitionEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPortDefinitionEdges struct {
+	// EquipmentPortType holds the value of the equipment_port_type edge.
+	EquipmentPortType *EquipmentPortType
+	// Ports holds the value of the ports edge.
+	Ports []*EquipmentPort
+	// EquipmentType holds the value of the equipment_type edge.
+	EquipmentType *EquipmentType
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

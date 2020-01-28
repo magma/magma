@@ -129,14 +129,14 @@ func (pq *ProjectQuery) QueryProperties() *PropertyQuery {
 	return query
 }
 
-// First returns the first Project entity in the query. Returns *ErrNotFound when no project was found.
+// First returns the first Project entity in the query. Returns *NotFoundError when no project was found.
 func (pq *ProjectQuery) First(ctx context.Context) (*Project, error) {
 	prs, err := pq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(prs) == 0 {
-		return nil, &ErrNotFound{project.Label}
+		return nil, &NotFoundError{project.Label}
 	}
 	return prs[0], nil
 }
@@ -150,14 +150,14 @@ func (pq *ProjectQuery) FirstX(ctx context.Context) *Project {
 	return pr
 }
 
-// FirstID returns the first Project id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Project id in the query. Returns *NotFoundError when no id was found.
 func (pq *ProjectQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{project.Label}
+		err = &NotFoundError{project.Label}
 		return
 	}
 	return ids[0], nil
@@ -182,9 +182,9 @@ func (pq *ProjectQuery) Only(ctx context.Context) (*Project, error) {
 	case 1:
 		return prs[0], nil
 	case 0:
-		return nil, &ErrNotFound{project.Label}
+		return nil, &NotFoundError{project.Label}
 	default:
-		return nil, &ErrNotSingular{project.Label}
+		return nil, &NotSingularError{project.Label}
 	}
 }
 
@@ -207,9 +207,9 @@ func (pq *ProjectQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{project.Label}
+		err = &NotFoundError{project.Label}
 	default:
-		err = &ErrNotSingular{project.Label}
+		err = &NotSingularError{project.Label}
 	}
 	return
 }
@@ -396,9 +396,9 @@ func (pq *ProjectQuery) Select(field string, fields ...string) *ProjectSelect {
 
 func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 	var (
-		nodes   []*Project
-		withFKs = pq.withFKs
-		_spec   = pq.querySpec()
+		nodes   []*Project = []*Project{}
+		withFKs            = pq.withFKs
+		_spec              = pq.querySpec()
 	)
 	if pq.withType != nil || pq.withLocation != nil {
 		withFKs = true
@@ -425,7 +425,6 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

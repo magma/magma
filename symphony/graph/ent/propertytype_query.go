@@ -170,14 +170,14 @@ func (ptq *PropertyTypeQuery) QueryProjectType() *ProjectTypeQuery {
 	return query
 }
 
-// First returns the first PropertyType entity in the query. Returns *ErrNotFound when no propertytype was found.
+// First returns the first PropertyType entity in the query. Returns *NotFoundError when no propertytype was found.
 func (ptq *PropertyTypeQuery) First(ctx context.Context) (*PropertyType, error) {
 	pts, err := ptq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(pts) == 0 {
-		return nil, &ErrNotFound{propertytype.Label}
+		return nil, &NotFoundError{propertytype.Label}
 	}
 	return pts[0], nil
 }
@@ -191,14 +191,14 @@ func (ptq *PropertyTypeQuery) FirstX(ctx context.Context) *PropertyType {
 	return pt
 }
 
-// FirstID returns the first PropertyType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first PropertyType id in the query. Returns *NotFoundError when no id was found.
 func (ptq *PropertyTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = ptq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{propertytype.Label}
+		err = &NotFoundError{propertytype.Label}
 		return
 	}
 	return ids[0], nil
@@ -223,9 +223,9 @@ func (ptq *PropertyTypeQuery) Only(ctx context.Context) (*PropertyType, error) {
 	case 1:
 		return pts[0], nil
 	case 0:
-		return nil, &ErrNotFound{propertytype.Label}
+		return nil, &NotFoundError{propertytype.Label}
 	default:
-		return nil, &ErrNotSingular{propertytype.Label}
+		return nil, &NotSingularError{propertytype.Label}
 	}
 }
 
@@ -248,9 +248,9 @@ func (ptq *PropertyTypeQuery) OnlyID(ctx context.Context) (id string, err error)
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{propertytype.Label}
+		err = &NotFoundError{propertytype.Label}
 	default:
-		err = &ErrNotSingular{propertytype.Label}
+		err = &NotSingularError{propertytype.Label}
 	}
 	return
 }
@@ -470,9 +470,9 @@ func (ptq *PropertyTypeQuery) Select(field string, fields ...string) *PropertyTy
 
 func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, error) {
 	var (
-		nodes   []*PropertyType
-		withFKs = ptq.withFKs
-		_spec   = ptq.querySpec()
+		nodes   []*PropertyType = []*PropertyType{}
+		withFKs                 = ptq.withFKs
+		_spec                   = ptq.querySpec()
 	)
 	if ptq.withLocationType != nil || ptq.withEquipmentPortType != nil || ptq.withLinkEquipmentPortType != nil || ptq.withEquipmentType != nil || ptq.withServiceType != nil || ptq.withWorkOrderType != nil || ptq.withProjectType != nil {
 		withFKs = true
@@ -499,7 +499,6 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	if err := sqlgraph.QueryNodes(ctx, ptq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

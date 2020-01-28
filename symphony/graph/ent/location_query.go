@@ -225,14 +225,14 @@ func (lq *LocationQuery) QueryFloorPlans() *FloorPlanQuery {
 	return query
 }
 
-// First returns the first Location entity in the query. Returns *ErrNotFound when no location was found.
+// First returns the first Location entity in the query. Returns *NotFoundError when no location was found.
 func (lq *LocationQuery) First(ctx context.Context) (*Location, error) {
 	ls, err := lq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ls) == 0 {
-		return nil, &ErrNotFound{location.Label}
+		return nil, &NotFoundError{location.Label}
 	}
 	return ls[0], nil
 }
@@ -246,14 +246,14 @@ func (lq *LocationQuery) FirstX(ctx context.Context) *Location {
 	return l
 }
 
-// FirstID returns the first Location id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Location id in the query. Returns *NotFoundError when no id was found.
 func (lq *LocationQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = lq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{location.Label}
+		err = &NotFoundError{location.Label}
 		return
 	}
 	return ids[0], nil
@@ -278,9 +278,9 @@ func (lq *LocationQuery) Only(ctx context.Context) (*Location, error) {
 	case 1:
 		return ls[0], nil
 	case 0:
-		return nil, &ErrNotFound{location.Label}
+		return nil, &NotFoundError{location.Label}
 	default:
-		return nil, &ErrNotSingular{location.Label}
+		return nil, &NotSingularError{location.Label}
 	}
 }
 
@@ -303,9 +303,9 @@ func (lq *LocationQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{location.Label}
+		err = &NotFoundError{location.Label}
 	default:
-		err = &ErrNotSingular{location.Label}
+		err = &NotSingularError{location.Label}
 	}
 	return
 }
@@ -569,9 +569,9 @@ func (lq *LocationQuery) Select(field string, fields ...string) *LocationSelect 
 
 func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 	var (
-		nodes   []*Location
-		withFKs = lq.withFKs
-		_spec   = lq.querySpec()
+		nodes   []*Location = []*Location{}
+		withFKs             = lq.withFKs
+		_spec               = lq.querySpec()
 	)
 	if lq.withType != nil || lq.withParent != nil {
 		withFKs = true
@@ -598,7 +598,6 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 	if err := sqlgraph.QueryNodes(ctx, lq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

@@ -74,7 +74,7 @@ func (fpdo *FloorPlanDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{floorplan.Label}
+		return &NotFoundError{floorplan.Label}
 	default:
 		return nil
 	}

@@ -4,34 +4,30 @@
 # license that can be found in the LICENSE file.
 
 
-import os
 import time
 import unittest
 
 import requests
 from pyinventory import InventoryClient
+from utils.constant import PLATFORM_SERVER_HEALTH_CHECK_URL, TEST_USER_EMAIL
 
 
 class BaseTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._waitForPlatform()
+        cls.client = InventoryClient(TEST_USER_EMAIL, TEST_USER_EMAIL, is_dev_mode=True)
 
-    TEST_USER_EMAIL = "fbuser@fb.com"
-    PLATFORM_SERVER_HEALTH_CHECK_URL = os.getenv(
-        "PLATFORM_SERVER_HEALTH_CHECK_URL", "http://platform-server/healthz"
-    )
+    @classmethod
+    def tearDownClass(cls):
+        cls.client.session.close()
 
-    def setUp(self):
-        self._waitForPlatform()
-        self.client = InventoryClient(
-            self.TEST_USER_EMAIL, self.TEST_USER_EMAIL, is_dev_mode=True
-        )
-
+    @classmethod
     def _waitForPlatform(self):
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline:
             try:
-                response = requests.get(
-                    self.PLATFORM_SERVER_HEALTH_CHECK_URL, timeout=0.5
-                )
+                response = requests.get(PLATFORM_SERVER_HEALTH_CHECK_URL, timeout=0.5)
                 if response.status_code == 200:
                     return
             except Exception:

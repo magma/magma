@@ -101,14 +101,14 @@ func (sq *SurveyQuery) QueryQuestions() *SurveyQuestionQuery {
 	return query
 }
 
-// First returns the first Survey entity in the query. Returns *ErrNotFound when no survey was found.
+// First returns the first Survey entity in the query. Returns *NotFoundError when no survey was found.
 func (sq *SurveyQuery) First(ctx context.Context) (*Survey, error) {
 	sSlice, err := sq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(sSlice) == 0 {
-		return nil, &ErrNotFound{survey.Label}
+		return nil, &NotFoundError{survey.Label}
 	}
 	return sSlice[0], nil
 }
@@ -122,14 +122,14 @@ func (sq *SurveyQuery) FirstX(ctx context.Context) *Survey {
 	return s
 }
 
-// FirstID returns the first Survey id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Survey id in the query. Returns *NotFoundError when no id was found.
 func (sq *SurveyQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{survey.Label}
+		err = &NotFoundError{survey.Label}
 		return
 	}
 	return ids[0], nil
@@ -154,9 +154,9 @@ func (sq *SurveyQuery) Only(ctx context.Context) (*Survey, error) {
 	case 1:
 		return sSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{survey.Label}
+		return nil, &NotFoundError{survey.Label}
 	default:
-		return nil, &ErrNotSingular{survey.Label}
+		return nil, &NotSingularError{survey.Label}
 	}
 }
 
@@ -179,9 +179,9 @@ func (sq *SurveyQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{survey.Label}
+		err = &NotFoundError{survey.Label}
 	default:
-		err = &ErrNotSingular{survey.Label}
+		err = &NotSingularError{survey.Label}
 	}
 	return
 }
@@ -346,9 +346,9 @@ func (sq *SurveyQuery) Select(field string, fields ...string) *SurveySelect {
 
 func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	var (
-		nodes   []*Survey
-		withFKs = sq.withFKs
-		_spec   = sq.querySpec()
+		nodes   []*Survey = []*Survey{}
+		withFKs           = sq.withFKs
+		_spec             = sq.querySpec()
 	)
 	if sq.withLocation != nil || sq.withSourceFile != nil {
 		withFKs = true
@@ -375,7 +375,6 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	if err := sqlgraph.QueryNodes(ctx, sq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

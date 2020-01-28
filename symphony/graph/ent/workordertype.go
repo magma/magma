@@ -31,16 +31,19 @@ type WorkOrderType struct {
 	Description string `json:"description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderTypeQuery when eager-loading is set.
-	Edges struct {
-		// WorkOrders holds the value of the work_orders edge.
-		WorkOrders []*WorkOrder
-		// PropertyTypes holds the value of the property_types edge.
-		PropertyTypes []*PropertyType
-		// Definitions holds the value of the definitions edge.
-		Definitions []*WorkOrderDefinition
-		// CheckListDefinitions holds the value of the check_list_definitions edge.
-		CheckListDefinitions []*CheckListItemDefinition
-	} `json:"edges"`
+	Edges WorkOrderTypeEdges `json:"edges"`
+}
+
+// WorkOrderTypeEdges holds the relations/edges for other nodes in the graph.
+type WorkOrderTypeEdges struct {
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType
+	// Definitions holds the value of the definitions edge.
+	Definitions []*WorkOrderDefinition
+	// CheckListDefinitions holds the value of the check_list_definitions edge.
+	CheckListDefinitions []*CheckListItemDefinition
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

@@ -36,11 +36,14 @@ type CheckListItem struct {
 	HelpText *string `json:"help_text,omitempty" gqlgen:"helpText"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CheckListItemQuery when eager-loading is set.
-	Edges struct {
-		// WorkOrder holds the value of the work_order edge.
-		WorkOrder *WorkOrder
-	} `json:"edges"`
+	Edges         CheckListItemEdges `json:"edges"`
 	work_order_id *string
+}
+
+// CheckListItemEdges holds the relations/edges for other nodes in the graph.
+type CheckListItemEdges struct {
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

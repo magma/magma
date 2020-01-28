@@ -55,14 +55,14 @@ func (arq *ActionsRuleQuery) Order(o ...Order) *ActionsRuleQuery {
 	return arq
 }
 
-// First returns the first ActionsRule entity in the query. Returns *ErrNotFound when no actionsrule was found.
+// First returns the first ActionsRule entity in the query. Returns *NotFoundError when no actionsrule was found.
 func (arq *ActionsRuleQuery) First(ctx context.Context) (*ActionsRule, error) {
 	ars, err := arq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ars) == 0 {
-		return nil, &ErrNotFound{actionsrule.Label}
+		return nil, &NotFoundError{actionsrule.Label}
 	}
 	return ars[0], nil
 }
@@ -76,14 +76,14 @@ func (arq *ActionsRuleQuery) FirstX(ctx context.Context) *ActionsRule {
 	return ar
 }
 
-// FirstID returns the first ActionsRule id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first ActionsRule id in the query. Returns *NotFoundError when no id was found.
 func (arq *ActionsRuleQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = arq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{actionsrule.Label}
+		err = &NotFoundError{actionsrule.Label}
 		return
 	}
 	return ids[0], nil
@@ -108,9 +108,9 @@ func (arq *ActionsRuleQuery) Only(ctx context.Context) (*ActionsRule, error) {
 	case 1:
 		return ars[0], nil
 	case 0:
-		return nil, &ErrNotFound{actionsrule.Label}
+		return nil, &NotFoundError{actionsrule.Label}
 	default:
-		return nil, &ErrNotSingular{actionsrule.Label}
+		return nil, &NotSingularError{actionsrule.Label}
 	}
 }
 
@@ -133,9 +133,9 @@ func (arq *ActionsRuleQuery) OnlyID(ctx context.Context) (id string, err error) 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{actionsrule.Label}
+		err = &NotFoundError{actionsrule.Label}
 	default:
-		err = &ErrNotSingular{actionsrule.Label}
+		err = &NotSingularError{actionsrule.Label}
 	}
 	return
 }
@@ -267,8 +267,8 @@ func (arq *ActionsRuleQuery) Select(field string, fields ...string) *ActionsRule
 
 func (arq *ActionsRuleQuery) sqlAll(ctx context.Context) ([]*ActionsRule, error) {
 	var (
-		nodes []*ActionsRule
-		_spec = arq.querySpec()
+		nodes []*ActionsRule = []*ActionsRule{}
+		_spec                = arq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &ActionsRule{config: arq.config}
@@ -286,7 +286,6 @@ func (arq *ActionsRuleQuery) sqlAll(ctx context.Context) ([]*ActionsRule, error)
 	if err := sqlgraph.QueryNodes(ctx, arq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

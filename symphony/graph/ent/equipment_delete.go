@@ -74,7 +74,7 @@ func (edo *EquipmentDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{equipment.Label}
+		return &NotFoundError{equipment.Label}
 	default:
 		return nil
 	}
