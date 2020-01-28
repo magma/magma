@@ -102,4 +102,6 @@ message FluentBit {
     uint32 throttle_rate = 10;
     uint32 throttle_window = 11;
     string throttle_interval = 12;
+
+    map<string, string> files_by_tag = 20;
 }

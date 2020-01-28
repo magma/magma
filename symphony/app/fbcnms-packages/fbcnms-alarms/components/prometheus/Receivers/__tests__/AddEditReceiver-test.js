@@ -10,12 +10,12 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AddEditReceiver from '../AddEditReceiver';
-import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
-import {mockApiUtil} from '../../../../test/testHelpers';
+import {alarmTestUtil} from '@fbcnms/alarms/test/testHelpers';
+
+const {apiUtil, AlarmsWrapper} = alarmTestUtil();
 
 const commonProps = {
-  apiUtil: mockApiUtil(),
   isNew: true,
   onExit: jest.fn(),
 };
@@ -26,18 +26,18 @@ afterEach(() => {
 
 test('renders', () => {
   const {getByLabelText} = render(
-    <SymphonyWrapper>
+    <AlarmsWrapper>
       <AddEditReceiver {...commonProps} receiver={{name: ''}} />
-    </SymphonyWrapper>,
+    </AlarmsWrapper>,
   );
   expect(getByLabelText(/receiver name/i)).toBeInTheDocument();
 });
 
 test('clicking the add button adds a new config entry', async () => {
   const {getByLabelText, getByTestId, queryByTestId} = render(
-    <SymphonyWrapper>
+    <AlarmsWrapper>
       <AddEditReceiver {...commonProps} receiver={{name: ''}} />
-    </SymphonyWrapper>,
+    </AlarmsWrapper>,
   );
   expect(queryByTestId('slack-config-editor')).not.toBeInTheDocument();
   act(() => {
@@ -48,9 +48,9 @@ test('clicking the add button adds a new config entry', async () => {
 
 test('editing a config entry then submitting submits the form state', () => {
   const {getByLabelText, getByTestId} = render(
-    <SymphonyWrapper>
+    <AlarmsWrapper>
       <AddEditReceiver {...commonProps} receiver={{name: ''}} />
-    </SymphonyWrapper>,
+    </AlarmsWrapper>,
   );
   act(() => {
     fireEvent.click(getByLabelText('add new receiver configuration'));
@@ -73,7 +73,7 @@ test('editing a config entry then submitting submits the form state', () => {
   act(() => {
     fireEvent.click(getByTestId('editor-submit-button'));
   });
-  expect(commonProps.apiUtil.createReceiver).toHaveBeenCalledWith({
+  expect(apiUtil.createReceiver).toHaveBeenCalledWith({
     receiver: {
       name: 'test receiver',
       slack_configs: [

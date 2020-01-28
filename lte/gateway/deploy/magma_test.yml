@@ -9,6 +9,7 @@
     full_provision: true
 
   roles:
+    - role: stretch_snapshot
     - role: apt_cache
       vars:
         distribution: "stretch"

@@ -29,6 +29,7 @@ require (
 	github.com/prometheus/common v0.2.0
 	github.com/shirou/gopsutil v2.18.10+incompatible
 	github.com/stretchr/testify v1.4.0
+	github.com/thoas/go-funk v0.4.0
 	golang.org/x/net v0.0.0-20191007182048-72f939374954
 	google.golang.org/grpc v1.25.0
 

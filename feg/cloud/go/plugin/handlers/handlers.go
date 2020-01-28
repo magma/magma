@@ -33,6 +33,9 @@ const (
 	ListFegNetworksPath            = obsidian.V1Root + FederationNetworks
 	ManageFegNetworkPath           = ListFegNetworksPath + "/:network_id"
 	ManageFegNetworkFederationPath = ManageFegNetworkPath + obsidian.UrlSep + "federation"
+	ManageFegNetworkSubscriberPath = ManageFegNetworkPath + obsidian.UrlSep + "subscriber_config"
+	ManageFegNetworkBaseNamesPath  = ManageFegNetworkSubscriberPath + obsidian.UrlSep + "base_names"
+	ManageFegNetworkRuleNamesPath  = ManageFegNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
 	ManageNetworkClusterStatusPath = ManageFegNetworkPath + obsidian.UrlSep + "cluster_status"
 
 	Gateways                      = "gateways"
@@ -66,6 +69,9 @@ func GetHandlers() []obsidian.Handler {
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederationNetworkType, &fegModels.FegNetwork{})...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkFederationPath, &fegModels.NetworkFederationConfigs{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkSubscriberPath, &lteModels.NetworkSubscriberConfig{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkRuleNamesPath, new(lteModels.RuleNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkBaseNamesPath, new(lteModels.BaseNames), "")...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayFederationPath, &fegModels.GatewayFederationConfigs{})...)
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegLteNetworksPath, ManageFegLteNetworkPath, feg.FederatedLteNetworkType, &fegModels.FegLteNetwork{})...)

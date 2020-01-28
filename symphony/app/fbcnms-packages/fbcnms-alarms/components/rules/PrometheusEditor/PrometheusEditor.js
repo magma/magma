@@ -24,6 +24,7 @@ import {BINARY_COMPARATORS} from '../../prometheus/PromQLTypes';
 import {Labels} from '../../prometheus/PromQL';
 import {Parse} from '../../prometheus/PromQLParser';
 import {SEVERITY} from '../../Severity';
+import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useForm} from '../../hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -167,10 +168,10 @@ function TimeUnitEditor(props: {
 
 type PrometheusEditorProps = {
   ...RuleEditorProps<AlertConfig>,
-  thresholdEditorEnabled?: ?boolean,
 };
 export default function PrometheusEditor(props: PrometheusEditorProps) {
-  const {apiUtil, isNew, onRuleUpdated, onExit, rule} = props;
+  const {apiUtil, thresholdEditorEnabled} = useAlarmContext();
+  const {isNew, onRuleUpdated, onExit, rule} = props;
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -200,8 +201,8 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
     thresholdExpression,
     setThresholdExpression,
   } = useThresholdExpressionEditorState({
-    expression: props.rule?.expression,
-    thresholdEditorEnabled: props.thresholdEditorEnabled,
+    expression: rule?.expression,
+    thresholdEditorEnabled,
   });
 
   /**
@@ -274,15 +275,13 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
 
   return (
     <RuleEditorBase
-      apiUtil={apiUtil}
       initialState={editorBaseInitialState}
       onChange={handleEditorBaseChange}
       onSave={saveAlert}
       onExit={onExit}
       isNew={isNew}>
-      {props.thresholdEditorEnabled ? (
+      {thresholdEditorEnabled ? (
         <ToggleableExpressionEditor
-          apiUtil={props.apiUtil}
           onChange={handleInputChange}
           onThresholdExpressionChange={updateThresholdExpression}
           expression={thresholdExpression}
