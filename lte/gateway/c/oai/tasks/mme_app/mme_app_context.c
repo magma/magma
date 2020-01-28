@@ -42,7 +42,6 @@
 #include <time.h>
 
 #include "dynamic_memory_check.h"
-#include "assertions.h"
 #include "log.h"
 #include "common_types.h"
 #include "conversions.h"

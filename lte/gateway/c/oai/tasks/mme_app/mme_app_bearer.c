@@ -37,7 +37,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "assertions.h"
 #include "conversions.h"
 #include "common_types.h"
 #include "intertask_interface.h"
@@ -568,7 +567,7 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
 
   OAILOG_INFO(LOG_MME_APP, "Received MME_APP_INITIAL_UE_MESSAGE from S1AP\n");
 
-  if (INVALID_MME_UE_S1AP_ID != initial_pP->mme_ue_s1ap_id) {
+  if (initial_pP->mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "MME UE S1AP Id (" MME_UE_S1AP_ID_FMT ") is already assigned\n",
