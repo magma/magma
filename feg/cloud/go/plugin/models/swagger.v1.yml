@@ -544,7 +544,7 @@ paths:
         description: Updated config
         required: true
         schema:
-          $ref: '#/definitions/network_federation_configs'
+          $ref: '#/definitions/federated_network_configs'
       responses:
         '200':
           description: Success
