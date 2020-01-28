@@ -6,6 +6,7 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 
 #include <devmand/devices/cli/ParsingUtils.h>
+#include <folly/Conv.h>
 
 namespace devmand {
 namespace devices {
@@ -14,7 +15,7 @@ namespace cli {
 using namespace std;
 
 function<ydk::uint64(string)> toUI64 = [](auto s) { return stoull(s); };
-function<ydk::uint16(string)> toUI16 = [](auto s) { return stoi(s); };
+function<ydk::uint16(string)> toUI16 = [](auto s) { return folly::to<int>(s); };
 
 folly::Optional<string> extractValue(
     const string& output,

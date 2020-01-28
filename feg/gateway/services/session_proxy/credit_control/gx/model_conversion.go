@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package gx
 
 import (
-	"encoding/base64"
 	"time"
 
 	"magma/feg/gateway/policydb"
@@ -51,12 +50,9 @@ func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRe
 
 func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
 	monitoringKey := []byte{}
-	if rd.MonitoringKey != nil && len(*rd.MonitoringKey) > 0 {
-		if decoded, err := base64.StdEncoding.DecodeString(*rd.MonitoringKey); err == nil {
-			monitoringKey = decoded
-		} else {
-			monitoringKey = []byte(*rd.MonitoringKey)
-		}
+	if len(rd.MonitoringKey) > 0 {
+		// no conversion needed - Monitoring-Key AVP is Octet String already
+		monitoringKey = rd.MonitoringKey
 	}
 	var ratingGroup uint32 = 0
 	if rd.RatingGroup != nil {
@@ -97,11 +93,12 @@ func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
 }
 
 func (rd *RuleDefinition) getTrackingType() protos.PolicyRule_TrackingType {
-	if rd.MonitoringKey != nil && rd.RatingGroup != nil {
+	monKeyPresent := len(rd.MonitoringKey) > 0
+	if monKeyPresent && rd.RatingGroup != nil {
 		return protos.PolicyRule_OCS_AND_PCRF
-	} else if rd.MonitoringKey != nil && rd.RatingGroup == nil {
+	} else if monKeyPresent && rd.RatingGroup == nil {
 		return protos.PolicyRule_ONLY_PCRF
-	} else if rd.MonitoringKey == nil && rd.RatingGroup != nil {
+	} else if (!monKeyPresent) && rd.RatingGroup != nil {
 		return protos.PolicyRule_ONLY_OCS
 	} else {
 		return protos.PolicyRule_NO_TRACKING
@@ -192,6 +189,14 @@ func ConvertToProtoTimestamp(unixTime *time.Time) *timestamp.Timestamp {
 		return nil
 	}
 	return protoTimestamp
+}
+
+func RuleIDsToProtosRuleInstalls(ruleIDs []string) []*protos.StaticRuleInstall {
+	ruleInstalls := make([]*protos.StaticRuleInstall, len(ruleIDs))
+	for idx, ruleID := range ruleIDs {
+		ruleInstalls[idx] = &protos.StaticRuleInstall{RuleId: ruleID}
+	}
+	return ruleInstalls
 }
 
 func ParseRuleInstallAVPs(
@@ -288,14 +293,17 @@ func getQoSInfo(qosInfo *QosInformation) *protos.QoSInformation {
 	if qosInfo == nil {
 		return nil
 	}
-	return &protos.QoSInformation{
+	res := &protos.QoSInformation{
 		BearerId: qosInfo.BearerIdentifier,
-		Qci:      protos.QCI(*qosInfo.Qci),
 	}
+	if qosInfo.Qci != nil {
+		res.Qci = protos.QCI(*qosInfo.Qci)
+	}
+	return res
 }
 
 func (report *UsageReport) FromUsageMonitorUpdate(update *protos.UsageMonitorUpdate) *UsageReport {
-	report.MonitoringKey = string(update.MonitoringKey)
+	report.MonitoringKey = update.MonitoringKey
 	report.Level = MonitoringLevel(update.Level)
 	report.InputOctets = update.BytesTx
 	report.OutputOctets = update.BytesRx // receive == output
@@ -307,13 +315,13 @@ func (monitor *UsageMonitoringInfo) ToUsageMonitoringCredit() *protos.UsageMonit
 	if monitor.GrantedServiceUnit == nil || monitor.GrantedServiceUnit.IsEmpty() {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_DISABLE,
-			MonitoringKey: []byte(monitor.MonitoringKey),
+			MonitoringKey: monitor.MonitoringKey,
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}
 	} else {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_CONTINUE,
-			MonitoringKey: []byte(monitor.MonitoringKey),
+			MonitoringKey: monitor.MonitoringKey,
 			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}

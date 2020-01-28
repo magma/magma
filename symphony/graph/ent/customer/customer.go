@@ -36,7 +36,7 @@ const (
 	ServicesInverseTable = "services"
 )
 
-// Columns holds all SQL columns are customer fields.
+// Columns holds all SQL columns for customer fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

@@ -55,12 +55,17 @@ const (
 	ServiceInverseTable = "services"
 )
 
-// Columns holds all SQL columns are link fields.
+// Columns holds all SQL columns for link fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldFutureState,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Link type.
+var ForeignKeys = []string{
+	"work_order_id",
 }
 
 var (

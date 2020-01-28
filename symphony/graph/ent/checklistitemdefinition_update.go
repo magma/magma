@@ -187,7 +187,7 @@ func (clidu *CheckListItemDefinitionUpdate) ExecX(ctx context.Context) {
 }
 
 func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   checklistitemdefinition.Table,
 			Columns: checklistitemdefinition.Columns,
@@ -198,68 +198,68 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 		},
 	}
 	if ps := clidu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := clidu.title; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldTitle,
 		})
 	}
 	if value := clidu._type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldType,
 		})
 	}
 	if value := clidu.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldIndex,
 		})
 	}
 	if value := clidu.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldIndex,
 		})
 	}
 	if clidu.clearindex {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: checklistitemdefinition.FieldIndex,
 		})
 	}
 	if value := clidu.enum_values; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldEnumValues,
 		})
 	}
 	if clidu.clearenum_values {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitemdefinition.FieldEnumValues,
 		})
 	}
 	if value := clidu.help_text; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldHelpText,
 		})
 	}
 	if clidu.clearhelp_text {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitemdefinition.FieldHelpText,
 		})
@@ -278,7 +278,7 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := clidu.work_order_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -301,9 +301,9 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, clidu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, clidu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -474,7 +474,7 @@ func (cliduo *CheckListItemDefinitionUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (clid *CheckListItemDefinition, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   checklistitemdefinition.Table,
 			Columns: checklistitemdefinition.Columns,
@@ -486,61 +486,61 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 		},
 	}
 	if value := cliduo.title; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldTitle,
 		})
 	}
 	if value := cliduo._type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldType,
 		})
 	}
 	if value := cliduo.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldIndex,
 		})
 	}
 	if value := cliduo.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldIndex,
 		})
 	}
 	if cliduo.clearindex {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: checklistitemdefinition.FieldIndex,
 		})
 	}
 	if value := cliduo.enum_values; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldEnumValues,
 		})
 	}
 	if cliduo.clearenum_values {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitemdefinition.FieldEnumValues,
 		})
 	}
 	if value := cliduo.help_text; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldHelpText,
 		})
 	}
 	if cliduo.clearhelp_text {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitemdefinition.FieldHelpText,
 		})
@@ -559,7 +559,7 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := cliduo.work_order_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -582,12 +582,12 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	clid = &CheckListItemDefinition{config: cliduo.config}
-	spec.Assign = clid.assignValues
-	spec.ScanValues = clid.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, cliduo.driver, spec); err != nil {
+	_spec.Assign = clid.assignValues
+	_spec.ScanValues = clid.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, cliduo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

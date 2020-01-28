@@ -268,29 +268,34 @@ func (fprpq *FloorPlanReferencePointQuery) Select(field string, fields ...string
 func (fprpq *FloorPlanReferencePointQuery) sqlAll(ctx context.Context) ([]*FloorPlanReferencePoint, error) {
 	var (
 		nodes []*FloorPlanReferencePoint
-		spec  = fprpq.querySpec()
+		_spec = fprpq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &FloorPlanReferencePoint{config: fprpq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, fprpq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, fprpq.driver, _spec); err != nil {
 		return nil, err
+	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (fprpq *FloorPlanReferencePointQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := fprpq.querySpec()
-	return sqlgraph.CountNodes(ctx, fprpq.driver, spec)
+	_spec := fprpq.querySpec()
+	return sqlgraph.CountNodes(ctx, fprpq.driver, _spec)
 }
 
 func (fprpq *FloorPlanReferencePointQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,7 +307,7 @@ func (fprpq *FloorPlanReferencePointQuery) sqlExist(ctx context.Context) (bool, 
 }
 
 func (fprpq *FloorPlanReferencePointQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   floorplanreferencepoint.Table,
 			Columns: floorplanreferencepoint.Columns,
@@ -315,26 +320,26 @@ func (fprpq *FloorPlanReferencePointQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := fprpq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := fprpq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := fprpq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := fprpq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (fprpq *FloorPlanReferencePointQuery) sqlQuery() *sql.Selector {

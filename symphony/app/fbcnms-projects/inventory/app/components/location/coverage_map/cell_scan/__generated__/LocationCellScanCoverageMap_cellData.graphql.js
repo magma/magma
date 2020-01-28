@@ -33,6 +33,7 @@ export type LocationCellScanCoverageMap_cellData$data = LocationCellScanCoverage
 export type LocationCellScanCoverageMap_cellData$key = $ReadOnlyArray<{
   +$data?: LocationCellScanCoverageMap_cellData$data,
   +$fragmentRefs: LocationCellScanCoverageMap_cellData$ref,
+  ...
 }>;
 */
 

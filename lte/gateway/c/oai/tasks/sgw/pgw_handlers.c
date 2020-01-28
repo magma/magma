@@ -475,12 +475,17 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     &itti_s5_actv_bearer_req->eps_bearer_qos,
     &bearer_req_p->eps_bearer_qos,
     sizeof(bearer_qos_t));
-  // Copy TFT
+  //Copy UL TFT to be sent to UE
   memcpy(
-    &itti_s5_actv_bearer_req->tft,
+    &itti_s5_actv_bearer_req->ul_tft,
     &bearer_req_p->ul_tft,
     sizeof(traffic_flow_template_t));
-  // Assign LBI
+  //Copy DL TFT. SGW creates a temporary bearer ctx and stores the DL TFT
+  memcpy(
+    &itti_s5_actv_bearer_req->dl_tft,
+    &bearer_req_p->dl_tft,
+    sizeof(traffic_flow_template_t));
+
   hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
   if (!hashtblP) {
     OAILOG_ERROR(LOG_PGW_APP, "There is no UE Context in the SGW context \n");
@@ -512,6 +517,8 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
             itti_s5_actv_bearer_req->lbi = bearer_req_p->lbi;
             itti_s5_actv_bearer_req->mme_teid_S11 =
               spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
+            itti_s5_actv_bearer_req->s_gw_teid_S11_S4 =
+              spgw_ctxt_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4;
             break;
           }
         }

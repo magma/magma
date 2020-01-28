@@ -13,6 +13,7 @@ import type {
   EquipmentDocumentsCard_equipment$key,
 } from './__generated__/EquipmentDocumentsCard_equipment.graphql';
 
+import AddHyperlinkButton from '../AddHyperlinkButton';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import DocumentsAddButton from '../DocumentsAddButton';
@@ -25,6 +26,11 @@ import {makeStyles} from '@material-ui/styles';
 const useStyles = makeStyles(_theme => ({
   cardHasNoContent: {
     marginBottom: '0px',
+  },
+  actionButtonsContainer: {
+    '&>*': {
+      marginLeft: '8px',
+    },
   },
 }));
 
@@ -47,6 +53,9 @@ const EquipmentDocumentsCard = (props: Props) => {
         files {
           ...EntityDocumentsTable_files
         }
+        hyperlinks {
+          ...EntityDocumentsTable_hyperlinks
+        }
       }
     `,
     equipment,
@@ -64,7 +73,10 @@ const EquipmentDocumentsCard = (props: Props) => {
           [classes.cardHasNoContent]: documents.length === 0,
         })}
         rightContent={
-          <DocumentsAddButton entityType="EQUIPMENT" entityId={data.id} />
+          <div className={classes.actionButtonsContainer}>
+            <AddHyperlinkButton entityType="EQUIPMENT" entityId={data.id} />
+            <DocumentsAddButton entityType="EQUIPMENT" entityId={data.id} />
+          </div>
         }>
         Documents
       </CardHeader>
@@ -72,6 +84,7 @@ const EquipmentDocumentsCard = (props: Props) => {
         entityType="EQUIPMENT"
         entityId={data.id}
         files={documents}
+        hyperlinks={data.hyperlinks}
       />
     </Card>
   );

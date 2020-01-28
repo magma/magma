@@ -16,16 +16,11 @@ import type {
 
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React from 'react';
-
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
 import {LocationCriteriaConfig} from './LocationSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {
-  buildPropertyFilterConfigs,
-  getPossibleProperties,
-  getSelectedFilter,
-} from './FilterUtils';
+import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
 
 type Props = {
   filters: FiltersQuery,
@@ -36,15 +31,12 @@ type Props = {
 const LocationsPowerSearchBar = (props: Props) => {
   const {onFiltersChanged, filters, footer} = props;
   const locationTypesFilterConfigs = useLocationTypes();
-  const locationDataResponse = usePropertyFilters('location');
 
-  const possibleProperties = getPossibleProperties(
-    locationDataResponse.response,
-  );
-
+  const possibleProperties = usePropertyFilters('location');
   const locationPropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
+
   const filterConfigs = LocationCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
     .concat(locationPropertiesFilterConfigs ?? [])
@@ -57,7 +49,7 @@ const LocationsPowerSearchBar = (props: Props) => {
       onFilterRemoved={handleFilterRemoved}
       onFilterBlurred={handleFilterBlurred}
       getSelectedFilter={(filterConfig: FilterConfig) =>
-        getSelectedFilter(filterConfig, possibleProperties)
+        getSelectedFilter(filterConfig, possibleProperties ?? [])
       }
       placeholder="Filter..."
       searchConfig={LocationCriteriaConfig}

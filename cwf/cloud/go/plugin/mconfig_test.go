@@ -89,6 +89,7 @@ func TestBuilder_Build(t *testing.T) {
 				ltemconfig.PipelineD_ENFORCEMENT,
 			},
 			AllowedGrePeers: []*ltemconfig.PipelineD_AllowedGrePeer{
+				{Ip: "1.2.3.4/24"},
 				{Ip: "1.1.1.1/24", Key: 111},
 			},
 		},
@@ -129,6 +130,7 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 
 var defaultgwConfig = &models.GatewayCwfConfigs{
 	AllowedGrePeers: models.AllowedGrePeers{
+		{IP: "1.2.3.4/24"},
 		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
 	},
 }

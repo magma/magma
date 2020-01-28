@@ -632,9 +632,7 @@ bool LocalEnforcer::init_session_credit(
   // to deactivate, because pipelined deactivates all rules
   // when no rule is provided as the parameter
   bool deactivate_success = true;
-  if (
-    rules_to_deactivate.static_rules.size() > 0 ||
-    rules_to_deactivate.dynamic_rules.size() > 0) {
+  if (rules_to_process_is_not_empty(rules_to_deactivate)) {
     for (const auto &static_rule : rules_to_deactivate.static_rules) {
       if (!session_state->deactivate_static_rule(static_rule))
         MLOG(MWARNING) << "Could not find rule " << static_rule  << "for IMSI "
@@ -914,40 +912,68 @@ void LocalEnforcer::init_policy_reauth(
 
   bool deactivate_success = true;
   bool activate_success = true;
-  for (const auto &session : it->second) {
-    if (session->get_session_id() == request.session_id()) {
-       receive_monitoring_credit_from_rar(request, session);
-
-      RulesToProcess rules_to_activate;
-      RulesToProcess rules_to_deactivate;
-
-      get_rules_from_policy_reauth_request(
-        request, session, rules_to_activate, rules_to_deactivate);
-
-      auto ip_addr = session->get_subscriber_ip_addr();
-      if (rules_to_process_is_not_empty(rules_to_deactivate)) {
-        deactivate_success = pipelined_client_->deactivate_flows_for_rules(
-        request.imsi(),
-        rules_to_deactivate.static_rules,
-        rules_to_deactivate.dynamic_rules);
+  // For empty session_id, apply changes to all sessions of subscriber
+  // Changes are applied on a best-effort basis, so failures for one session
+  // won't stop changes from being applied for subsequent sessions.
+  if (request.session_id() == "") {
+    bool all_activated = true;
+    bool all_deactivated = true;
+    for (const auto& session : it->second) {
+      init_policy_reauth_for_session(
+        request, session, activate_success, deactivate_success);
+      all_activated &= activate_success;
+      all_deactivated &= deactivate_success;
+    }
+    // Treat activate/deactivate as all-or-nothing when reporting rule failures
+    mark_rule_failures(
+      all_activated, all_deactivated, request, answer_out);
+  } else {
+    for (const auto& session : it->second) {
+      if (session->get_session_id() == request.session_id()) {
+        init_policy_reauth_for_session(
+          request, session, activate_success, deactivate_success);
       }
-      if (rules_to_process_is_not_empty(rules_to_activate)) {
-        activate_success = pipelined_client_->activate_flows_for_rules(
-         request.imsi(),
-          ip_addr,
-          rules_to_activate.static_rules,
-          rules_to_activate.dynamic_rules);
-      }
+    }
+    mark_rule_failures(activate_success, deactivate_success, request, answer_out);
+  }
+  answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
+}
 
-      create_bearer(
-        activate_success, session, request, rules_to_activate.dynamic_rules);
+void LocalEnforcer::init_policy_reauth_for_session(
+  const PolicyReAuthRequest& request,
+  const std::unique_ptr<SessionState>& session,
+  bool& activate_success,
+  bool& deactivate_success)
+{
+  activate_success = true;
+  deactivate_success = true;
+  receive_monitoring_credit_from_rar(request, session);
 
-      break;
+  RulesToProcess rules_to_activate;
+  RulesToProcess rules_to_deactivate;
+
+  get_rules_from_policy_reauth_request(
+    request, session, rules_to_activate, rules_to_deactivate);
+
+  auto ip_addr = session->get_subscriber_ip_addr();
+  if (rules_to_process_is_not_empty(rules_to_deactivate)) {
+    if (!pipelined_client_->deactivate_flows_for_rules(
+      request.imsi(), rules_to_deactivate.static_rules,
+      rules_to_deactivate.dynamic_rules)) {
+      deactivate_success = false;
     }
   }
-  // Treat activate/deactivate as all-or-nothing when reporting rule failures
-  answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
-  mark_rule_failures(activate_success, deactivate_success, request, answer_out);
+  if (rules_to_process_is_not_empty(rules_to_activate)) {
+    if (!pipelined_client_->activate_flows_for_rules(
+      request.imsi(), ip_addr, rules_to_activate.static_rules,
+      rules_to_activate.dynamic_rules)) {
+      activate_success = false;
+    }
+  }
+
+  create_bearer(
+    activate_success, session, request, rules_to_activate.dynamic_rules);
+
 }
 
 void LocalEnforcer::receive_monitoring_credit_from_rar(

@@ -6,8 +6,8 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 
 #include <arpa/inet.h>
-#include <random>
 #include <folly/GLog.h>
+#include <random>
 
 #include <devmand/channels/ping/Channel.h>
 

@@ -20,11 +20,13 @@ declare export opaque type WorkOrdersPane_workOrder$fragmentType: WorkOrdersPane
 export type WorkOrdersPane_workOrder = {
   +id: string,
   +name: string,
+  ...
 };
 export type WorkOrdersPane_workOrder$data = WorkOrdersPane_workOrder;
 export type WorkOrdersPane_workOrder$key = {
   +$data?: WorkOrdersPane_workOrder$data,
   +$fragmentRefs: WorkOrdersPane_workOrder$ref,
+  ...
 };
 */
 

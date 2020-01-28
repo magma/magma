@@ -27,6 +27,7 @@ export type ProjectMoreActionsButton_project$data = ProjectMoreActionsButton_pro
 export type ProjectMoreActionsButton_project$key = {
   +$data?: ProjectMoreActionsButton_project$data,
   +$fragmentRefs: ProjectMoreActionsButton_project$ref,
+  ...
 };
 */
 

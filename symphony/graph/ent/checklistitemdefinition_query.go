@@ -28,6 +28,9 @@ type CheckListItemDefinitionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.CheckListItemDefinition
+	// eager-loading edges.
+	withWorkOrderType *WorkOrderTypeQuery
+	withFKs           bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -237,6 +240,17 @@ func (clidq *CheckListItemDefinitionQuery) Clone() *CheckListItemDefinitionQuery
 	}
 }
 
+//  WithWorkOrderType tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order_type" edge. The optional arguments used to configure the query builder of the edge.
+func (clidq *CheckListItemDefinitionQuery) WithWorkOrderType(opts ...func(*WorkOrderTypeQuery)) *CheckListItemDefinitionQuery {
+	query := &WorkOrderTypeQuery{config: clidq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	clidq.withWorkOrderType = query
+	return clidq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -280,30 +294,71 @@ func (clidq *CheckListItemDefinitionQuery) Select(field string, fields ...string
 
 func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*CheckListItemDefinition, error) {
 	var (
-		nodes []*CheckListItemDefinition
-		spec  = clidq.querySpec()
+		nodes   []*CheckListItemDefinition
+		withFKs = clidq.withFKs
+		_spec   = clidq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if clidq.withWorkOrderType != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, checklistitemdefinition.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &CheckListItemDefinition{config: clidq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, clidq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, clidq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := clidq.withWorkOrderType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*CheckListItemDefinition)
+		for i := range nodes {
+			if fk := nodes[i].work_order_type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workordertype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrderType = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
 func (clidq *CheckListItemDefinitionQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := clidq.querySpec()
-	return sqlgraph.CountNodes(ctx, clidq.driver, spec)
+	_spec := clidq.querySpec()
+	return sqlgraph.CountNodes(ctx, clidq.driver, _spec)
 }
 
 func (clidq *CheckListItemDefinitionQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -315,7 +370,7 @@ func (clidq *CheckListItemDefinitionQuery) sqlExist(ctx context.Context) (bool, 
 }
 
 func (clidq *CheckListItemDefinitionQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   checklistitemdefinition.Table,
 			Columns: checklistitemdefinition.Columns,
@@ -328,26 +383,26 @@ func (clidq *CheckListItemDefinitionQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := clidq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := clidq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := clidq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := clidq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (clidq *CheckListItemDefinitionQuery) sqlQuery() *sql.Selector {

@@ -30,8 +30,8 @@ import {Route} from 'react-router-dom';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {augmentDevicesMap} from './DevicesUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useEffect, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useCallback, useState} from 'react';
+import {useInterval, useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   actionsColumn: {
@@ -74,19 +74,16 @@ export default function DevicesStatusTable() {
     useCallback(response => setDevices(response || {}), []),
   );
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const response = await MagmaV1API.getSymphonyByNetworkIdDevices({
-          networkId: nullthrows(match.params.networkId),
-        });
-        setDevices(response || {});
-      } catch (err) {
-        console.error(`Warning: cannot refresh'. ${err}`);
-      }
-    }, REFRESH_INTERVAL);
-    return () => clearInterval(interval);
-  }, [match]);
+  useInterval(async () => {
+    try {
+      const response = await MagmaV1API.getSymphonyByNetworkIdDevices({
+        networkId: nullthrows(match.params.networkId),
+      });
+      setDevices(response || {});
+    } catch (err) {
+      console.error(`Warning: cannot refresh'. ${err}`);
+    }
+  }, REFRESH_INTERVAL);
 
   let errorMessage = null;
   let fullDevices = {};

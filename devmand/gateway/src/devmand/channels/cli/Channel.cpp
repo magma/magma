@@ -11,12 +11,33 @@ namespace devmand {
 namespace channels {
 namespace cli {
 
+using folly::SemiFuture;
+using folly::Unit;
+using folly::unit;
+
 Channel::Channel(
     string _id,
     const std::shared_ptr<devmand::channels::cli::Cli> _cli)
     : id(_id), cli(_cli) {}
 
-Channel::~Channel() {}
+SemiFuture<Unit> Channel::destroy() {
+  // idempotency
+  if (cli == nullptr) {
+    return folly::makeSemiFuture(unit);
+  }
+  // call underlying destroy()
+  SemiFuture<Unit> innerDestroy = cli->destroy();
+  return innerDestroy;
+}
+
+Channel::~Channel() {
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "~Channel: started";
+  destroy().get();
+  cli = nullptr;
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "~Channel: finished";
+}
 
 folly::SemiFuture<std::string> Channel::executeRead(const ReadCommand cmd) {
   MLOG(MDEBUG) << "[" << id << "] "

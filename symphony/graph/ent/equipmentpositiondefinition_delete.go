@@ -43,7 +43,7 @@ func (epdd *EquipmentPositionDefinitionDelete) ExecX(ctx context.Context) int {
 }
 
 func (epdd *EquipmentPositionDefinitionDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: equipmentpositiondefinition.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (epdd *EquipmentPositionDefinitionDelete) sqlExec(ctx context.Context) (int
 		},
 	}
 	if ps := epdd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, epdd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, epdd.driver, _spec)
 }
 
 // EquipmentPositionDefinitionDeleteOne is the builder for deleting a single EquipmentPositionDefinition entity.

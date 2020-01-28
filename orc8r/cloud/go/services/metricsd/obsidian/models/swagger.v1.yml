@@ -56,7 +56,7 @@ magma-gen-meta:
 info:
   title:
   description: Orchestrator REST APIs
-  version: 1.0.1
+  version: 1.0.2
 
 tags:
   - name: Metrics
@@ -201,6 +201,82 @@ paths:
               $ref: '#/definitions/prom_firing_alert'
         'default':
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/alerts/silence:
+    get:
+      summary: View active alert silencers
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: active
+          required: false
+          type: boolean
+          description: Retrieve active alerts. Default true.
+        - in: query
+          name: pending
+          required: false
+          type: boolean
+          description: Retrieve pending alerts. Default true.
+        - in: query
+          name: expired
+          required: false
+          type: boolean
+          description: Retrieve expired alerts. Default true.
+        - in: query
+          name: filter
+          required: false
+          type: string
+          description: "{key=\"value\",} pairs to filter the silences"
+      responses:
+        '200':
+          description: List of active alert silencers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/gettable_alert_silencer'
+        'default':
+           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+    post:
+      summary: Create a new alert silencer
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: silencer
+          description: Silencer to be created
+          required: true
+          schema:
+            $ref: '#/definitions/alert_silencer'
+      responses:
+        '200':
+          description: ID of successfully created silencer
+          schema:
+            type: string
+        'default':
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+    delete:
+      summary: Delete an alert silencer
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: silence_id
+          description: ID of silencer to be deleted
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successfully deleted silencer
+          schema:
+            type: string
+        'default':
+          $ref: './orc8r-swagger-common.yml#/parameters/network_id'
 
   /networks/{network_id}/prometheus/alert_config:
     post:
@@ -827,4 +903,67 @@ definitions:
       group_interval:
         type: string
       repeat_interval:
+        type: string
+
+  alert_silencer:
+    type: object
+    required:
+      - comment
+      - createdBy
+      - endsAt
+      - matchers
+      - startsAt
+    properties:
+      comment:
+        type: string
+      createdBy:
+        type: string
+      endsAt:
+        type: string
+        example: 2019-10-17T22:19:41.990Z
+      startsAt:
+        type: string
+        example: 2019-10-17T22:19:41.990Z
+      matchers:
+        type: array
+        items:
+          $ref: '#/definitions/matcher'
+
+  matcher:
+    type: object
+    required:
+      - isRegex
+      - name
+      - value
+    properties:
+      isRegex:
+        type: boolean
+      name:
+        type: string
+      value:
+        type: string
+
+
+  gettable_alert_silencer:
+    allOf:
+      - $ref: '#/definitions/alert_silencer'
+      - type: object
+        required:
+          - id
+          - status
+          - updatedAt
+        properties:
+          id:
+            type: string
+          updatedAt:
+            type: string
+          status:
+            $ref: '#/definitions/alert_silence_status'
+
+  alert_silence_status:
+    type: object
+    required:
+      - state
+    properties:
+      state:
         type: string

@@ -61,6 +61,10 @@ magma-gen-meta:
       filename: base_name_record_swaggergen.go
     - go-struct-name: BaseName
       filename: base_name_swaggergen.go
+    - go-struct-name: BaseNames
+      filename: base_names_swaggergen.go
+    - go-struct-name: NetworkSubscriberConfig
+      filename: network_subscriber_config_swaggergen.go
     - go-struct-name: RuleID
       filename: rule_id_swaggergen.go
     - go-struct-name: RuleNames
@@ -353,6 +357,102 @@ paths:
           schema:
             type: string
             example: feg_network
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_config:
+    get:
+      summary: Get a network-wide subscriber config
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: '#/definitions/network_subscriber_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a network-wide subscriber config
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: '#/definitions/network_subscriber_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_config/rule_names:
+    get:
+      summary: Get network-wide rule names
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: '#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide rule names
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: '#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_config/base_names:
+    get:
+      summary: Get network-wide base names
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: '#/definitions/base_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide base names
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: '#/definitions/base_names'
       responses:
         '204':
           description: Success
@@ -1558,6 +1658,17 @@ definitions:
         $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       features:
         $ref: './orc8r-swagger.yml#/definitions/network_features'
+      subscriber_config:
+        $ref: '#/definitions/network_subscriber_config'
+
+  network_subscriber_config:
+    description: Network-wide Subscriber Configuration
+    type: object
+    properties:
+      network_wide_base_names:
+        $ref: '#/definitions/base_names'
+      network_wide_rule_names:
+        $ref: '#/definitions/rule_names'
 
   network_cellular_configs:
     description: Cellular configuration for a network
@@ -2037,6 +2148,12 @@ definitions:
     example: IMSI208950000000010
     x-nullable: false
 
+  base_names:
+    type: array
+    description: 'List of base names'
+    items:
+       $ref: '#/definitions/base_name'
+
   subscriber:
     type: object
     required:
@@ -2329,12 +2446,15 @@ definitions:
     type: string
     minLength: 1
     x-nullable: false
+    example: "base_1"
 
   rule_names:
     type: array
+    description: 'List of rule names'
     items:
       type: string
       x-nullable: false
+      example: "rule_1"
 
   base_name_record:
     type: object

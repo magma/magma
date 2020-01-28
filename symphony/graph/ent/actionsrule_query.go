@@ -268,29 +268,34 @@ func (arq *ActionsRuleQuery) Select(field string, fields ...string) *ActionsRule
 func (arq *ActionsRuleQuery) sqlAll(ctx context.Context) ([]*ActionsRule, error) {
 	var (
 		nodes []*ActionsRule
-		spec  = arq.querySpec()
+		_spec = arq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &ActionsRule{config: arq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, arq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, arq.driver, _spec); err != nil {
 		return nil, err
+	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (arq *ActionsRuleQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := arq.querySpec()
-	return sqlgraph.CountNodes(ctx, arq.driver, spec)
+	_spec := arq.querySpec()
+	return sqlgraph.CountNodes(ctx, arq.driver, _spec)
 }
 
 func (arq *ActionsRuleQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,7 +307,7 @@ func (arq *ActionsRuleQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (arq *ActionsRuleQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   actionsrule.Table,
 			Columns: actionsrule.Columns,
@@ -315,26 +320,26 @@ func (arq *ActionsRuleQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := arq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := arq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := arq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := arq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (arq *ActionsRuleQuery) sqlQuery() *sql.Selector {

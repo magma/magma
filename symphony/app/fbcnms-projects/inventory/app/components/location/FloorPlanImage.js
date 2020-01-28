@@ -105,7 +105,7 @@ export default function LocationFloorPlansTab(props: Props) {
             setScaleDialogShown(false);
             const newScale = {...nullthrows(scale), scaleInMeters};
             setScale(newScale);
-            uploadFile(props.file, (_, imgKey) =>
+            uploadFile(props.file.name, props.file, (_, imgKey) =>
               props.onUpload(imgKey, nullthrows(referencePoint), newScale),
             );
           }}

@@ -29,23 +29,35 @@ type WorkOrderType struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the WorkOrderTypeQuery when eager-loading is set.
+	Edges struct {
+		// WorkOrders holds the value of the work_orders edge.
+		WorkOrders []*WorkOrder
+		// PropertyTypes holds the value of the property_types edge.
+		PropertyTypes []*PropertyType
+		// Definitions holds the value of the definitions edge.
+		Definitions []*WorkOrderDefinition
+		// CheckListDefinitions holds the value of the check_list_definitions edge.
+		CheckListDefinitions []*CheckListItemDefinition
+	} `json:"edges"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*WorkOrderType) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // description
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the WorkOrderType fields.
 func (wot *WorkOrderType) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(workordertype.Columns); m != n {
+	if m, n := len(values), len(workordertype.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

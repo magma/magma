@@ -138,7 +138,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        if self.clean_restart:
+        if self._clean_restart:
             self.delete_all_flows(datapath)
 
     def _install_flow_for_rule(self, imsi, ip_addr, rule):

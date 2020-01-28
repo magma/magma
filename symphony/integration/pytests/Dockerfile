@@ -7,8 +7,7 @@ FROM python:3.6
 COPY cli/ ./
 RUN python setup.py -q install
 
-RUN mkdir /tests
-COPY integration/pytests/ ./tests/
-WORKDIR /tests
+# Switch to intergration pytests directory
+WORKDIR /src/symphony/integration/pytests
 
-CMD ["python", "-m", "unittest", "discover", "-v"]
+CMD ["python", "-m", "xmlrunner", "discover", "-v"]

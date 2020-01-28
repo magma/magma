@@ -125,8 +125,8 @@ func (tc *TechnicianCreate) SaveX(ctx context.Context) *Technician {
 
 func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 	var (
-		t    = &Technician{config: tc.config}
-		spec = &sqlgraph.CreateSpec{
+		t     = &Technician{config: tc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: technician.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -135,7 +135,7 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 		}
 	)
 	if value := tc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: technician.FieldCreateTime,
@@ -143,7 +143,7 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 		t.CreateTime = *value
 	}
 	if value := tc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: technician.FieldUpdateTime,
@@ -151,7 +151,7 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 		t.UpdateTime = *value
 	}
 	if value := tc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldName,
@@ -159,7 +159,7 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 		t.Name = *value
 	}
 	if value := tc.email; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldEmail,
@@ -187,15 +187,15 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, tc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	t.ID = strconv.FormatInt(id, 10)
 	return t, nil
 }

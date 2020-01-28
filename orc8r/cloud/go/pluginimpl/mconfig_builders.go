@@ -54,25 +54,11 @@ func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string,
 			DynamicServices:         magmadGatewayConfig.DynamicServices,
 			FeatureFlags:            magmadGatewayConfig.FeatureFlags,
 		}
-	}
 
+		mconfigOut["td-agent-bit"] = getFluentbitMconfig(networkID, gatewayID, magmadGatewayConfig)
+	}
 	mconfigOut["control_proxy"] = &mconfig.ControlProxy{LogLevel: protos.LogLevel_INFO}
 	mconfigOut["metricsd"] = &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO}
-
-	// TODO: wire through throttle config to REST API
-	// For now, set throttle rate based on the following calculations:
-	// Average per-line payload 200B, 1000 messages/minute gives a rough
-	// data usage of 10GB/month for log data.
-	mconfigOut["td-agent-bit"] = &mconfig.FluentBit{
-		ExtraTags: map[string]string{
-			"network_id": networkID,
-			"gateway_id": gatewayID,
-		},
-
-		ThrottleRate:     1000,
-		ThrottleWindow:   5,
-		ThrottleInterval: "1m",
-	}
 
 	return nil
 }
@@ -92,6 +78,27 @@ func getPackageVersionAndImages(magmadGateway configurator.NetworkEntity, graph 
 		retImages = append(retImages, &mconfig.ImageSpec{Name: swag.StringValue(image.Name), Order: swag.Int64Value(image.Order)})
 	}
 	return tierConfig.Version.ToString(), retImages, nil
+}
+
+func getFluentbitMconfig(networkID string, gatewayID string, mdGw *models.MagmadGatewayConfigs) *mconfig.FluentBit {
+	// TODO: wire through throttle config to REST API
+	// For now, set throttle rate based on the following calculations:
+	// Average per-line payload 200B, 1000 messages/minute gives a rough
+	// data usage of 10GB/month for log data.
+	ret := &mconfig.FluentBit{
+		ExtraTags: map[string]string{
+			"network_id": networkID,
+			"gateway_id": gatewayID,
+		},
+		ThrottleRate:     1000,
+		ThrottleWindow:   5,
+		ThrottleInterval: "1m",
+	}
+
+	if mdGw.Logging != nil && mdGw.Logging.Aggregation != nil {
+		ret.FilesByTag = mdGw.Logging.Aggregation.TargetFilesByTag
+	}
+	return ret
 }
 
 func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {

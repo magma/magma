@@ -124,7 +124,7 @@ class LocationTypesQuery:
 
                 node: Optional[LocationType] = None
 
-            edges: Optional[List[LocationTypeEdge]] = None
+            edges: List[LocationTypeEdge]
 
         locationTypes: Optional[LocationTypeConnection] = None
 

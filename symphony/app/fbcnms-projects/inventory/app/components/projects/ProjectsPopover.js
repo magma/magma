@@ -87,29 +87,31 @@ type Props = {
 
 const ProjectsPopoverQuery = graphql`
   query ProjectsPopoverQuery($projectId: ID!) {
-    project(id: $projectId) {
-      id
-      name
-      location {
+    project: node(id: $projectId) {
+      ... on Project {
         id
         name
-        latitude
-        longitude
-      }
-      workOrders {
-        id
-        name
-        description
-        ownerName
-        status
-        priority
-        assignee
-        installDate
         location {
           id
           name
           latitude
           longitude
+        }
+        workOrders {
+          id
+          name
+          description
+          ownerName
+          status
+          priority
+          assignee
+          installDate
+          location {
+            id
+            name
+            latitude
+            longitude
+          }
         }
       }
     }

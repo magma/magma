@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// nolint: goconst
 package resolver
 
 import (
@@ -86,7 +85,7 @@ func TestAddRemoveSurvey(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	surveys, err := qr.Surveys(ctx, nil, nil, nil, nil)
+	surveys, err := qr.Surveys(ctx)
 	require.NoError(t, err)
 	require.Len(t, surveys, 1, "Verifying 'Surveys' return value")
 	fetchedSurvey := surveys[0]
@@ -134,7 +133,7 @@ func TestAddRemoveSurvey(t *testing.T) {
 
 	_, err = mr.RemoveSiteSurvey(ctx, fetchedSurvey.ID)
 	require.NoError(t, err)
-	surveys, err = qr.Surveys(ctx, nil, nil, nil, nil)
+	surveys, err = qr.Surveys(ctx)
 	require.NoError(t, err)
 	require.Len(t, surveys, 0, "Verifying 'Surveys' return value")
 

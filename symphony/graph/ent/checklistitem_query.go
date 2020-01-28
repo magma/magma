@@ -28,6 +28,9 @@ type CheckListItemQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.CheckListItem
+	// eager-loading edges.
+	withWorkOrder *WorkOrderQuery
+	withFKs       bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -237,6 +240,17 @@ func (cliq *CheckListItemQuery) Clone() *CheckListItemQuery {
 	}
 }
 
+//  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order" edge. The optional arguments used to configure the query builder of the edge.
+func (cliq *CheckListItemQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *CheckListItemQuery {
+	query := &WorkOrderQuery{config: cliq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cliq.withWorkOrder = query
+	return cliq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -280,30 +294,71 @@ func (cliq *CheckListItemQuery) Select(field string, fields ...string) *CheckLis
 
 func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, error) {
 	var (
-		nodes []*CheckListItem
-		spec  = cliq.querySpec()
+		nodes   []*CheckListItem
+		withFKs = cliq.withFKs
+		_spec   = cliq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if cliq.withWorkOrder != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, checklistitem.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &CheckListItem{config: cliq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, cliq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, cliq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := cliq.withWorkOrder; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*CheckListItem)
+		for i := range nodes {
+			if fk := nodes[i].work_order_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workorder.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrder = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
 func (cliq *CheckListItemQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := cliq.querySpec()
-	return sqlgraph.CountNodes(ctx, cliq.driver, spec)
+	_spec := cliq.querySpec()
+	return sqlgraph.CountNodes(ctx, cliq.driver, _spec)
 }
 
 func (cliq *CheckListItemQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -315,7 +370,7 @@ func (cliq *CheckListItemQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (cliq *CheckListItemQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   checklistitem.Table,
 			Columns: checklistitem.Columns,
@@ -328,26 +383,26 @@ func (cliq *CheckListItemQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := cliq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := cliq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := cliq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := cliq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (cliq *CheckListItemQuery) sqlQuery() *sql.Selector {

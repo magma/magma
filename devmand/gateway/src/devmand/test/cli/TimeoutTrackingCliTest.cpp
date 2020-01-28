@@ -69,6 +69,17 @@ static shared_ptr<TimeoutTrackingCli> getCli(shared_ptr<Cli> delegate) {
   return cli;
 }
 
+TEST_F(TimeoutCliTest, regularTimeout) {
+  shared_ptr<AsyncCli> delegate = getMockCli<EchoCli>(3, testExec);
+  auto testedCli = getCli(delegate);
+
+  SemiFuture<string> future =
+      testedCli->executeRead(ReadCommand::create("not returning"));
+
+  EXPECT_THROW(
+      move(future).via(testExec.get()).get(10s), CommandTimeoutException);
+}
+
 TEST_F(TimeoutCliTest, cleanDestructOnTimeout) {
   shared_ptr<AsyncCli> delegate = getMockCli<EchoCli>(3, testExec);
   auto testedCli = getCli(delegate);

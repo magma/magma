@@ -15,6 +15,7 @@ import {MemoryRouter} from 'react-router-dom';
 import {Route} from 'react-router-dom';
 import {cleanup, render} from '@testing-library/react';
 
+jest.mock('../../pages/Configure', () => () => <div>ConfigurePage</div>);
 jest.mock('../../pages/Inventory', () => () => <div>InventoryPage</div>);
 jest.mock('../map/LocationsMap', () => () => <div>LocationsMap</div>);
 
@@ -38,14 +39,13 @@ global.CONFIG = {
 };
 
 test('renders /configure', () => {
-  const {getByTestId} = render(
+  const {getByText} = render(
     <Wrapper path={'/inventory/configure'}>
       <Inventory />
     </Wrapper>,
   );
 
-  expect(getByTestId('configure-equipment-tab')).toBeInTheDocument();
-  expect(getByTestId('configure-locations-tab')).toBeInTheDocument();
+  expect(getByText('ConfigurePage')).toBeInTheDocument();
 });
 
 test('renders /settings', () => {

@@ -132,7 +132,7 @@ func (tu *TechnicianUpdate) ExecX(ctx context.Context) {
 }
 
 func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   technician.Table,
 			Columns: technician.Columns,
@@ -143,28 +143,28 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		},
 	}
 	if ps := tu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := tu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: technician.FieldUpdateTime,
 		})
 	}
 	if value := tu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldName,
 		})
 	}
 	if value := tu.email; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldEmail,
@@ -191,7 +191,7 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := tu.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -214,9 +214,9 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -331,7 +331,7 @@ func (tuo *TechnicianUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   technician.Table,
 			Columns: technician.Columns,
@@ -343,21 +343,21 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 		},
 	}
 	if value := tuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: technician.FieldUpdateTime,
 		})
 	}
 	if value := tuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldName,
 		})
 	}
 	if value := tuo.email; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldEmail,
@@ -384,7 +384,7 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := tuo.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -407,12 +407,12 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	t = &Technician{config: tuo.config}
-	spec.Assign = t.assignValues
-	spec.ScanValues = t.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, tuo.driver, spec); err != nil {
+	_spec.Assign = t.assignValues
+	_spec.ScanValues = t.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, tuo.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

@@ -27,6 +27,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/thoas/go-funk"
 	"golang.org/x/net/context"
 )
 
@@ -80,6 +81,11 @@ func (client *MockPolicyDBClient) GetRuleIDsForBaseNames(baseNames []string) []s
 
 func (client *MockPolicyDBClient) GetPolicyRuleByID(id string) (*protos.PolicyRule, error) {
 	return nil, nil
+}
+
+func (client *MockPolicyDBClient) GetOmnipresentRules() ([]string, []string) {
+	args := client.Called()
+	return args.Get(0).([]string), args.Get(1).([]string)
 }
 
 type MockCreditClient struct {
@@ -255,7 +261,7 @@ func standardUsageTest(
 
 	maxReqBWUL := uint32(128000)
 	maxReqBWDL := uint32(128000)
-	key1 := "key1"
+	key1 := []byte("key1")
 
 	// send static rules back
 	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -285,7 +291,7 @@ func standardUsageTest(
 						RatingGroup:         &rg20,
 						ServiceIdentifier:   &si20,
 						Precedence:          100,
-						MonitoringKey:       &key1,
+						MonitoringKey:       key1,
 						RedirectInformation: &redirect,
 						Qos:                 &qos,
 						FlowDescriptions: []string{
@@ -323,6 +329,9 @@ func standardUsageTest(
 			policydb.ChargingKey{RatingGroup: 11},
 			policydb.ChargingKey{RatingGroup: 20, ServiceIdTracking: true, ServiceIdentifier: 201},
 			policydb.ChargingKey{RatingGroup: 21}}, nil).Once()
+	// no omnipresent rules
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", []string{}).Return([]string{}).Once()
 	multiReqType := credit_control.CRTInit // type of CCR sent to get credits
 	if initMethod == gy.PerSessionInit {
 		mocks.gy.On(
@@ -433,6 +442,60 @@ func standardUsageTest(
 	mocks.gy.AssertExpectations(t)
 	assert.NoError(t, err)
 	assert.Equal(t, &orcprotos.Void{}, void)
+}
+
+func TestSessionCreateWithOmnipresentRules(t *testing.T) {
+	// Set up mocks
+	mocks := &sessionMocks{
+		gy:       &MockCreditClient{},
+		gx:       &MockPolicyClient{},
+		policydb: &MockPolicyDBClient{},
+	}
+
+	// send static rules back
+	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+		ruleInstalls := []*gx.RuleInstallAVP{
+			&gx.RuleInstallAVP{
+				RuleNames:     []string{"static_rule_1", "static_rule_2"},
+				RuleBaseNames: []string{"base_10"},
+			},
+		}
+
+		done <- &gx.CreditControlAnswer{
+			ResultCode:     uint32(diameter.SuccessCode),
+			SessionID:      request.SessionID,
+			RequestNumber:  request.RequestNumber,
+			RuleInstallAVP: ruleInstalls,
+		}
+	}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
+	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
+	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
+	ctx := context.Background()
+	srv := servicers.NewCentralSessionController(
+		mocks.gy,
+		mocks.gx,
+		mocks.policydb,
+		getTestConfig(gy.PerKeyInit),
+	)
+	response, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
+		Subscriber: &protos.SubscriberID{
+			Id: IMSI1,
+		},
+		SessionId: "00101-1234",
+	})
+	assert.NoError(t, err)
+
+	mocks.gx.AssertExpectations(t)
+	mocks.policydb.AssertExpectations(t)
+
+	assert.Equal(t, 6, len(response.StaticRules))
+	expectedRuleIDs := []string{"static_rule_1", "static_rule_2", "base_rule_1", "base_rule_2", "omnipresent_rule_1", "omnipresent_rule_2"}
+	actualRuleIDs := funk.Map(response.StaticRules, func(ruleInstall *protos.StaticRuleInstall) string { return ruleInstall.RuleId }).([]string)
+	assert.ElementsMatch(t, expectedRuleIDs, actualRuleIDs)
 }
 
 func TestSessionControllerTimeouts(t *testing.T) {
@@ -1362,4 +1425,3 @@ func returnGySuccessSubscriberBarred(args mock.Arguments) {
 		Credits:       credits,
 	}
 }
-

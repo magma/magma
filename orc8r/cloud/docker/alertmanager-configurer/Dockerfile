@@ -19,9 +19,14 @@ COPY go/ /go/src/magma/orc8r/cloud/go/
 WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/
 RUN go build -i -o $GOBIN/alertmanager_configurer
 
+# Build migration CLI
+WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/migration
+RUN go build -i -o $GOBIN/migration
+
 FROM alpine:3.11
 
 COPY --from=go /build/bin/alertmanager_configurer /bin/alertmanager_configurer
+COPY --from=go /build/bin/migration /bin/migration
 
 # Copy config files
 COPY docker/alertmanager-configurer/configs /etc/configs

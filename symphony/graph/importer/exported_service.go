@@ -31,6 +31,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 
+	nextLineToSkipIndex := -1
 	log.Debug("Exported Service - started")
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
 		log.Warn("parsing multipart form", zap.Error(err))
@@ -38,6 +39,19 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 		return
 	}
 	count, numRows := 0, 0
+	err := r.ParseForm()
+	if err != nil {
+		errorReturn(w, "can't parse form", log, err)
+		return
+	}
+	skipLines, err := getLinesToSkip(r)
+	if err != nil {
+		errorReturn(w, "can't parse skipped lines", log, err)
+		return
+	}
+	if len(skipLines) > 0 {
+		nextLineToSkipIndex = 0
+	}
 
 	for fileName := range r.MultipartForm.File {
 		first, reader, err := m.newReader(fileName, r)
@@ -70,6 +84,11 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 				continue
 			}
 			numRows++
+			if shouldSkipLine(skipLines, numRows, nextLineToSkipIndex) {
+				log.Warn("skipping line", zap.Error(err), zap.Int("line_number", numRows))
+				nextLineToSkipIndex++
+				continue
+			}
 			importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
 			name := importLine.Name()
 			serviceTypName := importLine.TypeName()
@@ -118,7 +137,8 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 					count++
 					log.Warn(fmt.Sprintf("(row #%d) creating service", numRows), zap.String("name", service.Name), zap.String("id", service.ID))
 				} else {
-					log.Warn(fmt.Sprintf("(row #%d) [SKIP]service existed", numRows), zap.String("name", service.Name), zap.String("id", service.ID))
+					errorReturn(w, fmt.Sprintf("(row #%d) Service %v already exists under location/position (id=%v)", numRows, service.Name, service.ID), log, nil)
+					return
 				}
 			} else {
 				// existingService
@@ -158,7 +178,8 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	}
 	log.Debug("Exported Service - Done")
 	w.WriteHeader(http.StatusOK)
-	err := writeSuccessMessage(w, count, numRows)
+	err = writeSuccessMessage(w, count, numRows, nil, true)
+
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return

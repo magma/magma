@@ -218,5 +218,6 @@ func (Equipment) Edges() []ent.Edge {
 			Unique(),
 		edge.To("properties", Property.Type),
 		edge.To("files", File.Type),
+		edge.To("hyperlinks", Hyperlink.Type),
 	}
 }

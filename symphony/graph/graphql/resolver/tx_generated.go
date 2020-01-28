@@ -459,6 +459,34 @@ func (tr txResolver) AddImage(ctx context.Context, input models.AddImageInput) (
 	return result, nil
 }
 
+func (tr txResolver) AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error) {
+	var result, zero *ent.Hyperlink
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.AddHyperlink(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) DeleteHyperlink(ctx context.Context, id string) (*ent.Hyperlink, error) {
+	var result, zero *ent.Hyperlink
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.DeleteHyperlink(ctx, id)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
 func (tr txResolver) DeleteImage(ctx context.Context, entityType models.ImageEntity, entityID string, id string) (*ent.File, error) {
 	var result, zero *ent.File
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {

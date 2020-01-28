@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 846817c230867e91f1c7c73a2380e5c8
+ * @relayHash c80146b59a5b1c0736697df5c331021c
  */
 
 /* eslint-disable */
@@ -22,15 +22,15 @@ export type ProjectsPopoverQueryVariables = {|
 |};
 export type ProjectsPopoverQueryResponse = {|
   +project: ?{|
-    +id: string,
-    +name: string,
-    +location: ?{|
+    +id?: string,
+    +name?: string,
+    +location?: ?{|
       +id: string,
       +name: string,
       +latitude: number,
       +longitude: number,
     |},
-    +workOrders: $ReadOnlyArray<{|
+    +workOrders?: $ReadOnlyArray<{|
       +id: string,
       +name: string,
       +description: ?string,
@@ -59,31 +59,35 @@ export type ProjectsPopoverQuery = {|
 query ProjectsPopoverQuery(
   $projectId: ID!
 ) {
-  project(id: $projectId) {
-    id
-    name
-    location {
+  project: node(id: $projectId) {
+    __typename
+    ... on Project {
       id
       name
-      latitude
-      longitude
-    }
-    workOrders {
-      id
-      name
-      description
-      ownerName
-      status
-      priority
-      assignee
-      installDate
       location {
         id
         name
         latitude
         longitude
       }
+      workOrders {
+        id
+        name
+        description
+        ownerName
+        status
+        priority
+        assignee
+        installDate
+        location {
+          id
+          name
+          latitude
+          longitude
+        }
+      }
     }
+    id
   }
 }
 */
@@ -97,21 +101,28 @@ var v0 = [
     "defaultValue": null
   }
 ],
-v1 = {
+v1 = [
+  {
+    "kind": "Variable",
+    "name": "id",
+    "variableName": "projectId"
+  }
+],
+v2 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "id",
   "args": null,
   "storageKey": null
 },
-v2 = {
+v3 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "name",
   "args": null,
   "storageKey": null
 },
-v3 = {
+v4 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "location",
@@ -120,8 +131,8 @@ v3 = {
   "concreteType": "Location",
   "plural": false,
   "selections": [
-    (v1/*: any*/),
     (v2/*: any*/),
+    (v3/*: any*/),
     {
       "kind": "ScalarField",
       "alias": null,
@@ -138,84 +149,62 @@ v3 = {
     }
   ]
 },
-v4 = [
-  {
-    "kind": "LinkedField",
-    "alias": null,
-    "name": "project",
-    "storageKey": null,
-    "args": [
-      {
-        "kind": "Variable",
-        "name": "id",
-        "variableName": "projectId"
-      }
-    ],
-    "concreteType": "Project",
-    "plural": false,
-    "selections": [
-      (v1/*: any*/),
-      (v2/*: any*/),
-      (v3/*: any*/),
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "workOrders",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "WorkOrder",
-        "plural": true,
-        "selections": [
-          (v1/*: any*/),
-          (v2/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "description",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "ownerName",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "status",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "priority",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "assignee",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "installDate",
-            "args": null,
-            "storageKey": null
-          },
-          (v3/*: any*/)
-        ]
-      }
-    ]
-  }
-];
+v5 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "workOrders",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "WorkOrder",
+  "plural": true,
+  "selections": [
+    (v2/*: any*/),
+    (v3/*: any*/),
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "description",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "ownerName",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "status",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "priority",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "assignee",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "installDate",
+      "args": null,
+      "storageKey": null
+    },
+    (v4/*: any*/)
+  ]
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -224,23 +213,74 @@ return {
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v4/*: any*/)
+    "selections": [
+      {
+        "kind": "LinkedField",
+        "alias": "project",
+        "name": "node",
+        "storageKey": null,
+        "args": (v1/*: any*/),
+        "concreteType": null,
+        "plural": false,
+        "selections": [
+          {
+            "kind": "InlineFragment",
+            "type": "Project",
+            "selections": [
+              (v2/*: any*/),
+              (v3/*: any*/),
+              (v4/*: any*/),
+              (v5/*: any*/)
+            ]
+          }
+        ]
+      }
+    ]
   },
   "operation": {
     "kind": "Operation",
     "name": "ProjectsPopoverQuery",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v4/*: any*/)
+    "selections": [
+      {
+        "kind": "LinkedField",
+        "alias": "project",
+        "name": "node",
+        "storageKey": null,
+        "args": (v1/*: any*/),
+        "concreteType": null,
+        "plural": false,
+        "selections": [
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "__typename",
+            "args": null,
+            "storageKey": null
+          },
+          (v2/*: any*/),
+          {
+            "kind": "InlineFragment",
+            "type": "Project",
+            "selections": [
+              (v3/*: any*/),
+              (v4/*: any*/),
+              (v5/*: any*/)
+            ]
+          }
+        ]
+      }
+    ]
   },
   "params": {
     "operationKind": "query",
     "name": "ProjectsPopoverQuery",
     "id": null,
-    "text": "query ProjectsPopoverQuery(\n  $projectId: ID!\n) {\n  project(id: $projectId) {\n    id\n    name\n    location {\n      id\n      name\n      latitude\n      longitude\n    }\n    workOrders {\n      id\n      name\n      description\n      ownerName\n      status\n      priority\n      assignee\n      installDate\n      location {\n        id\n        name\n        latitude\n        longitude\n      }\n    }\n  }\n}\n",
+    "text": "query ProjectsPopoverQuery(\n  $projectId: ID!\n) {\n  project: node(id: $projectId) {\n    __typename\n    ... on Project {\n      id\n      name\n      location {\n        id\n        name\n        latitude\n        longitude\n      }\n      workOrders {\n        id\n        name\n        description\n        ownerName\n        status\n        priority\n        assignee\n        installDate\n        location {\n          id\n          name\n          latitude\n          longitude\n        }\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '499c4bc6e254946c1139480f67cb4eaf';
+(node/*: any*/).hash = '3a9e7da628498062731c59833e90849e';
 module.exports = node;

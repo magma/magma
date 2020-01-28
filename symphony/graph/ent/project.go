@@ -31,24 +31,48 @@ type Project struct {
 	Description *string `json:"description,omitempty"`
 	// Creator holds the value of the "creator" field.
 	Creator *string `json:"creator,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProjectQuery when eager-loading is set.
+	Edges struct {
+		// Type holds the value of the type edge.
+		Type *ProjectType
+		// Location holds the value of the location edge.
+		Location *Location
+		// Comments holds the value of the comments edge.
+		Comments []*Comment
+		// WorkOrders holds the value of the work_orders edge.
+		WorkOrders []*WorkOrder
+		// Properties holds the value of the properties edge.
+		Properties []*Property
+	} `json:"edges"`
+	project_location_id *string
+	type_id             *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Project) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // description
+		&sql.NullString{}, // creator
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Project) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // project_location_id
+		&sql.NullInt64{}, // type_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Project fields.
 func (pr *Project) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(project.Columns); m != n {
+	if m, n := len(values), len(project.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -83,6 +107,21 @@ func (pr *Project) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		pr.Creator = new(string)
 		*pr.Creator = value.String
+	}
+	values = values[5:]
+	if len(values) == len(project.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_location_id", value)
+		} else if value.Valid {
+			pr.project_location_id = new(string)
+			*pr.project_location_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+		} else if value.Valid {
+			pr.type_id = new(string)
+			*pr.type_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

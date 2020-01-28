@@ -15,10 +15,12 @@ import SvgIcon from '../SvgIcon';
 
 const CloseIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <path
-      d="M10.588 0L12 1.412 7.411 6 12 10.588 10.588 12 6 7.411 1.412 12 0 10.588 4.588 6 0 1.412 1.412 0 6 4.588 10.588 0z"
-      fillRule="evenodd"
-    />
+    <g transform="translate(6,6)">
+      <path
+        d="M10.588 0L12 1.412 7.411 6 12 10.588 10.588 12 6 7.411 1.412 12 0 10.588 4.588 6 0 1.412 1.412 0 6 4.588 10.588 0z"
+        fillRule="evenodd"
+      />
+    </g>
   </SvgIcon>
 );
 

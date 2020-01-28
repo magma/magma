@@ -13,6 +13,6 @@ prometheusPushAddresses:
 
 prometheusQueryAddress: "http://prometheus:9090"
 
-alertmanagerApiURL: "http://alertmanager:9093/api/v2/alerts"
+alertmanagerApiURL: "http://alertmanager:9093/api/v2"
 prometheusConfigServiceURL: "http://prometheus-configurer:9100"
 alertmanagerConfigServiceURL: "http://alertmanager-configurer:9101"

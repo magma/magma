@@ -16,7 +16,13 @@ from queue import Queue
 
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
-from lte.protos.policydb_pb2 import FlowQos, PolicyRule, QosArp
+from lte.protos.policydb_pb2 import (
+    FlowDescription,
+    FlowMatch,
+    FlowQos,
+    PolicyRule,
+    QosArp,
+)
 from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
@@ -417,7 +423,99 @@ class SpgwUtil(object):
                         arp=QosArp(
                             priority_level=1, pre_capability=1, pre_vulnerability=0
                         ),
-                    )
+                    ),
+                    flow_list=[
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="192.168.129.42",
+                                tcp_dst=5001,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="192.168.129.42",
+                                tcp_dst=5002,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="192.168.129.42",
+                                tcp_dst=5003,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="192.168.129.42",
+                                tcp_dst=5004,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="192.168.129.42",
+                                tcp_dst=5005,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.DENY,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="192.168.129.42",
+                                tcp_src=5001,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="192.168.129.42",
+                                tcp_src=5002,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="192.168.129.42",
+                                tcp_src=5003,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="192.168.129.42",
+                                tcp_src=5004,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="192.168.129.42",
+                                tcp_src=5005,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.DENY,
+                        ),
+                    ],
                 )
             ],
         )

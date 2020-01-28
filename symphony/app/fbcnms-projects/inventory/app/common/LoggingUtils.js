@@ -71,6 +71,7 @@ export const LogEvents = {
   SAVE_LINK_BUTTON_CLICKED: 'save_link_clicked',
   CONNECT_PORTS_CLICKED: 'connect_ports_clicked',
   DISCONNECT_PORTS_CLICKED: 'disconnect_ports_clicked',
+  LOCATION_CARD_ADD_HYPERLINK_CLICKED: 'location_card_add_hyperlink_clicked',
   LOCATION_CARD_UPLOAD_FILE_CLICKED: 'location_card_upload_file_clicked',
   LOCATION_TYPE_REORDERED: 'location_type_reordered',
   DOCUMENTATION_LINK_CLICKED: 'documentation_link_clicked',

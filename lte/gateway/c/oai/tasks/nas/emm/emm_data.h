@@ -509,7 +509,6 @@ struct emm_context_s *emm_context_get_by_imsi(
 struct emm_context_s *emm_context_get_by_guti(
   emm_data_t *emm_data,
   guti_t *guti);
-int emm_context_unlock(struct emm_context_s *emm_context_p);
 
 int emm_context_upsert_imsi(emm_data_t *emm_data, struct emm_context_s *elm)
   __attribute__((nonnull));

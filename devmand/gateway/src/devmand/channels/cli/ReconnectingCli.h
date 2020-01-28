@@ -9,6 +9,8 @@
 
 #include <boost/thread/mutex.hpp>
 #include <devmand/channels/cli/Cli.h>
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
+#include <devmand/channels/cli/CliTimekeeperWrapper.h>
 #include <devmand/channels/cli/Command.h>
 #include <folly/Executor.h>
 #include <folly/executors/SerialExecutor.h>
@@ -31,8 +33,10 @@ class ReconnectingCli : public Cli {
       string id,
       shared_ptr<Executor> executor,
       function<SemiFuture<shared_ptr<Cli>>()>&& createCliStack,
-      shared_ptr<Timekeeper> timekeeper,
+      shared_ptr<CliThreadWheelTimekeeper> timekeeper,
       chrono::milliseconds quietPeriod);
+
+  SemiFuture<Unit> destroy() override;
 
   ~ReconnectingCli() override;
 
@@ -40,36 +44,27 @@ class ReconnectingCli : public Cli {
 
   folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override;
 
- private:
-  struct ReconnectParameters {
-    string id;
-
-    atomic<bool> isReconnecting; // TODO: merge with maybeCli
-
-    atomic<bool> shutdown;
-
-    shared_ptr<Executor> executor;
-
-    function<SemiFuture<shared_ptr<Cli>>()> createCliStack;
-
-    mutex cliMutex;
-
-    // guarded by mutex
-    shared_ptr<Cli> maybeCli;
-
-    std::chrono::milliseconds quietPeriod;
-
-    shared_ptr<Timekeeper> timekeeper;
-  };
-
-  shared_ptr<ReconnectParameters> reconnectParameters;
-
   ReconnectingCli(
       string id,
       shared_ptr<Executor> executor,
       function<SemiFuture<shared_ptr<Cli>>()>&& createCliStack,
-      shared_ptr<Timekeeper> timekeeper,
+      shared_ptr<CliTimekeeperWrapper> timekeeper,
       chrono::milliseconds quietPeriod);
+
+ private:
+  struct ReconnectParameters {
+    string id;
+    shared_ptr<CliTimekeeperWrapper> timekeeper;
+    shared_ptr<folly::Executor> executor;
+    function<SemiFuture<shared_ptr<Cli>>()> createCliStack;
+    mutex cliMutex;
+    shared_ptr<Cli> maybeCli;
+    std::chrono::milliseconds quietPeriod;
+    atomic<bool> isReconnecting; // TODO: merge with maybeCli
+    atomic<bool> shutdown;
+  };
+
+  shared_ptr<ReconnectParameters> reconnectParameters;
 
   SemiFuture<string> executeSomething(
       const string&& loggingPrefix,
@@ -77,6 +72,8 @@ class ReconnectingCli : public Cli {
       const Command cmd);
 
   static void triggerReconnect(shared_ptr<ReconnectParameters> params);
+
+  static Future<Unit> setReconnecting(shared_ptr<ReconnectParameters> params);
 };
 } // namespace cli
 } // namespace channels

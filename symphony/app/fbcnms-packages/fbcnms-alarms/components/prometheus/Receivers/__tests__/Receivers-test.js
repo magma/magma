@@ -10,8 +10,6 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import Receivers from '../Receivers';
-import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
-
 import {
   act,
   cleanup,
@@ -20,7 +18,7 @@ import {
   wait,
   waitForElement,
 } from '@testing-library/react';
-import {mockApiUtil, useMagmaAPIMock} from '../../../../test/testHelpers';
+import {alarmTestUtil, useMagmaAPIMock} from '../../../../test/testHelpers';
 
 const enqueueSnackbarMock = jest.fn();
 jest
@@ -35,18 +33,13 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-const getReceiversMock = jest.fn();
-const commonProps = {
-  apiUtil: mockApiUtil({
-    getReceivers: getReceiversMock,
-  }),
-};
+const {AlarmsWrapper} = alarmTestUtil();
 
 test('renders', () => {
   render(
-    <SymphonyWrapper>
-      <Receivers {...commonProps} />
-    </SymphonyWrapper>,
+    <AlarmsWrapper>
+      <Receivers />
+    </AlarmsWrapper>,
   );
 });
 
@@ -67,9 +60,9 @@ test('clicking the View button on a row shows the view dialog', async () => {
     ],
   });
   const {getByLabelText, getByText, queryByText} = render(
-    <SymphonyWrapper>
-      <Receivers {...commonProps} />
-    </SymphonyWrapper>,
+    <AlarmsWrapper>
+      <Receivers />
+    </AlarmsWrapper>,
   );
   const actionMenu = getByLabelText(/Action Menu/i);
   expect(actionMenu).toBeInTheDocument();
@@ -109,9 +102,9 @@ test('clicking edit button should show AddEditReceiver in edit mode', () => {
     ],
   });
   const {getByLabelText, getByText, getByTestId, queryByTestId} = render(
-    <SymphonyWrapper>
-      <Receivers {...commonProps} />
-    </SymphonyWrapper>,
+    <AlarmsWrapper>
+      <Receivers />
+    </AlarmsWrapper>,
   );
 
   const actionMenu = getByLabelText(/Action Menu/i);
@@ -131,9 +124,9 @@ test('clicking add button should show AddEditReceiver', () => {
     response: [],
   });
   const {getByTestId, queryByTestId} = render(
-    <SymphonyWrapper>
-      <Receivers {...commonProps} />
-    </SymphonyWrapper>,
+    <AlarmsWrapper>
+      <Receivers />
+    </AlarmsWrapper>,
   );
 
   expect(queryByTestId('add-edit-receiver')).not.toBeInTheDocument();

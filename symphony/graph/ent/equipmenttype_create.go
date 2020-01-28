@@ -201,8 +201,8 @@ func (etc *EquipmentTypeCreate) SaveX(ctx context.Context) *EquipmentType {
 
 func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, error) {
 	var (
-		et   = &EquipmentType{config: etc.config}
-		spec = &sqlgraph.CreateSpec{
+		et    = &EquipmentType{config: etc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipmenttype.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -211,7 +211,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 		}
 	)
 	if value := etc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmenttype.FieldCreateTime,
@@ -219,7 +219,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 		et.CreateTime = *value
 	}
 	if value := etc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmenttype.FieldUpdateTime,
@@ -227,7 +227,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 		et.UpdateTime = *value
 	}
 	if value := etc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmenttype.FieldName,
@@ -255,7 +255,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := etc.position_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -278,7 +278,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := etc.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -301,7 +301,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := etc.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -324,7 +324,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := etc.category; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -347,15 +347,15 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, etc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, etc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	et.ID = strconv.FormatInt(id, 10)
 	return et, nil
 }

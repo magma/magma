@@ -27,22 +27,42 @@ type Link struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// FutureState holds the value of the "future_state" field.
 	FutureState string `json:"future_state,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the LinkQuery when eager-loading is set.
+	Edges struct {
+		// Ports holds the value of the ports edge.
+		Ports []*EquipmentPort
+		// WorkOrder holds the value of the work_order edge.
+		WorkOrder *WorkOrder
+		// Properties holds the value of the properties edge.
+		Properties []*Property
+		// Service holds the value of the service edge.
+		Service []*Service
+	} `json:"edges"`
+	work_order_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Link) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // future_state
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Link) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // work_order_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Link fields.
 func (l *Link) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(link.Columns); m != n {
+	if m, n := len(values), len(link.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -65,6 +85,15 @@ func (l *Link) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field future_state", values[2])
 	} else if value.Valid {
 		l.FutureState = value.String
+	}
+	values = values[3:]
+	if len(values) == len(link.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_id", value)
+		} else if value.Valid {
+			l.work_order_id = new(string)
+			*l.work_order_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

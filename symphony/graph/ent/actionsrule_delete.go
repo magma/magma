@@ -43,7 +43,7 @@ func (ard *ActionsRuleDelete) ExecX(ctx context.Context) int {
 }
 
 func (ard *ActionsRuleDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: actionsrule.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (ard *ActionsRuleDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := ard.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ard.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ard.driver, _spec)
 }
 
 // ActionsRuleDeleteOne is the builder for deleting a single ActionsRule entity.

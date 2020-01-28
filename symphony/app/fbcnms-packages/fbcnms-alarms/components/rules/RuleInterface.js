@@ -10,9 +10,8 @@
 
 import * as React from 'react';
 import type {ApiRequest} from '../AlarmsApi';
-import type {ApiUtil} from '../AlarmsApi';
+
 export type RuleEditorProps<TRule> = {
-  apiUtil: ApiUtil,
   rule: ?GenericRule<TRule>,
   // invoked when rule is modified locally
   onRuleUpdated: (rule: GenericRule<TRule>) => void,

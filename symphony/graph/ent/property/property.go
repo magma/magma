@@ -120,7 +120,7 @@ const (
 	ServiceValueColumn = "property_service_value_id"
 )
 
-// Columns holds all SQL columns are property fields.
+// Columns holds all SQL columns for property fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -133,6 +133,21 @@ var Columns = []string{
 	FieldRangeFromVal,
 	FieldRangeToVal,
 	FieldStringVal,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Property type.
+var ForeignKeys = []string{
+	"equipment_id",
+	"equipment_port_id",
+	"link_id",
+	"location_id",
+	"project_id",
+	"type_id",
+	"property_equipment_value_id",
+	"property_location_value_id",
+	"property_service_value_id",
+	"service_id",
+	"work_order_id",
 }
 
 var (

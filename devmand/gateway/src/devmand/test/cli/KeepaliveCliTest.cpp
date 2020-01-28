@@ -9,6 +9,7 @@
 #include <magma_logging.h>
 
 #include <devmand/cartography/DeviceConfig.h>
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
 #include <devmand/channels/cli/KeepaliveCli.h>
 #include <devmand/test/cli/utils/Log.h>
 #include <devmand/test/cli/utils/MockCli.h>
@@ -26,6 +27,7 @@ using namespace devmand::channels::cli;
 using namespace devmand::test::utils::cli;
 using namespace std;
 using namespace folly;
+using namespace std::chrono;
 
 class KeepaliveCliTest : public ::testing::Test {
  protected:
@@ -43,14 +45,14 @@ class KeepaliveCliTest : public ::testing::Test {
   }
 };
 
-static const chrono::seconds interval = 1s;
+static const chrono::seconds interval = 10s;
 
 static shared_ptr<KeepaliveCli> getCli(shared_ptr<Cli> delegate) {
   shared_ptr<KeepaliveCli> cli = KeepaliveCli::make(
       "test",
       delegate,
       make_shared<CPUThreadPoolExecutor>(1),
-      make_shared<folly::ThreadWheelTimekeeper>(),
+      make_shared<CliThreadWheelTimekeeper>(),
       interval);
   return cli;
 }

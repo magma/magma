@@ -52,7 +52,7 @@ const (
 	WorkOrdersColumn = "project_type_id"
 )
 
-// Columns holds all SQL columns are projecttype fields.
+// Columns holds all SQL columns for projecttype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

@@ -194,8 +194,8 @@ func (fpc *FloorPlanCreate) SaveX(ctx context.Context) *FloorPlan {
 
 func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 	var (
-		fp   = &FloorPlan{config: fpc.config}
-		spec = &sqlgraph.CreateSpec{
+		fp    = &FloorPlan{config: fpc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: floorplan.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -204,7 +204,7 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 		}
 	)
 	if value := fpc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplan.FieldCreateTime,
@@ -212,7 +212,7 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 		fp.CreateTime = *value
 	}
 	if value := fpc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplan.FieldUpdateTime,
@@ -220,7 +220,7 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 		fp.UpdateTime = *value
 	}
 	if value := fpc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: floorplan.FieldName,
@@ -248,7 +248,7 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := fpc.reference_point; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -271,7 +271,7 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := fpc.scale; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -294,7 +294,7 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := fpc.image; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -317,15 +317,15 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, fpc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, fpc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	fp.ID = strconv.FormatInt(id, 10)
 	return fp, nil
 }

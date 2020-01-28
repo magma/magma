@@ -127,7 +127,7 @@ export type AlertConfig = {|
   expr: string,
   annotations?: {[string]: string},
   for?: string,
-  labels?: {[string]: string},
+  labels?: Labels,
   rawData?: AlertConfig,
   _isCustomAlertRule?: boolean,
 |};

@@ -30,6 +30,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -95,6 +96,8 @@ type Client struct {
 	FloorPlanReferencePoint *FloorPlanReferencePointClient
 	// FloorPlanScale is the client for interacting with the FloorPlanScale builders.
 	FloorPlanScale *FloorPlanScaleClient
+	// Hyperlink is the client for interacting with the Hyperlink builders.
+	Hyperlink *HyperlinkClient
 	// Link is the client for interacting with the Link builders.
 	Link *LinkClient
 	// Location is the client for interacting with the Location builders.
@@ -164,6 +167,7 @@ func NewClient(opts ...Option) *Client {
 		FloorPlan:                   NewFloorPlanClient(c),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(c),
 		FloorPlanScale:              NewFloorPlanScaleClient(c),
+		Hyperlink:                   NewHyperlinkClient(c),
 		Link:                        NewLinkClient(c),
 		Location:                    NewLocationClient(c),
 		LocationType:                NewLocationTypeClient(c),
@@ -232,6 +236,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FloorPlan:                   NewFloorPlanClient(cfg),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
 		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
@@ -287,6 +292,7 @@ func (c *Client) Debug() *Client {
 		FloorPlan:                   NewFloorPlanClient(cfg),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
 		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
@@ -847,6 +853,20 @@ func (c *EquipmentClient) QueryFiles(e *Equipment) *FileQuery {
 		sqlgraph.From(equipment.Table, equipment.FieldID, id),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, equipment.FilesTable, equipment.FilesColumn),
+	)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryHyperlinks queries the hyperlinks edge of a Equipment.
+func (c *EquipmentClient) QueryHyperlinks(e *Equipment) *HyperlinkQuery {
+	query := &HyperlinkQuery{config: c.config}
+	id := e.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.HyperlinksTable, equipment.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
@@ -1921,6 +1941,70 @@ func (c *FloorPlanScaleClient) GetX(ctx context.Context, id string) *FloorPlanSc
 	return fps
 }
 
+// HyperlinkClient is a client for the Hyperlink schema.
+type HyperlinkClient struct {
+	config
+}
+
+// NewHyperlinkClient returns a client for the Hyperlink from the given config.
+func NewHyperlinkClient(c config) *HyperlinkClient {
+	return &HyperlinkClient{config: c}
+}
+
+// Create returns a create builder for Hyperlink.
+func (c *HyperlinkClient) Create() *HyperlinkCreate {
+	return &HyperlinkCreate{config: c.config}
+}
+
+// Update returns an update builder for Hyperlink.
+func (c *HyperlinkClient) Update() *HyperlinkUpdate {
+	return &HyperlinkUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HyperlinkClient) UpdateOne(h *Hyperlink) *HyperlinkUpdateOne {
+	return c.UpdateOneID(h.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HyperlinkClient) UpdateOneID(id string) *HyperlinkUpdateOne {
+	return &HyperlinkUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for Hyperlink.
+func (c *HyperlinkClient) Delete() *HyperlinkDelete {
+	return &HyperlinkDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *HyperlinkClient) DeleteOne(h *Hyperlink) *HyperlinkDeleteOne {
+	return c.DeleteOneID(h.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *HyperlinkClient) DeleteOneID(id string) *HyperlinkDeleteOne {
+	return &HyperlinkDeleteOne{c.Delete().Where(hyperlink.ID(id))}
+}
+
+// Create returns a query builder for Hyperlink.
+func (c *HyperlinkClient) Query() *HyperlinkQuery {
+	return &HyperlinkQuery{config: c.config}
+}
+
+// Get returns a Hyperlink entity by its id.
+func (c *HyperlinkClient) Get(ctx context.Context, id string) (*Hyperlink, error) {
+	return c.Query().Where(hyperlink.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HyperlinkClient) GetX(ctx context.Context, id string) *Hyperlink {
+	h, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return h
+}
+
 // LinkClient is a client for the Link schema.
 type LinkClient struct {
 	config
@@ -2155,6 +2239,20 @@ func (c *LocationClient) QueryFiles(l *Location) *FileQuery {
 		sqlgraph.From(location.Table, location.FieldID, id),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, location.FilesTable, location.FilesColumn),
+	)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryHyperlinks queries the hyperlinks edge of a Location.
+func (c *LocationClient) QueryHyperlinks(l *Location) *HyperlinkQuery {
+	query := &HyperlinkQuery{config: c.config}
+	id := l.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.HyperlinksTable, location.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
@@ -4103,6 +4201,20 @@ func (c *WorkOrderClient) QueryFiles(wo *WorkOrder) *FileQuery {
 		sqlgraph.From(workorder.Table, workorder.FieldID, id),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, workorder.FilesTable, workorder.FilesColumn),
+	)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryHyperlinks queries the hyperlinks edge of a WorkOrder.
+func (c *WorkOrderClient) QueryHyperlinks(wo *WorkOrder) *HyperlinkQuery {
+	query := &HyperlinkQuery{config: c.config}
+	id := wo.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.HyperlinksTable, workorder.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 

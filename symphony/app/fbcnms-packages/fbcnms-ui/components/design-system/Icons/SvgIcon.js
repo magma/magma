@@ -14,6 +14,12 @@ import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles({
+  root: {
+    minWidth: '24px',
+    minHeight: '24px',
+    width: '24px',
+    height: '24px',
+  },
   regularColor: {
     fill: symphony.palette.secondary,
   },
@@ -34,24 +40,28 @@ const useStyles = makeStyles({
   },
 });
 
-export type SvgIconStyleProps = {|
+export type SvgIconStyleProps = {
   className?: string,
   color?: 'light' | 'regular' | 'primary' | 'error' | 'gray',
-|};
+};
 
 type Props = {
   children: React.Node,
-  ...SvgIconStyleProps,
-};
+} & SvgIconStyleProps;
 
-const SvgIcon = ({className, children, color}: Props) => {
+const SvgIcon = ({className, children, color, ...rest}: Props) => {
   const classes = useStyles();
   return (
     <svg
       viewBox="0 0 24 24"
       width="24px"
       height="24px"
-      className={classNames(classes[`${color ?? 'regular'}Color`], className)}>
+      className={classNames(
+        classes.root,
+        classes[`${color ?? 'regular'}Color`],
+        className,
+      )}
+      {...rest}>
       {children}
     </svg>
   );

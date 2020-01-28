@@ -115,7 +115,7 @@ const (
 	ProjectTypeColumn = "project_type_id"
 )
 
-// Columns holds all SQL columns are propertytype fields.
+// Columns holds all SQL columns for propertytype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -136,6 +136,17 @@ var Columns = []string{
 	FieldEditable,
 	FieldMandatory,
 	FieldDeleted,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the PropertyType type.
+var ForeignKeys = []string{
+	"equipment_port_type_id",
+	"link_equipment_port_type_id",
+	"equipment_type_id",
+	"location_type_id",
+	"project_type_id",
+	"service_type_id",
+	"work_order_type_id",
 }
 
 var (

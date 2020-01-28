@@ -11,23 +11,24 @@ import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AddEditRule from '../AddEditRule';
 import RuleEditorBase from '../RuleEditorBase';
-import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
-import {mockApiUtil, renderAsync} from '../../../test/testHelpers';
+import {alarmTestUtil, renderAsync} from '../../../test/testHelpers';
 import {mockPrometheusRule} from '../../../test/data';
-
+import {toBaseFields} from '../PrometheusEditor/PrometheusEditor';
+import type {AlertConfig} from '../../AlarmAPIType';
 import type {RuleEditorProps} from '../RuleInterface';
 
-const commonProps = {
-  apiUtil: mockApiUtil(),
-  ruleMap: {
-    mock: {
-      RuleEditor: MockRuleEditor,
-      deleteRule: jest.fn(),
-      getRules: jest.fn(),
-      friendlyName: 'mock',
-    },
+const mockRuleMap = {
+  mock: {
+    RuleEditor: MockRuleEditor,
+    deleteRule: jest.fn(),
+    getRules: jest.fn(),
+    friendlyName: 'mock',
   },
+};
+const {apiUtil, AlarmsWrapper} = alarmTestUtil({ruleMap: mockRuleMap});
+
+const commonProps = {
   isNew: false,
   initialConfig: mockPrometheusRule({
     name: 'TESTRULE',
@@ -45,9 +46,9 @@ describe('Receiver select', () => {
   test('a rule with a receiver selected sets the receiver select value', async () => {
     mockUseAlarms();
     jest
-      .spyOn(commonProps.apiUtil, 'getReceivers')
+      .spyOn(apiUtil, 'getReceivers')
       .mockImplementation(() => [{name: 'test_receiver'}]);
-    jest.spyOn(commonProps.apiUtil, 'getRouteTree').mockReturnValue({
+    jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
       receiver: 'network_base_route',
       routes: [
         {
@@ -59,7 +60,7 @@ describe('Receiver select', () => {
       ],
     });
     const {getByLabelText} = await renderAsync(
-      <SymphonyWrapper>
+      <AlarmsWrapper>
         <AddEditRule
           {...commonProps}
           initialConfig={mockPrometheusRule({
@@ -67,7 +68,7 @@ describe('Receiver select', () => {
             ruleType: 'mock',
           })}
         />
-      </SymphonyWrapper>,
+      </AlarmsWrapper>,
     );
     const select = getByLabelText(/send notification to/i);
     expect(select.textContent).toBe('test_receiver');
@@ -76,9 +77,9 @@ describe('Receiver select', () => {
   test('selecting a receiver sets the value in the select box', () => {
     mockUseAlarms();
     jest
-      .spyOn(commonProps.apiUtil, 'getReceivers')
+      .spyOn(apiUtil, 'getReceivers')
       .mockReturnValue([{name: 'test_receiver'}, {name: 'new_receiver'}]);
-    jest.spyOn(commonProps.apiUtil, 'getRouteTree').mockReturnValue({
+    jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
       receiver: 'network_base_route',
       routes: [
         {
@@ -90,12 +91,12 @@ describe('Receiver select', () => {
       ],
     });
     const {getByTestId, getByLabelText, getByText} = render(
-      <SymphonyWrapper>
+      <AlarmsWrapper>
         <AddEditRule {...commonProps} />
-      </SymphonyWrapper>,
+      </AlarmsWrapper>,
     );
     act(() => {
-      fireEvent.click(getByLabelText(/send notification to/i));
+      fireEvent.mouseDown(getByLabelText(/send notification to/i));
     });
     act(() => {
       fireEvent.click(getByText('new_receiver'));
@@ -106,23 +107,23 @@ describe('Receiver select', () => {
   test('setting a receiver adds a new route', async () => {
     mockUseAlarms();
     jest
-      .spyOn(commonProps.apiUtil, 'getReceivers')
+      .spyOn(apiUtil, 'getReceivers')
       .mockReturnValue([{name: 'test_receiver'}]);
-    jest.spyOn(commonProps.apiUtil, 'getRouteTree').mockReturnValue({
+    jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
       receiver: 'network_base_route',
       routes: [],
     });
 
-    const editRouteTreeMock = jest.spyOn(commonProps.apiUtil, 'editRouteTree');
+    const editRouteTreeMock = jest.spyOn(apiUtil, 'editRouteTree');
 
     const {getByLabelText, getByText, getByTestId} = render(
-      <SymphonyWrapper>
+      <AlarmsWrapper>
         <AddEditRule {...commonProps} />
-      </SymphonyWrapper>,
+      </AlarmsWrapper>,
     );
 
     act(() => {
-      fireEvent.click(getByLabelText(/send notification to/i));
+      fireEvent.mouseDown(getByLabelText(/send notification to/i));
     });
     act(() => {
       fireEvent.click(getByText('test_receiver'));
@@ -148,9 +149,9 @@ describe('Receiver select', () => {
   test('selecting a new receiver updates an existing route', async () => {
     mockUseAlarms();
     jest
-      .spyOn(commonProps.apiUtil, 'getReceivers')
+      .spyOn(apiUtil, 'getReceivers')
       .mockReturnValue([{name: 'test_receiver'}, {name: 'new_receiver'}]);
-    jest.spyOn(commonProps.apiUtil, 'getRouteTree').mockReturnValue({
+    jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
       receiver: 'network_base_route',
       routes: [
         {
@@ -162,17 +163,17 @@ describe('Receiver select', () => {
       ],
     });
 
-    const editRouteTreeMock = jest.spyOn(commonProps.apiUtil, 'editRouteTree');
+    const editRouteTreeMock = jest.spyOn(apiUtil, 'editRouteTree');
 
     const {getByLabelText, getByText, getByTestId} = render(
-      <SymphonyWrapper>
+      <AlarmsWrapper>
         <AddEditRule {...commonProps} />
-      </SymphonyWrapper>,
+      </AlarmsWrapper>,
       {baseElement: document.body},
     );
 
     act(() => {
-      fireEvent.click(getByLabelText(/send notification to/i));
+      fireEvent.mouseDown(getByLabelText(/send notification to/i));
     });
     await act(async () => {
       fireEvent.click(getByText('new_receiver'));
@@ -199,9 +200,9 @@ describe('Receiver select', () => {
   test('un-selecting receiver removes the existing route', async () => {
     mockUseAlarms();
     jest
-      .spyOn(commonProps.apiUtil, 'getReceivers')
+      .spyOn(apiUtil, 'getReceivers')
       .mockReturnValue([{name: 'test_receiver'}, {name: 'new_receiver'}]);
-    jest.spyOn(commonProps.apiUtil, 'getRouteTree').mockReturnValue({
+    jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
       receiver: 'network_base_route',
       routes: [
         {
@@ -212,16 +213,16 @@ describe('Receiver select', () => {
         },
       ],
     });
-    const editRouteTreeMock = jest.spyOn(commonProps.apiUtil, 'editRouteTree');
+    const editRouteTreeMock = jest.spyOn(apiUtil, 'editRouteTree');
     const {getByLabelText, getByText, getByTestId} = render(
-      <SymphonyWrapper>
+      <AlarmsWrapper>
         <AddEditRule {...commonProps} />
-      </SymphonyWrapper>,
+      </AlarmsWrapper>,
       {baseElement: document.body},
     );
 
     act(() => {
-      fireEvent.click(getByLabelText(/send notification to/i));
+      fireEvent.mouseDown(getByLabelText(/send notification to/i));
     });
     await act(async () => {
       fireEvent.click(getByText('None'));
@@ -240,27 +241,24 @@ describe('Receiver select', () => {
   });
 });
 
-function MockRuleEditor(props: RuleEditorProps<{}>) {
-  const {apiUtil, isNew, rule} = props;
+function MockRuleEditor(props: RuleEditorProps<AlertConfig>) {
+  const {isNew, rule} = props;
   return (
     <RuleEditorBase
-      apiUtil={apiUtil}
       isNew={isNew}
       onSave={jest.fn()}
       onExit={jest.fn()}
       onChange={jest.fn()}
-      rule={rule}>
+      initialState={toBaseFields(rule)}>
       <span />
     </RuleEditorBase>
   );
 }
 
 function mockUseAlarms() {
-  jest
-    .spyOn(commonProps.apiUtil, 'useAlarmsApi')
-    .mockImplementation((fn, params) => {
-      return {
-        response: fn(params),
-      };
-    });
+  jest.spyOn(apiUtil, 'useAlarmsApi').mockImplementation((fn, params) => {
+    return {
+      response: fn(params),
+    };
+  });
 }

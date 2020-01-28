@@ -26,6 +26,7 @@ import type {Theme, WithStyles} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
+import AddHyperlinkButton from '../AddHyperlinkButton';
 import AddImageMutation from '../../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import CheckListTable from '../checklist/CheckListTable';
@@ -42,6 +43,7 @@ import FormValidationContext, {
   FormValidationContextProvider,
 } from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
+import InsertLinkIcon from '@material-ui/icons/InsertLink';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
@@ -122,11 +124,18 @@ const styles = (theme: Theme) => ({
     width: 'calc(100% + 48px)',
   },
   uploadButtonContainer: {
+    display: 'flex',
     marginRight: '8px',
+    marginTop: '4px',
   },
   uploadButton: {
     cursor: 'pointer',
     fill: theme.palette.primary.main,
+  },
+  hyperlinkButton: {
+    padding: 0,
+    minWidth: 'unset',
+    marginRight: '16px',
   },
   dense: {
     paddingTop: '9px',
@@ -252,7 +261,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
                 fieldId: 'status',
                 fieldDisplayName: 'Status',
                 value: workOrder.status,
-                checkCallbalck: value =>
+                checkCallback: value =>
                   value === 'DONE' ? 'Work order is on DONE state' : '',
               });
               return (
@@ -477,6 +486,14 @@ class WorkOrderDetails extends React.Component<Props, State> {
                         rightContent={
                           !validationContext.editLock.detected && (
                             <div className={classes.uploadButtonContainer}>
+                              <AddHyperlinkButton
+                                className={classes.hyperlinkButton}
+                                skin="regular"
+                                entityType="WORK_ORDER"
+                                allowCategories={false}
+                                entityId={workOrder.id}>
+                                <InsertLinkIcon color="primary" />
+                              </AddHyperlinkButton>
                               {this.state.isLoadingDocument ? (
                                 <CircularProgress size={24} />
                               ) : (
@@ -502,6 +519,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
                             ...this.props.workOrder.files,
                             ...this.props.workOrder.images,
                           ]}
+                          hyperlinks={this.props.workOrder.hyperlinks}
                         />
                       </ExpandingPanel>
                       <ExpandingPanel
@@ -718,6 +736,9 @@ export default withRouter(
               }
               files {
                 ...EntityDocumentsTable_files
+              }
+              hyperlinks {
+                ...EntityDocumentsTable_hyperlinks
               }
               comments {
                 ...CommentsBox_comments

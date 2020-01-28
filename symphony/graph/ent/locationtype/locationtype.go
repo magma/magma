@@ -58,7 +58,7 @@ const (
 	SurveyTemplateCategoriesColumn = "location_type_survey_template_category_id"
 )
 
-// Columns holds all SQL columns are locationtype fields.
+// Columns holds all SQL columns for locationtype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

@@ -33,25 +33,45 @@ type EquipmentPortDefinition struct {
 	Bandwidth string `json:"bandwidth,omitempty"`
 	// VisibilityLabel holds the value of the "visibility_label" field.
 	VisibilityLabel string `json:"visibility_label,omitempty" gqlgen:"visibleLabel"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentPortDefinitionQuery when eager-loading is set.
+	Edges struct {
+		// EquipmentPortType holds the value of the equipment_port_type edge.
+		EquipmentPortType *EquipmentPortType
+		// Ports holds the value of the ports edge.
+		Ports []*EquipmentPort
+		// EquipmentType holds the value of the equipment_type edge.
+		EquipmentType *EquipmentType
+	} `json:"edges"`
+	equipment_port_type_id *string
+	equipment_type_id      *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*EquipmentPortDefinition) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullInt64{},  // index
+		&sql.NullString{}, // bandwidth
+		&sql.NullString{}, // visibility_label
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*EquipmentPortDefinition) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // equipment_port_type_id
+		&sql.NullInt64{}, // equipment_type_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the EquipmentPortDefinition fields.
 func (epd *EquipmentPortDefinition) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(equipmentportdefinition.Columns); m != n {
+	if m, n := len(values), len(equipmentportdefinition.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -89,6 +109,21 @@ func (epd *EquipmentPortDefinition) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field visibility_label", values[5])
 	} else if value.Valid {
 		epd.VisibilityLabel = value.String
+	}
+	values = values[6:]
+	if len(values) == len(equipmentportdefinition.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_id", value)
+		} else if value.Valid {
+			epd.equipment_port_type_id = new(string)
+			*epd.equipment_port_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type_id", value)
+		} else if value.Valid {
+			epd.equipment_type_id = new(string)
+			*epd.equipment_type_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

@@ -41,9 +41,11 @@ const styles = _theme => ({
 
 const projectQuery = graphql`
   query ProjectCardQuery($projectId: ID!) {
-    project(id: $projectId) {
-      ...ProjectMoreActionsButton_project
-      ...ProjectDetails_project
+    project: node(id: $projectId) {
+      ... on Project {
+        ...ProjectMoreActionsButton_project
+        ...ProjectDetails_project
+      }
     }
   }
 `;

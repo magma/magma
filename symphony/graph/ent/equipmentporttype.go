@@ -27,22 +27,32 @@ type EquipmentPortType struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentPortTypeQuery when eager-loading is set.
+	Edges struct {
+		// PropertyTypes holds the value of the property_types edge.
+		PropertyTypes []*PropertyType
+		// LinkPropertyTypes holds the value of the link_property_types edge.
+		LinkPropertyTypes []*PropertyType
+		// PortDefinitions holds the value of the port_definitions edge.
+		PortDefinitions []*EquipmentPortDefinition
+	} `json:"edges"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*EquipmentPortType) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the EquipmentPortType fields.
 func (ept *EquipmentPortType) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(equipmentporttype.Columns); m != n {
+	if m, n := len(values), len(equipmentporttype.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

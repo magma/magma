@@ -71,6 +71,13 @@ const (
 	FilesInverseTable = "files"
 	// FilesColumn is the table column denoting the files relation/edge.
 	FilesColumn = "work_order_file_id"
+	// HyperlinksTable is the table the holds the hyperlinks relation/edge.
+	HyperlinksTable = "hyperlinks"
+	// HyperlinksInverseTable is the table name for the Hyperlink entity.
+	// It exists in this package in order to avoid circular dependency with the "hyperlink" package.
+	HyperlinksInverseTable = "hyperlinks"
+	// HyperlinksColumn is the table column denoting the hyperlinks relation/edge.
+	HyperlinksColumn = "work_order_hyperlink_id"
 	// LocationTable is the table the holds the location relation/edge.
 	LocationTable = "work_orders"
 	// LocationInverseTable is the table name for the Location entity.
@@ -115,7 +122,7 @@ const (
 	ProjectColumn = "project_id"
 )
 
-// Columns holds all SQL columns are workorder fields.
+// Columns holds all SQL columns for workorder fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -129,6 +136,14 @@ var Columns = []string{
 	FieldCreationDate,
 	FieldAssignee,
 	FieldIndex,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the WorkOrder type.
+var ForeignKeys = []string{
+	"project_id",
+	"type_id",
+	"location_id",
+	"technician_id",
 }
 
 var (

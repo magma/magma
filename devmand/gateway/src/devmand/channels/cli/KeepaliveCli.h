@@ -8,6 +8,8 @@
 #pragma once
 
 #include <devmand/channels/cli/Cli.h>
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
+#include <devmand/channels/cli/CliTimekeeperWrapper.h>
 #include <folly/Executor.h>
 #include <folly/executors/SerialExecutor.h>
 #include <folly/futures/Future.h>
@@ -28,10 +30,21 @@ class KeepaliveCli : public Cli {
       string id,
       shared_ptr<Cli> _cli,
       shared_ptr<folly::Executor> parentExecutor,
-      shared_ptr<folly::Timekeeper> _timekeeper,
+      shared_ptr<CliThreadWheelTimekeeper> _timekeeper,
       chrono::milliseconds heartbeatInterval = defaultKeepaliveInterval,
       string keepAliveCommand = "",
       chrono::milliseconds backoffAfterKeepaliveTimeout = chrono::seconds(5));
+
+  folly::SemiFuture<folly::Unit> destroy() override;
+
+  KeepaliveCli(
+      string id,
+      shared_ptr<Cli> _cli,
+      shared_ptr<folly::Executor> parentExecutor,
+      shared_ptr<CliTimekeeperWrapper> _timekeeper,
+      chrono::milliseconds heartbeatInterval,
+      string keepAliveCommand,
+      chrono::milliseconds backoffAfterKeepaliveTimeout);
 
   ~KeepaliveCli() override;
 
@@ -40,30 +53,35 @@ class KeepaliveCli : public Cli {
   folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override;
 
  private:
+  shared_ptr<Cli> sharedCli; // underlying cli layer
+  shared_ptr<CliTimekeeperWrapper> sharedTimekeeper;
+  shared_ptr<folly::Executor> parentExecutor;
+  shared_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
+      sharedSerialExecutorKeepAlive;
   struct KeepaliveParameters {
     string id;
-    shared_ptr<Cli> cli; // underlying cli layer
-    shared_ptr<folly::Timekeeper> timekeeper;
-    shared_ptr<folly::Executor> parentExecutor;
-    folly::Executor::KeepAlive<folly::SerialExecutor> serialExecutorKeepAlive;
+    weak_ptr<Cli> cli;
+    weak_ptr<CliTimekeeperWrapper> timekeeper;
+    weak_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
+        serialExecutorKeepAlive;
     string keepAliveCommand;
     chrono::milliseconds heartbeatInterval;
     chrono::milliseconds backoffAfterKeepaliveTimeout;
-    atomic<bool> shutdown;
+
+    KeepaliveParameters(
+        const string& _id,
+        weak_ptr<Cli> _cli,
+        weak_ptr<CliTimekeeperWrapper> _timekeeper,
+        weak_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
+            _serialExecutorKeepAlive,
+        const string& _keepAliveCommand,
+        const chrono::milliseconds& _heartbeatInterval,
+        const chrono::milliseconds& _backoffAfterKeepaliveTimeout);
 
     KeepaliveParameters(KeepaliveParameters&&) = default;
   };
 
   shared_ptr<KeepaliveParameters> keepaliveParameters;
-
-  KeepaliveCli(
-      string id,
-      shared_ptr<Cli> _cli,
-      shared_ptr<folly::Executor> parentExecutor,
-      shared_ptr<folly::Timekeeper> _timekeeper,
-      chrono::milliseconds heartbeatInterval,
-      string keepAliveCommand,
-      chrono::milliseconds backoffAfterKeepaliveTimeout);
 
   static void triggerSendKeepAliveCommand(
       shared_ptr<KeepaliveParameters> keepaliveParameters);

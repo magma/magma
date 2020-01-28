@@ -148,6 +148,7 @@ class PropertyTypeTable extends React.Component<Props> {
                       className={classes.input}
                       value={property.name}
                       onChange={this._handleChange('name', i)}
+                      onBlur={() => this._handleNameBlur(i)}
                       margin="dense"
                     />
                   </TableCell>
@@ -260,6 +261,23 @@ class PropertyTypeTable extends React.Component<Props> {
         changedProp,
         // $FlowFixMe: need to figure out how to cast string to PropertyKind
         event.target.value,
+      ),
+    );
+  };
+
+  _handleNameBlur = index => {
+    const name = this.props.propertyTypes[index]?.name;
+    const trimmedName = name && name.trim();
+    if (name === trimmedName) {
+      return;
+    }
+
+    this.props.onPropertiesChanged(
+      updateItem<PropertyType, 'name'>(
+        this.props.propertyTypes,
+        index,
+        'name',
+        trimmedName,
       ),
     );
   };

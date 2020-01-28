@@ -194,6 +194,48 @@ describe('useForm hook', () => {
       list: [{test: 1}],
     });
   });
+
+  test('editing a field calls onFormUpdated', () => {
+    const state = {
+      text: '',
+      list: [],
+    };
+    const onFormUpdatedMock = jest.fn();
+    const {result} = renderHook(() =>
+      useForm({initialState: state, onFormUpdated: onFormUpdatedMock}),
+    );
+    const textEventHandler = result.current.handleInputChange(val => ({
+      text: val,
+    }));
+    hooksAct(() => {
+      textEventHandler({target: {value: 'test text'}});
+    });
+    expect(onFormUpdatedMock).toHaveBeenCalledWith({
+      list: [],
+      text: 'test text',
+    });
+  });
+
+  test('calling updateFormState calls onFormUpdated', () => {
+    const state = {
+      text: '',
+      list: [],
+    };
+    const onFormUpdatedMock = jest.fn();
+    const {result} = renderHook(() =>
+      useForm({initialState: state, onFormUpdated: onFormUpdatedMock}),
+    );
+
+    hooksAct(() => {
+      result.current.updateFormState({
+        text: 'test text',
+      });
+    });
+    expect(onFormUpdatedMock).toHaveBeenCalledWith({
+      list: [],
+      text: 'test text',
+    });
+  });
 });
 
 function mockRuleInterface(

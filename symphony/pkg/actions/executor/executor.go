@@ -19,11 +19,12 @@ type Executor struct {
 }
 
 // Execute runs all workflows for the specified object/trigger
-func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPayload map[core.TriggerID]map[string]interface{}) {
+func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPayload map[core.TriggerID]map[string]interface{}) ExecutionResult {
 
 	// Note that we should keep this interface serializable, so if we need to eventually
 	// offload this to workers, we can
 
+	execResult := ExecutionResult{}
 	for triggerID, inputPayload := range triggerToPayload {
 		trigger, err := exc.Registry.TriggerForID(triggerID)
 		if err != nil {
@@ -50,10 +51,14 @@ func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPaylo
 				err := exc.executeAction(rule, ruleAction, inputPayload)
 				if err != nil {
 					exc.OnError(ctx, errors.Errorf("executing action %s: %v", ruleAction.ActionID, err))
+					execResult.Errors = append(execResult.Errors, ExecutionError{ruleAction.ActionID, err.Error()})
+				} else {
+					execResult.Successes = append(execResult.Successes, ruleAction.ActionID)
 				}
 			}
 		}
 	}
+	return execResult
 }
 
 func (exc Executor) executeAction(rule core.Rule, ruleAction *core.ActionsRuleAction, inputPayload map[string]interface{}) error {
@@ -71,4 +76,16 @@ func (exc Executor) executeAction(rule core.Rule, ruleAction *core.ActionsRuleAc
 		return errors.Errorf("executing %v: %v", ruleAction.ActionID, err)
 	}
 	return nil
+}
+
+// ExecutionResult stores the results of a call to Execute
+type ExecutionResult struct {
+	Successes []core.ActionID
+	Errors    []ExecutionError
+}
+
+// ExecutionError holds an ActionID with the error associated with it
+type ExecutionError struct {
+	ID    core.ActionID
+	Error string
 }

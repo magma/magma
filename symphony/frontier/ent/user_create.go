@@ -182,8 +182,8 @@ func (uc *UserCreate) SaveX(ctx context.Context) *User {
 
 func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 	var (
-		u    = &User{config: uc.config}
-		spec = &sqlgraph.CreateSpec{
+		u     = &User{config: uc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: user.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
@@ -192,7 +192,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 	)
 	if value := uc.created_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: user.FieldCreatedAt,
@@ -200,7 +200,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		u.CreatedAt = *value
 	}
 	if value := uc.updated_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: user.FieldUpdatedAt,
@@ -208,7 +208,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		u.UpdatedAt = *value
 	}
 	if value := uc.email; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: user.FieldEmail,
@@ -216,7 +216,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		u.Email = *value
 	}
 	if value := uc.password; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: user.FieldPassword,
@@ -224,7 +224,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		u.Password = *value
 	}
 	if value := uc.role; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: user.FieldRole,
@@ -232,7 +232,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		u.Role = *value
 	}
 	if value := uc.tenant; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: user.FieldTenant,
@@ -240,7 +240,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		u.Tenant = *value
 	}
 	if value := uc.networks; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
 			Column: user.FieldNetworks,
@@ -248,7 +248,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		u.Networks = *value
 	}
 	if value := uc.tabs; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
 			Column: user.FieldTabs,
@@ -272,15 +272,15 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, uc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, uc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	u.ID = int(id)
 	return u, nil
 }

@@ -940,7 +940,6 @@ void nas_emm_procedure_register_emm_message(
       // forward to ESM, TODO later...
     }
   }
-  emm_context_unlock(emm_ctx);
 }
 
 //-----------------------------------------------------------------------------

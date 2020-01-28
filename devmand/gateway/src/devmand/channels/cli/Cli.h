@@ -36,6 +36,14 @@ class Cli {
 
   virtual folly::SemiFuture<std::string> executeWrite(
       const WriteCommand cmd) = 0;
+
+  //! Destruct object asynchronously. Must be idempotent.
+  //! Thread safety: it is expected that this method will only be called
+  //! from the same thread as actual destructor.
+  //! Destructor should call destroy().get() to block until all resources are
+  //! cleaned. Calling destroy() on outer CLI layer should call destroy() on
+  //! underlying layer immediately to start closing ssh session.
+  virtual folly::SemiFuture<folly::Unit> destroy() = 0;
 };
 
 class CliException : public std::runtime_error {

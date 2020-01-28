@@ -27,22 +27,28 @@ type EquipmentCategory struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentCategoryQuery when eager-loading is set.
+	Edges struct {
+		// Types holds the value of the types edge.
+		Types []*EquipmentType
+	} `json:"edges"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*EquipmentCategory) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the EquipmentCategory fields.
 func (ec *EquipmentCategory) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(equipmentcategory.Columns); m != n {
+	if m, n := len(values), len(equipmentcategory.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

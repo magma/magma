@@ -6,8 +6,9 @@ package importer
 
 import (
 	"context"
-	"github.com/AlekSi/pointer"
 	"strconv"
+
+	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
@@ -173,7 +174,7 @@ func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitud
 	return l, true
 }
 
-func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
+func (m *importer) getEquipmentIfExist(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, error) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.EquipmentType.Query().
@@ -192,20 +193,26 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 	}
 	equip, err := rq.First(ctx)
 	if ent.MaskNotFound(err) != nil {
-		return nil, false, err
+		return nil, err
 	}
 	if equip != nil {
 		log.Debug("equipment exists",
 			zap.String("name", name),
 			zap.String("type", equipType.ID),
 		)
-		return equip, false, nil
+		return equip, nil
 	}
-	if !ent.IsNotFound(err) {
-		panic(err)
-	}
-	var locID *string
+	return nil, nil
+}
 
+func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
+	log := m.log.For(ctx)
+	eq, err := m.getEquipmentIfExist(ctx, mr, name, equipType, externalID, loc, position, props)
+	if err != nil || eq != nil {
+		return eq, false, err
+	}
+
+	var locID *string
 	if loc != nil {
 		locID = &loc.ID
 	}
@@ -217,8 +224,7 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 		parentEquipmentID = &p
 		positionDefinitionID = &d
 	}
-
-	equip, err = mr.AddEquipment(ctx, models.AddEquipmentInput{
+	equip, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:               name,
 		Type:               equipType.ID,
 		Location:           locID,
@@ -232,7 +238,6 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 		return nil, false, err
 	}
 	log.Debug("Creating new equipment", zap.String("equip.Name", equip.Name), zap.String("equip.ID", equip.ID))
-
 	return equip, true, nil
 }
 

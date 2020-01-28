@@ -34,6 +34,7 @@ export type EquipmentPortTypeItem_equipmentPortType$data = EquipmentPortTypeItem
 export type EquipmentPortTypeItem_equipmentPortType$key = {
   +$data?: EquipmentPortTypeItem_equipmentPortType$data,
   +$fragmentRefs: EquipmentPortTypeItem_equipmentPortType$ref,
+  ...
 };
 */
 

@@ -19,8 +19,8 @@ import (
 	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
@@ -126,8 +126,8 @@ func preparePrometheusQuery(c echo.Context) (string, error) {
 
 func preprocessQuery(query, networkID string) (string, error) {
 	restrictedLabels := map[string]string{metrics.NetworkLabelName: networkID}
-	restrictor := security.NewQueryRestrictor(restrictedLabels)
-	return restrictor.RestrictQuery(query)
+	queryRestrictor := restrictor.NewQueryRestrictor(restrictedLabels)
+	return queryRestrictor.RestrictQuery(query)
 }
 
 // PromQLResultStruct carries all of the data of the full prometheus API result
@@ -178,7 +178,7 @@ func GetPrometheusSeriesHandler(api v1.API) func(c echo.Context) error {
 }
 
 func getSeriesMatches(c echo.Context, networkID string) ([]string, error) {
-	restrictor := security.NewQueryRestrictor(map[string]string{metrics.NetworkLabelName: networkID})
+	queryRestrictor := restrictor.NewQueryRestrictor(map[string]string{metrics.NetworkLabelName: networkID})
 	// Split array of matches by space delimiter
 	matches := strings.Split(c.QueryParam(paramMatch), " ")
 	seriesMatchers := make([]string, 0, len(matches))
@@ -186,7 +186,7 @@ func getSeriesMatches(c echo.Context, networkID string) ([]string, error) {
 		if match == "" {
 			continue
 		}
-		restricted, err := restrictor.RestrictQuery(match)
+		restricted, err := queryRestrictor.RestrictQuery(match)
 		if err != nil {
 			return []string{}, obsidian.HttpError(fmt.Errorf("unable to secure match parameter: %v", err))
 		}

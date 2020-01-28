@@ -1105,6 +1105,7 @@ export type EquipmentPortsTable_equipment$data = EquipmentPortsTable_equipment;
 export type EquipmentPortsTable_equipment$key = {
   +$data?: EquipmentPortsTable_equipment$data,
   +$fragmentRefs: EquipmentPortsTable_equipment$ref,
+  ...
 };
 */
 

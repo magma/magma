@@ -187,38 +187,11 @@ func (r queryResolver) ProjectType(ctx context.Context, id string) (*ent.Project
 
 func (r queryResolver) ProjectTypes(
 	ctx context.Context,
-	_ *models.Cursor, _ *int,
-	_ *models.Cursor, _ *int,
-) (*models.ProjectTypeConnection, error) {
-	types, err := r.ClientFrom(ctx).ProjectType.Query().All(ctx)
-	switch {
-	case err != nil:
-		return nil, xerrors.Errorf("querying project types: %w", err)
-	case len(types) == 0:
-		return &models.ProjectTypeConnection{
-			Edges:    []*models.ProjectTypeEdge{},
-			PageInfo: &models.PageInfo{},
-		}, nil
-	}
-	edges := make([]*models.ProjectTypeEdge, len(types))
-	for i, typ := range types {
-		edges[i] = &models.ProjectTypeEdge{
-			Node: typ,
-			Cursor: models.Cursor{
-				ID:     typ.ID,
-				Offset: i,
-			},
-		}
-	}
-	return &models.ProjectTypeConnection{
-		Edges: edges,
-		PageInfo: &models.PageInfo{
-			HasNextPage:     false,
-			HasPreviousPage: false,
-			StartCursor:     &edges[0].Cursor,
-			EndCursor:       &edges[len(edges)-1].Cursor,
-		},
-	}, nil
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.ProjectTypeConnection, error) {
+	return r.ClientFrom(ctx).ProjectType.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (projectResolver) Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error) {

@@ -29,23 +29,29 @@ type Customer struct {
 	Name string `json:"name,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
 	ExternalID *string `json:"external_id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CustomerQuery when eager-loading is set.
+	Edges struct {
+		// Services holds the value of the services edge.
+		Services []*Service
+	} `json:"edges"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Customer) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // external_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Customer fields.
 func (c *Customer) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(customer.Columns); m != n {
+	if m, n := len(values), len(customer.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

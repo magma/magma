@@ -23,6 +23,7 @@ const useStyles = makeStyles(theme => ({
     padding: '24px 16px',
     position: 'relative',
     zIndex: 2,
+    overflowY: 'auto',
   },
   typeItem: {
     display: 'flex',

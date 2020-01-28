@@ -9,6 +9,7 @@
 #include <magma_logging.h>
 
 #include <devmand/cartography/DeviceConfig.h>
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
 #include <devmand/channels/cli/ReconnectingCli.h>
 #include <devmand/test/cli/utils/Log.h>
 #include <devmand/test/cli/utils/MockCli.h>
@@ -26,6 +27,8 @@ using namespace devmand::channels::cli;
 using namespace devmand::test::utils::cli;
 using namespace std;
 using namespace folly;
+using namespace std::chrono;
+using devmand::channels::cli::CliThreadWheelTimekeeper;
 
 class ReconnectingCliTest : public ::testing::Test {
  protected:
@@ -44,14 +47,20 @@ class ReconnectingCliTest : public ::testing::Test {
 };
 
 static shared_ptr<ReconnectingCli> getCli(
-    function<SemiFuture<shared_ptr<Cli>>()> createCliStack) {
+    function<SemiFuture<shared_ptr<Cli>>()> createCliStack,
+    chrono::milliseconds quietPeriod) {
   shared_ptr<ReconnectingCli> cli = ReconnectingCli::make(
       "test",
       make_shared<CPUThreadPoolExecutor>(1),
       move(createCliStack),
-      make_shared<folly::ThreadWheelTimekeeper>(),
-      2s);
+      make_shared<CliThreadWheelTimekeeper>(),
+      quietPeriod);
   return cli;
+}
+
+static shared_ptr<ReconnectingCli> getCli(
+    function<SemiFuture<shared_ptr<Cli>>()> createCliStack) {
+  return getCli(createCliStack, 2s);
 }
 
 static void waitTillCliRecreated() {
@@ -72,6 +81,19 @@ TEST_F(ReconnectingCliTest, cleanDestructNotConnected) {
   testedCli.reset();
 
   EXPECT_THROW(move(future).via(testExec.get()).get(10s), runtime_error);
+}
+
+TEST_F(ReconnectingCliTest, cannotConnectAndThenDestruct) {
+  auto factory = [this]() -> shared_ptr<Cli> {
+    throw std::runtime_error("I am a naughty server");
+  };
+  auto testedCli = getCli(factory, 10s);
+
+  steady_clock::time_point begin = steady_clock::now();
+  // Destruct cli
+  testedCli.reset();
+  steady_clock::time_point end = steady_clock::now();
+  EXPECT_LT(duration_cast<milliseconds>(end - begin).count(), 3000);
 }
 
 TEST_F(ReconnectingCliTest, cleanDestructConnected) {

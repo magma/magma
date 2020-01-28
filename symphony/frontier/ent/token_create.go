@@ -111,8 +111,8 @@ func (tc *TokenCreate) SaveX(ctx context.Context) *Token {
 
 func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 	var (
-		t    = &Token{config: tc.config}
-		spec = &sqlgraph.CreateSpec{
+		t     = &Token{config: tc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: token.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
@@ -121,7 +121,7 @@ func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 		}
 	)
 	if value := tc.created_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: token.FieldCreatedAt,
@@ -129,7 +129,7 @@ func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 		t.CreatedAt = *value
 	}
 	if value := tc.updated_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: token.FieldUpdatedAt,
@@ -137,7 +137,7 @@ func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 		t.UpdatedAt = *value
 	}
 	if value := tc.value; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: token.FieldValue,
@@ -161,15 +161,15 @@ func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, tc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	t.ID = int(id)
 	return t, nil
 }

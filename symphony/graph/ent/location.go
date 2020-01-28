@@ -35,26 +35,64 @@ type Location struct {
 	Longitude float64 `json:"longitude,omitempty"`
 	// SiteSurveyNeeded holds the value of the "site_survey_needed" field.
 	SiteSurveyNeeded bool `json:"site_survey_needed,omitempty" gqlgen:"siteSurveyNeeded"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the LocationQuery when eager-loading is set.
+	Edges struct {
+		// Type holds the value of the type edge.
+		Type *LocationType `gqlgen:"locationType"`
+		// Parent holds the value of the parent edge.
+		Parent *Location `gqlgen:"parent"`
+		// Children holds the value of the children edge.
+		Children []*Location `gqlgen:"children"`
+		// Files holds the value of the files edge.
+		Files []*File `gqlgen:"files,images"`
+		// Hyperlinks holds the value of the hyperlinks edge.
+		Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
+		// Equipment holds the value of the equipment edge.
+		Equipment []*Equipment `gqlgen:"equipments"`
+		// Properties holds the value of the properties edge.
+		Properties []*Property `gqlgen:"properties"`
+		// Survey holds the value of the survey edge.
+		Survey []*Survey `gqlgen:"surveys"`
+		// WifiScan holds the value of the wifi_scan edge.
+		WifiScan []*SurveyWiFiScan `gqlgen:"wifiData"`
+		// CellScan holds the value of the cell_scan edge.
+		CellScan []*SurveyCellScan `gqlgen:"cellData"`
+		// WorkOrders holds the value of the work_orders edge.
+		WorkOrders []*WorkOrder `gqlgen:"workOrders"`
+		// FloorPlans holds the value of the floor_plans edge.
+		FloorPlans []*FloorPlan `gqlgen:"floorPlans"`
+	} `json:"edges"`
+	type_id   *string
+	parent_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Location) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
-		&sql.NullBool{},
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullString{},  // name
+		&sql.NullString{},  // external_id
+		&sql.NullFloat64{}, // latitude
+		&sql.NullFloat64{}, // longitude
+		&sql.NullBool{},    // site_survey_needed
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Location) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // type_id
+		&sql.NullInt64{}, // parent_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Location fields.
 func (l *Location) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(location.Columns); m != n {
+	if m, n := len(values), len(location.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -98,6 +136,21 @@ func (l *Location) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		l.SiteSurveyNeeded = value.Bool
 	}
+	values = values[7:]
+	if len(values) == len(location.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+		} else if value.Valid {
+			l.type_id = new(string)
+			*l.type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field parent_id", value)
+		} else if value.Valid {
+			l.parent_id = new(string)
+			*l.parent_id = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -119,6 +172,11 @@ func (l *Location) QueryChildren() *LocationQuery {
 // QueryFiles queries the files edge of the Location.
 func (l *Location) QueryFiles() *FileQuery {
 	return (&LocationClient{l.config}).QueryFiles(l)
+}
+
+// QueryHyperlinks queries the hyperlinks edge of the Location.
+func (l *Location) QueryHyperlinks() *HyperlinkQuery {
+	return (&LocationClient{l.config}).QueryHyperlinks(l)
 }
 
 // QueryEquipment queries the equipment edge of the Location.

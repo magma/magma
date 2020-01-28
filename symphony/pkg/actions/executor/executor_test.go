@@ -6,6 +6,7 @@ package executor
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/facebookincubator/symphony/pkg/actions/action/mockaction"
@@ -18,6 +19,7 @@ import (
 
 var (
 	testActionID1 core.ActionID = "action1"
+	testActionID2 core.ActionID = "action2"
 
 	testTriggerID1 core.TriggerID = "trigger1"
 	testTriggerID2 core.TriggerID = "trigger2"
@@ -57,40 +59,60 @@ func TestExecutor(t *testing.T) {
 		},
 	}
 
+	testErrRule := core.Rule{
+		ID:        "errRule",
+		TriggerID: testTriggerID2,
+		RuleActions: []*core.ActionsRuleAction{
+			{
+				ActionID: testActionID2,
+				Data:     "testdata",
+			},
+		},
+	}
+
 	trigger1 := mocktrigger.New()
 	trigger1.On("ID").Return(testTriggerID1)
 	trigger1.On("SupportedFilters").Return([]core.Filter{networkIDFilter})
 
 	trigger2 := mocktrigger.New()
 	trigger2.On("ID").Return(testTriggerID2)
-	trigger1.On("SupportedFilters").Return([]core.Filter{networkIDFilter})
+	trigger2.On("SupportedFilters").Return([]core.Filter{networkIDFilter})
 
 	action := mockaction.New()
 	action.On("ID").Return(testActionID1)
 	action.On("Execute", mock.Anything).Return(nil)
 
+	errAction := mockaction.New()
+	errAction.On("ID").Return(testActionID2)
+	errAction.On("Execute", mock.Anything).Return(errors.New("error"))
+
 	registry := NewRegistry()
 	registry.MustRegisterAction(action)
+	registry.MustRegisterAction(errAction)
 	registry.MustRegisterTrigger(trigger1)
 	registry.MustRegisterTrigger(trigger2)
 
 	exc := Executor{
 		Registry: registry,
 		DataLoader: BasicDataLoader{
-			Rules: []core.Rule{testRule},
+			Rules: []core.Rule{testRule, testErrRule},
 		},
-		OnError: func(ctx context.Context, err error) {
-			assert.Fail(t, "error in test when shouldnt be", err)
-		},
+		OnError: func(ctx context.Context, err error) {},
 	}
 
 	triggers := map[core.TriggerID]map[string]interface{}{
 		testTriggerID1: payload1,
 		testTriggerID2: payload1,
 	}
-	exc.Execute(context.Background(), "id123", triggers)
+	res := exc.Execute(context.Background(), "id123", triggers)
+	assert.Equal(t, []core.ActionID{action.ID()}, res.Successes)
+	assert.Equal(t, []ExecutionError{{
+		ID:    errAction.ID(),
+		Error: "executing action2: error",
+	}}, res.Errors)
 
 	action.AssertNumberOfCalls(t, "Execute", 1)
+	errAction.AssertNumberOfCalls(t, "Execute", 1)
 }
 
 func TestExecutorRuleFilter(t *testing.T) {
@@ -139,7 +161,9 @@ func TestExecutorRuleFilter(t *testing.T) {
 	triggers := map[core.TriggerID]map[string]interface{}{
 		testTriggerID1: payload1,
 	}
-	exc.Execute(context.Background(), "id123", triggers)
+	res := exc.Execute(context.Background(), "id123", triggers)
+	assert.Len(t, res.Successes, 0)
+	assert.Len(t, res.Errors, 0)
 
 	action.AssertNumberOfCalls(t, "Execute", 0)
 }
@@ -166,7 +190,9 @@ func TestExecutorUnregisteredTrigger(t *testing.T) {
 		testTriggerID1: payload1,
 		testTriggerID2: payload1,
 	}
-	exc.Execute(context.Background(), "id123", triggers)
+	res := exc.Execute(context.Background(), "id123", triggers)
+	assert.Len(t, res.Successes, 0)
+	assert.Len(t, res.Errors, 0)
 
 	mockErrorHandler.AssertNumberOfCalls(t, "LogError", 1)
 }

@@ -51,7 +51,6 @@ Description NAS procedure call manager
 #include "TrackingAreaIdentity.h"
 #include "nas/as_message.h"
 #include "bstrlib.h"
-#include "nas_messages_types.h"
 #include "mme_app_defs.h"
 #include "s6a_messages_types.h"
 #include "security_types.h"
@@ -73,7 +72,7 @@ Description NAS procedure call manager
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void nas_proc_initialize(mme_config_t *mme_config_p);
+void nas_proc_initialize(const mme_config_t *mme_config_p);
 
 void nas_proc_cleanup(void);
 
@@ -125,7 +124,6 @@ int nas_proc_auth_param_res(
   uint8_t nb_vectors,
   eutran_vector_t *vectors);
 int nas_proc_auth_param_fail(mme_ue_s1ap_id_t ue_id, nas_cause_t cause);
-int nas_proc_deregister_ue(uint32_t ue_id);
 int nas_proc_ula_success(mme_ue_s1ap_id_t ue_id);
 int nas_proc_cs_respose_success(
   emm_cn_cs_response_success_t* nas_cs_response_success);
@@ -144,9 +142,9 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_rel);
 int nas_proc_cs_domain_mm_information_request(
   itti_sgsap_mm_information_req_t *const mm_information_req_pP);
 int nas_proc_cs_service_notification(
-  itti_nas_cs_service_notification_t *const cs_service_notification);
-int nas_proc_notify_service_reject(
-  itti_nas_notify_service_reject_t *const service_reject_p);
+  mme_ue_s1ap_id_t ue_id,
+  uint8_t paging_id,
+  bstring cli);
 int nas_proc_delete_dedicated_bearer(
   emm_cn_deactivate_dedicated_bearer_req_t *emm_cn_deactivate);
 int nas_proc_pdn_disconnect_rsp(

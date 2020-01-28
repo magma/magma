@@ -73,6 +73,7 @@ func (WorkOrder) Edges() []ent.Edge {
 		edge.From("links", Link.Type).
 			Ref("work_order"),
 		edge.To("files", File.Type),
+		edge.To("hyperlinks", Hyperlink.Type),
 		edge.To("location", Location.Type).
 			Unique(),
 		edge.To("comments", Comment.Type),

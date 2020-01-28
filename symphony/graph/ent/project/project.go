@@ -68,7 +68,7 @@ const (
 	PropertiesColumn = "project_id"
 )
 
-// Columns holds all SQL columns are project fields.
+// Columns holds all SQL columns for project fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -76,6 +76,12 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldCreator,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Project type.
+var ForeignKeys = []string{
+	"project_location_id",
+	"type_id",
 }
 
 var (

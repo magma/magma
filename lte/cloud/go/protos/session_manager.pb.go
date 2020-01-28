@@ -1174,6 +1174,7 @@ func (m *ChargingReAuthAnswer) GetResult() ChargingReAuthAnswer_Result {
 }
 
 type PolicyReAuthRequest struct {
+	// NOTE: if no session_id is specified, apply to all sessions for the IMSI
 	SessionId              string                   `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	Imsi                   string                   `protobuf:"bytes,2,opt,name=imsi,proto3" json:"imsi,omitempty"`
 	RulesToRemove          []string                 `protobuf:"bytes,3,rep,name=rules_to_remove,json=rulesToRemove,proto3" json:"rules_to_remove,omitempty"`
@@ -3428,6 +3429,8 @@ var _LocalSessionManager_serviceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SessionProxyResponderClient interface {
 	ChargingReAuth(ctx context.Context, in *ChargingReAuthRequest, opts ...grpc.CallOption) (*ChargingReAuthAnswer, error)
+	// NOTE: if no session_id is specified, apply to all sessions for the IMSI
+	//
 	PolicyReAuth(ctx context.Context, in *PolicyReAuthRequest, opts ...grpc.CallOption) (*PolicyReAuthAnswer, error)
 }
 
@@ -3460,6 +3463,8 @@ func (c *sessionProxyResponderClient) PolicyReAuth(ctx context.Context, in *Poli
 // SessionProxyResponderServer is the server API for SessionProxyResponder service.
 type SessionProxyResponderServer interface {
 	ChargingReAuth(context.Context, *ChargingReAuthRequest) (*ChargingReAuthAnswer, error)
+	// NOTE: if no session_id is specified, apply to all sessions for the IMSI
+	//
 	PolicyReAuth(context.Context, *PolicyReAuthRequest) (*PolicyReAuthAnswer, error)
 }
 

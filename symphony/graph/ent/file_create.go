@@ -182,8 +182,8 @@ func (fc *FileCreate) SaveX(ctx context.Context) *File {
 
 func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 	var (
-		f    = &File{config: fc.config}
-		spec = &sqlgraph.CreateSpec{
+		f     = &File{config: fc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: file.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -192,7 +192,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		}
 	)
 	if value := fc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: file.FieldCreateTime,
@@ -200,7 +200,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		f.CreateTime = *value
 	}
 	if value := fc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: file.FieldUpdateTime,
@@ -208,7 +208,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		f.UpdateTime = *value
 	}
 	if value := fc._type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: file.FieldType,
@@ -216,7 +216,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		f.Type = *value
 	}
 	if value := fc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: file.FieldName,
@@ -224,7 +224,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		f.Name = *value
 	}
 	if value := fc.size; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: file.FieldSize,
@@ -232,7 +232,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		f.Size = *value
 	}
 	if value := fc.modified_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: file.FieldModifiedAt,
@@ -240,7 +240,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		f.ModifiedAt = *value
 	}
 	if value := fc.uploaded_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: file.FieldUploadedAt,
@@ -248,7 +248,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		f.UploadedAt = *value
 	}
 	if value := fc.content_type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: file.FieldContentType,
@@ -256,7 +256,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		f.ContentType = *value
 	}
 	if value := fc.store_key; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: file.FieldStoreKey,
@@ -264,20 +264,20 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		f.StoreKey = *value
 	}
 	if value := fc.category; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: file.FieldCategory,
 		})
 		f.Category = *value
 	}
-	if err := sqlgraph.CreateNode(ctx, fc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, fc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	f.ID = strconv.FormatInt(id, 10)
 	return f, nil
 }

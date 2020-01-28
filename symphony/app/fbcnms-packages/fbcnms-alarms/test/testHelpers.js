@@ -7,9 +7,14 @@
  * @flow
  * @format
  */
-
+import * as React from 'react';
+import AlarmContext from '../components/AlarmContext';
+import getPrometheusRuleInterface from '../components/rules/PrometheusEditor/getRuleInterface';
+import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {act, render} from '@testing-library/react';
+import type {AlarmContext as AlarmContextType} from '../components/AlarmContext';
 import type {ApiUtil} from '../components/AlarmsApi';
+import type {RuleInterfaceMap} from '../components/rules/RuleInterface';
 
 /**
  * I don't understand how to properly type these mocks so using any for now.
@@ -55,4 +60,55 @@ export async function renderAsync(...renderArgs: Array<any>): Promise<any> {
     result = await render(...renderArgs);
   });
   return result;
+}
+
+type AlarmsWrapperProps = {|
+  children: React.Node,
+  ...$Shape<AlarmContextType>,
+|};
+export function AlarmsWrapper({children, ...contextProps}: AlarmsWrapperProps) {
+  return (
+    <SymphonyWrapper>
+      <AlarmContext.Provider value={contextProps}>
+        {children}
+      </AlarmContext.Provider>
+    </SymphonyWrapper>
+  );
+}
+
+export type AlarmTestUtil = {|
+  AlarmsWrapper: React.ComponentType<$Shape<AlarmsWrapperProps>>,
+  apiUtil: ApiUtil,
+  ruleMap: RuleInterfaceMap<*>,
+|};
+
+/**
+ * All in one function to setup alarm tests.
+ * * Constructs a mock apiUtil, mock rule map, and creates an AlarmsWrapper
+ * function with both of these mocks passed in as props.
+ *
+ * Example:
+ *
+ * const {apiUtil, AlarmsWrapper} = alarmTestUtil()
+ * test('my component', () => {
+ *   render(
+ *    <AlarmsWrapper>
+ *      <MyComponent/>
+ *    </AlarmsWrapper>
+ *   )
+ *   expect(apiUtil.someFunction).toHaveBeenCalled();
+ * })
+ */
+export function alarmTestUtil(
+  overrides?: $Shape<AlarmTestUtil>,
+): AlarmTestUtil {
+  const apiUtil = overrides?.apiUtil ?? mockApiUtil();
+  const ruleMap = overrides?.ruleMap ?? getPrometheusRuleInterface({apiUtil});
+  return {
+    apiUtil,
+    ruleMap,
+    AlarmsWrapper: (props: AlarmsWrapperProps) => (
+      <AlarmsWrapper apiUtil={apiUtil} ruleMap={ruleMap} {...props} />
+    ),
+  };
 }

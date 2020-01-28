@@ -138,8 +138,12 @@ export function getLocationTypes(
 }
 
 export const buildPropertyFilterConfigs = (
-  definitions: Array<PropertyType>,
+  definitions: ?Array<PropertyType>,
 ): Array<FilterConfig> => {
+  if (definitions == null) {
+    return [];
+  }
+
   return definitions
     .filter(
       d =>

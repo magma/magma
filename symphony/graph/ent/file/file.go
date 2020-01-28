@@ -43,7 +43,7 @@ const (
 	Table = "files"
 )
 
-// Columns holds all SQL columns are file fields.
+// Columns holds all SQL columns for file fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -56,6 +56,14 @@ var Columns = []string{
 	FieldContentType,
 	FieldStoreKey,
 	FieldCategory,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the File type.
+var ForeignKeys = []string{
+	"equipment_file_id",
+	"location_file_id",
+	"survey_question_photo_datum_id",
+	"work_order_file_id",
 }
 
 var (

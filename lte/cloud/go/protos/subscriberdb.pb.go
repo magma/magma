@@ -1319,11 +1319,11 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PolicyAssignmentControllerClient interface {
-	// Immediately install the static policy for the IMSI
-	// Also unassociate the static rule with the IMSI on orc8r
+	// Associate the static rule with the IMSI
+	//
 	EnableStaticRules(ctx context.Context, in *EnableStaticRuleRequest, opts ...grpc.CallOption) (*protos.Void, error)
-	// Immediately uninstall the static policy for the IMSI
-	// Also unassociate the static rule with the IMSI on orc8r
+	// Unassociate the static rule with the IMSI
+	//
 	DisableStaticRules(ctx context.Context, in *DisableStaticRuleRequest, opts ...grpc.CallOption) (*protos.Void, error)
 }
 
@@ -1355,11 +1355,11 @@ func (c *policyAssignmentControllerClient) DisableStaticRules(ctx context.Contex
 
 // PolicyAssignmentControllerServer is the server API for PolicyAssignmentController service.
 type PolicyAssignmentControllerServer interface {
-	// Immediately install the static policy for the IMSI
-	// Also unassociate the static rule with the IMSI on orc8r
+	// Associate the static rule with the IMSI
+	//
 	EnableStaticRules(context.Context, *EnableStaticRuleRequest) (*protos.Void, error)
-	// Immediately uninstall the static policy for the IMSI
-	// Also unassociate the static rule with the IMSI on orc8r
+	// Unassociate the static rule with the IMSI
+	//
 	DisableStaticRules(context.Context, *DisableStaticRuleRequest) (*protos.Void, error)
 }
 

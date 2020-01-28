@@ -40,7 +40,6 @@
 #include "s11_messages_types.h"
 #include "s5_messages_types.h"
 #include "s1ap_messages_types.h"
-#include "nas_messages_types.h"
 #include "s6a_messages_types.h"
 #include "sctp_messages_types.h"
 #include "sgw_messages_types.h"

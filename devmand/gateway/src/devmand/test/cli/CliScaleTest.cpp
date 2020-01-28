@@ -10,6 +10,7 @@
 
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
+#include <devmand/test/TestUtils.h>
 #include <devmand/test/cli/utils/Log.h>
 #include <folly/Singleton.h>
 #include <folly/futures/Future.h>
@@ -29,11 +30,11 @@ using namespace folly;
 
 class CliScaleTest : public ::testing::Test {
  protected:
-  unique_ptr<channels::cli::Engine> cliEngine;
+  channels::cli::Engine cliEngine;
 
   void SetUp() override {
     devmand::test::utils::log::initLog(MWARNING);
-    cliEngine = make_unique<channels::cli::Engine>();
+    //    cliEngine = channels::cli::Engine();
   }
 };
 
@@ -78,14 +79,7 @@ TEST_F(CliScaleTest, DISABLED_scale) {
             60s,
             10s,
             30,
-            cliEngine->getTimekeeper(),
-            cliEngine->getExecutor(Engine::executorRequestType::sshCli),
-            cliEngine->getExecutor(Engine::executorRequestType::paCli),
-            cliEngine->getExecutor(Engine::executorRequestType::rcCli),
-            cliEngine->getExecutor(Engine::executorRequestType::ttCli),
-            cliEngine->getExecutor(Engine::executorRequestType::qCli),
-            cliEngine->getExecutor(Engine::executorRequestType::rCli),
-            cliEngine->getExecutor(Engine::executorRequestType::kaCli)));
+            cliEngine));
     return ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
   };
   const ReadCommand& cmd = ReadCommand::create("show running-config");
@@ -103,13 +97,11 @@ TEST_F(CliScaleTest, DISABLED_scale) {
     for (uint i = 0; i < connects.size(); i++) {
       clis.push_back(move(connects.at(i)).get());
 
-      // Wait till connected. Is there a better way ?
-      while (clis.at(clis.size() - 1)
-                 ->executeRead(ReadCommand::create("", true))
-                 .getTry()
-                 .hasException()) {
-        this_thread::sleep_for(100ms);
-      }
+      // Wait till connected
+      EXPECT_BECOMES_TRUE(not clis.at(clis.size() - 1)
+                                  ->executeRead(ReadCommand::create("", true))
+                                  .getTry()
+                                  .hasException());
 
       MLOG(MWARNING) << "Connected device at port: " << START_PORT + i;
     }

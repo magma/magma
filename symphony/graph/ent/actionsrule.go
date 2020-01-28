@@ -40,20 +40,20 @@ type ActionsRule struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ActionsRule) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&[]byte{},
-		&[]byte{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // triggerID
+		&[]byte{},         // ruleFilters
+		&[]byte{},         // ruleActions
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ActionsRule fields.
 func (ar *ActionsRule) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(actionsrule.Columns); m != n {
+	if m, n := len(values), len(actionsrule.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

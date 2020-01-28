@@ -10,6 +10,7 @@
 #include <devmand/cartography/DeviceConfig.h>
 #include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/cli/CliFlavour.h>
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
 #include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
@@ -48,11 +49,12 @@ class IoConfigurationBuilder {
     chrono::seconds cmdTimeout;
     chrono::seconds reconnectingQuietPeriod;
     long sshConnectionTimeout; /* in seconds */
-    shared_ptr<Timekeeper> timekeeper;
+    shared_ptr<CliThreadWheelTimekeeper> timekeeper;
     shared_ptr<Executor> sshExecutor;
     shared_ptr<Executor> paExecutor;
     shared_ptr<Executor> rcExecutor;
     shared_ptr<Executor> ttExecutor;
+    shared_ptr<Executor> lExecutor;
     shared_ptr<Executor> qExecutor;
     shared_ptr<Executor> rExecutor;
     shared_ptr<Executor> kaExecutor;
@@ -81,14 +83,7 @@ class IoConfigurationBuilder {
       chrono::seconds cmdTimeout,
       chrono::seconds reconnectingQuietPeriod,
       long sshConnectionTimeout,
-      shared_ptr<Timekeeper> timekeeper,
-      shared_ptr<Executor> sshExecutor,
-      shared_ptr<Executor> paExecutor,
-      shared_ptr<Executor> rcExecutor,
-      shared_ptr<Executor> ttExecutor,
-      shared_ptr<Executor> qExecutor,
-      shared_ptr<Executor> rExecutor,
-      shared_ptr<Executor> kaExecutor);
+      channels::cli::Engine& engine);
 
  private:
   shared_ptr<ConnectionParameters> connectionParameters;

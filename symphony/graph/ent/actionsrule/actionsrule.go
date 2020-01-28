@@ -35,7 +35,7 @@ const (
 	Table = "actions_rules"
 )
 
-// Columns holds all SQL columns are actionsrule fields.
+// Columns holds all SQL columns for actionsrule fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

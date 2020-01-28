@@ -24,6 +24,6 @@ type DirectorydPersistenceService interface {
 	// Update existing location record or persist new location record
 	UpdateOrCreateRecord(tableId protos.TableID, recordId string, record *protos.LocationRecord) error
 
-	// Delete location record
+	// Delete location record. MAY return non-nil error if recordId does not exist.
 	DeleteRecord(tableId protos.TableID, recordId string) error
 }

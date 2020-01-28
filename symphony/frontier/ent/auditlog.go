@@ -52,27 +52,27 @@ type AuditLog struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*AuditLog) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&[]byte{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // created_at
+		&sql.NullTime{},   // updated_at
+		&sql.NullInt64{},  // acting_user_id
+		&sql.NullString{}, // organization
+		&sql.NullString{}, // mutation_type
+		&sql.NullString{}, // object_id
+		&sql.NullString{}, // object_type
+		&sql.NullString{}, // object_display_name
+		&[]byte{},         // mutation_data
+		&sql.NullString{}, // url
+		&sql.NullString{}, // ip_address
+		&sql.NullString{}, // status
+		&sql.NullString{}, // status_code
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the AuditLog fields.
 func (al *AuditLog) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(auditlog.Columns); m != n {
+	if m, n := len(values), len(auditlog.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)

@@ -43,7 +43,7 @@ func (ed *EquipmentDelete) ExecX(ctx context.Context) int {
 }
 
 func (ed *EquipmentDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: equipment.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (ed *EquipmentDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := ed.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ed.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ed.driver, _spec)
 }
 
 // EquipmentDeleteOne is the builder for deleting a single Equipment entity.

@@ -8,39 +8,52 @@
  * @format
  */
 
-import type {ButtonVariant} from '../Button';
+import type {ButtonProps} from '../Button';
 import type {OptionProps} from './SelectMenu';
 
 import * as React from 'react';
 import BasePopoverTrigger from '../ContexualLayer/BasePopoverTrigger';
 import Button from '../Button';
 import SelectMenu from './SelectMenu';
+import classNames from 'classnames';
+import emptyFunction from '@fbcnms/util/emptyFunction';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles({
   menu: {
     margin: '8px 0px',
   },
+  menuDockRight: {
+    position: 'absolute',
+    right: '0',
+  },
 });
 
 type Props<TValue> = {
   className?: string,
+  menuClassName?: string,
+  menuDockRight?: boolean,
   children: React.Node,
   options: Array<OptionProps<TValue>>,
-  onChange: (value: TValue) => void | (() => void),
-  variant?: ButtonVariant,
+  onChange?: (value: TValue) => void | (() => void),
   leftIcon?: React$ComponentType<SvgIconExports>,
   rightIcon?: React$ComponentType<SvgIconExports>,
   searchable?: boolean,
   onOptionsFetchRequested?: (searchTerm: string) => void,
+  ...ButtonProps,
 };
 
 const PopoverMenu = <TValue>({
   className,
+  menuClassName,
   children,
-  variant = 'text',
   leftIcon,
   rightIcon,
+  menuDockRight,
+  onChange,
+  variant,
+  skin,
+  disabled,
   ...selectMenuProps
 }: Props<TValue>) => {
   const classes = useStyles();
@@ -49,8 +62,11 @@ const PopoverMenu = <TValue>({
       popover={
         <SelectMenu
           {...selectMenuProps}
+          onChange={onChange || emptyFunction}
           size="normal"
-          className={classes.menu}
+          className={classNames(classes.menu, menuClassName, {
+            [classes.menuDockRight]: menuDockRight,
+          })}
         />
       }>
       {(onShow, _onHide, contextRef) => (
@@ -58,10 +74,11 @@ const PopoverMenu = <TValue>({
           onClick={onShow}
           ref={contextRef}
           variant={variant}
+          skin={skin || 'regular'}
+          disabled={disabled}
           className={className}
           leftIcon={leftIcon}
-          rightIcon={rightIcon}
-          skin="regular">
+          rightIcon={rightIcon}>
           {children}
         </Button>
       )}

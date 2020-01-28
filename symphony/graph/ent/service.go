@@ -31,24 +31,50 @@ type Service struct {
 	ExternalID *string `json:"external_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ServiceQuery when eager-loading is set.
+	Edges struct {
+		// Type holds the value of the type edge.
+		Type *ServiceType
+		// Downstream holds the value of the downstream edge.
+		Downstream []*Service
+		// Upstream holds the value of the upstream edge.
+		Upstream []*Service
+		// Properties holds the value of the properties edge.
+		Properties []*Property
+		// Links holds the value of the links edge.
+		Links []*Link
+		// Customer holds the value of the customer edge.
+		Customer []*Customer
+		// Endpoints holds the value of the endpoints edge.
+		Endpoints []*ServiceEndpoint
+	} `json:"edges"`
+	type_id *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Service) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // external_id
+		&sql.NullString{}, // status
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Service) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // type_id
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Service fields.
 func (s *Service) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(service.Columns); m != n {
+	if m, n := len(values), len(service.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -82,6 +108,15 @@ func (s *Service) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field status", values[4])
 	} else if value.Valid {
 		s.Status = value.String
+	}
+	values = values[5:]
+	if len(values) == len(service.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+		} else if value.Valid {
+			s.type_id = new(string)
+			*s.type_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }

@@ -8,9 +8,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -31,6 +33,12 @@ type LinkQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Link
+	// eager-loading edges.
+	withPorts      *EquipmentPortQuery
+	withWorkOrder  *WorkOrderQuery
+	withProperties *PropertyQuery
+	withService    *ServiceQuery
+	withFKs        bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -276,6 +284,50 @@ func (lq *LinkQuery) Clone() *LinkQuery {
 	}
 }
 
+//  WithPorts tells the query-builder to eager-loads the nodes that are connected to
+// the "ports" edge. The optional arguments used to configure the query builder of the edge.
+func (lq *LinkQuery) WithPorts(opts ...func(*EquipmentPortQuery)) *LinkQuery {
+	query := &EquipmentPortQuery{config: lq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	lq.withPorts = query
+	return lq
+}
+
+//  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order" edge. The optional arguments used to configure the query builder of the edge.
+func (lq *LinkQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *LinkQuery {
+	query := &WorkOrderQuery{config: lq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	lq.withWorkOrder = query
+	return lq
+}
+
+//  WithProperties tells the query-builder to eager-loads the nodes that are connected to
+// the "properties" edge. The optional arguments used to configure the query builder of the edge.
+func (lq *LinkQuery) WithProperties(opts ...func(*PropertyQuery)) *LinkQuery {
+	query := &PropertyQuery{config: lq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	lq.withProperties = query
+	return lq
+}
+
+//  WithService tells the query-builder to eager-loads the nodes that are connected to
+// the "service" edge. The optional arguments used to configure the query builder of the edge.
+func (lq *LinkQuery) WithService(opts ...func(*ServiceQuery)) *LinkQuery {
+	query := &ServiceQuery{config: lq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	lq.withService = query
+	return lq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -319,30 +371,198 @@ func (lq *LinkQuery) Select(field string, fields ...string) *LinkSelect {
 
 func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 	var (
-		nodes []*Link
-		spec  = lq.querySpec()
+		nodes   []*Link
+		withFKs = lq.withFKs
+		_spec   = lq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if lq.withWorkOrder != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, link.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &Link{config: lq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, lq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, lq.driver, _spec); err != nil {
 		return nil, err
 	}
+
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := lq.withPorts; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Link)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.EquipmentPort(func(s *sql.Selector) {
+			s.Where(sql.InValues(link.PortsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.link_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "link_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "link_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Ports = append(node.Edges.Ports, n)
+		}
+	}
+
+	if query := lq.withWorkOrder; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*Link)
+		for i := range nodes {
+			if fk := nodes[i].work_order_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workorder.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrder = n
+			}
+		}
+	}
+
+	if query := lq.withProperties; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Link)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Property(func(s *sql.Selector) {
+			s.Where(sql.InValues(link.PropertiesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.link_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "link_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "link_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Properties = append(node.Edges.Properties, n)
+		}
+	}
+
+	if query := lq.withService; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[string]*Link, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []string
+			edges   = make(map[string][]*Link)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   link.ServiceTable,
+				Columns: link.ServicePrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(link.ServicePrimaryKey[1], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := strconv.FormatInt(eout.Int64, 10)
+				inValue := strconv.FormatInt(ein.Int64, 10)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, lq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "service": %v`, err)
+		}
+		query.Where(service.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "service" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Service = append(nodes[i].Edges.Service, n)
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
 func (lq *LinkQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := lq.querySpec()
-	return sqlgraph.CountNodes(ctx, lq.driver, spec)
+	_spec := lq.querySpec()
+	return sqlgraph.CountNodes(ctx, lq.driver, _spec)
 }
 
 func (lq *LinkQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -354,7 +574,7 @@ func (lq *LinkQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (lq *LinkQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   link.Table,
 			Columns: link.Columns,
@@ -367,26 +587,26 @@ func (lq *LinkQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := lq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := lq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := lq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := lq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (lq *LinkQuery) sqlQuery() *sql.Selector {

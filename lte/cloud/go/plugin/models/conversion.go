@@ -11,6 +11,7 @@ package models
 import (
 	"encoding/base64"
 	"fmt"
+	"log"
 	"sort"
 
 	"magma/lte/cloud/go/lte"
@@ -19,7 +20,7 @@ import (
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	models2 "magma/orc8r/cloud/go/pluginimpl/models"
+	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	orc8rProtos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
@@ -29,28 +30,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/thoas/go-funk"
 )
-
-func (m *LteNetwork) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-
-	var res []error
-	if err := m.Cellular.ValidateModel(); err != nil {
-		res = append(res, err)
-	}
-	if err := m.DNS.ValidateModel(); err != nil {
-		res = append(res, err)
-	}
-	if err := m.Features.ValidateModel(); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
 
 func (m *LteNetwork) GetEmptyNetwork() handlers.NetworkModel {
 	return &LteNetwork{}
@@ -91,33 +70,36 @@ func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) interface{}
 		m.Cellular = cfg.(*NetworkCellularConfigs)
 	}
 	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
-		m.DNS = cfg.(*models2.NetworkDNSConfig)
+		m.DNS = cfg.(*orc8rModels.NetworkDNSConfig)
 	}
 	if cfg := n.Configs[orc8r.NetworkFeaturesConfig]; cfg != nil {
-		m.Features = cfg.(*models2.NetworkFeatures)
+		m.Features = cfg.(*orc8rModels.NetworkFeatures)
+	}
+	if cfg := n.Configs[lte.NetworkSubscriberConfigType]; cfg != nil {
+		m.SubscriberConfig = cfg.(*NetworkSubscriberConfig)
 	}
 	return m
 }
 
 func (m *NetworkCellularConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, m), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, m), nil
 }
 
 func (m *NetworkCellularConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	return models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	return orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 }
 
 func (m FegNetworkID) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
 	}
 	iCellularConfig.(*NetworkCellularConfigs).FegNetworkID = m
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
 }
 
 func (m FegNetworkID) GetFromNetwork(network configurator.Network) interface{} {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return nil
 	}
@@ -125,16 +107,16 @@ func (m FegNetworkID) GetFromNetwork(network configurator.Network) interface{} {
 }
 
 func (m *NetworkEpcConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
 	}
 	iCellularConfig.(*NetworkCellularConfigs).Epc = m
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
 }
 
 func (m *NetworkEpcConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return nil
 	}
@@ -142,20 +124,62 @@ func (m *NetworkEpcConfigs) GetFromNetwork(network configurator.Network) interfa
 }
 
 func (m *NetworkRanConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
 	}
 	iCellularConfig.(*NetworkCellularConfigs).Ran = m
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
 }
 
 func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return nil
 	}
 	return iCellularConfig.(*NetworkCellularConfigs).Ran
+}
+
+func (m *NetworkSubscriberConfig) GetFromNetwork(network configurator.Network) interface{} {
+	return orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+}
+
+func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, m), nil
+}
+
+func (m *RuleNames) GetFromNetwork(network configurator.Network) interface{} {
+	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if iNetworkSubscriberConfig == nil {
+		return nil
+	}
+	return iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideRuleNames
+}
+
+func (m *RuleNames) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if iNetworkSubscriberConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No Subscriber Config registered for this network")
+	}
+	iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideRuleNames = *m
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, iNetworkSubscriberConfig), nil
+}
+
+func (m *BaseNames) GetFromNetwork(network configurator.Network) interface{} {
+	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if iNetworkSubscriberConfig == nil {
+		return nil
+	}
+	return iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideBaseNames
+}
+
+func (m *BaseNames) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if iNetworkSubscriberConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No Subscriber Config registered for this network")
+	}
+	iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideBaseNames = *m
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, iNetworkSubscriberConfig), nil
 }
 
 func (m *LteGateway) ValidateModel() error {
@@ -164,11 +188,11 @@ func (m *LteGateway) ValidateModel() error {
 
 func (m *LteGateway) FromBackendModels(
 	magmadGateway, cellularGateway configurator.NetworkEntity,
-	device *models2.GatewayDevice,
-	status *models2.GatewayStatus,
+	device *orc8rModels.GatewayDevice,
+	status *orc8rModels.GatewayStatus,
 ) handlers.GatewayModel {
 	// delegate most of the fillin to magmad gateway struct
-	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
 	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
 
@@ -205,8 +229,8 @@ func (m *MutableLteGateway) ValidateModel() error {
 	return nil
 }
 
-func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
-	return &models2.MagmadGateway{
+func (m *MutableLteGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
+	return &orc8rModels.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
 		ID:          m.ID,
@@ -546,6 +570,8 @@ func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
 	)
 	if len(m.MonitoringKey) > 0 {
 		if protoMKey, err = base64.StdEncoding.DecodeString(m.MonitoringKey); err != nil {
+			log.Printf("Error decoding Monitoring Key '%q' for rule ID '%s', will use as is. Err: %v",
+				m.MonitoringKey, id, err)
 			protoMKey = []byte(m.MonitoringKey)
 		}
 	}

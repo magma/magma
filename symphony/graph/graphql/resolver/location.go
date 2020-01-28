@@ -30,29 +30,16 @@ func (locationTypeResolver) NumberOfLocations(ctx context.Context, obj *ent.Loca
 	return obj.QueryLocations().Count(ctx)
 }
 
-func (locationTypeResolver) IsSite(ctx context.Context, obj *ent.LocationType) (bool, error) {
-	return obj.Site, nil
-}
-
-func (locationTypeResolver) Locations(ctx context.Context, typ *ent.LocationType, enforceHasLatLong *bool) (*models.LocationConnection, error) {
+func (locationTypeResolver) Locations(ctx context.Context, typ *ent.LocationType, enforceHasLatLong *bool) (*ent.LocationConnection, error) {
 	query := typ.QueryLocations()
 	if enforceHasLatLong != nil && *enforceHasLatLong {
 		query = query.Where(location.LatitudeNEQ(0), location.LongitudeNEQ(0))
 	}
-
-	locs, err := query.All(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed querying locations of type %q", typ.ID)
-	}
-	edges := make([]*models.LocationEdge, len(locs))
-	for i, l := range locs {
-		edges[i] = &models.LocationEdge{Node: l}
-	}
-	return &models.LocationConnection{Edges: edges}, err
+	return query.Paginate(ctx, nil, nil, nil, nil)
 }
 
-func (locationTypeResolver) SurveyTemplateCategories(ctx context.Context, ent *ent.LocationType) ([]*ent.SurveyTemplateCategory, error) {
-	return ent.QuerySurveyTemplateCategories().All(ctx)
+func (locationTypeResolver) SurveyTemplateCategories(ctx context.Context, obj *ent.LocationType) ([]*ent.SurveyTemplateCategory, error) {
+	return obj.QuerySurveyTemplateCategories().All(ctx)
 }
 
 type locationResolver struct{}
@@ -107,6 +94,10 @@ func (locationResolver) Images(ctx context.Context, obj *ent.Location) ([]*ent.F
 
 func (locationResolver) Files(ctx context.Context, obj *ent.Location) ([]*ent.File, error) {
 	return obj.QueryFiles().Where(file.Type(models.FileTypeFile.String())).All(ctx)
+}
+
+func (locationResolver) Hyperlinks(ctx context.Context, obj *ent.Location) ([]*ent.Hyperlink, error) {
+	return obj.QueryHyperlinks().All(ctx)
 }
 
 type topologist struct {

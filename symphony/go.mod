@@ -13,17 +13,18 @@ require (
 	github.com/99designs/gqlgen-contrib v0.0.0-20190913031219-de8886ed1b47
 	github.com/AlekSi/pointer v1.1.0
 	github.com/DATA-DOG/go-sqlmock v1.3.3
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/agnivade/levenshtein v1.0.3 // indirect
 	github.com/aws/aws-sdk-go v1.19.45
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/bobesa/go-domain-util v0.0.0-20190911083921-4033b5f7dd89
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/facebookincubator/ent v0.0.0-20200112090205-cd366c07e2c1
+	github.com/facebookincubator/ent v0.0.0-20200122095037-28b9ef193fb3
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
 	github.com/golang/protobuf v1.3.2
-	github.com/google/addlicense v0.0.0-20191205215950-c6b7f1e7f34a // indirect
+	github.com/google/addlicense v0.0.0-20200109101052-9fa18aaf59fb // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.3.0

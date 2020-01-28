@@ -61,6 +61,7 @@ export type AddEditLocationTypeCard_editingLocationType$data = AddEditLocationTy
 export type AddEditLocationTypeCard_editingLocationType$key = {
   +$data?: AddEditLocationTypeCard_editingLocationType$data,
   +$fragmentRefs: AddEditLocationTypeCard_editingLocationType$ref,
+  ...
 };
 */
 

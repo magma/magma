@@ -39,6 +39,7 @@ export type LocationSiteSurveyTab_location$data = LocationSiteSurveyTab_location
 export type LocationSiteSurveyTab_location$key = {
   +$data?: LocationSiteSurveyTab_location$data,
   +$fragmentRefs: LocationSiteSurveyTab_location$ref,
+  ...
 };
 */
 

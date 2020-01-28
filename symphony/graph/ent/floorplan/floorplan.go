@@ -57,12 +57,20 @@ const (
 	ImageColumn = "floor_plan_image_id"
 )
 
-// Columns holds all SQL columns are floorplan fields.
+// Columns holds all SQL columns for floorplan fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldName,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the FloorPlan type.
+var ForeignKeys = []string{
+	"location_id",
+	"floor_plan_reference_point_id",
+	"floor_plan_scale_id",
+	"floor_plan_image_id",
 }
 
 var (

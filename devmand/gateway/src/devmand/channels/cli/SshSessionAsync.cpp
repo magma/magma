@@ -12,7 +12,6 @@
 #include <folly/futures/Future.h>
 #include <chrono>
 #include <condition_variable>
-#include <mutex>
 
 namespace devmand {
 namespace channels {
@@ -29,53 +28,108 @@ using namespace std::chrono_literals;
 
 SshSessionAsync::SshSessionAsync(
     string _id,
-    shared_ptr<folly::Executor> _executor)
+    shared_ptr<folly::Executor> _executor,
+    shared_ptr<Timekeeper> _timekeeper)
     : id(_id),
+      timekeeper(_timekeeper),
       executor(_executor),
       serialExecutor(SerialExecutor::create(
           folly::Executor::getKeepAliveToken(_executor.get()))),
-      session(_id),
-      reading(false),
+      session(std::make_unique<SshSession>(_id)),
+      readingMutex(),
+      shutdown(false),
       callbackFinished(false),
       matchingExpectedOutput(false) {}
 
 static const int EVENT_FINISH = 9999;
 
-SshSessionAsync::~SshSessionAsync() {
-  MLOG(MDEBUG) << "~SshSessionAsync started";
+folly::SemiFuture<Unit> SshSessionAsync::destroy() {
+  // idempotency
+  if (shutdown) {
+    return makeSemiFuture(folly::unit);
+  }
+  shutdown = true;
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "destroy: started";
 
   // Let the NIO callback finish by injecting artificial event and waiting for
   // callback to finish
+  Future<Unit> firstFuture;
   if (sessionEvent != nullptr && event_get_base(sessionEvent) != nullptr) {
+    MLOG(MDEBUG) << "[" << id << "] "
+                 << "destroy: setting EVENT_FINISH";
     event_active(this->sessionEvent, EVENT_FINISH, -1);
-    while (!callbackFinished) {
-      std::this_thread::sleep_for(100ms);
-    }
+    firstFuture = waitForCallbacks();
+  } else {
+    firstFuture = makeFuture(folly::unit);
   }
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "destroy: starting async cleanup";
+  return std::move(firstFuture)
+      .via(executor.get())
+      .thenValue([this](auto) {
+        MLOG(MDEBUG) << "[" << id << "] "
+                     << "destroy: closing session";
+        this->session->close();
+      })
+      .thenValue([this](auto) {
+        MLOG(MDEBUG) << "[" << id << "] "
+                     << "destroy: setReadingFlag";
+        return this->setReadingFlag();
+      })
+      .thenValue([this](auto) {
+        failCurrentRead(
+            runtime_error("destroy:Session is closed"),
+            this->readingState.promise);
+        MLOG(MDEBUG) << "[" << id << "] "
+                     << "destroy: finished";
+      })
+      .semi();
+}
 
-  this->session.close();
-
-  while (reading.load()) {
-    // waiting for last read run out
+Future<Unit> SshSessionAsync::waitForCallbacks() {
+  if (callbackFinished) {
+    return makeFuture(folly::unit);
   }
+  return via(executor.get())
+      .delayed(100ms, timekeeper.get())
+      .thenValue(
+          [this](auto) -> Future<Unit> { return this->waitForCallbacks(); });
+}
 
-  failCurrentRead(
-      runtime_error("Session is closed"), this->readingState.promise);
+Future<Unit> SshSessionAsync::setReadingFlag() {
+  // protect against race with matchExpectedOutput
 
-  MLOG(MDEBUG) << "~SshSessionAsync finished";
+  boost::try_mutex::scoped_try_lock lock(readingMutex);
+  if (lock) {
+    return makeFuture(folly::unit);
+  }
+  return via(executor.get())
+      .delayed(100ms, timekeeper.get())
+      .thenValue(
+          [this](auto) -> Future<Unit> { return this->setReadingFlag(); });
+}
+
+SshSessionAsync::~SshSessionAsync() {
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "~SshSessionAsync started";
+  destroy().get();
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "~SshSessionAsync finished";
 }
 
 void SshSessionAsync::unregisterEvent() {
   if (sessionEvent != nullptr && event_get_base(sessionEvent) != nullptr) {
-    MLOG(MDEBUG) << "SshSessionAsync unregisterEvent";
+    MLOG(MDEBUG) << "[" << id << "] "
+                 << "SshSessionAsync unregisterEvent";
     event_free(sessionEvent);
   }
   callbackFinished = true;
 }
 
-Future<string> SshSessionAsync::read(int timeoutMillis) {
-  return via(serialExecutor.get(), [dis = shared_from_this(), timeoutMillis] {
-    return dis->session.read(timeoutMillis);
+Future<string> SshSessionAsync::read() {
+  return via(serialExecutor.get(), [dis = shared_from_this()] {
+    return dis->session->read();
   });
 }
 
@@ -93,14 +147,14 @@ Future<Unit> SshSessionAsync::openShell(
        username,
        password,
        sshConnectionTimeout] {
-        dis->session.openShell(
+        dis->session->openShell(
             ip, port, username, password, sshConnectionTimeout);
       });
 }
 
 Future<Unit> SshSessionAsync::write(const string& command) {
   return via(serialExecutor.get(), [dis = shared_from_this(), command] {
-    dis->session.write(command);
+    dis->session->write(command);
   });
 }
 
@@ -129,12 +183,12 @@ void readCallback(evutil_socket_t fd, short what, void* ptr) {
 }
 
 socket_t SshSessionAsync::getSshFd() {
-  return this->session.getSshFd();
+  return this->session->getSshFd();
 }
 
 void SshSessionAsync::readSshDataToBuffer() {
   ErrorHandler::executeWithCatch([dis = shared_from_this()]() {
-    const string& output = dis->session.read();
+    const string& output = dis->session->read();
     if (!output.empty()) {
       dis->readQueue.push(output);
     }
@@ -147,38 +201,44 @@ void SshSessionAsync::matchExpectedOutput() {
                                     // don't know against what to match
     return;
   }
-  reading.store(true);
+  // protect against race with destruct
+  boost::try_mutex::scoped_try_lock lock(readingMutex);
+  if (lock) {
+    if (shutdown) {
+      return;
+    }
 
-  // If we are expecting empty string as output, we can complete right away
-  // Why ? because keepalive is empty string
-  if (this->readingState.currentLastOutput.empty()) {
-    matchingExpectedOutput.store(false);
-    this->readingState.promise->setValue("");
-  }
-
-  while (this->readQueue.read_available() != 0) {
-    string output;
-    readQueue.pop(output);
-    this->readingState.outputSoFar.append(output);
-    std::size_t found = this->readingState.outputSoFar.find(
-        this->readingState.currentLastOutput);
-    if (found != std::string::npos) {
-      string final = this->readingState.outputSoFar.substr(0, found);
-
-      // Check for any outstanding output
-      size_t consumedLength =
-          final.length() + this->readingState.currentLastOutput.length();
-      if (consumedLength < this->readingState.outputSoFar.length()) {
-        MLOG(MWARNING) << "[" << id << "] "
-                       << "Unexpected output from device: ("
-                       << this->readingState.outputSoFar.substr(consumedLength)
-                       << "). This output will be lost";
-      }
+    // If we are expecting empty string as output, we can complete right away
+    // Why ? because keepalive is empty string
+    if (this->readingState.currentLastOutput.empty()) {
       matchingExpectedOutput.store(false);
-      this->readingState.promise->setValue(final);
+      this->readingState.promise->setValue("");
+    }
+
+    while (this->readQueue.read_available() != 0) {
+      string output;
+      readQueue.pop(output);
+      this->readingState.outputSoFar.append(output);
+      std::size_t found = this->readingState.outputSoFar.find(
+          this->readingState.currentLastOutput);
+      if (found != std::string::npos) {
+        string final = this->readingState.outputSoFar.substr(0, found);
+
+        // Check for any outstanding output
+        size_t consumedLength =
+            final.length() + this->readingState.currentLastOutput.length();
+        if (consumedLength < this->readingState.outputSoFar.length()) {
+          MLOG(MWARNING) << "[" << id << "] "
+                         << "Unexpected output from device: ("
+                         << this->readingState.outputSoFar.substr(
+                                consumedLength)
+                         << "). This output will be lost";
+        }
+        matchingExpectedOutput.store(false);
+        this->readingState.promise->setValue(final);
+      }
     }
   }
-  reading.store(false);
 }
 
 void SshSessionAsync::processDataInBuffer() {

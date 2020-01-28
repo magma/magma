@@ -26,8 +26,8 @@ import (
 
 func TestReAuthRequest_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
-	monitoringKey := "monitor"
-	monitoringKey2 := "monitor2"
+	monitoringKey := []byte("monitor")
+	monitoringKey2 := []byte("monitor2")
 	bearerID := "bearer1"
 	var ratingGroup uint32 = 42
 	var totalOctets uint64 = 2048
@@ -50,7 +50,10 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				RuleNames:     nil,
 				RuleBaseNames: nil,
 				RuleDefinitions: []*gx.RuleDefinition{
-					{RuleName: "dynamic1", MonitoringKey: &monitoringKey, Precedence: 100, RatingGroup: &ratingGroup},
+					{RuleName: "dynamic1",
+						MonitoringKey: []byte(monitoringKey),
+						Precedence:    100,
+						RatingGroup:   &ratingGroup},
 				},
 			},
 			{RuleNames: []string{"install3"}, RuleBaseNames: []string{}},
@@ -183,7 +186,7 @@ func TestReAuthAnswer_FromProto(t *testing.T) {
 
 func TestRuleDefinition_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
-	monitoringKey := "monitor"
+	monitoringKey := []byte("monitor")
 	var ratingGroup uint32 = 10
 	var ruleOut *protos.PolicyRule = nil
 
@@ -198,7 +201,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 
 	ruleOut = (&gx.RuleDefinition{
 		RuleName:      "mkonly",
-		MonitoringKey: &monitoringKey,
+		MonitoringKey: monitoringKey,
 		RatingGroup:   nil,
 	}).ToProto()
 	assert.Equal(t, []byte("monitor"), ruleOut.MonitoringKey)
@@ -207,7 +210,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 
 	ruleOut = (&gx.RuleDefinition{
 		RuleName:      "both",
-		MonitoringKey: &monitoringKey,
+		MonitoringKey: monitoringKey,
 		RatingGroup:   &ratingGroup,
 	}).ToProto()
 	assert.Equal(t, []byte("monitor"), ruleOut.MonitoringKey)

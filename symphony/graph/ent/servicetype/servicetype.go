@@ -45,7 +45,7 @@ const (
 	PropertyTypesColumn = "service_type_id"
 )
 
-// Columns holds all SQL columns are servicetype fields.
+// Columns holds all SQL columns for servicetype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

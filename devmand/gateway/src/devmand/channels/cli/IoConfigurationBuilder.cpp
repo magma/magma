@@ -11,6 +11,7 @@
 
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
 #include <devmand/channels/cli/KeepaliveCli.h>
+#include <devmand/channels/cli/LoggingCli.h>
 #include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/QueuedCli.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
@@ -47,7 +48,7 @@ IoConfigurationBuilder::IoConfigurationBuilder(
       plaintextCliKv.at("username"),
       plaintextCliKv.at("password"),
       loadConfigValue(plaintextCliKv, "flavour", ""),
-      std::stoi(plaintextCliKv.at("port")),
+      folly::to<int>(plaintextCliKv.at("port")),
       toSeconds(loadConfigValue(
           plaintextCliKv, configKeepAliveIntervalSeconds, "60")),
       toSeconds(loadConfigValue(
@@ -56,14 +57,7 @@ IoConfigurationBuilder::IoConfigurationBuilder(
           loadConfigValue(plaintextCliKv, reconnectingQuietPeriodConfig, "5")),
       std::stol(
           loadConfigValue(plaintextCliKv, sshConnectionTimeoutConfig, "30")),
-      engine.getTimekeeper(),
-      engine.getExecutor(Engine::executorRequestType::sshCli),
-      engine.getExecutor(Engine::executorRequestType::paCli),
-      engine.getExecutor(Engine::executorRequestType::rcCli),
-      engine.getExecutor(Engine::executorRequestType::ttCli),
-      engine.getExecutor(Engine::executorRequestType::qCli),
-      engine.getExecutor(Engine::executorRequestType::rCli),
-      engine.getExecutor(Engine::executorRequestType::kaCli));
+      engine);
 }
 
 IoConfigurationBuilder::~IoConfigurationBuilder() {
@@ -76,7 +70,7 @@ shared_ptr<Cli> IoConfigurationBuilder::createAll(
 }
 
 chrono::seconds IoConfigurationBuilder::toSeconds(const string& value) {
-  return chrono::seconds(stoi(value));
+  return chrono::seconds(folly::to<int>(value));
 }
 
 shared_ptr<Cli> IoConfigurationBuilder::createAllUsingFactory(
@@ -98,9 +92,12 @@ shared_ptr<Cli> IoConfigurationBuilder::createAllUsingFactory(
                   params->timekeeper,
                   params->ttExecutor,
                   params->cmdTimeout);
+              // create logging cli
+              shared_ptr<LoggingCli> lcli =
+                  make_shared<LoggingCli>(params->id, ttcli, params->lExecutor);
               // create Queued cli
               shared_ptr<QueuedCli> qcli =
-                  QueuedCli::make(params->id, ttcli, params->qExecutor);
+                  QueuedCli::make(params->id, lcli, params->qExecutor);
               return qcli;
             });
       };
@@ -157,8 +154,8 @@ Future<shared_ptr<Cli>> IoConfigurationBuilder::createPromptAwareCli(
                << params->ip << ":" << params->port << ")";
 
   // create session
-  std::shared_ptr<SshSessionAsync> session =
-      std::make_shared<SshSessionAsync>(params->id, params->sshExecutor);
+  std::shared_ptr<SshSessionAsync> session = std::make_shared<SshSessionAsync>(
+      params->id, params->sshExecutor, params->timekeeper);
   // open SSH connection
 
   MLOG(MDEBUG) << "[" << params->id << "] "
@@ -173,12 +170,14 @@ Future<shared_ptr<Cli>> IoConfigurationBuilder::createPromptAwareCli(
           params->sshConnectionTimeout)
       .thenValue([params, session](auto) {
         MLOG(MDEBUG) << "[" << params->id << "] "
-                     << "Setting flavour";
-        shared_ptr<CliFlavour> cl = params->flavour;
-
+                     << "Creating shell";
         // create CLI
-        shared_ptr<PromptAwareCli> cli =
-            PromptAwareCli::make(params->id, session, cl, params->paExecutor);
+        shared_ptr<PromptAwareCli> cli = PromptAwareCli::make(
+            params->id,
+            session,
+            params->flavour,
+            params->paExecutor,
+            params->timekeeper);
         return configurePromptAwareCli(
             cli, session, params, params->paExecutor);
       });
@@ -196,14 +195,7 @@ IoConfigurationBuilder::makeConnectionParameters(
     chrono::seconds cmdTimeout,
     chrono::seconds reconnectingQuietPeriod,
     long sshConnectionTimeout,
-    shared_ptr<Timekeeper> timekeeper,
-    shared_ptr<Executor> sshExecutor,
-    shared_ptr<Executor> paExecutor,
-    shared_ptr<Executor> rcExecutor,
-    shared_ptr<Executor> ttExecutor,
-    shared_ptr<Executor> qExecutor,
-    shared_ptr<Executor> rExecutor,
-    shared_ptr<Executor> kaExecutor) {
+    channels::cli::Engine& engine) {
   shared_ptr<IoConfigurationBuilder::ConnectionParameters>
       connectionParameters =
           make_shared<IoConfigurationBuilder::ConnectionParameters>();
@@ -217,14 +209,23 @@ IoConfigurationBuilder::makeConnectionParameters(
   connectionParameters->cmdTimeout = cmdTimeout;
   connectionParameters->reconnectingQuietPeriod = reconnectingQuietPeriod;
   connectionParameters->sshConnectionTimeout = sshConnectionTimeout;
-  connectionParameters->timekeeper = timekeeper;
-  connectionParameters->sshExecutor = sshExecutor;
-  connectionParameters->paExecutor = paExecutor;
-  connectionParameters->rcExecutor = rcExecutor;
-  connectionParameters->ttExecutor = ttExecutor;
-  connectionParameters->qExecutor = qExecutor;
-  connectionParameters->rExecutor = rExecutor;
-  connectionParameters->kaExecutor = kaExecutor;
+  connectionParameters->timekeeper = engine.getTimekeeper();
+  connectionParameters->sshExecutor =
+      engine.getExecutor(Engine::executorRequestType::sshCli);
+  connectionParameters->paExecutor =
+      engine.getExecutor(Engine::executorRequestType::paCli);
+  connectionParameters->rcExecutor =
+      engine.getExecutor(Engine::executorRequestType::rcCli);
+  connectionParameters->ttExecutor =
+      engine.getExecutor(Engine::executorRequestType::ttCli);
+  connectionParameters->lExecutor =
+      engine.getExecutor(Engine::executorRequestType::lCli);
+  connectionParameters->qExecutor =
+      engine.getExecutor(Engine::executorRequestType::qCli);
+  connectionParameters->rExecutor =
+      engine.getExecutor(Engine::executorRequestType::rCli);
+  connectionParameters->kaExecutor =
+      engine.getExecutor(Engine::executorRequestType::kaCli);
 
   return connectionParameters;
 }

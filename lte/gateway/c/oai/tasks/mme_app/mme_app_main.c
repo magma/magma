@@ -39,6 +39,7 @@
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "mme_config.h"
+#include "nas_network.h"
 #include "timer.h"
 #include "mme_app_extern.h"
 #include "mme_app_ue_context.h"
@@ -56,7 +57,6 @@
 #include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "mme_app_state.h"
-#include "nas_messages_types.h"
 #include "obj_hashtable.h"
 #include "s11_messages_types.h"
 #include "s1ap_messages_types.h"
@@ -159,8 +159,6 @@ void *mme_app_thread(void *args)
               ue_context_p);
             ue_context_p->path_switch_req = false;
           }
-
-          unlock_ue_contexts(ue_context_p);
         }
       } break;
 
@@ -186,11 +184,6 @@ void *mme_app_thread(void *args)
 
       case S1AP_E_RAB_REL_RSP: {
         mme_app_handle_e_rab_rel_rsp(&S1AP_E_RAB_REL_RSP(received_message_p));
-      } break;
-
-      case NAS_EXTENDED_SERVICE_REQ: {
-        mme_app_handle_nas_extended_service_req(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_extended_service_req);
       } break;
 
       case S1AP_INITIAL_UE_MESSAGE: {
@@ -248,82 +241,9 @@ void *mme_app_thread(void *args)
           mme_app_desc_p->statistic_timer_id) {
           mme_app_statistics_display();
         } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
-          mme_ue_s1ap_id_t mme_ue_s1ap_id =
-            *((mme_ue_s1ap_id_t *) (received_message_p->ittiMsg
-                                      .timer_has_expired.arg));
-          ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-              &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
-          if (ue_context_p == NULL) {
-            OAILOG_WARNING(
-              LOG_MME_APP,
-              "Timer expired but no assoicated UE context for UE "
-              "id " MME_UE_S1AP_ID_FMT "\n",
-              mme_ue_s1ap_id);
-            timer_handle_expired(
-              received_message_p->ittiMsg.timer_has_expired.timer_id);
-            break;
-          }
-          if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->mobile_reachability_timer.id) {
-            // Mobile Reachability Timer expiry handler
-            mme_app_handle_mobile_reachability_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->implicit_detach_timer.id) {
-            // Implicit Detach Timer expiry handler
-            increment_counter("implicit_detach_timer_expired", 1, NO_LABELS);
-            mme_app_handle_implicit_detach_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->initial_context_setup_rsp_timer.id) {
-            // Initial Context Setup Rsp Timer expiry handler
-            increment_counter(
-              "initial_context_setup_request_timer_expired", 1, NO_LABELS);
-            mme_app_handle_initial_context_setup_rsp_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->paging_response_timer.id) {
-            mme_app_handle_paging_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->ulr_response_timer.id) {
-            mme_app_handle_ulr_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->ue_context_modification_timer.id) {
-            // UE Context modification Timer expiry handler
-            increment_counter(
-              "ue_context_modification_timer expired", 1, NO_LABELS);
-            mme_app_handle_ue_context_modification_timer_expiry(ue_context_p);
-          } else if (ue_context_p->sgs_context != NULL){
-              if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-                  ue_context_p->sgs_context->ts6_1_timer.id) {
-                  mme_app_handle_ts6_1_timer_expiry(ue_context_p);
-              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-                ue_context_p->sgs_context->ts8_timer.id) {
-                mme_app_handle_sgs_eps_detach_timer_expiry(ue_context_p);
-              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-                ue_context_p->sgs_context->ts9_timer.id) {
-                mme_app_handle_sgs_imsi_detach_timer_expiry(ue_context_p);
-              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-                ue_context_p->sgs_context->ts10_timer.id) {
-                mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(ue_context_p);
-              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-                ue_context_p->sgs_context->ts13_timer.id) {
-                mme_app_handle_sgs_implicit_eps_detach_timer_expiry(ue_context_p);
-              }
-          }
-          else {
-            OAILOG_WARNING(
-              LOG_MME_APP,
-              "Timer expired but no associated timer_id for UE "
-              "id " MME_UE_S1AP_ID_FMT "\n",
-              mme_ue_s1ap_id);
-          }
-          if (ue_context_p) {
-            unlock_ue_contexts(ue_context_p);
-          }
+          mme_app_nas_timer_handle_signal_expiry(
+            TIMER_HAS_EXPIRED(received_message_p).timer_id,
+            TIMER_HAS_EXPIRED(received_message_p).arg);
         }
         timer_handle_expired(
           received_message_p->ittiMsg.timer_has_expired.timer_id);
@@ -470,10 +390,31 @@ void *mme_app_thread(void *args)
           &MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
       } break;
 
-      case TERMINATE_MESSAGE: {
-        /*
-       * Termination message received TODO -> release any data allocated
-       */
+      case SGSAP_DOWNLINK_UNITDATA: {
+        /* We received the Downlink Unitdata from MSC, trigger a
+         * Downlink Nas Transport message to UE.
+         */
+        nas_proc_downlink_unitdata(
+          &SGSAP_DOWNLINK_UNITDATA(received_message_p));
+      } break;
+
+      case SGSAP_RELEASE_REQ: {
+        /* We received the SGS Release request from MSC,to indicate that there
+         * are no more NAS messages to be exchanged between the VLR and the UE,
+         * or when a further exchange of NAS messages for the specified UE is
+         * not possible due to an error.
+         */
+        nas_proc_sgs_release_req(&SGSAP_RELEASE_REQ(received_message_p));
+      } break;
+
+      case SGSAP_MM_INFORMATION_REQ: {
+        // Received SGSAP MM Information Request message from SGS task
+        nas_proc_cs_domain_mm_information_request(
+          &SGSAP_MM_INFORMATION_REQ(received_message_p));
+      } break;
+
+     case TERMINATE_MESSAGE: {
+       // Termination message received TODO -> release any data allocated
         put_mme_nas_state(&mme_app_desc_p);
         mme_app_exit();
         itti_free_msg_content(received_message_p);
@@ -515,6 +456,8 @@ int mme_app_init(const mme_config_t *mme_config_p)
   if (mme_app_edns_init(mme_config_p)) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
+  // Initialise NAS module
+  nas_network_initialize(mme_config_p);
   /*
    * Create the thread associated with MME applicative layer
    */
@@ -544,5 +487,7 @@ void mme_app_exit(void)
 {
   mme_app_edns_exit();
   clear_mme_nas_state();
+  // Clean-up NAS module
+  nas_network_cleanup();
   mme_config_exit();
 }
