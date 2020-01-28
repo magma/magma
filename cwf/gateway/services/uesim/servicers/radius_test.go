@@ -52,7 +52,7 @@ func TestRadius(t *testing.T) {
 
 	p, err := radius.Parse([]byte(RadiusAccessChallengeEapAkaIdentityRequestPacket), []byte(Secret))
 	assert.NoError(t, err)
-	actual, err := server.HandleRadius(Imsi, *p)
+	actual, err := server.HandleRadius(Imsi, p)
 	assert.NoError(t, err)
 
 	expected, err := radius.Parse([]byte(RadiusAccessRequestEapAkaIdentityResponsePacket), []byte(Secret))
@@ -73,7 +73,7 @@ func TestUserNotFound(t *testing.T) {
 	p, err := radius.Parse([]byte(RadiusAccessChallengeEapAkaIdentityRequestPacket), []byte(Secret))
 	assert.NoError(t, err)
 
-	_, err = server.HandleRadius("012345678901234", *p)
+	_, err = server.HandleRadius("012345678901234", p)
 	assert.EqualError(t, err, "Error getting UE with specified IMSI: Not found")
 }
 
@@ -83,7 +83,7 @@ func TestMissingEapPacket(t *testing.T) {
 
 	p := radius.New(radius.CodeAccessChallenge, []byte(Secret))
 
-	_, err = server.HandleRadius(Imsi, *p)
+	_, err = server.HandleRadius(Imsi, p)
 	assert.EqualError(t, err, "Error extracting EAP message from Radius packet: no EAP-Message attribute found")
 }
 
