@@ -11,10 +11,11 @@
 #################################
 
 - name: Install dev time dependencies
-  apt: pkg={{ item }} state=present
-  with_items:
-    # Required by some go libraries
-    - bzr
+  apt:
+    state: present
+    pkg:
+      # Required by some go libraries
+      - bzr
   when: preburn
 
 - name: Create the $GOBIN/services directory
