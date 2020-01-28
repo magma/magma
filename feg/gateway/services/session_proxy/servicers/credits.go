@@ -285,10 +285,7 @@ func getSingleCreditResponsesFromCCA(
 	return res
 }
 
-func getInitialCreditResponsesFromCCA(
-	answer *gy.CreditControlAnswer,
-	request *gy.CreditControlRequest,
-) []*protos.CreditUpdateResponse {
+func getInitialCreditResponsesFromCCA(request *gy.CreditControlRequest, answer *gy.CreditControlAnswer) []*protos.CreditUpdateResponse {
 	responses := make([]*protos.CreditUpdateResponse, 0, len(answer.Credits))
 	for _, credit := range answer.Credits {
 		success := credit.ResultCode == diameter.SuccessCode || credit.ResultCode == 0
