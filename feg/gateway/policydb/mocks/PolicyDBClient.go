@@ -16,7 +16,7 @@ type PolicyDBClient struct {
 }
 
 // GetChargingKeysForRules provides a mock function with given fields: ruleIDs, ruleDefs
-func (_m *PolicyDBClient) GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]policydb.ChargingKey, error) {
+func (_m *PolicyDBClient) GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) []policydb.ChargingKey {
 	ret := _m.Called(ruleIDs, ruleDefs)
 
 	var r0 []policydb.ChargingKey
@@ -28,14 +28,7 @@ func (_m *PolicyDBClient) GetChargingKeysForRules(ruleIDs []string, ruleDefs []*
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func([]string, []*protos.PolicyRule) error); ok {
-		r1 = rf(ruleIDs, ruleDefs)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // GetOmnipresentRules provides a mock function with given fields:

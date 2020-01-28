@@ -67,11 +67,10 @@ type MockPolicyDBClient struct {
 	mock.Mock
 }
 
-func (client *MockPolicyDBClient) GetChargingKeysForRules(
-	ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]policydb.ChargingKey, error) {
+func (client *MockPolicyDBClient) GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) []policydb.ChargingKey {
 
 	args := client.Called(ruleIDs)
-	return args.Get(0).([]policydb.ChargingKey), args.Error(1)
+	return args.Get(0).([]policydb.ChargingKey)
 }
 
 func (client *MockPolicyDBClient) GetRuleIDsForBaseNames(baseNames []string) []string {
@@ -223,6 +222,9 @@ func TestStartSessionGyFail(t *testing.T) {
 
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
+	// no omnipresent rules
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Send back DIAMETER_RATING_FAILED (5031) from gy
 	mocks.gy.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -331,7 +333,7 @@ func standardUsageTest(
 			policydb.ChargingKey{RatingGroup: 21}}, nil).Once()
 	// no omnipresent rules
 	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
-	mocks.policydb.On("GetRuleIDsForBaseNames", []string{}).Return([]string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 	multiReqType := credit_control.CRTInit // type of CCR sent to get credits
 	if initMethod == gy.PerSessionInit {
 		mocks.gy.On(
@@ -1160,13 +1162,12 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		gx:       &MockPolicyClient{},
 		policydb: &MockPolicyDBClient{},
 	}
-
+	activationTime := time.Unix(1, 0)
+	deactivationTime := time.Unix(2, 0)
 	// send static rules back
 	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		done := args.Get(1).(chan interface{})
 		request := args.Get(2).(*gx.CreditControlRequest)
-		activationTime := time.Unix(1, 0)
-		deactivationTime := time.Unix(2, 0)
 		ruleInstalls := []*gx.RuleInstallAVP{
 			&gx.RuleInstallAVP{
 				RuleNames:            []string{"static_rule_1"},
@@ -1185,6 +1186,8 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 3}}, nil).Once()
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{"omnipresent_1"}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", []string{}).Return([]string{}).Once()
 
 	mocks.gy.On(
 		"SendCreditControlRequest",
@@ -1202,7 +1205,7 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		cfg,
 	)
 	ctx := context.Background()
-	_, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
+	res, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
 			Id: IMSI1,
 		},
@@ -1210,6 +1213,12 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 	})
 	mocks.gx.AssertExpectations(t)
 	assert.NoError(t, err)
+	expectedStaticRule1 := &protos.StaticRuleInstall{
+		RuleId:           "static_rule_1",
+		ActivationTime:   gx.ConvertToProtoTimestamp(&activationTime),
+		DeactivationTime: gx.ConvertToProtoTimestamp(&deactivationTime),
+	}
+	assert.ElementsMatch(t, []*protos.StaticRuleInstall{{RuleId: "omnipresent_1"}, expectedStaticRule1}, res.StaticRules)
 }
 
 func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
@@ -1240,6 +1249,9 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 	}).Once()
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
+	// no omnipresent rule
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocks.gy.On(
@@ -1308,6 +1320,9 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 	}).Once()
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
+	// no omnipresent rule
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocks.gy.On(
@@ -1381,6 +1396,9 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 	}).Once()
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
+	// no omnipresent rule
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocks.gy.On(

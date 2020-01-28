@@ -96,14 +96,6 @@ func getGxAnswerOrError(
 	}
 }
 
-func getPolicyRulesFromDefinitions(ruleDefs []*gx.RuleDefinition) []*protos.PolicyRule {
-	policyRules := make([]*protos.PolicyRule, 0, len(ruleDefs))
-	for _, def := range ruleDefs {
-		policyRules = append(policyRules, def.ToProto())
-	}
-	return policyRules
-}
-
 func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.CreditControlAnswer) []*protos.UsageMonitoringUpdateResponse {
 	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCAInit.UsageMonitors))
 	// If there is a message wide revalidation time, apply it to every Usage Monitor
