@@ -100,14 +100,14 @@ func (ltq *LocationTypeQuery) QuerySurveyTemplateCategories() *SurveyTemplateCat
 	return query
 }
 
-// First returns the first LocationType entity in the query. Returns *ErrNotFound when no locationtype was found.
+// First returns the first LocationType entity in the query. Returns *NotFoundError when no locationtype was found.
 func (ltq *LocationTypeQuery) First(ctx context.Context) (*LocationType, error) {
 	lts, err := ltq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(lts) == 0 {
-		return nil, &ErrNotFound{locationtype.Label}
+		return nil, &NotFoundError{locationtype.Label}
 	}
 	return lts[0], nil
 }
@@ -121,14 +121,14 @@ func (ltq *LocationTypeQuery) FirstX(ctx context.Context) *LocationType {
 	return lt
 }
 
-// FirstID returns the first LocationType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first LocationType id in the query. Returns *NotFoundError when no id was found.
 func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = ltq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{locationtype.Label}
+		err = &NotFoundError{locationtype.Label}
 		return
 	}
 	return ids[0], nil
@@ -153,9 +153,9 @@ func (ltq *LocationTypeQuery) Only(ctx context.Context) (*LocationType, error) {
 	case 1:
 		return lts[0], nil
 	case 0:
-		return nil, &ErrNotFound{locationtype.Label}
+		return nil, &NotFoundError{locationtype.Label}
 	default:
-		return nil, &ErrNotSingular{locationtype.Label}
+		return nil, &NotSingularError{locationtype.Label}
 	}
 }
 
@@ -178,9 +178,9 @@ func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id string, err error)
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{locationtype.Label}
+		err = &NotFoundError{locationtype.Label}
 	default:
-		err = &ErrNotSingular{locationtype.Label}
+		err = &NotSingularError{locationtype.Label}
 	}
 	return
 }
@@ -345,8 +345,8 @@ func (ltq *LocationTypeQuery) Select(field string, fields ...string) *LocationTy
 
 func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, error) {
 	var (
-		nodes []*LocationType
-		_spec = ltq.querySpec()
+		nodes []*LocationType = []*LocationType{}
+		_spec                 = ltq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &LocationType{config: ltq.config}
@@ -364,7 +364,6 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 	if err := sqlgraph.QueryNodes(ctx, ltq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

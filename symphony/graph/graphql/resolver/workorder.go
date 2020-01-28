@@ -437,7 +437,7 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id string) (s
 	case nil:
 		logger.Info("deleted work order type")
 		return id, nil
-	case *ent.ErrNotFound:
+	case *ent.NotFoundError:
 		err := gqlerror.Errorf("work order type not found")
 		logger.Error(err.Message)
 		return "", err

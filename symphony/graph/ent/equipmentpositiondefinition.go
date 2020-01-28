@@ -33,13 +33,16 @@ type EquipmentPositionDefinition struct {
 	VisibilityLabel string `json:"visibility_label,omitempty" gqlgen:"visibleLabel"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPositionDefinitionQuery when eager-loading is set.
-	Edges struct {
-		// Positions holds the value of the positions edge.
-		Positions []*EquipmentPosition
-		// EquipmentType holds the value of the equipment_type edge.
-		EquipmentType *EquipmentType
-	} `json:"edges"`
+	Edges             EquipmentPositionDefinitionEdges `json:"edges"`
 	equipment_type_id *string
+}
+
+// EquipmentPositionDefinitionEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPositionDefinitionEdges struct {
+	// Positions holds the value of the positions edge.
+	Positions []*EquipmentPosition
+	// EquipmentType holds the value of the equipment_type edge.
+	EquipmentType *EquipmentType
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

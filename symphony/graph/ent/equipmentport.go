@@ -27,21 +27,24 @@ type EquipmentPort struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPortQuery when eager-loading is set.
-	Edges struct {
-		// Definition holds the value of the definition edge.
-		Definition *EquipmentPortDefinition
-		// Parent holds the value of the parent edge.
-		Parent *Equipment
-		// Link holds the value of the link edge.
-		Link *Link
-		// Properties holds the value of the properties edge.
-		Properties []*Property
-		// Endpoints holds the value of the endpoints edge.
-		Endpoints []*ServiceEndpoint
-	} `json:"edges"`
+	Edges         EquipmentPortEdges `json:"edges"`
 	parent_id     *string
 	definition_id *string
 	link_id       *string
+}
+
+// EquipmentPortEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPortEdges struct {
+	// Definition holds the value of the definition edge.
+	Definition *EquipmentPortDefinition
+	// Parent holds the value of the parent edge.
+	Parent *Equipment
+	// Link holds the value of the link edge.
+	Link *Link
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// Endpoints holds the value of the endpoints edge.
+	Endpoints []*ServiceEndpoint
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

@@ -63,17 +63,20 @@ type SurveyQuestion struct {
 	DateData time.Time `json:"date_data,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuestionQuery when eager-loading is set.
-	Edges struct {
-		// Survey holds the value of the survey edge.
-		Survey *Survey
-		// WifiScan holds the value of the wifi_scan edge.
-		WifiScan []*SurveyWiFiScan
-		// CellScan holds the value of the cell_scan edge.
-		CellScan []*SurveyCellScan
-		// PhotoData holds the value of the photo_data edge.
-		PhotoData []*File
-	} `json:"edges"`
+	Edges     SurveyQuestionEdges `json:"edges"`
 	survey_id *string
+}
+
+// SurveyQuestionEdges holds the relations/edges for other nodes in the graph.
+type SurveyQuestionEdges struct {
+	// Survey holds the value of the survey edge.
+	Survey *Survey
+	// WifiScan holds the value of the wifi_scan edge.
+	WifiScan []*SurveyWiFiScan
+	// CellScan holds the value of the cell_scan edge.
+	CellScan []*SurveyCellScan
+	// PhotoData holds the value of the photo_data edge.
+	PhotoData []*File
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

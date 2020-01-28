@@ -55,14 +55,14 @@ func (tq *TodoQuery) Order(o ...Order) *TodoQuery {
 	return tq
 }
 
-// First returns the first Todo entity in the query. Returns *ErrNotFound when no todo was found.
+// First returns the first Todo entity in the query. Returns *NotFoundError when no todo was found.
 func (tq *TodoQuery) First(ctx context.Context) (*Todo, error) {
 	ts, err := tq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ts) == 0 {
-		return nil, &ErrNotFound{todo.Label}
+		return nil, &NotFoundError{todo.Label}
 	}
 	return ts[0], nil
 }
@@ -76,14 +76,14 @@ func (tq *TodoQuery) FirstX(ctx context.Context) *Todo {
 	return t
 }
 
-// FirstID returns the first Todo id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Todo id in the query. Returns *NotFoundError when no id was found.
 func (tq *TodoQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{todo.Label}
+		err = &NotFoundError{todo.Label}
 		return
 	}
 	return ids[0], nil
@@ -108,9 +108,9 @@ func (tq *TodoQuery) Only(ctx context.Context) (*Todo, error) {
 	case 1:
 		return ts[0], nil
 	case 0:
-		return nil, &ErrNotFound{todo.Label}
+		return nil, &NotFoundError{todo.Label}
 	default:
-		return nil, &ErrNotSingular{todo.Label}
+		return nil, &NotSingularError{todo.Label}
 	}
 }
 
@@ -133,9 +133,9 @@ func (tq *TodoQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{todo.Label}
+		err = &NotFoundError{todo.Label}
 	default:
-		err = &ErrNotSingular{todo.Label}
+		err = &NotSingularError{todo.Label}
 	}
 	return
 }
@@ -267,8 +267,8 @@ func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {
 
 func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 	var (
-		nodes []*Todo
-		_spec = tq.querySpec()
+		nodes []*Todo = []*Todo{}
+		_spec         = tq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &Todo{config: tq.config}
@@ -286,7 +286,6 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

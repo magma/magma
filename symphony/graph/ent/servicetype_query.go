@@ -86,14 +86,14 @@ func (stq *ServiceTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	return query
 }
 
-// First returns the first ServiceType entity in the query. Returns *ErrNotFound when no servicetype was found.
+// First returns the first ServiceType entity in the query. Returns *NotFoundError when no servicetype was found.
 func (stq *ServiceTypeQuery) First(ctx context.Context) (*ServiceType, error) {
 	sts, err := stq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(sts) == 0 {
-		return nil, &ErrNotFound{servicetype.Label}
+		return nil, &NotFoundError{servicetype.Label}
 	}
 	return sts[0], nil
 }
@@ -107,14 +107,14 @@ func (stq *ServiceTypeQuery) FirstX(ctx context.Context) *ServiceType {
 	return st
 }
 
-// FirstID returns the first ServiceType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first ServiceType id in the query. Returns *NotFoundError when no id was found.
 func (stq *ServiceTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = stq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{servicetype.Label}
+		err = &NotFoundError{servicetype.Label}
 		return
 	}
 	return ids[0], nil
@@ -139,9 +139,9 @@ func (stq *ServiceTypeQuery) Only(ctx context.Context) (*ServiceType, error) {
 	case 1:
 		return sts[0], nil
 	case 0:
-		return nil, &ErrNotFound{servicetype.Label}
+		return nil, &NotFoundError{servicetype.Label}
 	default:
-		return nil, &ErrNotSingular{servicetype.Label}
+		return nil, &NotSingularError{servicetype.Label}
 	}
 }
 
@@ -164,9 +164,9 @@ func (stq *ServiceTypeQuery) OnlyID(ctx context.Context) (id string, err error) 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{servicetype.Label}
+		err = &NotFoundError{servicetype.Label}
 	default:
-		err = &ErrNotSingular{servicetype.Label}
+		err = &NotSingularError{servicetype.Label}
 	}
 	return
 }
@@ -320,8 +320,8 @@ func (stq *ServiceTypeQuery) Select(field string, fields ...string) *ServiceType
 
 func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error) {
 	var (
-		nodes []*ServiceType
-		_spec = stq.querySpec()
+		nodes []*ServiceType = []*ServiceType{}
+		_spec                = stq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &ServiceType{config: stq.config}
@@ -339,7 +339,6 @@ func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error)
 	if err := sqlgraph.QueryNodes(ctx, stq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

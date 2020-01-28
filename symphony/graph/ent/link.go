@@ -29,17 +29,20 @@ type Link struct {
 	FutureState string `json:"future_state,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LinkQuery when eager-loading is set.
-	Edges struct {
-		// Ports holds the value of the ports edge.
-		Ports []*EquipmentPort
-		// WorkOrder holds the value of the work_order edge.
-		WorkOrder *WorkOrder
-		// Properties holds the value of the properties edge.
-		Properties []*Property
-		// Service holds the value of the service edge.
-		Service []*Service
-	} `json:"edges"`
+	Edges         LinkEdges `json:"edges"`
 	work_order_id *string
+}
+
+// LinkEdges holds the relations/edges for other nodes in the graph.
+type LinkEdges struct {
+	// Ports holds the value of the ports edge.
+	Ports []*EquipmentPort
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// Service holds the value of the service edge.
+	Service []*Service
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

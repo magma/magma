@@ -74,7 +74,7 @@ func (pdo *PropertyDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{property.Label}
+		return &NotFoundError{property.Label}
 	default:
 		return nil
 	}

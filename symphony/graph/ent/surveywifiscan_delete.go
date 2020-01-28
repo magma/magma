@@ -74,7 +74,7 @@ func (swfsdo *SurveyWiFiScanDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{surveywifiscan.Label}
+		return &NotFoundError{surveywifiscan.Label}
 	default:
 		return nil
 	}

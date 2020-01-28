@@ -129,14 +129,14 @@ func (etq *EquipmentTypeQuery) QueryCategory() *EquipmentCategoryQuery {
 	return query
 }
 
-// First returns the first EquipmentType entity in the query. Returns *ErrNotFound when no equipmenttype was found.
+// First returns the first EquipmentType entity in the query. Returns *NotFoundError when no equipmenttype was found.
 func (etq *EquipmentTypeQuery) First(ctx context.Context) (*EquipmentType, error) {
 	ets, err := etq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ets) == 0 {
-		return nil, &ErrNotFound{equipmenttype.Label}
+		return nil, &NotFoundError{equipmenttype.Label}
 	}
 	return ets[0], nil
 }
@@ -150,14 +150,14 @@ func (etq *EquipmentTypeQuery) FirstX(ctx context.Context) *EquipmentType {
 	return et
 }
 
-// FirstID returns the first EquipmentType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first EquipmentType id in the query. Returns *NotFoundError when no id was found.
 func (etq *EquipmentTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = etq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmenttype.Label}
+		err = &NotFoundError{equipmenttype.Label}
 		return
 	}
 	return ids[0], nil
@@ -182,9 +182,9 @@ func (etq *EquipmentTypeQuery) Only(ctx context.Context) (*EquipmentType, error)
 	case 1:
 		return ets[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmenttype.Label}
+		return nil, &NotFoundError{equipmenttype.Label}
 	default:
-		return nil, &ErrNotSingular{equipmenttype.Label}
+		return nil, &NotSingularError{equipmenttype.Label}
 	}
 }
 
@@ -207,9 +207,9 @@ func (etq *EquipmentTypeQuery) OnlyID(ctx context.Context) (id string, err error
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmenttype.Label}
+		err = &NotFoundError{equipmenttype.Label}
 	default:
-		err = &ErrNotSingular{equipmenttype.Label}
+		err = &NotSingularError{equipmenttype.Label}
 	}
 	return
 }
@@ -396,9 +396,9 @@ func (etq *EquipmentTypeQuery) Select(field string, fields ...string) *Equipment
 
 func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, error) {
 	var (
-		nodes   []*EquipmentType
-		withFKs = etq.withFKs
-		_spec   = etq.querySpec()
+		nodes   []*EquipmentType = []*EquipmentType{}
+		withFKs                  = etq.withFKs
+		_spec                    = etq.querySpec()
 	)
 	if etq.withCategory != nil {
 		withFKs = true
@@ -425,7 +425,6 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 	if err := sqlgraph.QueryNodes(ctx, etq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

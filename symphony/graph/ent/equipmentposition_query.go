@@ -100,14 +100,14 @@ func (epq *EquipmentPositionQuery) QueryAttachment() *EquipmentQuery {
 	return query
 }
 
-// First returns the first EquipmentPosition entity in the query. Returns *ErrNotFound when no equipmentposition was found.
+// First returns the first EquipmentPosition entity in the query. Returns *NotFoundError when no equipmentposition was found.
 func (epq *EquipmentPositionQuery) First(ctx context.Context) (*EquipmentPosition, error) {
 	eps, err := epq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(eps) == 0 {
-		return nil, &ErrNotFound{equipmentposition.Label}
+		return nil, &NotFoundError{equipmentposition.Label}
 	}
 	return eps[0], nil
 }
@@ -121,14 +121,14 @@ func (epq *EquipmentPositionQuery) FirstX(ctx context.Context) *EquipmentPositio
 	return ep
 }
 
-// FirstID returns the first EquipmentPosition id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first EquipmentPosition id in the query. Returns *NotFoundError when no id was found.
 func (epq *EquipmentPositionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = epq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmentposition.Label}
+		err = &NotFoundError{equipmentposition.Label}
 		return
 	}
 	return ids[0], nil
@@ -153,9 +153,9 @@ func (epq *EquipmentPositionQuery) Only(ctx context.Context) (*EquipmentPosition
 	case 1:
 		return eps[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmentposition.Label}
+		return nil, &NotFoundError{equipmentposition.Label}
 	default:
-		return nil, &ErrNotSingular{equipmentposition.Label}
+		return nil, &NotSingularError{equipmentposition.Label}
 	}
 }
 
@@ -178,9 +178,9 @@ func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id string, err e
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmentposition.Label}
+		err = &NotFoundError{equipmentposition.Label}
 	default:
-		err = &ErrNotSingular{equipmentposition.Label}
+		err = &NotSingularError{equipmentposition.Label}
 	}
 	return
 }
@@ -345,9 +345,9 @@ func (epq *EquipmentPositionQuery) Select(field string, fields ...string) *Equip
 
 func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosition, error) {
 	var (
-		nodes   []*EquipmentPosition
-		withFKs = epq.withFKs
-		_spec   = epq.querySpec()
+		nodes   []*EquipmentPosition = []*EquipmentPosition{}
+		withFKs                      = epq.withFKs
+		_spec                        = epq.querySpec()
 	)
 	if epq.withDefinition != nil || epq.withParent != nil {
 		withFKs = true
@@ -374,7 +374,6 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 	if err := sqlgraph.QueryNodes(ctx, epq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

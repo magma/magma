@@ -27,16 +27,19 @@ type EquipmentPosition struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPositionQuery when eager-loading is set.
-	Edges struct {
-		// Definition holds the value of the definition edge.
-		Definition *EquipmentPositionDefinition
-		// Parent holds the value of the parent edge.
-		Parent *Equipment
-		// Attachment holds the value of the attachment edge.
-		Attachment *Equipment
-	} `json:"edges"`
+	Edges         EquipmentPositionEdges `json:"edges"`
 	parent_id     *string
 	definition_id *string
+}
+
+// EquipmentPositionEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPositionEdges struct {
+	// Definition holds the value of the definition edge.
+	Definition *EquipmentPositionDefinition
+	// Parent holds the value of the parent edge.
+	Parent *Equipment
+	// Attachment holds the value of the attachment edge.
+	Attachment *Equipment
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

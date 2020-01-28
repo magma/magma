@@ -74,7 +74,7 @@ func (etdo *EquipmentTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{equipmenttype.Label}
+		return &NotFoundError{equipmenttype.Label}
 	default:
 		return nil
 	}

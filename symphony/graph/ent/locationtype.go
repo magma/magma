@@ -37,14 +37,17 @@ type LocationType struct {
 	Index int `json:"index,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LocationTypeQuery when eager-loading is set.
-	Edges struct {
-		// Locations holds the value of the locations edge.
-		Locations []*Location `gqlgen:"locations"`
-		// PropertyTypes holds the value of the property_types edge.
-		PropertyTypes []*PropertyType `gqlgen:"propertyTypes"`
-		// SurveyTemplateCategories holds the value of the survey_template_categories edge.
-		SurveyTemplateCategories []*SurveyTemplateCategory `gqlgen:"surveyTemplateCategories"`
-	} `json:"edges"`
+	Edges LocationTypeEdges `json:"edges"`
+}
+
+// LocationTypeEdges holds the relations/edges for other nodes in the graph.
+type LocationTypeEdges struct {
+	// Locations holds the value of the locations edge.
+	Locations []*Location `gqlgen:"locations"`
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType `gqlgen:"propertyTypes"`
+	// SurveyTemplateCategories holds the value of the survey_template_categories edge.
+	SurveyTemplateCategories []*SurveyTemplateCategory `gqlgen:"surveyTemplateCategories"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

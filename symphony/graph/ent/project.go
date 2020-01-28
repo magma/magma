@@ -33,20 +33,23 @@ type Project struct {
 	Creator *string `json:"creator,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *ProjectType
-		// Location holds the value of the location edge.
-		Location *Location
-		// Comments holds the value of the comments edge.
-		Comments []*Comment
-		// WorkOrders holds the value of the work_orders edge.
-		WorkOrders []*WorkOrder
-		// Properties holds the value of the properties edge.
-		Properties []*Property
-	} `json:"edges"`
+	Edges               ProjectEdges `json:"edges"`
 	project_location_id *string
 	type_id             *string
+}
+
+// ProjectEdges holds the relations/edges for other nodes in the graph.
+type ProjectEdges struct {
+	// Type holds the value of the type edge.
+	Type *ProjectType
+	// Location holds the value of the location edge.
+	Location *Location
+	// Comments holds the value of the comments edge.
+	Comments []*Comment
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder
+	// Properties holds the value of the properties edge.
+	Properties []*Property
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

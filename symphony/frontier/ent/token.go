@@ -28,11 +28,14 @@ type Token struct {
 	Value string `json:"-"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TokenQuery when eager-loading is set.
-	Edges struct {
-		// User holds the value of the user edge.
-		User *User
-	} `json:"edges"`
+	Edges   TokenEdges `json:"edges"`
 	user_id *int
+}
+
+// TokenEdges holds the relations/edges for other nodes in the graph.
+type TokenEdges struct {
+	// User holds the value of the user edge.
+	User *User
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

@@ -29,14 +29,17 @@ type ServiceEndpoint struct {
 	Role string `json:"role,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceEndpointQuery when eager-loading is set.
-	Edges struct {
-		// Port holds the value of the port edge.
-		Port *EquipmentPort
-		// Service holds the value of the service edge.
-		Service *Service
-	} `json:"edges"`
+	Edges      ServiceEndpointEdges `json:"edges"`
 	service_id *string
 	port_id    *string
+}
+
+// ServiceEndpointEdges holds the relations/edges for other nodes in the graph.
+type ServiceEndpointEdges struct {
+	// Port holds the value of the port edge.
+	Port *EquipmentPort
+	// Service holds the value of the service edge.
+	Service *Service
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

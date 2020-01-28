@@ -31,10 +31,13 @@ type Customer struct {
 	ExternalID *string `json:"external_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CustomerQuery when eager-loading is set.
-	Edges struct {
-		// Services holds the value of the services edge.
-		Services []*Service
-	} `json:"edges"`
+	Edges CustomerEdges `json:"edges"`
+}
+
+// CustomerEdges holds the relations/edges for other nodes in the graph.
+type CustomerEdges struct {
+	// Services holds the value of the services edge.
+	Services []*Service
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

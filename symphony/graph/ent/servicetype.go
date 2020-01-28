@@ -31,12 +31,15 @@ type ServiceType struct {
 	HasCustomer bool `json:"has_customer,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceTypeQuery when eager-loading is set.
-	Edges struct {
-		// Services holds the value of the services edge.
-		Services []*Service
-		// PropertyTypes holds the value of the property_types edge.
-		PropertyTypes []*PropertyType
-	} `json:"edges"`
+	Edges ServiceTypeEdges `json:"edges"`
+}
+
+// ServiceTypeEdges holds the relations/edges for other nodes in the graph.
+type ServiceTypeEdges struct {
+	// Services holds the value of the services edge.
+	Services []*Service
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

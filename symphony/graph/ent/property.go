@@ -43,30 +43,7 @@ type Property struct {
 	StringVal string `json:"string_val,omitempty" gqlgen:"stringValue"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PropertyQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *PropertyType
-		// Location holds the value of the location edge.
-		Location *Location
-		// Equipment holds the value of the equipment edge.
-		Equipment *Equipment
-		// Service holds the value of the service edge.
-		Service *Service
-		// EquipmentPort holds the value of the equipment_port edge.
-		EquipmentPort *EquipmentPort
-		// Link holds the value of the link edge.
-		Link *Link
-		// WorkOrder holds the value of the work_order edge.
-		WorkOrder *WorkOrder
-		// Project holds the value of the project edge.
-		Project *Project
-		// EquipmentValue holds the value of the equipment_value edge.
-		EquipmentValue *Equipment
-		// LocationValue holds the value of the location_value edge.
-		LocationValue *Location
-		// ServiceValue holds the value of the service_value edge.
-		ServiceValue *Service
-	} `json:"edges"`
+	Edges                       PropertyEdges `json:"edges"`
 	equipment_id                *string
 	equipment_port_id           *string
 	link_id                     *string
@@ -78,6 +55,32 @@ type Property struct {
 	property_service_value_id   *string
 	service_id                  *string
 	work_order_id               *string
+}
+
+// PropertyEdges holds the relations/edges for other nodes in the graph.
+type PropertyEdges struct {
+	// Type holds the value of the type edge.
+	Type *PropertyType
+	// Location holds the value of the location edge.
+	Location *Location
+	// Equipment holds the value of the equipment edge.
+	Equipment *Equipment
+	// Service holds the value of the service edge.
+	Service *Service
+	// EquipmentPort holds the value of the equipment_port edge.
+	EquipmentPort *EquipmentPort
+	// Link holds the value of the link edge.
+	Link *Link
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder
+	// Project holds the value of the project edge.
+	Project *Project
+	// EquipmentValue holds the value of the equipment_value edge.
+	EquipmentValue *Equipment
+	// LocationValue holds the value of the location_value edge.
+	LocationValue *Location
+	// ServiceValue holds the value of the service_value edge.
+	ServiceValue *Service
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

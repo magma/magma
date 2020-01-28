@@ -208,14 +208,14 @@ func (pq *PropertyQuery) QueryServiceValue() *ServiceQuery {
 	return query
 }
 
-// First returns the first Property entity in the query. Returns *ErrNotFound when no property was found.
+// First returns the first Property entity in the query. Returns *NotFoundError when no property was found.
 func (pq *PropertyQuery) First(ctx context.Context) (*Property, error) {
 	prs, err := pq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(prs) == 0 {
-		return nil, &ErrNotFound{property.Label}
+		return nil, &NotFoundError{property.Label}
 	}
 	return prs[0], nil
 }
@@ -229,14 +229,14 @@ func (pq *PropertyQuery) FirstX(ctx context.Context) *Property {
 	return pr
 }
 
-// FirstID returns the first Property id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Property id in the query. Returns *NotFoundError when no id was found.
 func (pq *PropertyQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{property.Label}
+		err = &NotFoundError{property.Label}
 		return
 	}
 	return ids[0], nil
@@ -261,9 +261,9 @@ func (pq *PropertyQuery) Only(ctx context.Context) (*Property, error) {
 	case 1:
 		return prs[0], nil
 	case 0:
-		return nil, &ErrNotFound{property.Label}
+		return nil, &NotFoundError{property.Label}
 	default:
-		return nil, &ErrNotSingular{property.Label}
+		return nil, &NotSingularError{property.Label}
 	}
 }
 
@@ -286,9 +286,9 @@ func (pq *PropertyQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{property.Label}
+		err = &NotFoundError{property.Label}
 	default:
-		err = &ErrNotSingular{property.Label}
+		err = &NotSingularError{property.Label}
 	}
 	return
 }
@@ -541,9 +541,9 @@ func (pq *PropertyQuery) Select(field string, fields ...string) *PropertySelect 
 
 func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	var (
-		nodes   []*Property
-		withFKs = pq.withFKs
-		_spec   = pq.querySpec()
+		nodes   []*Property = []*Property{}
+		withFKs             = pq.withFKs
+		_spec               = pq.querySpec()
 	)
 	if pq.withType != nil || pq.withLocation != nil || pq.withEquipment != nil || pq.withService != nil || pq.withEquipmentPort != nil || pq.withLink != nil || pq.withWorkOrder != nil || pq.withProject != nil || pq.withEquipmentValue != nil || pq.withLocationValue != nil || pq.withServiceValue != nil {
 		withFKs = true
@@ -570,7 +570,6 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

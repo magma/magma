@@ -55,14 +55,14 @@ func (fprpq *FloorPlanReferencePointQuery) Order(o ...Order) *FloorPlanReference
 	return fprpq
 }
 
-// First returns the first FloorPlanReferencePoint entity in the query. Returns *ErrNotFound when no floorplanreferencepoint was found.
+// First returns the first FloorPlanReferencePoint entity in the query. Returns *NotFoundError when no floorplanreferencepoint was found.
 func (fprpq *FloorPlanReferencePointQuery) First(ctx context.Context) (*FloorPlanReferencePoint, error) {
 	fprps, err := fprpq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(fprps) == 0 {
-		return nil, &ErrNotFound{floorplanreferencepoint.Label}
+		return nil, &NotFoundError{floorplanreferencepoint.Label}
 	}
 	return fprps[0], nil
 }
@@ -76,14 +76,14 @@ func (fprpq *FloorPlanReferencePointQuery) FirstX(ctx context.Context) *FloorPla
 	return fprp
 }
 
-// FirstID returns the first FloorPlanReferencePoint id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first FloorPlanReferencePoint id in the query. Returns *NotFoundError when no id was found.
 func (fprpq *FloorPlanReferencePointQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = fprpq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{floorplanreferencepoint.Label}
+		err = &NotFoundError{floorplanreferencepoint.Label}
 		return
 	}
 	return ids[0], nil
@@ -108,9 +108,9 @@ func (fprpq *FloorPlanReferencePointQuery) Only(ctx context.Context) (*FloorPlan
 	case 1:
 		return fprps[0], nil
 	case 0:
-		return nil, &ErrNotFound{floorplanreferencepoint.Label}
+		return nil, &NotFoundError{floorplanreferencepoint.Label}
 	default:
-		return nil, &ErrNotSingular{floorplanreferencepoint.Label}
+		return nil, &NotSingularError{floorplanreferencepoint.Label}
 	}
 }
 
@@ -133,9 +133,9 @@ func (fprpq *FloorPlanReferencePointQuery) OnlyID(ctx context.Context) (id strin
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{floorplanreferencepoint.Label}
+		err = &NotFoundError{floorplanreferencepoint.Label}
 	default:
-		err = &ErrNotSingular{floorplanreferencepoint.Label}
+		err = &NotSingularError{floorplanreferencepoint.Label}
 	}
 	return
 }
@@ -267,8 +267,8 @@ func (fprpq *FloorPlanReferencePointQuery) Select(field string, fields ...string
 
 func (fprpq *FloorPlanReferencePointQuery) sqlAll(ctx context.Context) ([]*FloorPlanReferencePoint, error) {
 	var (
-		nodes []*FloorPlanReferencePoint
-		_spec = fprpq.querySpec()
+		nodes []*FloorPlanReferencePoint = []*FloorPlanReferencePoint{}
+		_spec                            = fprpq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &FloorPlanReferencePoint{config: fprpq.config}
@@ -286,7 +286,6 @@ func (fprpq *FloorPlanReferencePointQuery) sqlAll(ctx context.Context) ([]*Floor
 	if err := sqlgraph.QueryNodes(ctx, fprpq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

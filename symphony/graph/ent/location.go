@@ -37,34 +37,37 @@ type Location struct {
 	SiteSurveyNeeded bool `json:"site_survey_needed,omitempty" gqlgen:"siteSurveyNeeded"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LocationQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *LocationType `gqlgen:"locationType"`
-		// Parent holds the value of the parent edge.
-		Parent *Location `gqlgen:"parent"`
-		// Children holds the value of the children edge.
-		Children []*Location `gqlgen:"children"`
-		// Files holds the value of the files edge.
-		Files []*File `gqlgen:"files,images"`
-		// Hyperlinks holds the value of the hyperlinks edge.
-		Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
-		// Equipment holds the value of the equipment edge.
-		Equipment []*Equipment `gqlgen:"equipments"`
-		// Properties holds the value of the properties edge.
-		Properties []*Property `gqlgen:"properties"`
-		// Survey holds the value of the survey edge.
-		Survey []*Survey `gqlgen:"surveys"`
-		// WifiScan holds the value of the wifi_scan edge.
-		WifiScan []*SurveyWiFiScan `gqlgen:"wifiData"`
-		// CellScan holds the value of the cell_scan edge.
-		CellScan []*SurveyCellScan `gqlgen:"cellData"`
-		// WorkOrders holds the value of the work_orders edge.
-		WorkOrders []*WorkOrder `gqlgen:"workOrders"`
-		// FloorPlans holds the value of the floor_plans edge.
-		FloorPlans []*FloorPlan `gqlgen:"floorPlans"`
-	} `json:"edges"`
+	Edges     LocationEdges `json:"edges"`
 	type_id   *string
 	parent_id *string
+}
+
+// LocationEdges holds the relations/edges for other nodes in the graph.
+type LocationEdges struct {
+	// Type holds the value of the type edge.
+	Type *LocationType `gqlgen:"locationType"`
+	// Parent holds the value of the parent edge.
+	Parent *Location `gqlgen:"parent"`
+	// Children holds the value of the children edge.
+	Children []*Location `gqlgen:"children"`
+	// Files holds the value of the files edge.
+	Files []*File `gqlgen:"files,images"`
+	// Hyperlinks holds the value of the hyperlinks edge.
+	Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
+	// Equipment holds the value of the equipment edge.
+	Equipment []*Equipment `gqlgen:"equipments"`
+	// Properties holds the value of the properties edge.
+	Properties []*Property `gqlgen:"properties"`
+	// Survey holds the value of the survey edge.
+	Survey []*Survey `gqlgen:"surveys"`
+	// WifiScan holds the value of the wifi_scan edge.
+	WifiScan []*SurveyWiFiScan `gqlgen:"wifiData"`
+	// CellScan holds the value of the cell_scan edge.
+	CellScan []*SurveyCellScan `gqlgen:"cellData"`
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder `gqlgen:"workOrders"`
+	// FloorPlans holds the value of the floor_plans edge.
+	FloorPlans []*FloorPlan `gqlgen:"floorPlans"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

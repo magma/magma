@@ -35,30 +35,33 @@ type Equipment struct {
 	ExternalID string `json:"external_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *EquipmentType
-		// Location holds the value of the location edge.
-		Location *Location
-		// ParentPosition holds the value of the parent_position edge.
-		ParentPosition *EquipmentPosition
-		// Positions holds the value of the positions edge.
-		Positions []*EquipmentPosition
-		// Ports holds the value of the ports edge.
-		Ports []*EquipmentPort
-		// WorkOrder holds the value of the work_order edge.
-		WorkOrder *WorkOrder
-		// Properties holds the value of the properties edge.
-		Properties []*Property
-		// Files holds the value of the files edge.
-		Files []*File
-		// Hyperlinks holds the value of the hyperlinks edge.
-		Hyperlinks []*Hyperlink
-	} `json:"edges"`
+	Edges              EquipmentEdges `json:"edges"`
 	type_id            *string
 	work_order_id      *string
 	parent_position_id *string
 	location_id        *string
+}
+
+// EquipmentEdges holds the relations/edges for other nodes in the graph.
+type EquipmentEdges struct {
+	// Type holds the value of the type edge.
+	Type *EquipmentType
+	// Location holds the value of the location edge.
+	Location *Location
+	// ParentPosition holds the value of the parent_position edge.
+	ParentPosition *EquipmentPosition
+	// Positions holds the value of the positions edge.
+	Positions []*EquipmentPosition
+	// Ports holds the value of the ports edge.
+	Ports []*EquipmentPort
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// Files holds the value of the files edge.
+	Files []*File
+	// Hyperlinks holds the value of the hyperlinks edge.
+	Hyperlinks []*Hyperlink
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

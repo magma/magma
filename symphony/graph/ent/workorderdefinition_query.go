@@ -85,14 +85,14 @@ func (wodq *WorkOrderDefinitionQuery) QueryProjectType() *ProjectTypeQuery {
 	return query
 }
 
-// First returns the first WorkOrderDefinition entity in the query. Returns *ErrNotFound when no workorderdefinition was found.
+// First returns the first WorkOrderDefinition entity in the query. Returns *NotFoundError when no workorderdefinition was found.
 func (wodq *WorkOrderDefinitionQuery) First(ctx context.Context) (*WorkOrderDefinition, error) {
 	wods, err := wodq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(wods) == 0 {
-		return nil, &ErrNotFound{workorderdefinition.Label}
+		return nil, &NotFoundError{workorderdefinition.Label}
 	}
 	return wods[0], nil
 }
@@ -106,14 +106,14 @@ func (wodq *WorkOrderDefinitionQuery) FirstX(ctx context.Context) *WorkOrderDefi
 	return wod
 }
 
-// FirstID returns the first WorkOrderDefinition id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first WorkOrderDefinition id in the query. Returns *NotFoundError when no id was found.
 func (wodq *WorkOrderDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = wodq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{workorderdefinition.Label}
+		err = &NotFoundError{workorderdefinition.Label}
 		return
 	}
 	return ids[0], nil
@@ -138,9 +138,9 @@ func (wodq *WorkOrderDefinitionQuery) Only(ctx context.Context) (*WorkOrderDefin
 	case 1:
 		return wods[0], nil
 	case 0:
-		return nil, &ErrNotFound{workorderdefinition.Label}
+		return nil, &NotFoundError{workorderdefinition.Label}
 	default:
-		return nil, &ErrNotSingular{workorderdefinition.Label}
+		return nil, &NotSingularError{workorderdefinition.Label}
 	}
 }
 
@@ -163,9 +163,9 @@ func (wodq *WorkOrderDefinitionQuery) OnlyID(ctx context.Context) (id string, er
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{workorderdefinition.Label}
+		err = &NotFoundError{workorderdefinition.Label}
 	default:
-		err = &ErrNotSingular{workorderdefinition.Label}
+		err = &NotSingularError{workorderdefinition.Label}
 	}
 	return
 }
@@ -319,9 +319,9 @@ func (wodq *WorkOrderDefinitionQuery) Select(field string, fields ...string) *Wo
 
 func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderDefinition, error) {
 	var (
-		nodes   []*WorkOrderDefinition
-		withFKs = wodq.withFKs
-		_spec   = wodq.querySpec()
+		nodes   []*WorkOrderDefinition = []*WorkOrderDefinition{}
+		withFKs                        = wodq.withFKs
+		_spec                          = wodq.querySpec()
 	)
 	if wodq.withType != nil || wodq.withProjectType != nil {
 		withFKs = true
@@ -348,7 +348,6 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 	if err := sqlgraph.QueryNodes(ctx, wodq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

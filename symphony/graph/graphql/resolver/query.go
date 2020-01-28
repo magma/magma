@@ -41,7 +41,7 @@ func (r queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
 			zap.String("id", id),
 			zap.Error(err),
 		)
-	var e *ent.ErrNotFound
+	var e *ent.NotFoundError
 	if xerrors.As(err, &e) {
 		err = nil
 	}

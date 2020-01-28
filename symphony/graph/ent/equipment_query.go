@@ -184,14 +184,14 @@ func (eq *EquipmentQuery) QueryHyperlinks() *HyperlinkQuery {
 	return query
 }
 
-// First returns the first Equipment entity in the query. Returns *ErrNotFound when no equipment was found.
+// First returns the first Equipment entity in the query. Returns *NotFoundError when no equipment was found.
 func (eq *EquipmentQuery) First(ctx context.Context) (*Equipment, error) {
 	es, err := eq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(es) == 0 {
-		return nil, &ErrNotFound{equipment.Label}
+		return nil, &NotFoundError{equipment.Label}
 	}
 	return es[0], nil
 }
@@ -205,14 +205,14 @@ func (eq *EquipmentQuery) FirstX(ctx context.Context) *Equipment {
 	return e
 }
 
-// FirstID returns the first Equipment id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Equipment id in the query. Returns *NotFoundError when no id was found.
 func (eq *EquipmentQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = eq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipment.Label}
+		err = &NotFoundError{equipment.Label}
 		return
 	}
 	return ids[0], nil
@@ -237,9 +237,9 @@ func (eq *EquipmentQuery) Only(ctx context.Context) (*Equipment, error) {
 	case 1:
 		return es[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipment.Label}
+		return nil, &NotFoundError{equipment.Label}
 	default:
-		return nil, &ErrNotSingular{equipment.Label}
+		return nil, &NotSingularError{equipment.Label}
 	}
 }
 
@@ -262,9 +262,9 @@ func (eq *EquipmentQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipment.Label}
+		err = &NotFoundError{equipment.Label}
 	default:
-		err = &ErrNotSingular{equipment.Label}
+		err = &NotSingularError{equipment.Label}
 	}
 	return
 }
@@ -495,9 +495,9 @@ func (eq *EquipmentQuery) Select(field string, fields ...string) *EquipmentSelec
 
 func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	var (
-		nodes   []*Equipment
-		withFKs = eq.withFKs
-		_spec   = eq.querySpec()
+		nodes   []*Equipment = []*Equipment{}
+		withFKs              = eq.withFKs
+		_spec                = eq.querySpec()
 	)
 	if eq.withType != nil || eq.withLocation != nil || eq.withParentPosition != nil || eq.withWorkOrder != nil {
 		withFKs = true
@@ -524,7 +524,6 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	if err := sqlgraph.QueryNodes(ctx, eq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

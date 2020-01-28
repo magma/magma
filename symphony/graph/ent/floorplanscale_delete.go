@@ -74,7 +74,7 @@ func (fpsdo *FloorPlanScaleDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{floorplanscale.Label}
+		return &NotFoundError{floorplanscale.Label}
 	default:
 		return nil
 	}

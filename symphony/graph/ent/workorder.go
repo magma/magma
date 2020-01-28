@@ -45,34 +45,37 @@ type WorkOrder struct {
 	Index int `json:"index,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *WorkOrderType
-		// Equipment holds the value of the equipment edge.
-		Equipment []*Equipment
-		// Links holds the value of the links edge.
-		Links []*Link
-		// Files holds the value of the files edge.
-		Files []*File
-		// Hyperlinks holds the value of the hyperlinks edge.
-		Hyperlinks []*Hyperlink
-		// Location holds the value of the location edge.
-		Location *Location
-		// Comments holds the value of the comments edge.
-		Comments []*Comment
-		// Properties holds the value of the properties edge.
-		Properties []*Property
-		// CheckListItems holds the value of the check_list_items edge.
-		CheckListItems []*CheckListItem
-		// Technician holds the value of the technician edge.
-		Technician *Technician
-		// Project holds the value of the project edge.
-		Project *Project
-	} `json:"edges"`
+	Edges         WorkOrderEdges `json:"edges"`
 	project_id    *string
 	type_id       *string
 	location_id   *string
 	technician_id *string
+}
+
+// WorkOrderEdges holds the relations/edges for other nodes in the graph.
+type WorkOrderEdges struct {
+	// Type holds the value of the type edge.
+	Type *WorkOrderType
+	// Equipment holds the value of the equipment edge.
+	Equipment []*Equipment
+	// Links holds the value of the links edge.
+	Links []*Link
+	// Files holds the value of the files edge.
+	Files []*File
+	// Hyperlinks holds the value of the hyperlinks edge.
+	Hyperlinks []*Hyperlink
+	// Location holds the value of the location edge.
+	Location *Location
+	// Comments holds the value of the comments edge.
+	Comments []*Comment
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// CheckListItems holds the value of the check_list_items edge.
+	CheckListItems []*CheckListItem
+	// Technician holds the value of the technician edge.
+	Technician *Technician
+	// Project holds the value of the project edge.
+	Project *Project
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

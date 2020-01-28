@@ -74,7 +74,7 @@ func (tdo *TenantDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{tenant.Label}
+		return &NotFoundError{tenant.Label}
 	default:
 		return nil
 	}

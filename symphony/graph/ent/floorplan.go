@@ -29,20 +29,23 @@ type FloorPlan struct {
 	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FloorPlanQuery when eager-loading is set.
-	Edges struct {
-		// Location holds the value of the location edge.
-		Location *Location
-		// ReferencePoint holds the value of the reference_point edge.
-		ReferencePoint *FloorPlanReferencePoint
-		// Scale holds the value of the scale edge.
-		Scale *FloorPlanScale
-		// Image holds the value of the image edge.
-		Image *File
-	} `json:"edges"`
+	Edges                         FloorPlanEdges `json:"edges"`
 	location_id                   *string
 	floor_plan_reference_point_id *string
 	floor_plan_scale_id           *string
 	floor_plan_image_id           *string
+}
+
+// FloorPlanEdges holds the relations/edges for other nodes in the graph.
+type FloorPlanEdges struct {
+	// Location holds the value of the location edge.
+	Location *Location
+	// ReferencePoint holds the value of the reference_point edge.
+	ReferencePoint *FloorPlanReferencePoint
+	// Scale holds the value of the scale edge.
+	Scale *FloorPlanScale
+	// Image holds the value of the image edge.
+	Image *File
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

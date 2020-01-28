@@ -155,14 +155,14 @@ func (sq *ServiceQuery) QueryEndpoints() *ServiceEndpointQuery {
 	return query
 }
 
-// First returns the first Service entity in the query. Returns *ErrNotFound when no service was found.
+// First returns the first Service entity in the query. Returns *NotFoundError when no service was found.
 func (sq *ServiceQuery) First(ctx context.Context) (*Service, error) {
 	sSlice, err := sq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(sSlice) == 0 {
-		return nil, &ErrNotFound{service.Label}
+		return nil, &NotFoundError{service.Label}
 	}
 	return sSlice[0], nil
 }
@@ -176,14 +176,14 @@ func (sq *ServiceQuery) FirstX(ctx context.Context) *Service {
 	return s
 }
 
-// FirstID returns the first Service id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Service id in the query. Returns *NotFoundError when no id was found.
 func (sq *ServiceQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{service.Label}
+		err = &NotFoundError{service.Label}
 		return
 	}
 	return ids[0], nil
@@ -208,9 +208,9 @@ func (sq *ServiceQuery) Only(ctx context.Context) (*Service, error) {
 	case 1:
 		return sSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{service.Label}
+		return nil, &NotFoundError{service.Label}
 	default:
-		return nil, &ErrNotSingular{service.Label}
+		return nil, &NotSingularError{service.Label}
 	}
 }
 
@@ -233,9 +233,9 @@ func (sq *ServiceQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{service.Label}
+		err = &NotFoundError{service.Label}
 	default:
-		err = &ErrNotSingular{service.Label}
+		err = &NotSingularError{service.Label}
 	}
 	return
 }
@@ -444,9 +444,9 @@ func (sq *ServiceQuery) Select(field string, fields ...string) *ServiceSelect {
 
 func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 	var (
-		nodes   []*Service
-		withFKs = sq.withFKs
-		_spec   = sq.querySpec()
+		nodes   []*Service = []*Service{}
+		withFKs            = sq.withFKs
+		_spec              = sq.querySpec()
 	)
 	if sq.withType != nil {
 		withFKs = true
@@ -473,7 +473,6 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 	if err := sqlgraph.QueryNodes(ctx, sq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

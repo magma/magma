@@ -74,7 +74,7 @@ func (cdo *CustomerDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{customer.Label}
+		return &NotFoundError{customer.Label}
 	default:
 		return nil
 	}

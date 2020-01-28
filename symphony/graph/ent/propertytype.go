@@ -59,24 +59,7 @@ type PropertyType struct {
 	Deleted bool `json:"deleted,omitempty" gqlgen:"isDeleted"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PropertyTypeQuery when eager-loading is set.
-	Edges struct {
-		// Properties holds the value of the properties edge.
-		Properties []*Property
-		// LocationType holds the value of the location_type edge.
-		LocationType *LocationType
-		// EquipmentPortType holds the value of the equipment_port_type edge.
-		EquipmentPortType *EquipmentPortType
-		// LinkEquipmentPortType holds the value of the link_equipment_port_type edge.
-		LinkEquipmentPortType *EquipmentPortType
-		// EquipmentType holds the value of the equipment_type edge.
-		EquipmentType *EquipmentType
-		// ServiceType holds the value of the service_type edge.
-		ServiceType *ServiceType
-		// WorkOrderType holds the value of the work_order_type edge.
-		WorkOrderType *WorkOrderType
-		// ProjectType holds the value of the project_type edge.
-		ProjectType *ProjectType
-	} `json:"edges"`
+	Edges                       PropertyTypeEdges `json:"edges"`
 	equipment_port_type_id      *string
 	link_equipment_port_type_id *string
 	equipment_type_id           *string
@@ -84,6 +67,26 @@ type PropertyType struct {
 	project_type_id             *string
 	service_type_id             *string
 	work_order_type_id          *string
+}
+
+// PropertyTypeEdges holds the relations/edges for other nodes in the graph.
+type PropertyTypeEdges struct {
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// LocationType holds the value of the location_type edge.
+	LocationType *LocationType
+	// EquipmentPortType holds the value of the equipment_port_type edge.
+	EquipmentPortType *EquipmentPortType
+	// LinkEquipmentPortType holds the value of the link_equipment_port_type edge.
+	LinkEquipmentPortType *EquipmentPortType
+	// EquipmentType holds the value of the equipment_type edge.
+	EquipmentType *EquipmentType
+	// ServiceType holds the value of the service_type edge.
+	ServiceType *ServiceType
+	// WorkOrderType holds the value of the work_order_type edge.
+	WorkOrderType *WorkOrderType
+	// ProjectType holds the value of the project_type edge.
+	ProjectType *ProjectType
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

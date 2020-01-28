@@ -67,14 +67,17 @@ type SurveyCellScan struct {
 	Longitude float64 `json:"longitude,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyCellScanQuery when eager-loading is set.
-	Edges struct {
-		// SurveyQuestion holds the value of the survey_question edge.
-		SurveyQuestion *SurveyQuestion
-		// Location holds the value of the location edge.
-		Location *Location
-	} `json:"edges"`
+	Edges              SurveyCellScanEdges `json:"edges"`
 	survey_question_id *string
 	location_id        *string
+}
+
+// SurveyCellScanEdges holds the relations/edges for other nodes in the graph.
+type SurveyCellScanEdges struct {
+	// SurveyQuestion holds the value of the survey_question edge.
+	SurveyQuestion *SurveyQuestion
+	// Location holds the value of the location edge.
+	Location *Location
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

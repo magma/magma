@@ -33,23 +33,26 @@ type Service struct {
 	Status string `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *ServiceType
-		// Downstream holds the value of the downstream edge.
-		Downstream []*Service
-		// Upstream holds the value of the upstream edge.
-		Upstream []*Service
-		// Properties holds the value of the properties edge.
-		Properties []*Property
-		// Links holds the value of the links edge.
-		Links []*Link
-		// Customer holds the value of the customer edge.
-		Customer []*Customer
-		// Endpoints holds the value of the endpoints edge.
-		Endpoints []*ServiceEndpoint
-	} `json:"edges"`
+	Edges   ServiceEdges `json:"edges"`
 	type_id *string
+}
+
+// ServiceEdges holds the relations/edges for other nodes in the graph.
+type ServiceEdges struct {
+	// Type holds the value of the type edge.
+	Type *ServiceType
+	// Downstream holds the value of the downstream edge.
+	Downstream []*Service
+	// Upstream holds the value of the upstream edge.
+	Upstream []*Service
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// Links holds the value of the links edge.
+	Links []*Link
+	// Customer holds the value of the customer edge.
+	Customer []*Customer
+	// Endpoints holds the value of the endpoints edge.
+	Endpoints []*ServiceEndpoint
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
