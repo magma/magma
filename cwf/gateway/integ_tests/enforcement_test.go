@@ -74,7 +74,9 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
 	assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 	// TODO Talk to PCRF and verify appropriate CCRs propagate up
-
+	_, err = tr.Disconnect(imsi)
+	assert.NoError(t, err)
+	time.Sleep(3 * time.Second)
 	// Clear hss, ocs, and pcrf
 	assert.NoError(t, ruleManager.RemoveInstalledRules())
 	assert.NoError(t, tr.CleanUp())
