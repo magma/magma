@@ -176,7 +176,7 @@ class TestWrapper(object):
 
     def configUEDeviceWithAPN(self, num_ues, apn, qci):
         """ Configure the device on the UE side """
-        assert(len(apn)==len(qci))
+        assert len(apn) == len(qci)
         reqs = self._sub_util.add_sub_with_apn(num_ues, apn, qci)
         for idx in range(num_ues):
             print(

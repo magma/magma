@@ -28,8 +28,8 @@ class TestMaximumBearersPerUe(unittest.TestCase):
         Request + add 9 dedicated bearers + detach"""
         num_ues = 1
         apn = ["ims"]
-        # qci 1-ims
-        qci = [1]
+        # qci 5-ims
+        qci = [5]
         self._s1ap_wrapper.configUEDeviceWithAPN(num_ues, apn, qci)
         # 1 oai PDN + 1 dedicated bearer, 1 ims pdn + 8 dedicated bearers
         loop = 8

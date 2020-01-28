@@ -40,6 +40,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         Adds a subscriber to the store
         """
         sid = SIDUtils.to_str(request.sid)
+        logging.debug("Add subscriber rpc for sid: %s", sid)
         try:
             self._store.add_subscriber(request)
         except DuplicateSubscriberError:

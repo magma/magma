@@ -26,8 +26,8 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
         Request + detach. Repeat 3 times """
 
         apn = ["ims"]
-        # qci 1-ims
-        qci = [1]
+        # qci 5-ims
+        qci = [5]
         num_ues = 1
         self._s1ap_wrapper.configUEDeviceWithAPN(num_ues, apn, qci)
 
@@ -39,7 +39,7 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
             ue_id,
         )
         # Attach
-        for i in range(loop):
+        for _ in range(loop):
             time.sleep(5)
             self._s1ap_wrapper.s1_util.attach(
                 ue_id,

@@ -26,8 +26,8 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
         Request + send PDN disconnect with invalid bearer id """
 
         apn = ["ims"]
-        # qci 1-ims
-        qci = [1]
+        # qci 5-ims
+        qci = [5]
         num_ue = 1
         self._s1ap_wrapper.configUEDeviceWithAPN(num_ue, apn, qci)
 

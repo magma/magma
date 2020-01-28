@@ -131,7 +131,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
         return SubscriberData(sid=sub_db_sid, lte=lte, state=state)
 
     @staticmethod
-    def _get_subscriberdb_data_with_apn(sid, apn, qci, num_apn):
+    def _get_subscriberdb_data_with_apn(sid, apn, qci):
         """
         Get subscriber data in protobuf format.
 
@@ -139,7 +139,6 @@ class SubscriberDbGrpc(SubscriberDbClient):
             sid (str): string representation of the subscriber id
             apn : APN/s names
             qci : qci value/s for the APN/s
-            num_apn : number of APN/s to be configures
         Returns:
             subscriber_data (protos.subscriberdb_pb2.SubscriberData):
                 full subscriber information for :sid: in protobuf format.
@@ -152,14 +151,16 @@ class SubscriberDbGrpc(SubscriberDbClient):
         state.lte_auth_next_seq = 1
         # APN
         usr_prof = Non3GPPUserProfile()
+        num_apn = len(apn)
         for idx in range(num_apn):
             apn_config = usr_prof.apn_config.add()
             apn_config.service_selection = apn[idx]
             apn_config.qos_profile.class_id = qci[idx]
             logging.info("Configuring APN : %s", apn[idx])
             logging.info("Configuring QCI : %d", qci[idx])
-        return SubscriberData(sid=sub_db_sid, lte=lte, state=state,
-                              non_3gpp=usr_prof)
+        return SubscriberData(
+            sid=sub_db_sid, lte=lte, state=state, non_3gpp=usr_prof
+        )
 
     def _check_invariants(self):
         """
@@ -195,10 +196,10 @@ class SubscriberDbGrpc(SubscriberDbClient):
     def add_subscriber_with_apn(self, sid, apn, qci):
         logging.info("Adding subscriber : %s", sid)
         self._added_sids.add(sid)
-        num_apn = len(apn)
-        sub_data = self._get_subscriberdb_data_with_apn(sid, apn, qci, num_apn)
+        sub_data = self._get_subscriberdb_data_with_apn(sid, apn, qci)
         SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.AddSubscriber(sub_data))
+            lambda: self._subscriber_stub.AddSubscriber(sub_data)
+        )
         self._check_invariants()
 
     def clean_up(self):

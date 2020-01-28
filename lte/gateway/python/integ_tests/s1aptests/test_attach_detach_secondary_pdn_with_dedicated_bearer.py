@@ -28,8 +28,8 @@ class TestSecondaryPdnConnWithDedBearerReq(unittest.TestCase):
         Request + add dedicated bearer to each default bearer """
         num_ues = 1
         apn = ["ims"]
-        # qci 1-ims
-        qci = [1]
+        # qci 5-ims
+        qci = [5]
         self._s1ap_wrapper.configUEDeviceWithAPN(num_ues, apn, qci)
 
         for i in range(num_ues):

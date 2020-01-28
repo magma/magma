@@ -30,8 +30,8 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
         num_ues = 1
         loop = 3
         apn = ["ims"]
-        # qci 1-ims
-        qci = [1]
+        # qci 5-ims
+        qci = [5]
         self._s1ap_wrapper.configUEDeviceWithAPN(num_ues, apn, qci)
 
         for i in range(num_ues):
