@@ -18,8 +18,9 @@ import (
 	"strings"
 	"testing"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/client/mocks"
+	overrideConfig "magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers/mocks"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/labstack/echo"
@@ -41,7 +42,7 @@ var (
 			Channel:  "test_channel",
 			Username: "test_username",
 		}},
-		WebhookConfigs: []*config.WebhookConfig{{
+		WebhookConfigs: []*receivers.WebhookConfig{{
 			NotifierConfig: config.NotifierConfig{
 				VSendResolved: true,
 			},
@@ -299,6 +300,68 @@ func TestGetUpdateRouteHandler(t *testing.T) {
 	c, _ = buildContext(sampleRoute, http.MethodPost, "/", v1receiverPath, testNID)
 
 	err = GetUpdateRouteHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
+}
+
+func TestGetGetGlobalConfigHandler(t *testing.T) {
+	defaultConfig := overrideConfig.DefaultGlobalConfig()
+	// Successful Get
+	client := &mocks.AlertmanagerClient{}
+	client.On("GetGlobalConfig").Return(&defaultConfig, nil)
+	c, rec := buildContext(nil, http.MethodGet, "/", v1routePath, testNID)
+
+	err := GetGetGlobalConfigHandler(client)(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var retrievedGlobalConfig overrideConfig.GlobalConfig
+	body, _ := ioutil.ReadAll(rec.Body)
+	err = json.Unmarshal(body, &retrievedGlobalConfig)
+	assert.NoError(t, err)
+	assert.Equal(t, overrideConfig.DefaultGlobalConfig(), retrievedGlobalConfig)
+	client.AssertExpectations(t)
+
+	// Client Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("GetGlobalConfig").Return(nil, errors.New("error"))
+	c, _ = buildContext(nil, http.MethodGet, "/", v1routePath, testNID)
+
+	err = GetGetGlobalConfigHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
+}
+
+func TestGetUpdateGlobalConfigHandler(t *testing.T) {
+	// Successful Update
+	client := &mocks.AlertmanagerClient{}
+	client.On("SetGlobalConfig", overrideConfig.DefaultGlobalConfig()).Return(nil)
+	client.On("ReloadAlertmanager").Return(nil)
+	c, rec := buildContext(overrideConfig.DefaultGlobalConfig(), http.MethodPost, "/", v1receiverPath, testNID)
+
+	err := GetUpdateGlobalConfigHandler(client)(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	client.AssertExpectations(t)
+
+	// Client Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("SetGlobalConfig", overrideConfig.DefaultGlobalConfig()).Return(errors.New("error"))
+	c, _ = buildContext(overrideConfig.DefaultGlobalConfig(), http.MethodPost, "/", v1receiverPath, testNID)
+
+	err = GetUpdateGlobalConfigHandler(client)(c)
+	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=400, message=error`)
+	client.AssertExpectations(t)
+
+	// Alertmanager Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("SetGlobalConfig", overrideConfig.DefaultGlobalConfig()).Return(nil)
+	client.On("ReloadAlertmanager").Return(errors.New("error"))
+	c, _ = buildContext(overrideConfig.DefaultGlobalConfig(), http.MethodPost, "/", v1receiverPath, testNID)
+
+	err = GetUpdateGlobalConfigHandler(client)(c)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 	assert.EqualError(t, err, `code=500, message=error`)
 	client.AssertExpectations(t)

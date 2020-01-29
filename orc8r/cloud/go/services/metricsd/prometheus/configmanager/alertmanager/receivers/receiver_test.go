@@ -6,10 +6,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package receivers
+package receivers_test
 
 import (
-	"net/url"
+	overrideConf "magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
+	tc "magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/test_common"
+
 	"strings"
 	"testing"
 
@@ -19,103 +22,53 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var (
-	sampleURL, _ = url.Parse("http://test.com")
-	sampleRoute  = config.Route{
-		Receiver: "testReceiver",
-		Routes: []*config.Route{
-			{
-				Receiver: "testReceiver",
-			},
-			{
-				Receiver: "slack_receiver",
-			},
-		},
-	}
-	sampleReceiver = Receiver{
-		Name: "testReceiver",
-	}
-	sampleSlackReceiver = Receiver{
-		Name: "slack_receiver",
-		SlackConfigs: []*SlackConfig{{
-			APIURL:   "http://slack.com/12345",
-			Username: "slack_user",
-			Channel:  "slack_alert_channel",
-		}},
-	}
-	sampleWebhookReceiver = Receiver{
-		Name: "webhook_receiver",
-		WebhookConfigs: []*config.WebhookConfig{{
-			URL: &config.URL{
-				URL: sampleURL,
-			},
-			NotifierConfig: config.NotifierConfig{
-				VSendResolved: true,
-			},
-		}},
-	}
-	sampleEmailReceiver = Receiver{
-		Name: "email_receiver",
-		EmailConfigs: []*EmailConfig{{
-			To:        "test@mail.com",
-			From:      "sampleUser",
-			Headers:   map[string]string{"header": "value"},
-			Smarthost: "http://mail-server.com",
-		}},
-	}
-	sampleConfig = Config{
-		Route: &sampleRoute,
-		Receivers: []*Receiver{
-			&sampleSlackReceiver, &sampleReceiver, &sampleWebhookReceiver, &sampleEmailReceiver,
-		},
-	}
-)
+const testNID = "test"
 
 func TestConfig_Validate(t *testing.T) {
-	defaultGlobalConf := config.DefaultGlobalConfig()
-	validConfig := Config{
-		Route:     &sampleRoute,
-		Receivers: []*Receiver{&sampleReceiver, &sampleSlackReceiver},
+	defaultGlobalConf := overrideConf.DefaultGlobalConfig()
+	validConfig := overrideConf.Config{
+		Route:     &tc.SampleRoute,
+		Receivers: []*receivers.Receiver{&tc.SampleReceiver, &tc.SampleSlackReceiver},
 		Global:    &defaultGlobalConf,
 	}
 	err := validConfig.Validate()
 	assert.NoError(t, err)
 
-	invalidConfig := Config{
-		Route:     &sampleRoute,
-		Receivers: []*Receiver{},
+	invalidConfig := overrideConf.Config{
+		Route:     &tc.SampleRoute,
+		Receivers: []*receivers.Receiver{},
 		Global:    &defaultGlobalConf,
 	}
 	err = invalidConfig.Validate()
 	assert.EqualError(t, err, `undefined receiver "testReceiver" used in route`)
 
-	invalidSlackReceiver := Receiver{
+	invalidSlackReceiver := receivers.Receiver{
 		Name: "invalidSlack",
-		SlackConfigs: []*SlackConfig{
+		SlackConfigs: []*receivers.SlackConfig{
 			{
 				APIURL: "invalidURL",
 			},
 		},
 	}
 
-	invalidSlackConfig := Config{
+	invalidSlackConfig := overrideConf.Config{
 		Route: &config.Route{
 			Receiver: "invalidSlack",
 		},
-		Receivers: []*Receiver{&invalidSlackReceiver},
+		Receivers: []*receivers.Receiver{&invalidSlackReceiver},
 		Global:    &defaultGlobalConf,
 	}
 	err = invalidSlackConfig.Validate()
 	assert.EqualError(t, err, `unsupported scheme "" for URL`)
 
 	// Fail if action is missing a type
-	invalidSlackAction := Config{
+	invalidSlackAction := overrideConf.Config{
 		Route: &config.Route{
 			Receiver: "invalidSlackAction",
 		},
-		Receivers: []*Receiver{{
+		Receivers: []*receivers.Receiver{{
 			Name: "invalidSlackAction",
-			SlackConfigs: []*SlackConfig{{
+			SlackConfigs: []*receivers.SlackConfig{{
 				APIURL: "http://slack.com",
 				Actions: []*config.SlackAction{{
 					URL:  "test.com",
@@ -129,41 +82,41 @@ func TestConfig_Validate(t *testing.T) {
 }
 
 func TestConfig_GetReceiver(t *testing.T) {
-	rec := sampleConfig.GetReceiver("testReceiver")
+	rec := tc.SampleConfig.GetReceiver("testReceiver")
 	assert.NotNil(t, rec)
 
-	rec = sampleConfig.GetReceiver("slack_receiver")
+	rec = tc.SampleConfig.GetReceiver("slack_receiver")
 	assert.NotNil(t, rec)
 
-	rec = sampleConfig.GetReceiver("webhook_receiver")
+	rec = tc.SampleConfig.GetReceiver("webhook_receiver")
 	assert.NotNil(t, rec)
 
-	rec = sampleConfig.GetReceiver("email_receiver")
+	rec = tc.SampleConfig.GetReceiver("email_receiver")
 	assert.NotNil(t, rec)
 
-	rec = sampleConfig.GetReceiver("nonRoute")
+	rec = tc.SampleConfig.GetReceiver("nonRoute")
 	assert.Nil(t, rec)
 }
 
 func TestConfig_GetRouteIdx(t *testing.T) {
-	idx := sampleConfig.GetRouteIdx("testReceiver")
+	idx := tc.SampleConfig.GetRouteIdx("testReceiver")
 	assert.Equal(t, 0, idx)
 
-	idx = sampleConfig.GetRouteIdx("slack_receiver")
+	idx = tc.SampleConfig.GetRouteIdx("slack_receiver")
 	assert.Equal(t, 1, idx)
 
-	idx = sampleConfig.GetRouteIdx("nonRoute")
+	idx = tc.SampleConfig.GetRouteIdx("nonRoute")
 	assert.Equal(t, -1, idx)
 }
 
 func TestReceiver_Secure(t *testing.T) {
-	rec := Receiver{Name: "receiverName"}
+	rec := receivers.Receiver{Name: "receiverName"}
 	rec.Secure(testNID)
 	assert.Equal(t, "test_receiverName", rec.Name)
 }
 
 func TestReceiver_Unsecure(t *testing.T) {
-	rec := Receiver{Name: "receiverName"}
+	rec := receivers.Receiver{Name: "receiverName"}
 	rec.Secure(testNID)
 	assert.Equal(t, "test_receiverName", rec.Name)
 
@@ -172,7 +125,7 @@ func TestReceiver_Unsecure(t *testing.T) {
 }
 
 func TestRouteJSONWrapper_ToPrometheusConfig(t *testing.T) {
-	jsonRoute := RouteJSONWrapper{
+	jsonRoute := receivers.RouteJSONWrapper{
 		Receiver:       "receiver",
 		GroupByStr:     []string{"groupBy"},
 		Match:          map[string]string{"match": "value"},
@@ -200,52 +153,52 @@ func TestRouteJSONWrapper_ToPrometheusConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedRoute, route)
 
-	badGroupWait := RouteJSONWrapper{
+	badGroupWait := receivers.RouteJSONWrapper{
 		Receiver:  "receiver",
 		GroupWait: "abcd",
 	}
 	route, err = badGroupWait.ToPrometheusConfig()
 	assert.EqualError(t, err, "Invalid GroupWait 'abcd': not a valid duration string: \"abcd\"")
 
-	badGroupInterval := RouteJSONWrapper{
+	badGroupInterval := receivers.RouteJSONWrapper{
 		Receiver:      "receiver",
 		GroupInterval: "abcd",
 	}
 	route, err = badGroupInterval.ToPrometheusConfig()
 	assert.EqualError(t, err, "Invalid GroupInterval 'abcd': not a valid duration string: \"abcd\"")
 
-	zeroGroupInterval := RouteJSONWrapper{
+	zeroGroupInterval := receivers.RouteJSONWrapper{
 		Receiver:      "receiver",
 		GroupInterval: "0s",
 	}
 	route, err = zeroGroupInterval.ToPrometheusConfig()
 	assert.EqualError(t, err, "GroupInterval cannot be 0")
 
-	badRepeatInterval := RouteJSONWrapper{
+	badRepeatInterval := receivers.RouteJSONWrapper{
 		Receiver:       "receiver",
 		RepeatInterval: "abcd",
 	}
 	route, err = badRepeatInterval.ToPrometheusConfig()
 	assert.EqualError(t, err, "Invalid RepeatInterval 'abcd': not a valid duration string: \"abcd\"")
 
-	zeroRepeatInterval := RouteJSONWrapper{
+	zeroRepeatInterval := receivers.RouteJSONWrapper{
 		Receiver:       "receiver",
 		RepeatInterval: "0s",
 	}
 	route, err = zeroRepeatInterval.ToPrometheusConfig()
 	assert.EqualError(t, err, "RepeatInterval cannot be 0")
 
-	childRoutes := RouteJSONWrapper{
+	childRoutes := receivers.RouteJSONWrapper{
 		Receiver: "parent",
-		Routes:   []*RouteJSONWrapper{{Receiver: "child1"}, {Receiver: "child2"}},
+		Routes:   []*receivers.RouteJSONWrapper{{Receiver: "child1"}, {Receiver: "child2"}},
 	}
 	route, err = childRoutes.ToPrometheusConfig()
 	assert.Equal(t, 2, len(route.Routes))
 	assert.NoError(t, err)
 
-	childrenWithErrors := RouteJSONWrapper{
+	childrenWithErrors := receivers.RouteJSONWrapper{
 		Receiver: "parent",
-		Routes:   []*RouteJSONWrapper{{Receiver: "child", RepeatInterval: "0s"}},
+		Routes:   []*receivers.RouteJSONWrapper{{Receiver: "child", RepeatInterval: "0s"}},
 	}
 	route, err = childrenWithErrors.ToPrometheusConfig()
 	assert.EqualError(t, err, "error converting child route: RepeatInterval cannot be 0")
@@ -267,7 +220,7 @@ func TestNewRouteJSONWrapper(t *testing.T) {
 		Routes:         []*config.Route{{Receiver: "child"}},
 	}
 
-	expectedJSONRoute := RouteJSONWrapper{
+	expectedJSONRoute := receivers.RouteJSONWrapper{
 		Receiver:       "receiver",
 		GroupByStr:     []string{"groupBy"},
 		Match:          map[string]string{"match": "value"},
@@ -275,9 +228,9 @@ func TestNewRouteJSONWrapper(t *testing.T) {
 		GroupWait:      "5s",
 		GroupInterval:  "6s",
 		RepeatInterval: "7s",
-		Routes:         []*RouteJSONWrapper{{Receiver: "child"}},
+		Routes:         []*receivers.RouteJSONWrapper{{Receiver: "child"}},
 	}
-	wrappedRoute := NewRouteJSONWrapper(origRoute)
+	wrappedRoute := receivers.NewRouteJSONWrapper(origRoute)
 	assert.Equal(t, expectedJSONRoute, *wrappedRoute)
 }
 
@@ -285,7 +238,7 @@ func TestNewRouteJSONWrapper(t *testing.T) {
 // requireTLS set to false
 func TestMarshalYamlEmailConfig(t *testing.T) {
 	valTrue := true
-	emailConf := EmailConfig{
+	emailConf := receivers.EmailConfig{
 		To:         "test@mail.com",
 		RequireTLS: &valTrue,
 		Headers:    map[string]string{"test": "true", "new": "old"},

@@ -12,8 +12,8 @@ import (
 	"flag"
 	"fmt"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/client"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/handlers"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
@@ -40,7 +40,7 @@ func main() {
 
 	e := echo.New()
 
-	receiverClient := receivers.NewClient(*alertmanagerConfPath, *alertmanagerURL, tenancy, fsclient.NewFSClient())
+	receiverClient := client.NewClient(*alertmanagerConfPath, *alertmanagerURL, tenancy, fsclient.NewFSClient())
 
 	handlers.RegisterBaseHandlers(e)
 	handlers.RegisterV0Handlers(e, receiverClient)

@@ -6,12 +6,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package receivers
+package client
 
 import (
 	"regexp"
 	"testing"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
+	tc "magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/test_common"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient/mocks"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
@@ -77,22 +79,22 @@ templates: []`
 func TestClient_CreateReceiver(t *testing.T) {
 	client, fsClient := newTestClient()
 	// Create Slack Receiver
-	err := client.CreateReceiver(testNID, sampleSlackReceiver)
+	err := client.CreateReceiver(testNID, tc.SampleSlackReceiver)
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
 	// Create Webhook Receiver
-	err = client.CreateReceiver(testNID, sampleWebhookReceiver)
+	err = client.CreateReceiver(testNID, tc.SampleWebhookReceiver)
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
 	// Create Email receiver
-	err = client.CreateReceiver(testNID, sampleEmailReceiver)
+	err = client.CreateReceiver(testNID, tc.SampleEmailReceiver)
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
 	// create duplicate receiver
-	err = client.CreateReceiver(testNID, Receiver{Name: "receiver"})
+	err = client.CreateReceiver(testNID, receivers.Receiver{Name: "receiver"})
 	assert.Regexp(t, regexp.MustCompile("notification config name \".*receiver\" is not unique"), err.Error())
 }
 
@@ -117,11 +119,11 @@ func TestClient_GetReceivers(t *testing.T) {
 
 func TestClient_UpdateReceiver(t *testing.T) {
 	client, fsClient := newTestClient()
-	err := client.UpdateReceiver(testNID, "slack", &Receiver{Name: "slack"})
+	err := client.UpdateReceiver(testNID, "slack", &receivers.Receiver{Name: "slack"})
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 	assert.NoError(t, err)
 
-	err = client.UpdateReceiver(testNID, "nonexistent", &Receiver{Name: "nonexistent"})
+	err = client.UpdateReceiver(testNID, "nonexistent", &receivers.Receiver{Name: "nonexistent"})
 	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
 	assert.Error(t, err)
 }
