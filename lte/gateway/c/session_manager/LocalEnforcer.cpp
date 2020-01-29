@@ -502,8 +502,8 @@ void LocalEnforcer::process_create_session_response(
   const std::unordered_set<uint32_t>& successful_credits,
   const std::string& imsi,
   const std::string& ip_addr,
-  RulesToProcess* rules_to_activate,
-  RulesToProcess* rules_to_deactivate)
+  RulesToProcess& rules_to_activate,
+  RulesToProcess& rules_to_deactivate)
 {
   std::time_t current_time = time(NULL);
   for (const auto &static_rule : response.static_rules()) {
@@ -523,7 +523,7 @@ void LocalEnforcer::process_create_session_response(
         // activation time is an optional field in the proto message
         // it will be set as 0 by default
         // when it is 0 or some past time, the rule should be activated instanly
-        rules_to_activate->static_rules.push_back(id);
+        rules_to_activate.static_rules.push_back(id);
         MLOG(MDEBUG) << "Activate Static rule id " << id;
       }
 
@@ -535,7 +535,7 @@ void LocalEnforcer::process_create_session_response(
         // deactivation time is an optional field in the proto message
         // it will be set as 0 by default
         // when it is some past time, the rule should be deactivated instantly
-        rules_to_deactivate->static_rules.push_back(id);
+        rules_to_deactivate.static_rules.push_back(id);
       }
     }
   }
@@ -547,14 +547,14 @@ void LocalEnforcer::process_create_session_response(
       if (activation_time > current_time) {
         schedule_dynamic_rule_activation(imsi, ip_addr, dynamic_rule);
       } else {
-        rules_to_activate->dynamic_rules.push_back(dynamic_rule.policy_rule());
+        rules_to_activate.dynamic_rules.push_back(dynamic_rule.policy_rule());
       }
       auto deactivation_time =
         TimeUtil::TimestampToSeconds(dynamic_rule.deactivation_time());
       if (deactivation_time > current_time) {
         schedule_dynamic_rule_deactivation(imsi, dynamic_rule);
       } else if (deactivation_time > 0) {
-        rules_to_deactivate->dynamic_rules.push_back(
+        rules_to_deactivate.dynamic_rules.push_back(
           dynamic_rule.policy_rule());
       }
     }
@@ -628,8 +628,8 @@ bool LocalEnforcer::init_session_credit(
     successful_credits,
     imsi,
     ip_addr,
-    &rules_to_activate,
-    &rules_to_deactivate);
+    rules_to_activate,
+    rules_to_deactivate);
 
   // activate_flows_for_rules() should be called even if there is no rule to
   // activate, because pipelined activates a "drop all packet" rule
@@ -712,9 +712,9 @@ bool LocalEnforcer::rules_to_process_is_not_empty(
          rules_to_process.dynamic_rules.size() > 0;
 }
 
-void LocalEnforcer::update_session_credit(const UpdateSessionResponse& response)
-{
-  for (const auto &credit_update_resp : response.responses()) {
+void LocalEnforcer::update_charging_credits(
+  const UpdateSessionResponse& response) {
+   for (const auto &credit_update_resp : response.responses()) {
     auto it = session_map_.find(credit_update_resp.sid());
     if (it == session_map_.end()) {
       MLOG(MERROR) << "Could not find session for IMSI "
@@ -727,7 +727,10 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse& response)
       }
     }
   }
+}
 
+void LocalEnforcer::update_monitoring_credits_and_rules(
+  const UpdateSessionResponse& response) {
   for (const auto &usage_monitor_resp : response.usage_monitor_responses()) {
     if (revalidation_required(usage_monitor_resp.event_triggers())) {
       schedule_revalidation(usage_monitor_resp.revalidation_time());
@@ -793,6 +796,13 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse& response)
       }
     }
   }
+}
+
+void LocalEnforcer::update_session_credits_and_rules(
+  const UpdateSessionResponse& response)
+{
+  update_charging_credits(response);
+  update_monitoring_credits_and_rules(response);
 }
 
 // terminate_subscriber,
@@ -1196,10 +1206,11 @@ void LocalEnforcer::check_usage_for_reporting()
       if (!status.ok()) {
         reset_updates(request);
         MLOG(MERROR) << "Update of size " << request.updates_size()
-                     << " to OCS failed entirely: " << status.error_message();
+                     << " to OCS and PCRF failed entirely: "
+                     << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        update_session_credit(response);
+        update_session_credits_and_rules(response);
         // Check if we need to report more updates
         check_usage_for_reporting();
       }
