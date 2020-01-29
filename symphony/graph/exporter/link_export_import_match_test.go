@@ -18,13 +18,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func writeModifiedLinksCSV(t *testing.T, r *csv.Reader, method method, skipLines bool) (*bytes.Buffer, string) {
+func writeModifiedLinksCSV(t *testing.T, r *csv.Reader, method method, skipLines, withVerify bool) (*bytes.Buffer, string) {
 	var newLine []string
-	var lines = make([][]string, 3)
+	var lines = make([][]string, 2)
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 	if skipLines {
 		bw.WriteField("skip_lines", "[1]")
+	}
+	if withVerify {
+		bw.WriteField("verify_before_commit", "true")
 	}
 	fileWriter, err := bw.CreateFormFile("file_0", "name1")
 	require.Nil(t, err)
@@ -56,7 +59,14 @@ func writeModifiedLinksCSV(t *testing.T, r *csv.Reader, method method, skipLines
 			lines[i] = newLine
 		}
 	}
-
+	if withVerify {
+		failLine := make([]string, len(lines[1]))
+		copy(failLine, lines[1])
+		lines = append(lines, failLine)
+		lines[2][1] = "this"
+		lines[2][2] = "should"
+		lines[2][3] = "fail"
+	}
 	for _, l := range lines {
 		stringLine := strings.Join(l, ",")
 		fileWriter.Write([]byte(stringLine + "\n"))
@@ -67,37 +77,39 @@ func writeModifiedLinksCSV(t *testing.T, r *csv.Reader, method method, skipLines
 }
 
 func TestExportAndEditLinks(t *testing.T) {
-	for _, skipLines := range []bool{true, false} {
-		r, err := newExporterTestResolver(t)
-		require.NoError(t, err)
-		log := r.exporter.log
-		e := &exporter{log, linksRower{log}}
-		ctx, res := prepareLinksPortsAndExport(t, r, e)
-		defer res.Body.Close()
-		importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityLink, MethodEdit, skipLines)
+	for _, withVerify := range []bool{true, false} {
+		for _, skipLines := range []bool{true, false} {
+			r, err := newExporterTestResolver(t)
+			require.NoError(t, err)
+			log := r.exporter.log
+			e := &exporter{log, linksRower{log}}
+			ctx, res := prepareLinksPortsAndExport(t, r, e)
+			defer res.Body.Close()
+			importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityLink, MethodEdit, skipLines, withVerify)
 
-		locs := r.client.Location.Query().AllX(ctx)
-		require.Len(t, locs, 3)
-		links, err := r.Query().LinkSearch(ctx, nil, nil)
-		require.NoError(t, err)
-		require.Equal(t, 1, links.Count)
-		for _, link := range links.Links {
-			props := link.QueryProperties().AllX(ctx)
-			if skipLines {
-				require.Len(t, props, 0)
-			} else {
-				s := link.QueryService().OnlyX(ctx)
-				require.Equal(t, s.Name, secondServiceName)
-				require.Len(t, props, 3)
-			}
-			for _, prop := range props {
-				switch prop.QueryType().OnlyX(ctx).Name {
-				case propNameInt:
-					require.Equal(t, 10, prop.IntVal)
-				case propNameBool:
-					require.Equal(t, true, prop.BoolVal)
-				case propNameStr:
-					require.Equal(t, "new-prop-value", prop.StringVal)
+			locs := r.client.Location.Query().AllX(ctx)
+			require.Len(t, locs, 3)
+			links, err := r.Query().LinkSearch(ctx, nil, nil)
+			require.NoError(t, err)
+			require.Equal(t, 1, links.Count)
+			for _, link := range links.Links {
+				props := link.QueryProperties().AllX(ctx)
+				if skipLines || withVerify {
+					require.Len(t, props, 0)
+				} else {
+					s := link.QueryService().OnlyX(ctx)
+					require.Equal(t, s.Name, secondServiceName)
+					require.Len(t, props, 3)
+				}
+				for _, prop := range props {
+					switch prop.QueryType().OnlyX(ctx).Name {
+					case propNameInt:
+						require.Equal(t, 10, prop.IntVal)
+					case propNameBool:
+						require.Equal(t, true, prop.BoolVal)
+					case propNameStr:
+						require.Equal(t, "new-prop-value", prop.StringVal)
+					}
 				}
 			}
 		}
@@ -105,39 +117,41 @@ func TestExportAndEditLinks(t *testing.T) {
 }
 
 func TestExportAndAddLinks(t *testing.T) {
-	for _, skipLines := range []bool{true, false} {
-		r, err := newExporterTestResolver(t)
-		require.NoError(t, err)
-		log := r.exporter.log
-		e := &exporter{log, linksRower{log}}
-		ctx, res := prepareLinksPortsAndExport(t, r, e)
-		defer res.Body.Close()
+	for _, withVerify := range []bool{true, false} {
+		for _, skipLines := range []bool{true, false} {
+			r, err := newExporterTestResolver(t)
+			require.NoError(t, err)
+			log := r.exporter.log
+			e := &exporter{log, linksRower{log}}
+			ctx, res := prepareLinksPortsAndExport(t, r, e)
+			defer res.Body.Close()
 
-		locs := r.client.Location.Query().AllX(ctx)
-		require.Len(t, locs, 3)
-		// Deleting link and of side's equipment to verify it creates it on import
-		deleteLinkAndEquipmentForReImport(ctx, t, r)
+			locs := r.client.Location.Query().AllX(ctx)
+			require.Len(t, locs, 3)
+			// Deleting link and of side's equipment to verify it creates it on import
+			deleteLinkAndEquipmentForReImport(ctx, t, r)
 
-		equips := r.client.Equipment.Query().AllX(ctx)
-		require.Len(t, equips, 1)
-		importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityLink, MethodAdd, skipLines)
-		links, err := r.Query().LinkSearch(ctx, nil, nil)
-		require.NoError(t, err)
-		if skipLines {
-			require.Zero(t, links.Count)
-			require.Empty(t, links.Links)
-		} else {
-			require.Equal(t, 1, links.Count)
-			for _, link := range links.Links {
-				props := link.QueryProperties().AllX(ctx)
-				for _, prop := range props {
-					switch prop.QueryType().OnlyX(ctx).Name {
-					case propNameInt:
-						require.Equal(t, 100, prop.IntVal)
-					case propNameBool:
-						require.Equal(t, false, prop.BoolVal)
-					case propNameStr:
-						require.Equal(t, "t1", prop.StringVal)
+			equips := r.client.Equipment.Query().AllX(ctx)
+			require.Len(t, equips, 1)
+			importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityLink, MethodAdd, skipLines, withVerify)
+			links, err := r.Query().LinkSearch(ctx, nil, nil)
+			require.NoError(t, err)
+			if skipLines || withVerify {
+				require.Zero(t, links.Count)
+				require.Empty(t, links.Links)
+			} else {
+				require.Equal(t, 1, links.Count)
+				for _, link := range links.Links {
+					props := link.QueryProperties().AllX(ctx)
+					for _, prop := range props {
+						switch prop.QueryType().OnlyX(ctx).Name {
+						case propNameInt:
+							require.Equal(t, 100, prop.IntVal)
+						case propNameBool:
+							require.Equal(t, false, prop.BoolVal)
+						case propNameStr:
+							require.Equal(t, "t1", prop.StringVal)
+						}
 					}
 				}
 			}

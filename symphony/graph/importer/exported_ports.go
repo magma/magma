@@ -52,9 +52,6 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 		errorReturn(w, "can't parse skipped lines", log, err)
 		return
 	}
-	if len(skipLines) > 0 {
-		nextLineToSkipIndex = 0
-	}
 
 	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
 	if err != nil {
@@ -91,6 +88,9 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 			if commit && *verifyBeforeCommit && len(errs) != 0 {
 				break
 			}
+			if len(skipLines) > 0 {
+				nextLineToSkipIndex = 0
+			}
 			numRows, modifiedCount = 0, 0
 			_, reader, err := m.newReader(fileName, r)
 			if err != nil {
@@ -108,6 +108,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 					continue
 				}
 				numRows++
+
 				if shouldSkipLine(skipLines, numRows, nextLineToSkipIndex) {
 					log.Warn("skipping line", zap.Error(err), zap.Int("line_number", numRows))
 					nextLineToSkipIndex++
@@ -117,7 +118,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 
 				id := importLine.ID()
 				if id == "" {
-					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "supporting only port editing"})
+					errs = append(errs, ErrorLine{Line: numRows, Error: "no id provided for row", Message: "supporting only port editing"})
 					continue
 				} else {
 					//edit existing  port
@@ -195,8 +196,8 @@ func (m *importer) validateLineForExistingPort(ctx context.Context, portID strin
 	if err != nil {
 		return nil, errors.New("error while calculating port data")
 	}
-
 	err = m.validatePort(ctx, *portData, *port)
+
 	if err != nil {
 		return nil, err
 	}

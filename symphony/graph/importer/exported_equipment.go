@@ -58,13 +58,10 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		errorReturn(w, "can't parse skipped lines", log, err)
 		return
 	}
-	if len(skipLines) > 0 {
-		nextLineToSkipIndex = 0
-	}
 
 	verifyBeforeCommit, err = getVerifyBeforeCommitParam(r)
 	if err != nil {
-		errorReturn(w, "can't parse skipped lines", log, err)
+		errorReturn(w, "can't parse verify_before_commit param", log, err)
 		return
 	}
 
@@ -107,6 +104,10 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 			if commit && pointer.GetBool(verifyBeforeCommit) && len(errs) != 0 {
 				break
 			}
+			if len(skipLines) > 0 {
+				nextLineToSkipIndex = 0
+			}
+
 			numRows, modifiedCount = 0, 0
 			_, reader, err := m.newReader(fileName, r)
 			if err != nil {

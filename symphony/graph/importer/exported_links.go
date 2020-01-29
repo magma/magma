@@ -57,9 +57,6 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 		errorReturn(w, "can't parse skipped lines", log, err)
 		return
 	}
-	if len(skipLines) > 0 {
-		nextLineToSkipIndex = 0
-	}
 
 	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
 	if err != nil {
@@ -91,12 +88,16 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 			if commit && *verifyBeforeCommit && len(errs) != 0 {
 				break
 			}
+			if len(skipLines) > 0 {
+				nextLineToSkipIndex = 0
+			}
 			numRows, modifiedCount = 0, 0
 			_, reader, err := m.newReader(fileName, r)
 			if err != nil {
 				errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
 				return
 			}
+
 			for {
 				untrimmedLine, err := reader.Read()
 				if err != nil {
@@ -107,11 +108,13 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					continue
 				}
 				numRows++
+
 				if shouldSkipLine(skipLines, numRows, nextLineToSkipIndex) {
 					log.Warn("skipping line", zap.Error(err), zap.Int("line_number", numRows))
 					nextLineToSkipIndex++
 					continue
 				}
+
 				ln := m.trimLine(untrimmedLine)
 				importLine := NewImportRecord(ln, importHeader)
 				portARecord, portBRecord, err := m.getTwoPortRecords(importLine)
@@ -121,6 +124,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					continue
 				}
 				id := importLine.ID()
+
 				if id == "" {
 					client := m.ClientFrom(ctx)
 					var linkPropertyInputs []*models.PropertyInput
@@ -241,6 +245,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("querying link ports: id %v", id)})
 						continue
 					}
+
 					for _, port := range ports {
 						definition := port.QueryDefinition().OnlyX(ctx)
 						portType, _ := definition.QueryEquipmentPortType().Only(ctx)

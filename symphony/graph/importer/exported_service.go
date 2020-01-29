@@ -36,6 +36,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 		errs                   Errors
 		modifiedCount, numRows int
 	)
+
 	nextLineToSkipIndex := -1
 	log.Debug("Exported Service - started")
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
@@ -43,18 +44,17 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 		http.Error(w, "cannot parse form", http.StatusInternalServerError)
 		return
 	}
+
 	err = r.ParseForm()
 	if err != nil {
 		errorReturn(w, "can't parse form", log, err)
 		return
 	}
+
 	skipLines, err := getLinesToSkip(r)
 	if err != nil {
 		errorReturn(w, "can't parse skipped lines", log, err)
 		return
-	}
-	if len(skipLines) > 0 {
-		nextLineToSkipIndex = 0
 	}
 
 	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
@@ -63,7 +63,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if *verifyBeforeCommit {
+	if pointer.GetBool(verifyBeforeCommit) {
 		commitRuns = []bool{false, true}
 	} else {
 		commitRuns = []bool{true}
@@ -92,8 +92,11 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 		}
 		for _, commit := range commitRuns {
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
-			if commit && *verifyBeforeCommit && len(errs) != 0 {
+			if commit && pointer.GetBool(verifyBeforeCommit) && len(errs) != 0 {
 				break
+			}
+			if len(skipLines) > 0 {
+				nextLineToSkipIndex = 0
 			}
 			numRows, modifiedCount = 0, 0
 			_, reader, err := m.newReader(fileName, r)
@@ -173,7 +176,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 								modifiedCount++
 								log.Info(fmt.Sprintf("(row #%d) creating service", numRows), zap.String("name", name))
 							} else {
-								errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("service %v already exists under location/position (id=%v)", service.Name, service.ID)})
+								errs = append(errs, ErrorLine{Line: numRows, Error: "service exists", Message: fmt.Sprintf("service %v already exists under location/position (id=%v)", service.Name, service.ID)})
 								continue
 							}
 						}

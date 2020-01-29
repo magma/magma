@@ -303,7 +303,7 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		return errors.Wrapf(err, "fetching equipment port definition")
 	}
 	if def.Name != portData.Name {
-		return errors.Wrapf(err, "wrong port type. should be %q, but %q", def.Name, portData.Name)
+		return errors.Errorf("wrong port type. should be %q, but %q", def.Name, portData.Name)
 	}
 	portType, err := def.QueryEquipmentPortType().Only(ctx)
 	if ent.MaskNotFound(err) != nil {
@@ -316,7 +316,7 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		tempPortType = portType.Name
 	}
 	if tempPortType != portData.TypeName {
-		return errors.Wrapf(err, "wrong port type. should be %q, but %q", tempPortType, portData.TypeName)
+		return errors.Errorf("wrong port type. should be %q, but %q", tempPortType, portData.TypeName)
 	}
 
 	equipment, err := port.QueryParent().Only(ctx)
@@ -324,14 +324,14 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		return errors.Wrapf(err, "fetching equipment for port")
 	}
 	if equipment.Name != portData.EquipmentName {
-		return errors.Wrapf(err, "wrong equipment. should be %q, but %q", equipment.Name, portData.EquipmentName)
+		return errors.Errorf("wrong equipment. should be %q, but %q", equipment.Name, portData.EquipmentName)
 	}
 	equipmentType, err := equipment.QueryType().Only(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "fetching equipment type for equipment")
 	}
 	if equipmentType.Name != portData.EquipmentTypeName {
-		return errors.Wrapf(err, "wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
+		return errors.Errorf("wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
 	}
 	return nil
 }
