@@ -54,9 +54,9 @@ static std::function<bool()> ensureConnected(const shared_ptr<Cli>& cli) {
   return [cli]() {
     try {
       cli->executeRead(ReadCommand::create("echo 123", true)).get();
-        return true;
+      return true;
     } catch (const exception& e) {
-        return false;
+      return false;
     }
   };
 }
@@ -76,7 +76,7 @@ TEST_F(CliTest, writeMultipleTimesAllExecute) {
   IoConfigurationBuilder ioConfigurationBuilder(deviceConfig, *cliEngine);
   const shared_ptr<Cli>& cli =
       ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
-  const function<bool()> &connectionTest = ensureConnected(cli);
+  const function<bool()>& connectionTest = ensureConnected(cli);
 
   EXPECT_BECOMES_TRUE(connectionTest());
 

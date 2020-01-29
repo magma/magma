@@ -89,7 +89,7 @@ SemiFuture<string> QueuedCli::executeWrite(const WriteCommand cmd) {
   Command command = cmd;
   if (!command.isMultiCommand()) {
     // Single line config command, execute with read
-    return executeRead(ReadCommand::create(cmd.raw(), true)); //skip cache
+    return executeRead(ReadCommand::create(cmd.raw(), true)); // skip cache
   }
 
   const vector<Command>& commands = command.splitMultiCommand();
@@ -107,7 +107,8 @@ SemiFuture<string> QueuedCli::executeWrite(const WriteCommand cmd) {
   }
 
   commmandsFutures.emplace_back(
-      executeRead(ReadCommand::create(commands.back().raw(), true)) //skip cache
+      executeRead(
+          ReadCommand::create(commands.back().raw(), true)) // skip cache
           .via(sharedSerialExecutorKeepAlive->get()));
 
   return reduce(

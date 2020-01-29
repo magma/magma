@@ -127,8 +127,9 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReconnectingCli.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliThreadWheelTimekeeper.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliTimekeeperWrapper.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CancelableWTCallback.h
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/LoggingCli.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/TreeCacheCli.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/TreeCache.cpp
   )
 
 target_link_libraries(devman_channel_cli
@@ -245,7 +246,9 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/PingChannelTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/SnmpChannelTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ReconnectingSshTest.cpp
-        )
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/TreeCacheCliTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/TreeCacheTest.cpp
+)
 
 target_link_libraries(devmantest
   devman
