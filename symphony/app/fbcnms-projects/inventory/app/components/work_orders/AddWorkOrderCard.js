@@ -145,7 +145,9 @@ const addWorkOrderCard__workOrderTypeQuery = graphql`
         rangeFromValue
         rangeToValue
         isEditable
+        isMandatory
         isInstanceProperty
+        isDeleted
       }
       checkListDefinitions {
         id
@@ -178,13 +180,11 @@ class AddWorkOrderCard extends React.Component<Props, State> {
         }}
         render={queryData => {
           const {workOrderType} = queryData;
-
           if (!workOrder && workOrderType) {
             this.setState({
               workOrder: this._creaetNewWorkOrder(workOrderType),
             });
           }
-
           if (!workOrder) {
             return (
               <div className={classes.root}>
@@ -331,28 +331,38 @@ class AddWorkOrderCard extends React.Component<Props, State> {
                                 />
                               </FormField>
                             </Grid>
-                            {workOrder.properties.map((property, index) => (
-                              <Grid
-                                key={property.id}
-                                item
-                                xs={12}
-                                sm={6}
-                                lg={4}
-                                xl={4}>
-                                <PropertyValueInput
-                                  required={false}
-                                  disabled={false}
-                                  label={property.propertyType.name}
-                                  className={classes.gridInput}
-                                  margin="dense"
-                                  inputType="Property"
-                                  property={property}
-                                  headlineVariant="form"
-                                  fullWidth={true}
-                                  onChange={this._propertyChangedHandler(index)}
-                                />
-                              </Grid>
-                            ))}
+                            {workOrder.properties
+                              .filter(
+                                property => !property.propertyType.isDeleted,
+                              )
+                              .map((property, index) => (
+                                <Grid
+                                  key={property.id}
+                                  item
+                                  xs={12}
+                                  sm={6}
+                                  lg={4}
+                                  xl={4}>
+                                  <PropertyValueInput
+                                    required={
+                                      !!property.propertyType.isMandatory
+                                    }
+                                    disabled={
+                                      !property.propertyType.isInstanceProperty
+                                    }
+                                    label={property.propertyType.name}
+                                    className={classes.gridInput}
+                                    margin="dense"
+                                    inputType="Property"
+                                    property={property}
+                                    headlineVariant="form"
+                                    fullWidth={true}
+                                    onChange={this._propertyChangedHandler(
+                                      index,
+                                    )}
+                                  />
+                                </Grid>
+                              ))}
                           </Grid>
                         </ExpandingPanel>
                         <ExpandingPanel
@@ -407,6 +417,7 @@ class AddWorkOrderCard extends React.Component<Props, State> {
 
   _creaetNewWorkOrder(workOrderType: WorkOrderType): WorkOrder {
     const initialProps = (workOrderType.propertyTypes || [])
+      .filter(propertyType => !propertyType.isDeleted)
       .map(propType => getInitialPropertyFromType(propType))
       .sort(sortPropertiesByIndex);
     const initialChecklist: CheckListTable_list = (

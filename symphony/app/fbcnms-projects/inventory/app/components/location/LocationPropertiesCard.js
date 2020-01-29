@@ -10,6 +10,7 @@
 
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {Equipment} from '../../common/Equipment';
+import type {LocationMoreActionsButton_location} from './__generated__/LocationMoreActionsButton_location.graphql';
 import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
@@ -39,11 +40,12 @@ type Props = {
   locationId: ?string,
   selectedWorkOrderId: ?string,
   onEquipmentSelected: Equipment => void,
-  onLocationSelected: (locationId: string) => void,
   onWorkOrderSelected: (workOrderId: string) => void,
   onEdit: () => void,
   onAddEquipment: () => void,
-  onLocationRemoved: () => void,
+  onLocationRemoved: (
+    removedLocation: LocationMoreActionsButton_location,
+  ) => void,
 } & WithStyles<typeof styles> &
   WithSnackbarProps;
 
@@ -123,6 +125,7 @@ const locationsPropertiesCardQuery = graphql`
         name
         latitude
         longitude
+        externalId
         locationType {
           id
           name
@@ -133,7 +136,7 @@ const locationsPropertiesCardQuery = graphql`
             ...DynamicPropertiesGrid_propertyTypes
           }
         }
-        ...LocationBreadcrumbsTitle_location
+        ...LocationBreadcrumbsTitle_locationDetails
         parentLocation {
           id
         }
@@ -153,11 +156,16 @@ const locationsPropertiesCardQuery = graphql`
         files {
           id
         }
+        hyperlinks {
+          id
+        }
         surveys {
           id
         }
         ...LocationSiteSurveyTab_location
         ...LocationDocumentsCard_location
+        ...LocationFloorPlansTab_location
+        ...LocationMoreActionsButton_location
       }
     }
   }
@@ -173,13 +181,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
   context: AppContextType;
 
   render() {
-    const {
-      classes,
-      locationId,
-      onLocationRemoved,
-      onLocationSelected,
-      onAddEquipment,
-    } = this.props;
+    const {classes, locationId, onLocationRemoved, onAddEquipment} = this.props;
     if (!locationId) {
       return null;
     }
@@ -213,8 +215,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                 <div className={classes.locationNameHeader}>
                   <div className={classes.breadcrumbs}>
                     <LocationBreadcrumbsTitle
-                      location={location}
-                      onLocationClicked={onLocationSelected}
+                      locationDetails={location}
                       hideTypes={false}
                     />
                   </div>
@@ -308,7 +309,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                   <LocationCoverageMapTab location={location} />
                 ) : null}
                 {this.state.selectedTab === 'floor_plans' && (
-                  <LocationFloorPlansTab locationId={location.id} />
+                  <LocationFloorPlansTab location={location} />
                 )}
               </div>
             </div>

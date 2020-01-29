@@ -30,6 +30,7 @@ export type PropertyType = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 
 export const getPropertyDefaultValue = (propertyType: PropertyType) => {
@@ -64,6 +65,7 @@ export const getPropertyDefaultValue = (propertyType: PropertyType) => {
           : '';
       case 'equipment':
       case 'location':
+      case 'service':
         return '';
     }
   }

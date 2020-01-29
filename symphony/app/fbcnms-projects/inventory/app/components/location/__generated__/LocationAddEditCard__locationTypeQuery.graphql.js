@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 96cdef26b2ed4440937f5a6ba9c8e3eb
+ * @relayHash 74c4d52d9b64b9cce42be5dd0aab926c
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type LocationAddEditCard__locationTypeQueryVariables = {|
   locationTypeId: string
 |};

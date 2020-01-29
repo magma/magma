@@ -20,8 +20,11 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import EquipmentBreadcrumbs from '../equipment/EquipmentBreadcrumbs';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
+import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {AutoSizer, Column, Table} from 'react-virtualized';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {capitalize} from '@fbcnms/util/strings';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {lowerCase} from 'lodash';
@@ -67,14 +70,30 @@ const styles = theme => ({
     fontSize: '13px',
     lineHeight: '16px',
   },
+  checked: {
+    backgroundColor: symphony.palette.B50,
+  },
+  row: {
+    '&:hover': {
+      backgroundColor: symphony.palette.background,
+    },
+    '&:focus': {
+      outline: 'none',
+    },
+  },
+  clickableRow: {
+    cursor: 'pointer',
+  },
 });
 
 type Props = WithAlert &
   WithStyles<typeof styles> &
   ContextRouter & {
     equipment: PowerSearchEquipmentResultsTable_equipment,
-    onEquipmentSelected: (equipment: Equipment) => void,
-    onWorkOrderSelected: (workOrderId: string) => void,
+    selectedEquipment?: ?Equipment,
+    onEquipmentSelected?: (equipment: Equipment) => void,
+    onWorkOrderSelected?: (workOrderId: string) => void,
+    onRowSelected?: (equipment: Equipment) => void,
   };
 
 class PowerSearchEquipmentResultsTable extends React.Component<Props> {
@@ -91,58 +110,79 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
   };
 
   _cellRenderer = ({dataKey, rowData, cellData}) => {
-    const {classes, history} = this.props;
+    const {
+      classes,
+      history,
+      onEquipmentSelected,
+      onWorkOrderSelected,
+      onRowSelected,
+    } = this.props;
     let content = null;
 
     if (dataKey === 'name') {
-      content = (
-        <Button
-          variant="text"
-          onClick={() => this.props.onEquipmentSelected(rowData)}>
-          {cellData}
-        </Button>
-      );
+      if (onEquipmentSelected) {
+        content = (
+          <Button variant="text" onClick={() => onEquipmentSelected(rowData)}>
+            {cellData}
+          </Button>
+        );
+      } else {
+        content = (
+          <Text color="primary" variant="body2">
+            {cellData}
+          </Text>
+        );
+      }
     } else if (dataKey === 'status' && rowData.futureState) {
-      content = (
-        <Button
-          variant="text"
-          onClick={() => this.props.onWorkOrderSelected(rowData.workOrder.id)}>
-          {cellData}
-        </Button>
-      );
+      if (onWorkOrderSelected) {
+        content = (
+          <Button
+            variant="text"
+            onClick={() => onWorkOrderSelected(rowData.workOrder.id)}>
+            {cellData}
+          </Button>
+        );
+      }
     } else if (dataKey === 'location') {
       content = (
         <EquipmentBreadcrumbs
           equipment={rowData}
           showSelfEquipment={false}
-          onParentLocationClicked={locationId =>
-            history.push(
-              `inventory/` + (locationId ? `?location=${locationId}` : ''),
-            )
+          onParentLocationClicked={
+            onRowSelected
+              ? null
+              : locationId =>
+                  history.push(InventoryAPIUrls.location(locationId))
           }
-          onEquipmentClicked={equipmentId =>
-            history.push(
-              `inventory/` + (equipmentId ? `?equipment=${equipmentId}` : ''),
-            )
+          onEquipmentClicked={
+            onRowSelected
+              ? null
+              : equipmentId =>
+                  history.push(InventoryAPIUrls.equipment(equipmentId))
           }
           size="small"
         />
       );
     } else {
-      content = <Text className={classes.cellText}>{cellData}</Text>;
+      content = (
+        <Text className={classes.cellText} variant="body2">
+          {cellData}
+        </Text>
+      );
     }
 
     return <div className={classes.cell}>{content}</div>;
   };
 
   render() {
-    const {classes, equipment} = this.props;
+    const {classes, equipment, onRowSelected, selectedEquipment} = this.props;
     if (equipment.length === 0) {
       return null;
     }
     const equipmetStatusEnabled = this.context.isFeatureEnabled(
       'planned_equipment',
     );
+    const externalIDEnabled = this.context.isFeatureEnabled('external_id');
 
     return equipment.length > 0 ? (
       <AutoSizer>
@@ -156,7 +196,20 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
             rowCount={equipment.length}
             rowGetter={({index}) => equipment[index]}
             gridClassName={classes.table}
-            rowClassName={({index}) => (index === -1 ? classes.header : '')}>
+            rowClassName={({index}) =>
+              classNames({
+                [classes.header]: index === -1,
+                [classes.row]: index !== -1,
+                [classes.clickableRow]: onRowSelected != null,
+                [classes.checked]:
+                  selectedEquipment &&
+                  index !== -1 &&
+                  equipment[index].id === selectedEquipment.id,
+              })
+            }
+            onRowClick={({_event, _index, rowData}) =>
+              onRowSelected && onRowSelected(rowData)
+            }>
             <Column
               label="Name"
               dataKey="name"
@@ -165,6 +218,17 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
               headerRenderer={this._headerRenderer}
               cellRenderer={this._cellRenderer}
             />
+            {externalIDEnabled && (
+              <Column
+                label="External ID"
+                dataKey="id"
+                width={150}
+                flexGrow={1}
+                headerRenderer={this._headerRenderer}
+                cellRenderer={this._cellRenderer}
+                cellDataGetter={({rowData}) => rowData.externalId}
+              />
+            )}
             <Column
               label="Location"
               dataKey="location"
@@ -216,6 +280,7 @@ export default withRouter(
             id
             name
             futureState
+            externalId
             equipmentType {
               id
               name

@@ -8,12 +8,12 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/tenant"
 )
 
@@ -173,70 +173,94 @@ func (tc *TenantCreate) SaveX(ctx context.Context) *Tenant {
 
 func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 	var (
-		builder = sql.Dialect(tc.driver.Dialect())
-		t       = &Tenant{config: tc.config}
+		t     = &Tenant{config: tc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: tenant.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: tenant.FieldID,
+			},
+		}
 	)
-	tx, err := tc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(tenant.Table).Default()
 	if value := tc.created_at; value != nil {
-		insert.Set(tenant.FieldCreatedAt, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: tenant.FieldCreatedAt,
+		})
 		t.CreatedAt = *value
 	}
 	if value := tc.updated_at; value != nil {
-		insert.Set(tenant.FieldUpdatedAt, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: tenant.FieldUpdatedAt,
+		})
 		t.UpdatedAt = *value
 	}
 	if value := tc.name; value != nil {
-		insert.Set(tenant.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldName,
+		})
 		t.Name = *value
 	}
 	if value := tc.domains; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		insert.Set(tenant.FieldDomains, buf)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: tenant.FieldDomains,
+		})
 		t.Domains = *value
 	}
 	if value := tc.networks; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		insert.Set(tenant.FieldNetworks, buf)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: tenant.FieldNetworks,
+		})
 		t.Networks = *value
 	}
 	if value := tc.tabs; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		insert.Set(tenant.FieldTabs, buf)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: tenant.FieldTabs,
+		})
 		t.Tabs = *value
 	}
 	if value := tc.SSOCert; value != nil {
-		insert.Set(tenant.FieldSSOCert, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldSSOCert,
+		})
 		t.SSOCert = *value
 	}
 	if value := tc.SSOEntryPoint; value != nil {
-		insert.Set(tenant.FieldSSOEntryPoint, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldSSOEntryPoint,
+		})
 		t.SSOEntryPoint = *value
 	}
 	if value := tc.SSOIssuer; value != nil {
-		insert.Set(tenant.FieldSSOIssuer, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldSSOIssuer,
+		})
 		t.SSOIssuer = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(tenant.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	t.ID = int(id)
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	t.ID = int(id)
 	return t, nil
 }

@@ -174,6 +174,19 @@ reg2     | Local      | Policy number        | Enforcement app
 reg3     | Local      | App ID               | DPI app
 reg4     | Local      | Policy version number| Enforcement app                     
 
+### Resilience
+
+Pipelined service is restart resilient and can seamlessly recover from service restarts.
+This is achieved by:
+  1) Querying all flows on controller startup. This is done through a separate startup flow controller that will handle querying all initial stats.
+  2) Comparing the flows received from step 1, with the flows obtained from sessiond setup() call
+  3) Activating new flows that are not present
+  4) Deactivate flows that are not in the sessiond call but are active
+This works because ovs secure fail mode doesn't remove flows whenever the controller disconnects.
+
+Note:
+Currently we reinsert some flows instead of doing the diff logic on them(f.e. enforcement redirection flows as they need async dhcp request resolution, other tables that don't hold and session data(inout, ue_mac, etc.) but this will be added later).
+
 ## Testing
 
 ### Scripts

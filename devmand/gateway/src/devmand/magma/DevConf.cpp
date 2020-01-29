@@ -10,9 +10,9 @@
 
 #include <devmand/Application.h>
 #include <devmand/Config.h>
-#include <devmand/FileUtils.h>
-#include <devmand/StringUtils.h>
 #include <devmand/magma/DevConf.h>
+#include <devmand/utils/FileUtils.h>
+#include <devmand/utils/StringUtils.h>
 
 namespace devmand {
 namespace magma {
@@ -69,9 +69,10 @@ bool DevConf::isDeviceConfFileModifyEvent(FileWatchEvent watchEvent) const {
 }
 
 void DevConf::handleFileWatchEvent(FileWatchEvent watchEvent) {
-  LOG(INFO) << "Handling file watch event "
-            << static_cast<int>(watchEvent.event) << " on '"
-            << watchEvent.filename << "'";
+  // TODO make this debug level
+  // LOG(INFO) << "Handling file watch event "
+  //          << static_cast<int>(watchEvent.event) << " on '"
+  //          << watchEvent.filename << "'";
 
   if (isDeviceConfDirModifyEvent(watchEvent) or
       isDeviceConfFileModifyEvent(watchEvent)) {
@@ -184,14 +185,22 @@ static void populateOtherChannelConfig(
     cartography::DeviceConfig& deviceConfig,
     const folly::dynamic& device) {
   auto* channel = device.get_ptr("otherChannel");
+  bool isCli = false;
   if (channel != nullptr) {
     if (channel->isObject()) {
       cartography::ChannelConfig channelConfig;
       for (auto&& kv : (*channel)["channelProps"].items()) {
         channelConfig.kvPairs.emplace(
             kv.first.asString(), kv.second.asString());
+        if (kv.first.asString() == "cname") {
+          isCli = kv.second.asString() == "cli";
+        }
       }
-      deviceConfig.channelConfigs.emplace("other", channelConfig);
+      if (isCli) {
+        deviceConfig.channelConfigs.emplace("cli", channelConfig);
+      } else {
+        deviceConfig.channelConfigs.emplace("other", channelConfig);
+      }
     }
   }
 }
@@ -210,9 +219,9 @@ cartography::DeviceConfigs DevConf::parseMconfigDeviceConfigs(
         deviceConfig.platform = device.second["platform"].asString();
         deviceConfig.ip = device.second["host"].asString();
         if (device.second.get_ptr("readonly") != nullptr) {
+          // TODO make this term configurable
           deviceConfig.readonly = device.second["readonly"].asBool();
         }
-
         if (device.second.get_ptr("deviceConfig") != nullptr) {
           deviceConfig.yangConfig = device.second["deviceConfig"].asString();
         }

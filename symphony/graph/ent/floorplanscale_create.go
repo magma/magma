@@ -12,7 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
 )
 
@@ -125,50 +126,78 @@ func (fpsc *FloorPlanScaleCreate) SaveX(ctx context.Context) *FloorPlanScale {
 
 func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale, error) {
 	var (
-		builder = sql.Dialect(fpsc.driver.Dialect())
-		fps     = &FloorPlanScale{config: fpsc.config}
+		fps   = &FloorPlanScale{config: fpsc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: floorplanscale.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplanscale.FieldID,
+			},
+		}
 	)
-	tx, err := fpsc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(floorplanscale.Table).Default()
 	if value := fpsc.create_time; value != nil {
-		insert.Set(floorplanscale.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: floorplanscale.FieldCreateTime,
+		})
 		fps.CreateTime = *value
 	}
 	if value := fpsc.update_time; value != nil {
-		insert.Set(floorplanscale.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: floorplanscale.FieldUpdateTime,
+		})
 		fps.UpdateTime = *value
 	}
 	if value := fpsc.reference_point1_x; value != nil {
-		insert.Set(floorplanscale.FieldReferencePoint1X, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1X,
+		})
 		fps.ReferencePoint1X = *value
 	}
 	if value := fpsc.reference_point1_y; value != nil {
-		insert.Set(floorplanscale.FieldReferencePoint1Y, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1Y,
+		})
 		fps.ReferencePoint1Y = *value
 	}
 	if value := fpsc.reference_point2_x; value != nil {
-		insert.Set(floorplanscale.FieldReferencePoint2X, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2X,
+		})
 		fps.ReferencePoint2X = *value
 	}
 	if value := fpsc.reference_point2_y; value != nil {
-		insert.Set(floorplanscale.FieldReferencePoint2Y, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2Y,
+		})
 		fps.ReferencePoint2Y = *value
 	}
 	if value := fpsc.scale_in_meters; value != nil {
-		insert.Set(floorplanscale.FieldScaleInMeters, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanscale.FieldScaleInMeters,
+		})
 		fps.ScaleInMeters = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(floorplanscale.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	fps.ID = strconv.FormatInt(id, 10)
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, fpsc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	fps.ID = strconv.FormatInt(id, 10)
 	return fps, nil
 }

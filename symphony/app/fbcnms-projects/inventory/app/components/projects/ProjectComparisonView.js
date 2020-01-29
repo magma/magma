@@ -11,11 +11,8 @@ import useRouter from '@fbcnms/ui/hooks/useRouter';
 
 import AddProjectCard from './AddProjectCard';
 import AddProjectDialog from './AddProjectDialog';
-import Button from '@fbcnms/ui/components/design-system/Button';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardFooter from '@fbcnms/ui/components/CardFooter';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
+import InventoryViewHeader, {DisplayOptions} from '../InventoryViewHeader';
 import ProjectCard from './ProjectCard';
 import ProjectComparisonViewQueryRenderer from './ProjectComparisonViewQueryRenderer';
 import React, {useMemo, useState} from 'react';
@@ -23,48 +20,30 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
-  cardRoot: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    paddingLeft: '0px',
-    paddingRight: '0px',
-  },
-  cardContent: {
-    paddingLeft: '0px',
-    paddingRight: '0px',
-    paddingTop: '0px',
-    flexGrow: 1,
-    width: '100%',
-  },
+const useStyles = makeStyles({
   root: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: theme.palette.common.white,
-    flexGrow: 1,
     height: '100%',
   },
   searchResults: {
     flexGrow: 1,
-    display: 'flex',
-    flexDirection: 'column',
+    paddingTop: '8px',
   },
-  bar: {
-    display: 'flex',
-    flexDirection: 'row',
-    boxShadow: '0px 2px 2px 0px rgba(0, 0, 0, 0.1)',
+  searchResultsTable: {
+    paddingLeft: '24px',
+    paddingRight: '24px',
   },
-  searchBar: {
-    flexGrow: 1,
-  },
-}));
+});
 
 const ProjectComparisonView = () => {
   const classes = useStyles();
   const [dialogKey, setDialogKey] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const {match, history, location} = useRouter();
+  const [resultsDisplayMode, setResultsDisplayMode] = useState(
+    DisplayOptions.table,
+  );
 
   const selectedProjectTypeId = useMemo(
     () => extractEntityIdFromUrl('projectType', location.search),
@@ -110,41 +89,51 @@ const ProjectComparisonView = () => {
   }
   return (
     <ErrorBoundary>
-      <Card className={classes.cardRoot}>
-        <CardContent className={classes.cardContent}>
-          <div className={classes.root}>
-            <div className={classes.searchResults}>
-              <ProjectComparisonViewQueryRenderer
-                limit={50}
-                filters={[]}
-                displayMode={'table'}
-                onProjectSelected={selectedProjectCardId =>
-                  navigateToProject(selectedProjectCardId)
-                }
-              />
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter alignItems="left">
-          <Button
-            onClick={() => {
-              setDialogOpen(true);
-              setDialogKey(dialogKey + 1);
-              ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
-            }}>
-            New Project
-          </Button>
-          <AddProjectDialog
-            key={`new_project_${dialogKey}`}
-            open={dialogOpen}
-            onClose={() => setDialogOpen(false)}
-            onProjectTypeSelected={typeId => {
-              navigateToAddProject(typeId);
-              setDialogOpen(false);
-            }}
+      <div className={classes.root}>
+        <InventoryViewHeader
+          title="Projects"
+          onViewToggleClicked={setResultsDisplayMode}
+          actionButtons={[
+            {
+              title: 'Add Project',
+              action: () => {
+                setDialogOpen(true);
+                setDialogKey(dialogKey + 1);
+                ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
+              },
+            },
+          ]}
+        />
+        <div className={classes.searchResults}>
+          <ProjectComparisonViewQueryRenderer
+            className={
+              resultsDisplayMode === DisplayOptions.table
+                ? classes.searchResultsTable
+                : ''
+            }
+            limit={50}
+            filters={[]}
+            onProjectSelected={selectedProjectCardId =>
+              navigateToProject(selectedProjectCardId)
+            }
+            displayMode={
+              resultsDisplayMode === DisplayOptions.map
+                ? DisplayOptions.map
+                : DisplayOptions.table
+            }
           />
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
+
+      <AddProjectDialog
+        key={`new_project_${dialogKey}`}
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onProjectTypeSelected={typeId => {
+          navigateToAddProject(typeId);
+          setDialogOpen(false);
+        }}
+      />
     </ErrorBoundary>
   );
 };

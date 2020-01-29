@@ -16,7 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_link_port$ref: FragmentReference;
 declare export opaque type EquipmentPortsTable_link_port$fragmentType: EquipmentPortsTable_link_port$ref;
@@ -26,7 +26,6 @@ export type EquipmentPortsTable_link_port = {|
     +id: string,
     +name: string,
     +visibleLabel: ?string,
-    +type: string,
     +portType: ?{|
       +linkPropertyTypes: $ReadOnlyArray<?{|
         +id: string,
@@ -58,7 +57,6 @@ export type EquipmentPortsTable_link_port = {|
         +id: string,
         +name: string,
         +visibleLabel: ?string,
-        +type: string,
         +bandwidth: ?string,
         +portType: ?{|
           +id: string,
@@ -74,6 +72,7 @@ export type EquipmentPortsTable_link_port$data = EquipmentPortsTable_link_port;
 export type EquipmentPortsTable_link_port$key = {
   +$data?: EquipmentPortsTable_link_port$data,
   +$fragmentRefs: EquipmentPortsTable_link_port$ref,
+  ...
 };
 */
 
@@ -99,13 +98,6 @@ v2 = {
   "name": "visibleLabel",
   "args": null,
   "storageKey": null
-},
-v3 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "type",
-  "args": null,
-  "storageKey": null
 };
 return {
   "kind": "Fragment",
@@ -127,7 +119,6 @@ return {
         (v0/*: any*/),
         (v1/*: any*/),
         (v2/*: any*/),
-        (v3/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -148,7 +139,13 @@ return {
               "selections": [
                 (v0/*: any*/),
                 (v1/*: any*/),
-                (v3/*: any*/),
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "type",
+                  "args": null,
+                  "storageKey": null
+                },
                 {
                   "kind": "ScalarField",
                   "alias": null,
@@ -280,7 +277,6 @@ return {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v2/*: any*/),
-                (v3/*: any*/),
                 {
                   "kind": "ScalarField",
                   "alias": null,
@@ -316,5 +312,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '8158f137415f54b03b4c96ca42c250d8';
+(node/*: any*/).hash = '363de704eb7f79b8cf8c598cc8bcfb3d';
 module.exports = node;

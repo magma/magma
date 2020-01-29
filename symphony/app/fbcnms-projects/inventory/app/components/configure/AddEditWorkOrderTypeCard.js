@@ -176,6 +176,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
           </ExpandingPanel>
           <ExpandingPanel title="Properties">
             <PropertyTypeTable
+              supportDelete={true}
               propertyTypes={propertyTypes}
               onPropertiesChanged={this._propertyChangedHandler}
             />
@@ -398,6 +399,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
     const editingWorkOrderType = this.props.editingWorkOrderType;
     const propertyTypes = (editingWorkOrderType?.propertyTypes ?? [])
       .filter(Boolean)
+      .filter(propertyType => !propertyType.isDeleted)
       .map(p => ({
         id: p.id,
         name: p.name,
@@ -412,6 +414,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
         isEditable: p.isEditable,
         isMandatory: p.isMandatory,
         isInstanceProperty: p.isInstanceProperty,
+        isDeleted: p.isDeleted,
       }));
     // eslint-disable-next-line flowtype/no-weak-types
     const checkListDefinitions: Array<any> = (
@@ -428,27 +431,31 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       }));
 
     return {
-      id: editingWorkOrderType?.id ?? 'WorkOrderType@tmp0',
+      id: editingWorkOrderType?.id ?? 'WorkOrderType@tmp-0',
       name: editingWorkOrderType?.name ?? '',
       description: editingWorkOrderType?.description,
       numberOfWorkOrders: editingWorkOrderType?.numberOfWorkOrders ?? 0,
-      propertyTypes: propertyTypes || [
-        {
-          id: 'PropertyType@tmp',
-          name: '',
-          index: editingWorkOrderType?.propertyTypes?.length ?? 0,
-          type: 'string',
-          booleanValue: false,
-          stringValue: null,
-          intValue: null,
-          floatValue: null,
-          latitudeValue: null,
-          longitudeValue: null,
-          isEditable: true,
-          isMandatory: false,
-          isInstanceProperty: true,
-        },
-      ],
+      propertyTypes:
+        propertyTypes.length > 0
+          ? propertyTypes
+          : [
+              {
+                id: 'PropertyType@tmp',
+                name: '',
+                index: editingWorkOrderType?.propertyTypes?.length ?? 0,
+                type: 'string',
+                booleanValue: false,
+                stringValue: null,
+                intValue: null,
+                floatValue: null,
+                latitudeValue: null,
+                longitudeValue: null,
+                isEditable: true,
+                isMandatory: false,
+                isInstanceProperty: true,
+                isDeleted: false,
+              },
+            ],
       checkListDefinitions: checkListDefinitions,
     };
   }
@@ -480,6 +487,7 @@ export default withStyles(styles)(
               isEditable
               isMandatory
               isInstanceProperty
+              isDeleted
             }
             checkListDefinitions {
               id

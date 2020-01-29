@@ -19,13 +19,6 @@ float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 
-const std::set<uint32_t> SessionCredit::transient_result_codes_ = {
-  DIAMETER_CREDIT_CONTROL_NOT_APPLICABLE,
-  DIAMETER_CREDIT_LIMIT_REACHED,
-  DIAMETER_NO_AVAILABLE_POLICY_COUNTERS,
-  DIAMETER_SERVICE_TEMPORARILY_NOT_AUTHORIZED,
-};
-
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state):
   credit_type_(credit_type),
   reporting_(false),
@@ -85,7 +78,7 @@ void SessionCredit::reset_reporting_credit()
 
 void SessionCredit::mark_failure(uint32_t code)
 {
-  if (transient_result_codes_.find(code) != transient_result_codes_.end()) {
+  if (DiameterCodeHandler::is_transient_failure(code)) {
     buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
     buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
   }

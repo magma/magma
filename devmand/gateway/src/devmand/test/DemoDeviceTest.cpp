@@ -8,7 +8,7 @@
 #include <folly/json.h>
 #include <gtest/gtest.h>
 
-#include <devmand/devices/DemoDevice.h>
+#include <devmand/devices/demo/Device.h>
 
 namespace devmand {
 namespace test {
@@ -24,7 +24,7 @@ class DemoDeviceTest : public ::testing::Test {
 };
 
 TEST_F(DemoDeviceTest, jsonSample) {
-  folly::dynamic data = devices::DemoDevice::getDemoState();
+  folly::dynamic data = devices::demo::Device::getDemoDatastore();
   std::cerr << folly::toJson(data) << std::endl;
 }
 

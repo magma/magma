@@ -38,13 +38,18 @@ const (
 	SurveyTemplateQuestionsColumn = "category_id"
 )
 
-// Columns holds all SQL columns are surveytemplatecategory fields.
+// Columns holds all SQL columns for surveytemplatecategory fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldCategoryTitle,
 	FieldCategoryDescription,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the SurveyTemplateCategory type.
+var ForeignKeys = []string{
+	"location_type_survey_template_category_id",
 }
 
 var (

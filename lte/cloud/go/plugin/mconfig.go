@@ -121,9 +121,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 			SubProfiles:  getSubProfiles(nwEpc),
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
 		},
-		"policydb": &mconfig.PolicyDB{
-			LogLevel: protos.LogLevel_INFO,
-		},
+		"policydb": getPolicydbMconfig(graph),
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
@@ -323,4 +321,37 @@ func getSubProfiles(epc *models2.NetworkEpcConfigs) map[string]*mconfig.Subscrib
 		}
 	}
 	return ret
+}
+
+func getPolicydbMconfig(graph configurator.EntityGraph) *mconfig.PolicyDB {
+	ratingGroups := getRatingGroups(graph)
+	infiniteUnmetered := []uint32{}
+	infiniteMetered := []uint32{}
+
+	for _, ratingGroup := range ratingGroups {
+		id := uint32(ratingGroup.ID)
+		switch limitType := *ratingGroup.LimitType; limitType {
+		case "INFINITE_UNMETERED":
+			infiniteUnmetered = append(infiniteUnmetered, id)
+		case "INFINITE_METERED":
+			infiniteMetered = append(infiniteMetered, id)
+		}
+	}
+
+	return &mconfig.PolicyDB{
+		LogLevel:                      protos.LogLevel_INFO,
+		InfiniteMeteredChargingKeys:   infiniteMetered,
+		InfiniteUnmeteredChargingKeys: infiniteUnmetered,
+	}
+}
+
+func getRatingGroups(graph configurator.EntityGraph) map[uint32]*models2.RatingGroup {
+	ratingGroupEnts := graph.GetEntitiesOfType(lte.RatingGroupEntityType)
+	ratingGroups := map[uint32]*models2.RatingGroup{}
+	for _, ent := range ratingGroupEnts {
+		ratingGroup := (ent.Config).(*models2.RatingGroup)
+		id := uint32(ratingGroup.ID)
+		ratingGroups[id] = ratingGroup
+	}
+	return ratingGroups
 }

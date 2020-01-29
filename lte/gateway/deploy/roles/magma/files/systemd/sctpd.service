@@ -1,0 +1,31 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+[Unit]
+Description=Magma sctpd service
+PartOf=magma@mme.service
+Before=magma@mme.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+ExecStartPre=-/bin/cp -f /usr/local/share/sctpd/version /var/run/sctpd.version
+ExecStart=/usr/local/sbin/sctpd
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py sctpd
+ExecStopPost=-/bin/rm -f /var/run/sctpd.version
+MemoryAccounting=yes
+MemoryLimit=512M
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=sctpd
+User=root
+Restart=always
+RestartSec=5
+LimitCORE=infinity
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

@@ -16,6 +16,7 @@ shopt -s extglob
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
 VERSION=1.0.2 # magma version number
+SCTPD_MIN_VERSION=1.0.2 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -78,6 +79,7 @@ BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
 ARCH=amd64
 PKGFMT=deb
 PKGNAME=magma
+SCTPD_PKGNAME=magma-sctpd
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
@@ -117,6 +119,7 @@ OAI_DEPS=(
     "oai-nettle >= 1.0.1"
     "prometheus-cpp-dev >= 1.0.2"
     "liblfds710"
+    "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     )
 
 # OVS runtime dependencies
@@ -234,7 +237,7 @@ LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
 
 # now the binaries are built, we can package up everything else and build the
 # magma package.
-PKGFILE=${PKGNAME}-${FULL_VERSION}.${PKGFMT}
+PKGFILE=${PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 BUILD_PATH=${OUTPUT_DIR}/${PKGFILE}
 
 cd $PWD
@@ -245,6 +248,34 @@ fi
 
 SERVICE_DIR="/etc/systemd/system/"
 ANSIBLE_FILES="${MAGMA_ROOT}/lte/gateway/deploy/roles/magma/files"
+
+SCTPD_VERSION_FILE=$(mktemp)
+SCTPD_MIN_VERSION_FILE=$(mktemp)
+
+# files to be removed should be safely named (no special chars from mktemp)
+# use current value (see https://github.com/koalaman/shellcheck/wiki/SC2064)
+# shellcheck disable=SC2064
+trap "rm -f '${SCTPD_VERSION_FILE}' '${SCTPD_MIN_VERSION_FILE}'" EXIT
+
+echo "${FULL_VERSION}" > "${SCTPD_VERSION_FILE}"
+echo "${SCTPD_MIN_VERSION}" > "${SCTPD_MIN_VERSION_FILE}"
+
+BUILDCMD="fpm \
+-s dir \
+-t ${PKGFMT} \
+-a ${ARCH} \
+-n ${SCTPD_PKGNAME} \
+-v ${FULL_VERSION} \
+--provides ${SCTPD_PKGNAME} \
+--replaces ${SCTPD_PKGNAME} \
+--package ${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT} \
+--description 'Magma SCTPD' \
+--exclude '*/.ignoreme' \
+${SCTPD_BUILD}/sctpd=/usr/local/sbin/ \
+${SCTPD_VERSION_FILE}=/usr/local/share/sctpd/version \
+$(glob_files "${SERVICE_DIR}/sctpd.service" /etc/systemd/system/sctpd.service)"
+
+eval "$BUILDCMD"
 
 BUILDCMD="fpm \
 -s dir \
@@ -263,13 +294,12 @@ ${ORC8R_PY_DEPS} \
 ${LTE_PY_DEPS} \
 ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
-${SCTPD_BUILD}/sctpd=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
+${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
 $(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
 $(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
 $(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
 $(glob_files "${SERVICE_DIR}/magma@mme.service" /etc/systemd/system/magma@mme.service) \
-$(glob_files "${SERVICE_DIR}/magma@sctpd.service" /etc/systemd/system/magma@sctpd.service) \
 $(glob_files "${SERVICE_DIR}/magma@sessiond.service" /etc/systemd/system/magma@sessiond.service) \
 $(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
 $(glob_files "${SERVICE_DIR}/magma@pipelined.service" /etc/systemd/system/magma@pipelined.service) \
@@ -292,10 +322,11 @@ ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
+${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/)"
 
-eval $BUILDCMD
+eval "$BUILDCMD"

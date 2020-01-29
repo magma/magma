@@ -42,7 +42,6 @@ type EquipmentPortDefinition struct {
 func (EquipmentPortDefinition) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
-		field.String("type"),
 		field.Int("index").
 			Optional(),
 		field.String("bandwidth").
@@ -83,6 +82,8 @@ func (EquipmentPort) Edges() []ent.Edge {
 		edge.To("link", Link.Type).
 			Unique(),
 		edge.To("properties", Property.Type),
+		edge.From("endpoints", ServiceEndpoint.Type).
+			Ref("port"),
 	}
 }
 
@@ -194,6 +195,8 @@ func (Equipment) Fields() []ent.Field {
 			Optional(),
 		field.String("device_id").
 			Optional(),
+		field.String("external_id").
+			Optional(),
 	}
 }
 
@@ -214,8 +217,7 @@ func (Equipment) Edges() []ent.Edge {
 		edge.To("work_order", WorkOrder.Type).
 			Unique(),
 		edge.To("properties", Property.Type),
-		edge.From("service", Service.Type).
-			Ref("termination_points"),
 		edge.To("files", File.Type),
+		edge.To("hyperlinks", Hyperlink.Type),
 	}
 }

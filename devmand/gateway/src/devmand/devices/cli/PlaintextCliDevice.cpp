@@ -14,7 +14,7 @@
 #include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
 #include <devmand/channels/cli/engine/Engine.h>
-#include <devmand/devices/State.h>
+#include <devmand/devices/Datastore.h>
 #include <devmand/devices/cli/PlaintextCliDevice.h>
 #include <folly/executors/IOThreadPoolExecutor.h>
 
@@ -66,13 +66,14 @@ PlaintextCliDevice::PlaintextCliDevice(
           engine.getExecutor(Engine::executorRequestType::plaintextCliDevice)) {
 }
 
-std::shared_ptr<State> PlaintextCliDevice::getState() {
+std::shared_ptr<Datastore> PlaintextCliDevice::getOperationalDatastore() {
   MLOG(MINFO) << "[" << id << "] "
               << "Retrieving state";
 
   // Reset cache
   cmdCache->wlock()->clear();
-  auto state = State::make(*reinterpret_cast<MetricSink*>(&app), getId());
+
+  auto state = Datastore::make(*reinterpret_cast<MetricSink*>(&app), getId());
 
   state->addRequest(
       channel->executeRead(stateCommand)
@@ -83,6 +84,8 @@ std::shared_ptr<State> PlaintextCliDevice::getState() {
                 [&v, &cmd](auto& lockedState) { lockedState[cmd.raw()] = v; });
           })
           .thenError(
+              // TODO unify with ReconnectingCli
+              // (DisconnectedException+CommandExecutionException)
               folly::tag_t<DisconnectedException>{},
               [state,
                id = this->id](DisconnectedException const& e) -> Future<Unit> {

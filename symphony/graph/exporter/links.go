@@ -10,12 +10,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/facebookincubator/symphony/cloud/ctxgroup"
-
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/pkg/ctxgroup"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -39,8 +38,11 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	var (
 		err             error
 		filterInput     []*models.LinkFilterInput
-		portADataHeader = [...]string{bom + "Link ID", "Port A ID", "Port A Name", "Port A Type", "Equipment A ID", "Equipment A Name", "Equipment A Type"}
-		portBDataHeader = [...]string{"Port B ID", "Port B Name", "Port B Type", "Equipment B ID", "Equipment B Name", "Equipment B Type"}
+		portADataHeader = [...]string{bom + "Link ID", "Port A Name", "Equipment A Name", "Equipment A Type"}
+		portBDataHeader = [...]string{"Port B Name", "Equipment B Name", "Equipment B Type"}
+		parentsAHeader  = [...]string{"Parent Equipment (3) A", "Position (3) A", "Parent Equipment (2) A", "Position (2) A", "Parent Equipment A", "Equipment Position A"}
+		parentsBHeader  = [...]string{"Parent Equipment (3) B", "Position (3) B", "Parent Equipment (2) B", "Position (2) B", "Parent Equipment B", "Equipment Position B"}
+		servicesHeader  = [...]string{"Service Names"}
 	)
 	filtersParam := url.Query().Get("filters")
 	if filtersParam != "" {
@@ -51,6 +53,7 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		}
 	}
 	client := ent.FromContext(ctx)
+	var orderedLocTypes, propertyTypes []string
 
 	links, err := resolverutil.LinkSearch(ctx, client, filterInput, nil)
 	if err != nil {
@@ -65,21 +68,41 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	for i, l := range linksList {
 		linkIDs[i] = l.ID
 	}
-	propertyTypes, err := propertyTypesSlice(ctx, linkIDs, client, models.PropertyEntityLink)
-	if err != nil {
-		log.Error("cannot query property types", zap.Error(err))
-		return nil, errors.Wrap(err, "cannot query property types")
+	cg := ctxgroup.WithContext(ctx, ctxgroup.MaxConcurrency(32))
+	cg.Go(func(ctx context.Context) error {
+		if orderedLocTypes, err = locationTypeHierarchy(ctx, client); err != nil {
+			log.Error("cannot query location types", zap.Error(err))
+			return errors.Wrap(err, "cannot query location types")
+		}
+		return nil
+	})
+	cg.Go(func(ctx context.Context) error {
+		if propertyTypes, err = propertyTypesSlice(ctx, linkIDs, client, models.PropertyEntityLink); err != nil {
+			log.Error("cannot query property types", zap.Error(err))
+			return errors.Wrap(err, "cannot query property types")
+		}
+		return nil
+	})
+	if err := cg.Wait(); err != nil {
+		return nil, err
 	}
 
-	title := append(portADataHeader[:], portBDataHeader[:]...)
+	portAData := append(portADataHeader[:], orderedLocTypes...)
+	portAData = append(portAData, parentsAHeader[:]...)
+
+	portBData := append(portBDataHeader[:], orderedLocTypes...)
+	portBData = append(portBData, parentsBHeader[:]...)
+
+	title := append(portAData, portBData...)
+	title = append(title, servicesHeader[:]...)
 	title = append(title, propertyTypes...)
 
 	allRows[0] = title
-	cg := ctxgroup.WithContext(ctx, ctxgroup.MaxConcurrency(32))
+	cg = ctxgroup.WithContext(ctx, ctxgroup.MaxConcurrency(32))
 	for i, value := range linksList {
 		value, i := value, i
 		cg.Go(func(ctx context.Context) error {
-			row, err := linkToSlice(ctx, value, propertyTypes)
+			row, err := linkToSlice(ctx, value, propertyTypes, orderedLocTypes)
 			if err != nil {
 				return err
 			}
@@ -94,10 +117,11 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	return allRows, nil
 }
 
-func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes []string) ([]string, error) {
+func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes, orderedLocTypes []string) ([]string, error) {
 	var (
-		portsData     = make(map[int][]string, 2)
-		equipmentData = make(map[int][]string, 2)
+		portData     = make(map[int][]string, 2)
+		locationData = make(map[int][]string, 2)
+		positionData = make(map[int][]string, 2)
 	)
 	ports, err := link.QueryPorts().All(ctx)
 	if err != nil {
@@ -108,12 +132,6 @@ func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes []string) ([
 	}
 	for i, port := range ports {
 		portDefinition := port.QueryDefinition().OnlyX(ctx)
-		portType, err := portDefinition.QueryEquipmentPortType().Only(ctx)
-		var portTypeName string
-		if err == nil {
-			portTypeName = portType.Name
-		}
-		portsData[i] = []string{port.ID, portDefinition.Name, portTypeName}
 
 		portEquipment, err := port.QueryParent().Only(ctx)
 		if err != nil {
@@ -123,18 +141,51 @@ func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes []string) ([
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying type for port parent (id=%s, parentID=%s)", port.ID, portEquipment.ID)
 		}
-		equipmentData[i] = []string{portEquipment.ID, portEquipment.Name, parentType.Name}
+		portData[i] = []string{portDefinition.Name, portEquipment.Name, parentType.Name}
 
+		g := ctxgroup.WithContext(ctx)
+		g.Go(func(ctx context.Context) (err error) {
+			locationData[i], err = locationHierarchyForEquipment(ctx, portEquipment, orderedLocTypes)
+			return err
+		})
+		g.Go(func(ctx context.Context) error {
+			pos, err := portEquipment.QueryParentPosition().Only(ctx)
+			if err != nil && !ent.IsNotFound(err) {
+				return err
+			}
+			positionData[i] = make([]string, maxEquipmentParents*2)
+			if pos != nil {
+				positionData[i] = parentHierarchyWithAllPositions(ctx, *portEquipment)
+			}
+			return nil
+		})
+		if err := g.Wait(); err != nil {
+			return nil, err
+		}
 	}
 	properties, err := propertiesSlice(ctx, link, propertyTypes, models.PropertyEntityLink)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot create property slice for link (id=%s)", link.ID)
 	}
-	row := []string{link.ID}
-	for _, j := range []int{0, 1} {
-		row = append(row, portsData[j]...)
-		row = append(row, equipmentData[j]...)
+
+	services, err := link.QueryService().All(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying link for services (id=%s)", link.ID)
 	}
+	var servicesList []string
+	for _, service := range services {
+		servicesList = append(servicesList, service.Name)
+	}
+	servicesStr := strings.Join(servicesList, ";")
+
+	// Build the slice
+	row := []string{link.ID}
+	for i := 0; i < 2; i++ {
+		row = append(row, portData[i]...)
+		row = append(row, locationData[i]...)
+		row = append(row, positionData[i]...)
+	}
+	row = append(row, servicesStr)
 	row = append(row, properties...)
 	return row, nil
 }

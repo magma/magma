@@ -28,6 +28,8 @@ const (
 	FieldFutureState = "future_state"
 	// FieldDeviceID holds the string denoting the device_id vertex property in the database.
 	FieldDeviceID = "device_id"
+	// FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldExternalID = "external_id"
 
 	// Table holds the table name of the equipment in the database.
 	Table = "equipment"
@@ -80,11 +82,6 @@ const (
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
 	PropertiesColumn = "equipment_id"
-	// ServiceTable is the table the holds the service relation/edge. The primary key declared below.
-	ServiceTable = "service_termination_points"
-	// ServiceInverseTable is the table name for the Service entity.
-	// It exists in this package in order to avoid circular dependency with the "service" package.
-	ServiceInverseTable = "services"
 	// FilesTable is the table the holds the files relation/edge.
 	FilesTable = "files"
 	// FilesInverseTable is the table name for the File entity.
@@ -92,9 +89,16 @@ const (
 	FilesInverseTable = "files"
 	// FilesColumn is the table column denoting the files relation/edge.
 	FilesColumn = "equipment_file_id"
+	// HyperlinksTable is the table the holds the hyperlinks relation/edge.
+	HyperlinksTable = "hyperlinks"
+	// HyperlinksInverseTable is the table name for the Hyperlink entity.
+	// It exists in this package in order to avoid circular dependency with the "hyperlink" package.
+	HyperlinksInverseTable = "hyperlinks"
+	// HyperlinksColumn is the table column denoting the hyperlinks relation/edge.
+	HyperlinksColumn = "equipment_hyperlink_id"
 )
 
-// Columns holds all SQL columns are equipment fields.
+// Columns holds all SQL columns for equipment fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -102,13 +106,16 @@ var Columns = []string{
 	FieldName,
 	FieldFutureState,
 	FieldDeviceID,
+	FieldExternalID,
 }
 
-var (
-	// ServicePrimaryKey and ServiceColumn2 are the table columns denoting the
-	// primary key for the service relation (M2M).
-	ServicePrimaryKey = []string{"service_id", "equipment_id"}
-)
+// ForeignKeys holds the SQL foreign-keys that are owned by the Equipment type.
+var ForeignKeys = []string{
+	"type_id",
+	"work_order_id",
+	"parent_position_id",
+	"location_id",
+}
 
 var (
 	mixin       = schema.Equipment{}.Mixin()

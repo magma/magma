@@ -16,8 +16,8 @@
 #include <folly/futures/Future.h>
 #include <folly/io/async/AsyncSocket.h>
 
-#include <devmand/EventBaseUtils.h>
 #include <devmand/channels/Engine.h>
+#include <devmand/utils/EventBaseUtils.h>
 #include <devmand/utils/Time.h>
 
 namespace devmand {

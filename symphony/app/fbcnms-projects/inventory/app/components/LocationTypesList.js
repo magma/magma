@@ -36,7 +36,7 @@ type State = {
 
 const locationQuery = graphql`
   query LocationTypesListQuery {
-    locationTypes(first: 50) {
+    locationTypes(first: 500) {
       edges {
         node {
           id

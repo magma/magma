@@ -263,8 +263,9 @@ void LocalSessionManagerHandlerImpl::send_create_session(
             Status(
               grpc::FAILED_PRECONDITION, "Failed to initialize session");
         } else {
-          MLOG(MINFO) << "Successfully initialized new session "
-                      << "in sessiond for subscriber " << imsi;
+          MLOG(MINFO) << "Successfully initialized new session " << sid
+                      << " in sessiond for subscriber " << imsi
+                      << " with default bearer id" << cfg.bearer_id;
           add_session_to_directory_record(imsi, sid);
         }
       } else {
@@ -315,25 +316,6 @@ std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
   return res;
 }
 
-static void report_termination(
-  SessionReporter& reporter,
-  const SessionTerminateRequest& term_req)
-{
-  reporter.report_terminate_session(
-    term_req,
-    [&reporter, term_req](Status status, SessionTerminateResponse response) {
-      if (!status.ok()) {
-        MLOG(MERROR) << "Failed to terminate session in controller for "
-                        "subscriber "
-                     << term_req.sid() << ": " << status.error_message();
-      } else {
-        MLOG(MDEBUG) << "Termination successful in controller for "
-                        "subscriber "
-                     << term_req.sid();
-      }
-    });
-}
-
 /**
  * EndSession completes the entire termination procedure with the OCS & PCRF.
  * The process for session termination is as follows:
@@ -360,7 +342,9 @@ void LocalSessionManagerHandlerImpl::EndSession(
           request_cpy.apn(),
           [reporter](SessionTerminateRequest term_req) {
             // report to cloud
-            report_termination(*reporter, term_req);
+            auto logging_cb =
+              SessionReporter::get_terminate_logging_cb(term_req);
+            reporter->report_terminate_session(term_req, logging_cb);
           });
         response_callback(grpc::Status::OK, LocalEndSessionResponse());
       } catch (const SessionNotFound &ex) {

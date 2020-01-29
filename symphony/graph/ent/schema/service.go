@@ -60,6 +60,26 @@ func (ServiceType) Edges() []ent.Edge {
 	}
 }
 
+// ServiceEndpoint holds the schema definition for the ServiceEndpoint entity.
+type ServiceEndpoint struct {
+	schema
+}
+
+// Fields of the ServiceType.
+func (ServiceEndpoint) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("role"),
+	}
+}
+
+// Edges of the ServiceType.
+func (ServiceEndpoint) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("port", EquipmentPort.Type).Unique(),
+		edge.From("service", Service.Type).Ref("endpoints").Unique(),
+	}
+}
+
 // Service holds the schema definition for the Service entity.
 type Service struct {
 	schema
@@ -76,6 +96,7 @@ func (Service) Fields() []ent.Field {
 			Nillable().
 			NotEmpty().
 			Unique(),
+		field.String("status"),
 	}
 }
 
@@ -88,8 +109,8 @@ func (Service) Edges() []ent.Edge {
 		edge.To("upstream", Service.Type).
 			From("downstream"),
 		edge.To("properties", Property.Type),
-		edge.To("termination_points", Equipment.Type),
 		edge.To("links", Link.Type),
 		edge.To("customer", Customer.Type),
+		edge.To("endpoints", ServiceEndpoint.Type),
 	}
 }

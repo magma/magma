@@ -8,6 +8,8 @@
  * @format
  */
 
+jest.mock('@fbcnms/sequelize-models');
+
 import OrganizationLocalStrategy from '@fbcnms/auth/strategies/OrganizationLocalStrategy';
 
 import bodyParser from 'body-parser';
@@ -16,9 +18,8 @@ import fbcPassport from '../passport';
 import passport from 'passport';
 import request from 'supertest';
 import userMiddleware from '../express';
-import {ErrorCodes} from '../errorCodes';
 import {USERS, USERS_EXPECTED} from '../test/UserModel';
-import {User, sequelize} from '@fbcnms/sequelize-models';
+import {User} from '@fbcnms/sequelize-models';
 
 import {configureAccess} from '../access';
 
@@ -84,10 +85,6 @@ function getApp(orgName: string, loggedInEmail: ?string) {
 }
 
 describe('user tests', () => {
-  beforeAll(async () => {
-    await sequelize.sync({force: true});
-  });
-
   beforeEach(async () => {
     USERS.forEach(async user => await User.create(user));
   });
@@ -197,6 +194,7 @@ describe('user tests', () => {
       networkIDs: [],
       superUser: false,
       verificationType: 0,
+      role: 0,
     };
 
     describe('as superuser', () => {
@@ -211,12 +209,13 @@ describe('user tests', () => {
           .expect(stripDates)
           .expect({
             user: {
-              id: 4,
               isSuperUser: false,
+              isReadOnlyUser: false,
               email: params.email,
               organization: 'validorg',
               networkIDs: params.networkIDs,
               role: 0,
+              id: 5,
               tabs: [],
             },
           });
@@ -308,27 +307,19 @@ describe('user tests', () => {
 
   describe('endpoints as normal user', () => {
     const app = getApp('validorg', 'valid@123.com');
-    const expectedErrorResponse = {
-      errorCode: ErrorCodes.USER_NOT_LOGGED_IN,
-      description: 'You must login to see this',
-    };
-    it('403 error for restricted urls, axios handles redirect', async () => {
+    it('redirects restricted urls to login', async () => {
       await request(app)
         .get('/user/async/')
-        .expect(403)
-        .expect(expectedErrorResponse);
+        .expect(302);
       await request(app)
         .post('/user/async/')
-        .expect(403)
-        .expect(expectedErrorResponse);
+        .expect(302);
       await request(app)
         .put('/user/async/1')
-        .expect(403)
-        .expect(expectedErrorResponse);
+        .expect(302);
       await request(app)
         .delete('/user/async/1/')
-        .expect(403)
-        .expect(expectedErrorResponse);
+        .expect(302);
     });
   });
 });

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 )
 
 // CheckListItemDefinition is the model entity for the CheckListItemDefinition schema.
@@ -29,40 +30,84 @@ type CheckListItemDefinition struct {
 	EnumValues *string `json:"enum_values,omitempty" gqlgen:"enumValues"`
 	// HelpText holds the value of the "help_text" field.
 	HelpText *string `json:"help_text,omitempty" gqlgen:"helpText"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CheckListItemDefinitionQuery when eager-loading is set.
+	Edges              CheckListItemDefinitionEdges `json:"edges"`
+	work_order_type_id *string
 }
 
-// FromRows scans the sql response data into CheckListItemDefinition.
-func (clid *CheckListItemDefinition) FromRows(rows *sql.Rows) error {
-	var scanclid struct {
-		ID         int
-		Title      sql.NullString
-		Type       sql.NullString
-		Index      sql.NullInt64
-		EnumValues sql.NullString
-		HelpText   sql.NullString
+// CheckListItemDefinitionEdges holds the relations/edges for other nodes in the graph.
+type CheckListItemDefinitionEdges struct {
+	// WorkOrderType holds the value of the work_order_type edge.
+	WorkOrderType *WorkOrderType
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*CheckListItemDefinition) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullString{}, // title
+		&sql.NullString{}, // type
+		&sql.NullInt64{},  // index
+		&sql.NullString{}, // enum_values
+		&sql.NullString{}, // help_text
 	}
-	// the order here should be the same as in the `checklistitemdefinition.Columns`.
-	if err := rows.Scan(
-		&scanclid.ID,
-		&scanclid.Title,
-		&scanclid.Type,
-		&scanclid.Index,
-		&scanclid.EnumValues,
-		&scanclid.HelpText,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*CheckListItemDefinition) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // work_order_type_id
 	}
-	clid.ID = strconv.Itoa(scanclid.ID)
-	clid.Title = scanclid.Title.String
-	clid.Type = scanclid.Type.String
-	clid.Index = int(scanclid.Index.Int64)
-	if scanclid.EnumValues.Valid {
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the CheckListItemDefinition fields.
+func (clid *CheckListItemDefinition) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(checklistitemdefinition.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	clid.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field title", values[0])
+	} else if value.Valid {
+		clid.Title = value.String
+	}
+	if value, ok := values[1].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field type", values[1])
+	} else if value.Valid {
+		clid.Type = value.String
+	}
+	if value, ok := values[2].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[2])
+	} else if value.Valid {
+		clid.Index = int(value.Int64)
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field enum_values", values[3])
+	} else if value.Valid {
 		clid.EnumValues = new(string)
-		*clid.EnumValues = scanclid.EnumValues.String
+		*clid.EnumValues = value.String
 	}
-	if scanclid.HelpText.Valid {
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field help_text", values[4])
+	} else if value.Valid {
 		clid.HelpText = new(string)
-		*clid.HelpText = scanclid.HelpText.String
+		*clid.HelpText = value.String
+	}
+	values = values[5:]
+	if len(values) == len(checklistitemdefinition.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_type_id", value)
+		} else if value.Valid {
+			clid.work_order_type_id = new(string)
+			*clid.work_order_type_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }
@@ -121,18 +166,6 @@ func (clid *CheckListItemDefinition) id() int {
 
 // CheckListItemDefinitions is a parsable slice of CheckListItemDefinition.
 type CheckListItemDefinitions []*CheckListItemDefinition
-
-// FromRows scans the sql response data into CheckListItemDefinitions.
-func (clid *CheckListItemDefinitions) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanclid := &CheckListItemDefinition{}
-		if err := scanclid.FromRows(rows); err != nil {
-			return err
-		}
-		*clid = append(*clid, scanclid)
-	}
-	return nil
-}
 
 func (clid CheckListItemDefinitions) config(cfg config) {
 	for _i := range clid {

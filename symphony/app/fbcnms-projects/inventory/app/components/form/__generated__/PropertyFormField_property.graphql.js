@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PropertyFormField_property$ref: FragmentReference;
 declare export opaque type PropertyFormField_property$fragmentType: PropertyFormField_property$ref;
@@ -45,12 +45,17 @@ export type PropertyFormField_property = {|
     +id: string,
     +name: string,
   |},
+  +serviceValue: ?{|
+    +id: string,
+    +name: string,
+  |},
   +$refType: PropertyFormField_property$ref,
 |};
 export type PropertyFormField_property$data = PropertyFormField_property;
 export type PropertyFormField_property$key = {
   +$data?: PropertyFormField_property$data,
   +$fragmentRefs: PropertyFormField_property$ref,
+  ...
 };
 */
 
@@ -200,10 +205,20 @@ return {
       "concreteType": "Location",
       "plural": false,
       "selections": (v3/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v3/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '7c12dd5eb803dde513c1cc81145dc5e8';
+(node/*: any*/).hash = '67524c0dbba3cf1a4b79dffefa3b014f';
 module.exports = node;

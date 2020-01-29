@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {EditServiceMutationResponse} from '../../mutations/__generated__/EditServiceMutation.graphql';
+import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {Property} from '../../common/Property';
 import type {Service} from '../../common/Service';
 
@@ -17,13 +19,17 @@ import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import IconButton from '@material-ui/core/IconButton';
+import NameInput from '@fbcnms/ui/components/design-system/Form/NameInput';
 import PropertyValueInput from '../form/PropertyValueInput';
 import React, {useRef, useState} from 'react';
 import SideBar from '@fbcnms/ui/components/layout/SideBar';
+import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import TextField from '@material-ui/core/TextField';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
+import useStateWithCallback from 'use-state-with-callback';
 import useVerticalScrollingEffect from '../../common/useVerticalScrollingEffect';
+
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
@@ -32,6 +38,7 @@ import {
   toPropertyInput,
 } from '../../common/Property';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
   shown: boolean,
@@ -41,11 +48,15 @@ type Props = {
 };
 
 const useStyles = makeStyles({
+  root: {
+    height: '100%',
+  },
   sideBar: {
     border: 'none',
     boxShadow: 'none',
     borderRadius: '0px',
     padding: '0px',
+    overflowY: 'auto',
   },
   separator: {
     borderBottom: `1px solid ${symphony.palette.separator}`,
@@ -61,9 +72,6 @@ const useStyles = makeStyles({
     boxShadow: 'none',
     padding: '0px',
     background: 'transparent',
-  },
-  scroller: {
-    overflowY: 'auto',
   },
   closeButton: {
     '&&': {
@@ -97,8 +105,19 @@ const ServiceDetailsPanel = (props: Props) => {
   const classes = useStyles();
   const {shown, service, panelWidth, onClose} = props;
   const thisElement = useRef(null);
-  const [isDirty, setIsDirty] = useState(false);
+  const [dirtyValue, setDirtyValue] = useStateWithCallback(null, dirtyValue => {
+    if (
+      dirtyValue == 'equipment' ||
+      dirtyValue == 'location' ||
+      dirtyValue == 'service' ||
+      dirtyValue == 'customer'
+    ) {
+      // don't wait for blur because there is no blur in those selection values
+      editService();
+    }
+  });
   useVerticalScrollingEffect(thisElement);
+  const enqueueSnackbar = useEnqueueSnackbar();
   let properties = service?.properties ?? [];
   if (service.serviceType.propertyTypes) {
     properties = [
@@ -126,11 +145,36 @@ const ServiceDetailsPanel = (props: Props) => {
         name: editableService.name,
         externalId: editableService.externalId,
         customerId: editableService.customer?.id,
-        upstreamServiceIds: [],
         properties: toPropertyInput(editableService.properties),
-        terminationPointIds: [],
+        upstreamServiceIds: [],
       },
     };
+  };
+
+  const enqueueError = (message: string) => {
+    enqueueSnackbar(message, {
+      children: key => (
+        <SnackbarItem id={key} message={message} variant="error" />
+      ),
+    });
+  };
+
+  const editService = () => {
+    if (dirtyValue !== null) {
+      const callbacks: MutationCallbacks<EditServiceMutationResponse> = {
+        onCompleted: (response, errors) => {
+          if (errors && errors[0]) {
+            enqueueError(errors[0].message);
+          }
+        },
+        onError: () => {
+          enqueueError('Error saving service');
+        },
+      };
+
+      EditServiceMutation(getServiceInput(), callbacks);
+      setDirtyValue(null);
+    }
   };
 
   const onChangeProperty = index => (property: Property) => {
@@ -141,18 +185,12 @@ const ServiceDetailsPanel = (props: Props) => {
         },
       }),
     );
-    setIsDirty(true);
+    setDirtyValue(property.propertyType.type);
   };
   const onChangeDetail = (key: 'name' | 'externalId' | 'customer', value) => {
     // $FlowFixMe Update specific value
     setEditableService(update(editableService, {[key]: {$set: value}}));
-    setIsDirty(true);
-  };
-
-  const onBlur = () => {
-    if (isDirty) {
-      EditServiceMutation(getServiceInput());
-    }
+    setDirtyValue(key);
   };
 
   const backButton = (props: {onClose: () => void}) => (
@@ -179,16 +217,12 @@ const ServiceDetailsPanel = (props: Props) => {
           detailsPaneClass={classes.detailPane}
           className={classes.panel}>
           <div className={classes.input}>
-            <FormField label="Name">
-              <TextField
-                name="name"
-                variant="outlined"
-                margin="dense"
-                onChange={event => onChangeDetail('name', event.target.value)}
-                value={editableService.name}
-                onBlur={onBlur}
-              />
-            </FormField>
+            <NameInput
+              value={editableService.name}
+              onChange={event => onChangeDetail('name', event.target.value)}
+              onBlur={editService}
+              hasSpacer={false}
+            />
           </div>
           <div className={classes.input}>
             <FormField label="Service ID">
@@ -200,7 +234,7 @@ const ServiceDetailsPanel = (props: Props) => {
                   onChangeDetail('externalId', event.target.value)
                 }
                 value={editableService.externalId ?? ''}
-                onBlur={onBlur}
+                onBlur={editService}
               />
             </FormField>
           </div>
@@ -220,7 +254,6 @@ const ServiceDetailsPanel = (props: Props) => {
               <CustomerTypeahead
                 onCustomerSelection={customer => {
                   onChangeDetail('customer', customer);
-                  onBlur();
                 }}
                 required={false}
                 selectedCustomer={editableService.customer?.name}
@@ -240,7 +273,7 @@ const ServiceDetailsPanel = (props: Props) => {
           {editableService.properties.map((property, index) => (
             <PropertyValueInput
               fullWidth
-              required={!!property.propertyType.isInstanceProperty}
+              required={!!property.propertyType.isMandatory}
               disabled={!property.propertyType.isInstanceProperty}
               label={property.propertyType.name}
               className={classes.input}
@@ -249,7 +282,7 @@ const ServiceDetailsPanel = (props: Props) => {
               property={property}
               // $FlowFixMe pass property and not property type
               onChange={onChangeProperty(index)}
-              onBlur={onBlur}
+              onBlur={editService}
               headlineVariant="form"
             />
           ))}
@@ -285,6 +318,7 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           longitudeValue
           rangeFromValue
           rangeToValue
+          isMandatory
         }
       }
       properties {
@@ -295,6 +329,7 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           type
           isEditable
           isInstanceProperty
+          isMandatory
           stringValue
         }
         stringValue
@@ -310,6 +345,10 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           name
         }
         locationValue {
+          id
+          name
+        }
+        serviceValue {
           id
           name
         }

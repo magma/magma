@@ -91,7 +91,7 @@ alertmanager:
                   - prometheus
           topologyKey: "kubernetes.io/hostname"
 
-configmanager:
+prometheusConfigurer:
   # Enable/Disable chart
   create: true
 
@@ -105,17 +105,49 @@ configmanager:
       - name: prom-configmanager
         port: 9100
         targetPort: 9100
+
+  prometheusConfigurerPort: 9100
+  rulesDir: "/etc/configs/alert_rules"
+  prometheusURL: "orc8r-prometheus:9090"
+
+  image:
+    repository:
+    tag:
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - prometheus
+          topologyKey: "kubernetes.io/hostname"
+
+alertmanagerConfigurer:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
       - name: alertmanager-config
         port: 9101
         targetPort: 9101
 
-  environment:
-    promAlertconfigPort: "9100"
-    rulesDir: "/etc/configs/alert_rules"
-    prometheusURL: "orc8r-prometheus:9090"
-    alertmanagerConfigPort: "9101"
-    alertmanagerConfPath: "/etc/configs/alertmanager.yml"
-    alertmanagerURL: "orc8r-alertmanager:9093"
+  alertmanagerConfigPort: 9101
+  alertmanagerConfPath: "/etc/configs/alertmanager.yml"
+  alertmanagerURL: "orc8r-alertmanager:9093"
 
   image:
     repository:

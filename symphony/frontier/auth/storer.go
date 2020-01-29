@@ -12,11 +12,11 @@ import (
 	"hash/fnv"
 	"io"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/volatiletech/authboss"
 	"go.uber.org/zap"
 )
@@ -66,7 +66,7 @@ func (s *UserStorer) Load(ctx context.Context, key string) (authboss.User, error
 	case nil:
 		logger.Debug("loaded user")
 		return &User{u, userUpdater{u.Update()}}, nil
-	case *ent.ErrNotFound:
+	case *ent.NotFoundError:
 		logger.Debug("user not found")
 		return nil, authboss.ErrUserNotFound
 	default:
@@ -85,7 +85,7 @@ func (s *UserStorer) Save(ctx context.Context, user authboss.User) error {
 		return nil
 	}
 	logger.Error("cannot save user", zap.Error(err))
-	var e *ent.ErrConstraintFailed
+	var e *ent.ConstraintError
 	if errors.As(err, &e) {
 		return authboss.ErrUserFound
 	}
@@ -135,7 +135,7 @@ func (s *UserStorer) AddRememberToken(ctx context.Context, pid, value string) er
 	case nil:
 		logger.Debug("saved remember token")
 		return nil
-	case *ent.ErrConstraintFailed:
+	case *ent.ConstraintError:
 		logger.Warn("remember token already exists")
 		return nil
 	default:

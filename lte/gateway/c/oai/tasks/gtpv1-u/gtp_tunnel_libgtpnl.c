@@ -52,7 +52,8 @@ int libgtpnl_init(
   uint32_t mask,
   int mtu,
   int *fd0,
-  int *fd1u)
+  int *fd1u,
+  bool persist_state)
 {
   // we don't need GTP v0, but interface with kernel requires 2 file descriptors
   *fd0 = socket(AF_INET, SOCK_DGRAM, 0);

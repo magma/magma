@@ -29,6 +29,7 @@ export type DocumentTable_files$data = DocumentTable_files;
 export type DocumentTable_files$key = $ReadOnlyArray<{
   +$data?: DocumentTable_files$data,
   +$fragmentRefs: DocumentTable_files$ref,
+  ...
 }>;
 */
 

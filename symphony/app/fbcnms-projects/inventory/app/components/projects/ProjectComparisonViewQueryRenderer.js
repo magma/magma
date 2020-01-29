@@ -9,21 +9,25 @@
  */
 
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
-import ListAltIcon from '@material-ui/icons/ListAlt';
-import MapButtonGroup from '@fbcnms/ui/components/map/MapButtonGroup';
-import MapIcon from '@material-ui/icons/Map';
 import ProjectsMap from './ProjectsMap';
 import ProjectsTableView from './ProjectsTableView';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import {DisplayOptions} from '../InventoryViewHeader';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
 
+import classNames from 'classnames';
+import type {DisplayOptionTypes} from '../InventoryViewHeader';
 import type {FilterValue} from '../comparison_view/ComparisonViewTypes';
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    flexGrow: 1,
+    width: '100%',
+    height: '100%',
+  },
   noResultsRoot: {
     display: 'flex',
     flexDirection: 'column',
@@ -46,18 +50,16 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'flex-end',
   },
-  projectsTable: {
-    padding: '24px',
-  },
   buttonContent: {
     paddingTop: '4px',
   },
 }));
 
 type Props = {
+  className?: string,
   limit?: number,
   filters: Array<FilterValue>,
-  displayMode: ?'map' | 'table',
+  displayMode?: DisplayOptionTypes,
   onProjectSelected: (projectID: string) => void,
 };
 
@@ -75,8 +77,7 @@ const projectSearchQuery = graphql`
 
 const ProjectComparisonViewQueryRenderer = (props: Props) => {
   const classes = useStyles();
-  const {filters, limit, onProjectSelected} = props;
-  const [resultsDisplayMode, setResultsDisplayMode] = useState('table');
+  const {filters, limit, onProjectSelected, displayMode, className} = props;
 
   return (
     <InventoryQueryRenderer
@@ -93,6 +94,7 @@ const ProjectComparisonViewQueryRenderer = (props: Props) => {
       }}
       render={props => {
         const {projectSearch} = props;
+
         if (!projectSearch || projectSearch.length === 0) {
           return (
             <div className={classes.noResultsRoot}>
@@ -104,36 +106,16 @@ const ProjectComparisonViewQueryRenderer = (props: Props) => {
           );
         }
         return (
-          <>
-            <div className={classes.bar}>
-              <div className={classes.groupButtons}>
-                <MapButtonGroup
-                  onIconClicked={id => {
-                    setResultsDisplayMode(id === 'table' ? 'table' : 'map');
-                  }}
-                  buttons={[
-                    {
-                      item: <ListAltIcon className={classes.buttonContent} />,
-                      id: 'table',
-                    },
-                    {
-                      item: <MapIcon className={classes.buttonContent} />,
-                      id: 'map',
-                    },
-                  ]}
-                />
-              </div>
-            </div>
-            {resultsDisplayMode === 'map' ? (
+          <div className={classNames(classes.root, className)}>
+            {displayMode === DisplayOptions.map ? (
               <ProjectsMap projects={projectSearch} />
             ) : (
               <ProjectsTableView
-                className={classes.projectsTable}
                 projects={projectSearch}
                 onProjectSelected={onProjectSelected}
               />
             )}
-          </>
+          </div>
         );
       }}
     />

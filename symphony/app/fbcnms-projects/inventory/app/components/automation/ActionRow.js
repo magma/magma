@@ -16,9 +16,8 @@ import type {RuleAction} from './types';
 
 import ActionsAutoComplete from './ActionsAutoComplete';
 import Grid from '@material-ui/core/Grid';
-import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {graphql, useFragment} from 'react-relay/hooks';
@@ -54,6 +53,7 @@ type Props = {|
   trigger: ActionRow_data$key,
   ruleAction: ?RuleAction,
   onChange: RuleAction => void,
+  first: boolean,
 |};
 
 export default function ActionRow(props: Props) {
@@ -67,29 +67,27 @@ export default function ActionRow(props: Props) {
   };
 
   const thisRuleAction = ruleAction || defaultRuleAction;
+  const actionsItems = {};
+  data.supportedActions
+    .filter(Boolean)
+    .forEach(action => (actionsItems[action.actionID] = action.description));
 
   return (
     <>
       <Grid item xs={3} className={classes.control}>
-        Then
+        {props.first ? null : 'Then'}
       </Grid>
       <Grid item xs={9}>
-        <Select
+        <TypedSelect
           value={thisRuleAction.actionID}
-          onChange={({target}) => {
+          items={actionsItems}
+          onChange={actionID => {
             onChange({
               ...thisRuleAction,
-              actionID: target.value,
+              actionID,
             });
-          }}>
-          {data.supportedActions.filter(Boolean).map(supportedAction => (
-            <MenuItem
-              key={supportedAction.actionID}
-              value={supportedAction.actionID}>
-              {supportedAction.description}
-            </MenuItem>
-          ))}
-        </Select>
+          }}
+        />
       </Grid>
       <Grid item xs={3} className={classes.control} />
       <Grid item xs={9}>

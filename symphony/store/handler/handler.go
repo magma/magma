@@ -7,7 +7,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/store/sign"
 
 	"github.com/google/uuid"

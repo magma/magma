@@ -32,25 +32,41 @@ func equipmentNameFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilterIn
 	return nil, errors.Errorf("operation %q not supported", filter.Operator)
 }
 
+// nolint: dupl
 func equipmentPropertyFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilterInput) (*ent.EquipmentQuery, error) {
 	p := filter.PropertyValue
 	switch filter.Operator {
 	case models.FilterOperatorIs:
-		q = q.Where(
-			equipment.HasPropertiesWith(
-				property.HasTypeWith(
-					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
-				),
-			),
-		)
 		pred, err := GetPropertyPredicate(*p)
 		if err != nil {
 			return nil, err
 		}
-		if pred != nil {
-			q = q.Where(equipment.HasPropertiesWith(pred))
+		predType, err := GetPropertyTypePredicate(*p)
+		if err != nil {
+			return nil, err
 		}
+		q = q.Where(equipment.Or(
+			equipment.HasPropertiesWith(
+				property.And(
+					property.HasTypeWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+					),
+					pred,
+				),
+			),
+			equipment.And(
+				equipment.HasTypeWith(equipmenttype.HasPropertyTypesWith(
+					propertytype.Name(p.Name),
+					propertytype.Type(p.Type.String()),
+					predType,
+				)),
+				equipment.Not(equipment.HasPropertiesWith(
+					property.HasTypeWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+					)),
+				))))
 		return q, nil
 	case models.FilterOperatorDateLessThan, models.FilterOperatorDateGreaterThan:
 		propPred, propTypePred, err := GetDatePropertyPred(*p, filter.Operator)

@@ -13,7 +13,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
@@ -124,63 +125,77 @@ func (tc *TechnicianCreate) SaveX(ctx context.Context) *Technician {
 
 func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(tc.driver.Dialect())
-		t       = &Technician{config: tc.config}
+		t     = &Technician{config: tc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: technician.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: technician.FieldID,
+			},
+		}
 	)
-	tx, err := tc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(technician.Table).Default()
 	if value := tc.create_time; value != nil {
-		insert.Set(technician.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: technician.FieldCreateTime,
+		})
 		t.CreateTime = *value
 	}
 	if value := tc.update_time; value != nil {
-		insert.Set(technician.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: technician.FieldUpdateTime,
+		})
 		t.UpdateTime = *value
 	}
 	if value := tc.name; value != nil {
-		insert.Set(technician.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: technician.FieldName,
+		})
 		t.Name = *value
 	}
 	if value := tc.email; value != nil {
-		insert.Set(technician.FieldEmail, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: technician.FieldEmail,
+		})
 		t.Email = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(technician.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	t.ID = strconv.FormatInt(id, 10)
-	if len(tc.work_orders) > 0 {
-		p := sql.P()
-		for eid := range tc.work_orders {
-			eid, err := strconv.Atoi(eid)
+	if nodes := tc.work_orders; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   technician.WorkOrdersTable,
+			Columns: []string{technician.WorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(workorder.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(technician.WorkOrdersTable).
-			Set(technician.WorkOrdersColumn, id).
-			Where(sql.And(p, sql.IsNull(technician.WorkOrdersColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(tc.work_orders) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Technician\"", keys(tc.work_orders))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	t.ID = strconv.FormatInt(id, 10)
 	return t, nil
 }

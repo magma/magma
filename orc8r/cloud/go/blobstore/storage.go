@@ -42,7 +42,9 @@ type TransactionalBlobStorage interface {
 	// back.
 	Commit() error
 
-	// Rollback rolls back the existing transaction.
+	// Rollback rolls back the existing transaction. If the targeted
+	// transaction has already been committed, Rollback has no effect and
+	// returns an error.
 	Rollback() error
 
 	// ListKeys returns all the blob keys stored for the network and type.

@@ -22,7 +22,6 @@ export type PortDefinitionsTable_portDefinitions = $ReadOnlyArray<{|
   +name: string,
   +index: ?number,
   +visibleLabel: ?string,
-  +type: string,
   +portType: ?{|
     +id: string,
     +name: string,
@@ -33,6 +32,7 @@ export type PortDefinitionsTable_portDefinitions$data = PortDefinitionsTable_por
 export type PortDefinitionsTable_portDefinitions$key = $ReadOnlyArray<{
   +$data?: PortDefinitionsTable_portDefinitions$data,
   +$fragmentRefs: PortDefinitionsTable_portDefinitions$ref,
+  ...
 }>;
 */
 
@@ -78,13 +78,6 @@ return {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "type",
-      "args": null,
-      "storageKey": null
-    },
-    {
       "kind": "LinkedField",
       "alias": null,
       "name": "portType",
@@ -101,5 +94,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'e15fc868f18f8e817a78cb8b1423e979';
+(node/*: any*/).hash = '0ee0d296004879c18c2ac5d4bd8f8181';
 module.exports = node;

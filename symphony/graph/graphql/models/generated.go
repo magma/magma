@@ -13,12 +13,13 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
 type ActionsAction struct {
-	ActionID    ActionID `json:"actionID"`
-	Description string   `json:"description"`
-	DataType    string   `json:"dataType"`
+	ActionID    core.ActionID `json:"actionID"`
+	Description string        `json:"description"`
+	DataType    core.DataType `json:"dataType"`
 }
 
 type ActionsFilter struct {
@@ -28,14 +29,14 @@ type ActionsFilter struct {
 }
 
 type ActionsOperator struct {
-	OperatorID  string `json:"operatorID"`
-	Description string `json:"description"`
-	DataInput   string `json:"dataInput"`
+	OperatorID  string        `json:"operatorID"`
+	Description string        `json:"description"`
+	DataType    core.DataType `json:"dataType"`
 }
 
 type ActionsRuleActionInput struct {
-	ActionID ActionID `json:"actionID"`
-	Data     string   `json:"data"`
+	ActionID core.ActionID `json:"actionID"`
+	Data     string        `json:"data"`
 }
 
 type ActionsRuleFilterInput struct {
@@ -51,7 +52,7 @@ type ActionsRulesSearchResult struct {
 
 type ActionsTrigger struct {
 	ID               string           `json:"id"`
-	TriggerID        TriggerID        `json:"triggerID"`
+	TriggerID        core.TriggerID   `json:"triggerID"`
 	Description      string           `json:"description"`
 	SupportedActions []*ActionsAction `json:"supportedActions"`
 	SupportedFilters []*ActionsFilter `json:"supportedFilters"`
@@ -64,7 +65,7 @@ type ActionsTriggersSearchResult struct {
 
 type AddActionsRuleInput struct {
 	Name        string                    `json:"name"`
-	TriggerID   string                    `json:"triggerID"`
+	TriggerID   core.TriggerID            `json:"triggerID"`
 	RuleActions []*ActionsRuleActionInput `json:"ruleActions"`
 	RuleFilters []*ActionsRuleFilterInput `json:"ruleFilters"`
 }
@@ -82,6 +83,7 @@ type AddEquipmentInput struct {
 	PositionDefinition *string          `json:"positionDefinition"`
 	Properties         []*PropertyInput `json:"properties"`
 	WorkOrder          *string          `json:"workOrder"`
+	ExternalID         *string          `json:"externalId"`
 }
 
 type AddEquipmentPortTypeInput struct {
@@ -113,6 +115,14 @@ type AddFloorPlanInput struct {
 	ScaleInMeters    float64        `json:"scaleInMeters"`
 }
 
+type AddHyperlinkInput struct {
+	EntityType  ImageEntity `json:"entityType"`
+	EntityID    string      `json:"entityId"`
+	URL         string      `json:"url"`
+	DisplayName *string     `json:"displayName"`
+	Category    *string     `json:"category"`
+}
+
 type AddImageInput struct {
 	EntityType  ImageEntity `json:"entityType"`
 	EntityID    string      `json:"entityId"`
@@ -128,6 +138,7 @@ type AddLinkInput struct {
 	Sides      []*LinkSide      `json:"sides"`
 	WorkOrder  *string          `json:"workOrder"`
 	Properties []*PropertyInput `json:"properties"`
+	ServiceIds []string         `json:"serviceIds"`
 }
 
 type AddLocationInput struct {
@@ -163,6 +174,12 @@ type AddProjectTypeInput struct {
 	Description *string                     `json:"description"`
 	Properties  []*PropertyTypeInput        `json:"properties"`
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
+}
+
+type AddServiceEndpointInput struct {
+	ID     string              `json:"id"`
+	PortID string              `json:"portId"`
+	Role   ServiceEndpointRole `json:"role"`
 }
 
 type AddWorkOrderInput struct {
@@ -212,17 +229,6 @@ type CommentInput struct {
 	Text       string        `json:"text"`
 }
 
-type CustomerConnection struct {
-	TotalCount int             `json:"totalCount"`
-	Edges      []*CustomerEdge `json:"edges"`
-	PageInfo   *PageInfo       `json:"pageInfo"`
-}
-
-type CustomerEdge struct {
-	Node   *ent.Customer `json:"node"`
-	Cursor Cursor        `json:"cursor"`
-}
-
 type Device struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -234,6 +240,7 @@ type EditEquipmentInput struct {
 	Name       string           `json:"name"`
 	Properties []*PropertyInput `json:"properties"`
 	DeviceID   *string          `json:"deviceID"`
+	ExternalID *string          `json:"externalId"`
 }
 
 type EditEquipmentPortInput struct {
@@ -260,6 +267,7 @@ type EditEquipmentTypeInput struct {
 type EditLinkInput struct {
 	ID         string           `json:"id"`
 	Properties []*PropertyInput `json:"properties"`
+	ServiceIds []string         `json:"serviceIds"`
 }
 
 type EditLocationInput struct {
@@ -331,34 +339,13 @@ type EquipmentFilterInput struct {
 	MaxDepth      *int                `json:"maxDepth"`
 }
 
-type EquipmentPortDefinitionConnection struct {
-	Edges    []*EquipmentPortDefinitionEdge `json:"edges"`
-	PageInfo *PageInfo                      `json:"pageInfo"`
-}
-
-type EquipmentPortDefinitionEdge struct {
-	Node   *ent.EquipmentPortDefinition `json:"node"`
-	Cursor Cursor                       `json:"cursor"`
-}
-
 type EquipmentPortInput struct {
 	ID           *string `json:"id"`
 	Name         string  `json:"name"`
 	Index        *int    `json:"index"`
 	VisibleLabel *string `json:"visibleLabel"`
-	Type         string  `json:"type"`
 	PortTypeID   *string `json:"portTypeID"`
 	Bandwidth    *string `json:"bandwidth"`
-}
-
-type EquipmentPortTypeConnection struct {
-	Edges    []*EquipmentPortTypeEdge `json:"edges"`
-	PageInfo *PageInfo                `json:"pageInfo"`
-}
-
-type EquipmentPortTypeEdge struct {
-	Node   *ent.EquipmentPortType `json:"node"`
-	Cursor Cursor                 `json:"cursor"`
 }
 
 type EquipmentPositionInput struct {
@@ -371,16 +358,6 @@ type EquipmentPositionInput struct {
 type EquipmentSearchResult struct {
 	Equipment []*ent.Equipment `json:"equipment"`
 	Count     int              `json:"count"`
-}
-
-type EquipmentTypeConnection struct {
-	Edges    []*EquipmentTypeEdge `json:"edges"`
-	PageInfo *PageInfo            `json:"pageInfo"`
-}
-
-type EquipmentTypeEdge struct {
-	Node   *ent.EquipmentType `json:"node"`
-	Cursor Cursor             `json:"cursor"`
 }
 
 type FileInput struct {
@@ -417,16 +394,6 @@ type LinkSide struct {
 	Port      string `json:"port"`
 }
 
-type LocationConnection struct {
-	Edges    []*LocationEdge `json:"edges"`
-	PageInfo *PageInfo       `json:"pageInfo"`
-}
-
-type LocationEdge struct {
-	Node   *ent.Location `json:"node"`
-	Cursor Cursor        `json:"cursor"`
-}
-
 type LocationFilterInput struct {
 	FilterType    LocationFilterType `json:"filterType"`
 	Operator      FilterOperator     `json:"operator"`
@@ -442,31 +409,14 @@ type LocationSearchResult struct {
 	Count     int             `json:"count"`
 }
 
-type LocationTypeConnection struct {
-	Edges    []*LocationTypeEdge `json:"edges"`
-	PageInfo *PageInfo           `json:"pageInfo"`
-}
-
-type LocationTypeEdge struct {
-	Node   *ent.LocationType `json:"node"`
-	Cursor Cursor            `json:"cursor"`
-}
-
 type LocationTypeIndex struct {
 	LocationTypeID string `json:"locationTypeID"`
 	Index          int    `json:"index"`
 }
 
 type NetworkTopology struct {
-	Nodes []*ent.Equipment `json:"nodes"`
-	Links []*TopologyLink  `json:"links"`
-}
-
-type PageInfo struct {
-	HasNextPage     bool   `json:"hasNextPage"`
-	HasPreviousPage bool   `json:"hasPreviousPage"`
-	StartCursor     Cursor `json:"startCursor"`
-	EndCursor       Cursor `json:"endCursor"`
+	Nodes []ent.Noder     `json:"nodes"`
+	Links []*TopologyLink `json:"links"`
 }
 
 type PortFilterInput struct {
@@ -490,17 +440,6 @@ type ProjectFilterInput struct {
 	StringValue *string           `json:"stringValue"`
 }
 
-type ProjectTypeConnection struct {
-	TotalCount int                `json:"totalCount"`
-	Edges      []*ProjectTypeEdge `json:"edges"`
-	PageInfo   *PageInfo          `json:"pageInfo"`
-}
-
-type ProjectTypeEdge struct {
-	Node   *ent.ProjectType `json:"node"`
-	Cursor Cursor           `json:"cursor"`
-}
-
 type PropertyInput struct {
 	ID                 *string  `json:"id"`
 	PropertyTypeID     string   `json:"propertyTypeID"`
@@ -514,6 +453,7 @@ type PropertyInput struct {
 	RangeToValue       *float64 `json:"rangeToValue"`
 	EquipmentIDValue   *string  `json:"equipmentIDValue"`
 	LocationIDValue    *string  `json:"locationIDValue"`
+	ServiceIDValue     *string  `json:"serviceIDValue"`
 	IsEditable         *bool    `json:"isEditable"`
 	IsInstanceProperty *bool    `json:"isInstanceProperty"`
 }
@@ -535,6 +475,7 @@ type PropertyTypeInput struct {
 	IsEditable         *bool        `json:"isEditable"`
 	IsInstanceProperty *bool        `json:"isInstanceProperty"`
 	IsMandatory        *bool        `json:"isMandatory"`
+	IsDeleted          *bool        `json:"isDeleted"`
 }
 
 type PythonPackage struct {
@@ -544,41 +485,48 @@ type PythonPackage struct {
 	HasBreakingChange bool      `json:"hasBreakingChange"`
 }
 
+// A connection to a list of search entries.
 type SearchEntriesConnection struct {
-	Edges    []*SearchEntryEdge `json:"edges"`
-	PageInfo *PageInfo          `json:"pageInfo"`
+	// A list of search entry edges.
+	Edges []*SearchEntryEdge `json:"edges"`
+	// Information to aid in pagination.
+	PageInfo *ent.PageInfo `json:"pageInfo"`
 }
 
 type SearchEntry struct {
-	EntityID   string `json:"entityId"`
-	EntityType string `json:"entityType"`
-	Name       string `json:"name"`
-	Type       string `json:"type"`
+	EntityID   string  `json:"entityId"`
+	EntityType string  `json:"entityType"`
+	Name       string  `json:"name"`
+	Type       string  `json:"type"`
+	ExternalID *string `json:"externalId"`
 }
 
+// A search entry edge in a connection.
 type SearchEntryEdge struct {
-	Node   *SearchEntry `json:"node"`
-	Cursor Cursor       `json:"cursor"`
+	// The search entry at the end of the edge.
+	Node *SearchEntry `json:"node"`
+	// A cursor for use in pagination.
+	Cursor ent.Cursor `json:"cursor"`
 }
 
 type ServiceCreateData struct {
-	Name                string           `json:"name"`
-	ExternalID          *string          `json:"externalId"`
-	ServiceTypeID       string           `json:"serviceTypeId"`
-	CustomerID          *string          `json:"customerId"`
-	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
-	Properties          []*PropertyInput `json:"properties"`
-	TerminationPointIds []string         `json:"terminationPointIds"`
+	Name               string           `json:"name"`
+	ExternalID         *string          `json:"externalId"`
+	Status             *ServiceStatus   `json:"status"`
+	ServiceTypeID      string           `json:"serviceTypeId"`
+	CustomerID         *string          `json:"customerId"`
+	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	Properties         []*PropertyInput `json:"properties"`
 }
 
 type ServiceEditData struct {
-	ID                  string           `json:"id"`
-	Name                string           `json:"name"`
-	ExternalID          *string          `json:"externalId"`
-	CustomerID          *string          `json:"customerId"`
-	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
-	Properties          []*PropertyInput `json:"properties"`
-	TerminationPointIds []string         `json:"terminationPointIds"`
+	ID                 string           `json:"id"`
+	Name               *string          `json:"name"`
+	ExternalID         *string          `json:"externalId"`
+	Status             *ServiceStatus   `json:"status"`
+	CustomerID         *string          `json:"customerId"`
+	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	Properties         []*PropertyInput `json:"properties"`
 }
 
 type ServiceFilterInput struct {
@@ -595,20 +543,10 @@ type ServiceSearchResult struct {
 	Count    int            `json:"count"`
 }
 
-type ServiceTypeConnection struct {
-	Edges    []*ServiceTypeEdge `json:"edges"`
-	PageInfo *PageInfo          `json:"pageInfo"`
-}
-
 type ServiceTypeCreateData struct {
 	Name        string               `json:"name"`
 	HasCustomer bool                 `json:"hasCustomer"`
 	Properties  []*PropertyTypeInput `json:"properties"`
-}
-
-type ServiceTypeEdge struct {
-	Node   *ent.ServiceType `json:"node"`
-	Cursor Cursor           `json:"cursor"`
 }
 
 type ServiceTypeEditData struct {
@@ -644,7 +582,9 @@ type SurveyCellScanData struct {
 type SurveyCreateData struct {
 	Name                string                    `json:"name"`
 	OwnerName           *string                   `json:"ownerName"`
+	CreationTimestamp   *int                      `json:"creationTimestamp"`
 	CompletionTimestamp int                       `json:"completionTimestamp"`
+	Status              *SurveyStatus             `json:"status"`
 	LocationID          string                    `json:"locationID"`
 	SurveyResponses     []*SurveyQuestionResponse `json:"surveyResponses"`
 }
@@ -707,24 +647,15 @@ type TechnicianInput struct {
 }
 
 type TopologyLink struct {
-	Source string `json:"source"`
-	Target string `json:"target"`
-}
-
-type WorkOrderConnection struct {
-	Edges    []*WorkOrderEdge `json:"edges"`
-	PageInfo *PageInfo        `json:"pageInfo"`
+	Type   TopologyLinkType `json:"type"`
+	Source ent.Noder        `json:"source"`
+	Target ent.Noder        `json:"target"`
 }
 
 type WorkOrderDefinitionInput struct {
 	ID    *string `json:"id"`
 	Index *int    `json:"index"`
 	Type  string  `json:"type"`
-}
-
-type WorkOrderEdge struct {
-	Node   *ent.WorkOrder `json:"node"`
-	Cursor Cursor         `json:"cursor"`
 }
 
 type WorkOrderExecutionResult struct {
@@ -743,55 +674,6 @@ type WorkOrderFilterInput struct {
 	IDSet         []string            `json:"idSet"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                `json:"maxDepth"`
-}
-
-type WorkOrderTypeConnection struct {
-	Edges    []*WorkOrderTypeEdge `json:"edges"`
-	PageInfo *PageInfo            `json:"pageInfo"`
-}
-
-type WorkOrderTypeEdge struct {
-	Node   *ent.WorkOrderType `json:"node"`
-	Cursor Cursor             `json:"cursor"`
-}
-
-type ActionID string
-
-const (
-	ActionIDMagmaRebootNode ActionID = "magma_reboot_node"
-)
-
-var AllActionID = []ActionID{
-	ActionIDMagmaRebootNode,
-}
-
-func (e ActionID) IsValid() bool {
-	switch e {
-	case ActionIDMagmaRebootNode:
-		return true
-	}
-	return false
-}
-
-func (e ActionID) String() string {
-	return string(e)
-}
-
-func (e *ActionID) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = ActionID(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ActionID", str)
-	}
-	return nil
-}
-
-func (e ActionID) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type CellularNetworkType string
@@ -886,15 +768,17 @@ type CommentEntity string
 
 const (
 	CommentEntityWorkOrder CommentEntity = "WORK_ORDER"
+	CommentEntityProject   CommentEntity = "PROJECT"
 )
 
 var AllCommentEntity = []CommentEntity{
 	CommentEntityWorkOrder,
+	CommentEntityProject,
 }
 
 func (e CommentEntity) IsValid() bool {
 	switch e {
-	case CommentEntityWorkOrder:
+	case CommentEntityWorkOrder, CommentEntityProject:
 		return true
 	}
 	return false
@@ -1250,6 +1134,7 @@ const (
 	PortFilterTypePortInstEquipment PortFilterType = "PORT_INST_EQUIPMENT"
 	PortFilterTypeLocationInst      PortFilterType = "LOCATION_INST"
 	PortFilterTypeProperty          PortFilterType = "PROPERTY"
+	PortFilterTypeServiceInst       PortFilterType = "SERVICE_INST"
 )
 
 var AllPortFilterType = []PortFilterType{
@@ -1258,11 +1143,12 @@ var AllPortFilterType = []PortFilterType{
 	PortFilterTypePortInstEquipment,
 	PortFilterTypeLocationInst,
 	PortFilterTypeProperty,
+	PortFilterTypeServiceInst,
 }
 
 func (e PortFilterType) IsValid() bool {
 	switch e {
-	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty:
+	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty, PortFilterTypeServiceInst:
 		return true
 	}
 	return false
@@ -1378,17 +1264,19 @@ func (e PropertyEntity) MarshalGQL(w io.Writer) {
 type PropertyKind string
 
 const (
-	PropertyKindString      PropertyKind = "string"
-	PropertyKindInt         PropertyKind = "int"
-	PropertyKindBool        PropertyKind = "bool"
-	PropertyKindFloat       PropertyKind = "float"
-	PropertyKindDate        PropertyKind = "date"
-	PropertyKindEnum        PropertyKind = "enum"
-	PropertyKindRange       PropertyKind = "range"
-	PropertyKindEmail       PropertyKind = "email"
-	PropertyKindGpsLocation PropertyKind = "gps_location"
-	PropertyKindEquipment   PropertyKind = "equipment"
-	PropertyKindLocation    PropertyKind = "location"
+	PropertyKindString        PropertyKind = "string"
+	PropertyKindInt           PropertyKind = "int"
+	PropertyKindBool          PropertyKind = "bool"
+	PropertyKindFloat         PropertyKind = "float"
+	PropertyKindDate          PropertyKind = "date"
+	PropertyKindEnum          PropertyKind = "enum"
+	PropertyKindRange         PropertyKind = "range"
+	PropertyKindEmail         PropertyKind = "email"
+	PropertyKindGpsLocation   PropertyKind = "gps_location"
+	PropertyKindEquipment     PropertyKind = "equipment"
+	PropertyKindLocation      PropertyKind = "location"
+	PropertyKindService       PropertyKind = "service"
+	PropertyKindDatetimeLocal PropertyKind = "datetime_local"
 )
 
 var AllPropertyKind = []PropertyKind{
@@ -1403,11 +1291,13 @@ var AllPropertyKind = []PropertyKind{
 	PropertyKindGpsLocation,
 	PropertyKindEquipment,
 	PropertyKindLocation,
+	PropertyKindService,
+	PropertyKindDatetimeLocal,
 }
 
 func (e PropertyKind) IsValid() bool {
 	switch e {
-	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation:
+	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation, PropertyKindService, PropertyKindDatetimeLocal:
 		return true
 	}
 	return false
@@ -1434,32 +1324,75 @@ func (e PropertyKind) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ServiceEndpointRole string
+
+const (
+	ServiceEndpointRoleConsumer ServiceEndpointRole = "CONSUMER"
+	ServiceEndpointRoleProvider ServiceEndpointRole = "PROVIDER"
+)
+
+var AllServiceEndpointRole = []ServiceEndpointRole{
+	ServiceEndpointRoleConsumer,
+	ServiceEndpointRoleProvider,
+}
+
+func (e ServiceEndpointRole) IsValid() bool {
+	switch e {
+	case ServiceEndpointRoleConsumer, ServiceEndpointRoleProvider:
+		return true
+	}
+	return false
+}
+
+func (e ServiceEndpointRole) String() string {
+	return string(e)
+}
+
+func (e *ServiceEndpointRole) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServiceEndpointRole(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServiceEndpointRole", str)
+	}
+	return nil
+}
+
+func (e ServiceEndpointRole) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 // what filters should we apply on services
 type ServiceFilterType string
 
 const (
 	ServiceFilterTypeServiceInstName         ServiceFilterType = "SERVICE_INST_NAME"
+	ServiceFilterTypeServiceStatus           ServiceFilterType = "SERVICE_STATUS"
 	ServiceFilterTypeServiceType             ServiceFilterType = "SERVICE_TYPE"
 	ServiceFilterTypeServiceInstExternalID   ServiceFilterType = "SERVICE_INST_EXTERNAL_ID"
 	ServiceFilterTypeServiceInstCustomerName ServiceFilterType = "SERVICE_INST_CUSTOMER_NAME"
-	ServiceFilterTypeServiceInstProperty     ServiceFilterType = "SERVICE_INST_PROPERTY"
+	ServiceFilterTypeProperty                ServiceFilterType = "PROPERTY"
 	ServiceFilterTypeLocationInst            ServiceFilterType = "LOCATION_INST"
 	ServiceFilterTypeEquipmentInService      ServiceFilterType = "EQUIPMENT_IN_SERVICE"
 )
 
 var AllServiceFilterType = []ServiceFilterType{
 	ServiceFilterTypeServiceInstName,
+	ServiceFilterTypeServiceStatus,
 	ServiceFilterTypeServiceType,
 	ServiceFilterTypeServiceInstExternalID,
 	ServiceFilterTypeServiceInstCustomerName,
-	ServiceFilterTypeServiceInstProperty,
+	ServiceFilterTypeProperty,
 	ServiceFilterTypeLocationInst,
 	ServiceFilterTypeEquipmentInService,
 }
 
 func (e ServiceFilterType) IsValid() bool {
 	switch e {
-	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeServiceInstProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
+	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
 		return true
 	}
 	return false
@@ -1483,6 +1416,51 @@ func (e *ServiceFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ServiceFilterType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServiceStatus string
+
+const (
+	ServiceStatusPending      ServiceStatus = "PENDING"
+	ServiceStatusInService    ServiceStatus = "IN_SERVICE"
+	ServiceStatusMaintenance  ServiceStatus = "MAINTENANCE"
+	ServiceStatusDisconnected ServiceStatus = "DISCONNECTED"
+)
+
+var AllServiceStatus = []ServiceStatus{
+	ServiceStatusPending,
+	ServiceStatusInService,
+	ServiceStatusMaintenance,
+	ServiceStatusDisconnected,
+}
+
+func (e ServiceStatus) IsValid() bool {
+	switch e {
+	case ServiceStatusPending, ServiceStatusInService, ServiceStatusMaintenance, ServiceStatusDisconnected:
+		return true
+	}
+	return false
+}
+
+func (e ServiceStatus) String() string {
+	return string(e)
+}
+
+func (e *ServiceStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServiceStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServiceStatus", str)
+	}
+	return nil
+}
+
+func (e ServiceStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1547,42 +1525,85 @@ func (e SurveyQuestionType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type TriggerID string
+type SurveyStatus string
 
 const (
-	TriggerIDMagmaAlert TriggerID = "magma_alert"
+	SurveyStatusPlanned    SurveyStatus = "PLANNED"
+	SurveyStatusInprogress SurveyStatus = "INPROGRESS"
+	SurveyStatusCompleted  SurveyStatus = "COMPLETED"
 )
 
-var AllTriggerID = []TriggerID{
-	TriggerIDMagmaAlert,
+var AllSurveyStatus = []SurveyStatus{
+	SurveyStatusPlanned,
+	SurveyStatusInprogress,
+	SurveyStatusCompleted,
 }
 
-func (e TriggerID) IsValid() bool {
+func (e SurveyStatus) IsValid() bool {
 	switch e {
-	case TriggerIDMagmaAlert:
+	case SurveyStatusPlanned, SurveyStatusInprogress, SurveyStatusCompleted:
 		return true
 	}
 	return false
 }
 
-func (e TriggerID) String() string {
+func (e SurveyStatus) String() string {
 	return string(e)
 }
 
-func (e *TriggerID) UnmarshalGQL(v interface{}) error {
+func (e *SurveyStatus) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = TriggerID(str)
+	*e = SurveyStatus(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TriggerID", str)
+		return fmt.Errorf("%s is not a valid SurveyStatus", str)
 	}
 	return nil
 }
 
-func (e TriggerID) MarshalGQL(w io.Writer) {
+func (e SurveyStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TopologyLinkType string
+
+const (
+	TopologyLinkTypePhysical TopologyLinkType = "PHYSICAL"
+)
+
+var AllTopologyLinkType = []TopologyLinkType{
+	TopologyLinkTypePhysical,
+}
+
+func (e TopologyLinkType) IsValid() bool {
+	switch e {
+	case TopologyLinkTypePhysical:
+		return true
+	}
+	return false
+}
+
+func (e TopologyLinkType) String() string {
+	return string(e)
+}
+
+func (e *TopologyLinkType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TopologyLinkType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TopologyLinkType", str)
+	}
+	return nil
+}
+
+func (e TopologyLinkType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

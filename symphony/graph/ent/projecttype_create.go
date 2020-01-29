@@ -13,7 +13,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -170,111 +171,123 @@ func (ptc *ProjectTypeCreate) SaveX(ctx context.Context) *ProjectType {
 
 func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(ptc.driver.Dialect())
-		pt      = &ProjectType{config: ptc.config}
+		pt    = &ProjectType{config: ptc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: projecttype.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: projecttype.FieldID,
+			},
+		}
 	)
-	tx, err := ptc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(projecttype.Table).Default()
 	if value := ptc.create_time; value != nil {
-		insert.Set(projecttype.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: projecttype.FieldCreateTime,
+		})
 		pt.CreateTime = *value
 	}
 	if value := ptc.update_time; value != nil {
-		insert.Set(projecttype.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: projecttype.FieldUpdateTime,
+		})
 		pt.UpdateTime = *value
 	}
 	if value := ptc.name; value != nil {
-		insert.Set(projecttype.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: projecttype.FieldName,
+		})
 		pt.Name = *value
 	}
 	if value := ptc.description; value != nil {
-		insert.Set(projecttype.FieldDescription, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: projecttype.FieldDescription,
+		})
 		pt.Description = value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(projecttype.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	pt.ID = strconv.FormatInt(id, 10)
-	if len(ptc.projects) > 0 {
-		p := sql.P()
-		for eid := range ptc.projects {
-			eid, err := strconv.Atoi(eid)
+	if nodes := ptc.projects; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   projecttype.ProjectsTable,
+			Columns: []string{projecttype.ProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: project.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(project.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(projecttype.ProjectsTable).
-			Set(projecttype.ProjectsColumn, id).
-			Where(sql.And(p, sql.IsNull(projecttype.ProjectsColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(ptc.projects) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"projects\" %v already connected to a different \"ProjectType\"", keys(ptc.projects))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(ptc.properties) > 0 {
-		p := sql.P()
-		for eid := range ptc.properties {
-			eid, err := strconv.Atoi(eid)
+	if nodes := ptc.properties; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   projecttype.PropertiesTable,
+			Columns: []string{projecttype.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(propertytype.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(projecttype.PropertiesTable).
-			Set(projecttype.PropertiesColumn, id).
-			Where(sql.And(p, sql.IsNull(projecttype.PropertiesColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(ptc.properties) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"ProjectType\"", keys(ptc.properties))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(ptc.work_orders) > 0 {
-		p := sql.P()
-		for eid := range ptc.work_orders {
-			eid, err := strconv.Atoi(eid)
+	if nodes := ptc.work_orders; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   projecttype.WorkOrdersTable,
+			Columns: []string{projecttype.WorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorderdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(workorderdefinition.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(projecttype.WorkOrdersTable).
-			Set(projecttype.WorkOrdersColumn, id).
-			Where(sql.And(p, sql.IsNull(projecttype.WorkOrdersColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(ptc.work_orders) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"ProjectType\"", keys(ptc.work_orders))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, ptc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	pt.ID = strconv.FormatInt(id, 10)
 	return pt, nil
 }

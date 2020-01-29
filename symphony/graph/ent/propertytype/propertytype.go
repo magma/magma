@@ -52,6 +52,8 @@ const (
 	FieldEditable = "editable"
 	// FieldMandatory holds the string denoting the mandatory vertex property in the database.
 	FieldMandatory = "mandatory"
+	// FieldDeleted holds the string denoting the deleted vertex property in the database.
+	FieldDeleted = "deleted"
 
 	// Table holds the table name of the propertytype in the database.
 	Table = "property_types"
@@ -113,7 +115,7 @@ const (
 	ProjectTypeColumn = "project_type_id"
 )
 
-// Columns holds all SQL columns are propertytype fields.
+// Columns holds all SQL columns for propertytype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -133,6 +135,18 @@ var Columns = []string{
 	FieldIsInstanceProperty,
 	FieldEditable,
 	FieldMandatory,
+	FieldDeleted,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the PropertyType type.
+var ForeignKeys = []string{
+	"equipment_port_type_id",
+	"link_equipment_port_type_id",
+	"equipment_type_id",
+	"location_type_id",
+	"project_type_id",
+	"service_type_id",
+	"work_order_type_id",
 }
 
 var (
@@ -168,4 +182,9 @@ var (
 	descMandatory = fields[14].Descriptor()
 	// DefaultMandatory holds the default value on creation for the mandatory field.
 	DefaultMandatory = descMandatory.Default.(bool)
+
+	// descDeleted is the schema descriptor for deleted field.
+	descDeleted = fields[15].Descriptor()
+	// DefaultDeleted holds the default value on creation for the deleted field.
+	DefaultDeleted = descDeleted.Default.(bool)
 )

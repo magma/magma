@@ -53,6 +53,8 @@ class PropertyKind(Enum):
     gps_location = "gps_location"
     equipment = "equipment"
     location = "location"
+    service = "service"
+    datetime_local = "datetime_local"
 
 
 @dataclass_json
@@ -70,7 +72,6 @@ class AddEquipmentTypeInput:
     @dataclass
     class EquipmentPortInput:
         name: str
-        type: str
         id: Optional[str] = None
         index: Optional[int] = None
         visibleLabel: Optional[str] = None
@@ -96,6 +97,7 @@ class AddEquipmentTypeInput:
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
         isMandatory: Optional[bool] = None
+        isDeleted: Optional[bool] = None
 
     name: str
     positions: List[EquipmentPositionInput]
@@ -138,7 +140,6 @@ class AddEquipmentTypeMutation:
       name
       index
       visibleLabel
-      type
     }
   }
 }
@@ -180,7 +181,6 @@ class AddEquipmentTypeMutation:
             class EquipmentPortDefinition:
                 id: str
                 name: str
-                type: str
                 index: Optional[int] = None
                 visibleLabel: Optional[str] = None
 

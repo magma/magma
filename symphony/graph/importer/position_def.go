@@ -37,9 +37,21 @@ func (m *importer) processPositionDefinitionsCSV(w http.ResponseWriter, r *http.
 		_ = m.populateEquipmentTypeNameToIDMapGeneral(ctx, firstLine, false)
 		equipmentTypeNameToID := getImportContext(ctx).equipmentTypeNameToID
 
-		positionNameIndex := findIndex(firstLine, "position_name")
-		positionLabelIndex := findIndex(firstLine, "Position_Visible_Label")
-		equipmentTypeNameIndex := findIndex(firstLine, "Equipment_Type")
+		positionNameIndex := findIndexForSimilar(firstLine, "position_name")
+		if positionNameIndex == -1 {
+			errorReturn(w, "Couldn't find 'position_name' title", log, nil)
+			return
+		}
+		positionLabelIndex := findIndexForSimilar(firstLine, "Position_Visible_Label")
+		if positionLabelIndex == -1 {
+			errorReturn(w, "Couldn't find 'Position_Visible_Label' title", log, nil)
+			return
+		}
+		equipmentTypeNameIndex := findIndexForSimilar(firstLine, "Equipment_Type")
+		if equipmentTypeNameIndex == -1 {
+			errorReturn(w, "Couldn't find 'Equipment_Type' title", log, nil)
+			return
+		}
 		for {
 			line, err := reader.Read()
 			if err != nil {

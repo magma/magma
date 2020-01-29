@@ -24,8 +24,6 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldName holds the string denoting the name vertex property in the database.
 	FieldName = "name"
-	// FieldType holds the string denoting the type vertex property in the database.
-	FieldType = "type"
 	// FieldIndex holds the string denoting the index vertex property in the database.
 	FieldIndex = "index"
 	// FieldBandwidth holds the string denoting the bandwidth vertex property in the database.
@@ -58,16 +56,21 @@ const (
 	EquipmentTypeColumn = "equipment_type_id"
 )
 
-// Columns holds all SQL columns are equipmentportdefinition fields.
+// Columns holds all SQL columns for equipmentportdefinition fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldName,
-	FieldType,
 	FieldIndex,
 	FieldBandwidth,
 	FieldVisibilityLabel,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentPortDefinition type.
+var ForeignKeys = []string{
+	"equipment_port_type_id",
+	"equipment_type_id",
 }
 
 var (

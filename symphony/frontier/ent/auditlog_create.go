@@ -8,11 +8,11 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/auditlog"
 )
 
@@ -185,78 +185,126 @@ func (alc *AuditLogCreate) SaveX(ctx context.Context) *AuditLog {
 
 func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 	var (
-		builder = sql.Dialect(alc.driver.Dialect())
-		al      = &AuditLog{config: alc.config}
+		al    = &AuditLog{config: alc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: auditlog.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: auditlog.FieldID,
+			},
+		}
 	)
-	tx, err := alc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(auditlog.Table).Default()
 	if value := alc.created_at; value != nil {
-		insert.Set(auditlog.FieldCreatedAt, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: auditlog.FieldCreatedAt,
+		})
 		al.CreatedAt = *value
 	}
 	if value := alc.updated_at; value != nil {
-		insert.Set(auditlog.FieldUpdatedAt, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: auditlog.FieldUpdatedAt,
+		})
 		al.UpdatedAt = *value
 	}
 	if value := alc.acting_user_id; value != nil {
-		insert.Set(auditlog.FieldActingUserID, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: auditlog.FieldActingUserID,
+		})
 		al.ActingUserID = *value
 	}
 	if value := alc.organization; value != nil {
-		insert.Set(auditlog.FieldOrganization, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldOrganization,
+		})
 		al.Organization = *value
 	}
 	if value := alc.mutation_type; value != nil {
-		insert.Set(auditlog.FieldMutationType, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldMutationType,
+		})
 		al.MutationType = *value
 	}
 	if value := alc.object_id; value != nil {
-		insert.Set(auditlog.FieldObjectID, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldObjectID,
+		})
 		al.ObjectID = *value
 	}
 	if value := alc.object_type; value != nil {
-		insert.Set(auditlog.FieldObjectType, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldObjectType,
+		})
 		al.ObjectType = *value
 	}
 	if value := alc.object_display_name; value != nil {
-		insert.Set(auditlog.FieldObjectDisplayName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldObjectDisplayName,
+		})
 		al.ObjectDisplayName = *value
 	}
 	if value := alc.mutation_data; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		insert.Set(auditlog.FieldMutationData, buf)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: auditlog.FieldMutationData,
+		})
 		al.MutationData = *value
 	}
 	if value := alc.url; value != nil {
-		insert.Set(auditlog.FieldURL, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldURL,
+		})
 		al.URL = *value
 	}
 	if value := alc.ip_address; value != nil {
-		insert.Set(auditlog.FieldIPAddress, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldIPAddress,
+		})
 		al.IPAddress = *value
 	}
 	if value := alc.status; value != nil {
-		insert.Set(auditlog.FieldStatus, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldStatus,
+		})
 		al.Status = *value
 	}
 	if value := alc.status_code; value != nil {
-		insert.Set(auditlog.FieldStatusCode, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldStatusCode,
+		})
 		al.StatusCode = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(auditlog.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	al.ID = int(id)
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, alc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	al.ID = int(id)
 	return al, nil
 }

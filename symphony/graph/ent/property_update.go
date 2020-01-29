@@ -9,11 +9,12 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/link"
@@ -63,6 +64,7 @@ type PropertyUpdate struct {
 	project               map[string]struct{}
 	equipment_value       map[string]struct{}
 	location_value        map[string]struct{}
+	service_value         map[string]struct{}
 	clearedType           bool
 	clearedLocation       bool
 	clearedEquipment      bool
@@ -73,6 +75,7 @@ type PropertyUpdate struct {
 	clearedProject        bool
 	clearedEquipmentValue bool
 	clearedLocationValue  bool
+	clearedServiceValue   bool
 	predicates            []predicate.Property
 }
 
@@ -528,6 +531,28 @@ func (pu *PropertyUpdate) SetLocationValue(l *Location) *PropertyUpdate {
 	return pu.SetLocationValueID(l.ID)
 }
 
+// SetServiceValueID sets the service_value edge to Service by id.
+func (pu *PropertyUpdate) SetServiceValueID(id string) *PropertyUpdate {
+	if pu.service_value == nil {
+		pu.service_value = make(map[string]struct{})
+	}
+	pu.service_value[id] = struct{}{}
+	return pu
+}
+
+// SetNillableServiceValueID sets the service_value edge to Service by id if the given value is not nil.
+func (pu *PropertyUpdate) SetNillableServiceValueID(id *string) *PropertyUpdate {
+	if id != nil {
+		pu = pu.SetServiceValueID(*id)
+	}
+	return pu
+}
+
+// SetServiceValue sets the service_value edge to Service.
+func (pu *PropertyUpdate) SetServiceValue(s *Service) *PropertyUpdate {
+	return pu.SetServiceValueID(s.ID)
+}
+
 // ClearType clears the type edge to PropertyType.
 func (pu *PropertyUpdate) ClearType() *PropertyUpdate {
 	pu.clearedType = true
@@ -588,6 +613,12 @@ func (pu *PropertyUpdate) ClearLocationValue() *PropertyUpdate {
 	return pu
 }
 
+// ClearServiceValue clears the service_value edge to Service.
+func (pu *PropertyUpdate) ClearServiceValue() *PropertyUpdate {
+	pu.clearedServiceValue = true
+	return pu
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (pu *PropertyUpdate) Save(ctx context.Context) (int, error) {
 	if pu.update_time == nil {
@@ -627,6 +658,9 @@ func (pu *PropertyUpdate) Save(ctx context.Context) (int, error) {
 	if len(pu.location_value) > 1 {
 		return 0, errors.New("ent: multiple assignments on a unique edge \"location_value\"")
 	}
+	if len(pu.service_value) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"service_value\"")
+	}
 	return pu.sqlSave(ctx)
 }
 
@@ -653,370 +687,612 @@ func (pu *PropertyUpdate) ExecX(ctx context.Context) {
 }
 
 func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(pu.driver.Dialect())
-		selector = builder.Select(property.FieldID).From(builder.Table(property.Table))
-	)
-	for _, p := range pu.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   property.Table,
+			Columns: property.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: property.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = pu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := pu.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := pu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(property.Table)
-	)
-	updater = updater.Where(sql.InInts(property.FieldID, ids...))
 	if value := pu.update_time; value != nil {
-		updater.Set(property.FieldUpdateTime, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: property.FieldUpdateTime,
+		})
 	}
 	if value := pu.int_val; value != nil {
-		updater.Set(property.FieldIntVal, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: property.FieldIntVal,
+		})
 	}
 	if value := pu.addint_val; value != nil {
-		updater.Add(property.FieldIntVal, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: property.FieldIntVal,
+		})
 	}
 	if pu.clearint_val {
-		updater.SetNull(property.FieldIntVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: property.FieldIntVal,
+		})
 	}
 	if value := pu.bool_val; value != nil {
-		updater.Set(property.FieldBoolVal, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: property.FieldBoolVal,
+		})
 	}
 	if pu.clearbool_val {
-		updater.SetNull(property.FieldBoolVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Column: property.FieldBoolVal,
+		})
 	}
 	if value := pu.float_val; value != nil {
-		updater.Set(property.FieldFloatVal, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldFloatVal,
+		})
 	}
 	if value := pu.addfloat_val; value != nil {
-		updater.Add(property.FieldFloatVal, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldFloatVal,
+		})
 	}
 	if pu.clearfloat_val {
-		updater.SetNull(property.FieldFloatVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldFloatVal,
+		})
 	}
 	if value := pu.latitude_val; value != nil {
-		updater.Set(property.FieldLatitudeVal, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldLatitudeVal,
+		})
 	}
 	if value := pu.addlatitude_val; value != nil {
-		updater.Add(property.FieldLatitudeVal, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldLatitudeVal,
+		})
 	}
 	if pu.clearlatitude_val {
-		updater.SetNull(property.FieldLatitudeVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldLatitudeVal,
+		})
 	}
 	if value := pu.longitude_val; value != nil {
-		updater.Set(property.FieldLongitudeVal, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldLongitudeVal,
+		})
 	}
 	if value := pu.addlongitude_val; value != nil {
-		updater.Add(property.FieldLongitudeVal, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldLongitudeVal,
+		})
 	}
 	if pu.clearlongitude_val {
-		updater.SetNull(property.FieldLongitudeVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldLongitudeVal,
+		})
 	}
 	if value := pu.range_from_val; value != nil {
-		updater.Set(property.FieldRangeFromVal, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldRangeFromVal,
+		})
 	}
 	if value := pu.addrange_from_val; value != nil {
-		updater.Add(property.FieldRangeFromVal, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldRangeFromVal,
+		})
 	}
 	if pu.clearrange_from_val {
-		updater.SetNull(property.FieldRangeFromVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldRangeFromVal,
+		})
 	}
 	if value := pu.range_to_val; value != nil {
-		updater.Set(property.FieldRangeToVal, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldRangeToVal,
+		})
 	}
 	if value := pu.addrange_to_val; value != nil {
-		updater.Add(property.FieldRangeToVal, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldRangeToVal,
+		})
 	}
 	if pu.clearrange_to_val {
-		updater.SetNull(property.FieldRangeToVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldRangeToVal,
+		})
 	}
 	if value := pu.string_val; value != nil {
-		updater.Set(property.FieldStringVal, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: property.FieldStringVal,
+		})
 	}
 	if pu.clearstring_val {
-		updater.SetNull(property.FieldStringVal)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: property.FieldStringVal,
+		})
 	}
 	if pu.clearedType {
-		query, args := builder.Update(property.TypeTable).
-			SetNull(property.TypeColumn).
-			Where(sql.InInts(propertytype.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.TypeTable,
+			Columns: []string{property.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu._type) > 0 {
-		for eid := range pu._type {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.TypeTable).
-				Set(property.TypeColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu._type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.TypeTable,
+			Columns: []string{property.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedLocation {
-		query, args := builder.Update(property.LocationTable).
-			SetNull(property.LocationColumn).
-			Where(sql.InInts(location.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.LocationTable,
+			Columns: []string{property.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu.location) > 0 {
-		for eid := range pu.location {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.LocationTable).
-				Set(property.LocationColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.LocationTable,
+			Columns: []string{property.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedEquipment {
-		query, args := builder.Update(property.EquipmentTable).
-			SetNull(property.EquipmentColumn).
-			Where(sql.InInts(equipment.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.EquipmentTable,
+			Columns: []string{property.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu.equipment) > 0 {
-		for eid := range pu.equipment {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.EquipmentTable).
-				Set(property.EquipmentColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu.equipment; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.EquipmentTable,
+			Columns: []string{property.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedService {
-		query, args := builder.Update(property.ServiceTable).
-			SetNull(property.ServiceColumn).
-			Where(sql.InInts(service.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.ServiceTable,
+			Columns: []string{property.ServiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu.service) > 0 {
-		for eid := range pu.service {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.ServiceTable).
-				Set(property.ServiceColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu.service; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.ServiceTable,
+			Columns: []string{property.ServiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedEquipmentPort {
-		query, args := builder.Update(property.EquipmentPortTable).
-			SetNull(property.EquipmentPortColumn).
-			Where(sql.InInts(equipmentport.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.EquipmentPortTable,
+			Columns: []string{property.EquipmentPortColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu.equipment_port) > 0 {
-		for eid := range pu.equipment_port {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.EquipmentPortTable).
-				Set(property.EquipmentPortColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu.equipment_port; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.EquipmentPortTable,
+			Columns: []string{property.EquipmentPortColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedLink {
-		query, args := builder.Update(property.LinkTable).
-			SetNull(property.LinkColumn).
-			Where(sql.InInts(link.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.LinkTable,
+			Columns: []string{property.LinkColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: link.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu.link) > 0 {
-		for eid := range pu.link {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.LinkTable).
-				Set(property.LinkColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu.link; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.LinkTable,
+			Columns: []string{property.LinkColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: link.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedWorkOrder {
-		query, args := builder.Update(property.WorkOrderTable).
-			SetNull(property.WorkOrderColumn).
-			Where(sql.InInts(workorder.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.WorkOrderTable,
+			Columns: []string{property.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu.work_order) > 0 {
-		for eid := range pu.work_order {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.WorkOrderTable).
-				Set(property.WorkOrderColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu.work_order; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.WorkOrderTable,
+			Columns: []string{property.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedProject {
-		query, args := builder.Update(property.ProjectTable).
-			SetNull(property.ProjectColumn).
-			Where(sql.InInts(project.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.ProjectTable,
+			Columns: []string{property.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: project.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu.project) > 0 {
-		for eid := range pu.project {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.ProjectTable).
-				Set(property.ProjectColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu.project; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.ProjectTable,
+			Columns: []string{property.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: project.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedEquipmentValue {
-		query, args := builder.Update(property.EquipmentValueTable).
-			SetNull(property.EquipmentValueColumn).
-			Where(sql.InInts(equipment.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.EquipmentValueTable,
+			Columns: []string{property.EquipmentValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu.equipment_value) > 0 {
-		for eid := range pu.equipment_value {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.EquipmentValueTable).
-				Set(property.EquipmentValueColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu.equipment_value; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.EquipmentValueTable,
+			Columns: []string{property.EquipmentValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if pu.clearedLocationValue {
-		query, args := builder.Update(property.LocationValueTable).
-			SetNull(property.LocationValueColumn).
-			Where(sql.InInts(location.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.LocationValueTable,
+			Columns: []string{property.LocationValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(pu.location_value) > 0 {
-		for eid := range pu.location_value {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.LocationValueTable).
-				Set(property.LocationValueColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := pu.location_value; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.LocationValueTable,
+			Columns: []string{property.LocationValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if pu.clearedServiceValue {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.ServiceValueTable,
+			Columns: []string{property.ServiceValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.service_value; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.ServiceValueTable,
+			Columns: []string{property.ServiceValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // PropertyUpdateOne is the builder for updating a single Property entity.
@@ -1057,6 +1333,7 @@ type PropertyUpdateOne struct {
 	project               map[string]struct{}
 	equipment_value       map[string]struct{}
 	location_value        map[string]struct{}
+	service_value         map[string]struct{}
 	clearedType           bool
 	clearedLocation       bool
 	clearedEquipment      bool
@@ -1067,6 +1344,7 @@ type PropertyUpdateOne struct {
 	clearedProject        bool
 	clearedEquipmentValue bool
 	clearedLocationValue  bool
+	clearedServiceValue   bool
 }
 
 // SetIntVal sets the int_val field.
@@ -1515,6 +1793,28 @@ func (puo *PropertyUpdateOne) SetLocationValue(l *Location) *PropertyUpdateOne {
 	return puo.SetLocationValueID(l.ID)
 }
 
+// SetServiceValueID sets the service_value edge to Service by id.
+func (puo *PropertyUpdateOne) SetServiceValueID(id string) *PropertyUpdateOne {
+	if puo.service_value == nil {
+		puo.service_value = make(map[string]struct{})
+	}
+	puo.service_value[id] = struct{}{}
+	return puo
+}
+
+// SetNillableServiceValueID sets the service_value edge to Service by id if the given value is not nil.
+func (puo *PropertyUpdateOne) SetNillableServiceValueID(id *string) *PropertyUpdateOne {
+	if id != nil {
+		puo = puo.SetServiceValueID(*id)
+	}
+	return puo
+}
+
+// SetServiceValue sets the service_value edge to Service.
+func (puo *PropertyUpdateOne) SetServiceValue(s *Service) *PropertyUpdateOne {
+	return puo.SetServiceValueID(s.ID)
+}
+
 // ClearType clears the type edge to PropertyType.
 func (puo *PropertyUpdateOne) ClearType() *PropertyUpdateOne {
 	puo.clearedType = true
@@ -1575,6 +1875,12 @@ func (puo *PropertyUpdateOne) ClearLocationValue() *PropertyUpdateOne {
 	return puo
 }
 
+// ClearServiceValue clears the service_value edge to Service.
+func (puo *PropertyUpdateOne) ClearServiceValue() *PropertyUpdateOne {
+	puo.clearedServiceValue = true
+	return puo
+}
+
 // Save executes the query and returns the updated entity.
 func (puo *PropertyUpdateOne) Save(ctx context.Context) (*Property, error) {
 	if puo.update_time == nil {
@@ -1614,6 +1920,9 @@ func (puo *PropertyUpdateOne) Save(ctx context.Context) (*Property, error) {
 	if len(puo.location_value) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"location_value\"")
 	}
+	if len(puo.service_value) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"service_value\"")
+	}
 	return puo.sqlSave(ctx)
 }
 
@@ -1640,401 +1949,606 @@ func (puo *PropertyUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err error) {
-	var (
-		builder  = sql.Dialect(puo.driver.Dialect())
-		selector = builder.Select(property.Columns...).From(builder.Table(property.Table))
-	)
-	property.ID(puo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = puo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   property.Table,
+			Columns: property.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  puo.id,
+				Type:   field.TypeString,
+				Column: property.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		pr = &Property{config: puo.config}
-		if err := pr.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into Property: %v", err)
-		}
-		id = pr.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("Property with id: %v", puo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one Property with the same id: %v", puo.id)
-	}
-
-	tx, err := puo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(property.Table)
-	)
-	updater = updater.Where(sql.InInts(property.FieldID, ids...))
 	if value := puo.update_time; value != nil {
-		updater.Set(property.FieldUpdateTime, *value)
-		pr.UpdateTime = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: property.FieldUpdateTime,
+		})
 	}
 	if value := puo.int_val; value != nil {
-		updater.Set(property.FieldIntVal, *value)
-		pr.IntVal = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: property.FieldIntVal,
+		})
 	}
 	if value := puo.addint_val; value != nil {
-		updater.Add(property.FieldIntVal, *value)
-		pr.IntVal += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: property.FieldIntVal,
+		})
 	}
 	if puo.clearint_val {
-		var value int
-		pr.IntVal = value
-		updater.SetNull(property.FieldIntVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: property.FieldIntVal,
+		})
 	}
 	if value := puo.bool_val; value != nil {
-		updater.Set(property.FieldBoolVal, *value)
-		pr.BoolVal = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: property.FieldBoolVal,
+		})
 	}
 	if puo.clearbool_val {
-		var value bool
-		pr.BoolVal = value
-		updater.SetNull(property.FieldBoolVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Column: property.FieldBoolVal,
+		})
 	}
 	if value := puo.float_val; value != nil {
-		updater.Set(property.FieldFloatVal, *value)
-		pr.FloatVal = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldFloatVal,
+		})
 	}
 	if value := puo.addfloat_val; value != nil {
-		updater.Add(property.FieldFloatVal, *value)
-		pr.FloatVal += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldFloatVal,
+		})
 	}
 	if puo.clearfloat_val {
-		var value float64
-		pr.FloatVal = value
-		updater.SetNull(property.FieldFloatVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldFloatVal,
+		})
 	}
 	if value := puo.latitude_val; value != nil {
-		updater.Set(property.FieldLatitudeVal, *value)
-		pr.LatitudeVal = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldLatitudeVal,
+		})
 	}
 	if value := puo.addlatitude_val; value != nil {
-		updater.Add(property.FieldLatitudeVal, *value)
-		pr.LatitudeVal += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldLatitudeVal,
+		})
 	}
 	if puo.clearlatitude_val {
-		var value float64
-		pr.LatitudeVal = value
-		updater.SetNull(property.FieldLatitudeVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldLatitudeVal,
+		})
 	}
 	if value := puo.longitude_val; value != nil {
-		updater.Set(property.FieldLongitudeVal, *value)
-		pr.LongitudeVal = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldLongitudeVal,
+		})
 	}
 	if value := puo.addlongitude_val; value != nil {
-		updater.Add(property.FieldLongitudeVal, *value)
-		pr.LongitudeVal += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldLongitudeVal,
+		})
 	}
 	if puo.clearlongitude_val {
-		var value float64
-		pr.LongitudeVal = value
-		updater.SetNull(property.FieldLongitudeVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldLongitudeVal,
+		})
 	}
 	if value := puo.range_from_val; value != nil {
-		updater.Set(property.FieldRangeFromVal, *value)
-		pr.RangeFromVal = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldRangeFromVal,
+		})
 	}
 	if value := puo.addrange_from_val; value != nil {
-		updater.Add(property.FieldRangeFromVal, *value)
-		pr.RangeFromVal += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldRangeFromVal,
+		})
 	}
 	if puo.clearrange_from_val {
-		var value float64
-		pr.RangeFromVal = value
-		updater.SetNull(property.FieldRangeFromVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldRangeFromVal,
+		})
 	}
 	if value := puo.range_to_val; value != nil {
-		updater.Set(property.FieldRangeToVal, *value)
-		pr.RangeToVal = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldRangeToVal,
+		})
 	}
 	if value := puo.addrange_to_val; value != nil {
-		updater.Add(property.FieldRangeToVal, *value)
-		pr.RangeToVal += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: property.FieldRangeToVal,
+		})
 	}
 	if puo.clearrange_to_val {
-		var value float64
-		pr.RangeToVal = value
-		updater.SetNull(property.FieldRangeToVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: property.FieldRangeToVal,
+		})
 	}
 	if value := puo.string_val; value != nil {
-		updater.Set(property.FieldStringVal, *value)
-		pr.StringVal = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: property.FieldStringVal,
+		})
 	}
 	if puo.clearstring_val {
-		var value string
-		pr.StringVal = value
-		updater.SetNull(property.FieldStringVal)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: property.FieldStringVal,
+		})
 	}
 	if puo.clearedType {
-		query, args := builder.Update(property.TypeTable).
-			SetNull(property.TypeColumn).
-			Where(sql.InInts(propertytype.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.TypeTable,
+			Columns: []string{property.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo._type) > 0 {
-		for eid := range puo._type {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.TypeTable).
-				Set(property.TypeColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo._type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.TypeTable,
+			Columns: []string{property.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedLocation {
-		query, args := builder.Update(property.LocationTable).
-			SetNull(property.LocationColumn).
-			Where(sql.InInts(location.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.LocationTable,
+			Columns: []string{property.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo.location) > 0 {
-		for eid := range puo.location {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.LocationTable).
-				Set(property.LocationColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.LocationTable,
+			Columns: []string{property.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedEquipment {
-		query, args := builder.Update(property.EquipmentTable).
-			SetNull(property.EquipmentColumn).
-			Where(sql.InInts(equipment.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.EquipmentTable,
+			Columns: []string{property.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo.equipment) > 0 {
-		for eid := range puo.equipment {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.EquipmentTable).
-				Set(property.EquipmentColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo.equipment; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.EquipmentTable,
+			Columns: []string{property.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedService {
-		query, args := builder.Update(property.ServiceTable).
-			SetNull(property.ServiceColumn).
-			Where(sql.InInts(service.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.ServiceTable,
+			Columns: []string{property.ServiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo.service) > 0 {
-		for eid := range puo.service {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.ServiceTable).
-				Set(property.ServiceColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo.service; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.ServiceTable,
+			Columns: []string{property.ServiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedEquipmentPort {
-		query, args := builder.Update(property.EquipmentPortTable).
-			SetNull(property.EquipmentPortColumn).
-			Where(sql.InInts(equipmentport.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.EquipmentPortTable,
+			Columns: []string{property.EquipmentPortColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo.equipment_port) > 0 {
-		for eid := range puo.equipment_port {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.EquipmentPortTable).
-				Set(property.EquipmentPortColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo.equipment_port; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.EquipmentPortTable,
+			Columns: []string{property.EquipmentPortColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedLink {
-		query, args := builder.Update(property.LinkTable).
-			SetNull(property.LinkColumn).
-			Where(sql.InInts(link.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.LinkTable,
+			Columns: []string{property.LinkColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: link.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo.link) > 0 {
-		for eid := range puo.link {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.LinkTable).
-				Set(property.LinkColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo.link; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.LinkTable,
+			Columns: []string{property.LinkColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: link.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedWorkOrder {
-		query, args := builder.Update(property.WorkOrderTable).
-			SetNull(property.WorkOrderColumn).
-			Where(sql.InInts(workorder.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.WorkOrderTable,
+			Columns: []string{property.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo.work_order) > 0 {
-		for eid := range puo.work_order {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.WorkOrderTable).
-				Set(property.WorkOrderColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo.work_order; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.WorkOrderTable,
+			Columns: []string{property.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedProject {
-		query, args := builder.Update(property.ProjectTable).
-			SetNull(property.ProjectColumn).
-			Where(sql.InInts(project.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.ProjectTable,
+			Columns: []string{property.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: project.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo.project) > 0 {
-		for eid := range puo.project {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.ProjectTable).
-				Set(property.ProjectColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo.project; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   property.ProjectTable,
+			Columns: []string{property.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: project.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedEquipmentValue {
-		query, args := builder.Update(property.EquipmentValueTable).
-			SetNull(property.EquipmentValueColumn).
-			Where(sql.InInts(equipment.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.EquipmentValueTable,
+			Columns: []string{property.EquipmentValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo.equipment_value) > 0 {
-		for eid := range puo.equipment_value {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.EquipmentValueTable).
-				Set(property.EquipmentValueColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo.equipment_value; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.EquipmentValueTable,
+			Columns: []string{property.EquipmentValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if puo.clearedLocationValue {
-		query, args := builder.Update(property.LocationValueTable).
-			SetNull(property.LocationValueColumn).
-			Where(sql.InInts(location.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.LocationValueTable,
+			Columns: []string{property.LocationValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(puo.location_value) > 0 {
-		for eid := range puo.location_value {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(property.LocationValueTable).
-				Set(property.LocationValueColumn, eid).
-				Where(sql.InInts(property.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := puo.location_value; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.LocationValueTable,
+			Columns: []string{property.LocationValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if puo.clearedServiceValue {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.ServiceValueTable,
+			Columns: []string{property.ServiceValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.service_value; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.ServiceValueTable,
+			Columns: []string{property.ServiceValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	pr = &Property{config: puo.config}
+	_spec.Assign = pr.assignValues
+	_spec.ScanValues = pr.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, puo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return pr, nil

@@ -49,10 +49,10 @@ class PlaintextCliDevice : public Device {
       Engine& engine);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
 
  protected:
-  void setConfig(const folly::dynamic& config) override {
+  void setIntendedDatastore(const folly::dynamic& config) override {
     (void)config;
     MLOG(MERROR) << "[" << id << "] "
                  << "set config on unconfigurable device";

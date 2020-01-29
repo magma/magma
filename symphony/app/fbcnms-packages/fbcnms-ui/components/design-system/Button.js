@@ -55,6 +55,8 @@ const useStyles = makeStyles(_theme => ({
   },
   primarySkin: {},
   redSkin: {},
+  orangeSkin: {},
+  greenSkin: {},
   regularSkin: {},
   graySkin: {},
   disabled: {},
@@ -95,6 +97,18 @@ const useStyles = makeStyles(_theme => ({
       },
       '&:active:not($disabled)': {
         backgroundColor: symphony.palette.R800,
+      },
+    },
+    '&$orangeSkin': {
+      backgroundColor: symphony.palette.Y600,
+      '&:not($disabled) $buttonText': {
+        color: symphony.palette.white,
+      },
+    },
+    '&$greenSkin': {
+      backgroundColor: symphony.palette.G600,
+      '&:not($disabled) $buttonText': {
+        color: symphony.palette.white,
       },
     },
     '&$regularSkin': {
@@ -225,19 +239,29 @@ const useStyles = makeStyles(_theme => ({
 }));
 
 export type ButtonVariant = 'contained' | 'text';
-export type ButtonSkin = 'primary' | 'regular' | 'red' | 'gray';
+export type ButtonSkin =
+  | 'primary'
+  | 'regular'
+  | 'red'
+  | 'gray'
+  | 'orange'
+  | 'green';
 type SvgIcon = React$ComponentType<SvgIconExports>;
 
-type Props = {
-  className?: string,
-  children: React.Node,
-  onClick?: void | (() => void | Promise<void>),
+export type ButtonProps = {|
   skin?: ButtonSkin,
   variant?: ButtonVariant,
   disabled?: boolean,
+|};
+
+export type Props = {
+  className?: string,
+  children: React.Node,
+  onClick?: void | (() => void | Promise<void>),
   leftIcon?: SvgIcon,
   rightIcon?: SvgIcon,
   tooltip?: string,
+  ...ButtonProps,
 };
 
 const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
@@ -277,7 +301,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
         <LeftIcon
           className={classNames(classes.icon, classes.leftIcon)}
           size="small"
-          color="inhreit"
+          color="inherit"
         />
       ) : null}
       <Text variant="body2" weight="medium" className={classes.buttonText}>
@@ -287,7 +311,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
         <RightIcon
           className={classNames(classes.icon, classes.rightIcon)}
           size="small"
-          color="inhreit"
+          color="inherit"
         />
       ) : null}
     </button>

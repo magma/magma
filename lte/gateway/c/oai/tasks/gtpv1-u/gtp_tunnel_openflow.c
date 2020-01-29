@@ -44,10 +44,12 @@ int openflow_init(
   uint32_t mask,
   int mtu,
   int *fd0,
-  int *fd1u)
+  int *fd1u,
+  bool persist_state)
 {
   AssertFatal(
-    start_of_controller() >= 0, "Could not start openflow controller\n");
+    start_of_controller(persist_state) >= 0,
+    "Could not start openflow controller\n");
   return 0;
 }
 
@@ -63,10 +65,17 @@ int openflow_add_tunnel(
   uint32_t i_tei,
   uint32_t o_tei,
   Imsi_t imsi,
-  struct ipv4flow_dl *flow_dl)
+  struct ipv4flow_dl* flow_dl,
+  uint32_t flow_precedence_dl)
 {
   return openflow_controller_add_gtp_tunnel(
-    ue, enb, i_tei, o_tei, (const char *) imsi.digit, flow_dl);
+    ue,
+    enb,
+    i_tei,
+    o_tei,
+    (const char*) imsi.digit,
+    flow_dl,
+    flow_precedence_dl);
 }
 
 int openflow_del_tunnel(struct in_addr ue, uint32_t i_tei,
@@ -81,10 +90,14 @@ int openflow_discard_data_on_tunnel(struct in_addr ue, uint32_t i_tei,
   return openflow_controller_discard_data_on_tunnel(ue, i_tei, flow_dl);
 }
 
-int openflow_forward_data_on_tunnel(struct in_addr ue, uint32_t i_tei,
-    struct ipv4flow_dl *flow_dl)
+int openflow_forward_data_on_tunnel(
+  struct in_addr ue,
+  uint32_t i_tei,
+  struct ipv4flow_dl* flow_dl,
+  uint32_t flow_precedence_dl)
 {
-  return openflow_controller_forward_data_on_tunnel(ue, i_tei, flow_dl);
+  return openflow_controller_forward_data_on_tunnel(
+    ue, i_tei, flow_dl, flow_precedence_dl);
 }
 
 static const struct gtp_tunnel_ops openflow_ops = {

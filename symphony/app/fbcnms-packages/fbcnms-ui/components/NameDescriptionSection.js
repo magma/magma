@@ -8,8 +8,9 @@
  * @format
  */
 
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import NameInput from '@fbcnms/ui/components/design-system/Form/NameInput';
-import React from 'react';
+import React, {useContext} from 'react';
 import Text from './design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import classNames from 'classnames';
@@ -69,6 +70,7 @@ const NameDescriptionSection = ({
   onDescriptionChange,
 }: Props) => {
   const classes = useStyles();
+  const validationContext = useContext(FormValidationContext);
   return (
     <>
       <NameInput
@@ -77,6 +79,7 @@ const NameDescriptionSection = ({
         inputClass={classes.nameField}
         title={title}
         placeholder={namePlaceholder || ''}
+        disabled={validationContext.editLock.detected}
       />
       <Text className={classNames(classes.fieldName, classes.descriptionTitle)}>
         Description
@@ -89,6 +92,7 @@ const NameDescriptionSection = ({
             inputMultiline: classes.inputMultiline,
           },
         }}
+        disabled={validationContext.editLock.detected}
         placeholder={descriptionPlaceholder}
         variant="outlined"
         multiline

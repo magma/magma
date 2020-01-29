@@ -7,9 +7,9 @@ package resolver
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/cloud/actions"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/actions"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/pkg/errors"
 )
 
@@ -25,14 +25,6 @@ func (actionsRuleActionResolver) Action(ctx context.Context, ar *core.ActionsRul
 
 	return &models.ActionsAction{
 		Description: action.Description(),
-		DataType:    "string", // TODO
+		DataType:    action.DataType(),
 	}, nil
-}
-
-func (actionsRuleActionResolver) ActionID(ctx context.Context, action *core.ActionsRuleAction) (models.ActionID, error) {
-	value := models.ActionID(action.ActionID)
-	if !value.IsValid() {
-		return "", errors.Errorf("not a valid actionID: %s", action.ActionID)
-	}
-	return value, nil
 }

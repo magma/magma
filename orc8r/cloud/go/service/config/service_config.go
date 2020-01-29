@@ -104,12 +104,11 @@ func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, conf
 	moduleName = strings.ToLower(moduleName)
 	serviceName = strings.ToLower(serviceName)
 
-	configFileName := filepath.Join(oldConfigDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
+	configFileName := filepath.Join(configDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
 	if fi, err := os.Stat(configFileName); err != nil || fi.IsDir() {
-		configFileName = filepath.Join(configDir, moduleName,
-			fmt.Sprintf("%s.yml", serviceName))
-	} else {
-		log.Printf("Using Legacy Service Registry Configuration: %s", configFileName)
+		old := configFileName
+		configFileName = filepath.Join(oldConfigDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
+		log.Printf("Cannot load '%s': %v, using Legacy Service Registry Configuration: %s", old, err, configFileName)
 	}
 
 	config, err := loadYamlFile(configFileName)
@@ -127,6 +126,8 @@ func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, conf
 			return config, err
 		}
 		config = updateMap(config, overrides)
+	} else {
+		log.Printf("No Override configs found at: %s", overrideFileName)
 	}
 	return config, err
 }

@@ -16,16 +16,11 @@ import type {
 
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React from 'react';
-
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {PortCriteriaConfig} from './PortSearchConfig';
-import {
-  buildPropertyFilterConfigs,
-  getPossibleProperties,
-  getSelectedFilter,
-} from './FilterUtils';
+import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
 
 type Props = {
   filters: FiltersQuery,
@@ -37,17 +32,15 @@ const PortsPowerSearchBar = (props: Props) => {
   const {onFiltersChanged, filters, footer} = props;
   const locationTypesFilterConfigs = useLocationTypes();
 
-  const propertyFilters = usePropertyFilters('port');
-
-  const possibleProperties = getPossibleProperties(propertyFilters.response);
+  const possibleProperties = usePropertyFilters('port');
   const portPropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
 
   const filterConfigs = PortCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(portPropertiesFilterConfigs)
-    .concat(locationTypesFilterConfigs);
+    .concat(portPropertiesFilterConfigs ?? [])
+    .concat(locationTypesFilterConfigs ?? []);
 
   return (
     <PowerSearchBar
@@ -57,7 +50,7 @@ const PortsPowerSearchBar = (props: Props) => {
       onFilterRemoved={handleFilterRemoved}
       onFilterBlurred={handleFilterBlurred}
       getSelectedFilter={(filterConfig: FilterConfig) =>
-        getSelectedFilter(filterConfig, possibleProperties)
+        getSelectedFilter(filterConfig, possibleProperties ?? [])
       }
       placeholder="Filter..."
       searchConfig={PortCriteriaConfig}

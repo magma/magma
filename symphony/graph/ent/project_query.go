@@ -8,11 +8,16 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/project"
@@ -29,7 +34,14 @@ type ProjectQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Project
-	// intermediate queries.
+	// eager-loading edges.
+	withType       *ProjectTypeQuery
+	withLocation   *LocationQuery
+	withComments   *CommentQuery
+	withWorkOrders *WorkOrderQuery
+	withProperties *PropertyQuery
+	withFKs        bool
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -60,59 +72,71 @@ func (pq *ProjectQuery) Order(o ...Order) *ProjectQuery {
 // QueryType chains the current query on the type edge.
 func (pq *ProjectQuery) QueryType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
-		sql.To(projecttype.Table, projecttype.FieldID),
-		sql.Edge(sql.M2O, true, project.TypeTable, project.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(projecttype.Table, projecttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, project.TypeTable, project.TypeColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (pq *ProjectQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, project.LocationTable, project.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, project.LocationTable, project.LocationColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	return query
+}
+
+// QueryComments chains the current query on the comments edge.
+func (pq *ProjectQuery) QueryComments() *CommentQuery {
+	query := &CommentQuery{config: pq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(comment.Table, comment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.CommentsTable, project.CommentsColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (pq *ProjectQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.O2M, false, project.WorkOrdersTable, project.WorkOrdersColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.WorkOrdersTable, project.WorkOrdersColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (pq *ProjectQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, project.PropertiesTable, project.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.PropertiesTable, project.PropertiesColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
-// First returns the first Project entity in the query. Returns *ErrNotFound when no project was found.
+// First returns the first Project entity in the query. Returns *NotFoundError when no project was found.
 func (pq *ProjectQuery) First(ctx context.Context) (*Project, error) {
 	prs, err := pq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(prs) == 0 {
-		return nil, &ErrNotFound{project.Label}
+		return nil, &NotFoundError{project.Label}
 	}
 	return prs[0], nil
 }
@@ -126,14 +150,14 @@ func (pq *ProjectQuery) FirstX(ctx context.Context) *Project {
 	return pr
 }
 
-// FirstID returns the first Project id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Project id in the query. Returns *NotFoundError when no id was found.
 func (pq *ProjectQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{project.Label}
+		err = &NotFoundError{project.Label}
 		return
 	}
 	return ids[0], nil
@@ -158,9 +182,9 @@ func (pq *ProjectQuery) Only(ctx context.Context) (*Project, error) {
 	case 1:
 		return prs[0], nil
 	case 0:
-		return nil, &ErrNotFound{project.Label}
+		return nil, &NotFoundError{project.Label}
 	default:
-		return nil, &ErrNotSingular{project.Label}
+		return nil, &NotSingularError{project.Label}
 	}
 }
 
@@ -183,9 +207,9 @@ func (pq *ProjectQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{project.Label}
+		err = &NotFoundError{project.Label}
 	default:
-		err = &ErrNotSingular{project.Label}
+		err = &NotSingularError{project.Label}
 	}
 	return
 }
@@ -269,9 +293,64 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		order:      append([]Order{}, pq.order...),
 		unique:     append([]string{}, pq.unique...),
 		predicates: append([]predicate.Project{}, pq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: pq.sql.Clone(),
 	}
+}
+
+//  WithType tells the query-builder to eager-loads the nodes that are connected to
+// the "type" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithType(opts ...func(*ProjectTypeQuery)) *ProjectQuery {
+	query := &ProjectTypeQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withType = query
+	return pq
+}
+
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithLocation(opts ...func(*LocationQuery)) *ProjectQuery {
+	query := &LocationQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withLocation = query
+	return pq
+}
+
+//  WithComments tells the query-builder to eager-loads the nodes that are connected to
+// the "comments" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithComments(opts ...func(*CommentQuery)) *ProjectQuery {
+	query := &CommentQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withComments = query
+	return pq
+}
+
+//  WithWorkOrders tells the query-builder to eager-loads the nodes that are connected to
+// the "work_orders" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithWorkOrders(opts ...func(*WorkOrderQuery)) *ProjectQuery {
+	query := &WorkOrderQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withWorkOrders = query
+	return pq
+}
+
+//  WithProperties tells the query-builder to eager-loads the nodes that are connected to
+// the "properties" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithProperties(opts ...func(*PropertyQuery)) *ProjectQuery {
+	query := &PropertyQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withProperties = query
+	return pq
 }
 
 // GroupBy used to group vertices by one or more fields/columns.
@@ -316,45 +395,192 @@ func (pq *ProjectQuery) Select(field string, fields ...string) *ProjectSelect {
 }
 
 func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
-	rows := &sql.Rows{}
-	selector := pq.sqlQuery()
-	if unique := pq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*Project = []*Project{}
+		withFKs            = pq.withFKs
+		_spec              = pq.querySpec()
+	)
+	if pq.withType != nil || pq.withLocation != nil {
+		withFKs = true
 	}
-	query, args := selector.Query()
-	if err := pq.driver.Query(ctx, query, args, rows); err != nil {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, project.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
+		node := &Project{config: pq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var prs Projects
-	if err := prs.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	prs.config(pq.config)
-	return prs, nil
+
+	if query := pq.withType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*Project)
+		for i := range nodes {
+			if fk := nodes[i].type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(projecttype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Type = n
+			}
+		}
+	}
+
+	if query := pq.withLocation; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*Project)
+		for i := range nodes {
+			if fk := nodes[i].project_location_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_location_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
+	}
+
+	if query := pq.withComments; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Project)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Comment(func(s *sql.Selector) {
+			s.Where(sql.InValues(project.CommentsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_comment_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_comment_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_comment_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Comments = append(node.Edges.Comments, n)
+		}
+	}
+
+	if query := pq.withWorkOrders; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Project)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrder(func(s *sql.Selector) {
+			s.Where(sql.InValues(project.WorkOrdersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
+		}
+	}
+
+	if query := pq.withProperties; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Project)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Property(func(s *sql.Selector) {
+			s.Where(sql.InValues(project.PropertiesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Properties = append(node.Edges.Properties, n)
+		}
+	}
+
+	return nodes, nil
 }
 
 func (pq *ProjectQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := pq.sqlQuery()
-	unique := []string{project.FieldID}
-	if len(pq.unique) > 0 {
-		unique = pq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := pq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := pq.querySpec()
+	return sqlgraph.CountNodes(ctx, pq.driver, _spec)
 }
 
 func (pq *ProjectQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -363,6 +589,42 @@ func (pq *ProjectQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (pq *ProjectQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   project.Table,
+			Columns: project.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: project.FieldID,
+			},
+		},
+		From:   pq.sql,
+		Unique: true,
+	}
+	if ps := pq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := pq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := pq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := pq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (pq *ProjectQuery) sqlQuery() *sql.Selector {
@@ -395,7 +657,7 @@ type ProjectGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -516,7 +778,7 @@ func (pgb *ProjectGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(pgb.fields)+len(pgb.fns))
 	columns = append(columns, pgb.fields...)
 	for _, fn := range pgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(pgb.fields...)
 }
@@ -636,7 +898,7 @@ func (ps *ProjectSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ps *ProjectSelect) sqlQuery() sql.Querier {
-	view := "project_view"
-	return sql.Dialect(ps.driver.Dialect()).
-		Select(ps.fields...).From(ps.sql.As(view))
+	selector := ps.sql
+	selector.Select(selector.Columns(ps.fields...)...)
+	return selector
 }

@@ -18,6 +18,7 @@
 #include <folly/Executor.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/futures/Future.h>
+#include <folly/futures/ThreadWheelTimekeeper.h>
 #include <gtest/gtest.h>
 #include <chrono>
 
@@ -35,7 +36,7 @@ shared_ptr<CPUThreadPoolExecutor> executor =
 class QueuedCliTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    devmand::test::utils::log::initLog(MWARNING);
+    devmand::test::utils::log::initLog(MDEBUG);
     devmand::test::utils::ssh::initSsh();
   }
 };
@@ -71,6 +72,24 @@ TEST_F(QueuedCliTest, queuedCli) {
   for (unsigned int i = 0; i < values.size(); ++i) {
     EXPECT_EQ(boost::algorithm::trim_copy(values[i].value()), results[i]);
   }
+}
+
+TEST_F(QueuedCliTest, queueFullTest) {
+  unsigned int parallelThreads = 1;
+  shared_ptr<CPUThreadPoolExecutor> queuedCliParallelExecutor =
+      make_shared<CPUThreadPoolExecutor>(parallelThreads);
+  WriteCommand cmd = WriteCommand::create("a\nb\nc", true);
+  const shared_ptr<QueuedCli>& cli = QueuedCli::make(
+      "testFullCapacity", make_shared<EchoCli>(), executor, 1); // capacity at 1
+
+  vector<Future<string>> queuedFutures;
+
+  queuedFutures.emplace_back(folly::via(
+      queuedCliParallelExecutor.get(),
+      [cli, cmd]() { return cli->executeWrite(cmd); }));
+
+  EXPECT_THROW(
+      collect(queuedFutures.begin(), queuedFutures.end()).get(), runtime_error);
 }
 
 TEST_F(QueuedCliTest, queueOrderingTest) {
@@ -187,6 +206,10 @@ class CustomErr : public runtime_error {
 
 class CustomErrCli : public Cli {
  public:
+  SemiFuture<folly::Unit> destroy() override {
+    return folly::makeSemiFuture(unit);
+  }
+
   folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
     return folly::Future<string>(CustomErr(Command::escape(cmd.raw())));
   }

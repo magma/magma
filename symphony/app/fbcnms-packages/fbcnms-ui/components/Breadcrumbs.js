@@ -67,28 +67,27 @@ const MAX_NUM_BREADCRUMBS = 3;
 type Props = {
   breadcrumbs: Array<BreadcrumbData>,
   className?: string,
+  textClassName?: string,
   size?: 'default' | 'small' | 'large',
   variant?: TextVariant,
 };
 
 const Breadcrumbs = (props: Props) => {
-  const {breadcrumbs, size, className, variant} = props;
+  const {breadcrumbs, size, className, textClassName, variant} = props;
   const classes = useStyles();
 
   const [isBreadcrumbsMenuOpen, toggleBreadcrumbsMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = React.useState(null);
 
+  let startBreadcrumbs = [];
   let collapsedBreadcrumbs = [];
+  const endBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
   if (breadcrumbs.length > MAX_NUM_BREADCRUMBS) {
-    collapsedBreadcrumbs = breadcrumbs.slice(1, breadcrumbs.length - 2);
+    startBreadcrumbs = [breadcrumbs[0]];
+    collapsedBreadcrumbs = breadcrumbs.slice(1, breadcrumbs.length - 1);
+  } else {
+    startBreadcrumbs = breadcrumbs.slice(0, breadcrumbs.length - 1);
   }
-  const hasCollapsedBreadcrumbs = collapsedBreadcrumbs.length > 0;
-  const startBreadcrumbs = hasCollapsedBreadcrumbs
-    ? breadcrumbs.slice(0, 1)
-    : [];
-  const endBreadcrumbs = breadcrumbs.slice(
-    collapsedBreadcrumbs.length + (hasCollapsedBreadcrumbs ? 1 : 0),
-  );
 
   return (
     <div className={classNames(classes.breadcrumbs, className)}>
@@ -99,10 +98,11 @@ const Breadcrumbs = (props: Props) => {
           isLastBreadcrumb={false}
           size={size}
           onClick={b.onClick}
+          className={textClassName}
           variant={variant}
         />
       ))}
-      {hasCollapsedBreadcrumbs && (
+      {collapsedBreadcrumbs.length > 0 && (
         <div className={classes.moreIcon}>
           <Text
             variant={variant ? variant : size === 'small' ? 'subtitle2' : 'h6'}
@@ -120,15 +120,17 @@ const Breadcrumbs = (props: Props) => {
           </Text>
         </div>
       )}
-      {endBreadcrumbs.map((b, i) => (
+      {endBreadcrumb && (
         <Breadcrumb
-          key={b.id}
-          data={b}
-          isLastBreadcrumb={i === endBreadcrumbs.length - 1}
+          key={endBreadcrumb.id}
+          data={endBreadcrumb}
+          isLastBreadcrumb={true}
+          useEllipsis={false}
           size={size}
           variant={variant}
+          className={textClassName}
         />
-      ))}
+      )}
       <Popover
         open={isBreadcrumbsMenuOpen}
         anchorEl={anchorEl}

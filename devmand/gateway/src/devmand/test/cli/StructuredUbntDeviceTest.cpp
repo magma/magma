@@ -11,7 +11,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <devmand/Application.h>
 #include <devmand/channels/cli/Cli.h>
-#include <devmand/devices/State.h>
+#include <devmand/devices/Datastore.h>
 #include <devmand/devices/cli/StructuredUbntDevice.h>
 #include <devmand/test/cli/utils/Json.h>
 #include <devmand/test/cli/utils/Log.h>
@@ -38,6 +38,10 @@ class StructuredUbntDeviceTest : public testing::Test {
 
 class UbntFakeCli : public Cli {
  public:
+  SemiFuture<folly::Unit> destroy() override {
+    return folly::makeSemiFuture(folly::unit);
+  }
+
   folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
     (void)cmd;
     if (cmd.raw() == "show interfaces description") {
@@ -418,8 +422,10 @@ static const string EXPECTED_OUTPUT =
     "  }"
     "}";
 
-TEST_F(StructuredUbntDeviceTest, DISABLED_getState) {
+TEST_F(StructuredUbntDeviceTest, DISABLED_getOperationalDatastore) {
   devmand::Application app;
+  // app.init(); <-- without this app is not properly initialized
+
   cartography::DeviceConfig deviceConfig;
   devmand::cartography::ChannelConfig chnlCfg;
   std::map<std::string, std::string> kvPairs;
@@ -428,10 +434,9 @@ TEST_F(StructuredUbntDeviceTest, DISABLED_getState) {
 
   auto cli = make_shared<UbntFakeCli>();
   auto channel = make_shared<Channel>("ubntTest", cli);
-  std::unique_ptr<devices::Device> dev =
-      std::make_unique<StructuredUbntDevice>(app, deviceConfig.id, channel);
-
-  std::shared_ptr<State> state = dev->getState();
+  std::unique_ptr<devices::Device> dev = std::make_unique<StructuredUbntDevice>(
+      app, deviceConfig.id, false, channel, make_shared<ModelRegistry>());
+  std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
   const folly::dynamic& stateResult = state->collect().get();
 
   EXPECT_EQ(folly::parseJson(EXPECTED_OUTPUT), stateResult);

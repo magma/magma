@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ef800e67797ca6ab6d157d85583d8834
+ * @relayHash 7f164f1ccf44d487ffb622e548c46379
  */
 
 /* eslint-disable */
@@ -17,8 +17,8 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type PowerSearchPortsResultsTable_ports$ref = any;
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
-export type PortFilterType = "LOCATION_INST" | "PORT_DEF" | "PORT_INST_EQUIPMENT" | "PORT_INST_HAS_LINK" | "PROPERTY" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PortFilterType = "LOCATION_INST" | "PORT_DEF" | "PORT_INST_EQUIPMENT" | "PORT_INST_HAS_LINK" | "PROPERTY" | "SERVICE_INST" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type PortFilterInput = {|
   filterType: PortFilterType,
   operator: FilterOperator,
@@ -45,6 +45,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type PortViewQueryRendererSearchQueryVariables = {|
   limit?: ?number,
@@ -117,7 +118,6 @@ fragment PowerSearchPortsResultsTable_ports on EquipmentPort {
   definition {
     id
     name
-    type
   }
   link {
     id
@@ -126,7 +126,6 @@ fragment PowerSearchPortsResultsTable_ports on EquipmentPort {
       definition {
         id
         name
-        type
       }
       parentEquipment {
         id
@@ -255,13 +254,10 @@ v4 = {
   "args": null,
   "storageKey": null
 },
-v5 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "type",
-  "args": null,
-  "storageKey": null
-},
+v5 = [
+  (v3/*: any*/),
+  (v4/*: any*/)
+],
 v6 = {
   "kind": "LinkedField",
   "alias": null,
@@ -270,17 +266,9 @@ v6 = {
   "args": null,
   "concreteType": "EquipmentPortDefinition",
   "plural": false,
-  "selections": [
-    (v3/*: any*/),
-    (v4/*: any*/),
-    (v5/*: any*/)
-  ]
+  "selections": (v5/*: any*/)
 },
-v7 = [
-  (v3/*: any*/),
-  (v4/*: any*/)
-],
-v8 = {
+v7 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "locationHierarchy",
@@ -306,7 +294,7 @@ v8 = {
     }
   ]
 },
-v9 = {
+v8 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipmentType",
@@ -314,9 +302,9 @@ v9 = {
   "args": null,
   "concreteType": "EquipmentType",
   "plural": false,
-  "selections": (v7/*: any*/)
+  "selections": (v5/*: any*/)
 },
-v10 = {
+v9 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "positionHierarchy",
@@ -357,68 +345,68 @@ v10 = {
       "selections": [
         (v3/*: any*/),
         (v4/*: any*/),
-        (v9/*: any*/)
+        (v8/*: any*/)
       ]
     }
   ]
 },
-v11 = {
+v10 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v12 = {
+v11 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "intValue",
   "args": null,
   "storageKey": null
 },
-v13 = {
+v12 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "floatValue",
   "args": null,
   "storageKey": null
 },
-v14 = {
+v13 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
-v15 = {
+v14 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
-v16 = {
+v15 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
-v17 = {
+v16 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
-v18 = {
+v17 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
-v19 = {
+v18 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "properties",
@@ -428,6 +416,7 @@ v19 = {
   "plural": true,
   "selections": [
     (v3/*: any*/),
+    (v10/*: any*/),
     (v11/*: any*/),
     (v12/*: any*/),
     (v13/*: any*/),
@@ -435,7 +424,6 @@ v19 = {
     (v15/*: any*/),
     (v16/*: any*/),
     (v17/*: any*/),
-    (v18/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -447,7 +435,13 @@ v19 = {
       "selections": [
         (v3/*: any*/),
         (v4/*: any*/),
-        (v5/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "type",
+          "args": null,
+          "storageKey": null
+        },
         {
           "kind": "ScalarField",
           "alias": null,
@@ -462,14 +456,14 @@ v19 = {
           "args": null,
           "storageKey": null
         },
+        (v10/*: any*/),
         (v11/*: any*/),
         (v12/*: any*/),
         (v13/*: any*/),
         (v14/*: any*/),
         (v15/*: any*/),
         (v16/*: any*/),
-        (v17/*: any*/),
-        (v18/*: any*/)
+        (v17/*: any*/)
       ]
     }
   ]
@@ -589,17 +583,17 @@ return {
                                 "args": null,
                                 "concreteType": "EquipmentPortDefinition",
                                 "plural": true,
-                                "selections": (v7/*: any*/)
+                                "selections": (v5/*: any*/)
                               }
                             ]
                           },
-                          (v8/*: any*/),
-                          (v10/*: any*/)
+                          (v7/*: any*/),
+                          (v9/*: any*/)
                         ]
                       }
                     ]
                   },
-                  (v19/*: any*/)
+                  (v18/*: any*/)
                 ]
               },
               {
@@ -613,12 +607,12 @@ return {
                 "selections": [
                   (v3/*: any*/),
                   (v4/*: any*/),
-                  (v9/*: any*/),
                   (v8/*: any*/),
-                  (v10/*: any*/)
+                  (v7/*: any*/),
+                  (v9/*: any*/)
                 ]
               },
-              (v19/*: any*/)
+              (v18/*: any*/)
             ]
           },
           (v2/*: any*/)
@@ -630,7 +624,7 @@ return {
     "operationKind": "query",
     "name": "PortViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query PortViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [PortFilterInput!]!\n) {\n  portSearch(limit: $limit, filters: $filters) {\n    ports {\n      ...PowerSearchPortsResultsTable_ports\n      id\n    }\n    count\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchPortsResultsTable_ports on EquipmentPort {\n  id\n  definition {\n    id\n    name\n    type\n  }\n  link {\n    id\n    ports {\n      id\n      definition {\n        id\n        name\n        type\n      }\n      parentEquipment {\n        id\n        name\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n    }\n    properties {\n      id\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isInstanceProperty\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n      }\n    }\n  }\n  parentEquipment {\n    id\n    name\n    equipmentType {\n      id\n      name\n    }\n    ...EquipmentBreadcrumbs_equipment\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n}\n",
+    "text": "query PortViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [PortFilterInput!]!\n) {\n  portSearch(limit: $limit, filters: $filters) {\n    ports {\n      ...PowerSearchPortsResultsTable_ports\n      id\n    }\n    count\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchPortsResultsTable_ports on EquipmentPort {\n  id\n  definition {\n    id\n    name\n  }\n  link {\n    id\n    ports {\n      id\n      definition {\n        id\n        name\n      }\n      parentEquipment {\n        id\n        name\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n    }\n    properties {\n      id\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isInstanceProperty\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n      }\n    }\n  }\n  parentEquipment {\n    id\n    name\n    equipmentType {\n      id\n      name\n    }\n    ...EquipmentBreadcrumbs_equipment\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

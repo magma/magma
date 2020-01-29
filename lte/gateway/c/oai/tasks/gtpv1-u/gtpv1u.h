@@ -46,6 +46,18 @@
 #define UDP_DST_PORT 0x20
 #define IP_PROTO 0x40
 
+// This is the default precedence value for flow rules.
+// A flow rule with precedence value 0 takes precedence over
+// all other flows with higher value. Flow rules that use
+// the default precedence have the lowest priority.
+#define DEFAULT_PRECEDENCE 65535
+// This is the maximum priority an OVS rule can take.
+// A high priority value takes precedence over the lower value.
+// For equal priority values, the behavior is undefined, but
+// it is not atypical to see a previously installed rule to take
+// precedence over latter rules.
+#define MAX_PRIORITY 65535
+
 struct ipv4flow_dl {
   struct in_addr dst_ip;
   struct in_addr src_ip;
@@ -85,6 +97,8 @@ struct ipv4flow_dl {
  *         @i_tei: RX GTP Tunnel ID
  *         @o_tei: TX GTP Tunnel ID.
  *         @imsi: UE IMSI
+ *         @flow_dl: Downlink flow rule
+ *         @flow_precedence_dl: Downlink flow rule precedence
  *
  * int (*del_tunnel)(uint32_t i_tei, uint32_t o_tei);
  *     Delete a gtp tunnel.
@@ -99,10 +113,17 @@ struct ipv4flow_dl {
  * int (*forward_data_on_tunnel)(struct in_addr ue, uint32_t i_tei);
  *         @ue: UE IP address
  *         @i_tei: RX GTP Tunnel ID
+ *         @flow_dl: Downlink flow rule
+ *         @flow_precedence_dl: Downlink flow rule precedence
  */
 struct gtp_tunnel_ops {
-  int (
-    *init)(struct in_addr *ue_net, uint32_t mask, int mtu, int *fd0, int *fd1u);
+  int (*init)(
+    struct in_addr* ue_net,
+    uint32_t mask,
+    int mtu,
+    int* fd0,
+    int* fd1u,
+    bool persist_state);
   int (*uninit)(void);
   int (*reset)(void);
   int (*add_tunnel)(
@@ -111,13 +132,17 @@ struct gtp_tunnel_ops {
     uint32_t i_tei,
     uint32_t o_tei,
     Imsi_t imsi,
-    struct ipv4flow_dl *flow_dl);
+    struct ipv4flow_dl *flow_dl,
+    uint32_t flow_precedence_dl);
   int (*del_tunnel)(struct in_addr ue, uint32_t i_tei,
       uint32_t o_tei, struct ipv4flow_dl *flow_dl);
   int (*discard_data_on_tunnel)(struct in_addr ue,
       uint32_t i_tei, struct ipv4flow_dl *flow_dl);
-  int (*forward_data_on_tunnel)(struct in_addr ue,
-      uint32_t i_tei, struct ipv4flow_dl *flow_dl);
+  int (*forward_data_on_tunnel)(
+    struct in_addr ue,
+    uint32_t i_tei,
+    struct ipv4flow_dl* flow_dl,
+    uint32_t flow_precedence_dl);
 };
 
 #if ENABLE_OPENFLOW

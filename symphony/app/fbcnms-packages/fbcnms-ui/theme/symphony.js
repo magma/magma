@@ -71,6 +71,7 @@ export default {
     G600: '#00AF5B',
     Y600: '#FFB63E',
     separator: 'rgba(0, 0, 0, 0.12)',
+    separatorLight: 'rgba(0, 0, 0, 0.06)',
   },
   shadows: {
     DP1: '0px 1px 4px 0px rgba(0, 0, 0, 0.17)',

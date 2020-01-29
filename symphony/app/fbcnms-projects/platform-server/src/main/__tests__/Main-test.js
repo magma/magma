@@ -8,9 +8,11 @@
  * @format
  */
 
+jest.mock('@fbcnms/sequelize-models');
+
 import app from '../../app';
 import request from 'supertest';
-import {Organization, User, sequelize} from '@fbcnms/sequelize-models';
+import {Organization, User} from '@fbcnms/sequelize-models';
 
 it('Returns a health check', async () => {
   await request(app)
@@ -34,13 +36,13 @@ const ORGS = [
 
 describe('login csrf token tests', () => {
   beforeAll(async () => {
-    await sequelize.sync({force: true});
     ORGS.forEach(async organization => await Organization.create(organization));
     await User.create({
       email: 'user@test.com',
       organization: 'myorg',
       password: 'password',
       role: 0,
+      readOnly: false,
     });
   });
 

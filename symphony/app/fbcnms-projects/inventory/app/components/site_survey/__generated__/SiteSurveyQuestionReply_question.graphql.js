@@ -41,6 +41,7 @@ export type SiteSurveyQuestionReply_question$data = SiteSurveyQuestionReply_ques
 export type SiteSurveyQuestionReply_question$key = {
   +$data?: SiteSurveyQuestionReply_question$data,
   +$fragmentRefs: SiteSurveyQuestionReply_question$ref,
+  ...
 };
 */
 

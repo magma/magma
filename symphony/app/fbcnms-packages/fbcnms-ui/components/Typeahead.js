@@ -10,13 +10,15 @@
 
 import Autosuggest from 'react-autosuggest';
 import CancelIcon from '@material-ui/icons/Cancel';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import InputAffix from './design-system/Input/InputAffix';
-import React, {useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 import Text from './design-system/Text';
 import TextInput from './design-system/Input/TextInput';
 import Tooltip from '@material-ui/core/Tooltip';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import symphony from '../theme/symphony';
+import useFollowElement from './useFollowElement';
 import {blue05} from '../theme/colors';
 import {makeStyles, useTheme} from '@material-ui/styles';
 
@@ -42,11 +44,10 @@ const autoSuggestStyles = theme => ({
     fontFamily: theme.typography.subtitle1.fontFamily,
     fontSize: theme.typography.subtitle1.fontSize,
     fontWeight: theme.typography.subtitle1.fontWeight,
-    position: 'absolute',
-    top: '32px',
-    minWidth: '100%',
-    zIndex: '2',
+    position: 'fixed',
     boxShadow: theme.shadows[2],
+    zIndex: 2,
+    transition: 'top 100ms ease-out 0s',
   },
   suggestionsList: {
     margin: 0,
@@ -123,12 +124,18 @@ const Typeahead = (props: Props) => {
     required,
     value,
     margin,
-    disabled,
   } = props;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSuggestion, setSelectedSuggestion] = useState(value);
   const classes = useStyles();
   const theme = useTheme();
+
+  const inputContainer = useRef(null);
+  const dropdownContainer = useRef(null);
+  useFollowElement(dropdownContainer, inputContainer);
+
+  const validationContext = useContext(FormValidationContext);
+  const disabled = props.disabled || validationContext.editLock.detected;
   return (
     <div className={classes.container}>
       {selectedSuggestion && onSuggestionsClearRequested ? (
@@ -152,7 +159,7 @@ const Typeahead = (props: Props) => {
               value={selectedSuggestion ? selectedSuggestion.name : ''}
               onChange={emptyFunction}
               suffix={
-                searchTerm === '' ? (
+                searchTerm === '' && !disabled ? (
                   <InputAffix
                     onClick={() => {
                       setSearchTerm('');
@@ -174,6 +181,16 @@ const Typeahead = (props: Props) => {
           onSuggestionsFetchRequested={({value}) => {
             onSuggestionsFetchRequested(value);
           }}
+          renderSuggestionsContainer={({containerProps, children}) => (
+            <div
+              {...containerProps}
+              ref={refInput => {
+                dropdownContainer.current = refInput;
+                containerProps.ref && containerProps.ref(refInput);
+              }}>
+              {children}
+            </div>
+          )}
           onSuggestionsClearRequested={emptyFunction}
           renderSuggestion={suggestion => (
             <div className={classes.suggestionRoot}>
@@ -189,20 +206,21 @@ const Typeahead = (props: Props) => {
           }}
           theme={autoSuggestStyles(theme)}
           renderInputComponent={inputProps => (
-            <TextInput
-              type="string"
-              placeholder={placeholder ?? ''}
-              {...inputProps}
-            />
+            <div ref={inputContainer}>
+              <TextInput
+                type="string"
+                placeholder={placeholder ?? 'Search...'}
+                {...inputProps}
+              />
+            </div>
           )}
           inputProps={{
             style: {},
             required: !!required,
-            placeholder: placeholder ?? 'Search...',
             value: searchTerm,
             margin,
             onChange: (_e, {newValue}) => setSearchTerm(newValue),
-            disabled: disabled,
+            disabled,
           }}
           highlightFirstSuggestion={true}
         />

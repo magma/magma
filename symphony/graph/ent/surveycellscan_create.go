@@ -12,8 +12,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 )
 
 // SurveyCellScanCreate is the builder for creating a SurveyCellScan entity.
@@ -417,141 +420,244 @@ func (scsc *SurveyCellScanCreate) SaveX(ctx context.Context) *SurveyCellScan {
 
 func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(scsc.driver.Dialect())
-		scs     = &SurveyCellScan{config: scsc.config}
+		scs   = &SurveyCellScan{config: scsc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: surveycellscan.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveycellscan.FieldID,
+			},
+		}
 	)
-	tx, err := scsc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(surveycellscan.Table).Default()
 	if value := scsc.create_time; value != nil {
-		insert.Set(surveycellscan.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveycellscan.FieldCreateTime,
+		})
 		scs.CreateTime = *value
 	}
 	if value := scsc.update_time; value != nil {
-		insert.Set(surveycellscan.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveycellscan.FieldUpdateTime,
+		})
 		scs.UpdateTime = *value
 	}
 	if value := scsc.network_type; value != nil {
-		insert.Set(surveycellscan.FieldNetworkType, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldNetworkType,
+		})
 		scs.NetworkType = *value
 	}
 	if value := scsc.signal_strength; value != nil {
-		insert.Set(surveycellscan.FieldSignalStrength, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldSignalStrength,
+		})
 		scs.SignalStrength = *value
 	}
 	if value := scsc.timestamp; value != nil {
-		insert.Set(surveycellscan.FieldTimestamp, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveycellscan.FieldTimestamp,
+		})
 		scs.Timestamp = *value
 	}
 	if value := scsc.base_station_id; value != nil {
-		insert.Set(surveycellscan.FieldBaseStationID, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldBaseStationID,
+		})
 		scs.BaseStationID = *value
 	}
 	if value := scsc.network_id; value != nil {
-		insert.Set(surveycellscan.FieldNetworkID, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldNetworkID,
+		})
 		scs.NetworkID = *value
 	}
 	if value := scsc.system_id; value != nil {
-		insert.Set(surveycellscan.FieldSystemID, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldSystemID,
+		})
 		scs.SystemID = *value
 	}
 	if value := scsc.cell_id; value != nil {
-		insert.Set(surveycellscan.FieldCellID, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldCellID,
+		})
 		scs.CellID = *value
 	}
 	if value := scsc.location_area_code; value != nil {
-		insert.Set(surveycellscan.FieldLocationAreaCode, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldLocationAreaCode,
+		})
 		scs.LocationAreaCode = *value
 	}
 	if value := scsc.mobile_country_code; value != nil {
-		insert.Set(surveycellscan.FieldMobileCountryCode, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldMobileCountryCode,
+		})
 		scs.MobileCountryCode = *value
 	}
 	if value := scsc.mobile_network_code; value != nil {
-		insert.Set(surveycellscan.FieldMobileNetworkCode, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldMobileNetworkCode,
+		})
 		scs.MobileNetworkCode = *value
 	}
 	if value := scsc.primary_scrambling_code; value != nil {
-		insert.Set(surveycellscan.FieldPrimaryScramblingCode, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldPrimaryScramblingCode,
+		})
 		scs.PrimaryScramblingCode = *value
 	}
 	if value := scsc.operator; value != nil {
-		insert.Set(surveycellscan.FieldOperator, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldOperator,
+		})
 		scs.Operator = *value
 	}
 	if value := scsc.arfcn; value != nil {
-		insert.Set(surveycellscan.FieldArfcn, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldArfcn,
+		})
 		scs.Arfcn = *value
 	}
 	if value := scsc.physical_cell_id; value != nil {
-		insert.Set(surveycellscan.FieldPhysicalCellID, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldPhysicalCellID,
+		})
 		scs.PhysicalCellID = *value
 	}
 	if value := scsc.tracking_area_code; value != nil {
-		insert.Set(surveycellscan.FieldTrackingAreaCode, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldTrackingAreaCode,
+		})
 		scs.TrackingAreaCode = *value
 	}
 	if value := scsc.timing_advance; value != nil {
-		insert.Set(surveycellscan.FieldTimingAdvance, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldTimingAdvance,
+		})
 		scs.TimingAdvance = *value
 	}
 	if value := scsc.earfcn; value != nil {
-		insert.Set(surveycellscan.FieldEarfcn, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldEarfcn,
+		})
 		scs.Earfcn = *value
 	}
 	if value := scsc.uarfcn; value != nil {
-		insert.Set(surveycellscan.FieldUarfcn, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldUarfcn,
+		})
 		scs.Uarfcn = *value
 	}
 	if value := scsc.latitude; value != nil {
-		insert.Set(surveycellscan.FieldLatitude, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLatitude,
+		})
 		scs.Latitude = *value
 	}
 	if value := scsc.longitude; value != nil {
-		insert.Set(surveycellscan.FieldLongitude, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLongitude,
+		})
 		scs.Longitude = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(surveycellscan.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	scs.ID = strconv.FormatInt(id, 10)
-	if len(scsc.survey_question) > 0 {
-		for eid := range scsc.survey_question {
-			eid, err := strconv.Atoi(eid)
-			if err != nil {
-				return nil, rollback(tx, err)
-			}
-			query, args := builder.Update(surveycellscan.SurveyQuestionTable).
-				Set(surveycellscan.SurveyQuestionColumn, eid).
-				Where(sql.EQ(surveycellscan.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := scsc.survey_question; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.SurveyQuestionTable,
+			Columns: []string{surveycellscan.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
 		}
-	}
-	if len(scsc.location) > 0 {
-		for eid := range scsc.location {
-			eid, err := strconv.Atoi(eid)
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(surveycellscan.LocationTable).
-				Set(surveycellscan.LocationColumn, eid).
-				Where(sql.EQ(surveycellscan.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if nodes := scsc.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.LocationTable,
+			Columns: []string{surveycellscan.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if err := sqlgraph.CreateNode(ctx, scsc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	scs.ID = strconv.FormatInt(id, 10)
 	return scs, nil
 }

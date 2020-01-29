@@ -22,30 +22,31 @@ type UserObject = {
   organization: string,
   email: string,
   password: string,
-  superUser: boolean,
+  role: number,
 };
 
 async function updateUser(user: User, userObject: UserObject) {
-  const {password, superUser} = userObject;
+  const {password, role} = userObject;
   const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
   const passwordHash = await bcrypt.hash(password, salt);
   await user.update({
     password: passwordHash,
-    role: superUser ? AccessRoles.SUPERUSER : AccessRoles.USER,
+    role,
   });
 }
 
 async function createUser(userObject: UserObject) {
-  const {organization, email, password, superUser} = userObject;
+  const {organization, email, password, role} = userObject;
   const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
   const passwordHash = await bcrypt.hash(password, salt);
   const org = await createOrFetchOrganization(organization);
   await User.create({
     email: email.toLowerCase(),
     password: passwordHash,
-    role: superUser ? AccessRoles.SUPERUSER : AccessRoles.USER,
+    role,
     networkIDs: [],
     organization: org.name,
+    readOnly: false,
   });
 }
 
@@ -100,7 +101,7 @@ function main() {
     organization: args[0],
     email: args[1],
     password: args[2],
-    superUser: true,
+    role: AccessRoles.SUPERUSER,
   };
   console.log(
     'Creating a new user: email=' +

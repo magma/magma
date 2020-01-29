@@ -10,7 +10,6 @@
 
 import type {Equipment, Link} from '../../common/Equipment';
 import type {PowerSearchLinkFirstEquipmentResultsTable_equipment} from './__generated__/PowerSearchLinkFirstEquipmentResultsTable_equipment.graphql';
-import type {Service} from '../../common/Service';
 import type {WithStyles} from '@material-ui/core';
 
 import AvailableLinksTable from './AvailableLinksTable';
@@ -25,6 +24,7 @@ import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {WizardContextProvider} from '@fbcnms/ui/components/design-system/Wizard/WizardContext';
 import {graphql} from 'react-relay';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -35,7 +35,7 @@ const styles = theme => ({
     marginRight: theme.spacing(),
   },
   content: {
-    height: '60vh',
+    height: '100%',
     width: '100%',
   },
   portIdLabel: {
@@ -62,10 +62,19 @@ const styles = theme => ({
     display: 'block',
     color: symphony.palette.D500,
   },
+  footer: {
+    padding: '16px 24px',
+    boxShadow: '0px 1px 4px 0px rgba(0, 0, 0, 0.17)',
+  },
+  actionButton: {
+    '&&': {
+      marginLeft: '12px',
+    },
+  },
 });
 
 type Props = {
-  service: Service,
+  service: {id: string, name: string},
   onClose: () => void,
   onAddLink: (link: Link) => void,
 } & WithStyles<typeof styles>;
@@ -91,7 +100,6 @@ const addLinkToServiceDialogQuery = graphql`
           definition {
             id
             name
-            type
           }
         }
         ...AvailableLinksTable_links
@@ -123,7 +131,7 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   };
 
   getStepContent = () => {
-    const {classes, service} = this.props;
+    const {classes} = this.props;
     const EquipmentTable = (props: {
       equipment: PowerSearchLinkFirstEquipmentResultsTable_equipment,
     }) => {
@@ -166,15 +174,10 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
             }}
             render={props => {
               const {linkSearch} = props;
-              // TODO: Remove this filtering after commiting links change
-              //       on every link add
-              const links = linkSearch.links.filter(
-                link => !(service.links.map(l => l.id) || []).includes(link.id),
-              );
               return (
                 <AvailableLinksTable
                   equipment={nullthrows(this.state.activeEquipement)}
-                  links={links}
+                  links={linkSearch.links}
                   selectedLink={this.state.activeLink}
                   onLinkSelected={this.handleLinkSelected}
                 />
@@ -233,23 +236,26 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
           )}
         </DialogTitle>
         <DialogContent div className={classes.root}>
-          <div className={classes.content}>{this.getStepContent()}</div>
+          <WizardContextProvider>
+            <div className={classes.content}>{this.getStepContent()}</div>
+          </WizardContextProvider>
         </DialogContent>
-        <DialogActions>
+        <DialogActions className={classes.footer}>
           {!lastStep && (
-            <Button skin="regular" onClick={onClose}>
+            <Button skin="gray" onClick={onClose}>
               Cancel
             </Button>
           )}
           {lastStep && (
-            <Button skin="regular" onClick={this.handleBack}>
+            <Button skin="gray" onClick={this.handleBack}>
               Back
             </Button>
           )}
           {!lastStep && (
             <Button
               disabled={activeEquipement === null}
-              onClick={this.handleNext}>
+              onClick={this.handleNext}
+              className={classes.actionButton}>
               Next
             </Button>
           )}
@@ -257,7 +263,8 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
             <Button
               disabled={activeLink === null}
               color="primary"
-              onClick={() => onAddLink(nullthrows(activeLink))}>
+              onClick={() => onAddLink(nullthrows(activeLink))}
+              className={classes.actionButton}>
               Add
             </Button>
           )}

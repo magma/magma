@@ -73,16 +73,20 @@ func linkEquipmentTypeFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
-// BuildEquipmentAncestorFilter returns a joined predicate for equipment ancestors
-func BuildEquipmentAncestorFilter(equipmentIDs []string, depth int, maxDepth int) predicate.Equipment {
+func BuildGeneralEquipmentAncestorFilter(pred predicate.Equipment, depth int, maxDepth int) predicate.Equipment {
 	if depth >= maxDepth {
-		return equipment.IDIn(equipmentIDs...)
+		return pred
 	}
 
 	return equipment.Or(
-		equipment.IDIn(equipmentIDs...),
+		pred,
 		equipment.HasParentPositionWith(
-			equipmentposition.HasParentWith(BuildEquipmentAncestorFilter(equipmentIDs, depth+1, maxDepth))))
+			equipmentposition.HasParentWith(BuildGeneralEquipmentAncestorFilter(pred, depth+1, maxDepth))))
+}
+
+// BuildEquipmentAncestorFilter returns a joined predicate for equipment ancestors
+func BuildEquipmentAncestorFilter(equipmentIDs []string, depth int, maxDepth int) predicate.Equipment {
+	return BuildGeneralEquipmentAncestorFilter(equipment.IDIn(equipmentIDs...), depth, maxDepth)
 }
 
 func linkEquipmentFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (*ent.LinkQuery, error) {
@@ -101,13 +105,16 @@ func handleLinkServiceFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (
 }
 
 func linkServiceFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (*ent.LinkQuery, error) {
-	if filter.Operator == models.FilterOperatorIsOneOf {
+	switch filter.Operator {
+	case models.FilterOperatorIsOneOf:
 		return q.Where(link.HasServiceWith(service.IDIn(filter.IDSet...))), nil
-	} else if filter.Operator == models.FilterOperatorIsNotOneOf {
+	case models.FilterOperatorIsNotOneOf:
 		return q.Where(link.Not(
 			link.HasServiceWith(service.IDIn(filter.IDSet...)),
 		),
 		), nil
+	case models.FilterOperatorContains:
+		return q.Where(link.HasServiceWith(service.NameContainsFold(*filter.StringValue))), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

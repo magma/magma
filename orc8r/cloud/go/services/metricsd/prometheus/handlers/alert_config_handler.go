@@ -19,7 +19,7 @@ import (
 	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/api/v2/models"
@@ -46,6 +46,10 @@ const (
 
 	FiringAlertURL   = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "alerts"
 	FiringAlertV1URL = handlers.ManageNetworkPath + obsidian.UrlSep + "alerts"
+
+	AlertSilencerV1URL = FiringAlertV1URL + obsidian.UrlSep + "silence"
+
+	alertmanagerAPIAlertPath = "/alerts"
 )
 
 func GetConfigurePrometheusAlertHandler(configManagerURL string) func(c echo.Context) error {
@@ -110,7 +114,8 @@ func GetViewFiringAlertHandler(alertmanagerURL string) func(c echo.Context) erro
 		if nerr != nil {
 			return nerr
 		}
-		return viewFiringAlerts(networkID, alertmanagerURL, c)
+		getAlertsURL := alertmanagerURL + alertmanagerAPIAlertPath
+		return viewFiringAlerts(networkID, getAlertsURL, c)
 	}
 }
 
@@ -120,7 +125,7 @@ func configurePrometheusAlert(networkID, url string, c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("misconfigured rule: %v", err), http.StatusBadRequest)
 	}
 
-	err = alert.SecureRule(networkID, &rule)
+	err = alert.SecureRule(true, metrics.NetworkLabelName, networkID, &rule)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -270,9 +275,9 @@ func sendBulkConfig(payload interface{}, url string) (string, error) {
 	return string(contents), nil
 }
 
-func viewFiringAlerts(networkID, alertmanagerApiURL string, c echo.Context) error {
+func viewFiringAlerts(networkID, getAlertsURL string, c echo.Context) error {
 	client := &http.Client{}
-	resp, err := client.Get(alertmanagerApiURL)
+	resp, err := client.Get(getAlertsURL)
 	if err != nil {
 		return err
 	}

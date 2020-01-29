@@ -10,8 +10,8 @@
 #    %> cd ~/fbsource/xplat/fbc-mobile-app
 #    %> yarn relay
 #  Pyinventory API:
-#    %> sudo python3 setup.py develop
 #    %> cd ~/fbsource/fbcode/fbc/symphony/cli
+#    %> sudo python3 setup.py develop
 #    %> ./compile_graphql.sh
 
 type Viewer
@@ -20,8 +20,14 @@ type Viewer
   email: String! @goField(name: "user")
 }
 
+"""
+An object with an ID
+"""
 interface Node
   @goModel(model: "github.com/facebookincubator/symphony/graph/ent.Noder") {
+  """
+  The id of the object.
+  """
   id: ID!
 }
 
@@ -81,6 +87,7 @@ type Location implements Node {
   cellData: [SurveyCellScan]!
   distanceKm(latitude: Float!, longitude: Float!): Float!
   floorPlans: [FloorPlan]!
+  hyperlinks: [Hyperlink!]!
 }
 
 input AddLocationInput {
@@ -137,13 +144,18 @@ input EditLocationTypeInput {
 }
 
 type NetworkTopology {
-  nodes: [Equipment!]!
+  nodes: [Node!]!
   links: [TopologyLink!]!
 }
 
+enum TopologyLinkType {
+  PHYSICAL
+}
+
 type TopologyLink {
-  source: ID!
-  target: ID!
+  type: TopologyLinkType!
+  source: Node!
+  target: Node!
 }
 
 scalar Time
@@ -161,6 +173,22 @@ type File implements Node {
   uploaded: Time
   fileType: FileType
   storeKey: String
+  category: String
+}
+
+type Hyperlink implements Node {
+  id: ID!
+  url: String!
+  displayName: String
+  category: String
+  createTime: Time!
+}
+
+input AddHyperlinkInput {
+  entityType: ImageEntity!
+  entityId: ID!
+  url: String!
+  displayName: String
   category: String
 }
 
@@ -191,12 +219,14 @@ input CommentInput {
 # specific equipment instance: e.g. Wifi Access Point X at Location Y.
 type Equipment implements Node {
   id: ID!
+  externalId: String
   name: String!
   parentLocation: Location
   parentPosition: EquipmentPosition
   equipmentType: EquipmentType!
   positions: [EquipmentPosition]!
-  ports: [EquipmentPort]!
+  ports(availableOnly: Boolean = false): [EquipmentPort]!
+  descendentsIncludingSelf: [Equipment]!
   properties: [Property]!
   futureState: FutureState
   workOrder: WorkOrder
@@ -206,6 +236,7 @@ type Equipment implements Node {
   services: [Service]!
   images: [File]!
   files: [File]!
+  hyperlinks: [Hyperlink!]!
 }
 
 type Device {
@@ -222,6 +253,7 @@ input AddEquipmentInput {
   positionDefinition: ID
   properties: [PropertyInput!]
   workOrder: ID
+  externalId: String
 }
 
 input EditEquipmentInput {
@@ -229,6 +261,7 @@ input EditEquipmentInput {
   name: String!
   properties: [PropertyInput!]
   deviceID: String
+  externalId: String
 }
 
 input EditEquipmentPortInput {
@@ -376,7 +409,6 @@ type EquipmentPortDefinition implements Node {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portType: EquipmentPortType
   bandwidth: String
 }
@@ -387,6 +419,7 @@ type EquipmentPort implements Node {
   parentEquipment: Equipment!
   link: Link
   properties: [Property!]!
+  serviceEndpoints: [ServiceEndpoint!]!
 }
 
 input EquipmentPortInput {
@@ -394,7 +427,6 @@ input EquipmentPortInput {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portTypeID: String
   bandwidth: String
 }
@@ -404,89 +436,174 @@ type SearchEntry {
   entityType: String!
   name: String!
   type: String!
+  externalId: String
 }
 
-# search entries connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of search entries.
+"""
 type SearchEntriesConnection {
-  edges: [SearchEntryEdge]
-  pageInfo: PageInfo
+  """
+  A list of search entry edges.
+  """
+  edges: [SearchEntryEdge!]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# search entry edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A search entry edge in a connection.
+"""
 type SearchEntryEdge {
+  """
+  The search entry at the end of the edge.
+  """
   node: SearchEntry
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# equipment port type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of equipment port types.
+"""
 type EquipmentPortTypeConnection {
-  edges: [EquipmentPortTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of equipment port type edges.
+  """
+  edges: [EquipmentPortTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# equipment port type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+An equipment port type edge in a connection.
+"""
 type EquipmentPortTypeEdge {
+  """
+  The equipment port type at the end of the edge.
+  """
   node: EquipmentPortType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# equipment port definition connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of equipment port definitions.
+"""
 type EquipmentPortDefinitionConnection {
-  edges: [EquipmentPortDefinitionEdge]
-  pageInfo: PageInfo
+  """
+  A list of equipment port definition edges.
+  """
+  edges: [EquipmentPortDefinitionEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# equipment port definition edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+An equipment port definition edge in a connection.
+"""
 type EquipmentPortDefinitionEdge {
+  """
+  The equipment port definition at the end of the edge.
+  """
   node: EquipmentPortDefinition
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# equipment type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of equipment types.
+"""
 type EquipmentTypeConnection {
-  edges: [EquipmentTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of equipment type edges.
+  """
+  edges: [EquipmentTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# equipment type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+An equipment type edge in a connection.
+"""
 type EquipmentTypeEdge {
+  """
+  The equipment type at the end of the edge.
+  """
   node: EquipmentType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# location type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of location types.
+"""
 type LocationTypeConnection {
-  edges: [LocationTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of location type edges.
+  """
+  edges: [LocationTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# location type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A location type edge in a connection.
+"""
 type LocationTypeEdge {
+  """
+  The location type at the end of the edge.
+  """
   node: LocationType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# location connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of locations.
+"""
 type LocationConnection {
-  edges: [LocationEdge]
-  pageInfo: PageInfo
+  """
+  A list of location edges.
+  """
+  edges: [LocationEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# location edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A location edge in a connection.
+"""
 type LocationEdge {
+  """
+  The location at the end of the edge.
+  """
   node: Location
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -497,33 +614,58 @@ directive @goModel(
   models: [String!]
 ) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 
-# connection pagination cursor.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Cursor
+"""
+Position within a pagination.
+"""
 scalar Cursor
-  @goModel(
-    model: "github.com/facebookincubator/symphony/graph/graphql/models.Cursor"
-  )
 
-# Information for paginating a connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-undefined.PageInfo
+"""
+Information about pagination in a connection.
+"""
 type PageInfo {
+  """
+  When paginating forwards, are there more items?
+  """
   hasNextPage: Boolean!
+  """
+  When paginating backwards, are there more items?
+  """
   hasPreviousPage: Boolean!
-  startCursor: Cursor!
-  endCursor: Cursor!
+  """
+  When paginating forwards, the cursor to continue.
+  """
+  startCursor: Cursor
+  """
+  When paginating backwards, the cursor to continue.
+  """
+  endCursor: Cursor
 }
 
-# service type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of service types.
+"""
 type ServiceTypeConnection {
-  edges: [ServiceTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of service type edges.
+  """
+  edges: [ServiceTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# service type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A service type edge in a connection.
+"""
 type ServiceTypeEdge {
+  """
+  The service type at the end of the edge.
+  """
   node: ServiceType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -539,6 +681,8 @@ enum PropertyKind {
   gps_location
   equipment
   location
+  service
+  datetime_local
 }
 
 type PropertyType implements Node {
@@ -558,6 +702,7 @@ type PropertyType implements Node {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 input PropertyTypeInput {
@@ -577,6 +722,7 @@ input PropertyTypeInput {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 type Property implements Node {
@@ -592,6 +738,7 @@ type Property implements Node {
   rangeToValue: Float
   equipmentValue: Equipment
   locationValue: Location
+  serviceValue: Service
 }
 
 input PropertyInput {
@@ -607,6 +754,7 @@ input PropertyInput {
   rangeToValue: Float
   equipmentIDValue: ID
   locationIDValue: ID
+  serviceIDValue: ID
   isEditable: Boolean
   isInstanceProperty: Boolean
 }
@@ -629,6 +777,13 @@ enum WorkOrderStatus {
   PENDING
   PLANNED
   DONE
+}
+
+enum ServiceStatus {
+  PENDING
+  IN_SERVICE
+  MAINTENANCE
+  DISCONNECTED
 }
 
 """
@@ -656,6 +811,7 @@ enum PropertyEntity {
 
 enum CommentEntity {
   WORK_ORDER
+  PROJECT
 }
 
 # capturing information about a connection between two ports in the network
@@ -677,11 +833,13 @@ input AddLinkInput {
   sides: [LinkSide!]! @length(min: 2, max: 2)
   workOrder: ID
   properties: [PropertyInput!]
+  serviceIds: [ID!]
 }
 
 input EditLinkInput {
   id: ID!
   properties: [PropertyInput!]
+  serviceIds: [ID!]
 }
 
 type WorkOrderDefinition implements Node {
@@ -780,33 +938,62 @@ type WorkOrder implements Node {
   properties: [Property]!
   project: Project
   checkList: [CheckListItem]!
+  hyperlinks: [Hyperlink!]!
 }
 
-# work order type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of work order types.
+"""
 type WorkOrderTypeConnection {
-  edges: [WorkOrderTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of work order type edges.
+  """
+  edges: [WorkOrderTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# work order type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A work order type edge in a connection.
+"""
 type WorkOrderTypeEdge {
+  """
+  The work order type at the end of the edge.
+  """
   node: WorkOrderType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# work order connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of work orders.
+"""
 type WorkOrderConnection {
-  edges: [WorkOrderEdge]
-  pageInfo: PageInfo
+  """
+  A list of work order edges.
+  """
+  edges: [WorkOrderEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# work order edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A work order edge in a connection.
+"""
 type WorkOrderEdge {
+  """
+  The work order at the end of the edge.
+  """
   node: WorkOrder
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -814,6 +1001,12 @@ type WorkOrderEdge {
 directive @length(
   min: Int!
   max: Int
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+# enforces range constraint on numeric value
+directive @range(
+  min: Float
+  max: Float
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 type ProjectType implements Node {
@@ -853,18 +1046,31 @@ directive @goField(
   name: String
 ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
-# project type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of project types.
+"""
 type ProjectTypeConnection {
-  totalCount: Int! @goField(forceResolver: true)
-  edges: [ProjectTypeEdge!]
+  """
+  A list of project type edges.
+  """
+  edges: [ProjectTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
 }
 
-# project type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A project type edge in a connection.
+"""
 type ProjectTypeEdge {
+  """
+  The project type at the end of the edge.
+  """
   node: ProjectType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -878,6 +1084,7 @@ type Project implements Node {
   workOrders: [WorkOrder!]!
   numberOfWorkOrders: Int!
   properties: [Property!]!
+  comments: [Comment]!
 }
 
 input AddProjectInput {
@@ -959,6 +1166,7 @@ enum PortFilterType {
   PORT_INST_EQUIPMENT
   LOCATION_INST
   PROPERTY
+  SERVICE_INST
 }
 
 """
@@ -988,10 +1196,11 @@ what filters should we apply on services
 """
 enum ServiceFilterType {
   SERVICE_INST_NAME
+  SERVICE_STATUS
   SERVICE_TYPE
   SERVICE_INST_EXTERNAL_ID
   SERVICE_INST_CUSTOMER_NAME
-  SERVICE_INST_PROPERTY
+  PROPERTY
   LOCATION_INST
   EQUIPMENT_IN_SERVICE
 }
@@ -1069,18 +1278,31 @@ input ProjectFilterInput {
   stringValue: String
 }
 
-# customer connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of customers.
+"""
 type CustomerConnection {
-  totalCount: Int! @goField(forceResolver: true)
-  edges: [CustomerEdge!]
+  """
+  A list of customer edges.
+  """
+  edges: [CustomerEdge!]!
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
 }
 
-# customer edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A customer edge in a connection.
+"""
 type CustomerEdge {
+  """
+  The customer at the end of the edge.
+  """
   node: Customer
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -1090,6 +1312,18 @@ type Customer implements Node {
   externalId: String
 }
 
+enum ServiceEndpointRole {
+  CONSUMER
+  PROVIDER
+}
+
+type ServiceEndpoint implements Node {
+  id: ID!
+  port: EquipmentPort!
+  role: ServiceEndpointRole!
+  service: Service!
+}
+
 """
 Modeling a specific service: e.g. a L2 VPN instance.
 """
@@ -1097,12 +1331,13 @@ type Service implements Node {
   id: ID!
   name: String!
   externalId: String
+  status: ServiceStatus!
   customer: Customer
   serviceType: ServiceType!
   upstream: [Service]!
   downstream: [Service]!
   properties: [Property]!
-  terminationPoints: [Equipment]!
+  endpoints: [ServiceEndpoint]!
   links: [Link]!
   topology: NetworkTopology!
 }
@@ -1147,35 +1382,50 @@ input ServiceTypeEditData {
 input ServiceCreateData {
   name: String!
   externalId: String
+  status: ServiceStatus = PENDING
   serviceTypeId: ID!
   customerId: ID
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
-  terminationPointIds: [ID!]!
 }
 
 input ServiceEditData {
   id: ID!
-  name: String!
+  name: String
   externalId: String
+  status: ServiceStatus
   customerId: ID
-  upstreamServiceIds: [ID!]!
+  upstreamServiceIds: [ID!]
   properties: [PropertyInput]
-  terminationPointIds: [ID!]!
+}
+
+input AddServiceEndpointInput {
+  id: ID!
+  portId: ID!
+  role: ServiceEndpointRole!
 }
 
 input SurveyCreateData {
   name: String!
   ownerName: String
+  creationTimestamp: Int
   completionTimestamp: Int!
+  status: SurveyStatus
   locationID: ID!
   surveyResponses: [SurveyQuestionResponse!]!
+}
+
+enum SurveyStatus {
+  PLANNED
+  INPROGRESS
+  COMPLETED
 }
 
 type Survey implements Node {
   id: ID!
   name: String!
   ownerName: String
+  creationTimestamp: Int
   completionTimestamp: Int!
   locationID: ID!
   sourceFile: File
@@ -1423,14 +1673,27 @@ type LatestPythonPackageResult {
   lastBreakingPythonPackage: PythonPackage
 }
 
-# You will also need to update cloud/actions/core/id
-enum ActionID {
+enum ActionID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionID"
+  ) {
   magma_reboot_node
 }
 
-# You will also need to update cloud/actions/core/id
-enum TriggerID {
+enum TriggerID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.TriggerID"
+  ) {
   magma_alert
+}
+
+# Data type for the input to be
+enum ActionsDataType
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.DataType"
+  ) {
+  string
+  stringArray
 }
 
 # ActionsTrigger defines a trigger itself, along with what actions and filters
@@ -1449,8 +1712,8 @@ type ActionsOperator {
   operatorID: String!
   # Name displayed to the user. Ex: "is", "is not"
   description: String!
-  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
-  dataInput: String!
+  # Data type that's expected for this operator Ex. "string", "arrayString"
+  dataType: ActionsDataType!
 }
 
 # ActionsAction defines an action that can be executed
@@ -1458,8 +1721,8 @@ type ActionsOperator {
 type ActionsAction {
   actionID: ActionID!
   description: String!
-  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
-  dataType: String!
+  # Data type expected for this action. Ex. "string", "arrayString"
+  dataType: ActionsDataType!
 }
 
 # ActionsFilter is a definition for how you can filter a trigger.
@@ -1483,7 +1746,7 @@ type ActionsTriggersSearchResult {
 # with data for executing that action
 type ActionsRuleAction
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleAction"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleAction"
   ) {
   action: ActionsAction! @goField(forceResolver: true)
   actionID: ActionID!
@@ -1493,7 +1756,7 @@ type ActionsRuleAction
 # ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
 type ActionsRuleFilter
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleFilter"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleFilter"
   ) {
   filterID: String
   operatorID: String
@@ -1532,14 +1795,27 @@ input ActionsRuleFilterInput {
 
 input AddActionsRuleInput {
   name: String!
-  triggerID: String!
+  triggerID: TriggerID!
   ruleActions: [ActionsRuleActionInput]!
   ruleFilters: [ActionsRuleFilterInput]!
 }
 
 type Query {
+  """
+  Fetches current viewer.
+  """
   me: Viewer
-  node(id: ID!): Node
+
+  """
+  Fetches an object given its ID.
+  """
+  node(
+    """
+    The ID of an object.
+    """
+    id: ID!
+  ): Node
+
   location(id: ID!): Location @deprecated(reason: "Use `node` instead")
   locationType(id: ID!): LocationType @deprecated(reason: "Use `node` instead")
   locationTypes(
@@ -1579,8 +1855,8 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
-  service(id: ID!): Service
-  serviceType(id: ID!): ServiceType
+  service(id: ID!): Service @deprecated(reason: "Use `node` instead")
+  serviceType(id: ID!): ServiceType @deprecated(reason: "Use `node` instead")
   serviceTypes(
     after: Cursor
     first: Int
@@ -1636,7 +1912,7 @@ type Query {
     limit: Int = 500
   ): ServiceSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
-  surveys(after: Cursor, first: Int, before: Cursor, last: Int): [Survey]!
+  surveys: [Survey!]!
   findLocationWithDuplicateProperties(
     locationTypeId: ID!
     propertyName: String!
@@ -1648,14 +1924,14 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
-  projectType(id: ID!): ProjectType
+  projectType(id: ID!): ProjectType @deprecated(reason: "Use `node` instead")
   projectTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ProjectTypeConnection
-  project(id: ID!): Project
+  project(id: ID!): Project @deprecated(reason: "Use `node` instead")
   customer(id: ID!): Customer
   customers(
     after: Cursor
@@ -1701,6 +1977,8 @@ type Mutation {
   ): Service
   addServiceLink(id: ID!, linkId: ID!): Service
   removeServiceLink(id: ID!, linkId: ID!): Service
+  addServiceEndpoint(input: AddServiceEndpointInput!): Service
+  removeServiceEndpoint(serviceEndpointId: ID!): Service
   addServiceType(
     """
     data to edit service type
@@ -1739,6 +2017,8 @@ type Mutation {
   ): EquipmentPosition
   addComment(input: CommentInput!): Comment!
   addImage(input: AddImageInput!): File
+  addHyperlink(input: AddHyperlinkInput!): Hyperlink!
+  deleteHyperlink(id: ID!): Hyperlink!
   deleteImage(
     """
     type of the entity whre image is at
@@ -1827,6 +2107,7 @@ type Mutation {
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
   addFloorPlan(input: AddFloorPlanInput!): FloorPlan
+  deleteFloorPlan(id: ID!): Boolean!
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
   removeActionsRule(id: ID!): Boolean!

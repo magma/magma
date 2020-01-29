@@ -50,6 +50,12 @@ static void mark_rule_failures(
   const bool deactivate_success,
   const PolicyReAuthRequest& request,
   PolicyReAuthAnswer& answer_out);
+static bool isValidMacAddress(const char* mac);
+static int get_apn_split_locaion(const std::string& apn);
+static bool parse_apn(
+  const std::string& apn,
+  std::string& mac_addr,
+  std::string& name);
 
 LocalEnforcer::LocalEnforcer(
   std::shared_ptr<SessionReporter> reporter,
@@ -201,22 +207,10 @@ void LocalEnforcer::terminate_service(
   for (const auto &session : it->second) {
     session->start_termination([this](SessionTerminateRequest term_req) {
       // report to cloud
-      reporter_->report_terminate_session(
-        term_req,
-        [&term_req](Status status, SessionTerminateResponse response) {
-          if (!status.ok()) {
-            MLOG(MERROR)
-              << "Failed to terminate service in controller for subscriber "
-              << term_req.sid() << ": " << status.error_message();
-          } else {
-            MLOG(MDEBUG)
-              << "Termination successful in controller for subscriber "
-              << term_req.sid();
-         }
-        }
-      );
+      auto logging_cb =
+        SessionReporter::get_terminate_logging_cb(term_req);
+      reporter_->report_terminate_session(term_req, logging_cb);
     });
-
 
     // tell AAA service to terminate radius session if necessary
     if (session->is_radius_cwf_session()) {
@@ -352,13 +346,18 @@ static bool should_activate(
   const PolicyRule &rule,
   const std::unordered_set<uint32_t>& successful_credits)
 {
-  if (
-    rule.tracking_type() == PolicyRule::ONLY_OCS ||
-    rule.tracking_type() == PolicyRule::OCS_AND_PCRF) {
-    return successful_credits.count(rule.rating_group()) > 0;
+  if (rule.tracking_type() == PolicyRule::ONLY_OCS ||
+      rule.tracking_type() == PolicyRule::OCS_AND_PCRF) {
+    const bool exists = successful_credits.count(rule.rating_group()) > 0;
+    if (!exists) {
+      MLOG(MDEBUG) << "Should not activate " << rule.id()
+                   << " because credit w/ rating group " << rule.rating_group()
+                   << " does not exist";
+    }
+    return exists;
   }
-  MLOG(MDEBUG) << "NO OCS TRACKING for this rule";
-  ;
+  MLOG(MDEBUG) << "Should activate because NO OCS TRACKING for rule "
+               << rule.id();
   // no tracking or PCRF-only tracking, activate
   return true;
 }
@@ -605,8 +604,15 @@ bool LocalEnforcer::init_session_credit(
     MLOG(MDEBUG) << "Adding UE MAC flow for subscriber " << imsi;
     SubscriberID sid;
     sid.set_id(imsi);
+    std::string apn_mac_addr;
+    std::string apn_name;
+    if (!parse_apn(cfg.apn, apn_mac_addr, apn_name)) {
+        MLOG(MWARNING) << "Failed mac/name parsiong for apn " << cfg.apn;
+        apn_mac_addr = "";
+        apn_name = cfg.apn;
+    }
     bool add_ue_mac_flow_success = pipelined_client_->add_ue_mac_flow(
-      sid, session_state->get_mac_addr());
+      sid, session_state->get_mac_addr(), cfg.msisdn, apn_mac_addr, apn_name);
     if (!add_ue_mac_flow_success) {
       MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
     }
@@ -644,9 +650,7 @@ bool LocalEnforcer::init_session_credit(
   // to deactivate, because pipelined deactivates all rules
   // when no rule is provided as the parameter
   bool deactivate_success = true;
-  if (
-    rules_to_deactivate.static_rules.size() > 0 ||
-    rules_to_deactivate.dynamic_rules.size() > 0) {
+  if (rules_to_process_is_not_empty(rules_to_deactivate)) {
     for (const auto &static_rule : rules_to_deactivate.static_rules) {
       if (!session_state->deactivate_static_rule(static_rule))
         MLOG(MWARNING) << "Could not find rule " << static_rule  << "for IMSI "
@@ -926,40 +930,68 @@ void LocalEnforcer::init_policy_reauth(
 
   bool deactivate_success = true;
   bool activate_success = true;
-  for (const auto &session : it->second) {
-    if (session->get_session_id() == request.session_id()) {
-       receive_monitoring_credit_from_rar(request, session);
-
-      RulesToProcess rules_to_activate;
-      RulesToProcess rules_to_deactivate;
-
-      get_rules_from_policy_reauth_request(
-        request, session, rules_to_activate, rules_to_deactivate);
-
-      auto ip_addr = session->get_subscriber_ip_addr();
-      if (rules_to_process_is_not_empty(rules_to_deactivate)) {
-        deactivate_success = pipelined_client_->deactivate_flows_for_rules(
-        request.imsi(),
-        rules_to_deactivate.static_rules,
-        rules_to_deactivate.dynamic_rules);
+  // For empty session_id, apply changes to all sessions of subscriber
+  // Changes are applied on a best-effort basis, so failures for one session
+  // won't stop changes from being applied for subsequent sessions.
+  if (request.session_id() == "") {
+    bool all_activated = true;
+    bool all_deactivated = true;
+    for (const auto& session : it->second) {
+      init_policy_reauth_for_session(
+        request, session, activate_success, deactivate_success);
+      all_activated &= activate_success;
+      all_deactivated &= deactivate_success;
+    }
+    // Treat activate/deactivate as all-or-nothing when reporting rule failures
+    mark_rule_failures(
+      all_activated, all_deactivated, request, answer_out);
+  } else {
+    for (const auto& session : it->second) {
+      if (session->get_session_id() == request.session_id()) {
+        init_policy_reauth_for_session(
+          request, session, activate_success, deactivate_success);
       }
-      if (rules_to_process_is_not_empty(rules_to_activate)) {
-        activate_success = pipelined_client_->activate_flows_for_rules(
-         request.imsi(),
-          ip_addr,
-          rules_to_activate.static_rules,
-          rules_to_activate.dynamic_rules);
-      }
+    }
+    mark_rule_failures(activate_success, deactivate_success, request, answer_out);
+  }
+  answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
+}
 
-      create_bearer(
-        activate_success, session, request, rules_to_activate.dynamic_rules);
+void LocalEnforcer::init_policy_reauth_for_session(
+  const PolicyReAuthRequest& request,
+  const std::unique_ptr<SessionState>& session,
+  bool& activate_success,
+  bool& deactivate_success)
+{
+  activate_success = true;
+  deactivate_success = true;
+  receive_monitoring_credit_from_rar(request, session);
 
-      break;
+  RulesToProcess rules_to_activate;
+  RulesToProcess rules_to_deactivate;
+
+  get_rules_from_policy_reauth_request(
+    request, session, rules_to_activate, rules_to_deactivate);
+
+  auto ip_addr = session->get_subscriber_ip_addr();
+  if (rules_to_process_is_not_empty(rules_to_deactivate)) {
+    if (!pipelined_client_->deactivate_flows_for_rules(
+      request.imsi(), rules_to_deactivate.static_rules,
+      rules_to_deactivate.dynamic_rules)) {
+      deactivate_success = false;
     }
   }
-  // Treat activate/deactivate as all-or-nothing when reporting rule failures
-  answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
-  mark_rule_failures(activate_success, deactivate_success, request, answer_out);
+  if (rules_to_process_is_not_empty(rules_to_activate)) {
+    if (!pipelined_client_->activate_flows_for_rules(
+      request.imsi(), ip_addr, rules_to_activate.static_rules,
+      rules_to_activate.dynamic_rules)) {
+      activate_success = false;
+    }
+  }
+
+  create_bearer(
+    activate_success, session, request, rules_to_activate.dynamic_rules);
+
 }
 
 void LocalEnforcer::receive_monitoring_credit_from_rar(
@@ -1233,5 +1265,51 @@ static void mark_rule_failures(
         PolicyReAuthAnswer::GW_PCEF_MALFUNCTION;
     }
   }
+}
+
+static bool isValidMacAddress(const char* mac) {
+    int i = 0;
+    int s = 0;
+
+    while (*mac) {
+       if (isxdigit(*mac)) {
+          i++;
+       }
+       else if (*mac == '-') {
+          if (i == 0 || i / 2 - 1 != s) {
+            break;
+          }
+          ++s;
+       }
+       else {
+           s = -1;
+       }
+       ++mac;
+    }
+    return (i == 12 && s == 5);
+}
+
+static bool parse_apn(
+  const std::string& apn,
+  std::string& mac_addr,
+  std::string& name)
+{
+  // Format is mac:name, if format check fails return failure
+  // Format example - 1C-B9-C4-36-04-F0:Wifi-Offload-hotspot20
+  if (apn.empty()) {
+    return false;
+  }
+  auto split_location = apn.find(":");
+  if (split_location <= 0) {
+    return false;
+  }
+  auto mac = apn.substr(0, split_location);
+  if (!isValidMacAddress(mac.c_str())){
+    return false;
+  }
+  mac_addr = mac;
+  // Allow empty name, spec is unclear on this
+  name = apn.substr(split_location + 1, apn.size());
+  return true;
 }
 } // namespace magma

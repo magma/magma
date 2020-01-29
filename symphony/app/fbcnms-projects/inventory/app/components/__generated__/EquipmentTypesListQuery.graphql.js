@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 59ac43bbf68544c3cc2fc5d85d565880
+ * @relayHash bb336ecb492b65485e6a18f1da6874bd
  */
 
 /* eslint-disable */
@@ -15,11 +15,11 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type EquipmentTypesListQueryVariables = {||};
 export type EquipmentTypesListQueryResponse = {|
   +equipmentTypes: {|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,
@@ -53,7 +53,7 @@ export type EquipmentTypesListQuery = {|
 
 /*
 query EquipmentTypesListQuery {
-  equipmentTypes(first: 50) {
+  equipmentTypes {
     edges {
       node {
         id
@@ -101,14 +101,8 @@ v2 = [
     "kind": "LinkedField",
     "alias": null,
     "name": "equipmentTypes",
-    "storageKey": "equipmentTypes(first:50)",
-    "args": [
-      {
-        "kind": "Literal",
-        "name": "first",
-        "value": 50
-      }
-    ],
+    "storageKey": null,
+    "args": null,
     "concreteType": "EquipmentTypeConnection",
     "plural": false,
     "selections": [
@@ -263,11 +257,11 @@ return {
     "operationKind": "query",
     "name": "EquipmentTypesListQuery",
     "id": null,
-    "text": "query EquipmentTypesListQuery {\n  equipmentTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n      }\n    }\n  }\n}\n",
+    "text": "query EquipmentTypesListQuery {\n  equipmentTypes {\n    edges {\n      node {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '0d107802629bec367ce0cc9f3b0af891';
+(node/*: any*/).hash = 'ab2a8022d8b174e5cac4f52d27d6c40c';
 module.exports = node;

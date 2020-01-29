@@ -7,7 +7,7 @@
  * @flow
  * @format
  */
-import type {symphony_agent} from '@fbcnms/magma-api';
+import type {symphony_device} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DevicesEditManagedDeviceDialog from './DevicesEditManagedDeviceDialog';
@@ -26,13 +26,12 @@ import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import useMagmaAPI from '../../common/useMagmaAPI';
 import {Route} from 'react-router-dom';
-import {map} from 'lodash';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {buildDevicesAgentFromPayload, mergeAgentsDevices} from './DevicesUtils';
+import {augmentDevicesMap} from './DevicesUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useEffect, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useCallback, useState} from 'react';
+import {useInterval, useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   actionsColumn: {
@@ -67,55 +66,35 @@ const REFRESH_INTERVAL = 10000;
 export default function DevicesStatusTable() {
   const classes = useStyles();
   const {match, relativePath, relativeUrl, history} = useRouter();
-  const [rawAgents, setRawAgents] = useState<?(symphony_agent[])>(null);
-  const [devices, setDevices] = useState<?(string[])>(null);
-
-  const {isLoading: agentsIsLoading, error} = useMagmaAPI(
-    MagmaV1API.getSymphonyByNetworkIdAgents,
-    {networkId: nullthrows(match.params.networkId)},
-    useCallback(response => setRawAgents(map(response, agent => agent)), []),
-  );
+  const [devices, setDevices] = useState<?{[string]: symphony_device}>(null);
 
   const {isLoading: devicesIsLoading, error: devicesError} = useMagmaAPI(
     MagmaV1API.getSymphonyByNetworkIdDevices,
     {networkId: nullthrows(match.params.networkId)},
-    useCallback(response => {
-      if (response != null) {
-        setDevices(Object.keys(response));
-      }
-    }, []),
+    useCallback(response => setDevices(response || {}), []),
   );
 
-  useEffect(() => {
-    if (!rawAgents) {
-      return;
+  useInterval(async () => {
+    try {
+      const response = await MagmaV1API.getSymphonyByNetworkIdDevices({
+        networkId: nullthrows(match.params.networkId),
+      });
+      setDevices(response || {});
+    } catch (err) {
+      console.error(`Warning: cannot refresh'. ${err}`);
     }
-    const interval = setInterval(async () => {
-      try {
-        const response = await MagmaV1API.getSymphonyByNetworkIdAgents({
-          networkId: nullthrows(match.params.networkId),
-        });
-        setRawAgents(map(response, agent => agent));
-      } catch (err) {
-        console.error(`Warning: cannot refresh'. ${err}`);
-      }
-    }, REFRESH_INTERVAL);
-    return () => clearInterval(interval);
-  }, [match, rawAgents]);
+  }, REFRESH_INTERVAL);
 
   let errorMessage = null;
   let fullDevices = {};
 
-  if (error) {
-    errorMessage = error.message;
-  } else if (devicesError) {
+  if (devicesError) {
     errorMessage = devicesError.message;
-  } else if (rawAgents != null && devices) {
-    const agents = rawAgents.map(buildDevicesAgentFromPayload);
-    fullDevices = mergeAgentsDevices(agents, devices);
+  } else if (devices) {
+    fullDevices = augmentDevicesMap(devices);
   }
 
-  if (error || devicesError || agentsIsLoading || devicesIsLoading) {
+  if (devicesError || devicesIsLoading) {
     return <LoadingFiller />;
   }
 
@@ -125,7 +104,11 @@ export default function DevicesStatusTable() {
       deviceID={id}
       onDeleteDevice={deletedDeviceID => {
         if (devices) {
-          setDevices(devices.filter(deviceId => deviceId != deletedDeviceID));
+          if (deletedDeviceID in devices) {
+            const newDevices = {...devices};
+            delete newDevices[deletedDeviceID];
+            setDevices(newDevices);
+          }
         }
       }}
       key={id}
@@ -162,8 +145,18 @@ export default function DevicesStatusTable() {
         render={() => (
           <DevicesEditManagedDeviceDialog
             title="Add New Device"
-            onSave={deviceID => {
-              setDevices([...(devices || []), deviceID]);
+            onSave={(deviceID: string) => {
+              const newDevices = {
+                ...devices,
+                [deviceID]: {
+                  id: deviceID,
+                  name: deviceID,
+                  config: {},
+                  managing_agent: '',
+                  state: {},
+                },
+              };
+              setDevices(newDevices);
               history.push(relativeUrl(''));
             }}
             onCancel={() => history.push(relativeUrl(''))}

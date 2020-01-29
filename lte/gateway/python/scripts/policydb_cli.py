@@ -10,11 +10,21 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import argparse
-
-from magma.policydb.rule_store import PolicyRuleDict
+import grpc
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
+from lte.protos.policydb_pb2_grpc import PolicyDBStub
+from lte.protos.subscriberdb_pb2 import EnableStaticRuleRequest, \
+    DisableStaticRuleRequest
+from magma.common.rpc_utils import grpc_wrapper
+from magma.policydb.rule_store import PolicyRuleDict
 
 
+DEBUG_MSG = 'You may want to check that a connection can be made to ' \
+            'orc8r to update the assignments of rules/basenames to ' \
+            'the subscriber.'
+
+
+@grpc_wrapper
 def add_rule(args):
     rule_id = args.rule_id
     policy_dict = PolicyRuleDict()
@@ -37,6 +47,42 @@ def add_rule(args):
         rule.flow_list.extend([flow])
     policy_dict[rule_id] = rule
     print("Rule '%s' successfully %sed!" % (rule_id, action))
+
+
+@grpc_wrapper
+def install_rules(client: PolicyDBStub, args):
+    """
+    Installs the specified static rules for the session.
+    Also associates the static rules to the subscriber.
+    """
+    message = EnableStaticRuleRequest(
+        imsi=args.imsi,
+        rule_ids=args.rules,
+        base_names=args.basenames,
+    )
+    try:
+        client.EnableStaticRules(message)
+    except grpc.RpcError as err:
+        print('Failed to enable static rules and/or base names: %s' % str(err))
+        print(DEBUG_MSG)
+
+
+@grpc_wrapper
+def uninstall_rules(client: PolicyDBStub, args):
+    """
+    Uninstalls the specified static rules for the session.
+    Also unassociates the static rules from the subscriber.
+    """
+    message = DisableStaticRuleRequest(
+        imsi=args.imsi,
+        rule_ids=args.rules,
+        base_names=args.basenames,
+    )
+    try:
+        client.DisableStaticRules(message)
+    except grpc.RpcError as err:
+        print('Failed to disable static rules and/or base names: %s' % str(err))
+        print(DEBUG_MSG)
 
 
 def create_parser():
@@ -70,7 +116,29 @@ def create_parser():
     parser_add.add_argument('-o', '--overwrite', action='store_true',
                             help='overwrite existing rule')
 
+    parser_install = subparsers.add_parser(
+        'install_rules', help='Install static rules for a subscriber')
+    parser_install.add_argument('-id', help='session id')
+    parser_install.add_argument('-imsi', help='subscriber IMSI')
+    parser_install.add_argument('-rules', nargs='*',
+                                help='static rules to install')
+    parser_install.add_argument('-basenames', nargs='*',
+                                help='basenames to install')
+
+    parser_uninstall = subparsers.add_parser(
+        'uninstall_rules', help='Uninstall static rules for a subscriber')
+    parser_uninstall.add_argument('-id', help='session id')
+    parser_uninstall.add_argument('-imsi', help='subscriber IMSI')
+    parser_uninstall.add_argument('-rules', nargs='*',
+                                  help='static rules to uninstall')
+    parser_uninstall.add_argument('-basenames', nargs='*',
+                                  help='basenames to install')
+
+    # Add function callbacks
     parser_add.set_defaults(func=add_rule)
+    parser_install.set_defaults(func=install_rules)
+    parser_uninstall.set_defaults(func=uninstall_rules)
+
     return parser
 
 
@@ -84,7 +152,7 @@ def main():
         exit(1)
 
     # Execute the subcommand function
-    args.func(args)
+    args.func(args, PolicyDBStub, 'policydb')
 
 
 if __name__ == "__main__":

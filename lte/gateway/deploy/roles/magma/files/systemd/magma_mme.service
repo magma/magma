@@ -12,8 +12,8 @@ PartOf=magma@pipelined.service
 After=magma@pipelined.service
 PartOf=magma@sessiond.service
 After=magma@sessiond.service
-PartOf=magma@sctpd.service
-After=magma@sctpd.service
+Requires=sctpd.service
+After=sctpd.service
 
 [Service]
 Type=simple

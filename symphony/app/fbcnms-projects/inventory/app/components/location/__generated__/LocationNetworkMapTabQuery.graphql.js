@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 1d0084ff72f93c0a6d7490d187516137
+ * @relayHash e5b44cfacabdefc6e56219a5f7897e17
  */
 
 /* eslint-disable */
@@ -56,19 +56,37 @@ query LocationNetworkMapTabQuery(
   }
 }
 
+fragment ForceNetworkTopology_topology on NetworkTopology {
+  nodes {
+    __typename
+    id
+  }
+  links {
+    source {
+      __typename
+      id
+    }
+    target {
+      __typename
+      id
+    }
+  }
+}
+
 fragment LocationEquipmentTopology_equipment on Equipment {
   id
 }
 
 fragment LocationEquipmentTopology_topology on NetworkTopology {
   nodes {
+    __typename
+    ... on Equipment {
+      id
+      name
+    }
     id
-    name
   }
-  links {
-    source
-    target
-  }
+  ...ForceNetworkTopology_topology
 }
 */
 
@@ -91,10 +109,21 @@ v1 = [
 v2 = {
   "kind": "ScalarField",
   "alias": null,
+  "name": "__typename",
+  "args": null,
+  "storageKey": null
+},
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
   "name": "id",
   "args": null,
   "storageKey": null
-};
+},
+v4 = [
+  (v2/*: any*/),
+  (v3/*: any*/)
+];
 return {
   "kind": "Request",
   "fragment": {
@@ -169,14 +198,8 @@ return {
         "concreteType": null,
         "plural": false,
         "selections": [
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "__typename",
-            "args": null,
-            "storageKey": null
-          },
           (v2/*: any*/),
+          (v3/*: any*/),
           {
             "kind": "InlineFragment",
             "type": "Location",
@@ -190,7 +213,7 @@ return {
                 "concreteType": "Equipment",
                 "plural": true,
                 "selections": [
-                  (v2/*: any*/)
+                  (v3/*: any*/)
                 ]
               },
               {
@@ -208,16 +231,23 @@ return {
                     "name": "nodes",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "Equipment",
+                    "concreteType": null,
                     "plural": true,
                     "selections": [
                       (v2/*: any*/),
+                      (v3/*: any*/),
                       {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "name",
-                        "args": null,
-                        "storageKey": null
+                        "kind": "InlineFragment",
+                        "type": "Equipment",
+                        "selections": [
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "name",
+                            "args": null,
+                            "storageKey": null
+                          }
+                        ]
                       }
                     ]
                   },
@@ -231,18 +261,24 @@ return {
                     "plural": true,
                     "selections": [
                       {
-                        "kind": "ScalarField",
+                        "kind": "LinkedField",
                         "alias": null,
                         "name": "source",
+                        "storageKey": null,
                         "args": null,
-                        "storageKey": null
+                        "concreteType": null,
+                        "plural": false,
+                        "selections": (v4/*: any*/)
                       },
                       {
-                        "kind": "ScalarField",
+                        "kind": "LinkedField",
                         "alias": null,
                         "name": "target",
+                        "storageKey": null,
                         "args": null,
-                        "storageKey": null
+                        "concreteType": null,
+                        "plural": false,
+                        "selections": (v4/*: any*/)
                       }
                     ]
                   }
@@ -258,7 +294,7 @@ return {
     "operationKind": "query",
     "name": "LocationNetworkMapTabQuery",
     "id": null,
-    "text": "query LocationNetworkMapTabQuery(\n  $locationId: ID!\n) {\n  location: node(id: $locationId) {\n    __typename\n    ... on Location {\n      equipments {\n        ...LocationEquipmentTopology_equipment\n        id\n      }\n      topology {\n        ...LocationEquipmentTopology_topology\n      }\n    }\n    id\n  }\n}\n\nfragment LocationEquipmentTopology_equipment on Equipment {\n  id\n}\n\nfragment LocationEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    id\n    name\n  }\n  links {\n    source\n    target\n  }\n}\n",
+    "text": "query LocationNetworkMapTabQuery(\n  $locationId: ID!\n) {\n  location: node(id: $locationId) {\n    __typename\n    ... on Location {\n      equipments {\n        ...LocationEquipmentTopology_equipment\n        id\n      }\n      topology {\n        ...LocationEquipmentTopology_topology\n      }\n    }\n    id\n  }\n}\n\nfragment ForceNetworkTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    id\n  }\n  links {\n    source {\n      __typename\n      id\n    }\n    target {\n      __typename\n      id\n    }\n  }\n}\n\nfragment LocationEquipmentTopology_equipment on Equipment {\n  id\n}\n\nfragment LocationEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    ... on Equipment {\n      id\n      name\n    }\n    id\n  }\n  ...ForceNetworkTopology_topology\n}\n",
     "metadata": {}
   }
 };

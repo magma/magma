@@ -14,9 +14,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
-
-	"github.com/gorilla/csrf"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/justinas/nosurf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -45,14 +44,13 @@ func TestProxyHandler(t *testing.T) {
 	assert.Equal(t, "proxy body", rec.Body.String())
 }
 
-func TestCSRFProtection(t *testing.T) {
+func TestNoSurfing(t *testing.T) {
 	h := NewHandler(Config{
 		ProxyTarget: &url.URL{},
-		AuthKey:     make([]byte, 32),
 		Logger:      logtest.NewTestLogger(t),
 	})
 	h.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, err := io.WriteString(w, csrf.Token(r))
+		_, err := io.WriteString(w, nosurf.Token(r))
 		assert.NoError(t, err)
 	}).
 		Methods(http.MethodGet)
@@ -86,6 +84,6 @@ func TestCSRFProtection(t *testing.T) {
 		rsp, err := client.Post(srv.URL, "text/plain", nil)
 		require.NoError(t, err)
 		defer rsp.Body.Close()
-		assert.Equal(t, http.StatusForbidden, rsp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, rsp.StatusCode)
 	})
 }

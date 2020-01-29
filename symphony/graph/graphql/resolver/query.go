@@ -9,8 +9,6 @@ import (
 	"encoding/json"
 	"sort"
 
-	"github.com/facebookincubator/symphony/cloud/actions"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
@@ -19,8 +17,9 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/actions"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/xerrors"
@@ -42,7 +41,7 @@ func (r queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
 			zap.String("id", id),
 			zap.Error(err),
 		)
-	var e *ent.ErrNotFound
+	var e *ent.NotFoundError
 	if xerrors.As(err, &e) {
 		err = nil
 	}
@@ -66,16 +65,20 @@ func (r queryResolver) LocationType(ctx context.Context, id string) (*ent.Locati
 }
 
 func (r queryResolver) LocationTypes(
-	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
-) (*models.LocationTypeConnection, error) {
-	return resolverutil.LocationTypes(ctx, r.ClientFrom(ctx))
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.LocationTypeConnection, error) {
+	return r.ClientFrom(ctx).LocationType.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) Locations(
 	ctx context.Context, onlyTopLevel *bool,
 	types []string, name *string, needsSiteSurvey *bool,
-	_ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
-) (*models.LocationConnection, error) {
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.LocationConnection, error) {
 	query := r.ClientFrom(ctx).Location.Query()
 	if onlyTopLevel != nil && *onlyTopLevel {
 		query = query.Where(location.Not(location.HasParent()))
@@ -89,15 +92,7 @@ func (r queryResolver) Locations(
 	if needsSiteSurvey != nil {
 		query = query.Where(location.SiteSurveyNeeded(*needsSiteSurvey))
 	}
-	ls, err := query.All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying locations")
-	}
-	edges := make([]*models.LocationEdge, len(ls))
-	for i, l := range ls {
-		edges[i] = &models.LocationEdge{Node: l}
-	}
-	return &models.LocationConnection{Edges: edges}, nil
+	return query.Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) NearestSites(ctx context.Context, latitude, longitude float64, first int) ([]*ent.Location, error) {
@@ -132,10 +127,11 @@ func (r queryResolver) EquipmentType(ctx context.Context, id string) (*ent.Equip
 
 func (r queryResolver) EquipmentTypes(
 	ctx context.Context,
-	_ *models.Cursor, _ *int,
-	_ *models.Cursor, _ *int,
-) (*models.EquipmentTypeConnection, error) {
-	return resolverutil.EquipmentTypes(ctx, r.ClientFrom(ctx))
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.EquipmentTypeConnection, error) {
+	return r.ClientFrom(ctx).EquipmentType.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) EquipmentPortType(ctx context.Context, id string) (*ent.EquipmentPortType, error) {
@@ -147,21 +143,21 @@ func (r queryResolver) EquipmentPortType(ctx context.Context, id string) (*ent.E
 }
 
 func (r queryResolver) EquipmentPortTypes(
-	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
-) (*models.EquipmentPortTypeConnection, error) {
-	return resolverutil.EquipmentPortTypes(ctx, r.ClientFrom(ctx))
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.EquipmentPortTypeConnection, error) {
+	return r.ClientFrom(ctx).EquipmentPortType.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
-func (r queryResolver) EquipmentPortDefinitions(ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int) (*models.EquipmentPortDefinitionConnection, error) {
-	eds, err := r.ClientFrom(ctx).EquipmentPortDefinition.Query().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying equipment definitions")
-	}
-	edges := make([]*models.EquipmentPortDefinitionEdge, len(eds))
-	for i, et := range eds {
-		edges[i] = &models.EquipmentPortDefinitionEdge{Node: et}
-	}
-	return &models.EquipmentPortDefinitionConnection{Edges: edges}, err
+func (r queryResolver) EquipmentPortDefinitions(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.EquipmentPortDefinitionConnection, error) {
+	return r.ClientFrom(ctx).EquipmentPortDefinition.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error) {
@@ -174,10 +170,10 @@ func (r queryResolver) WorkOrder(ctx context.Context, id string) (*ent.WorkOrder
 
 func (r queryResolver) WorkOrders(
 	ctx context.Context,
-	_ *models.Cursor, _ *int,
-	_ *models.Cursor, _ *int,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
 	showCompleted *bool,
-) (*models.WorkOrderConnection, error) {
+) (*ent.WorkOrderConnection, error) {
 	query := r.ClientFrom(ctx).WorkOrder.Query()
 	if showCompleted != nil && !*showCompleted {
 		query = query.Where(workorder.StatusIn(
@@ -185,15 +181,7 @@ func (r queryResolver) WorkOrders(
 			models.WorkOrderStatusPlanned.String(),
 		))
 	}
-	wos, err := query.All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying work orders")
-	}
-	edges := make([]*models.WorkOrderEdge, len(wos))
-	for i, wo := range wos {
-		edges[i] = &models.WorkOrderEdge{Node: wo}
-	}
-	return &models.WorkOrderConnection{Edges: edges}, nil
+	return query.Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) WorkOrderType(ctx context.Context, id string) (*ent.WorkOrderType, error) {
@@ -205,25 +193,18 @@ func (r queryResolver) WorkOrderType(ctx context.Context, id string) (*ent.WorkO
 }
 
 func (r queryResolver) WorkOrderTypes(
-	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
-) (*models.WorkOrderTypeConnection, error) {
-	ets, err := r.ClientFrom(ctx).
-		WorkOrderType.Query().
-		All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying work order types")
-	}
-	edges := make([]*models.WorkOrderTypeEdge, len(ets))
-	for i, et := range ets {
-		edges[i] = &models.WorkOrderTypeEdge{Node: et}
-	}
-	return &models.WorkOrderTypeConnection{Edges: edges}, err
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.WorkOrderTypeConnection, error) {
+	return r.ClientFrom(ctx).WorkOrderType.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) SearchForEntity(
 	ctx context.Context, name string,
-	_ *models.Cursor, limit *int,
-	_ *models.Cursor, _ *int,
+	_ *ent.Cursor, limit *int,
+	_ *ent.Cursor, _ *int,
 ) (*models.SearchEntriesConnection, error) {
 	if limit == nil {
 		return nil, errors.New("first is a mandatory param")
@@ -233,7 +214,7 @@ func (r queryResolver) SearchForEntity(
 		Where(
 			location.Or(
 				location.NameContainsFold(name),
-				location.ExternalID(name),
+				location.ExternalIDContainsFold(name),
 			),
 		).
 		Limit(*limit).
@@ -251,6 +232,7 @@ func (r queryResolver) SearchForEntity(
 				EntityID:   l.ID,
 				Name:       l.Name,
 				Type:       lt.Name,
+				ExternalID: &l.ExternalID,
 			},
 		}
 	}
@@ -259,7 +241,10 @@ func (r queryResolver) SearchForEntity(
 	}
 
 	equipments, err := client.Equipment.Query().
-		Where(equipment.NameContainsFold(name)).
+		Where(equipment.Or(
+			equipment.NameContainsFold(name),
+			equipment.ExternalIDContainsFold(name),
+		)).
 		Limit(*limit - len(locations)).
 		All(ctx)
 	if err != nil {
@@ -273,6 +258,7 @@ func (r queryResolver) SearchForEntity(
 				EntityID:   e.ID,
 				Name:       e.Name,
 				Type:       et.Name,
+				ExternalID: &e.ExternalID,
 			},
 		})
 	}
@@ -316,9 +302,7 @@ func (r queryResolver) PossibleProperties(ctx context.Context, entityType models
 	return types, nil
 }
 
-func (r queryResolver) Surveys(
-	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
-) ([]*ent.Survey, error) {
+func (r queryResolver) Surveys(ctx context.Context) ([]*ent.Survey, error) {
 	surveys, err := r.ClientFrom(ctx).Survey.Query().All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "querying all surveys")
@@ -343,9 +327,12 @@ func (r queryResolver) ServiceType(ctx context.Context, id string) (*ent.Service
 }
 
 func (r queryResolver) ServiceTypes(
-	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
-) (*models.ServiceTypeConnection, error) {
-	return resolverutil.ServiceTypes(ctx, r.ClientFrom(ctx))
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.ServiceTypeConnection, error) {
+	return r.ClientFrom(ctx).ServiceType.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) Customer(ctx context.Context, id string) (*ent.Customer, error) {
@@ -357,23 +344,26 @@ func (r queryResolver) Customer(ctx context.Context, id string) (*ent.Customer, 
 }
 
 func (r queryResolver) Customers(
-	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
-) (*models.CustomerConnection, error) {
-	sts, err := r.ClientFrom(ctx).Customer.Query().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying customers")
-	}
-	edges := make([]*models.CustomerEdge, len(sts))
-	for i, st := range sts {
-		edges[i] = &models.CustomerEdge{Node: st}
-	}
-	return &models.CustomerConnection{Edges: edges}, nil
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.CustomerConnection, error) {
+	return r.ClientFrom(ctx).Customer.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) ActionsRules(
 	ctx context.Context,
 ) (*models.ActionsRulesSearchResult, error) {
-	return nil, errors.New("stub")
+	results, err := r.ClientFrom(ctx).ActionsRule.Query().All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query action rules")
+	}
+
+	return &models.ActionsRulesSearchResult{
+		Results: results,
+		Count:   len(results),
+	}, nil
 }
 
 func (r queryResolver) ActionsTriggers(
@@ -384,12 +374,8 @@ func (r queryResolver) ActionsTriggers(
 
 	ret := make([]*models.ActionsTrigger, len(triggers))
 	for i, trigger := range ac.Triggers() {
-		modelTriggerID := models.TriggerID(trigger.ID())
-		if !modelTriggerID.IsValid() {
-			return nil, errors.Errorf("triggerID %s not in models", trigger.ID())
-		}
 		ret[i] = &models.ActionsTrigger{
-			TriggerID:   modelTriggerID,
+			TriggerID:   trigger.ID(),
 			Description: trigger.Description(),
 		}
 	}
@@ -401,16 +387,15 @@ func (r queryResolver) ActionsTriggers(
 }
 
 func (r queryResolver) ActionsTrigger(
-	ctx context.Context, id models.TriggerID,
+	ctx context.Context, triggerID core.TriggerID,
 ) (*models.ActionsTrigger, error) {
 	ac := actions.FromContext(ctx)
-	actionsTriggerID := core.TriggerID(id)
-	trigger, err := ac.TriggerForID(actionsTriggerID)
+	trigger, err := ac.TriggerForID(triggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting trigger")
 	}
 	return &models.ActionsTrigger{
-		TriggerID:   id,
+		TriggerID:   triggerID,
 		Description: trigger.Description(),
 	}, nil
 }
@@ -445,7 +430,7 @@ func (r queryResolver) FindLocationWithDuplicateProperties(ctx context.Context, 
 	return values, nil
 }
 
-func (queryResolver) LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error) {
+func (queryResolver) LatestPythonPackage(context.Context) (*models.LatestPythonPackageResult, error) {
 	var packages []models.PythonPackage
 	if err := json.Unmarshal([]byte(PyinventoryConsts), &packages); err != nil {
 		return nil, errors.Wrap(err, "decoding python packages")
@@ -460,8 +445,10 @@ func (queryResolver) LatestPythonPackage(ctx context.Context) (*models.LatestPyt
 			break
 		}
 	}
-	res := models.LatestPythonPackageResult{LastPythonPackage: &packages[0], LastBreakingPythonPackage: &packages[lastBreakingChange]}
-	return &res, nil
+	return &models.LatestPythonPackageResult{
+		LastPythonPackage:         &packages[0],
+		LastBreakingPythonPackage: &packages[lastBreakingChange],
+	}, nil
 }
 
 func (r queryResolver) Vertex(ctx context.Context, id string) (*ent.Node, error) {

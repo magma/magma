@@ -13,14 +13,20 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // WorkOrderCreate is the builder for creating a WorkOrder entity.
@@ -41,6 +47,7 @@ type WorkOrderCreate struct {
 	equipment        map[string]struct{}
 	links            map[string]struct{}
 	files            map[string]struct{}
+	hyperlinks       map[string]struct{}
 	location         map[string]struct{}
 	comments         map[string]struct{}
 	properties       map[string]struct{}
@@ -261,6 +268,26 @@ func (woc *WorkOrderCreate) AddFiles(f ...*File) *WorkOrderCreate {
 	return woc.AddFileIDs(ids...)
 }
 
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (woc *WorkOrderCreate) AddHyperlinkIDs(ids ...string) *WorkOrderCreate {
+	if woc.hyperlinks == nil {
+		woc.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		woc.hyperlinks[ids[i]] = struct{}{}
+	}
+	return woc
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (woc *WorkOrderCreate) AddHyperlinks(h ...*Hyperlink) *WorkOrderCreate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return woc.AddHyperlinkIDs(ids...)
+}
+
 // SetLocationID sets the location edge to Location by id.
 func (woc *WorkOrderCreate) SetLocationID(id string) *WorkOrderCreate {
 	if woc.location == nil {
@@ -443,271 +470,363 @@ func (woc *WorkOrderCreate) SaveX(ctx context.Context) *WorkOrder {
 
 func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(woc.driver.Dialect())
-		wo      = &WorkOrder{config: woc.config}
+		wo    = &WorkOrder{config: woc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: workorder.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: workorder.FieldID,
+			},
+		}
 	)
-	tx, err := woc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(workorder.Table).Default()
 	if value := woc.create_time; value != nil {
-		insert.Set(workorder.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workorder.FieldCreateTime,
+		})
 		wo.CreateTime = *value
 	}
 	if value := woc.update_time; value != nil {
-		insert.Set(workorder.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workorder.FieldUpdateTime,
+		})
 		wo.UpdateTime = *value
 	}
 	if value := woc.name; value != nil {
-		insert.Set(workorder.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workorder.FieldName,
+		})
 		wo.Name = *value
 	}
 	if value := woc.status; value != nil {
-		insert.Set(workorder.FieldStatus, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workorder.FieldStatus,
+		})
 		wo.Status = *value
 	}
 	if value := woc.priority; value != nil {
-		insert.Set(workorder.FieldPriority, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workorder.FieldPriority,
+		})
 		wo.Priority = *value
 	}
 	if value := woc.description; value != nil {
-		insert.Set(workorder.FieldDescription, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workorder.FieldDescription,
+		})
 		wo.Description = *value
 	}
 	if value := woc.owner_name; value != nil {
-		insert.Set(workorder.FieldOwnerName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workorder.FieldOwnerName,
+		})
 		wo.OwnerName = *value
 	}
 	if value := woc.install_date; value != nil {
-		insert.Set(workorder.FieldInstallDate, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workorder.FieldInstallDate,
+		})
 		wo.InstallDate = *value
 	}
 	if value := woc.creation_date; value != nil {
-		insert.Set(workorder.FieldCreationDate, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workorder.FieldCreationDate,
+		})
 		wo.CreationDate = *value
 	}
 	if value := woc.assignee; value != nil {
-		insert.Set(workorder.FieldAssignee, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workorder.FieldAssignee,
+		})
 		wo.Assignee = *value
 	}
 	if value := woc.index; value != nil {
-		insert.Set(workorder.FieldIndex, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: workorder.FieldIndex,
+		})
 		wo.Index = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(workorder.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	wo.ID = strconv.FormatInt(id, 10)
-	if len(woc._type) > 0 {
-		for eid := range woc._type {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc._type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.TypeTable,
+			Columns: []string{workorder.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workordertype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(workorder.TypeTable).
-				Set(workorder.TypeColumn, eid).
-				Where(sql.EQ(workorder.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(woc.equipment) > 0 {
-		p := sql.P()
-		for eid := range woc.equipment {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc.equipment; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workorder.EquipmentTable,
+			Columns: []string{workorder.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(equipment.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(workorder.EquipmentTable).
-			Set(workorder.EquipmentColumn, id).
-			Where(sql.And(p, sql.IsNull(workorder.EquipmentColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(woc.equipment) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"WorkOrder\"", keys(woc.equipment))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(woc.links) > 0 {
-		p := sql.P()
-		for eid := range woc.links {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc.links; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workorder.LinksTable,
+			Columns: []string{workorder.LinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: link.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(link.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(workorder.LinksTable).
-			Set(workorder.LinksColumn, id).
-			Where(sql.And(p, sql.IsNull(workorder.LinksColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(woc.links) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"links\" %v already connected to a different \"WorkOrder\"", keys(woc.links))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(woc.files) > 0 {
-		p := sql.P()
-		for eid := range woc.files {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc.files; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.FilesTable,
+			Columns: []string{workorder.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(file.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(workorder.FilesTable).
-			Set(workorder.FilesColumn, id).
-			Where(sql.And(p, sql.IsNull(workorder.FilesColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(woc.files) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"WorkOrder\"", keys(woc.files))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(woc.location) > 0 {
-		for eid := range woc.location {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.HyperlinksTable,
+			Columns: []string{workorder.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(workorder.LocationTable).
-				Set(workorder.LocationColumn, eid).
-				Where(sql.EQ(workorder.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(woc.comments) > 0 {
-		p := sql.P()
-		for eid := range woc.comments {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.LocationTable,
+			Columns: []string{workorder.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(comment.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(workorder.CommentsTable).
-			Set(workorder.CommentsColumn, id).
-			Where(sql.And(p, sql.IsNull(workorder.CommentsColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(woc.comments) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"comments\" %v already connected to a different \"WorkOrder\"", keys(woc.comments))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(woc.properties) > 0 {
-		p := sql.P()
-		for eid := range woc.properties {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc.comments; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.CommentsTable,
+			Columns: []string{workorder.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: comment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(property.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(workorder.PropertiesTable).
-			Set(workorder.PropertiesColumn, id).
-			Where(sql.And(p, sql.IsNull(workorder.PropertiesColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(woc.properties) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"WorkOrder\"", keys(woc.properties))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(woc.check_list_items) > 0 {
-		p := sql.P()
-		for eid := range woc.check_list_items {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc.properties; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.PropertiesTable,
+			Columns: []string{workorder.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(checklistitem.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(workorder.CheckListItemsTable).
-			Set(workorder.CheckListItemsColumn, id).
-			Where(sql.And(p, sql.IsNull(workorder.CheckListItemsColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(woc.check_list_items) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"check_list_items\" %v already connected to a different \"WorkOrder\"", keys(woc.check_list_items))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(woc.technician) > 0 {
-		for eid := range woc.technician {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc.check_list_items; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.CheckListItemsTable,
+			Columns: []string{workorder.CheckListItemsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(workorder.TechnicianTable).
-				Set(workorder.TechnicianColumn, eid).
-				Where(sql.EQ(workorder.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(woc.project) > 0 {
-		for eid := range woc.project {
-			eid, err := strconv.Atoi(eid)
+	if nodes := woc.technician; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.TechnicianTable,
+			Columns: []string{workorder.TechnicianColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: technician.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(workorder.ProjectTable).
-				Set(workorder.ProjectColumn, eid).
-				Where(sql.EQ(workorder.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if nodes := woc.project; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   workorder.ProjectTable,
+			Columns: []string{workorder.ProjectColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: project.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if err := sqlgraph.CreateNode(ctx, woc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	wo.ID = strconv.FormatInt(id, 10)
 	return wo, nil
 }

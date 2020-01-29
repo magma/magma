@@ -21,8 +21,10 @@ using std::shared_ptr;
 using std::string;
 using CliCache = Synchronized<EvictingCacheMap<string, string>>;
 
-folly::SemiFuture<std::string>
-devmand::channels::cli::ReadCachingCli::executeRead(const ReadCommand cmd) {
+namespace devmand::channels::cli {
+
+folly::SemiFuture<std::string> ReadCachingCli::executeRead(
+    const ReadCommand cmd) {
   if (!cmd.skipCache()) {
     Optional<string> cachedResult =
         cache->withWLock([cmd, this](auto& cache_) -> Optional<string> {
@@ -49,7 +51,7 @@ devmand::channels::cli::ReadCachingCli::executeRead(const ReadCommand cmd) {
       .semi();
 }
 
-devmand::channels::cli::ReadCachingCli::ReadCachingCli(
+ReadCachingCli::ReadCachingCli(
     string _id,
     const std::shared_ptr<Cli>& _cli,
     const shared_ptr<CliCache>& _cache,
@@ -57,18 +59,34 @@ devmand::channels::cli::ReadCachingCli::ReadCachingCli(
 
     : id(_id), cli(_cli), cache(_cache), executor(_executor) {}
 
-folly::SemiFuture<std::string>
-devmand::channels::cli::ReadCachingCli::executeWrite(const WriteCommand cmd) {
+folly::SemiFuture<std::string> ReadCachingCli::executeWrite(
+    const WriteCommand cmd) {
   return cli->executeWrite(cmd);
 }
 
-devmand::channels::cli::ReadCachingCli::~ReadCachingCli() {
+SemiFuture<folly::Unit> ReadCachingCli::destroy() {
   MLOG(MDEBUG) << "[" << id << "] "
-               << "~RCcli";
+               << "destroy: started";
+  // call underlying destroy()
+  SemiFuture<folly::Unit> innerDestroy = cli->destroy();
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "destroy: done";
+  return innerDestroy;
 }
 
-shared_ptr<CliCache> devmand::channels::cli::ReadCachingCli::createCache() {
-  return shared_ptr<CliCache>(
-      new Synchronized<EvictingCacheMap<string, string>>(
-          EvictingCacheMap<string, string>(200, 10)));
+ReadCachingCli::~ReadCachingCli() {
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "~RCcli: started";
+  destroy().get();
+  executor = nullptr;
+  cache = nullptr;
+  cli = nullptr;
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "~RCcli: done";
 }
+
+shared_ptr<CliCache> ReadCachingCli::createCache() {
+  return std::make_shared<CliCache>(EvictingCacheMap<string, string>(200, 10));
+}
+
+} // namespace devmand::channels::cli

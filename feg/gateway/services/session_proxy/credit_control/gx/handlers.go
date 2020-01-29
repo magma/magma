@@ -11,7 +11,7 @@ package gx
 import (
 	"context"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
 
 	"magma/feg/gateway/diameter"
@@ -39,6 +39,7 @@ func ccaHandler(message *diam.Message) diameter.KeyAndAnswer {
 			ResultCode:             cca.ResultCode,
 			ExperimentalResultCode: cca.ExperimentalResult.ExperimentalResultCode,
 			SessionID:              sid,
+			OriginHost:             cca.OriginHost,
 			RequestNumber:          cca.RequestNumber,
 			RuleInstallAVP:         cca.RuleInstalls,
 			RuleRemoveAVP:          cca.RuleRemovals,

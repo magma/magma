@@ -8,11 +8,14 @@
  * @format
  */
 
+import type {AppContextType} from '@fbcnms/ui/context/AppContext';
+import type {FeatureID} from '@fbcnms/types/features';
 import type {Property} from '../../common/Property';
 import type {PropertyType} from '../../common/PropertyType';
 import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -62,29 +65,40 @@ const styles = _theme => ({
   },
 });
 
-const propertyTypeLabels = {
-  date: 'Date',
-  int: 'Number',
-  float: 'Float',
-  string: 'Text',
-  email: 'Email',
-  gps_location: 'Coordinates',
-  bool: 'True or False',
-  range: 'Range',
-  enum: 'Multiple choice',
-  equipment: 'Equipment',
-  location: 'Location',
+type PropertyTypeInfo = {|
+  label: string,
+  featureFlag?: FeatureID,
+|};
+
+const propertyTypeLabels: {[string]: PropertyTypeInfo} = {
+  date: {label: 'Date'},
+  datetime_local: {label: 'Date & Time'},
+  int: {label: 'Number'},
+  float: {label: 'Float'},
+  string: {label: 'Text'},
+  email: {label: 'Email'},
+  gps_location: {label: 'Coordinates'},
+  bool: {label: 'True or False'},
+  range: {label: 'Range'},
+  enum: {label: 'Multiple choice'},
+  equipment: {label: 'Equipment'},
+  location: {label: 'Location'},
+  service: {label: 'Service', featureFlag: 'services'},
 };
 
 type Props = {
   propertyTypes: Array<PropertyType>,
   onPropertiesChanged: (newProperties: Array<PropertyType>) => void,
   supportMandatory?: boolean,
+  supportDelete?: boolean,
 } & WithStyles<typeof styles>;
 
 class PropertyTypeTable extends React.Component<Props> {
+  static contextType = AppContext;
+  context: AppContextType;
   render() {
-    const {classes, propertyTypes} = this.props;
+    const {classes} = this.props;
+    const propertyTypes = this.props.propertyTypes;
     const {supportMandatory = true} = this.props;
     return (
       <div className={classes.container}>
@@ -119,78 +133,101 @@ class PropertyTypeTable extends React.Component<Props> {
             </TableRow>
           </TableHead>
           <DroppableTableBody onDragEnd={this._onDragEnd}>
-            {propertyTypes.map((property, i) => (
-              <DraggableTableRow id={property.id} index={i} key={property.id}>
-                <TableCell className={classes.cell} component="div" scope="row">
-                  <TextField
-                    autoFocus={true}
-                    placeholder="Name"
-                    variant="outlined"
-                    className={classes.input}
-                    value={property.name}
-                    onChange={this._handleChange('name', i)}
-                    margin="dense"
-                  />
-                </TableCell>
-                <TableCell className={classes.cell} component="div" scope="row">
-                  <TextField
-                    select
-                    variant="outlined"
-                    className={classes.input}
-                    value={property.type}
-                    onChange={this._handleChange('type', i)}
-                    SelectProps={{
-                      classes: {selectMenu: classes.selectMenu},
-                      MenuProps: {
-                        className: classes.menu,
-                      },
-                    }}
-                    margin="dense">
-                    {Object.keys(propertyTypeLabels).map(type => (
-                      <MenuItem key={type} value={type}>
-                        {propertyTypeLabels[type]}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </TableCell>
-                <TableCell className={classes.cell} component="div" scope="row">
-                  <PropertyValueInput
-                    label={null}
-                    className={classes.input}
-                    inputType="PropertyType"
-                    property={property}
-                    onChange={this._handlePropertyTypeChange(i)}
-                    margin="dense"
-                  />
-                </TableCell>
-                <TableCell padding="checkbox" component="div">
-                  <Checkbox
-                    checked={!property.isInstanceProperty}
-                    onChange={this._handleChecked(i)}
-                    color="primary"
-                  />
-                </TableCell>
-                {supportMandatory && (
+            {propertyTypes
+              .filter(property => !property.isDeleted)
+              .map((property, i) => (
+                <DraggableTableRow id={property.id} index={i} key={i}>
+                  <TableCell
+                    className={classes.cell}
+                    component="div"
+                    scope="row">
+                    <TextField
+                      autoFocus={true}
+                      placeholder="Name"
+                      variant="outlined"
+                      className={classes.input}
+                      value={property.name}
+                      onChange={this._handleChange('name', i)}
+                      onBlur={() => this._handleNameBlur(i)}
+                      margin="dense"
+                    />
+                  </TableCell>
+                  <TableCell
+                    className={classes.cell}
+                    component="div"
+                    scope="row">
+                    <TextField
+                      select
+                      variant="outlined"
+                      className={classes.input}
+                      value={property.type}
+                      onChange={this._handleChange('type', i)}
+                      SelectProps={{
+                        classes: {selectMenu: classes.selectMenu},
+                        MenuProps: {
+                          className: classes.menu,
+                        },
+                      }}
+                      margin="dense">
+                      {Object.keys(propertyTypeLabels)
+                        .filter(
+                          type =>
+                            !propertyTypeLabels[type].featureFlag ||
+                            this.context.isFeatureEnabled(
+                              propertyTypeLabels[type].featureFlag,
+                            ),
+                        )
+                        .map(type => (
+                          <MenuItem key={type} value={type}>
+                            {propertyTypeLabels[type].label}
+                          </MenuItem>
+                        ))}
+                    </TextField>
+                  </TableCell>
+                  <TableCell
+                    className={classes.cell}
+                    component="div"
+                    scope="row">
+                    <PropertyValueInput
+                      label={null}
+                      className={classes.input}
+                      inputType="PropertyType"
+                      property={property}
+                      onChange={this._handlePropertyTypeChange(i)}
+                      margin="dense"
+                    />
+                  </TableCell>
                   <TableCell padding="checkbox" component="div">
                     <Checkbox
-                      checked={!!property.isMandatory}
-                      onChange={this._handleIsMandatoryChecked(i)}
+                      checked={!property.isInstanceProperty}
+                      onChange={this._handleChecked(i)}
                       color="primary"
                     />
                   </TableCell>
-                )}
-                <TableCell
-                  className={classes.actionsBar}
-                  align="right"
-                  component="div">
-                  <IconButton
-                    onClick={this._onRemovePropertyClicked(i)}
-                    disabled={!property.id.includes('@tmp')}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </DraggableTableRow>
-            ))}
+                  {supportMandatory && (
+                    <TableCell padding="checkbox" component="div">
+                      <Checkbox
+                        checked={!!property.isMandatory}
+                        onChange={this._handleIsMandatoryChecked(i)}
+                        color="primary"
+                      />
+                    </TableCell>
+                  )}
+                  <TableCell
+                    className={classes.actionsBar}
+                    align="right"
+                    component="div">
+                    <IconButton
+                      onClick={this._onRemovePropertyClicked(i, property)}
+                      disabled={
+                        !this.props.supportDelete &&
+                        !property.id.includes('@tmp')
+                      }>
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </DraggableTableRow>
+              ))}
           </DroppableTableBody>
         </Table>
         <Button
@@ -228,6 +265,23 @@ class PropertyTypeTable extends React.Component<Props> {
     );
   };
 
+  _handleNameBlur = index => {
+    const name = this.props.propertyTypes[index]?.name;
+    const trimmedName = name && name.trim();
+    if (name === trimmedName) {
+      return;
+    }
+
+    this.props.onPropertiesChanged(
+      updateItem<PropertyType, 'name'>(
+        this.props.propertyTypes,
+        index,
+        'name',
+        trimmedName,
+      ),
+    );
+  };
+
   _handleChecked = index => event => {
     this.props.onPropertiesChanged(
       updateItem<PropertyType, 'isInstanceProperty'>(
@@ -257,8 +311,21 @@ class PropertyTypeTable extends React.Component<Props> {
     ]);
   };
 
-  _onRemovePropertyClicked = index => _event => {
-    this.props.onPropertiesChanged(removeItem(this.props.propertyTypes, index));
+  _onRemovePropertyClicked = (index, property: PropertyType) => _event => {
+    if (property.id?.includes('@tmp')) {
+      this.props.onPropertiesChanged(
+        removeItem(this.props.propertyTypes, index),
+      );
+    } else {
+      this.props.onPropertiesChanged(
+        updateItem<PropertyType, 'isDeleted'>(
+          this.props.propertyTypes,
+          index,
+          'isDeleted',
+          true,
+        ),
+      );
+    }
   };
 
   _onDragEnd = result => {
@@ -278,7 +345,7 @@ class PropertyTypeTable extends React.Component<Props> {
 
   getInitialProperty(): PropertyType {
     return {
-      id: 'PropertyType@tmp' + this.props.propertyTypes.length,
+      id: `PropertyType@tmp-${this.props.propertyTypes.length}-${Date.now()}`,
       name: '',
       index: this.props.propertyTypes.length,
       type: 'string',

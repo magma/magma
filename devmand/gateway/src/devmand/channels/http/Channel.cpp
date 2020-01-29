@@ -8,8 +8,8 @@
 #include <folly/executors/Async.h>
 #include <iostream>
 
-#include <devmand/ErrorHandler.h>
 #include <devmand/channels/http/Channel.h>
+#include <devmand/error/ErrorHandler.h>
 
 namespace devmand {
 namespace channels {

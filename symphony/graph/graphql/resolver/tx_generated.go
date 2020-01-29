@@ -347,6 +347,34 @@ func (tr txResolver) RemoveServiceLink(ctx context.Context, id string, linkID st
 	return result, nil
 }
 
+func (tr txResolver) AddServiceEndpoint(ctx context.Context, input models.AddServiceEndpointInput) (*ent.Service, error) {
+	var result, zero *ent.Service
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.AddServiceEndpoint(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) RemoveServiceEndpoint(ctx context.Context, serviceEndpointID string) (*ent.Service, error) {
+	var result, zero *ent.Service
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.RemoveServiceEndpoint(ctx, serviceEndpointID)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
 func (tr txResolver) AddServiceType(ctx context.Context, data models.ServiceTypeCreateData) (*ent.ServiceType, error) {
 	var result, zero *ent.ServiceType
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
@@ -421,6 +449,34 @@ func (tr txResolver) AddImage(ctx context.Context, input models.AddImageInput) (
 	var result, zero *ent.File
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
 		result, err = mr.AddImage(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error) {
+	var result, zero *ent.Hyperlink
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.AddHyperlink(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) DeleteHyperlink(ctx context.Context, id string) (*ent.Hyperlink, error) {
+	var result, zero *ent.Hyperlink
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.DeleteHyperlink(ctx, id)
 		return
 	}); err != nil {
 		return zero, err
@@ -803,6 +859,17 @@ func (tr txResolver) AddFloorPlan(ctx context.Context, input models.AddFloorPlan
 	}
 	if result != nil {
 		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) DeleteFloorPlan(ctx context.Context, id string) (bool, error) {
+	var result, zero bool
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.DeleteFloorPlan(ctx, id)
+		return
+	}); err != nil {
+		return zero, err
 	}
 	return result, nil
 }

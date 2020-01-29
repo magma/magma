@@ -26,6 +26,7 @@ export type ProjectTypesListQuery_projectType$data = ProjectTypesListQuery_proje
 export type ProjectTypesListQuery_projectType$key = {
   +$data?: ProjectTypesListQuery_projectType$data,
   +$fragmentRefs: ProjectTypesListQuery_projectType$ref,
+  ...
 };
 */
 

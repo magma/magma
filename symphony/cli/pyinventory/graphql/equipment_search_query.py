@@ -69,6 +69,8 @@ class PropertyKind(Enum):
     gps_location = "gps_location"
     equipment = "equipment"
     location = "location"
+    service = "service"
+    datetime_local = "datetime_local"
 
 
 @dataclass_json
@@ -93,6 +95,7 @@ class EquipmentFilterInput:
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
         isMandatory: Optional[bool] = None
+        isDeleted: Optional[bool] = None
 
     filterType: EquipmentFilterType = enum_field(EquipmentFilterType)
     operator: FilterOperator = enum_field(FilterOperator)

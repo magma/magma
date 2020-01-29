@@ -9,7 +9,8 @@
  */
 
 import Button from '@fbcnms/ui/components/design-system/Button';
-import React from 'react';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import React, {useContext} from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -47,22 +48,26 @@ const BasicCheckListItemFilling = (props: Props) => {
     onChange(modifiedItem);
   };
 
+  const validationContext = useContext(FormValidationContext);
+
   return (
     <div className={classes.container}>
       <Text className={classes.expandindPart} variant="body2" weight="regular">
         {item.title}
       </Text>
-      <Button onClick={_updateOnChange} variant="text">
-        {item.checked
-          ? fbt(
-              'Mark as Undone',
-              'Caption of the simple checkbox item Uncheck button',
-            )
-          : fbt(
-              'Mark as done',
-              'Caption of the simple checkbox item Check button',
-            )}
-      </Button>
+      {!validationContext.editLock.detected && (
+        <Button onClick={_updateOnChange} variant="text">
+          {item.checked
+            ? fbt(
+                'Mark as Undone',
+                'Caption of the simple checkbox item Uncheck button',
+              )
+            : fbt(
+                'Mark as done',
+                'Caption of the simple checkbox item Check button',
+              )}
+        </Button>
+      )}
     </div>
   );
 };

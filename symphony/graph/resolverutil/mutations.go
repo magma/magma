@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GetOrCreatePosition(ctx context.Context, client *ent.Client, parentEquipmentID, positionDefinitionID *string) (*ent.EquipmentPosition, error) {
+func ValidateAndGetPositionIfExists(ctx context.Context, client *ent.Client, parentEquipmentID, positionDefinitionID *string, mustBeEmpty bool) (*ent.EquipmentPosition, error) {
 	if parentEquipmentID == nil || positionDefinitionID == nil {
 		if parentEquipmentID == nil && positionDefinitionID == nil {
 			return nil, nil
@@ -28,17 +28,35 @@ func GetOrCreatePosition(ctx context.Context, client *ent.Client, parentEquipmen
 			equipmentpositiondefinition.ID(*positionDefinitionID),
 		)).
 		Only(ctx)
+
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "querying equipment: definition=%q, parent=%q", *positionDefinitionID, *parentEquipmentID)
 	}
+
 	if ep != nil {
-		hasAttachment, err := ep.QueryAttachment().Exist(ctx)
-		if err != nil {
-			return nil, err
+		if mustBeEmpty {
+			hasAttachment, err := ep.QueryAttachment().Exist(ctx)
+			if err != nil {
+				return nil, err
+			}
+			if hasAttachment {
+				return nil, errors.Wrapf(err, "position already has attachment, position: %q", ep.ID)
+			}
 		}
-		if hasAttachment {
-			return nil, errors.Wrapf(err, "position already has attachment, position: %q", ep.ID)
-		}
+		return ep, nil
+	}
+	return nil, nil
+}
+
+func GetOrCreatePosition(ctx context.Context, client *ent.Client, parentEquipmentID, positionDefinitionID *string, mustBeEmpty bool) (*ent.EquipmentPosition, error) {
+	if parentEquipmentID == nil && positionDefinitionID == nil {
+		return nil, nil
+	}
+	ep, err := ValidateAndGetPositionIfExists(ctx, client, parentEquipmentID, positionDefinitionID, mustBeEmpty)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error validating before creating position")
+	}
+	if ep != nil {
 		return ep, nil
 	}
 	if ep, err = client.EquipmentPosition.Create().

@@ -13,8 +13,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
+	"github.com/facebookincubator/symphony/graph/ent/service"
 )
 
 // CustomerCreate is the builder for creating a Customer entity.
@@ -130,55 +132,77 @@ func (cc *CustomerCreate) SaveX(ctx context.Context) *Customer {
 
 func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(cc.driver.Dialect())
-		c       = &Customer{config: cc.config}
+		c     = &Customer{config: cc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: customer.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: customer.FieldID,
+			},
+		}
 	)
-	tx, err := cc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(customer.Table).Default()
 	if value := cc.create_time; value != nil {
-		insert.Set(customer.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: customer.FieldCreateTime,
+		})
 		c.CreateTime = *value
 	}
 	if value := cc.update_time; value != nil {
-		insert.Set(customer.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: customer.FieldUpdateTime,
+		})
 		c.UpdateTime = *value
 	}
 	if value := cc.name; value != nil {
-		insert.Set(customer.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: customer.FieldName,
+		})
 		c.Name = *value
 	}
 	if value := cc.external_id; value != nil {
-		insert.Set(customer.FieldExternalID, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: customer.FieldExternalID,
+		})
 		c.ExternalID = value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(customer.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	c.ID = strconv.FormatInt(id, 10)
-	if len(cc.services) > 0 {
-		for eid := range cc.services {
-			eid, err := strconv.Atoi(eid)
-			if err != nil {
-				return nil, rollback(tx, err)
-			}
-
-			query, args := builder.Insert(customer.ServicesTable).
-				Columns(customer.ServicesPrimaryKey[1], customer.ServicesPrimaryKey[0]).
-				Values(id, eid).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := cc.services; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   customer.ServicesTable,
+			Columns: customer.ServicesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, cc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	c.ID = strconv.FormatInt(id, 10)
 	return c, nil
 }

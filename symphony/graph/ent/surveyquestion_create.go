@@ -9,12 +9,13 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
@@ -423,190 +424,274 @@ func (sqc *SurveyQuestionCreate) SaveX(ctx context.Context) *SurveyQuestion {
 
 func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(sqc.driver.Dialect())
-		sq      = &SurveyQuestion{config: sqc.config}
+		sq    = &SurveyQuestion{config: sqc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: surveyquestion.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveyquestion.FieldID,
+			},
+		}
 	)
-	tx, err := sqc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(surveyquestion.Table).Default()
 	if value := sqc.create_time; value != nil {
-		insert.Set(surveyquestion.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveyquestion.FieldCreateTime,
+		})
 		sq.CreateTime = *value
 	}
 	if value := sqc.update_time; value != nil {
-		insert.Set(surveyquestion.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveyquestion.FieldUpdateTime,
+		})
 		sq.UpdateTime = *value
 	}
 	if value := sqc.form_name; value != nil {
-		insert.Set(surveyquestion.FieldFormName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveyquestion.FieldFormName,
+		})
 		sq.FormName = *value
 	}
 	if value := sqc.form_description; value != nil {
-		insert.Set(surveyquestion.FieldFormDescription, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveyquestion.FieldFormDescription,
+		})
 		sq.FormDescription = *value
 	}
 	if value := sqc.form_index; value != nil {
-		insert.Set(surveyquestion.FieldFormIndex, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveyquestion.FieldFormIndex,
+		})
 		sq.FormIndex = *value
 	}
 	if value := sqc.question_type; value != nil {
-		insert.Set(surveyquestion.FieldQuestionType, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveyquestion.FieldQuestionType,
+		})
 		sq.QuestionType = *value
 	}
 	if value := sqc.question_format; value != nil {
-		insert.Set(surveyquestion.FieldQuestionFormat, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveyquestion.FieldQuestionFormat,
+		})
 		sq.QuestionFormat = *value
 	}
 	if value := sqc.question_text; value != nil {
-		insert.Set(surveyquestion.FieldQuestionText, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveyquestion.FieldQuestionText,
+		})
 		sq.QuestionText = *value
 	}
 	if value := sqc.question_index; value != nil {
-		insert.Set(surveyquestion.FieldQuestionIndex, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveyquestion.FieldQuestionIndex,
+		})
 		sq.QuestionIndex = *value
 	}
 	if value := sqc.bool_data; value != nil {
-		insert.Set(surveyquestion.FieldBoolData, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: surveyquestion.FieldBoolData,
+		})
 		sq.BoolData = *value
 	}
 	if value := sqc.email_data; value != nil {
-		insert.Set(surveyquestion.FieldEmailData, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveyquestion.FieldEmailData,
+		})
 		sq.EmailData = *value
 	}
 	if value := sqc.latitude; value != nil {
-		insert.Set(surveyquestion.FieldLatitude, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveyquestion.FieldLatitude,
+		})
 		sq.Latitude = *value
 	}
 	if value := sqc.longitude; value != nil {
-		insert.Set(surveyquestion.FieldLongitude, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveyquestion.FieldLongitude,
+		})
 		sq.Longitude = *value
 	}
 	if value := sqc.location_accuracy; value != nil {
-		insert.Set(surveyquestion.FieldLocationAccuracy, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveyquestion.FieldLocationAccuracy,
+		})
 		sq.LocationAccuracy = *value
 	}
 	if value := sqc.altitude; value != nil {
-		insert.Set(surveyquestion.FieldAltitude, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveyquestion.FieldAltitude,
+		})
 		sq.Altitude = *value
 	}
 	if value := sqc.phone_data; value != nil {
-		insert.Set(surveyquestion.FieldPhoneData, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveyquestion.FieldPhoneData,
+		})
 		sq.PhoneData = *value
 	}
 	if value := sqc.text_data; value != nil {
-		insert.Set(surveyquestion.FieldTextData, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveyquestion.FieldTextData,
+		})
 		sq.TextData = *value
 	}
 	if value := sqc.float_data; value != nil {
-		insert.Set(surveyquestion.FieldFloatData, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveyquestion.FieldFloatData,
+		})
 		sq.FloatData = *value
 	}
 	if value := sqc.int_data; value != nil {
-		insert.Set(surveyquestion.FieldIntData, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveyquestion.FieldIntData,
+		})
 		sq.IntData = *value
 	}
 	if value := sqc.date_data; value != nil {
-		insert.Set(surveyquestion.FieldDateData, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveyquestion.FieldDateData,
+		})
 		sq.DateData = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(surveyquestion.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	sq.ID = strconv.FormatInt(id, 10)
-	if len(sqc.survey) > 0 {
-		for eid := range sqc.survey {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sqc.survey; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveyquestion.SurveyTable,
+			Columns: []string{surveyquestion.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(surveyquestion.SurveyTable).
-				Set(surveyquestion.SurveyColumn, eid).
-				Where(sql.EQ(surveyquestion.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(sqc.wifi_scan) > 0 {
-		p := sql.P()
-		for eid := range sqc.wifi_scan {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sqc.wifi_scan; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   surveyquestion.WifiScanTable,
+			Columns: []string{surveyquestion.WifiScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveywifiscan.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(surveywifiscan.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(surveyquestion.WifiScanTable).
-			Set(surveyquestion.WifiScanColumn, id).
-			Where(sql.And(p, sql.IsNull(surveyquestion.WifiScanColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(sqc.wifi_scan) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"wifi_scan\" %v already connected to a different \"SurveyQuestion\"", keys(sqc.wifi_scan))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(sqc.cell_scan) > 0 {
-		p := sql.P()
-		for eid := range sqc.cell_scan {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sqc.cell_scan; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   surveyquestion.CellScanTable,
+			Columns: []string{surveyquestion.CellScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveycellscan.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(surveycellscan.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(surveyquestion.CellScanTable).
-			Set(surveyquestion.CellScanColumn, id).
-			Where(sql.And(p, sql.IsNull(surveyquestion.CellScanColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(sqc.cell_scan) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"cell_scan\" %v already connected to a different \"SurveyQuestion\"", keys(sqc.cell_scan))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(sqc.photo_data) > 0 {
-		p := sql.P()
-		for eid := range sqc.photo_data {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sqc.photo_data; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveyquestion.PhotoDataTable,
+			Columns: []string{surveyquestion.PhotoDataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(file.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(surveyquestion.PhotoDataTable).
-			Set(surveyquestion.PhotoDataColumn, id).
-			Where(sql.And(p, sql.IsNull(surveyquestion.PhotoDataColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(sqc.photo_data) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"photo_data\" %v already connected to a different \"SurveyQuestion\"", keys(sqc.photo_data))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, sqc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	sq.ID = strconv.FormatInt(id, 10)
 	return sq, nil
 }

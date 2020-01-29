@@ -15,7 +15,6 @@ import {Range} from './PromQL';
 import {
   AGGREGATION_OPERATORS,
   BINARY_OPERATORS,
-  CLAUSE_OPS,
   FUNCTION_NAMES,
   LABEL_OPERATORS,
 } from './PromQLTypes';
@@ -43,9 +42,8 @@ const lexerRules = {
   }, // matches floating point and integers
   aggOp: AGGREGATION_OPERATORS,
   functionName: FUNCTION_NAMES,
-  labelOp: LABEL_OPERATORS,
   binOp: BINARY_OPERATORS,
-  clauseOp: CLAUSE_OPS,
+  labelOp: LABEL_OPERATORS,
   word: new RegExp(`\\w+`),
   string: {match: new RegExp(`"[^"]*"`), value: s => s.slice(1, -1)}, // strip quotes from string
 };

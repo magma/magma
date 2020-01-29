@@ -11,8 +11,10 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CheckListItemCreate is the builder for creating a CheckListItem entity.
@@ -157,66 +159,101 @@ func (clic *CheckListItemCreate) SaveX(ctx context.Context) *CheckListItem {
 
 func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(clic.driver.Dialect())
-		cli     = &CheckListItem{config: clic.config}
+		cli   = &CheckListItem{config: clic.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: checklistitem.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: checklistitem.FieldID,
+			},
+		}
 	)
-	tx, err := clic.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(checklistitem.Table).Default()
 	if value := clic.title; value != nil {
-		insert.Set(checklistitem.FieldTitle, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldTitle,
+		})
 		cli.Title = *value
 	}
 	if value := clic._type; value != nil {
-		insert.Set(checklistitem.FieldType, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldType,
+		})
 		cli.Type = *value
 	}
 	if value := clic.index; value != nil {
-		insert.Set(checklistitem.FieldIndex, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: checklistitem.FieldIndex,
+		})
 		cli.Index = *value
 	}
 	if value := clic.checked; value != nil {
-		insert.Set(checklistitem.FieldChecked, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: checklistitem.FieldChecked,
+		})
 		cli.Checked = *value
 	}
 	if value := clic.string_val; value != nil {
-		insert.Set(checklistitem.FieldStringVal, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldStringVal,
+		})
 		cli.StringVal = *value
 	}
 	if value := clic.enum_values; value != nil {
-		insert.Set(checklistitem.FieldEnumValues, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldEnumValues,
+		})
 		cli.EnumValues = *value
 	}
 	if value := clic.help_text; value != nil {
-		insert.Set(checklistitem.FieldHelpText, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldHelpText,
+		})
 		cli.HelpText = value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(checklistitem.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	cli.ID = strconv.FormatInt(id, 10)
-	if len(clic.work_order) > 0 {
-		for eid := range clic.work_order {
-			eid, err := strconv.Atoi(eid)
-			if err != nil {
-				return nil, rollback(tx, err)
-			}
-			query, args := builder.Update(checklistitem.WorkOrderTable).
-				Set(checklistitem.WorkOrderColumn, eid).
-				Where(sql.EQ(checklistitem.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := clic.work_order; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistitem.WorkOrderTable,
+			Columns: []string{checklistitem.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, clic.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	cli.ID = strconv.FormatInt(id, 10)
 	return cli, nil
 }

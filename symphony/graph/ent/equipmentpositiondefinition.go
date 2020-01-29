@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 )
 
 // EquipmentPositionDefinition is the model entity for the EquipmentPositionDefinition schema.
@@ -30,35 +31,85 @@ type EquipmentPositionDefinition struct {
 	Index int `json:"index,omitempty"`
 	// VisibilityLabel holds the value of the "visibility_label" field.
 	VisibilityLabel string `json:"visibility_label,omitempty" gqlgen:"visibleLabel"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentPositionDefinitionQuery when eager-loading is set.
+	Edges             EquipmentPositionDefinitionEdges `json:"edges"`
+	equipment_type_id *string
 }
 
-// FromRows scans the sql response data into EquipmentPositionDefinition.
-func (epd *EquipmentPositionDefinition) FromRows(rows *sql.Rows) error {
-	var scanepd struct {
-		ID              int
-		CreateTime      sql.NullTime
-		UpdateTime      sql.NullTime
-		Name            sql.NullString
-		Index           sql.NullInt64
-		VisibilityLabel sql.NullString
+// EquipmentPositionDefinitionEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPositionDefinitionEdges struct {
+	// Positions holds the value of the positions edge.
+	Positions []*EquipmentPosition
+	// EquipmentType holds the value of the equipment_type edge.
+	EquipmentType *EquipmentType
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*EquipmentPositionDefinition) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullInt64{},  // index
+		&sql.NullString{}, // visibility_label
 	}
-	// the order here should be the same as in the `equipmentpositiondefinition.Columns`.
-	if err := rows.Scan(
-		&scanepd.ID,
-		&scanepd.CreateTime,
-		&scanepd.UpdateTime,
-		&scanepd.Name,
-		&scanepd.Index,
-		&scanepd.VisibilityLabel,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*EquipmentPositionDefinition) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // equipment_type_id
 	}
-	epd.ID = strconv.Itoa(scanepd.ID)
-	epd.CreateTime = scanepd.CreateTime.Time
-	epd.UpdateTime = scanepd.UpdateTime.Time
-	epd.Name = scanepd.Name.String
-	epd.Index = int(scanepd.Index.Int64)
-	epd.VisibilityLabel = scanepd.VisibilityLabel.String
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the EquipmentPositionDefinition fields.
+func (epd *EquipmentPositionDefinition) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipmentpositiondefinition.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	epd.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		epd.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		epd.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		epd.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[3])
+	} else if value.Valid {
+		epd.Index = int(value.Int64)
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field visibility_label", values[4])
+	} else if value.Valid {
+		epd.VisibilityLabel = value.String
+	}
+	values = values[5:]
+	if len(values) == len(equipmentpositiondefinition.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type_id", value)
+		} else if value.Valid {
+			epd.equipment_type_id = new(string)
+			*epd.equipment_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -117,18 +168,6 @@ func (epd *EquipmentPositionDefinition) id() int {
 
 // EquipmentPositionDefinitions is a parsable slice of EquipmentPositionDefinition.
 type EquipmentPositionDefinitions []*EquipmentPositionDefinition
-
-// FromRows scans the sql response data into EquipmentPositionDefinitions.
-func (epd *EquipmentPositionDefinitions) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanepd := &EquipmentPositionDefinition{}
-		if err := scanepd.FromRows(rows); err != nil {
-			return err
-		}
-		*epd = append(*epd, scanepd)
-	}
-	return nil
-}
 
 func (epd EquipmentPositionDefinitions) config(cfg config) {
 	for _i := range epd {

@@ -9,9 +9,9 @@
 
 #include <folly/GLog.h>
 
-#include <devmand/EventBaseUtils.h>
 #include <devmand/channels/snmp/Engine.h>
 #include <devmand/channels/snmp/Snmp.h>
+#include <devmand/utils/EventBaseUtils.h>
 
 namespace devmand {
 namespace channels {
@@ -43,7 +43,7 @@ folly::EventBase& Engine::getEventBase() {
 }
 
 void Engine::timeout() {
-  LOG(INFO) << "Processing SNMP Timeouts";
+  // LOG(INFO) << "Processing SNMP Timeouts";
   snmp_timeout();
   sync();
 }

@@ -11,11 +11,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/facebookincubator/symphony/cloud/ctxgroup"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -39,11 +39,29 @@ func (m *importer) processPortConnectionCSV(w http.ResponseWriter, r *http.Reque
 			http.Error(w, fmt.Sprintf("cannot handle file %q", fileName), http.StatusUnprocessableEntity)
 			return
 		}
+		equipNameAIndex := findIndexForSimilar(firstLine, "A_Equipment")
+		if equipNameAIndex == -1 {
+			errorReturn(w, "Couldn't find 'A_Equipment' title", log, nil)
+			return
+		}
 
-		equipNameAIndex := findIndex(firstLine, "A_Equipment")
-		equipNameBIndex := findIndex(firstLine, "B_Equipment")
-		portAIndex := findIndex(firstLine, "A_Port")
-		portBIndex := findIndex(firstLine, "B_Port")
+		equipNameBIndex := findIndexForSimilar(firstLine, "B_Equipment")
+		if equipNameBIndex == -1 {
+			errorReturn(w, "Couldn't find 'B_Equipment' title", log, nil)
+			return
+		}
+
+		portAIndex := findIndexForSimilar(firstLine, "A_Port")
+		if portAIndex == -1 {
+			errorReturn(w, "Couldn't find 'A_Port' title", log, nil)
+			return
+		}
+
+		portBIndex := findIndexForSimilar(firstLine, "B_Port")
+		if portBIndex == -1 {
+			errorReturn(w, "Couldn't find 'B_Port' title", log, nil)
+			return
+		}
 
 		for {
 			line, err := reader.Read()
@@ -90,14 +108,14 @@ func (m *importer) processPortConnectionCSV(w http.ResponseWriter, r *http.Reque
 							)).
 							OnlyID(ctx)
 						if err != nil {
-							return errors.WithMessagef(err, "port=%q, equipment=%q", names[i], enames[i])
+							return errors.WithMessagef(err, "fetching one port: %q, equipment=%q", names[i], enames[i])
 						}
 						ids[i] = id
 						return nil
 					})
 				}
 				if err := g.Wait(); err != nil {
-					log.Warn("getting equipment port", zap.Error(err))
+					errorReturn(w, err.Error(), log, err)
 					continue
 				}
 			}

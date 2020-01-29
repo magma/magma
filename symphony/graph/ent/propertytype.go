@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 )
 
 // PropertyType is the model entity for the PropertyType schema.
@@ -54,71 +55,225 @@ type PropertyType struct {
 	Editable bool `json:"editable,omitempty" gqlgen:"isEditable"`
 	// Mandatory holds the value of the "mandatory" field.
 	Mandatory bool `json:"mandatory,omitempty" gqlgen:"isMandatory"`
+	// Deleted holds the value of the "deleted" field.
+	Deleted bool `json:"deleted,omitempty" gqlgen:"isDeleted"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the PropertyTypeQuery when eager-loading is set.
+	Edges                       PropertyTypeEdges `json:"edges"`
+	equipment_port_type_id      *string
+	link_equipment_port_type_id *string
+	equipment_type_id           *string
+	location_type_id            *string
+	project_type_id             *string
+	service_type_id             *string
+	work_order_type_id          *string
 }
 
-// FromRows scans the sql response data into PropertyType.
-func (pt *PropertyType) FromRows(rows *sql.Rows) error {
-	var scanpt struct {
-		ID                 int
-		CreateTime         sql.NullTime
-		UpdateTime         sql.NullTime
-		Type               sql.NullString
-		Name               sql.NullString
-		Index              sql.NullInt64
-		Category           sql.NullString
-		IntVal             sql.NullInt64
-		BoolVal            sql.NullBool
-		FloatVal           sql.NullFloat64
-		LatitudeVal        sql.NullFloat64
-		LongitudeVal       sql.NullFloat64
-		StringVal          sql.NullString
-		RangeFromVal       sql.NullFloat64
-		RangeToVal         sql.NullFloat64
-		IsInstanceProperty sql.NullBool
-		Editable           sql.NullBool
-		Mandatory          sql.NullBool
+// PropertyTypeEdges holds the relations/edges for other nodes in the graph.
+type PropertyTypeEdges struct {
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// LocationType holds the value of the location_type edge.
+	LocationType *LocationType
+	// EquipmentPortType holds the value of the equipment_port_type edge.
+	EquipmentPortType *EquipmentPortType
+	// LinkEquipmentPortType holds the value of the link_equipment_port_type edge.
+	LinkEquipmentPortType *EquipmentPortType
+	// EquipmentType holds the value of the equipment_type edge.
+	EquipmentType *EquipmentType
+	// ServiceType holds the value of the service_type edge.
+	ServiceType *ServiceType
+	// WorkOrderType holds the value of the work_order_type edge.
+	WorkOrderType *WorkOrderType
+	// ProjectType holds the value of the project_type edge.
+	ProjectType *ProjectType
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*PropertyType) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullString{},  // type
+		&sql.NullString{},  // name
+		&sql.NullInt64{},   // index
+		&sql.NullString{},  // category
+		&sql.NullInt64{},   // int_val
+		&sql.NullBool{},    // bool_val
+		&sql.NullFloat64{}, // float_val
+		&sql.NullFloat64{}, // latitude_val
+		&sql.NullFloat64{}, // longitude_val
+		&sql.NullString{},  // string_val
+		&sql.NullFloat64{}, // range_from_val
+		&sql.NullFloat64{}, // range_to_val
+		&sql.NullBool{},    // is_instance_property
+		&sql.NullBool{},    // editable
+		&sql.NullBool{},    // mandatory
+		&sql.NullBool{},    // deleted
 	}
-	// the order here should be the same as in the `propertytype.Columns`.
-	if err := rows.Scan(
-		&scanpt.ID,
-		&scanpt.CreateTime,
-		&scanpt.UpdateTime,
-		&scanpt.Type,
-		&scanpt.Name,
-		&scanpt.Index,
-		&scanpt.Category,
-		&scanpt.IntVal,
-		&scanpt.BoolVal,
-		&scanpt.FloatVal,
-		&scanpt.LatitudeVal,
-		&scanpt.LongitudeVal,
-		&scanpt.StringVal,
-		&scanpt.RangeFromVal,
-		&scanpt.RangeToVal,
-		&scanpt.IsInstanceProperty,
-		&scanpt.Editable,
-		&scanpt.Mandatory,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*PropertyType) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // equipment_port_type_id
+		&sql.NullInt64{}, // link_equipment_port_type_id
+		&sql.NullInt64{}, // equipment_type_id
+		&sql.NullInt64{}, // location_type_id
+		&sql.NullInt64{}, // project_type_id
+		&sql.NullInt64{}, // service_type_id
+		&sql.NullInt64{}, // work_order_type_id
 	}
-	pt.ID = strconv.Itoa(scanpt.ID)
-	pt.CreateTime = scanpt.CreateTime.Time
-	pt.UpdateTime = scanpt.UpdateTime.Time
-	pt.Type = scanpt.Type.String
-	pt.Name = scanpt.Name.String
-	pt.Index = int(scanpt.Index.Int64)
-	pt.Category = scanpt.Category.String
-	pt.IntVal = int(scanpt.IntVal.Int64)
-	pt.BoolVal = scanpt.BoolVal.Bool
-	pt.FloatVal = scanpt.FloatVal.Float64
-	pt.LatitudeVal = scanpt.LatitudeVal.Float64
-	pt.LongitudeVal = scanpt.LongitudeVal.Float64
-	pt.StringVal = scanpt.StringVal.String
-	pt.RangeFromVal = scanpt.RangeFromVal.Float64
-	pt.RangeToVal = scanpt.RangeToVal.Float64
-	pt.IsInstanceProperty = scanpt.IsInstanceProperty.Bool
-	pt.Editable = scanpt.Editable.Bool
-	pt.Mandatory = scanpt.Mandatory.Bool
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the PropertyType fields.
+func (pt *PropertyType) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(propertytype.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	pt.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		pt.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		pt.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field type", values[2])
+	} else if value.Valid {
+		pt.Type = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[3])
+	} else if value.Valid {
+		pt.Name = value.String
+	}
+	if value, ok := values[4].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[4])
+	} else if value.Valid {
+		pt.Index = int(value.Int64)
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field category", values[5])
+	} else if value.Valid {
+		pt.Category = value.String
+	}
+	if value, ok := values[6].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field int_val", values[6])
+	} else if value.Valid {
+		pt.IntVal = int(value.Int64)
+	}
+	if value, ok := values[7].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field bool_val", values[7])
+	} else if value.Valid {
+		pt.BoolVal = value.Bool
+	}
+	if value, ok := values[8].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field float_val", values[8])
+	} else if value.Valid {
+		pt.FloatVal = value.Float64
+	}
+	if value, ok := values[9].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude_val", values[9])
+	} else if value.Valid {
+		pt.LatitudeVal = value.Float64
+	}
+	if value, ok := values[10].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude_val", values[10])
+	} else if value.Valid {
+		pt.LongitudeVal = value.Float64
+	}
+	if value, ok := values[11].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field string_val", values[11])
+	} else if value.Valid {
+		pt.StringVal = value.String
+	}
+	if value, ok := values[12].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field range_from_val", values[12])
+	} else if value.Valid {
+		pt.RangeFromVal = value.Float64
+	}
+	if value, ok := values[13].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field range_to_val", values[13])
+	} else if value.Valid {
+		pt.RangeToVal = value.Float64
+	}
+	if value, ok := values[14].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field is_instance_property", values[14])
+	} else if value.Valid {
+		pt.IsInstanceProperty = value.Bool
+	}
+	if value, ok := values[15].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field editable", values[15])
+	} else if value.Valid {
+		pt.Editable = value.Bool
+	}
+	if value, ok := values[16].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field mandatory", values[16])
+	} else if value.Valid {
+		pt.Mandatory = value.Bool
+	}
+	if value, ok := values[17].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field deleted", values[17])
+	} else if value.Valid {
+		pt.Deleted = value.Bool
+	}
+	values = values[18:]
+	if len(values) == len(propertytype.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_id", value)
+		} else if value.Valid {
+			pt.equipment_port_type_id = new(string)
+			*pt.equipment_port_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field link_equipment_port_type_id", value)
+		} else if value.Valid {
+			pt.link_equipment_port_type_id = new(string)
+			*pt.link_equipment_port_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[2].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type_id", value)
+		} else if value.Valid {
+			pt.equipment_type_id = new(string)
+			*pt.equipment_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[3].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_type_id", value)
+		} else if value.Valid {
+			pt.location_type_id = new(string)
+			*pt.location_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[4].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_type_id", value)
+		} else if value.Valid {
+			pt.project_type_id = new(string)
+			*pt.project_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[5].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field service_type_id", value)
+		} else if value.Valid {
+			pt.service_type_id = new(string)
+			*pt.service_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[6].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_type_id", value)
+		} else if value.Valid {
+			pt.work_order_type_id = new(string)
+			*pt.work_order_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -219,6 +374,8 @@ func (pt *PropertyType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pt.Editable))
 	builder.WriteString(", mandatory=")
 	builder.WriteString(fmt.Sprintf("%v", pt.Mandatory))
+	builder.WriteString(", deleted=")
+	builder.WriteString(fmt.Sprintf("%v", pt.Deleted))
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -231,18 +388,6 @@ func (pt *PropertyType) id() int {
 
 // PropertyTypes is a parsable slice of PropertyType.
 type PropertyTypes []*PropertyType
-
-// FromRows scans the sql response data into PropertyTypes.
-func (pt *PropertyTypes) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanpt := &PropertyType{}
-		if err := scanpt.FromRows(rows); err != nil {
-			return err
-		}
-		*pt = append(*pt, scanpt)
-	}
-	return nil
-}
 
 func (pt PropertyTypes) config(cfg config) {
 	for _i := range pt {

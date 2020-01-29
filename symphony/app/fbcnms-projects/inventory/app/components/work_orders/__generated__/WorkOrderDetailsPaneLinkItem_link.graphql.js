@@ -16,7 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type WorkOrderDetailsPaneLinkItem_link$ref: FragmentReference;
@@ -30,7 +30,6 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
       +id: string,
       +name: string,
       +visibleLabel: ?string,
-      +type: string,
       +portType: ?{|
         +linkPropertyTypes: $ReadOnlyArray<?{|
           +id: string,
@@ -62,7 +61,6 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +bandwidth: ?string,
           +portType: ?{|
             +id: string,
@@ -104,9 +102,14 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
       +id: string,
       +name: string,
     |},
+    +serviceValue: ?{|
+      +id: string,
+      +name: string,
+    |},
   |}>,
   +services: $ReadOnlyArray<?{|
-    +id: string
+    +id: string,
+    +name: string,
   |}>,
   +$refType: WorkOrderDetailsPaneLinkItem_link$ref,
 |};
@@ -114,6 +117,7 @@ export type WorkOrderDetailsPaneLinkItem_link$data = WorkOrderDetailsPaneLinkIte
 export type WorkOrderDetailsPaneLinkItem_link$key = {
   +$data?: WorkOrderDetailsPaneLinkItem_link$data,
   +$fragmentRefs: WorkOrderDetailsPaneLinkItem_link$ref,
+  ...
 };
 */
 
@@ -266,7 +270,6 @@ return {
             (v0/*: any*/),
             (v2/*: any*/),
             (v3/*: any*/),
-            (v4/*: any*/),
             {
               "kind": "LinkedField",
               "alias": null,
@@ -347,7 +350,6 @@ return {
                     (v0/*: any*/),
                     (v2/*: any*/),
                     (v3/*: any*/),
-                    (v4/*: any*/),
                     {
                       "kind": "ScalarField",
                       "alias": null,
@@ -452,6 +454,16 @@ return {
           "concreteType": "Location",
           "plural": false,
           "selections": (v16/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "serviceValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
+          "plural": false,
+          "selections": (v16/*: any*/)
         }
       ]
     },
@@ -463,9 +475,7 @@ return {
       "args": null,
       "concreteType": "Service",
       "plural": true,
-      "selections": [
-        (v0/*: any*/)
-      ]
+      "selections": (v16/*: any*/)
     }
   ]
 };

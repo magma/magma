@@ -1,0 +1,17 @@
+---
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
+- name: Create new sources.list
+  copy:
+    content: |
+      deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/{{ snap_timestamp }}/ stretch main
+      deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/{{ snap_timestamp }}/ stretch-updates main
+      deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/{{ snap_timestamp }}/ stretch/updates main
+    dest: /etc/apt/sources.list
+    backup: yes

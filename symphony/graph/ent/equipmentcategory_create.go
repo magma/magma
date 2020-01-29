@@ -9,11 +9,11 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 )
@@ -108,59 +108,69 @@ func (ecc *EquipmentCategoryCreate) SaveX(ctx context.Context) *EquipmentCategor
 
 func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCategory, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(ecc.driver.Dialect())
-		ec      = &EquipmentCategory{config: ecc.config}
+		ec    = &EquipmentCategory{config: ecc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: equipmentcategory.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipmentcategory.FieldID,
+			},
+		}
 	)
-	tx, err := ecc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(equipmentcategory.Table).Default()
 	if value := ecc.create_time; value != nil {
-		insert.Set(equipmentcategory.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmentcategory.FieldCreateTime,
+		})
 		ec.CreateTime = *value
 	}
 	if value := ecc.update_time; value != nil {
-		insert.Set(equipmentcategory.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmentcategory.FieldUpdateTime,
+		})
 		ec.UpdateTime = *value
 	}
 	if value := ecc.name; value != nil {
-		insert.Set(equipmentcategory.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmentcategory.FieldName,
+		})
 		ec.Name = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(equipmentcategory.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	ec.ID = strconv.FormatInt(id, 10)
-	if len(ecc.types) > 0 {
-		p := sql.P()
-		for eid := range ecc.types {
-			eid, err := strconv.Atoi(eid)
+	if nodes := ecc.types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmentcategory.TypesTable,
+			Columns: []string{equipmentcategory.TypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmenttype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(equipmenttype.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(equipmentcategory.TypesTable).
-			Set(equipmentcategory.TypesColumn, id).
-			Where(sql.And(p, sql.IsNull(equipmentcategory.TypesColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(ecc.types) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"types\" %v already connected to a different \"EquipmentCategory\"", keys(ecc.types))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, ecc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	ec.ID = strconv.FormatInt(id, 10)
 	return ec, nil
 }

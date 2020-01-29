@@ -224,37 +224,37 @@ func (m *importer) ProcessXwf1CSV(w http.ResponseWriter, r *http.Request) {
 			qa.SaveX(ctx)
 
 			if inverter500val == "1" {
-				m.getOrCreateEquipment(ctx, mr, "inverter500", inverter500EquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "inverter500", inverter500EquipmentType, nil, site, nil, nil)
 			}
 			if inverter900val == "1" {
-				m.getOrCreateEquipment(ctx, mr, "inverter900", inverter900EquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "inverter900", inverter900EquipmentType, nil, site, nil, nil)
 			}
 			if battery100AHVal == "1" {
-				m.getOrCreateEquipment(ctx, mr, "battery100ah", battery100ahEquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "battery100ah", battery100ahEquipmentType, nil, site, nil, nil)
 			}
 			if battery200AHVal == "1" {
-				m.getOrCreateEquipment(ctx, mr, "battery200ah", battery200ahEquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "battery200ah", battery200ahEquipmentType, nil, site, nil, nil)
 			}
 			if radioModelCBNVal == "Installed" {
-				m.getOrCreateEquipment(ctx, mr, "radioModelCBN", radioModelCBNEquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "radioModelCBN", radioModelCBNEquipmentType, nil, site, nil, nil)
 			}
 			if radioModelCLLVal == "Installed" {
-				m.getOrCreateEquipment(ctx, mr, "radioModelCLLN", radioModelCLLEquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "radioModelCLLN", radioModelCLLEquipmentType, nil, site, nil, nil)
 			}
 			if mikrotikVal == "RB2011" {
-				m.getOrCreateEquipment(ctx, mr, "RB2011", mikrotikRB2011CLLEquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "RB2011", mikrotikRB2011CLLEquipmentType, nil, site, nil, nil)
 			}
 			if mikrotikVal == "RB750G" {
-				m.getOrCreateEquipment(ctx, mr, "RB750G", mikrotikRB750GCLLEquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "RB750G", mikrotikRB750GCLLEquipmentType, nil, site, nil, nil)
 			}
 			if cambiumE500Val == "Installed" {
-				m.getOrCreateEquipment(ctx, mr, "Cambium E500", POEEquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "Cambium E500", POEEquipmentType, nil, site, nil, nil)
 			}
 			if poeVal == "Installed" {
-				m.getOrCreateEquipment(ctx, mr, "POE", poeEquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "POE", poeEquipmentType, nil, site, nil, nil)
 			}
 			if telephoneVal == "Allocated" {
-				m.getOrCreateEquipment(ctx, mr, "Telephone", telephoneEquipmentType, site, nil, nil)
+				m.getOrCreateEquipment(ctx, mr, "Telephone", telephoneEquipmentType, nil, site, nil, nil)
 			}
 
 		}

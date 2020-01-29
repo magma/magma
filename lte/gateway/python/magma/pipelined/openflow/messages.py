@@ -166,6 +166,23 @@ class MessageHub(object):
         req.set_timeout(timeout, switch, barrier.xid, msg_xids)
         return channel
 
+    def filter_msgs_if_not_in_flow_list(self,
+                                        msg_list: List[MsgBase],
+                                        flow_list):
+        """
+        Returns a list of messages not found in the provided flow_list, also
+        returns a list of remaining flows(not found in the msg_list)
+        """
+        msgs_to_send = []
+        remaining_flows = flow_list.copy()
+        for msg in msg_list:
+            index = self._get_msg_index_in_flow_list(msg, remaining_flows)
+            if index >= 0:
+                remaining_flows.pop(index)
+            else:
+                msgs_to_send.append(msg)
+        return msgs_to_send, remaining_flows
+
     @staticmethod
     def _respond(request, reply):
         if request.channel is not None:
@@ -210,6 +227,25 @@ class MessageHub(object):
             return
         # for now, result is unused. Just return if there's an exception
         switch.results_by_msg[msg.xid] = MagmaOFError(ev.msg)
+
+    def _flow_matches_flowmsg(self, flow, msg):
+        """
+        Compare the flow and flow message based on
+         - cookie(Policy number)
+         - metadata(Subscriber IMSI)
+         - reg4(Policy version number)
+        """
+        return flow.cookie == msg.cookie and\
+               flow.match.get('metadata', None) == msg.match.get('metadata', None) and\
+               flow.match.get('reg1', None) == msg.match.get('reg1', None) and\
+               flow.match.get('reg2', None) == msg.match.get('reg2', None) and\
+               flow.match.get('reg4', None) == msg.match.get('reg4', None)
+
+    def _get_msg_index_in_flow_list(self, msg, flow_list):
+        for i in range(len(flow_list)):
+            if self._flow_matches_flowmsg(msg, flow_list[i]):
+                return i
+        return -1
 
     class _MsgRequest(object):
         def __init__(self, txn_id, msg_xids, channel=None):

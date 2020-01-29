@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_portDefinition$ref: FragmentReference;
 declare export opaque type EquipmentPortsTable_portDefinition$fragmentType: EquipmentPortsTable_portDefinition$ref;
@@ -23,7 +23,6 @@ export type EquipmentPortsTable_portDefinition = {|
   +name: string,
   +index: ?number,
   +visibleLabel: ?string,
-  +type: string,
   +portType: ?{|
     +id: string,
     +name: string,
@@ -68,6 +67,7 @@ export type EquipmentPortsTable_portDefinition$data = EquipmentPortsTable_portDe
 export type EquipmentPortsTable_portDefinition$key = {
   +$data?: EquipmentPortsTable_portDefinition$data,
   +$fragmentRefs: EquipmentPortsTable_portDefinition$ref,
+  ...
 };
 */
 
@@ -94,17 +94,16 @@ v2 = {
   "args": null,
   "storageKey": null
 },
-v3 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "type",
-  "args": null,
-  "storageKey": null
-},
-v4 = [
+v3 = [
   (v0/*: any*/),
   (v1/*: any*/),
-  (v3/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "type",
+    "args": null,
+    "storageKey": null
+  },
   (v2/*: any*/),
   {
     "kind": "ScalarField",
@@ -201,7 +200,6 @@ return {
       "args": null,
       "storageKey": null
     },
-    (v3/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -221,7 +219,7 @@ return {
           "args": null,
           "concreteType": "PropertyType",
           "plural": true,
-          "selections": (v4/*: any*/)
+          "selections": (v3/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -231,7 +229,7 @@ return {
           "args": null,
           "concreteType": "PropertyType",
           "plural": true,
-          "selections": (v4/*: any*/)
+          "selections": (v3/*: any*/)
         }
       ]
     }
@@ -239,5 +237,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'fa06c2ecc41b7a851133eff804720ca0';
+(node/*: any*/).hash = 'c3402192a79fc61b03fc615e09549a3e';
 module.exports = node;

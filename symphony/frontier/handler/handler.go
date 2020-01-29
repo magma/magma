@@ -9,11 +9,11 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/google/wire"
-	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
+	"github.com/justinas/nosurf"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
@@ -44,7 +44,15 @@ type (
 // NewHandler return a root http handler from config.
 func NewHandler(cfg Config) *mux.Router {
 	router := mux.NewRouter()
-	router.Use(csrf.Protect(cfg.AuthKey))
+	router.Use(func(h http.Handler) http.Handler {
+		csrf := nosurf.New(h)
+		csrf.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			cfg.Logger.For(r.Context()).
+				Debug("failed csrf validation", zap.Error(nosurf.Reason(r)))
+			w.WriteHeader(http.StatusBadRequest)
+		}))
+		return csrf
+	})
 	router.NotFoundHandler = newProxy(cfg.ProxyTarget, cfg.Logger)
 	return router
 }

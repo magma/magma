@@ -14,7 +14,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
 // ActionsRule is the model entity for the ActionsRule schema.
@@ -36,41 +37,64 @@ type ActionsRule struct {
 	RuleActions []*core.ActionsRuleAction `json:"ruleActions,omitempty"`
 }
 
-// FromRows scans the sql response data into ActionsRule.
-func (ar *ActionsRule) FromRows(rows *sql.Rows) error {
-	var scanar struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		TriggerID   sql.NullString
-		RuleFilters []byte
-		RuleActions []byte
+// scanValues returns the types for scanning values from sql.Rows.
+func (*ActionsRule) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // triggerID
+		&[]byte{},         // ruleFilters
+		&[]byte{},         // ruleActions
 	}
-	// the order here should be the same as in the `actionsrule.Columns`.
-	if err := rows.Scan(
-		&scanar.ID,
-		&scanar.CreateTime,
-		&scanar.UpdateTime,
-		&scanar.Name,
-		&scanar.TriggerID,
-		&scanar.RuleFilters,
-		&scanar.RuleActions,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the ActionsRule fields.
+func (ar *ActionsRule) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(actionsrule.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	ar.ID = strconv.Itoa(scanar.ID)
-	ar.CreateTime = scanar.CreateTime.Time
-	ar.UpdateTime = scanar.UpdateTime.Time
-	ar.Name = scanar.Name.String
-	ar.TriggerID = scanar.TriggerID.String
-	if value := scanar.RuleFilters; len(value) > 0 {
-		if err := json.Unmarshal(value, &ar.RuleFilters); err != nil {
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	ar.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		ar.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		ar.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		ar.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field triggerID", values[3])
+	} else if value.Valid {
+		ar.TriggerID = value.String
+	}
+
+	if value, ok := values[4].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field ruleFilters", values[4])
+	} else if value != nil && len(*value) > 0 {
+		if err := json.Unmarshal(*value, &ar.RuleFilters); err != nil {
 			return fmt.Errorf("unmarshal field ruleFilters: %v", err)
 		}
 	}
-	if value := scanar.RuleActions; len(value) > 0 {
-		if err := json.Unmarshal(value, &ar.RuleActions); err != nil {
+
+	if value, ok := values[5].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field ruleActions", values[5])
+	} else if value != nil && len(*value) > 0 {
+		if err := json.Unmarshal(*value, &ar.RuleActions); err != nil {
 			return fmt.Errorf("unmarshal field ruleActions: %v", err)
 		}
 	}
@@ -124,18 +148,6 @@ func (ar *ActionsRule) id() int {
 
 // ActionsRules is a parsable slice of ActionsRule.
 type ActionsRules []*ActionsRule
-
-// FromRows scans the sql response data into ActionsRules.
-func (ar *ActionsRules) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanar := &ActionsRule{}
-		if err := scanar.FromRows(rows); err != nil {
-			return err
-		}
-		*ar = append(*ar, scanar)
-	}
-	return nil
-}
 
 func (ar ActionsRules) config(cfg config) {
 	for _i := range ar {

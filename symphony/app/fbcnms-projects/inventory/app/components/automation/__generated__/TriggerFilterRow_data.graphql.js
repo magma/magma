@@ -35,6 +35,7 @@ export type TriggerFilterRow_data$data = TriggerFilterRow_data;
 export type TriggerFilterRow_data$key = {
   +$data?: TriggerFilterRow_data$data,
   +$fragmentRefs: TriggerFilterRow_data$ref,
+  ...
 };
 */
 

@@ -8,13 +8,16 @@
  * @format
  */
 
+import type {ContextRouter} from 'react-router-dom';
 import type {Location} from '../../common/Location';
 import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = _theme => ({
@@ -29,32 +32,59 @@ const styles = _theme => ({
   },
 });
 
-type Props = {
-  location: Location,
-  onLocationClicked: (locationId: string) => void,
+type Props = ContextRouter & {
+  locationDetails: Location,
   hideTypes: boolean,
+  navigateOnClick?: boolean,
   size?: 'default' | 'small' | 'large',
 } & WithStyles<typeof styles>;
 
 const LocationBreadcrumbsTitle = (props: Props) => {
-  const {classes, location, onLocationClicked, hideTypes, size} = props;
+  const {
+    classes,
+    locationDetails,
+    hideTypes,
+    size,
+    navigateOnClick = true,
+  } = props;
+
+  const navigateToLocation = React.useCallback(
+    (selectedLocationId: string) => {
+      ServerLogger.info(LogEvents.NAVIGATE_TO_LOCATION, {
+        locationId: selectedLocationId,
+      });
+
+      props.history.push(InventoryAPIUrls.location(selectedLocationId));
+    },
+    [props.history],
+  );
+
+  const onBreadcrumbClicked = React.useCallback(
+    id => {
+      ServerLogger.info(LogEvents.LOCATION_CARD_BREADCRUMB_CLICKED, {
+        locationId: id,
+      });
+      if (id && navigateOnClick) {
+        navigateToLocation(id);
+      }
+    },
+    [navigateOnClick, navigateToLocation],
+  );
+
   return (
     <div className={classes.breadcrumbs}>
       <div className={classes.locationNameContainer}>
         <Breadcrumbs
-          breadcrumbs={[...location.locationHierarchy, location].map(l => ({
+          breadcrumbs={[
+            ...locationDetails.locationHierarchy,
+            locationDetails,
+          ].map(l => ({
             id: l.id,
             name: l.name,
             subtext: hideTypes ? null : l.locationType.name,
-            onClick: () => onLocationClicked(l.id),
+            onClick: () => onBreadcrumbClicked(l.id),
           }))}
           size={size}
-          onBreadcrumbClicked={id => {
-            ServerLogger.info(LogEvents.LOCATION_CARD_BREADCRUMB_CLICKED, {
-              locationId: id,
-            });
-            onLocationClicked(id);
-          }}
         />
       </div>
     </div>
@@ -66,22 +96,24 @@ LocationBreadcrumbsTitle.defaultProps = {
 };
 
 export default withStyles(styles)(
-  createFragmentContainer(LocationBreadcrumbsTitle, {
-    location: graphql`
-      fragment LocationBreadcrumbsTitle_location on Location {
-        id
-        name
-        locationType {
-          name
-        }
-        locationHierarchy {
+  withRouter(
+    createFragmentContainer(LocationBreadcrumbsTitle, {
+      locationDetails: graphql`
+        fragment LocationBreadcrumbsTitle_locationDetails on Location {
           id
           name
           locationType {
             name
           }
+          locationHierarchy {
+            id
+            name
+            locationType {
+              name
+            }
+          }
         }
-      }
-    `,
-  }),
+      `,
+    }),
+  ),
 );

@@ -6,7 +6,20 @@ from typing import Dict, List, Optional, Tuple, Union
 from dacite import from_dict
 
 from ._utils import PropertyValue, _get_properties_to_add, _make_property_types
-from .consts import Customer, Equipment, Link, Service, ServiceType
+from .consts import (
+    Customer,
+    EquipmentPort,
+    Link,
+    Service,
+    ServiceEndpoint,
+    ServiceEndpointRole,
+    ServiceType,
+)
+from .graphql.add_service_endpoint_mutation import (
+    AddServiceEndpointInput,
+    AddServiceEndpointMutation,
+    ServiceEndpointRole as AddServiceEndpointRole,
+)
 from .graphql.add_service_link_mutation import AddServiceLinkMutation
 from .graphql.add_service_mutation import AddServiceMutation, ServiceCreateData
 from .graphql.add_service_type_mutation import (
@@ -20,6 +33,14 @@ from .graphql.service_details_query import ServiceDetailsQuery
 from .graphql.service_type_services_query import ServiceTypeServicesQuery
 from .graphql.service_types_query import ServiceTypesQuery
 from .graphql_client import GraphqlClient
+
+
+ENDPOINT_ROLE_TO_ADD_ENDPOINT_ROLE: Dict[
+    ServiceEndpointRole, AddServiceEndpointRole
+] = {
+    ServiceEndpointRole.CONSUMER: AddServiceEndpointRole.CONSUMER,
+    ServiceEndpointRole.PROVIDER: AddServiceEndpointRole.PROVIDER,
+}
 
 
 def _populate_service_types(client: GraphqlClient) -> None:
@@ -80,7 +101,6 @@ def add_service(
     service_type: str,
     customer: Optional[Customer],
     properties_dict: Dict[str, PropertyValue],
-    termination_points: List[Equipment],
     links: List[Link],
 ) -> Service:
     property_types = client.serviceTypes[service_type].propertyTypes
@@ -89,10 +109,10 @@ def add_service(
         name=name,
         externalId=external_id,
         serviceTypeId=client.serviceTypes[service_type].id,
+        status="PENDING",
         customerId=customer.id if customer is not None else None,
         properties=properties,
         upstreamServiceIds=[],
-        terminationPointIds=[e.id for e in termination_points],
     )
     result = AddServiceMutation.execute(client, data=service_create_data).addService
     for l in links:
@@ -110,10 +130,25 @@ def add_service(
         )
         if result.customer is not None
         else None,
-        terminationPoints=[
-            Equipment(name=e.name, id=e.id) for e in result.terminationPoints
+        endpoints=[
+            ServiceEndpoint(id=e.id, port=EquipmentPort(id=e.port.id), role=e.role)
+            for e in result.endpoints
         ],
         links=[Link(id=l.id) for l in result.links],
+    )
+
+
+def add_service_endpoint(
+    client: GraphqlClient,
+    service: Service,
+    port: EquipmentPort,
+    role: ServiceEndpointRole,
+) -> None:
+    AddServiceEndpointMutation.execute(
+        client,
+        input=AddServiceEndpointInput(
+            id=service.id, portId=port.id, role=ENDPOINT_ROLE_TO_ADD_ENDPOINT_ROLE[role]
+        ),
     )
 
 
@@ -130,8 +165,9 @@ def get_service(client: GraphqlClient, id: str) -> Service:
         )
         if result.customer is not None
         else None,
-        terminationPoints=[
-            Equipment(name=e.name, id=e.id) for e in result.terminationPoints
+        endpoints=[
+            ServiceEndpoint(id=e.id, port=EquipmentPort(id=e.port.id), role=e.role)
+            for e in result.endpoints
         ],
         links=[Link(id=l.id) for l in result.links],
     )

@@ -7,6 +7,7 @@
 
 syntax = "proto3";
 
+import "lte/protos/subscriberdb.proto";
 import "orc8r/protos/common.proto";
 
 package magma.lte;
@@ -28,10 +29,10 @@ option go_package = "magma/lte/cloud/go/protos";
 // --------------------------------------------------------------------------
 message PolicyRule{
   string id = 1;
-  // The precedence for the flow. Same definition as 3GPP. 
+  // The precedence for the flow. Same definition as 3GPP.
   uint32 priority = 3;
   uint32 rating_group = 4; // optional
-  string monitoring_key = 6; // optional
+  bytes monitoring_key = 6; // optional
   RedirectInformation redirect = 9;
   repeated FlowDescription flow_list = 7;
   FlowQos qos = 8;
@@ -158,4 +159,39 @@ message ChargingRuleNameSet {
 message ChargingRuleBaseNameRecord {
   string Name = 1;
   ChargingRuleNameSet RuleNamesSet = 2;
+}
+
+// ----------------------------------------------------------------------------
+// Subscriber-Policy Mappings
+// ----------------------------------------------------------------------------
+
+// AssignedPolicies contains the base names and policy rules currently assigned
+// for a subscriber
+message AssignedPolicies {
+  repeated string assigned_base_names = 10;
+  repeated string assigned_policies = 11;
+}
+
+// InstalledPolicies contains the base names and policy rules currently active
+// for a subscriber
+message InstalledPolicies {
+  repeated string installed_base_names = 10;
+  repeated string installed_policies = 11;
+}
+
+// --------------------------------------------------------------------------
+// PolicyDB service definition
+// --------------------------------------------------------------------------
+
+service PolicyDB {
+
+  // Immediately install the static policy for the IMSI
+  // Also unassociate the static rule with the IMSI on orc8r
+  //
+  rpc EnableStaticRules (EnableStaticRuleRequest) returns (magma.orc8r.Void) {}
+
+  // Immediately uninstall the static policy for the IMSI
+  // Also unassociate the static rule with the IMSI on orc8r
+  //
+  rpc DisableStaticRules (DisableStaticRuleRequest) returns (magma.orc8r.Void) {}
 }

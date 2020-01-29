@@ -67,7 +67,7 @@ class Channel : public channels::Channel,
   bool isConnected() const;
   bool isLoggedIn() const;
 
-  State getState() const;
+  State getOperationalDatastore() const;
 
   void complete(WriteTask::Id id);
 
@@ -75,6 +75,8 @@ class Channel : public channels::Channel,
   void loginDeprecated(const std::string& code);
 
   folly::Future<Reply> write(const Sentence&& sentence);
+
+  void writeSentence(const Sentence& sentence);
 
  private:
   void terminateSentence();
@@ -108,7 +110,8 @@ class Channel : public channels::Channel,
   bool reconnect{true};
   std::string username;
   std::string password;
-  Sentence current;
+  Sentence currentIn;
+  Sentence currentOut; // TODO do we need to sync this?
   OutstandingRequests outstandingRequests;
 
   constexpr static size_t maxBuffer{4096};

@@ -17,11 +17,9 @@ import MapLayerLegend from './MapLayerLegend';
 import MapView from './MapView';
 import React, {useEffect, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
-import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {locationsToGeoJSONSource} from './MapUtil';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -39,11 +37,14 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  legendContainer: {
+    height: '100%',
+  },
 }));
 
 const locationTypesQuery = graphql`
   query LocationsMapTypesQuery {
-    locationTypes(first: 50) {
+    locationTypes {
       edges {
         node {
           id
@@ -84,7 +85,6 @@ type Props = {};
 
 const LocationsMap = (_props: Props) => {
   const classes = useStyles();
-  const router = useRouter();
   const [locationTypes, setLocationsTypes] = useState([]);
   const [selectedTypeIds, setSelectedTypeIds] = useState([]);
   const [error, setError] = useState(null);
@@ -139,7 +139,7 @@ const LocationsMap = (_props: Props) => {
   return (
     <Grid className={classes.root} container spacing={0}>
       <InventoryErrorBoundary>
-        <Grid item xs={2}>
+        <Grid className={classes.legendContainer} item xs={2}>
           <MapLayerLegend
             layers={locationTypes.map((type, i) => ({
               id: type.id,
@@ -155,12 +155,7 @@ const LocationsMap = (_props: Props) => {
             mode="streets"
             layers={layers.filter(l => selectedTypeIds.includes(l.source.key))}
             getFeaturePopoutContent={feature => (
-              <LocationPopout
-                locationId={feature.properties.id}
-                onLocationClicked={locationId =>
-                  router.history.push(InventoryAPIUrls.location(locationId))
-                }
-              />
+              <LocationPopout locationId={feature.properties.id} />
             )}
             showGeocoder={true}
             showMapSatelliteToggle={true}

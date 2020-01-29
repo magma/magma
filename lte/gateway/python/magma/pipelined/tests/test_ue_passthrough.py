@@ -71,7 +71,8 @@ class UEMacAddressTest(unittest.TestCase):
             apps=[PipelinedController.InOut,
                   PipelinedController.Arp,
                   PipelinedController.UEMac,
-                  PipelinedController.Testing],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.InOut:
                     inout_controller_reference,
@@ -80,7 +81,9 @@ class UEMacAddressTest(unittest.TestCase):
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'setup_type': 'CWF',
@@ -90,6 +93,8 @@ class UEMacAddressTest(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'virtual_interface': 'testing_br',
                 'local_ue_eth_addr': False,
+                'quota_check_ip': '1.2.3.4',
+                'clean_restart': True,
             },
             mconfig=PipelineD(
                 ue_ip_block="192.168.128.0/24",

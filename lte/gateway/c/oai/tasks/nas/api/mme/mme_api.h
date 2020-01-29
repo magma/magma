@@ -146,7 +146,7 @@ struct mme_config_s;
 
 int mme_api_get_emm_config(
   mme_api_emm_config_t *config,
-  struct mme_config_s *mme_config_p);
+  const struct mme_config_s *mme_config_p);
 
 #define REMOVE_OLD_CONTEXT true
 #define REMOVE_NEW_CONTEXT false

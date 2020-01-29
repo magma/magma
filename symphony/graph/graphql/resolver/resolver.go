@@ -8,10 +8,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/log"
 )
 
 type resolver struct {
@@ -154,20 +154,16 @@ func (r resolver) ServiceType() generated.ServiceTypeResolver {
 	return serviceTypeResolver{}
 }
 
+func (r resolver) ServiceEndpoint() generated.ServiceEndpointResolver {
+	return serviceEndpointResolver{}
+}
+
 func (resolver) Project() generated.ProjectResolver {
 	return projectResolver{}
 }
 
 func (resolver) ProjectType() generated.ProjectTypeResolver {
 	return projectTypeResolver{}
-}
-
-func (resolver) ProjectTypeConnection() generated.ProjectTypeConnectionResolver {
-	return projectTypeResolver{}
-}
-
-func (resolver) CustomerConnection() generated.CustomerConnectionResolver {
-	return customerResolver{}
 }
 
 func (resolver) CheckListItem() generated.CheckListItemResolver {

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash c62da013fa9513209db39c5fdd032c49
+ * @relayHash 659750b55c93879d245ad940025aff3f
  */
 
 /* eslint-disable */
@@ -20,7 +20,7 @@ type EquipmentTypeItem_equipmentType$ref = any;
 export type EquipmentTypesQueryVariables = {||};
 export type EquipmentTypesQueryResponse = {|
   +equipmentTypes: {|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,
@@ -38,7 +38,7 @@ export type EquipmentTypesQuery = {|
 
 /*
 query EquipmentTypesQuery {
-  equipmentTypes(first: 50) {
+  equipmentTypes(first: 500) {
     edges {
       node {
         ...EquipmentTypeItem_equipmentType
@@ -85,7 +85,6 @@ fragment AddEditEquipmentTypeCard_editingEquipmentType on EquipmentType {
     name
     index
     visibleLabel
-    type
     portType {
       id
       name
@@ -123,7 +122,6 @@ fragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {
   name
   index
   visibleLabel
-  type
   portType {
     id
     name
@@ -214,24 +212,17 @@ v5 = [
   {
     "kind": "Literal",
     "name": "first",
-    "value": 50
+    "value": 500
   }
 ],
 v6 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "type",
-  "args": null,
-  "storageKey": null
-},
-v7 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "index",
   "args": null,
   "storageKey": null
 },
-v8 = {
+v7 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "visibleLabel",
@@ -306,7 +297,7 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "equipmentTypes",
-        "storageKey": "equipmentTypes(first:50)",
+        "storageKey": "equipmentTypes(first:500)",
         "args": (v5/*: any*/),
         "concreteType": "EquipmentTypeConnection",
         "plural": false,
@@ -342,8 +333,14 @@ return {
                     "selections": [
                       (v0/*: any*/),
                       (v1/*: any*/),
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "type",
+                        "args": null,
+                        "storageKey": null
+                      },
                       (v6/*: any*/),
-                      (v7/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
@@ -434,8 +431,8 @@ return {
                     "selections": [
                       (v0/*: any*/),
                       (v1/*: any*/),
-                      (v7/*: any*/),
-                      (v8/*: any*/)
+                      (v6/*: any*/),
+                      (v7/*: any*/)
                     ]
                   },
                   {
@@ -449,9 +446,8 @@ return {
                     "selections": [
                       (v0/*: any*/),
                       (v1/*: any*/),
-                      (v7/*: any*/),
-                      (v8/*: any*/),
                       (v6/*: any*/),
+                      (v7/*: any*/),
                       {
                         "kind": "LinkedField",
                         "alias": null,
@@ -498,7 +494,7 @@ return {
     "operationKind": "query",
     "name": "EquipmentTypesQuery",
     "id": null,
-    "text": "query EquipmentTypesQuery {\n  equipmentTypes(first: 50) {\n    edges {\n      node {\n        ...EquipmentTypeItem_equipmentType\n        ...AddEditEquipmentTypeCard_editingEquipmentType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditEquipmentTypeCard_editingEquipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    isEditable\n    isInstanceProperty\n    isMandatory\n  }\n  positionDefinitions {\n    id\n    name\n    index\n    visibleLabel\n  }\n  portDefinitions {\n    id\n    name\n    index\n    visibleLabel\n    type\n    portType {\n      id\n      name\n    }\n  }\n  numberOfEquipment\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentTypeItem_equipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  positionDefinitions {\n    ...PositionDefinitionsTable_positionDefinitions\n    id\n  }\n  portDefinitions {\n    ...PortDefinitionsTable_portDefinitions\n    id\n  }\n  numberOfEquipment\n}\n\nfragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {\n  id\n  name\n  index\n  visibleLabel\n  type\n  portType {\n    id\n    name\n  }\n}\n\nfragment PositionDefinitionsTable_positionDefinitions on EquipmentPositionDefinition {\n  id\n  name\n  index\n  visibleLabel\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
+    "text": "query EquipmentTypesQuery {\n  equipmentTypes(first: 500) {\n    edges {\n      node {\n        ...EquipmentTypeItem_equipmentType\n        ...AddEditEquipmentTypeCard_editingEquipmentType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditEquipmentTypeCard_editingEquipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    isEditable\n    isInstanceProperty\n    isMandatory\n  }\n  positionDefinitions {\n    id\n    name\n    index\n    visibleLabel\n  }\n  portDefinitions {\n    id\n    name\n    index\n    visibleLabel\n    portType {\n      id\n      name\n    }\n  }\n  numberOfEquipment\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentTypeItem_equipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  positionDefinitions {\n    ...PositionDefinitionsTable_positionDefinitions\n    id\n  }\n  portDefinitions {\n    ...PortDefinitionsTable_portDefinitions\n    id\n  }\n  numberOfEquipment\n}\n\nfragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {\n  id\n  name\n  index\n  visibleLabel\n  portType {\n    id\n    name\n  }\n}\n\nfragment PositionDefinitionsTable_positionDefinitions on EquipmentPositionDefinition {\n  id\n  name\n  index\n  visibleLabel\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
     "metadata": {
       "connection": [
         {
@@ -515,5 +511,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '8dfb4ba32dfb845b6eb768b57928ab72';
+(node/*: any*/).hash = '22440e25d923db73f49ea30630898117';
 module.exports = node;

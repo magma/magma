@@ -8,11 +8,15 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -26,7 +30,9 @@ type CustomerQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Customer
-	// intermediate queries.
+	// eager-loading edges.
+	withServices *ServiceQuery
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -57,23 +63,23 @@ func (cq *CustomerQuery) Order(o ...Order) *CustomerQuery {
 // QueryServices chains the current query on the services edge.
 func (cq *CustomerQuery) QueryServices() *ServiceQuery {
 	query := &ServiceQuery{config: cq.config}
-	step := sql.NewStep(
-		sql.From(customer.Table, customer.FieldID, cq.sqlQuery()),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(customer.Table, customer.FieldID, cq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
 	)
-	query.sql = sql.SetNeighbors(cq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 	return query
 }
 
-// First returns the first Customer entity in the query. Returns *ErrNotFound when no customer was found.
+// First returns the first Customer entity in the query. Returns *NotFoundError when no customer was found.
 func (cq *CustomerQuery) First(ctx context.Context) (*Customer, error) {
 	cs, err := cq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(cs) == 0 {
-		return nil, &ErrNotFound{customer.Label}
+		return nil, &NotFoundError{customer.Label}
 	}
 	return cs[0], nil
 }
@@ -87,14 +93,14 @@ func (cq *CustomerQuery) FirstX(ctx context.Context) *Customer {
 	return c
 }
 
-// FirstID returns the first Customer id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Customer id in the query. Returns *NotFoundError when no id was found.
 func (cq *CustomerQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = cq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{customer.Label}
+		err = &NotFoundError{customer.Label}
 		return
 	}
 	return ids[0], nil
@@ -119,9 +125,9 @@ func (cq *CustomerQuery) Only(ctx context.Context) (*Customer, error) {
 	case 1:
 		return cs[0], nil
 	case 0:
-		return nil, &ErrNotFound{customer.Label}
+		return nil, &NotFoundError{customer.Label}
 	default:
-		return nil, &ErrNotSingular{customer.Label}
+		return nil, &NotSingularError{customer.Label}
 	}
 }
 
@@ -144,9 +150,9 @@ func (cq *CustomerQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{customer.Label}
+		err = &NotFoundError{customer.Label}
 	default:
-		err = &ErrNotSingular{customer.Label}
+		err = &NotSingularError{customer.Label}
 	}
 	return
 }
@@ -230,9 +236,20 @@ func (cq *CustomerQuery) Clone() *CustomerQuery {
 		order:      append([]Order{}, cq.order...),
 		unique:     append([]string{}, cq.unique...),
 		predicates: append([]predicate.Customer{}, cq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: cq.sql.Clone(),
 	}
+}
+
+//  WithServices tells the query-builder to eager-loads the nodes that are connected to
+// the "services" edge. The optional arguments used to configure the query builder of the edge.
+func (cq *CustomerQuery) WithServices(opts ...func(*ServiceQuery)) *CustomerQuery {
+	query := &ServiceQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withServices = query
+	return cq
 }
 
 // GroupBy used to group vertices by one or more fields/columns.
@@ -277,45 +294,99 @@ func (cq *CustomerQuery) Select(field string, fields ...string) *CustomerSelect 
 }
 
 func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
-	rows := &sql.Rows{}
-	selector := cq.sqlQuery()
-	if unique := cq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*Customer = []*Customer{}
+		_spec             = cq.querySpec()
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &Customer{config: cq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := cq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, cq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var cs Customers
-	if err := cs.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	cs.config(cq.config)
-	return cs, nil
+
+	if query := cq.withServices; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[string]*Customer, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []string
+			edges   = make(map[string][]*Customer)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   customer.ServicesTable,
+				Columns: customer.ServicesPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(customer.ServicesPrimaryKey[1], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := strconv.FormatInt(eout.Int64, 10)
+				inValue := strconv.FormatInt(ein.Int64, 10)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, cq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "services": %v`, err)
+		}
+		query.Where(service.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "services" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Services = append(nodes[i].Edges.Services, n)
+			}
+		}
+	}
+
+	return nodes, nil
 }
 
 func (cq *CustomerQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := cq.sqlQuery()
-	unique := []string{customer.FieldID}
-	if len(cq.unique) > 0 {
-		unique = cq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := cq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := cq.querySpec()
+	return sqlgraph.CountNodes(ctx, cq.driver, _spec)
 }
 
 func (cq *CustomerQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -324,6 +395,42 @@ func (cq *CustomerQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (cq *CustomerQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   customer.Table,
+			Columns: customer.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: customer.FieldID,
+			},
+		},
+		From:   cq.sql,
+		Unique: true,
+	}
+	if ps := cq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := cq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := cq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := cq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (cq *CustomerQuery) sqlQuery() *sql.Selector {
@@ -356,7 +463,7 @@ type CustomerGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -477,7 +584,7 @@ func (cgb *CustomerGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(cgb.fields)+len(cgb.fns))
 	columns = append(columns, cgb.fields...)
 	for _, fn := range cgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(cgb.fields...)
 }
@@ -597,7 +704,7 @@ func (cs *CustomerSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (cs *CustomerSelect) sqlQuery() sql.Querier {
-	view := "customer_view"
-	return sql.Dialect(cs.driver.Dialect()).
-		Select(cs.fields...).From(cs.sql.As(view))
+	selector := cs.sql
+	selector.Select(selector.Columns(cs.fields...)...)
+	return selector
 }

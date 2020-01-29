@@ -8,11 +8,12 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -171,152 +172,143 @@ func (stu *ServiceTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(stu.driver.Dialect())
-		selector = builder.Select(servicetype.FieldID).From(builder.Table(servicetype.Table))
-	)
-	for _, p := range stu.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   servicetype.Table,
+			Columns: servicetype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: servicetype.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = stu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := stu.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := stu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(servicetype.Table)
-	)
-	updater = updater.Where(sql.InInts(servicetype.FieldID, ids...))
 	if value := stu.update_time; value != nil {
-		updater.Set(servicetype.FieldUpdateTime, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: servicetype.FieldUpdateTime,
+		})
 	}
 	if value := stu.name; value != nil {
-		updater.Set(servicetype.FieldName, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: servicetype.FieldName,
+		})
 	}
 	if value := stu.has_customer; value != nil {
-		updater.Set(servicetype.FieldHasCustomer, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: servicetype.FieldHasCustomer,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if nodes := stu.removedServices; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   servicetype.ServicesTable,
+			Columns: []string{servicetype.ServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
-	}
-	if len(stu.removedServices) > 0 {
-		eids := make([]int, len(stu.removedServices))
-		for eid := range stu.removedServices {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(servicetype.ServicesTable).
-			SetNull(servicetype.ServicesColumn).
-			Where(sql.InInts(servicetype.ServicesColumn, ids...)).
-			Where(sql.InInts(service.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(stu.services) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range stu.services {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(service.FieldID, eid)
-			}
-			query, args := builder.Update(servicetype.ServicesTable).
-				Set(servicetype.ServicesColumn, id).
-				Where(sql.And(p, sql.IsNull(servicetype.ServicesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(stu.services) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"services\" %v already connected to a different \"ServiceType\"", keys(stu.services))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(stu.removedPropertyTypes) > 0 {
-		eids := make([]int, len(stu.removedPropertyTypes))
-		for eid := range stu.removedPropertyTypes {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := stu.services; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   servicetype.ServicesTable,
+			Columns: []string{servicetype.ServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(servicetype.PropertyTypesTable).
-			SetNull(servicetype.PropertyTypesColumn).
-			Where(sql.InInts(servicetype.PropertyTypesColumn, ids...)).
-			Where(sql.InInts(propertytype.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(stu.property_types) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range stu.property_types {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(propertytype.FieldID, eid)
-			}
-			query, args := builder.Update(servicetype.PropertyTypesTable).
-				Set(servicetype.PropertyTypesColumn, id).
-				Where(sql.And(p, sql.IsNull(servicetype.PropertyTypesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(stu.property_types) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"ServiceType\"", keys(stu.property_types))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := stu.removedPropertyTypes; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.PropertyTypesTable,
+			Columns: []string{servicetype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := stu.property_types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.PropertyTypesTable,
+			Columns: []string{servicetype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if n, err = sqlgraph.UpdateNodes(ctx, stu.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // ServiceTypeUpdateOne is the builder for updating a single ServiceType entity.
@@ -465,155 +457,137 @@ func (stuo *ServiceTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType, err error) {
-	var (
-		builder  = sql.Dialect(stuo.driver.Dialect())
-		selector = builder.Select(servicetype.Columns...).From(builder.Table(servicetype.Table))
-	)
-	servicetype.ID(stuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = stuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   servicetype.Table,
+			Columns: servicetype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  stuo.id,
+				Type:   field.TypeString,
+				Column: servicetype.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		st = &ServiceType{config: stuo.config}
-		if err := st.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into ServiceType: %v", err)
-		}
-		id = st.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("ServiceType with id: %v", stuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one ServiceType with the same id: %v", stuo.id)
-	}
-
-	tx, err := stuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(servicetype.Table)
-	)
-	updater = updater.Where(sql.InInts(servicetype.FieldID, ids...))
 	if value := stuo.update_time; value != nil {
-		updater.Set(servicetype.FieldUpdateTime, *value)
-		st.UpdateTime = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: servicetype.FieldUpdateTime,
+		})
 	}
 	if value := stuo.name; value != nil {
-		updater.Set(servicetype.FieldName, *value)
-		st.Name = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: servicetype.FieldName,
+		})
 	}
 	if value := stuo.has_customer; value != nil {
-		updater.Set(servicetype.FieldHasCustomer, *value)
-		st.HasCustomer = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: servicetype.FieldHasCustomer,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	if nodes := stuo.removedServices; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   servicetype.ServicesTable,
+			Columns: []string{servicetype.ServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
-	}
-	if len(stuo.removedServices) > 0 {
-		eids := make([]int, len(stuo.removedServices))
-		for eid := range stuo.removedServices {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(servicetype.ServicesTable).
-			SetNull(servicetype.ServicesColumn).
-			Where(sql.InInts(servicetype.ServicesColumn, ids...)).
-			Where(sql.InInts(service.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(stuo.services) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range stuo.services {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(service.FieldID, eid)
-			}
-			query, args := builder.Update(servicetype.ServicesTable).
-				Set(servicetype.ServicesColumn, id).
-				Where(sql.And(p, sql.IsNull(servicetype.ServicesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(stuo.services) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"services\" %v already connected to a different \"ServiceType\"", keys(stuo.services))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(stuo.removedPropertyTypes) > 0 {
-		eids := make([]int, len(stuo.removedPropertyTypes))
-		for eid := range stuo.removedPropertyTypes {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := stuo.services; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   servicetype.ServicesTable,
+			Columns: []string{servicetype.ServicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(servicetype.PropertyTypesTable).
-			SetNull(servicetype.PropertyTypesColumn).
-			Where(sql.InInts(servicetype.PropertyTypesColumn, ids...)).
-			Where(sql.InInts(propertytype.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(stuo.property_types) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range stuo.property_types {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(propertytype.FieldID, eid)
-			}
-			query, args := builder.Update(servicetype.PropertyTypesTable).
-				Set(servicetype.PropertyTypesColumn, id).
-				Where(sql.And(p, sql.IsNull(servicetype.PropertyTypesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(stuo.property_types) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"ServiceType\"", keys(stuo.property_types))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := stuo.removedPropertyTypes; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.PropertyTypesTable,
+			Columns: []string{servicetype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := stuo.property_types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.PropertyTypesTable,
+			Columns: []string{servicetype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	st = &ServiceType{config: stuo.config}
+	_spec.Assign = st.assignValues
+	_spec.ScanValues = st.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, stuo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return st, nil

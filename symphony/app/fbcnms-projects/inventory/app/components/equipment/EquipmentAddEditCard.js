@@ -133,6 +133,10 @@ const equipmentAddEditCardQuery = graphql`
             id
             name
           }
+          serviceValue {
+            id
+            name
+          }
         }
       }
     }

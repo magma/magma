@@ -9,13 +9,14 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
+	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 )
 
 // EquipmentPositionDefinitionCreate is the builder for creating a EquipmentPositionDefinition entity.
@@ -164,82 +165,108 @@ func (epdc *EquipmentPositionDefinitionCreate) SaveX(ctx context.Context) *Equip
 
 func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*EquipmentPositionDefinition, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(epdc.driver.Dialect())
-		epd     = &EquipmentPositionDefinition{config: epdc.config}
+		epd   = &EquipmentPositionDefinition{config: epdc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: equipmentpositiondefinition.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipmentpositiondefinition.FieldID,
+			},
+		}
 	)
-	tx, err := epdc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(equipmentpositiondefinition.Table).Default()
 	if value := epdc.create_time; value != nil {
-		insert.Set(equipmentpositiondefinition.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmentpositiondefinition.FieldCreateTime,
+		})
 		epd.CreateTime = *value
 	}
 	if value := epdc.update_time; value != nil {
-		insert.Set(equipmentpositiondefinition.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmentpositiondefinition.FieldUpdateTime,
+		})
 		epd.UpdateTime = *value
 	}
 	if value := epdc.name; value != nil {
-		insert.Set(equipmentpositiondefinition.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmentpositiondefinition.FieldName,
+		})
 		epd.Name = *value
 	}
 	if value := epdc.index; value != nil {
-		insert.Set(equipmentpositiondefinition.FieldIndex, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: equipmentpositiondefinition.FieldIndex,
+		})
 		epd.Index = *value
 	}
 	if value := epdc.visibility_label; value != nil {
-		insert.Set(equipmentpositiondefinition.FieldVisibilityLabel, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmentpositiondefinition.FieldVisibilityLabel,
+		})
 		epd.VisibilityLabel = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(equipmentpositiondefinition.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	epd.ID = strconv.FormatInt(id, 10)
-	if len(epdc.positions) > 0 {
-		p := sql.P()
-		for eid := range epdc.positions {
-			eid, err := strconv.Atoi(eid)
+	if nodes := epdc.positions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmentpositiondefinition.PositionsTable,
+			Columns: []string{equipmentpositiondefinition.PositionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentposition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(equipmentposition.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(equipmentpositiondefinition.PositionsTable).
-			Set(equipmentpositiondefinition.PositionsColumn, id).
-			Where(sql.And(p, sql.IsNull(equipmentpositiondefinition.PositionsColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(epdc.positions) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"positions\" %v already connected to a different \"EquipmentPositionDefinition\"", keys(epdc.positions))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(epdc.equipment_type) > 0 {
-		for eid := range epdc.equipment_type {
-			eid, err := strconv.Atoi(eid)
+	if nodes := epdc.equipment_type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipmentpositiondefinition.EquipmentTypeTable,
+			Columns: []string{equipmentpositiondefinition.EquipmentTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmenttype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(equipmentpositiondefinition.EquipmentTypeTable).
-				Set(equipmentpositiondefinition.EquipmentTypeColumn, eid).
-				Where(sql.EQ(equipmentpositiondefinition.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, epdc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	epd.ID = strconv.FormatInt(id, 10)
 	return epd, nil
 }

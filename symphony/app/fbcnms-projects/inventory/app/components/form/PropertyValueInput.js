@@ -23,6 +23,7 @@ import GPSPropertyValueInput from './GPSPropertyValueInput';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import MenuItem from '@material-ui/core/MenuItem';
 import RangePropertyValueInput from './RangePropertyValueInput';
+import ServiceTypeahead from '../typeahead/ServiceTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
@@ -81,11 +82,10 @@ class PropertyValueInput extends React.Component<Props> {
     fullWidth: false,
   };
 
-  getTextInput = (): React.Node => {
+  getTextInput = (showDisabled): React.Node => {
     const {
       autoFocus,
       classes,
-      disabled,
       onChange,
       onBlur,
       margin,
@@ -96,6 +96,7 @@ class PropertyValueInput extends React.Component<Props> {
       inputType,
       headlineVariant,
     } = this.props;
+    const disabled = this.props.disabled || showDisabled;
     const property = this.props.property;
     const propertyType = !!property.propertyType
       ? property.propertyType
@@ -113,15 +114,21 @@ class PropertyValueInput extends React.Component<Props> {
             property={property}
             onChange={onChange}
             autoFocus={autoFocus}
+            disabled={disabled}
           />
         ) : (
           <EnumPropertyValueInput property={property} onChange={onChange} />
         );
       }
       case 'date':
+      case 'datetime_local':
       case 'email':
       case 'string':
-        const coercedInputType: 'date' | 'email' | 'string' = propInputType;
+        const coercedInputType:
+          | 'date'
+          | 'datetime_local'
+          | 'email'
+          | 'string' = propInputType;
         return (
           <TextInput
             autoFocus={autoFocus}
@@ -142,11 +149,11 @@ class PropertyValueInput extends React.Component<Props> {
                 }),
               )
             }
-            InputLabelProps={{
-              shrink: !!(propInputType === 'date' || property.stringValue),
-            }}
             inputProps={{className: inputClassName}}
-            type={coercedInputType}
+            // as we cant use hypens on server side types,
+            // replacing with underscores
+            // e.g. datetime_local -> datetime-local.
+            type={coercedInputType.replace('_', '-')}
           />
         );
       case 'int':
@@ -239,6 +246,7 @@ class PropertyValueInput extends React.Component<Props> {
             className={classNames(classes.input, className)}
             onBlur={e => onBlur && onBlur(e)}
             label={label}
+            disabled={disabled}
             margin={margin}
             value={!!property.booleanValue ? 'True' : 'False'}
             onChange={event =>
@@ -330,31 +338,49 @@ class PropertyValueInput extends React.Component<Props> {
         ) : (
           <Text>-</Text>
         );
+      case 'service':
+        return inputType == 'Property' ? (
+          <ServiceTypeahead
+            margin="dense"
+            // eslint-disable-next-line no-warning-comments
+            // $FlowFixMe - need to fix this entire file as it receives either property or property type
+            selectedService={property.serviceValue}
+            onServiceSelection={service =>
+              onChange(
+                update(property, {
+                  serviceValue: {$set: service},
+                }),
+              )
+            }
+            headline={label}
+          />
+        ) : (
+          <Text>-</Text>
+        );
     }
     return null;
   };
 
   render() {
-    const input = this.getTextInput();
-
-    const {property, headlineVariant, required} = this.props;
-    const propertyType = !!property.propertyType
-      ? property.propertyType
-      : property;
-
-    const propInputType = propertyType.type;
-    if (
-      headlineVariant !== 'form' ||
-      propInputType === 'gps_location' ||
-      propInputType === 'range'
-    ) {
-      return input;
-    }
-
     return (
       <FormValidationContext.Consumer>
         {validationContext => {
-          const errorText = validationContext.errorCheck({
+          const input = this.getTextInput(validationContext.editLock.detected);
+
+          const {property, headlineVariant, required} = this.props;
+          const propertyType = !!property.propertyType
+            ? property.propertyType
+            : property;
+
+          const propInputType = propertyType.type;
+          if (
+            headlineVariant !== 'form' ||
+            propInputType === 'gps_location' ||
+            propInputType === 'range'
+          ) {
+            return input;
+          }
+          const errorText = validationContext.error.check({
             fieldId: propertyType.name,
             fieldDisplayName: propertyType.name,
             value: getPropertyValue(property),

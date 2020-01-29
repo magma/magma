@@ -8,12 +8,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/actions"
-	"github.com/facebookincubator/symphony/cloud/actions/action/mockaction"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
-	"github.com/facebookincubator/symphony/cloud/actions/executor"
-	"github.com/facebookincubator/symphony/cloud/actions/trigger/mocktrigger"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/actions"
+	"github.com/facebookincubator/symphony/pkg/actions/action/mockaction"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/executor"
+	"github.com/facebookincubator/symphony/pkg/actions/trigger/mocktrigger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +35,6 @@ func actionsContext(t *testing.T) (*TestResolver, context.Context) {
 	registry.MustRegisterAction(action1)
 
 	exc := &executor.Executor{
-		Context:  ctx,
 		Registry: registry,
 		DataLoader: executor.BasicDataLoader{
 			Rules: []core.Rule{},
@@ -92,6 +91,43 @@ func TestAddActionsRule(t *testing.T) {
 	assert.Equal(t, rule.RuleFilters[0].FilterID, "filter1")
 	assert.Equal(t, rule.RuleFilters[0].OperatorID, "eq")
 	assert.Equal(t, rule.RuleFilters[0].Data, "testdata")
+}
+
+func TestQueryActionsRules(t *testing.T) {
+	r, ctx := actionsContext(t)
+	actions := []*core.ActionsRuleAction{
+		{
+			ActionID: "action1",
+			Data:     "testdata",
+		},
+	}
+
+	filters := []*core.ActionsRuleFilter{
+		{
+			FilterID:   "filter1",
+			OperatorID: "eq",
+			Data:       "testdata",
+		},
+	}
+
+	rule, err := r.client.
+		ActionsRule.
+		Create().
+		SetName("testInput").
+		SetTriggerID("trigger1").
+		SetRuleActions(actions).
+		SetRuleFilters(filters).
+		Save(ctx)
+	require.NoError(t, err)
+
+	rules, err := r.Query().ActionsRules(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, len(rules.Results), 1)
+	assert.Equal(t, rules.Results[0].ID, rule.ID)
+	assert.Equal(t, rules.Results[0].Name, rule.Name)
+	assert.Equal(t, rules.Results[0].TriggerID, rule.TriggerID)
+	assert.Equal(t, rules.Results[0].RuleActions[0].ActionID, rule.RuleActions[0].ActionID)
+	assert.Equal(t, rules.Results[0].RuleFilters[0].FilterID, rule.RuleFilters[0].FilterID)
 }
 
 func TestEditActionsRule(t *testing.T) {

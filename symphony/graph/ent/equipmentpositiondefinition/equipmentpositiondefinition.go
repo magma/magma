@@ -47,7 +47,7 @@ const (
 	EquipmentTypeColumn = "equipment_type_id"
 )
 
-// Columns holds all SQL columns are equipmentpositiondefinition fields.
+// Columns holds all SQL columns for equipmentpositiondefinition fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -55,6 +55,11 @@ var Columns = []string{
 	FieldName,
 	FieldIndex,
 	FieldVisibilityLabel,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentPositionDefinition type.
+var ForeignKeys = []string{
+	"equipment_type_id",
 }
 
 var (

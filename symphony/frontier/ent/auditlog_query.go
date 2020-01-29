@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/auditlog"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 )
@@ -25,7 +27,7 @@ type AuditLogQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.AuditLog
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -53,14 +55,14 @@ func (alq *AuditLogQuery) Order(o ...Order) *AuditLogQuery {
 	return alq
 }
 
-// First returns the first AuditLog entity in the query. Returns *ErrNotFound when no auditlog was found.
+// First returns the first AuditLog entity in the query. Returns *NotFoundError when no auditlog was found.
 func (alq *AuditLogQuery) First(ctx context.Context) (*AuditLog, error) {
 	als, err := alq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(als) == 0 {
-		return nil, &ErrNotFound{auditlog.Label}
+		return nil, &NotFoundError{auditlog.Label}
 	}
 	return als[0], nil
 }
@@ -74,14 +76,14 @@ func (alq *AuditLogQuery) FirstX(ctx context.Context) *AuditLog {
 	return al
 }
 
-// FirstID returns the first AuditLog id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first AuditLog id in the query. Returns *NotFoundError when no id was found.
 func (alq *AuditLogQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = alq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{auditlog.Label}
+		err = &NotFoundError{auditlog.Label}
 		return
 	}
 	return ids[0], nil
@@ -106,9 +108,9 @@ func (alq *AuditLogQuery) Only(ctx context.Context) (*AuditLog, error) {
 	case 1:
 		return als[0], nil
 	case 0:
-		return nil, &ErrNotFound{auditlog.Label}
+		return nil, &NotFoundError{auditlog.Label}
 	default:
-		return nil, &ErrNotSingular{auditlog.Label}
+		return nil, &NotSingularError{auditlog.Label}
 	}
 }
 
@@ -131,9 +133,9 @@ func (alq *AuditLogQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{auditlog.Label}
+		err = &NotFoundError{auditlog.Label}
 	default:
-		err = &ErrNotSingular{auditlog.Label}
+		err = &NotSingularError{auditlog.Label}
 	}
 	return
 }
@@ -217,7 +219,7 @@ func (alq *AuditLogQuery) Clone() *AuditLogQuery {
 		order:      append([]Order{}, alq.order...),
 		unique:     append([]string{}, alq.unique...),
 		predicates: append([]predicate.AuditLog{}, alq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: alq.sql.Clone(),
 	}
 }
@@ -264,45 +266,35 @@ func (alq *AuditLogQuery) Select(field string, fields ...string) *AuditLogSelect
 }
 
 func (alq *AuditLogQuery) sqlAll(ctx context.Context) ([]*AuditLog, error) {
-	rows := &sql.Rows{}
-	selector := alq.sqlQuery()
-	if unique := alq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*AuditLog = []*AuditLog{}
+		_spec             = alq.querySpec()
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &AuditLog{config: alq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := alq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, alq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var als AuditLogs
-	if err := als.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	als.config(alq.config)
-	return als, nil
+	return nodes, nil
 }
 
 func (alq *AuditLogQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := alq.sqlQuery()
-	unique := []string{auditlog.FieldID}
-	if len(alq.unique) > 0 {
-		unique = alq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := alq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := alq.querySpec()
+	return sqlgraph.CountNodes(ctx, alq.driver, _spec)
 }
 
 func (alq *AuditLogQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -311,6 +303,42 @@ func (alq *AuditLogQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (alq *AuditLogQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   auditlog.Table,
+			Columns: auditlog.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: auditlog.FieldID,
+			},
+		},
+		From:   alq.sql,
+		Unique: true,
+	}
+	if ps := alq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := alq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := alq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := alq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (alq *AuditLogQuery) sqlQuery() *sql.Selector {
@@ -343,7 +371,7 @@ type AuditLogGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -464,7 +492,7 @@ func (algb *AuditLogGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(algb.fields)+len(algb.fns))
 	columns = append(columns, algb.fields...)
 	for _, fn := range algb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(algb.fields...)
 }
@@ -584,7 +612,7 @@ func (als *AuditLogSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (als *AuditLogSelect) sqlQuery() sql.Querier {
-	view := "auditlog_view"
-	return sql.Dialect(als.driver.Dialect()).
-		Select(als.fields...).From(als.sql.As(view))
+	selector := als.sql
+	selector.Select(selector.Columns(als.fields...)...)
+	return selector
 }

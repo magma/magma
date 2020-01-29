@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.7.1" />
 <title>pyinventory.graphql.edit_equipment_type_mutation API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -49,7 +49,7 @@
 <dl>
 <dt id="pyinventory.graphql.edit_equipment_type_mutation.EditEquipmentTypeInput.EquipmentPortInput"><code class="name">var <span class="ident">EquipmentPortInput</span></code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortInput(name: str, type: str, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, visibleLabel: Union[str, NoneType] = None, portTypeID: Union[str, NoneType] = None, bandwidth: Union[str, NoneType] = None)</p></section>
+<section class="desc"><p>EquipmentPortInput(name: str, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, visibleLabel: Union[str, NoneType] = None, portTypeID: Union[str, NoneType] = None, bandwidth: Union[str, NoneType] = None)</p></section>
 </dd>
 <dt id="pyinventory.graphql.edit_equipment_type_mutation.EditEquipmentTypeInput.EquipmentPositionInput"><code class="name">var <span class="ident">EquipmentPositionInput</span></code></dt>
 <dd>
@@ -57,7 +57,7 @@
 </dd>
 <dt id="pyinventory.graphql.edit_equipment_type_mutation.EditEquipmentTypeInput.PropertyTypeInput"><code class="name">var <span class="ident">PropertyTypeInput</span></code></dt>
 <dd>
-<section class="desc"><p>PropertyTypeInput(name: str, type: pyinventory.graphql.edit_equipment_type_mutation.PropertyKind, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[float, NoneType] = None, latitudeValue: Union[float, NoneType] = None, longitudeValue: Union[float, NoneType] = None, rangeFromValue: Union[float, NoneType] = None, rangeToValue: Union[float, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None)</p></section>
+<section class="desc"><p>PropertyTypeInput(name: str, type: pyinventory.graphql.edit_equipment_type_mutation.PropertyKind, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[float, NoneType] = None, latitudeValue: Union[float, NoneType] = None, longitudeValue: Union[float, NoneType] = None, rangeFromValue: Union[float, NoneType] = None, rangeToValue: Union[float, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None, isDeleted: Union[bool, NoneType] = None)</p></section>
 </dd>
 <dt id="pyinventory.graphql.edit_equipment_type_mutation.EditEquipmentTypeInput.category"><code class="name">var <span class="ident">category</span></code></dt>
 <dd>
@@ -185,6 +185,10 @@
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
+<dt id="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.datetime_local"><code class="name">var <span class="ident">datetime_local</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 <dt id="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.email"><code class="name">var <span class="ident">email</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -214,6 +218,10 @@
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
 <dt id="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.range"><code class="name">var <span class="ident">range</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
+<dt id="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.service"><code class="name">var <span class="ident">service</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
@@ -277,6 +285,7 @@
 <ul class="two-column">
 <li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.bool" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.bool">bool</a></code></li>
 <li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.date" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.date">date</a></code></li>
+<li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.datetime_local" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.datetime_local">datetime_local</a></code></li>
 <li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.email" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.email">email</a></code></li>
 <li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.enum" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.enum">enum</a></code></li>
 <li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.equipment" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.equipment">equipment</a></code></li>
@@ -285,6 +294,7 @@
 <li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.int" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.int">int</a></code></li>
 <li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.location" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.location">location</a></code></li>
 <li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.range" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.range">range</a></code></li>
+<li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.service" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.service">service</a></code></li>
 <li><code><a title="pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.string" href="#pyinventory.graphql.edit_equipment_type_mutation.PropertyKind.string">string</a></code></li>
 </ul>
 </li>
@@ -294,7 +304,7 @@
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.1</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>

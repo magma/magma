@@ -13,7 +13,10 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import React from 'react';
 import WorkOrderDeleteButton from './WorkOrderDeleteButton';
 import WorkOrderSaveButton from './WorkOrderSaveButton';
+import nullthrows from '@fbcnms/util/nullthrows';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
 import type {
   ChecklistViewer_checkListItems,
   WorkOrderDetails_workOrder,
@@ -25,10 +28,17 @@ const useStyles = makeStyles(_theme => ({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: '24px',
+    paddingBottom: '24px',
+    overflow: 'hidden',
+    flexBasis: 'auto',
   },
   breadcrumbs: {
     flexGrow: 1,
+    width: '10px',
+  },
+  actionButtons: {
+    display: 'flex',
+    flexDirection: 'row',
   },
   deleteButton: {
     marginRight: '8px',
@@ -50,6 +60,7 @@ type Props = {
 
 const WorkOrderHeader = (props: Props) => {
   const classes = useStyles();
+  const {history} = useRouter();
   const {
     workOrderName,
     workOrder,
@@ -70,30 +81,42 @@ const WorkOrderHeader = (props: Props) => {
               onClick: onCancelClicked,
             },
             {
+              id: workOrder.project?.id ?? '',
+              name: workOrder.project?.name ?? '',
+              subtext: workOrder.project?.type?.name,
+              onClick: () =>
+                history.push(
+                  InventoryAPIUrls.project(nullthrows(workOrder.project?.id)),
+                ),
+            },
+            {
               id: workOrder.id,
               name: workOrderName,
+              subtext: workOrder.workOrderType.name,
             },
-          ]}
+          ].filter(x => !!x.id)}
           size="large"
         />
       </div>
-      <WorkOrderDeleteButton
-        className={classes.deleteButton}
-        workOrder={workOrder}
-        onWorkOrderRemoved={onWorkOrderRemoved}
-      />
-      <Button
-        className={classes.cancelButton}
-        skin="regular"
-        onClick={onCancelClicked}>
-        Cancel
-      </Button>
-      <WorkOrderSaveButton
-        workOrder={workOrder}
-        properties={properties}
-        checklist={checklist}
-        locationId={locationId}
-      />
+      <div className={classes.actionButtons}>
+        <WorkOrderDeleteButton
+          className={classes.deleteButton}
+          workOrder={workOrder}
+          onWorkOrderRemoved={onWorkOrderRemoved}
+        />
+        <Button
+          className={classes.cancelButton}
+          skin="regular"
+          onClick={onCancelClicked}>
+          Cancel
+        </Button>
+        <WorkOrderSaveButton
+          workOrder={workOrder}
+          properties={properties}
+          checklist={checklist}
+          locationId={locationId}
+        />
+      </div>
     </div>
   );
 };

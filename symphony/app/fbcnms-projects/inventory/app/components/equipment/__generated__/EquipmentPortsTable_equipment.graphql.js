@@ -16,7 +16,8 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_equipment$ref: FragmentReference;
@@ -32,7 +33,6 @@ export type EquipmentPortsTable_equipment = {|
       +name: string,
       +index: ?number,
       +visibleLabel: ?string,
-      +type: string,
       +portType: ?{|
         +id: string,
         +name: string,
@@ -80,7 +80,6 @@ export type EquipmentPortsTable_equipment = {|
       +name: string,
       +index: ?number,
       +visibleLabel: ?string,
-      +type: string,
       +portType: ?{|
         +id: string,
         +name: string,
@@ -130,7 +129,6 @@ export type EquipmentPortsTable_equipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +id: string,
             +name: string,
@@ -148,7 +146,6 @@ export type EquipmentPortsTable_equipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +linkPropertyTypes: $ReadOnlyArray<?{|
               +id: string,
@@ -180,7 +177,6 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +bandwidth: ?string,
               +portType: ?{|
                 +id: string,
@@ -222,9 +218,14 @@ export type EquipmentPortsTable_equipment = {|
           +id: string,
           +name: string,
         |},
+        +serviceValue: ?{|
+          +id: string,
+          +name: string,
+        |},
       |}>,
       +services: $ReadOnlyArray<?{|
-        +id: string
+        +id: string,
+        +name: string,
       |}>,
     |},
     +properties: $ReadOnlyArray<{|
@@ -254,6 +255,16 @@ export type EquipmentPortsTable_equipment = {|
         +id: string,
         +name: string,
       |},
+      +serviceValue: ?{|
+        +id: string,
+        +name: string,
+      |},
+    |}>,
+    +serviceEndpoints: $ReadOnlyArray<{|
+      +role: ServiceEndpointRole,
+      +service: {|
+        +name: string
+      |},
     |}>,
   |}>,
   +positions: $ReadOnlyArray<?{|
@@ -267,7 +278,6 @@ export type EquipmentPortsTable_equipment = {|
           +name: string,
           +index: ?number,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +id: string,
             +name: string,
@@ -317,7 +327,6 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +portType: ?{|
                 +id: string,
                 +name: string,
@@ -335,7 +344,6 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +portType: ?{|
                 +linkPropertyTypes: $ReadOnlyArray<?{|
                   +id: string,
@@ -367,7 +375,6 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                   +visibleLabel: ?string,
-                  +type: string,
                   +bandwidth: ?string,
                   +portType: ?{|
                     +id: string,
@@ -409,9 +416,14 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
             |},
+            +serviceValue: ?{|
+              +id: string,
+              +name: string,
+            |},
           |}>,
           +services: $ReadOnlyArray<?{|
-            +id: string
+            +id: string,
+            +name: string,
           |}>,
         |},
         +properties: $ReadOnlyArray<{|
@@ -441,6 +453,16 @@ export type EquipmentPortsTable_equipment = {|
             +id: string,
             +name: string,
           |},
+          +serviceValue: ?{|
+            +id: string,
+            +name: string,
+          |},
+        |}>,
+        +serviceEndpoints: $ReadOnlyArray<{|
+          +role: ServiceEndpointRole,
+          +service: {|
+            +name: string
+          |},
         |}>,
       |}>,
       +equipmentType: {|
@@ -448,7 +470,6 @@ export type EquipmentPortsTable_equipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +bandwidth: ?string,
         |}>
       |},
@@ -463,7 +484,6 @@ export type EquipmentPortsTable_equipment = {|
               +name: string,
               +index: ?number,
               +visibleLabel: ?string,
-              +type: string,
               +portType: ?{|
                 +id: string,
                 +name: string,
@@ -513,7 +533,6 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                   +visibleLabel: ?string,
-                  +type: string,
                   +portType: ?{|
                     +id: string,
                     +name: string,
@@ -531,7 +550,6 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                   +visibleLabel: ?string,
-                  +type: string,
                   +portType: ?{|
                     +linkPropertyTypes: $ReadOnlyArray<?{|
                       +id: string,
@@ -563,7 +581,6 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                       +visibleLabel: ?string,
-                      +type: string,
                       +bandwidth: ?string,
                       +portType: ?{|
                         +id: string,
@@ -605,9 +622,14 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                 |},
+                +serviceValue: ?{|
+                  +id: string,
+                  +name: string,
+                |},
               |}>,
               +services: $ReadOnlyArray<?{|
-                +id: string
+                +id: string,
+                +name: string,
               |}>,
             |},
             +properties: $ReadOnlyArray<{|
@@ -637,6 +659,16 @@ export type EquipmentPortsTable_equipment = {|
                 +id: string,
                 +name: string,
               |},
+              +serviceValue: ?{|
+                +id: string,
+                +name: string,
+              |},
+            |}>,
+            +serviceEndpoints: $ReadOnlyArray<{|
+              +role: ServiceEndpointRole,
+              +service: {|
+                +name: string
+              |},
             |}>,
           |}>,
           +equipmentType: {|
@@ -644,7 +676,6 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +bandwidth: ?string,
             |}>
           |},
@@ -659,7 +690,6 @@ export type EquipmentPortsTable_equipment = {|
                   +name: string,
                   +index: ?number,
                   +visibleLabel: ?string,
-                  +type: string,
                   +portType: ?{|
                     +id: string,
                     +name: string,
@@ -709,7 +739,6 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                       +visibleLabel: ?string,
-                      +type: string,
                       +portType: ?{|
                         +id: string,
                         +name: string,
@@ -727,7 +756,6 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                       +visibleLabel: ?string,
-                      +type: string,
                       +portType: ?{|
                         +linkPropertyTypes: $ReadOnlyArray<?{|
                           +id: string,
@@ -759,7 +787,6 @@ export type EquipmentPortsTable_equipment = {|
                           +id: string,
                           +name: string,
                           +visibleLabel: ?string,
-                          +type: string,
                           +bandwidth: ?string,
                           +portType: ?{|
                             +id: string,
@@ -801,9 +828,14 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                     |},
+                    +serviceValue: ?{|
+                      +id: string,
+                      +name: string,
+                    |},
                   |}>,
                   +services: $ReadOnlyArray<?{|
-                    +id: string
+                    +id: string,
+                    +name: string,
                   |}>,
                 |},
                 +properties: $ReadOnlyArray<{|
@@ -833,6 +865,16 @@ export type EquipmentPortsTable_equipment = {|
                     +id: string,
                     +name: string,
                   |},
+                  +serviceValue: ?{|
+                    +id: string,
+                    +name: string,
+                  |},
+                |}>,
+                +serviceEndpoints: $ReadOnlyArray<{|
+                  +role: ServiceEndpointRole,
+                  +service: {|
+                    +name: string
+                  |},
                 |}>,
               |}>,
               +equipmentType: {|
@@ -840,7 +882,6 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                   +visibleLabel: ?string,
-                  +type: string,
                   +bandwidth: ?string,
                 |}>
               |},
@@ -855,7 +896,6 @@ export type EquipmentPortsTable_equipment = {|
                       +name: string,
                       +index: ?number,
                       +visibleLabel: ?string,
-                      +type: string,
                       +portType: ?{|
                         +id: string,
                         +name: string,
@@ -905,7 +945,6 @@ export type EquipmentPortsTable_equipment = {|
                           +id: string,
                           +name: string,
                           +visibleLabel: ?string,
-                          +type: string,
                           +portType: ?{|
                             +id: string,
                             +name: string,
@@ -923,7 +962,6 @@ export type EquipmentPortsTable_equipment = {|
                           +id: string,
                           +name: string,
                           +visibleLabel: ?string,
-                          +type: string,
                           +portType: ?{|
                             +linkPropertyTypes: $ReadOnlyArray<?{|
                               +id: string,
@@ -955,7 +993,6 @@ export type EquipmentPortsTable_equipment = {|
                               +id: string,
                               +name: string,
                               +visibleLabel: ?string,
-                              +type: string,
                               +bandwidth: ?string,
                               +portType: ?{|
                                 +id: string,
@@ -997,9 +1034,14 @@ export type EquipmentPortsTable_equipment = {|
                           +id: string,
                           +name: string,
                         |},
+                        +serviceValue: ?{|
+                          +id: string,
+                          +name: string,
+                        |},
                       |}>,
                       +services: $ReadOnlyArray<?{|
-                        +id: string
+                        +id: string,
+                        +name: string,
                       |}>,
                     |},
                     +properties: $ReadOnlyArray<{|
@@ -1029,6 +1071,16 @@ export type EquipmentPortsTable_equipment = {|
                         +id: string,
                         +name: string,
                       |},
+                      +serviceValue: ?{|
+                        +id: string,
+                        +name: string,
+                      |},
+                    |}>,
+                    +serviceEndpoints: $ReadOnlyArray<{|
+                      +role: ServiceEndpointRole,
+                      +service: {|
+                        +name: string
+                      |},
                     |}>,
                   |}>,
                   +equipmentType: {|
@@ -1036,7 +1088,6 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                       +visibleLabel: ?string,
-                      +type: string,
                       +bandwidth: ?string,
                     |}>
                   |},
@@ -1054,6 +1105,7 @@ export type EquipmentPortsTable_equipment$data = EquipmentPortsTable_equipment;
 export type EquipmentPortsTable_equipment$key = {
   +$data?: EquipmentPortsTable_equipment$data,
   +$fragmentRefs: EquipmentPortsTable_equipment$ref,
+  ...
 };
 */
 
@@ -1203,7 +1255,6 @@ v18 = [
   (v1/*: any*/),
   (v2/*: any*/),
   (v3/*: any*/),
-  (v4/*: any*/),
   {
     "kind": "LinkedField",
     "alias": null,
@@ -1312,6 +1363,16 @@ v23 = {
       "concreteType": "Location",
       "plural": false,
       "selections": (v19/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v19/*: any*/)
     }
   ]
 },
@@ -1369,7 +1430,6 @@ v24 = {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v3/*: any*/),
-                (v4/*: any*/),
                 (v20/*: any*/),
                 (v21/*: any*/)
               ]
@@ -1411,7 +1471,6 @@ v24 = {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v3/*: any*/),
-                (v4/*: any*/),
                 {
                   "kind": "LinkedField",
                   "alias": null,
@@ -1461,7 +1520,6 @@ v24 = {
                         (v0/*: any*/),
                         (v1/*: any*/),
                         (v3/*: any*/),
-                        (v4/*: any*/),
                         (v21/*: any*/),
                         (v20/*: any*/)
                       ]
@@ -1505,13 +1563,41 @@ v24 = {
           "args": null,
           "concreteType": "Service",
           "plural": true,
-          "selections": [
-            (v0/*: any*/)
-          ]
+          "selections": (v19/*: any*/)
         }
       ]
     },
-    (v23/*: any*/)
+    (v23/*: any*/),
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceEndpoints",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpoint",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "role",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "service",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
+          "plural": false,
+          "selections": [
+            (v1/*: any*/)
+          ]
+        }
+      ]
+    }
   ]
 },
 v25 = {
@@ -1535,7 +1621,6 @@ v25 = {
         (v0/*: any*/),
         (v1/*: any*/),
         (v3/*: any*/),
-        (v4/*: any*/),
         (v21/*: any*/)
       ]
     }

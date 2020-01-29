@@ -24,6 +24,7 @@ export type PowerSearchEquipmentResultsTable_equipment = $ReadOnlyArray<{|
   +id: string,
   +name: string,
   +futureState: ?FutureState,
+  +externalId: ?string,
   +equipmentType: {|
     +id: string,
     +name: string,
@@ -39,6 +40,7 @@ export type PowerSearchEquipmentResultsTable_equipment$data = PowerSearchEquipme
 export type PowerSearchEquipmentResultsTable_equipment$key = $ReadOnlyArray<{
   +$data?: PowerSearchEquipmentResultsTable_equipment$data,
   +$fragmentRefs: PowerSearchEquipmentResultsTable_equipment$ref,
+  ...
 }>;
 */
 
@@ -73,6 +75,13 @@ return {
       "kind": "ScalarField",
       "alias": null,
       "name": "futureState",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "externalId",
       "args": null,
       "storageKey": null
     },
@@ -117,5 +126,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'cc60d8bfb665259465fae6c9b0ba525d';
+(node/*: any*/).hash = 'dbd45296395196af507b9270ca136663';
 module.exports = node;

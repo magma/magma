@@ -40,7 +40,7 @@ func (PropertyType) Fields() []ent.Field {
 		field.Float("longitude_val").
 			StructTag(`gqlgen:"longitudeValue"`).
 			Optional(),
-		field.String("string_val").
+		field.Text("string_val").
 			StructTag(`gqlgen:"stringValue"`).
 			Optional(),
 		field.Float("range_from_val").
@@ -57,6 +57,9 @@ func (PropertyType) Fields() []ent.Field {
 			Default(true),
 		field.Bool("mandatory").
 			StructTag(`gqlgen:"isMandatory"`).
+			Default(false),
+		field.Bool("deleted").
+			StructTag(`gqlgen:"isDeleted"`).
 			Default(false),
 	}
 }
@@ -176,6 +179,8 @@ func (Property) Edges() []ent.Edge {
 		edge.To("equipment_value", Equipment.Type).
 			Unique(),
 		edge.To("location_value", Location.Type).
+			Unique(),
+		edge.To("service_value", Service.Type).
 			Unique(),
 	}
 }

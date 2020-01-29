@@ -11,10 +11,10 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
-	"github.com/facebookincubator/symphony/cloud/log"
 	entmigrate "github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/migrate"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/facebookincubator/ent/dialect"
 	_ "github.com/go-sql-driver/mysql"

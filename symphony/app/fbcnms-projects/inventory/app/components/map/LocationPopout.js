@@ -29,7 +29,6 @@ const useStyles = makeStyles(_theme => ({
 
 type Props = {
   locationId: string,
-  onLocationClicked: (locationId: string) => void,
 };
 
 const locationPopoutQuery = graphql`
@@ -41,7 +40,7 @@ const locationPopoutQuery = graphql`
         locationType {
           name
         }
-        ...LocationBreadcrumbsTitle_location
+        ...LocationBreadcrumbsTitle_locationDetails
         properties {
           ...DynamicPropertiesGrid_properties
         }
@@ -56,7 +55,7 @@ const locationPopoutQuery = graphql`
 `;
 
 const LocationPopout = (props: Props) => {
-  const {locationId, onLocationClicked} = props;
+  const {locationId} = props;
   const classes = useStyles();
   React.useEffect(() => {
     ServerLogger.info(LogEvents.LOCATIONS_MAP_POPUP_OPENED, {locationId});
@@ -71,8 +70,7 @@ const LocationPopout = (props: Props) => {
           <div className={classes.root}>
             <div className={classes.title}>
               <LocationBreadcrumbsTitle
-                location={location}
-                onLocationClicked={onLocationClicked}
+                locationDetails={location}
                 hideTypes={true}
                 size="small"
               />

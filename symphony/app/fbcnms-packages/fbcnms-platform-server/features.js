@@ -103,14 +103,19 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'alerts_experimental',
-    title: 'Alerts Experimental Features',
+    id: 'alert_receivers',
+    title: 'Alert Receivers',
+    enabledByDefault: true,
+  },
+  {
+    id: 'alert_routes',
+    title: 'Alert Routes',
     enabledByDefault: false,
   },
   {
-    id: 'alert_threshold_expression',
-    title: 'Alerts Threshold Expression Editor',
-    enabledByDefault: true,
+    id: 'alert_suppressions',
+    title: 'Alert Suppressions',
+    enabledByDefault: false,
   },
   {
     id: 'logs',
@@ -137,19 +142,19 @@ const arrayConfigs = [
   {
     id: 'import_exported_equipemnt',
     title: 'Imported Exported Equipment',
-    enabledByDefault: false,
+    enabledByDefault: true,
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'import_exported_links',
     title: 'Imported Exported Links',
-    enabledByDefault: false,
+    enabledByDefault: true,
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'import_exported_ports',
     title: 'Imported Exported Ports',
-    enabledByDefault: false,
+    enabledByDefault: true,
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
@@ -193,6 +198,16 @@ const arrayConfigs = [
     id: 'logged_out_alert',
     title: 'Logged Out Alert',
     enabledByDefault: true,
+  },
+  {
+    id: 'external_id',
+    title: 'External ID',
+    enabledByDefault: true,
+  },
+  {
+    id: 'service_endpoints',
+    title: 'Service Endpoints',
+    enabledByDefault: false,
   },
 ];
 

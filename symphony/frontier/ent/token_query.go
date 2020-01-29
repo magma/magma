@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
@@ -26,7 +28,10 @@ type TokenQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Token
-	// intermediate queries.
+	// eager-loading edges.
+	withUser *UserQuery
+	withFKs  bool
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -57,23 +62,23 @@ func (tq *TokenQuery) Order(o ...Order) *TokenQuery {
 // QueryUser chains the current query on the user edge.
 func (tq *TokenQuery) QueryUser() *UserQuery {
 	query := &UserQuery{config: tq.config}
-	step := sql.NewStep(
-		sql.From(token.Table, token.FieldID, tq.sqlQuery()),
-		sql.To(user.Table, user.FieldID),
-		sql.Edge(sql.M2O, true, token.UserTable, token.UserColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(token.Table, token.FieldID, tq.sqlQuery()),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, token.UserTable, token.UserColumn),
 	)
-	query.sql = sql.SetNeighbors(tq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 	return query
 }
 
-// First returns the first Token entity in the query. Returns *ErrNotFound when no token was found.
+// First returns the first Token entity in the query. Returns *NotFoundError when no token was found.
 func (tq *TokenQuery) First(ctx context.Context) (*Token, error) {
 	ts, err := tq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ts) == 0 {
-		return nil, &ErrNotFound{token.Label}
+		return nil, &NotFoundError{token.Label}
 	}
 	return ts[0], nil
 }
@@ -87,14 +92,14 @@ func (tq *TokenQuery) FirstX(ctx context.Context) *Token {
 	return t
 }
 
-// FirstID returns the first Token id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Token id in the query. Returns *NotFoundError when no id was found.
 func (tq *TokenQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{token.Label}
+		err = &NotFoundError{token.Label}
 		return
 	}
 	return ids[0], nil
@@ -119,9 +124,9 @@ func (tq *TokenQuery) Only(ctx context.Context) (*Token, error) {
 	case 1:
 		return ts[0], nil
 	case 0:
-		return nil, &ErrNotFound{token.Label}
+		return nil, &NotFoundError{token.Label}
 	default:
-		return nil, &ErrNotSingular{token.Label}
+		return nil, &NotSingularError{token.Label}
 	}
 }
 
@@ -144,9 +149,9 @@ func (tq *TokenQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{token.Label}
+		err = &NotFoundError{token.Label}
 	default:
-		err = &ErrNotSingular{token.Label}
+		err = &NotSingularError{token.Label}
 	}
 	return
 }
@@ -230,9 +235,20 @@ func (tq *TokenQuery) Clone() *TokenQuery {
 		order:      append([]Order{}, tq.order...),
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Token{}, tq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: tq.sql.Clone(),
 	}
+}
+
+//  WithUser tells the query-builder to eager-loads the nodes that are connected to
+// the "user" edge. The optional arguments used to configure the query builder of the edge.
+func (tq *TokenQuery) WithUser(opts ...func(*UserQuery)) *TokenQuery {
+	query := &UserQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withUser = query
+	return tq
 }
 
 // GroupBy used to group vertices by one or more fields/columns.
@@ -277,45 +293,71 @@ func (tq *TokenQuery) Select(field string, fields ...string) *TokenSelect {
 }
 
 func (tq *TokenQuery) sqlAll(ctx context.Context) ([]*Token, error) {
-	rows := &sql.Rows{}
-	selector := tq.sqlQuery()
-	if unique := tq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*Token = []*Token{}
+		withFKs          = tq.withFKs
+		_spec            = tq.querySpec()
+	)
+	if tq.withUser != nil {
+		withFKs = true
 	}
-	query, args := selector.Query()
-	if err := tq.driver.Query(ctx, query, args, rows); err != nil {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, token.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
+		node := &Token{config: tq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var ts Tokens
-	if err := ts.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	ts.config(tq.config)
-	return ts, nil
+
+	if query := tq.withUser; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Token)
+		for i := range nodes {
+			if fk := nodes[i].user_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.User = n
+			}
+		}
+	}
+
+	return nodes, nil
 }
 
 func (tq *TokenQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := tq.sqlQuery()
-	unique := []string{token.FieldID}
-	if len(tq.unique) > 0 {
-		unique = tq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := tq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := tq.querySpec()
+	return sqlgraph.CountNodes(ctx, tq.driver, _spec)
 }
 
 func (tq *TokenQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -324,6 +366,42 @@ func (tq *TokenQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (tq *TokenQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   token.Table,
+			Columns: token.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: token.FieldID,
+			},
+		},
+		From:   tq.sql,
+		Unique: true,
+	}
+	if ps := tq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := tq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := tq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := tq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (tq *TokenQuery) sqlQuery() *sql.Selector {
@@ -356,7 +434,7 @@ type TokenGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -477,7 +555,7 @@ func (tgb *TokenGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(tgb.fields)+len(tgb.fns))
 	columns = append(columns, tgb.fields...)
 	for _, fn := range tgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(tgb.fields...)
 }
@@ -597,7 +675,7 @@ func (ts *TokenSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ts *TokenSelect) sqlQuery() sql.Querier {
-	view := "token_view"
-	return sql.Dialect(ts.driver.Dialect()).
-		Select(ts.fields...).From(ts.sql.As(view))
+	selector := ts.sql
+	selector.Select(selector.Columns(ts.fields...)...)
+	return selector
 }

@@ -53,6 +53,8 @@ class PropertyKind(Enum):
     gps_location = "gps_location"
     equipment = "equipment"
     location = "location"
+    service = "service"
+    datetime_local = "datetime_local"
 
 
 @dataclass_json
@@ -91,7 +93,6 @@ class EquipmentTypesQuery:
           name
           index
           visibleLabel
-          type
         }
       }
     }
@@ -141,7 +142,6 @@ class EquipmentTypesQuery:
                     class EquipmentPortDefinition:
                         id: str
                         name: str
-                        type: str
                         index: Optional[int] = None
                         visibleLabel: Optional[str] = None
 
@@ -154,7 +154,7 @@ class EquipmentTypesQuery:
 
                 node: Optional[EquipmentType] = None
 
-            edges: Optional[List[EquipmentTypeEdge]] = None
+            edges: List[EquipmentTypeEdge]
 
         equipmentTypes: EquipmentTypeConnection
 

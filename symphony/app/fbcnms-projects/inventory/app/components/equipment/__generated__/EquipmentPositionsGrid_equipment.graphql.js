@@ -33,6 +33,9 @@ export type EquipmentPositionsGrid_equipment = {|
       +id: string,
       +name: string,
       +futureState: ?FutureState,
+      +services: $ReadOnlyArray<?{|
+        +id: string
+      |}>,
     |},
     +parentEquipment: {|
       +id: string
@@ -53,6 +56,7 @@ export type EquipmentPositionsGrid_equipment$data = EquipmentPositionsGrid_equip
 export type EquipmentPositionsGrid_equipment$key = {
   +$data?: EquipmentPositionsGrid_equipment$data,
   +$fragmentRefs: EquipmentPositionsGrid_equipment$ref,
+  ...
 };
 */
 
@@ -89,6 +93,9 @@ v2 = [
     "args": null,
     "storageKey": null
   }
+],
+v3 = [
+  (v0/*: any*/)
 ];
 return {
   "kind": "Fragment",
@@ -135,6 +142,16 @@ return {
               "name": "futureState",
               "args": null,
               "storageKey": null
+            },
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "services",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "Service",
+              "plural": true,
+              "selections": (v3/*: any*/)
             }
           ]
         },
@@ -146,9 +163,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": [
-            (v0/*: any*/)
-          ]
+          "selections": (v3/*: any*/)
         }
       ]
     },
@@ -182,5 +197,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'dc9c579bc895b7ad13794d5047b187cc';
+(node/*: any*/).hash = 'c4ed56ad25227e14dccf883ee79b3e2d';
 module.exports = node;

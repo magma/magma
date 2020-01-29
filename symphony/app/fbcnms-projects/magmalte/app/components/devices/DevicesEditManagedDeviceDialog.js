@@ -75,6 +75,7 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
 
   // sectioned device configs
   const [hostTextbox, setHostTextbox] = useState('0.0.0.0');
+  const [agentTextbox, setAgentTextbox] = useState('');
   const [platformTextbox, setPlatformTextbox] = useState('Snmp');
   const [typeTextbox, setTypeTextbox] = useState('snmp');
   const [frinxTextbox, setFrinxTextbox] = useState(
@@ -176,6 +177,7 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
         symphonyDevice: {
           id: deviceID,
           name: deviceID,
+          managing_agent: agentTextbox,
           config: genManagedDeviceConfig(),
         },
       });
@@ -193,6 +195,7 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
         symphonyDevice: {
           id: deviceID,
           name: deviceID,
+          managing_agent: agentTextbox,
           config: genManagedDeviceConfig(),
         },
       });
@@ -216,6 +219,7 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
       const initialDeviceConfig = response?.config || {};
 
       setHostTextbox(initialDeviceConfig.host || '');
+      setAgentTextbox(response?.managing_agent || '');
       setPlatformTextbox(initialDeviceConfig.platform || '');
       // TODO: support more than 1 device_type in the list
       setTypeTextbox(initialDeviceConfig.device_type?.[0] || '');
@@ -299,6 +303,16 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
           className={classes.input}
           onChange={({target}) => setHostTextbox(target.value)}
           value={hostTextbox}
+        />
+      </FormGroup>
+
+      <FormLabel>Agent</FormLabel>
+      <FormGroup row className={classes.formGroup}>
+        <TextField
+          label="Agent"
+          className={classes.input}
+          onChange={({target}) => setAgentTextbox(target.value)}
+          value={agentTextbox}
         />
       </FormGroup>
 

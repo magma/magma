@@ -22,11 +22,13 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import CommentsBox from '../comments/CommentsBox';
 import EditProjectMutation from '../../mutations/EditProjectMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import Grid from '@material-ui/core/Grid';
+import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
@@ -113,6 +115,16 @@ const styles = (theme: Theme) => ({
     alignItems: 'center',
     marginBottom: '24px',
   },
+  commentsBoxContainer: {
+    padding: '0px',
+  },
+  inExpandingPanelFix: {
+    paddingLeft: '24px',
+    paddingRight: '24px',
+  },
+  commentsLog: {
+    maxHeight: '400px',
+  },
   map: {
     minHeight: '232px',
   },
@@ -141,12 +153,13 @@ class ProjectDetails extends React.Component<Props, State> {
     });
   };
 
-  _propertyChangedHandler = index => property =>
+  _propertyChangedHandler = index => property => {
     this.setState(prevState => {
       return {
         properties: update(prevState.properties, {[index]: {$set: property}}),
       };
     });
+  };
 
   _locationChangedHandler = (locationId: ?string) =>
     this.setState({locationId});
@@ -280,7 +293,7 @@ class ProjectDetails extends React.Component<Props, State> {
                     {properties.map((property, index) => (
                       <Grid key={property.id} item xs={12} sm={6} lg={4} xl={4}>
                         <PropertyValueInput
-                          required={!!property.propertyType.isInstanceProperty}
+                          required={!!property.propertyType.isMandatory}
                           disabled={!property.propertyType.isInstanceProperty}
                           headlineVariant="form"
                           fullWidth={true}
@@ -298,14 +311,9 @@ class ProjectDetails extends React.Component<Props, State> {
                     {location && (
                       <>
                         <div className={classes.separator} />
-                        <Breadcrumbs
-                          className={classes.breadcrumbs}
-                          breadcrumbs={location.locationHierarchy
-                            .map(b => ({
-                              id: b.id,
-                              name: b.name,
-                            }))
-                            .concat([{id: location.id, name: location.name}])}
+
+                        <LocationBreadcrumbsTitle
+                          locationDetails={location}
                           size="small"
                         />
                         <Grid container spacing={2}>
@@ -347,6 +355,18 @@ class ProjectDetails extends React.Component<Props, State> {
                     onUserSelection={user =>
                       this._setProjectDetail('creator', user)
                     }
+                  />
+                </ExpandingPanel>
+                <ExpandingPanel
+                  title="Comments"
+                  detailsPaneClass={classes.commentsBoxContainer}
+                  className={classes.card}>
+                  <CommentsBox
+                    boxElementsClass={classes.inExpandingPanelFix}
+                    commentsLogClass={classes.commentsLog}
+                    relatedEntityId={project.id}
+                    relatedEntityType="PROJECT"
+                    comments={this.props.project.comments}
                   />
                 </ExpandingPanel>
               </Grid>
@@ -392,18 +412,15 @@ export default withRouter(
                 id
               }
               location {
-                name
                 id
+                name
                 latitude
                 longitude
                 locationType {
                   mapType
                   mapZoomLevel
                 }
-                locationHierarchy {
-                  id
-                  name
-                }
+                ...LocationBreadcrumbsTitle_locationDetails
               }
               properties {
                 id
@@ -415,6 +432,14 @@ export default withRouter(
                 longitudeValue
                 rangeFromValue
                 rangeToValue
+                equipmentValue {
+                  id
+                  name
+                }
+                locationValue {
+                  id
+                  name
+                }
                 propertyType {
                   id
                   name
@@ -434,6 +459,9 @@ export default withRouter(
               }
               workOrders {
                 ...ProjectWorkOrdersList_workOrders
+              }
+              comments {
+                ...CommentsBox_comments
               }
             }
           `,

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash aff5b38b88670ca8826d7c4eb7cda53c
+ * @relayHash a0879a5cfc3261c33b15c6439e8573d5
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type DynamicPropertiesGrid_properties$ref = any;
 type DynamicPropertiesGrid_propertyTypes$ref = any;
-type LocationBreadcrumbsTitle_location$ref = any;
+type LocationBreadcrumbsTitle_locationDetails$ref = any;
 export type LocationPopoutQueryVariables = {|
   locationId: string
 |};
@@ -34,7 +34,7 @@ export type LocationPopoutQueryResponse = {|
     +properties?: $ReadOnlyArray<?{|
       +$fragmentRefs: DynamicPropertiesGrid_properties$ref
     |}>,
-    +$fragmentRefs: LocationBreadcrumbsTitle_location$ref,
+    +$fragmentRefs: LocationBreadcrumbsTitle_locationDetails$ref,
   |}
 |};
 export type LocationPopoutQuery = {|
@@ -61,7 +61,7 @@ query LocationPopoutQuery(
           id
         }
       }
-      ...LocationBreadcrumbsTitle_location
+      ...LocationBreadcrumbsTitle_locationDetails
       properties {
         ...DynamicPropertiesGrid_properties
         id
@@ -95,7 +95,7 @@ fragment DynamicPropertiesGrid_propertyTypes on PropertyType {
   floatValue
 }
 
-fragment LocationBreadcrumbsTitle_location on Location {
+fragment LocationBreadcrumbsTitle_locationDetails on Location {
   id
   name
   locationType {
@@ -136,6 +136,10 @@ fragment PropertyFormField_property on Property {
     name
   }
   locationValue {
+    id
+    name
+  }
+  serviceValue {
     id
     name
   }
@@ -323,7 +327,7 @@ return {
               },
               {
                 "kind": "FragmentSpread",
-                "name": "LocationBreadcrumbsTitle_location",
+                "name": "LocationBreadcrumbsTitle_locationDetails",
                 "args": null
               }
             ]
@@ -490,6 +494,16 @@ return {
                     "concreteType": "Location",
                     "plural": false,
                     "selections": (v15/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "serviceValue",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "Service",
+                    "plural": false,
+                    "selections": (v15/*: any*/)
                   }
                 ]
               }
@@ -503,11 +517,11 @@ return {
     "operationKind": "query",
     "name": "LocationPopoutQuery",
     "id": null,
-    "text": "query LocationPopoutQuery(\n  $locationId: ID!\n) {\n  location: node(id: $locationId) {\n    __typename\n    ... on Location {\n      id\n      name\n      locationType {\n        name\n        id\n        propertyTypes {\n          ...DynamicPropertiesGrid_propertyTypes\n          id\n        }\n      }\n      ...LocationBreadcrumbsTitle_location\n      properties {\n        ...DynamicPropertiesGrid_properties\n        id\n      }\n    }\n    id\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment LocationBreadcrumbsTitle_location on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    isEditable\n    isMandatory\n    isInstanceProperty\n    stringValue\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  equipmentValue {\n    id\n    name\n  }\n  locationValue {\n    id\n    name\n  }\n}\n",
+    "text": "query LocationPopoutQuery(\n  $locationId: ID!\n) {\n  location: node(id: $locationId) {\n    __typename\n    ... on Location {\n      id\n      name\n      locationType {\n        name\n        id\n        propertyTypes {\n          ...DynamicPropertiesGrid_propertyTypes\n          id\n        }\n      }\n      ...LocationBreadcrumbsTitle_locationDetails\n      properties {\n        ...DynamicPropertiesGrid_properties\n        id\n      }\n    }\n    id\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    isEditable\n    isMandatory\n    isInstanceProperty\n    stringValue\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  equipmentValue {\n    id\n    name\n  }\n  locationValue {\n    id\n    name\n  }\n  serviceValue {\n    id\n    name\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'df4f831df1bb91d47c8a6271fbbe171b';
+(node/*: any*/).hash = '80eec4f9084409c4f63a764b3b6e91a1';
 module.exports = node;

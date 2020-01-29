@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 )
@@ -41,23 +43,23 @@ func (pd *ProjectDelete) ExecX(ctx context.Context) int {
 }
 
 func (pd *ProjectDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(pd.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(project.Table))
-	for _, p := range pd.predicates {
-		p(selector)
+	_spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: project.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: project.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(project.Table).FromSelect(selector).Query()
-	if err := pd.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := pd.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, pd.driver, _spec)
 }
 
 // ProjectDeleteOne is the builder for deleting a single Project entity.
@@ -72,7 +74,7 @@ func (pdo *ProjectDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{project.Label}
+		return &NotFoundError{project.Label}
 	default:
 		return nil
 	}

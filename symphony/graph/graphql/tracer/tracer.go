@@ -6,11 +6,9 @@ package tracer
 
 import (
 	"context"
-	"strings"
 
 	"github.com/99designs/gqlgen-contrib/gqlopencensus"
 	"github.com/99designs/gqlgen/graphql"
-	"go.opencensus.io/trace"
 )
 
 type tracer struct{ graphql.Tracer }
@@ -20,14 +18,7 @@ func New() graphql.Tracer {
 	return tracer{Tracer: gqlopencensus.New()}
 }
 
-// StartFieldExecution blocks span creation on introspection fields
-func (t tracer) StartFieldExecution(ctx context.Context, field graphql.CollectedField) context.Context {
-	if strings.HasPrefix(field.Name, "__") {
-		ctx, _ = trace.StartSpan(ctx,
-			field.ObjectDefinition.Name+"/"+field.Name,
-			trace.WithSampler(trace.NeverSample()),
-		)
-		return ctx
-	}
-	return t.Tracer.StartFieldExecution(ctx, field)
+// StartFieldExecution blocks span creation on fields
+func (tracer) StartFieldExecution(ctx context.Context, _ graphql.CollectedField) context.Context {
+	return ctx
 }

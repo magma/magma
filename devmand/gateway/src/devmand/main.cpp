@@ -14,63 +14,50 @@
 
 #include <devmand/Application.h>
 #include <devmand/Config.h>
-#include <devmand/devices/CambiumDevice.h>
-#include <devmand/devices/DcsgDevice.h>
-#include <devmand/devices/DemoDevice.h>
-#include <devmand/devices/EchoDevice.h>
-#include <devmand/devices/FrinxDevice.h>
-#include <devmand/devices/PingDevice.h>
-#include <devmand/devices/Snmpv2Device.h>
+#include <devmand/devices/cambium/Device.h>
 #include <devmand/devices/cli/PlaintextCliDevice.h>
 #include <devmand/devices/cli/StructuredUbntDevice.h>
+#include <devmand/devices/demo/Device.h>
+#include <devmand/devices/echo/Device.h>
+#include <devmand/devices/frinx/Device.h>
 #include <devmand/devices/mikrotik/Device.h>
+#include <devmand/devices/ping/Device.h>
+#include <devmand/devices/snmpv2/Device.h>
+#include <devmand/fscache/Service.h>
 #include <devmand/magma/DevConf.h>
 #include <devmand/magma/Service.h>
 
 int main(int argc, char* argv[]) {
-  // TODO Work around for magma issue. Get rid of this...
-  // rename devmand to magma@devmand.service and remove from startup
-  std::this_thread::sleep_for(std::chrono::seconds(10));
-
   folly::init(&argc, &argv);
 
   devmand::Application app;
   app.init();
 
-  // Add services which export the shared view
-  // FIXME uncomment and find out how to prevent this from blocking !!!
-  app.add(std::make_unique<devmand::magma::Service>(app));
+  // Add services which export the unified view
+  app.addService(std::make_unique<devmand::magma::Service>(app));
+  // app.addService(std::make_unique<devmand::fscache::Service>(app));
+
+  using namespace devmand::devices;
 
   // Add Demo Platforms
   {
-    app.addPlatform("Cambium", devmand::devices::CambiumDevice::createDevice);
-    app.addPlatform("Dcsg", devmand::devices::DcsgDevice::createDevice);
-    app.addPlatform(
-        "Cisco Catalyst 3750", devmand::devices::FrinxDevice::createDevice);
-    app.addPlatform(
-        "Unifi Switch 16", devmand::devices::FrinxDevice::createDevice);
+    app.addPlatform("Cambium", cambium::Device::createDevice);
+    app.addPlatform("Cisco Catalyst 3750", frinx::Device::createDevice);
   }
 
   // Add Production Ready Platforms
   {
-    app.addPlatform("Demo", devmand::devices::DemoDevice::createDevice);
-    app.addPlatform("Echo", devmand::devices::EchoDevice::createDevice);
+    app.addPlatform("Demo", demo::Device::createDevice);
+    app.addPlatform("Echo", echo::Device::createDevice);
+    app.addPlatform("MikroTik", mikrotik::Device::createDevice);
+    app.addPlatform("Ping", ping::Device::createDevice);
+    app.addPlatform("Snmp", snmpv2::Device::createDevice);
+    app.addPlatform("PlaintextCli", cli::PlaintextCliDevice::createDevice);
     app.addPlatform(
-        "MikroTik", devmand::devices::mikrotik::Device::createDevice);
-    app.addPlatform("Ping", devmand::devices::PingDevice::createDevice);
-    app.addPlatform("Snmp", devmand::devices::Snmpv2Device::createDevice);
-  }
-  // CLI
-  {
-    app.addPlatform(
-        "PlaintextCli",
-        devmand::devices::cli::PlaintextCliDevice::createDevice);
-    app.addPlatform(
-        "StructuredUbntCli",
-        devmand::devices::cli::StructuredUbntDevice::createDevice);
+        "StructuredUbntCli", cli::StructuredUbntDevice::createDevice);
   }
 
-  app.setDefaultPlatform(devmand::devices::Snmpv2Device::createDevice);
+  app.setDefaultPlatform(snmpv2::Device::createDevice);
 
   // Add ways to discover devices.
   app.addDeviceDiscoveryMethod(std::make_shared<devmand::magma::DevConf>(

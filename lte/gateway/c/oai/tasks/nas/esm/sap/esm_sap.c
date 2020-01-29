@@ -341,42 +341,6 @@ int esm_sap_send(esm_sap_t *msg)
 
 /****************************************************************************
  **                                                                        **
- ** Name:        reject_standalone_pdn_conn_req()                          **
- **                                                                        **
- ** Description: Rejects the standalone PDN Connectivity message as there  **
- **              is no handling yet                                        **
- **                                                                        **
- ** Inputs:         pti,pdn_connectivity_reject,esm_procedure              **
- **      Others:    None                                                   **
- **                                                                        **
- ** Outputs:                                                               **
- **      Return:    RETURNok, RETURNerror                                  **
- **      Others:    NONE                                                   **
- **                                                                        **
- ***************************************************************************/
-
-static int _reject_standalone_pdn_conn_req(
-  unsigned int pti,
-  pdn_connectivity_reject_msg *pdn_connectivity_reject,
-  esm_proc_procedure_t *esm_procedure)
-{
-  int rc = RETURNok;
-  int esm_cause = ESM_CAUSE_REQUEST_REJECTED_UNSPECIFIED;
-
-  OAILOG_FUNC_IN(LOG_NAS_ESM);
-  increment_counter("ue_pdn_connection", 1, 1, "type", "standalone");
-  rc =
-    esm_send_pdn_connectivity_reject(pti, pdn_connectivity_reject, esm_cause);
-  /*
-   * Setup the callback function used to send PDN connectivity
-   */
-  *esm_procedure = esm_proc_pdn_connectivity_reject;
-
-  OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
-}
-
-/****************************************************************************
- **                                                                        **
  ** Name:    _esm_sap_recv()                                           **
  **                                                                        **
  ** Description: Processes ESM messages received from the network: Decodes **
@@ -691,9 +655,6 @@ static int _esm_sap_recv(
       case MODIFY_EPS_BEARER_CONTEXT_REJECT: break;
 
       case PDN_CONNECTIVITY_REQUEST: {
-        esm_proc_data_t data;
-
-        memset(&data, 0, sizeof(esm_proc_data_t));
         OAILOG_DEBUG(
           LOG_NAS_ESM,
           "ESM-SAP   - PDN_CONNECTIVITY_REQUEST pti %u ebi %u stand_alone %u "
@@ -702,164 +663,34 @@ static int _esm_sap_recv(
           ebi,
           is_standalone);
 
-        //Process standalone PDN Connectivity Request if VoLTE is enabled
-        if (mme_config.eps_network_feature_support
-              .ims_voice_over_ps_session_in_s1) {
-          esm_cause = esm_recv_pdn_connectivity_request(
-            emm_context,
-            pti,
-            ebi,
-            &esm_msg.pdn_connectivity_request,
-            &ebi,
-            is_standalone);
-          break;
-        }
-        if (is_standalone == true) {
-          /* Rejecting PDN Connectivity message as there is no code to handle standalone message yet*/
-          if (
-            RETURNok !=
-            _reject_standalone_pdn_conn_req(
-              pti, &esm_msg.pdn_connectivity_reject, &esm_procedure)) {
-            OAILOG_ERROR(
-              LOG_NAS_ESM,
-              "ESM-SAP   - Could not build PDN_CONNECTIVITY_REJECT message\n");
-          } else {
-            OAILOG_DEBUG(
-              LOG_NAS_ESM,
-              "ESM-SAP   - Built PDN_CONNECTIVITY_REJECT message\n");
-          }
-        } else {
-          increment_counter("ue_pdn_connection", 1, 1, "type", "with_attach");
-        }
-        /*
-         * Process PDN connectivity request message received from the UE
-         * Do not process if its a standalone message
-         */
-
-        if (!is_standalone) {
-          esm_cause = esm_recv_pdn_connectivity_request(
-            emm_context,
-            pti,
-            ebi,
-            &esm_msg.pdn_connectivity_request,
-            &ebi,
-            is_standalone);
-        }
-        OAILOG_DEBUG(
-          LOG_NAS_ESM,
-          "ESM-SAP   - ESM Message type = PDN_CONNECTIVITY_REQUEST(0x%x)"
-          "(ESM Cause = %d) for (ue_id = %u)\n",
-          esm_msg.header.message_type,
-          esm_cause,
-          ue_id);
+        esm_cause = esm_recv_pdn_connectivity_request(
+          emm_context,
+          pti,
+          ebi,
+          &esm_msg.pdn_connectivity_request,
+          &ebi,
+          is_standalone);
 
         if (esm_cause != ESM_CAUSE_SUCCESS) {
           /*
            * Return reject message
            */
-         OAILOG_ERROR(
-           LOG_NAS_ESM,
-           "ESM-SAP   - Sending PDN connectivity reject for ue_id = (%u)\n",
-           ue_id);
+          OAILOG_ERROR(
+            LOG_NAS_ESM,
+            "ESM-SAP   - Sending PDN connectivity reject for ue_id = (%u)\n",
+            ue_id);
           rc = esm_send_pdn_connectivity_reject(
             pti, &esm_msg.pdn_connectivity_reject, esm_cause);
           /*
            * Setup the callback function used to send PDN connectivity
-           * * * * reject message onto the network
+           * * * * reject message to UE
            */
           esm_procedure = esm_proc_pdn_connectivity_reject;
           /*
            * No ESM status message should be returned
            */
           esm_cause = ESM_CAUSE_SUCCESS;
-        } else {
-#if ORIGINAL_CODE
-          /*
-           * Setup PDN type
-           */
-          int pdn_type = -1;
-
-          if (data.pdn_type == ESM_PDN_TYPE_IPV4) {
-            pdn_type = PDN_VALUE_TYPE_IPV4;
-          } else if (data.pdn_type == ESM_PDN_TYPE_IPV6) {
-            pdn_type = PDN_VALUE_TYPE_IPV6;
-          } else if (data.pdn_type == ESM_PDN_TYPE_IPV4V6) {
-            pdn_type = PDN_VALUE_TYPE_IPV4V6;
-          }
-
-          /*
-           * Setup EPS bearer level Quality of Service
-           */
-          EpsQualityOfService qos;
-
-          qos.bitRatesPresent = 1;
-          qos.bitRatesExtPresent = 0;
-          qos.qci = data.qos.qci;
-          qos.bitRates.maxBitRateForUL = data.qos.mbrUL;
-          qos.bitRates.maxBitRateForDL = data.qos.mbrDL;
-          qos.bitRates.guarBitRateForUL = data.qos.gbrUL;
-          qos.bitRates.guarBitRateForDL = data.qos.gbrDL;
-          /*
-           * Return default EPS bearer context request message
-           */
-          rc = esm_send_activate_default_eps_bearer_context_request(
-            pti,
-            ebi,
-            &esm_msg.activate_default_eps_bearer_context_request,
-            &data.apn,
-            pdn_type,
-            &data.pdn_addr,
-            &qos,
-            esm_cause);
-#if 0
-          PacketFilters                           pkfs;
-
-          pkfs[0].identifier = 1;
-          pkfs[0].direction = TRAFFIC_FLOW_TEMPLATE_DOWNLINK_ONLY;
-          pkfs[0].eval_precedence = 2;
-          pkfs[0].packetfilter.flags = (TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG | TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG | TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG | TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG);
-          pkfs[0].packetfilter.ipv4remoteaddr[0].addr = 192;
-          pkfs[0].packetfilter.ipv4remoteaddr[1].addr = 168;
-          pkfs[0].packetfilter.ipv4remoteaddr[2].addr = 12;
-          pkfs[0].packetfilter.ipv4remoteaddr[3].addr = 1;
-          pkfs[0].packetfilter.ipv4remoteaddr[0].mask = 255;
-          pkfs[0].packetfilter.ipv4remoteaddr[1].mask = 255;
-          pkfs[0].packetfilter.ipv4remoteaddr[2].mask = 255;
-          pkfs[0].packetfilter.ipv4remoteaddr[3].mask = 0;
-          pkfs[0].packetfilter.protocolidentifier_nextheader = 17;
-          pkfs[0].packetfilter.singlelocalport = 10001;
-          pkfs[0].packetfilter.singleremoteport = 12001;
-          pkfs[1].identifier = 2;
-          pkfs[1].direction = TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
-          pkfs[1].eval_precedence = 3;
-          pkfs[1].packetfilter.flags = (TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG | TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG | TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG | TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG);
-          pkfs[1].packetfilter.ipv4remoteaddr[0].addr = 192;
-          pkfs[1].packetfilter.ipv4remoteaddr[1].addr = 168;
-          pkfs[1].packetfilter.ipv4remoteaddr[2].addr = 12;
-          pkfs[1].packetfilter.ipv4remoteaddr[3].addr = 1;
-          pkfs[1].packetfilter.ipv4remoteaddr[0].mask = 255;
-          pkfs[1].packetfilter.ipv4remoteaddr[1].mask = 255;
-          pkfs[1].packetfilter.ipv4remoteaddr[2].mask = 255;
-          pkfs[1].packetfilter.ipv4remoteaddr[3].mask = 0;
-          pkfs[1].packetfilter.protocolidentifier_nextheader = 17;
-          pkfs[1].packetfilter.singlelocalport = 10002;
-          pkfs[1].packetfilter.singleremoteport = 12002;
-          /*
-           * Return dedicated EPS bearer context request message
-           */
-          rc = esm_send_activate_dedicated_eps_bearer_context_request (pti, ebi, &esm_msg.activate_dedicated_eps_bearer_context_request, ebi, &qos, &pkfs, 2);
-#endif
-          esm_procedure = esm_proc_default_eps_bearer_context_request;
-#else
-          esm_cause = ESM_CAUSE_SUCCESS;
-#endif
-          /*
-           * Setup the callback function used to send default EPS bearer
-           * * * * context request message onto the network
-           */
-          //esm_procedure = esm_proc_default_eps_bearer_context_request;
         }
-
         break;
       }
 
@@ -893,28 +724,12 @@ static int _esm_sap_recv(
          */
           esm_cause = ESM_CAUSE_SUCCESS;
         } else {
-          /* If VoLTE is enabled and UE has sent PDN Disconnect
+          /* If UE has sent PDN Disconnect
            * send deactivate_eps_bearer_context_req after
            * receiving delete session response from SGW
            */
-          if (mme_config.eps_network_feature_support
-                .ims_voice_over_ps_session_in_s1) {
-            emm_context->esm_ctx.is_pdn_disconnect = true;
-            OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
-          }
-          /*
-         * Return deactivate EPS bearer context request message
-         */
-          rc = esm_send_deactivate_eps_bearer_context_request(
-            pti,
-            ebi,
-            &esm_msg.deactivate_eps_bearer_context_request,
-            ESM_CAUSE_REGULAR_DEACTIVATION);
-          /*
-         * Setup the callback function used to send deactivate EPS
-         * * * * bearer context request message onto the network
-         */
-          esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
+          emm_context->esm_ctx.is_pdn_disconnect = true;
+          OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
         }
 
         break;
@@ -1092,7 +907,7 @@ static int _esm_sap_send(
     case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST: break;
 
     case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST: {
-      const esm_eps_dedicated_bearer_context_activate_t *msg =
+      const esm_eps_dedicated_bearer_context_activate_t* msg =
         &data->eps_dedicated_bearer_context_activate;
 
       EpsQualityOfService eps_qos = {0};
@@ -1123,18 +938,16 @@ static int _esm_sap_send(
     case MODIFY_EPS_BEARER_CONTEXT_REQUEST: break;
 
     case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST: {
-      const esm_eps_bearer_context_deactivate_t *msg =
+      const esm_eps_bearer_context_deactivate_t* msg =
         &data->eps_bearer_context_deactivate;
-      /*Currently we support single bearear deactivation only at NAS*/
-      if (RETURNok == rc) {
-        rc = esm_send_deactivate_eps_bearer_context_request(
-          (proc_tid_t) 0,
-          msg->ebi[0],
-          &esm_msg.deactivate_eps_bearer_context_request,
-          ESM_CAUSE_REGULAR_DEACTIVATION);
+      // Currently we support single bearear deactivation only at NAS
+      rc = esm_send_deactivate_eps_bearer_context_request(
+        (proc_tid_t) 0,
+        msg->ebi[0],
+        &esm_msg.deactivate_eps_bearer_context_request,
+        ESM_CAUSE_REGULAR_DEACTIVATION);
 
-        esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
-      }
+      esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
     } break;
 
     case PDN_CONNECTIVITY_REJECT: break;

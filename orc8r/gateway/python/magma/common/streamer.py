@@ -10,18 +10,18 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 import threading
 import time
-from typing import Any
+from typing import Any, List
 
 import abc
 import grpc
 import snowflake
 from google.protobuf import any_pb2
-from orc8r.protos.streamer_pb2 import StreamRequest
-from orc8r.protos.streamer_pb2_grpc import StreamerStub
-
 from magma.common import serialization_utils
 from magma.common.metrics import STREAMER_RESPONSES
 from magma.configuration.service_configs import get_service_config_value
+from orc8r.protos.streamer_pb2 import DataUpdate, StreamRequest
+from orc8r.protos.streamer_pb2_grpc import StreamerStub
+
 from .service_registry import ServiceRegistry
 
 
@@ -55,15 +55,16 @@ class StreamerClient(threading.Thread):
             pass
 
         @abc.abstractmethod
-        def process_update(self, stream_name, updates, resync):
+        def process_update(self, stream_name: str, updates: List[DataUpdate],
+                           resync: bool):
             """
             Called when we get an update from the cloud. This method will
             be called in the event loop provided to the StreamerClient.
 
             Args:
-                stream_name (string): Name of the stream
-                updates (protos.DataUpdate[]): Array of updates
-                resync (boolean): if true, the application can clear the
+                stream_name: Name of the stream
+                updates: Array of updates
+                resync: if true, the application can clear the
                     contents before applying the updates
             """
             raise NotImplementedError()

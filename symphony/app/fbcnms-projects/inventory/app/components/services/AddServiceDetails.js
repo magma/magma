@@ -13,8 +13,10 @@ import type {
   AddServiceMutationResponse,
   AddServiceMutationVariables,
 } from '../../mutations/__generated__/AddServiceMutation.graphql';
+import type {Customer} from '../../common/Service';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
-import type {Service} from '../../common/Service';
+import type {Property} from '../../common/Property';
+import type {ServiceType} from '../../common/ServiceType';
 
 import * as React from 'react';
 import AddServiceMutation from '../../mutations/AddServiceMutation';
@@ -118,9 +120,17 @@ type Props = {
   onServiceCreated: (id: string) => void,
 };
 
+type ServiceDetails = {
+  name: string,
+  externalId: ?string,
+  customer: ?Customer,
+  serviceType: ServiceType,
+  properties: Array<Property>,
+};
+
 const AddServiceDetails = (props: Props) => {
   const {serviceTypeId, onBackClicked, onServiceCreated} = props;
-  const [serviceState, setServiceState] = useState<?Service>(null);
+  const [serviceState, setServiceState] = useState<?ServiceDetails>(null);
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -138,16 +148,11 @@ const AddServiceDetails = (props: Props) => {
         .map(propType => getInitialPropertyFromType(propType))
         .sort(sortPropertiesByIndex);
       const service = {
-        id: 'service@tmp',
         name: '',
         externalId: null,
         customer: null,
         serviceType: serviceType,
         properties: initialProps,
-        upstream: [],
-        downstream: [],
-        terminationPoints: [],
-        links: [],
       };
       setServiceState(service);
       return service;
@@ -184,7 +189,6 @@ const AddServiceDetails = (props: Props) => {
         customerId: customer?.id,
         properties: toPropertyInput(properties),
         upstreamServiceIds: [],
-        terminationPointIds: [],
       },
     };
 

@@ -1,5 +1,0 @@
-﻿Equipment ID,Equipment Name,Equipment Type,Country,City,Building,Parent Equipment (3),Parent Equipment (2),Parent Equipment,Equipment Position,prop1Str,prop1Int
-,A,EquipType1,Israel,TLV,b1,,,,,val1,12
-,B,EquipType2,Israel,,b2,,,,,val2,13
-,C,EquipType3,Israel,Jerusalem,b3,,,,,,
-,D,EquipType4,Israel,Jerusalem,b3,,,C,pos1,,

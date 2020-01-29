@@ -24,7 +24,7 @@ const query = graphql`
     supportedOperators {
       operatorID
       description
-      dataInput
+      dataType
     }
   }
 `;

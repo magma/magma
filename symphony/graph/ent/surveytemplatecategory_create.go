@@ -9,11 +9,11 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 )
@@ -118,63 +118,77 @@ func (stcc *SurveyTemplateCategoryCreate) SaveX(ctx context.Context) *SurveyTemp
 
 func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyTemplateCategory, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(stcc.driver.Dialect())
-		stc     = &SurveyTemplateCategory{config: stcc.config}
+		stc   = &SurveyTemplateCategory{config: stcc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: surveytemplatecategory.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveytemplatecategory.FieldID,
+			},
+		}
 	)
-	tx, err := stcc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(surveytemplatecategory.Table).Default()
 	if value := stcc.create_time; value != nil {
-		insert.Set(surveytemplatecategory.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldCreateTime,
+		})
 		stc.CreateTime = *value
 	}
 	if value := stcc.update_time; value != nil {
-		insert.Set(surveytemplatecategory.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldUpdateTime,
+		})
 		stc.UpdateTime = *value
 	}
 	if value := stcc.category_title; value != nil {
-		insert.Set(surveytemplatecategory.FieldCategoryTitle, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldCategoryTitle,
+		})
 		stc.CategoryTitle = *value
 	}
 	if value := stcc.category_description; value != nil {
-		insert.Set(surveytemplatecategory.FieldCategoryDescription, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldCategoryDescription,
+		})
 		stc.CategoryDescription = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(surveytemplatecategory.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	stc.ID = strconv.FormatInt(id, 10)
-	if len(stcc.survey_template_questions) > 0 {
-		p := sql.P()
-		for eid := range stcc.survey_template_questions {
-			eid, err := strconv.Atoi(eid)
+	if nodes := stcc.survey_template_questions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveytemplatecategory.SurveyTemplateQuestionsTable,
+			Columns: []string{surveytemplatecategory.SurveyTemplateQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatequestion.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(surveytemplatequestion.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(surveytemplatecategory.SurveyTemplateQuestionsTable).
-			Set(surveytemplatecategory.SurveyTemplateQuestionsColumn, id).
-			Where(sql.And(p, sql.IsNull(surveytemplatecategory.SurveyTemplateQuestionsColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(stcc.survey_template_questions) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"survey_template_questions\" %v already connected to a different \"SurveyTemplateCategory\"", keys(stcc.survey_template_questions))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, stcc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	stc.ID = strconv.FormatInt(id, 10)
 	return stc, nil
 }

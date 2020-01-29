@@ -13,7 +13,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 )
 
@@ -181,62 +182,102 @@ func (fc *FileCreate) SaveX(ctx context.Context) *File {
 
 func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 	var (
-		builder = sql.Dialect(fc.driver.Dialect())
-		f       = &File{config: fc.config}
+		f     = &File{config: fc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: file.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: file.FieldID,
+			},
+		}
 	)
-	tx, err := fc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(file.Table).Default()
 	if value := fc.create_time; value != nil {
-		insert.Set(file.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldCreateTime,
+		})
 		f.CreateTime = *value
 	}
 	if value := fc.update_time; value != nil {
-		insert.Set(file.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldUpdateTime,
+		})
 		f.UpdateTime = *value
 	}
 	if value := fc._type; value != nil {
-		insert.Set(file.FieldType, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldType,
+		})
 		f.Type = *value
 	}
 	if value := fc.name; value != nil {
-		insert.Set(file.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldName,
+		})
 		f.Name = *value
 	}
 	if value := fc.size; value != nil {
-		insert.Set(file.FieldSize, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: file.FieldSize,
+		})
 		f.Size = *value
 	}
 	if value := fc.modified_at; value != nil {
-		insert.Set(file.FieldModifiedAt, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldModifiedAt,
+		})
 		f.ModifiedAt = *value
 	}
 	if value := fc.uploaded_at; value != nil {
-		insert.Set(file.FieldUploadedAt, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldUploadedAt,
+		})
 		f.UploadedAt = *value
 	}
 	if value := fc.content_type; value != nil {
-		insert.Set(file.FieldContentType, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldContentType,
+		})
 		f.ContentType = *value
 	}
 	if value := fc.store_key; value != nil {
-		insert.Set(file.FieldStoreKey, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldStoreKey,
+		})
 		f.StoreKey = *value
 	}
 	if value := fc.category; value != nil {
-		insert.Set(file.FieldCategory, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldCategory,
+		})
 		f.Category = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(file.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	f.ID = strconv.FormatInt(id, 10)
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, fc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	f.ID = strconv.FormatInt(id, 10)
 	return f, nil
 }

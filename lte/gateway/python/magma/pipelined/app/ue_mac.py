@@ -5,7 +5,6 @@ All rights reserved.
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 """
-from collections import namedtuple
 import threading
 
 from ryu.controller import ofp_event
@@ -34,14 +33,9 @@ class UEMacAddressController(MagmaController):
 
     APP_NAME = "ue_mac"
     APP_TYPE = ControllerType.SPECIAL
-    UEMacConfig = namedtuple(
-        'UEMacConfig',
-        ['gre_tunnel_port'],
-    )
 
     def __init__(self, *args, **kwargs):
         super(UEMacAddressController, self).__init__(*args, **kwargs)
-        self.config = self._get_config(kwargs['config'])
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
             self._service_manager.get_table_num(INGRESS)
@@ -51,20 +45,15 @@ class UEMacAddressController(MagmaController):
         self._dhcp_learn_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
 
-    def _get_config(self, config_dict):
-        return self.UEMacConfig(
-            # TODO: rename port number to a tunneling protocol agnostic name
-            gre_tunnel_port=config_dict['ovs_gtp_port_number'],
-        )
-
     def initialize_on_connect(self, datapath):
-        flows.delete_all_flows_from_table(datapath,
-                                          self._service_manager.get_table_num(
-                                              self.APP_NAME))
+        self.delete_all_flows(datapath)
         self._datapath = datapath
         self._install_default_flows()
 
     def cleanup_on_disconnect(self, datapath):
+        self.delete_all_flows(datapath)
+
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath,
                                           self._service_manager.get_table_num(
                                               self.APP_NAME))

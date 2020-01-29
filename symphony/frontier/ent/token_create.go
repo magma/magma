@@ -12,8 +12,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
+	"github.com/facebookincubator/symphony/frontier/ent/user"
 )
 
 // TokenCreate is the builder for creating a Token entity.
@@ -109,46 +111,65 @@ func (tc *TokenCreate) SaveX(ctx context.Context) *Token {
 
 func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(tc.driver.Dialect())
-		t       = &Token{config: tc.config}
+		t     = &Token{config: tc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: token.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: token.FieldID,
+			},
+		}
 	)
-	tx, err := tc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(token.Table).Default()
 	if value := tc.created_at; value != nil {
-		insert.Set(token.FieldCreatedAt, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: token.FieldCreatedAt,
+		})
 		t.CreatedAt = *value
 	}
 	if value := tc.updated_at; value != nil {
-		insert.Set(token.FieldUpdatedAt, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: token.FieldUpdatedAt,
+		})
 		t.UpdatedAt = *value
 	}
 	if value := tc.value; value != nil {
-		insert.Set(token.FieldValue, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: token.FieldValue,
+		})
 		t.Value = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(token.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	t.ID = int(id)
-	if len(tc.user) > 0 {
-		for eid := range tc.user {
-			query, args := builder.Update(token.UserTable).
-				Set(token.UserColumn, eid).
-				Where(sql.EQ(token.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := tc.user; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   token.UserTable,
+			Columns: []string{token.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	t.ID = int(id)
 	return t, nil
 }

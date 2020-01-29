@@ -6,18 +6,22 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
 type actionsRuleFilterResolver struct{}
 
 func (actionsRuleFilterResolver) Operator(ctx context.Context, ar *core.ActionsRuleFilter) (*models.ActionsOperator, error) {
-	// TODO: stub
+	operator, ok := core.AllOperators[ar.OperatorID]
+	if !ok {
+		return nil, fmt.Errorf("operator %s does not exist", ar.OperatorID)
+	}
 	return &models.ActionsOperator{
-		OperatorID:  ar.OperatorID,
-		Description: "blah",
-		DataInput:   "{}",
+		OperatorID:  operator.OperatorID(),
+		Description: operator.Description(),
+		DataType:    operator.DataType(),
 	}, nil
 }

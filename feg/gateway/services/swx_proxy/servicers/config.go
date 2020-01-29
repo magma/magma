@@ -74,6 +74,7 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 	glog.V(2).Infof("Loaded %s configs: %+v", SwxProxyServiceName, *configsPtr)
 
 	for _, plmnid := range configsPtr.HlrPlmnIds {
+		glog.Infof("Adding HLR PLMN ID: %s", plmnid)
 		l := len(plmnid)
 		switch l {
 		case 5:

@@ -33,11 +33,11 @@ const (
 
 var locStruct map[string]*ent.Location
 
-func importExportedData(ctx context.Context, t *testing.T, organization string, r *TestImporterResolver) int {
+func importEquipmentExportedData(ctx context.Context, t *testing.T, organization string, r *TestImporterResolver) int {
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
-
-	file, err := os.Open("testdata/exportedData1.csv")
+	bw.WriteField("skip_lines", "[5,6]")
+	file, err := os.Open("testdata/exportedEquipmentData.csv")
 	require.Nil(t, err)
 
 	fileWriter, err := bw.CreateFormFile("file_0", file.Name())
@@ -155,19 +155,19 @@ func verifyLocationsStructure(ctx context.Context, t *testing.T, r TestImporterR
 	require.Equal(t, locStruct["JERU"].ID, locStruct["b3"].QueryParent().OnlyX(ctx).ID)
 }
 
-func TestImportData(t *testing.T) {
+func TestEquipmentImportData(t *testing.T) {
 	r, err := newImporterTestResolver(t)
 	require.NoError(t, err)
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	require.NoError(t, err)
-	code := importExportedData(ctx, t, tenantHeader, r)
+	code := importEquipmentExportedData(ctx, t, tenantHeader, r)
 	require.Equal(t, http.StatusBadRequest, code)
 	require.Nil(t, err)
 	q := r.importer.r.Query()
 
 	createLocationTypes(ctx, t, r)
 	createEquipmentTypes(ctx, r)
-	code = importExportedData(ctx, t, tenantHeader, r)
+	code = importEquipmentExportedData(ctx, t, tenantHeader, r)
 	require.Equal(t, 200, code)
 
 	verifyLocationsStructure(ctx, t, *r)
@@ -178,20 +178,24 @@ func TestImportData(t *testing.T) {
 		switch equip.Name {
 		case "A":
 			require.Equal(t, "EquipType1", equip.QueryType().OnlyX(ctx).Name)
+			require.Equal(t, "AA", equip.ExternalID)
 			require.Equal(t, locStruct["b1"].ID, equip.QueryLocation().OnlyXID(ctx))
 			require.Equal(t, "val1", equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name("prop1Str"))).OnlyX(ctx).StringVal)
 			require.Equal(t, 12, equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name("prop1Int"))).OnlyX(ctx).IntVal)
 		case "B":
 			require.Equal(t, "EquipType2", equip.QueryType().OnlyX(ctx).Name)
+			require.Equal(t, "BB", equip.ExternalID)
 			require.Equal(t, locStruct["b2"].ID, equip.QueryLocation().OnlyXID(ctx))
 			require.Equal(t, "val2", equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name("prop1Str"))).OnlyX(ctx).StringVal)
 			require.Equal(t, 13, equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name("prop1Int"))).OnlyX(ctx).IntVal)
 		case "C":
 			require.Equal(t, "EquipType3", equip.QueryType().OnlyX(ctx).Name)
+			require.Equal(t, "CC", equip.ExternalID)
 			require.Equal(t, locStruct["b3"].ID, equip.QueryLocation().OnlyXID(ctx))
 			require.True(t, equip.QueryPositions().Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.Name("pos1"))).ExistX(ctx))
 		case "D":
 			require.Equal(t, "EquipType4", equip.QueryType().OnlyX(ctx).Name)
+			require.Equal(t, "", equip.ExternalID)
 			loc, err := equip.QueryLocation().Only(ctx)
 			require.Error(t, err)
 			require.Nil(t, loc)

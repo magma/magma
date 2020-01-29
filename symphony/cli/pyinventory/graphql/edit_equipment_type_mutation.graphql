@@ -28,7 +28,6 @@ mutation EditEquipmentTypeMutation($input: EditEquipmentTypeInput!) {
       name
       index
       visibleLabel
-      type
     }
   }
 }

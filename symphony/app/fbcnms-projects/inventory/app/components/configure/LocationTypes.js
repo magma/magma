@@ -101,7 +101,7 @@ type State = {
 
 const locationTypesQuery = graphql`
   query LocationTypesQuery {
-    locationTypes(first: 50) @connection(key: "Catalog_locationTypes") {
+    locationTypes(first: 500) @connection(key: "Catalog_locationTypes") {
       edges {
         node {
           ...LocationTypeItem_locationType

@@ -102,8 +102,10 @@ void GTPApplication::add_uplink_tunnel_flow(
   const AddGTPTunnelEvent &ev,
   const OpenflowMessenger &messenger)
 {
+  uint32_t flow_priority =
+    convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod uplink_fm =
-    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, DEFAULT_PRIORITY);
+    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
   add_uplink_match(uplink_fm, gtp_port_num_, ev.get_in_tei());
 
   // Set eth src and dst
@@ -214,8 +216,10 @@ void GTPApplication::add_downlink_tunnel_flow(
   const AddGTPTunnelEvent &ev,
   const OpenflowMessenger &messenger)
 {
+  uint32_t flow_priority =
+    convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod downlink_fm =
-    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, DEFAULT_PRIORITY);
+    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
 
   if (ev.is_dl_flow_valid()) {
     add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow());
@@ -309,8 +313,10 @@ void GTPApplication::forward_uplink_tunnel_flow(
   const HandleDataOnGTPTunnelEvent &ev,
   const OpenflowMessenger &messenger)
 {
+  uint32_t flow_priority =
+    convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod uplink_fm = messenger.create_default_flow_mod(
-    0, of13::OFPFC_DELETE, DEFAULT_PRIORITY + 1);
+    0, of13::OFPFC_DELETE, flow_priority + 1);
   // match all ports and groups
   uplink_fm.out_port(of13::OFPP_ANY);
   uplink_fm.out_group(of13::OFPG_ANY);
@@ -326,8 +332,10 @@ void GTPApplication::forward_downlink_tunnel_flow(
   const HandleDataOnGTPTunnelEvent &ev,
   const OpenflowMessenger &messenger)
 {
+  uint32_t flow_priority =
+    convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
-    0, of13::OFPFC_DELETE, DEFAULT_PRIORITY + 1);
+    0, of13::OFPFC_DELETE, flow_priority + 1);
   // match all ports and groups
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);
@@ -342,6 +350,31 @@ void GTPApplication::forward_downlink_tunnel_flow(
 
 
   messenger.send_of_msg(downlink_fm, ev.get_connection());
+}
+
+// Precedence in TFT and flow rule priority in OVS are inversely
+// related. Rules with a low precedence value takes precedence,
+// where 0 has the highest precedence. In OVS rules with high
+// priority value takes precedence with the maximum value of
+// 65535. Typical range of precedence is in [0,255] in line
+// with the 8-bit TFT field for precedence in the current code.
+// This implementation:
+// - Allows 32-bit unsigned value for precedence velue, but truncates
+//   precedence values higher than 65535 (i.e., 16 bits) to 65535.
+// - Maps precendence values to priority values in [10, 65535].
+// - Sets the minimum priority value to 10 in order to give GTP App
+//   a sufficient margin to take priority over CP and management
+//   related rules.
+// - DEFAULT_PRECEDENCE always maps to a priority value of 10.
+uint32_t GTPApplication::convert_precedence_to_priority(
+  const uint32_t precedence)
+{
+  uint32_t priority =
+    (precedence < MAX_PRIORITY) ? (MAX_PRIORITY - precedence) : 0;
+  if (priority < DEFAULT_PRIORITY) {
+    priority = DEFAULT_PRIORITY;
+  }
+  return priority;
 }
 
 } // namespace openflow

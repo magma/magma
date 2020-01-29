@@ -10,15 +10,15 @@
 package graphhttp
 
 import (
-	"github.com/facebookincubator/symphony/cloud/actions/action/magmarebootnode"
-	"github.com/facebookincubator/symphony/cloud/actions/executor"
-	"github.com/facebookincubator/symphony/cloud/actions/trigger/magmaalert"
-	"github.com/facebookincubator/symphony/cloud/log"
-	"github.com/facebookincubator/symphony/cloud/oc"
-	"github.com/facebookincubator/symphony/cloud/orc8r"
-	"github.com/facebookincubator/symphony/cloud/server"
-	"github.com/facebookincubator/symphony/cloud/server/xserver"
 	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/actions/action/magmarebootnode"
+	"github.com/facebookincubator/symphony/pkg/actions/executor"
+	"github.com/facebookincubator/symphony/pkg/actions/trigger/magmaalert"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/oc"
+	"github.com/facebookincubator/symphony/pkg/orc8r"
+	"github.com/facebookincubator/symphony/pkg/server"
+	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"gocloud.dev/server/health"
 	"net/http"
 )

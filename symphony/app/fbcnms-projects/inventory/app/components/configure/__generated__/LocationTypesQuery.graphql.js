@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 41081c99662d7900c3c5a0532d29b31a
+ * @relayHash a2040602e2e3a45d083b6e3a11900963
  */
 
 /* eslint-disable */
@@ -20,7 +20,7 @@ type LocationTypeItem_locationType$ref = any;
 export type LocationTypesQueryVariables = {||};
 export type LocationTypesQueryResponse = {|
   +locationTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,
@@ -39,7 +39,7 @@ export type LocationTypesQuery = {|
 
 /*
 query LocationTypesQuery {
-  locationTypes(first: 50) {
+  locationTypes(first: 500) {
     edges {
       node {
         ...LocationTypeItem_locationType
@@ -197,7 +197,7 @@ v6 = [
   {
     "kind": "Literal",
     "name": "first",
-    "value": 50
+    "value": 500
   }
 ];
 return {
@@ -269,7 +269,7 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "locationTypes",
-        "storageKey": "locationTypes(first:50)",
+        "storageKey": "locationTypes(first:500)",
         "args": (v6/*: any*/),
         "concreteType": "LocationTypeConnection",
         "plural": false,
@@ -505,7 +505,7 @@ return {
     "operationKind": "query",
     "name": "LocationTypesQuery",
     "id": null,
-    "text": "query LocationTypesQuery {\n  locationTypes(first: 50) {\n    edges {\n      node {\n        ...LocationTypeItem_locationType\n        ...AddEditLocationTypeCard_editingLocationType\n        id\n        name\n        index\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditLocationTypeCard_editingLocationType on LocationType {\n  id\n  name\n  mapType\n  mapZoomLevel\n  numberOfLocations\n  isSite\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  surveyTemplateCategories {\n    id\n    categoryTitle\n    categoryDescription\n    surveyTemplateQuestions {\n      id\n      questionTitle\n      questionDescription\n      questionType\n      index\n    }\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment LocationTypeItem_locationType on LocationType {\n  id\n  name\n  index\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfLocations\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
+    "text": "query LocationTypesQuery {\n  locationTypes(first: 500) {\n    edges {\n      node {\n        ...LocationTypeItem_locationType\n        ...AddEditLocationTypeCard_editingLocationType\n        id\n        name\n        index\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditLocationTypeCard_editingLocationType on LocationType {\n  id\n  name\n  mapType\n  mapZoomLevel\n  numberOfLocations\n  isSite\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  surveyTemplateCategories {\n    id\n    categoryTitle\n    categoryDescription\n    surveyTemplateQuestions {\n      id\n      questionTitle\n      questionDescription\n      questionType\n      index\n    }\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment LocationTypeItem_locationType on LocationType {\n  id\n  name\n  index\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfLocations\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
     "metadata": {
       "connection": [
         {
@@ -522,5 +522,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '399f1388d7d16714360b056efe6f5385';
+(node/*: any*/).hash = '69c919a00bec8771ecb48980757d63cd';
 module.exports = node;

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/link"
 )
 
 // Link is the model entity for the Link schema.
@@ -26,29 +27,77 @@ type Link struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// FutureState holds the value of the "future_state" field.
 	FutureState string `json:"future_state,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the LinkQuery when eager-loading is set.
+	Edges         LinkEdges `json:"edges"`
+	work_order_id *string
 }
 
-// FromRows scans the sql response data into Link.
-func (l *Link) FromRows(rows *sql.Rows) error {
-	var scanl struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		FutureState sql.NullString
+// LinkEdges holds the relations/edges for other nodes in the graph.
+type LinkEdges struct {
+	// Ports holds the value of the ports edge.
+	Ports []*EquipmentPort
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// Service holds the value of the service edge.
+	Service []*Service
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Link) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // future_state
 	}
-	// the order here should be the same as in the `link.Columns`.
-	if err := rows.Scan(
-		&scanl.ID,
-		&scanl.CreateTime,
-		&scanl.UpdateTime,
-		&scanl.FutureState,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Link) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // work_order_id
 	}
-	l.ID = strconv.Itoa(scanl.ID)
-	l.CreateTime = scanl.CreateTime.Time
-	l.UpdateTime = scanl.UpdateTime.Time
-	l.FutureState = scanl.FutureState.String
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Link fields.
+func (l *Link) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(link.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	l.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		l.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		l.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field future_state", values[2])
+	} else if value.Valid {
+		l.FutureState = value.String
+	}
+	values = values[3:]
+	if len(values) == len(link.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_id", value)
+		} else if value.Valid {
+			l.work_order_id = new(string)
+			*l.work_order_id = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -113,18 +162,6 @@ func (l *Link) id() int {
 
 // Links is a parsable slice of Link.
 type Links []*Link
-
-// FromRows scans the sql response data into Links.
-func (l *Links) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanl := &Link{}
-		if err := scanl.FromRows(rows); err != nil {
-			return err
-		}
-		*l = append(*l, scanl)
-	}
-	return nil
-}
 
 func (l Links) config(cfg config) {
 	for _i := range l {

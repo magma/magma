@@ -66,6 +66,17 @@ func Authenticate(id *cwfprotos.AuthenticateRequest) (*cwfprotos.AuthenticateRes
 	return cli.Authenticate(context.Background(), id)
 }
 
+// Disconnect triggers a disconnect request from the UE with the specified IMSI.
+// Input: The IMSI of the UE to try to disconnect.
+// Output: The resulting Radius packet returned by the Radius server.
+func Disconnect(id *cwfprotos.DisconnectRequest) (*cwfprotos.DisconnectResponse, error) {
+	cli, err := getUESimClient()
+	if err != nil {
+		return nil, err
+	}
+	return cli.Disconnect(context.Background(), id)
+}
+
 // GenTraffic triggers traffic generation for the UE with the specified IMSI.
 // Input: The IMSI of the UE to simulate traffic for
 func GenTraffic(req *cwfprotos.GenTrafficRequest) error {

@@ -31,6 +31,8 @@ export type UserRawType = {
   id: number,
   networkIDs: Array<string>,
   isSuperUser: boolean,
+  isReadOnlyUser: boolean,
+  role: number,
 } & UserRawInitType;
 
 type UserModel = Model<UserRawType, UserRawInitType>;
@@ -68,6 +70,9 @@ export default (
       getterMethods: {
         isSuperUser() {
           return this.role === AccessRoles.SUPERUSER;
+        },
+        isReadOnlyUser() {
+          return this.role === AccessRoles.READ_ONLY_USER;
         },
       },
     },

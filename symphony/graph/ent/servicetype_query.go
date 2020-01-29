@@ -8,11 +8,15 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -27,7 +31,10 @@ type ServiceTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.ServiceType
-	// intermediate queries.
+	// eager-loading edges.
+	withServices      *ServiceQuery
+	withPropertyTypes *PropertyTypeQuery
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,35 +65,35 @@ func (stq *ServiceTypeQuery) Order(o ...Order) *ServiceTypeQuery {
 // QueryServices chains the current query on the services edge.
 func (stq *ServiceTypeQuery) QueryServices() *ServiceQuery {
 	query := &ServiceQuery{config: stq.config}
-	step := sql.NewStep(
-		sql.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
 	)
-	query.sql = sql.SetNeighbors(stq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (stq *ServiceTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: stq.config}
-	step := sql.NewStep(
-		sql.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
 	)
-	query.sql = sql.SetNeighbors(stq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
 	return query
 }
 
-// First returns the first ServiceType entity in the query. Returns *ErrNotFound when no servicetype was found.
+// First returns the first ServiceType entity in the query. Returns *NotFoundError when no servicetype was found.
 func (stq *ServiceTypeQuery) First(ctx context.Context) (*ServiceType, error) {
 	sts, err := stq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(sts) == 0 {
-		return nil, &ErrNotFound{servicetype.Label}
+		return nil, &NotFoundError{servicetype.Label}
 	}
 	return sts[0], nil
 }
@@ -100,14 +107,14 @@ func (stq *ServiceTypeQuery) FirstX(ctx context.Context) *ServiceType {
 	return st
 }
 
-// FirstID returns the first ServiceType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first ServiceType id in the query. Returns *NotFoundError when no id was found.
 func (stq *ServiceTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = stq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{servicetype.Label}
+		err = &NotFoundError{servicetype.Label}
 		return
 	}
 	return ids[0], nil
@@ -132,9 +139,9 @@ func (stq *ServiceTypeQuery) Only(ctx context.Context) (*ServiceType, error) {
 	case 1:
 		return sts[0], nil
 	case 0:
-		return nil, &ErrNotFound{servicetype.Label}
+		return nil, &NotFoundError{servicetype.Label}
 	default:
-		return nil, &ErrNotSingular{servicetype.Label}
+		return nil, &NotSingularError{servicetype.Label}
 	}
 }
 
@@ -157,9 +164,9 @@ func (stq *ServiceTypeQuery) OnlyID(ctx context.Context) (id string, err error) 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{servicetype.Label}
+		err = &NotFoundError{servicetype.Label}
 	default:
-		err = &ErrNotSingular{servicetype.Label}
+		err = &NotSingularError{servicetype.Label}
 	}
 	return
 }
@@ -243,9 +250,31 @@ func (stq *ServiceTypeQuery) Clone() *ServiceTypeQuery {
 		order:      append([]Order{}, stq.order...),
 		unique:     append([]string{}, stq.unique...),
 		predicates: append([]predicate.ServiceType{}, stq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: stq.sql.Clone(),
 	}
+}
+
+//  WithServices tells the query-builder to eager-loads the nodes that are connected to
+// the "services" edge. The optional arguments used to configure the query builder of the edge.
+func (stq *ServiceTypeQuery) WithServices(opts ...func(*ServiceQuery)) *ServiceTypeQuery {
+	query := &ServiceQuery{config: stq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stq.withServices = query
+	return stq
+}
+
+//  WithPropertyTypes tells the query-builder to eager-loads the nodes that are connected to
+// the "property_types" edge. The optional arguments used to configure the query builder of the edge.
+func (stq *ServiceTypeQuery) WithPropertyTypes(opts ...func(*PropertyTypeQuery)) *ServiceTypeQuery {
+	query := &PropertyTypeQuery{config: stq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stq.withPropertyTypes = query
+	return stq
 }
 
 // GroupBy used to group vertices by one or more fields/columns.
@@ -290,45 +319,100 @@ func (stq *ServiceTypeQuery) Select(field string, fields ...string) *ServiceType
 }
 
 func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error) {
-	rows := &sql.Rows{}
-	selector := stq.sqlQuery()
-	if unique := stq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*ServiceType = []*ServiceType{}
+		_spec                = stq.querySpec()
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &ServiceType{config: stq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := stq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, stq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var sts ServiceTypes
-	if err := sts.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	sts.config(stq.config)
-	return sts, nil
+
+	if query := stq.withServices; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*ServiceType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Service(func(s *sql.Selector) {
+			s.Where(sql.InValues(servicetype.ServicesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Services = append(node.Edges.Services, n)
+		}
+	}
+
+	if query := stq.withPropertyTypes; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*ServiceType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.PropertyType(func(s *sql.Selector) {
+			s.Where(sql.InValues(servicetype.PropertyTypesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.service_type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "service_type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
+		}
+	}
+
+	return nodes, nil
 }
 
 func (stq *ServiceTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := stq.sqlQuery()
-	unique := []string{servicetype.FieldID}
-	if len(stq.unique) > 0 {
-		unique = stq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := stq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := stq.querySpec()
+	return sqlgraph.CountNodes(ctx, stq.driver, _spec)
 }
 
 func (stq *ServiceTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -337,6 +421,42 @@ func (stq *ServiceTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (stq *ServiceTypeQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   servicetype.Table,
+			Columns: servicetype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: servicetype.FieldID,
+			},
+		},
+		From:   stq.sql,
+		Unique: true,
+	}
+	if ps := stq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := stq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := stq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := stq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (stq *ServiceTypeQuery) sqlQuery() *sql.Selector {
@@ -369,7 +489,7 @@ type ServiceTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -490,7 +610,7 @@ func (stgb *ServiceTypeGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(stgb.fields)+len(stgb.fns))
 	columns = append(columns, stgb.fields...)
 	for _, fn := range stgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(stgb.fields...)
 }
@@ -610,7 +730,7 @@ func (sts *ServiceTypeSelect) sqlScan(ctx context.Context, v interface{}) error 
 }
 
 func (sts *ServiceTypeSelect) sqlQuery() sql.Querier {
-	view := "servicetype_view"
-	return sql.Dialect(sts.driver.Dialect()).
-		Select(sts.fields...).From(sts.sql.As(view))
+	selector := sts.sql
+	selector.Select(selector.Columns(sts.fields...)...)
+	return selector
 }

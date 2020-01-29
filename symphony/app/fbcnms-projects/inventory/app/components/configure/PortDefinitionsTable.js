@@ -95,7 +95,6 @@ export default createFragmentContainer(PortDefinitionsTable, {
       name
       index
       visibleLabel
-      type
       portType {
         id
         name

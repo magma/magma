@@ -14,7 +14,9 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 
+	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
 	"golang.org/x/xerrors"
@@ -58,16 +60,6 @@ func (projectTypeResolver) WorkOrders(ctx context.Context, obj *ent.ProjectType)
 	return properties, nil
 }
 
-func (projectTypeResolver) TotalCount(
-	ctx context.Context, _ *models.ProjectTypeConnection,
-) (int, error) {
-	count, err := ent.FromContext(ctx).ProjectType.Query().Count(ctx)
-	if err != nil {
-		return 0, xerrors.Errorf("querying project types count: %w", err)
-	}
-	return count, nil
-}
-
 func (r mutationResolver) CreateProjectType(ctx context.Context, input models.AddProjectTypeInput) (*ent.ProjectType, error) {
 	properties, err := r.AddPropertyTypes(ctx, input.Properties...)
 	if err != nil {
@@ -82,7 +74,7 @@ func (r mutationResolver) CreateProjectType(ctx context.Context, input models.Ad
 		AddProperties(properties...).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("Project type %q already exists", input.Name)
 		}
 		return nil, xerrors.Errorf("creating project type: %w", err)
@@ -112,7 +104,7 @@ func (r mutationResolver) EditProjectType(
 		if ent.IsNotFound(err) {
 			return nil, gqlerror.Errorf("Project template with id=%q does not exist", input.ID)
 		}
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("A project template with the name %v already exists", input.Name)
 		}
 		return nil, errors.Wrapf(err, "updating project template: id=%q", pt.ID)
@@ -195,26 +187,11 @@ func (r queryResolver) ProjectType(ctx context.Context, id string) (*ent.Project
 
 func (r queryResolver) ProjectTypes(
 	ctx context.Context,
-	after *models.Cursor, first *int,
-	before *models.Cursor, last *int,
-) (*models.ProjectTypeConnection, error) {
-	types, err := r.ClientFrom(ctx).ProjectType.Query().All(ctx)
-	if err != nil {
-		return nil, xerrors.Errorf("querying project types: %w", err)
-	}
-	conn := &models.ProjectTypeConnection{
-		Edges: make([]*models.ProjectTypeEdge, len(types)),
-		PageInfo: &models.PageInfo{
-			EndCursor: models.Cursor(len(types) - 1),
-		},
-	}
-	for i, typ := range types {
-		conn.Edges[i] = &models.ProjectTypeEdge{
-			Node:   typ,
-			Cursor: models.Cursor(i),
-		}
-	}
-	return conn, nil
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+) (*ent.ProjectTypeConnection, error) {
+	return r.ClientFrom(ctx).ProjectType.Query().
+		Paginate(ctx, after, first, before, last)
 }
 
 func (projectResolver) Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error) {
@@ -249,12 +226,16 @@ func (projectResolver) Properties(ctx context.Context, obj *ent.Project) ([]*ent
 	return properties, nil
 }
 
+func (projectResolver) Comments(ctx context.Context, obj *ent.Project) ([]*ent.Comment, error) {
+	return obj.QueryComments().All(ctx)
+}
+
 func (projectResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Project) (int, error) {
 	return obj.QueryWorkOrders().Count(ctx)
 }
 
 func (r mutationResolver) CreateProject(ctx context.Context, input models.AddProjectInput) (*ent.Project, error) {
-	properties, err := r.AddProperties(ctx, input.Properties, nil)
+	properties, err := r.AddProperties(input.Properties, resolverutil.AddPropertyArgs{Context: ctx, IsTemplate: pointer.ToBool(true)})
 	if err != nil {
 		return nil, xerrors.Errorf("creating properties: %w", err)
 	}
@@ -273,7 +254,7 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 		AddProperties(properties...).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("Project %q already exists", input.Name)
 		}
 		return nil, xerrors.Errorf("creating project: %w", err)
@@ -300,9 +281,14 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 			return nil, xerrors.Errorf("fetching work order properties", err)
 		}
 		for _, p := range props {
-			_, err = r.AddProperty(ctx, &models.PropertyInput{
+			var stringValue *string = nil
+			if p.Type != models.PropertyKindEnum.String() {
+				stringValue = &p.StringVal
+			}
+
+			newProp := &models.PropertyInput{
 				PropertyTypeID: p.ID,
-				StringValue:    &p.StringVal,
+				StringValue:    stringValue,
 				IntValue:       &p.IntVal,
 				BooleanValue:   &p.BoolVal,
 				FloatValue:     &p.FloatVal,
@@ -310,7 +296,14 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 				LongitudeValue: &p.LongitudeVal,
 				RangeFromValue: &p.RangeFromVal,
 				RangeToValue:   &p.RangeToVal,
-			}, func(b *ent.PropertyCreate) { b.SetWorkOrder(w) })
+			}
+			addPropertyArgs := resolverutil.AddPropertyArgs{
+				Context:    ctx,
+				EntSetter:  func(b *ent.PropertyCreate) { b.SetWorkOrder(w) },
+				IsTemplate: pointer.ToBool(true),
+			}
+
+			_, err = r.AddProperty(newProp, addPropertyArgs)
 			if err != nil {
 				return nil, xerrors.Errorf("creating work order properties", err)
 			}
@@ -363,9 +356,13 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		}
 	}
 	if _, err := r.AddProperties(
-		ctx, added, func(b *ent.PropertyCreate) {
-			b.SetProjectID(p.ID)
-		}); err != nil {
+		added,
+		resolverutil.AddPropertyArgs{
+			Context:    ctx,
+			EntSetter:  func(b *ent.PropertyCreate) { b.SetProjectID(p.ID) },
+			IsTemplate: pointer.ToBool(true),
+		},
+	); err != nil {
 		return nil, err
 	}
 	ptID, err := p.QueryType().OnlyID(ctx)

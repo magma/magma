@@ -32,3 +32,8 @@ func (propertyResolver) LocationValue(ctx context.Context, obj *ent.Property) (*
 	e, err := obj.QueryLocationValue().Only(ctx)
 	return e, ent.MaskNotFound(err)
 }
+
+func (propertyResolver) ServiceValue(ctx context.Context, obj *ent.Property) (*ent.Service, error) {
+	e, err := obj.QueryServiceValue().Only(ctx)
+	return e, ent.MaskNotFound(err)
+}

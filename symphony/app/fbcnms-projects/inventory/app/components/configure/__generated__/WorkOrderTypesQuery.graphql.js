@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 6cbbade0a3a5414d6cba9a629f1d6647
+ * @relayHash 112a1d0f0ab2c01cea1381f6837f9001
  */
 
 /* eslint-disable */
@@ -19,7 +19,7 @@ type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
 export type WorkOrderTypesQueryVariables = {||};
 export type WorkOrderTypesQueryResponse = {|
   +workOrderTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,
@@ -38,7 +38,7 @@ export type WorkOrderTypesQuery = {|
 
 /*
 query WorkOrderTypesQuery {
-  workOrderTypes(first: 50) {
+  workOrderTypes(first: 500) {
     edges {
       node {
         id
@@ -77,6 +77,7 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     isEditable
     isMandatory
     isInstanceProperty
+    isDeleted
   }
   checkListDefinitions {
     id
@@ -154,7 +155,7 @@ v6 = [
   {
     "kind": "Literal",
     "name": "first",
-    "value": 50
+    "value": 500
   }
 ],
 v7 = {
@@ -235,7 +236,7 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "workOrderTypes",
-        "storageKey": "workOrderTypes(first:50)",
+        "storageKey": "workOrderTypes(first:500)",
         "args": (v6/*: any*/),
         "concreteType": "WorkOrderTypeConnection",
         "plural": false,
@@ -357,6 +358,13 @@ return {
                         "name": "isInstanceProperty",
                         "args": null,
                         "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "isDeleted",
+                        "args": null,
+                        "storageKey": null
                       }
                     ]
                   },
@@ -419,7 +427,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderTypesQuery",
     "id": null,
-    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        description\n        ...AddEditWorkOrderTypeCard_editingWorkOrderType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
+    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        ...AddEditWorkOrderTypeCard_editingWorkOrderType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
     "metadata": {
       "connection": [
         {
@@ -436,5 +444,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c4b90525f9cb861d52a9fc9c55b4bfad';
+(node/*: any*/).hash = '3e0fc1bd76b63e226a77a03c54ef2ccc';
 module.exports = node;

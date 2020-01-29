@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a4791b8e74b3b4306769be8038d33a65
+ * @relayHash 8123e0da6c809f1ee0e2d2eb06792355
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 export type AddLinkInput = {|
   sides: $ReadOnlyArray<LinkSide>,
@@ -41,6 +41,7 @@ export type PropertyInput = {|
   rangeToValue?: ?number,
   equipmentIDValue?: ?string,
   locationIDValue?: ?string,
+  serviceIDValue?: ?string,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
 |};
@@ -57,7 +58,6 @@ export type AddLinkMutationResponse = {|
         +id: string,
         +name: string,
         +visibleLabel: ?string,
-        +type: string,
         +portType: ?{|
           +linkPropertyTypes: $ReadOnlyArray<?{|
             +id: string,
@@ -89,7 +89,6 @@ export type AddLinkMutationResponse = {|
             +id: string,
             +name: string,
             +visibleLabel: ?string,
-            +type: string,
             +bandwidth: ?string,
             +portType: ?{|
               +id: string,
@@ -131,9 +130,14 @@ export type AddLinkMutationResponse = {|
         +id: string,
         +name: string,
       |},
+      +serviceValue: ?{|
+        +id: string,
+        +name: string,
+      |},
     |}>,
     +services: $ReadOnlyArray<?{|
-      +id: string
+      +id: string,
+      +name: string,
     |}>,
   |}
 |};
@@ -157,7 +161,6 @@ mutation AddLinkMutation(
         id
         name
         visibleLabel
-        type
         portType {
           linkPropertyTypes {
             id
@@ -190,7 +193,6 @@ mutation AddLinkMutation(
             id
             name
             visibleLabel
-            type
             bandwidth
             portType {
               id
@@ -232,9 +234,14 @@ mutation AddLinkMutation(
         id
         name
       }
+      serviceValue {
+        id
+        name
+      }
     }
     services {
       id
+      name
     }
   }
 }
@@ -460,7 +467,6 @@ v20 = {
         (v2/*: any*/),
         (v4/*: any*/),
         (v5/*: any*/),
-        (v6/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -556,6 +562,16 @@ v22 = {
       "concreteType": "Location",
       "plural": false,
       "selections": (v19/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v19/*: any*/)
     }
   ]
 },
@@ -567,9 +583,7 @@ v23 = {
   "args": null,
   "concreteType": "Service",
   "plural": true,
-  "selections": [
-    (v2/*: any*/)
-  ]
+  "selections": (v19/*: any*/)
 };
 return {
   "kind": "Request",
@@ -613,7 +627,6 @@ return {
                   (v2/*: any*/),
                   (v4/*: any*/),
                   (v5/*: any*/),
-                  (v6/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -695,7 +708,6 @@ return {
                   (v2/*: any*/),
                   (v4/*: any*/),
                   (v5/*: any*/),
-                  (v6/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -814,7 +826,7 @@ return {
     "operationKind": "mutation",
     "name": "AddLinkMutation",
     "id": null,
-    "text": "mutation AddLinkMutation(\n  $input: AddLinkInput!\n) {\n  addLink(input: $input) {\n    id\n    futureState\n    ports {\n      id\n      definition {\n        id\n        name\n        visibleLabel\n        type\n        portType {\n          linkPropertyTypes {\n            id\n            name\n            type\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n            isMandatory\n          }\n          id\n        }\n      }\n      parentEquipment {\n        id\n        name\n        futureState\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            type\n            bandwidth\n            portType {\n              id\n              name\n            }\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n    }\n    workOrder {\n      id\n      status\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isMandatory\n        isInstanceProperty\n        stringValue\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n    }\n    services {\n      id\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "mutation AddLinkMutation(\n  $input: AddLinkInput!\n) {\n  addLink(input: $input) {\n    id\n    futureState\n    ports {\n      id\n      definition {\n        id\n        name\n        visibleLabel\n        portType {\n          linkPropertyTypes {\n            id\n            name\n            type\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n            isMandatory\n          }\n          id\n        }\n      }\n      parentEquipment {\n        id\n        name\n        futureState\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            bandwidth\n            portType {\n              id\n              name\n            }\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n    }\n    workOrder {\n      id\n      status\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isMandatory\n        isInstanceProperty\n        stringValue\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n      serviceValue {\n        id\n        name\n      }\n    }\n    services {\n      id\n      name\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

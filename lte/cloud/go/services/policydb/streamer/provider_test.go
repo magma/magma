@@ -104,7 +104,7 @@ func TestPolicyStreamers(t *testing.T) {
 	expectedProtos := []*protos.PolicyRule{
 		{
 			Id:            "r1",
-			MonitoringKey: "foo",
+			MonitoringKey: []byte("foo"),
 			FlowList: []*protos.FlowDescription{
 				{
 					Match: &protos.FlowMatch{
@@ -126,7 +126,7 @@ func TestPolicyStreamers(t *testing.T) {
 				ServerAddress: "https://www.google.com",
 			},
 		},
-		{Id: "r3", MonitoringKey: "bar"},
+		{Id: "r3", MonitoringKey: []byte("bar")},
 	}
 	expected := funk.Map(
 		expectedProtos,
@@ -154,6 +154,110 @@ func TestPolicyStreamers(t *testing.T) {
 		},
 	)
 	actual, err = bnPro.GetUpdates("hw1", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestRuleMappingsProvider(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.SubscriberEntityType, Key: "s1"},
+			{Type: lte.SubscriberEntityType, Key: "s2"},
+			{Type: lte.SubscriberEntityType, Key: "s3"},
+
+			// r1 -> s1, r2 -> s2, r3 -> s1,s2
+			{Type: lte.PolicyRuleEntityType, Key: "r1", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s1"}}},
+			{Type: lte.PolicyRuleEntityType, Key: "r2", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s2"}}},
+			{Type: lte.PolicyRuleEntityType, Key: "r3", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s1"}, {Type: lte.SubscriberEntityType, Key: "s2"}}},
+
+			// b1 -> s1, b2 -> s2, b3 -> s1,s2
+			{Type: lte.BaseNameEntityType, Key: "b1", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s1"}}},
+			{Type: lte.BaseNameEntityType, Key: "b2", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s2"}}},
+			{Type: lte.BaseNameEntityType, Key: "b3", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s1"}, {Type: lte.SubscriberEntityType, Key: "s2"}}},
+		},
+	)
+	assert.NoError(t, err)
+
+	expectedProtos := []*protos.AssignedPolicies{
+		{
+			AssignedBaseNames: []string{"b1", "b3"},
+			AssignedPolicies:  []string{"r1", "r3"},
+		},
+		{
+			AssignedBaseNames: []string{"b2", "b3"},
+			AssignedPolicies:  []string{"r2", "r3"},
+		},
+	}
+	expected := funk.Map(
+		expectedProtos,
+		func(ap *protos.AssignedPolicies) *orcprotos.DataUpdate {
+			data, err := proto.Marshal(ap)
+			assert.NoError(t, err)
+			return &orcprotos.DataUpdate{Value: data}
+		},
+	).([]*orcprotos.DataUpdate)
+	expected[0].Key, expected[1].Key = "s1", "s2"
+
+	mappingPro := &pdbstreamer.RuleMappingsProvider{DeterministicReturn: true}
+	actual, err := mappingPro.GetUpdates("hw1", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestNetworkWideRulesProvider(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.PolicyRuleEntityType, Key: "r1"},
+			{Type: lte.PolicyRuleEntityType, Key: "r2"},
+			{Type: lte.PolicyRuleEntityType, Key: "r3"},
+
+			{Type: lte.BaseNameEntityType, Key: "b1"},
+			{Type: lte.BaseNameEntityType, Key: "b2"},
+			{Type: lte.BaseNameEntityType, Key: "b3"},
+		},
+	)
+	assert.NoError(t, err)
+	config := &models.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []models.BaseName{"b1", "b2"},
+		NetworkWideRuleNames: []string{"r1", "r2"},
+	}
+	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, config))
+
+	expectedProtos := []*protos.AssignedPolicies{
+		{
+			AssignedBaseNames: []string{"b1", "b2"},
+			AssignedPolicies:  []string{"r1", "r2"},
+		},
+	}
+	expected := funk.Map(
+		expectedProtos,
+		func(ap *protos.AssignedPolicies) *orcprotos.DataUpdate {
+			data, err := proto.Marshal(ap)
+			assert.NoError(t, err)
+			return &orcprotos.DataUpdate{Value: data}
+		},
+	).([]*orcprotos.DataUpdate)
+
+	mappingPro := &pdbstreamer.NetworkWideRulesProvider{}
+	actual, err := mappingPro.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

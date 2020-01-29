@@ -739,16 +739,6 @@ struct emm_context_s *emm_context_get_by_guti(
 }
 
 //------------------------------------------------------------------------------
-int emm_context_unlock(struct emm_context_s *emm_context_p)
-{
-  if (emm_context_p) {
-    return unlock_ue_contexts(
-      PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context));
-  }
-  return RETURNerror;
-}
-
-//------------------------------------------------------------------------------
 void emm_data_context_remove_mobile_ids(
   emm_data_t *emm_data,
   struct emm_context_s *elm)

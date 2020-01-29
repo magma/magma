@@ -15,7 +15,7 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type AddEditWorkOrderTypeCard_editingWorkOrderType$ref: FragmentReference;
 declare export opaque type AddEditWorkOrderTypeCard_editingWorkOrderType$fragmentType: AddEditWorkOrderTypeCard_editingWorkOrderType$ref;
@@ -40,6 +40,7 @@ export type AddEditWorkOrderTypeCard_editingWorkOrderType = {|
     +isEditable: ?boolean,
     +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
+    +isDeleted: ?boolean,
   |}>,
   +checkListDefinitions: $ReadOnlyArray<?{|
     +id: string,
@@ -55,6 +56,7 @@ export type AddEditWorkOrderTypeCard_editingWorkOrderType$data = AddEditWorkOrde
 export type AddEditWorkOrderTypeCard_editingWorkOrderType$key = {
   +$data?: AddEditWorkOrderTypeCard_editingWorkOrderType$data,
   +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
+  ...
 };
 */
 
@@ -200,6 +202,13 @@ return {
           "name": "isInstanceProperty",
           "args": null,
           "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "isDeleted",
+          "args": null,
+          "storageKey": null
         }
       ]
     },
@@ -242,5 +251,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'febd848a7783e3c52c50e88a651ef6b5';
+(node/*: any*/).hash = '4dd289e30e2ad1c1fbf08c2499bb41ab';
 module.exports = node;

@@ -35,22 +35,13 @@ class TimeoutTrackingCli : public Cli {
       shared_ptr<folly::Executor> executor,
       std::chrono::milliseconds _timeoutInterval = defaultCommandTimeout);
 
+  SemiFuture<Unit> destroy() override;
+
   ~TimeoutTrackingCli() override;
 
   folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override;
 
   folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override;
-
- private:
-  struct TimeoutTrackingParameters {
-    string id;
-    shared_ptr<Cli> cli; // underlying cli layer
-    shared_ptr<folly::Timekeeper> timekeeper;
-    shared_ptr<folly::Executor> executor;
-    const std::chrono::milliseconds timeoutInterval;
-    atomic<bool> shutdown;
-  };
-  shared_ptr<TimeoutTrackingParameters> timeoutTrackingParameters;
 
   TimeoutTrackingCli(
       string id,
@@ -59,9 +50,16 @@ class TimeoutTrackingCli : public Cli {
       shared_ptr<folly::Executor> _executor,
       std::chrono::milliseconds _timeoutInterval);
 
+ private:
+  string id;
+  shared_ptr<Cli> sharedCli; // underlying cli layer
+  shared_ptr<folly::Timekeeper> sharedTimekeeper;
+  shared_ptr<folly::Executor> sharedExecutor;
+  const std::chrono::milliseconds timeoutInterval;
+
   Future<string> executeSomething(
       const Command& cmd,
       const string&& loggingPrefix,
-      const function<SemiFuture<string>()>& innerFunc);
+      const function<SemiFuture<string>(shared_ptr<Cli> cli)>& innerFunc);
 };
 } // namespace devmand::channels::cli

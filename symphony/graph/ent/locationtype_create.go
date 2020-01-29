@@ -9,11 +9,11 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -224,123 +224,147 @@ func (ltc *LocationTypeCreate) SaveX(ctx context.Context) *LocationType {
 
 func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(ltc.driver.Dialect())
-		lt      = &LocationType{config: ltc.config}
+		lt    = &LocationType{config: ltc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: locationtype.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: locationtype.FieldID,
+			},
+		}
 	)
-	tx, err := ltc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(locationtype.Table).Default()
 	if value := ltc.create_time; value != nil {
-		insert.Set(locationtype.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: locationtype.FieldCreateTime,
+		})
 		lt.CreateTime = *value
 	}
 	if value := ltc.update_time; value != nil {
-		insert.Set(locationtype.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: locationtype.FieldUpdateTime,
+		})
 		lt.UpdateTime = *value
 	}
 	if value := ltc.site; value != nil {
-		insert.Set(locationtype.FieldSite, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: locationtype.FieldSite,
+		})
 		lt.Site = *value
 	}
 	if value := ltc.name; value != nil {
-		insert.Set(locationtype.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: locationtype.FieldName,
+		})
 		lt.Name = *value
 	}
 	if value := ltc.map_type; value != nil {
-		insert.Set(locationtype.FieldMapType, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: locationtype.FieldMapType,
+		})
 		lt.MapType = *value
 	}
 	if value := ltc.map_zoom_level; value != nil {
-		insert.Set(locationtype.FieldMapZoomLevel, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldMapZoomLevel,
+		})
 		lt.MapZoomLevel = *value
 	}
 	if value := ltc.index; value != nil {
-		insert.Set(locationtype.FieldIndex, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldIndex,
+		})
 		lt.Index = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(locationtype.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	lt.ID = strconv.FormatInt(id, 10)
-	if len(ltc.locations) > 0 {
-		p := sql.P()
-		for eid := range ltc.locations {
-			eid, err := strconv.Atoi(eid)
+	if nodes := ltc.locations; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   locationtype.LocationsTable,
+			Columns: []string{locationtype.LocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(location.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(locationtype.LocationsTable).
-			Set(locationtype.LocationsColumn, id).
-			Where(sql.And(p, sql.IsNull(locationtype.LocationsColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(ltc.locations) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"locations\" %v already connected to a different \"LocationType\"", keys(ltc.locations))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(ltc.property_types) > 0 {
-		p := sql.P()
-		for eid := range ltc.property_types {
-			eid, err := strconv.Atoi(eid)
+	if nodes := ltc.property_types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.PropertyTypesTable,
+			Columns: []string{locationtype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(propertytype.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(locationtype.PropertyTypesTable).
-			Set(locationtype.PropertyTypesColumn, id).
-			Where(sql.And(p, sql.IsNull(locationtype.PropertyTypesColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(ltc.property_types) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"LocationType\"", keys(ltc.property_types))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(ltc.survey_template_categories) > 0 {
-		p := sql.P()
-		for eid := range ltc.survey_template_categories {
-			eid, err := strconv.Atoi(eid)
+	if nodes := ltc.survey_template_categories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.SurveyTemplateCategoriesTable,
+			Columns: []string{locationtype.SurveyTemplateCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatecategory.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(surveytemplatecategory.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(locationtype.SurveyTemplateCategoriesTable).
-			Set(locationtype.SurveyTemplateCategoriesColumn, id).
-			Where(sql.And(p, sql.IsNull(locationtype.SurveyTemplateCategoriesColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(ltc.survey_template_categories) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"survey_template_categories\" %v already connected to a different \"LocationType\"", keys(ltc.survey_template_categories))})
-		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, ltc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	lt.ID = strconv.FormatInt(id, 10)
 	return lt, nil
 }

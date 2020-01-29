@@ -15,7 +15,7 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PowerSearchPortsResultsTable_ports$ref: FragmentReference;
 declare export opaque type PowerSearchPortsResultsTable_ports$fragmentType: PowerSearchPortsResultsTable_ports$ref;
@@ -24,7 +24,6 @@ export type PowerSearchPortsResultsTable_ports = $ReadOnlyArray<{|
   +definition: {|
     +id: string,
     +name: string,
-    +type: string,
   |},
   +link: ?{|
     +id: string,
@@ -33,7 +32,6 @@ export type PowerSearchPortsResultsTable_ports = $ReadOnlyArray<{|
       +definition: {|
         +id: string,
         +name: string,
-        +type: string,
       |},
       +parentEquipment: {|
         +id: string,
@@ -117,6 +115,7 @@ export type PowerSearchPortsResultsTable_ports$data = PowerSearchPortsResultsTab
 export type PowerSearchPortsResultsTable_ports$key = $ReadOnlyArray<{
   +$data?: PowerSearchPortsResultsTable_ports$data,
   +$fragmentRefs: PowerSearchPortsResultsTable_ports$ref,
+  ...
 }>;
 */
 
@@ -136,13 +135,10 @@ v1 = {
   "args": null,
   "storageKey": null
 },
-v2 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "type",
-  "args": null,
-  "storageKey": null
-},
+v2 = [
+  (v0/*: any*/),
+  (v1/*: any*/)
+],
 v3 = {
   "kind": "LinkedField",
   "alias": null,
@@ -151,78 +147,70 @@ v3 = {
   "args": null,
   "concreteType": "EquipmentPortDefinition",
   "plural": false,
-  "selections": [
-    (v0/*: any*/),
-    (v1/*: any*/),
-    (v2/*: any*/)
-  ]
+  "selections": (v2/*: any*/)
 },
-v4 = [
-  (v0/*: any*/),
-  (v1/*: any*/)
-],
-v5 = {
+v4 = {
   "kind": "FragmentSpread",
   "name": "EquipmentBreadcrumbs_equipment",
   "args": null
 },
-v6 = {
+v5 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v7 = {
+v6 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "intValue",
   "args": null,
   "storageKey": null
 },
-v8 = {
+v7 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "floatValue",
   "args": null,
   "storageKey": null
 },
-v9 = {
+v8 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
-v10 = {
+v9 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
-v11 = {
+v10 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
-v12 = {
+v11 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
-v13 = {
+v12 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
-v14 = {
+v13 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "properties",
@@ -232,6 +220,7 @@ v14 = {
   "plural": true,
   "selections": [
     (v0/*: any*/),
+    (v5/*: any*/),
     (v6/*: any*/),
     (v7/*: any*/),
     (v8/*: any*/),
@@ -239,7 +228,6 @@ v14 = {
     (v10/*: any*/),
     (v11/*: any*/),
     (v12/*: any*/),
-    (v13/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -251,7 +239,13 @@ v14 = {
       "selections": [
         (v0/*: any*/),
         (v1/*: any*/),
-        (v2/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "type",
+          "args": null,
+          "storageKey": null
+        },
         {
           "kind": "ScalarField",
           "alias": null,
@@ -266,14 +260,14 @@ v14 = {
           "args": null,
           "storageKey": null
         },
+        (v5/*: any*/),
         (v6/*: any*/),
         (v7/*: any*/),
         (v8/*: any*/),
         (v9/*: any*/),
         (v10/*: any*/),
         (v11/*: any*/),
-        (v12/*: any*/),
-        (v13/*: any*/)
+        (v12/*: any*/)
       ]
     }
   ]
@@ -340,16 +334,16 @@ return {
                       "args": null,
                       "concreteType": "EquipmentPortDefinition",
                       "plural": true,
-                      "selections": (v4/*: any*/)
+                      "selections": (v2/*: any*/)
                     }
                   ]
                 },
-                (v5/*: any*/)
+                (v4/*: any*/)
               ]
             }
           ]
         },
-        (v14/*: any*/)
+        (v13/*: any*/)
       ]
     },
     {
@@ -371,15 +365,15 @@ return {
           "args": null,
           "concreteType": "EquipmentType",
           "plural": false,
-          "selections": (v4/*: any*/)
+          "selections": (v2/*: any*/)
         },
-        (v5/*: any*/)
+        (v4/*: any*/)
       ]
     },
-    (v14/*: any*/)
+    (v13/*: any*/)
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '94f8bbaf9ee44aa29cd92f38cd8c983a';
+(node/*: any*/).hash = '7fb84f69f15cea5d756e7bf0b91bb3cb';
 module.exports = node;

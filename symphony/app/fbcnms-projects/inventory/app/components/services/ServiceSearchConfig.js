@@ -8,21 +8,14 @@
  * @format
  */
 
-import type {
-  EntityConfig,
-  FilterConfig,
-} from '../comparison_view/ComparisonViewTypes';
-import type {PropertyType} from '../../common/PropertyType';
+import type {EntityConfig} from '../comparison_view/ComparisonViewTypes';
 
 import PowerSearchServiceCustomerNameFilter from './PowerSearchServiceCustomerNameFilter';
 import PowerSearchServiceEquipmentInServiceFilter from './PowerSearchServiceEquipmentInServiceFilter';
 import PowerSearchServiceExternalIDFilter from './PowerSearchServiceExternalIDFilter';
 import PowerSearchServiceNameFilter from './PowerSearchServiceNameFilter';
+import PowerSearchServiceStatusFilter from './PowerSearchServiceStatusFilter';
 import PowerSearchServiceTypeFilter from './PowerSearchServiceTypeFilter';
-import {
-  PowerSearchServicePropertyFilter,
-  SERVICE_PROPERTY_FILTER_NAME,
-} from './PowerSearchServicePropertyFilter';
 
 const ServiceSearchConfig: Array<EntityConfig> = [
   {
@@ -54,6 +47,14 @@ const ServiceSearchConfig: Array<EntityConfig> = [
         defaultOperator: 'is',
       },
       {
+        key: 'service_status',
+        name: 'service_status',
+        entityType: 'service',
+        label: 'Status',
+        component: PowerSearchServiceStatusFilter,
+        defaultOperator: 'is_one_of',
+      },
+      {
         key: 'equipment_in_service',
         name: 'equipment_in_service',
         entityType: 'service',
@@ -71,26 +72,16 @@ const ServiceSearchConfig: Array<EntityConfig> = [
       },
     ],
   },
-  /*
   {
     type: 'location_by_types',
-    label: 'Location',
+    label: 'Location (By consumer endpoints)',
     filters: [],
   },
-  */
+  {
+    type: 'properties',
+    label: 'Properties',
+    filters: [],
+  },
 ];
 
-const buildServicePropertyFilterConfigs = (
-  definitions: Array<PropertyType>,
-): Array<FilterConfig> => {
-  return definitions.map(definition => ({
-    key: `service_property_${definition.name}_${definition.type}`,
-    name: SERVICE_PROPERTY_FILTER_NAME,
-    entityType: 'service',
-    label: definition.name,
-    component: PowerSearchServicePropertyFilter,
-    defaultOperator: 'is', // Take from property type
-  }));
-};
-
-export {ServiceSearchConfig, buildServicePropertyFilterConfigs};
+export {ServiceSearchConfig};

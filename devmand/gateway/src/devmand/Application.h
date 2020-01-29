@@ -17,7 +17,6 @@
 #include <folly/dynamic.h>
 #include <folly/io/async/EventBase.h>
 
-#include <devmand/DhcpdConfig.h>
 #include <devmand/Service.h>
 #include <devmand/UnifiedView.h>
 #include <devmand/cartography/Cartographer.h>
@@ -54,8 +53,8 @@ class Application : public MetricSink {
   void add(const cartography::DeviceConfig& deviceConfig);
   void del(const cartography::DeviceConfig& deviceConfig);
 
-  void add(std::shared_ptr<devices::Device>&& device);
-  void add(std::unique_ptr<Service>&& service);
+  void addDevice(std::shared_ptr<devices::Device>&& device);
+  void addService(std::unique_ptr<Service>&& service);
 
   void addPlatform(
       const std::string& platform,
@@ -79,20 +78,6 @@ class Application : public MetricSink {
       std::function<void()> event,
       const std::chrono::seconds& seconds);
 
-  // TODO should these conversion types just be in metrics sink?
-  void setGauge(const std::string& key, int value);
-  void setGauge(const std::string& key, size_t value);
-  void setGauge(const std::string& key, unsigned int value);
-  void setGauge(const std::string& key, long long unsigned int value);
-  void setGauge(const std::string& key, double value) override;
-  void setGauge(
-      const std::string& key,
-      double value,
-      const std::string& label_name,
-      const std::string& label_value) override;
-
-  DhcpdConfig& getDhcpdConfig();
-
   channels::snmp::Engine& getSnmpEngine();
   channels::ping::Engine& getPingEngine(IPVersion ipv = IPVersion::v4);
   channels::ping::Engine& getPingEngine(folly::IPAddress ip);
@@ -100,8 +85,15 @@ class Application : public MetricSink {
 
   syslog::Manager& getSyslogManager();
 
+  virtual void setGauge(
+      const std::string& key,
+      double value,
+      const std::string& labelName,
+      const std::string& labelValue);
+
  private:
   void pollDevices();
+  void tryToApplyRunningDatastoreToDevices();
   void doDebug();
 
   template <class EngineType, class... Args>
@@ -121,6 +113,7 @@ class Application : public MetricSink {
   /*
    * Event base which handles the event loop
    */
+  // TODO spawn one per thread or similar and assign as able?
   folly::EventBase eventBase;
 
   /*
@@ -146,12 +139,7 @@ class Application : public MetricSink {
   channels::snmp::Engine* snmpEngine;
   channels::ping::Engine* pingEngine;
   channels::ping::Engine* pingEngineIpv6;
-  channels::cli::Engine* cliEngine;
-
-  /*
-   * A config writer for dhcpd.
-   */
-  DhcpdConfig dhcpdConfig;
+  channels::cli::Engine* cliEngine = nullptr;
 
   /*
    * Devices communicate with the off host devices through any number of
@@ -167,6 +155,9 @@ class Application : public MetricSink {
    */
   cartography::Cartographer cartographer;
 
+  /*
+   * This manages the syslog collection agent.
+   */
   syslog::Manager syslogManager;
 
   static constexpr auto name = "devmand";

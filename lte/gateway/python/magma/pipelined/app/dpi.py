@@ -51,7 +51,7 @@ class DPIController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        self.delete_all_flows(datapath)
         self._install_default_flows(datapath)
         self._datapath = datapath
 
@@ -62,6 +62,9 @@ class DPIController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        self.delete_all_flows(datapath)
+
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
 
     def classify_flow(self, match, app):

@@ -87,7 +87,7 @@ func TestLocationHierarchy(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	locHierarchy, err := locationHierarchy(ctx, equipment, locTypeHierarchy)
+	locHierarchy, err := locationHierarchyForEquipment(ctx, equipment, locTypeHierarchy)
 	require.NoError(t, err)
 
 	require.Equal(t, locHierarchy[0], gpLocation.Name)
@@ -156,12 +156,16 @@ func TestParentHierarchy(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	hierarchy := parentHierarchy(ctx, *childEquipment)
+	hierarchy := parentHierarchyWithAllPositions(ctx, *childEquipment)
 	require.NoError(t, err)
 
 	require.Equal(t, hierarchy[0], "")
-	require.Equal(t, hierarchy[1], grandParentEquipment.Name)
-	require.Equal(t, hierarchy[2], parentEquipment.Name)
+	require.Equal(t, hierarchy[1], "")
+	require.Equal(t, hierarchy[2], grandParentEquipment.Name)
+	require.Equal(t, hierarchy[3], posDef1.Name)
+	require.Equal(t, hierarchy[4], parentEquipment.Name)
+	require.Equal(t, hierarchy[5], posDef2.Name)
+
 }
 
 func TestPropertiesForCSV(t *testing.T) {
@@ -211,10 +215,15 @@ func TestPropertiesForCSV(t *testing.T) {
 		Type: "location",
 	}
 
+	propInput8 := models.PropertyTypeInput{
+		Name: "Property type8",
+		Type: "service",
+	}
+
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "equipment_type",
 		Properties: []*models.PropertyTypeInput{
-			&propInput1, &propInput2, &propInput3, &propInput4, &propInput5, &propInput6, &propInput7,
+			&propInput1, &propInput2, &propInput3, &propInput4, &propInput5, &propInput6, &propInput7, &propInput8,
 		},
 	})
 	require.NoError(t, err)
@@ -225,6 +234,7 @@ func TestPropertiesForCSV(t *testing.T) {
 	propType5 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type5")).OnlyX(ctx)
 	propType6 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type6")).OnlyX(ctx)
 	propType7 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type7")).OnlyX(ctx)
+	propType8 := equipmentType.QueryPropertyTypes().Where(propertytype.Name("Property type8")).OnlyX(ctx)
 
 	intVal := 40
 	strVal := strVal
@@ -287,11 +297,24 @@ func TestPropertiesForCSV(t *testing.T) {
 		LocationIDValue: &propLocation.ID,
 	}
 
+	propServiceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "prop_service_type", HasCustomer: false})
+	require.NoError(t, err)
+	propService, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "prop_service_inst",
+		ServiceTypeID: propServiceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	prop8 := models.PropertyInput{
+		PropertyTypeID: propType8.ID,
+		ServiceIDValue: &propService.ID,
+	}
+
 	equipment, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:       "child_equipment",
 		Type:       equipmentType.ID,
 		Location:   &location.ID,
-		Properties: []*models.PropertyInput{&prop1, &prop2, &prop3, &prop4, &prop5, &prop6, &prop7},
+		Properties: []*models.PropertyInput{&prop1, &prop2, &prop3, &prop4, &prop5, &prop6, &prop7, &prop8},
 	})
 	require.NoError(t, err)
 

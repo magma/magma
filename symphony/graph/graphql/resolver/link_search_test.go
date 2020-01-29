@@ -137,6 +137,22 @@ func prepareLinkData(ctx context.Context, r *TestResolver, props []*models.Prope
 		WorkOrder: &wo2.ID,
 	})
 	_, _ = mr.RemoveLink(ctx, l2.ID, &wo2.ID)
+
+	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
+	s1, _ := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "S1",
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	_, _ = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "S2",
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+
+	_, _ = mr.AddServiceLink(ctx, s1.ID, l1.ID)
+	_, _ = mr.AddServiceLink(ctx, s1.ID, l2.ID)
+
 	return linkSearchDataModels{
 		e1.ID,
 		e2.ID,
@@ -519,18 +535,18 @@ func TestSearchLinksByService(t *testing.T) {
 		Name: "Internet Access", HasCustomer: false})
 
 	s1, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Internet Access Room 2a",
-		ServiceTypeID:       st.ID,
-		TerminationPointIds: []string{},
+		Name:          "Internet Access Room 2a",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s1.ID, data.l1)
 	require.NoError(t, err)
 
 	s2, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Internet Access Room 2b",
-		ServiceTypeID:       st.ID,
-		TerminationPointIds: []string{},
+		Name:          "Internet Access Room 2b",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s2.ID, data.l1)
@@ -634,4 +650,48 @@ func TestSearchLinksByProperty(t *testing.T) {
 	require.NoError(t, err)
 	links = res2.Links
 	require.Len(t, links, 1)
+}
+
+func TestSearchLinksByServiceName(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+
+	_ = prepareLinkData(ctx, r, nil)
+	/*
+		helper: data now is of type:
+		(loc1) link1 :
+			e1(pos1, type1) <--> e3 (pos1, type2)
+			state: PENDING
+		(loc1) link2 :
+			e2(pos2, type1) <--> e4 (pos2, type2)
+			state: DONE
+	*/
+	qr := r.Query()
+	limit := 100
+	all, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{}, &limit)
+	require.NoError(t, err)
+	require.Len(t, all.Links, 2)
+	require.Equal(t, all.Count, 2)
+	maxDepth := 2
+	f1 := models.LinkFilterInput{
+		FilterType:  models.LinkFilterTypeServiceInst,
+		Operator:    models.FilterOperatorContains,
+		StringValue: pointer.ToString("S1"),
+		MaxDepth:    &maxDepth,
+	}
+	res1, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res1.Links, 2)
+
+	f2 := models.LinkFilterInput{
+		FilterType:  models.LinkFilterTypeServiceInst,
+		Operator:    models.FilterOperatorContains,
+		StringValue: pointer.ToString("S2"),
+		MaxDepth:    &maxDepth,
+	}
+	res2, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f2}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res2.Links, 0)
 }

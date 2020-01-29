@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 )
 
 // EquipmentPortDefinition is the model entity for the EquipmentPortDefinition schema.
@@ -26,49 +27,107 @@ type EquipmentPortDefinition struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Type holds the value of the "type" field.
-	Type string `json:"type,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
 	// Bandwidth holds the value of the "bandwidth" field.
 	Bandwidth string `json:"bandwidth,omitempty"`
 	// VisibilityLabel holds the value of the "visibility_label" field.
 	VisibilityLabel string `json:"visibility_label,omitempty" gqlgen:"visibleLabel"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentPortDefinitionQuery when eager-loading is set.
+	Edges                  EquipmentPortDefinitionEdges `json:"edges"`
+	equipment_port_type_id *string
+	equipment_type_id      *string
 }
 
-// FromRows scans the sql response data into EquipmentPortDefinition.
-func (epd *EquipmentPortDefinition) FromRows(rows *sql.Rows) error {
-	var scanepd struct {
-		ID              int
-		CreateTime      sql.NullTime
-		UpdateTime      sql.NullTime
-		Name            sql.NullString
-		Type            sql.NullString
-		Index           sql.NullInt64
-		Bandwidth       sql.NullString
-		VisibilityLabel sql.NullString
+// EquipmentPortDefinitionEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPortDefinitionEdges struct {
+	// EquipmentPortType holds the value of the equipment_port_type edge.
+	EquipmentPortType *EquipmentPortType
+	// Ports holds the value of the ports edge.
+	Ports []*EquipmentPort
+	// EquipmentType holds the value of the equipment_type edge.
+	EquipmentType *EquipmentType
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*EquipmentPortDefinition) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullInt64{},  // index
+		&sql.NullString{}, // bandwidth
+		&sql.NullString{}, // visibility_label
 	}
-	// the order here should be the same as in the `equipmentportdefinition.Columns`.
-	if err := rows.Scan(
-		&scanepd.ID,
-		&scanepd.CreateTime,
-		&scanepd.UpdateTime,
-		&scanepd.Name,
-		&scanepd.Type,
-		&scanepd.Index,
-		&scanepd.Bandwidth,
-		&scanepd.VisibilityLabel,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*EquipmentPortDefinition) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // equipment_port_type_id
+		&sql.NullInt64{}, // equipment_type_id
 	}
-	epd.ID = strconv.Itoa(scanepd.ID)
-	epd.CreateTime = scanepd.CreateTime.Time
-	epd.UpdateTime = scanepd.UpdateTime.Time
-	epd.Name = scanepd.Name.String
-	epd.Type = scanepd.Type.String
-	epd.Index = int(scanepd.Index.Int64)
-	epd.Bandwidth = scanepd.Bandwidth.String
-	epd.VisibilityLabel = scanepd.VisibilityLabel.String
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the EquipmentPortDefinition fields.
+func (epd *EquipmentPortDefinition) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipmentportdefinition.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	epd.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		epd.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		epd.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		epd.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[3])
+	} else if value.Valid {
+		epd.Index = int(value.Int64)
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field bandwidth", values[4])
+	} else if value.Valid {
+		epd.Bandwidth = value.String
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field visibility_label", values[5])
+	} else if value.Valid {
+		epd.VisibilityLabel = value.String
+	}
+	values = values[6:]
+	if len(values) == len(equipmentportdefinition.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_id", value)
+		} else if value.Valid {
+			epd.equipment_port_type_id = new(string)
+			*epd.equipment_port_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type_id", value)
+		} else if value.Valid {
+			epd.equipment_type_id = new(string)
+			*epd.equipment_type_id = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -116,8 +175,6 @@ func (epd *EquipmentPortDefinition) String() string {
 	builder.WriteString(epd.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", name=")
 	builder.WriteString(epd.Name)
-	builder.WriteString(", type=")
-	builder.WriteString(epd.Type)
 	builder.WriteString(", index=")
 	builder.WriteString(fmt.Sprintf("%v", epd.Index))
 	builder.WriteString(", bandwidth=")
@@ -136,18 +193,6 @@ func (epd *EquipmentPortDefinition) id() int {
 
 // EquipmentPortDefinitions is a parsable slice of EquipmentPortDefinition.
 type EquipmentPortDefinitions []*EquipmentPortDefinition
-
-// FromRows scans the sql response data into EquipmentPortDefinitions.
-func (epd *EquipmentPortDefinitions) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanepd := &EquipmentPortDefinition{}
-		if err := scanepd.FromRows(rows); err != nil {
-			return err
-		}
-		*epd = append(*epd, scanepd)
-	}
-	return nil
-}
 
 func (epd EquipmentPortDefinitions) config(cfg config) {
 	for _i := range epd {

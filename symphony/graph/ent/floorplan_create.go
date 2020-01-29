@@ -12,8 +12,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
+	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
+	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 )
 
 // FloorPlanCreate is the builder for creating a FloorPlan entity.
@@ -189,95 +194,138 @@ func (fpc *FloorPlanCreate) SaveX(ctx context.Context) *FloorPlan {
 
 func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(fpc.driver.Dialect())
-		fp      = &FloorPlan{config: fpc.config}
+		fp    = &FloorPlan{config: fpc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: floorplan.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplan.FieldID,
+			},
+		}
 	)
-	tx, err := fpc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(floorplan.Table).Default()
 	if value := fpc.create_time; value != nil {
-		insert.Set(floorplan.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: floorplan.FieldCreateTime,
+		})
 		fp.CreateTime = *value
 	}
 	if value := fpc.update_time; value != nil {
-		insert.Set(floorplan.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: floorplan.FieldUpdateTime,
+		})
 		fp.UpdateTime = *value
 	}
 	if value := fpc.name; value != nil {
-		insert.Set(floorplan.FieldName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: floorplan.FieldName,
+		})
 		fp.Name = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(floorplan.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	fp.ID = strconv.FormatInt(id, 10)
-	if len(fpc.location) > 0 {
-		for eid := range fpc.location {
-			eid, err := strconv.Atoi(eid)
-			if err != nil {
-				return nil, rollback(tx, err)
-			}
-			query, args := builder.Update(floorplan.LocationTable).
-				Set(floorplan.LocationColumn, eid).
-				Where(sql.EQ(floorplan.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := fpc.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   floorplan.LocationTable,
+			Columns: []string{floorplan.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
-	}
-	if len(fpc.reference_point) > 0 {
-		for eid := range fpc.reference_point {
-			eid, err := strconv.Atoi(eid)
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(floorplan.ReferencePointTable).
-				Set(floorplan.ReferencePointColumn, eid).
-				Where(sql.EQ(floorplan.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(fpc.scale) > 0 {
-		for eid := range fpc.scale {
-			eid, err := strconv.Atoi(eid)
+	if nodes := fpc.reference_point; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   floorplan.ReferencePointTable,
+			Columns: []string{floorplan.ReferencePointColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: floorplanreferencepoint.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(floorplan.ScaleTable).
-				Set(floorplan.ScaleColumn, eid).
-				Where(sql.EQ(floorplan.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if len(fpc.image) > 0 {
-		for eid := range fpc.image {
-			eid, err := strconv.Atoi(eid)
+	if nodes := fpc.scale; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   floorplan.ScaleTable,
+			Columns: []string{floorplan.ScaleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: floorplanscale.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(floorplan.ImageTable).
-				Set(floorplan.ImageColumn, eid).
-				Where(sql.EQ(floorplan.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if nodes := fpc.image; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   floorplan.ImageTable,
+			Columns: []string{floorplan.ImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if err := sqlgraph.CreateNode(ctx, fpc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	fp.ID = strconv.FormatInt(id, 10)
 	return fp, nil
 }

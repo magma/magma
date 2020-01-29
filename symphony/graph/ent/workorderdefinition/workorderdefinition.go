@@ -43,12 +43,18 @@ const (
 	ProjectTypeColumn = "project_type_id"
 )
 
-// Columns holds all SQL columns are workorderdefinition fields.
+// Columns holds all SQL columns for workorderdefinition fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldIndex,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the WorkOrderDefinition type.
+var ForeignKeys = []string{
+	"project_type_id",
+	"type_id",
 }
 
 var (

@@ -7,7 +7,7 @@ package schema
 import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
 // ActionsRule defines the location type schema.

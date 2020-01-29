@@ -30,7 +30,6 @@ query EquipmentTypesQuery {
           name
           index
           visibleLabel
-          type
         }
       }
     }

@@ -8,11 +8,15 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -27,7 +31,11 @@ type EquipmentPortTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentPortType
-	// intermediate queries.
+	// eager-loading edges.
+	withPropertyTypes     *PropertyTypeQuery
+	withLinkPropertyTypes *PropertyTypeQuery
+	withPortDefinitions   *EquipmentPortDefinitionQuery
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,47 +66,47 @@ func (eptq *EquipmentPortTypeQuery) Order(o ...Order) *EquipmentPortTypeQuery {
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (eptq *EquipmentPortTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: eptq.config}
-	step := sql.NewStep(
-		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, equipmentporttype.PropertyTypesTable, equipmentporttype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmentporttype.PropertyTypesTable, equipmentporttype.PropertyTypesColumn),
 	)
-	query.sql = sql.SetNeighbors(eptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLinkPropertyTypes chains the current query on the link_property_types edge.
 func (eptq *EquipmentPortTypeQuery) QueryLinkPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: eptq.config}
-	step := sql.NewStep(
-		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, equipmentporttype.LinkPropertyTypesTable, equipmentporttype.LinkPropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmentporttype.LinkPropertyTypesTable, equipmentporttype.LinkPropertyTypesColumn),
 	)
-	query.sql = sql.SetNeighbors(eptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPortDefinitions chains the current query on the port_definitions edge.
 func (eptq *EquipmentPortTypeQuery) QueryPortDefinitions() *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: eptq.config}
-	step := sql.NewStep(
-		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
-		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
-		sql.Edge(sql.O2M, true, equipmentporttype.PortDefinitionsTable, equipmentporttype.PortDefinitionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
+		sqlgraph.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentporttype.PortDefinitionsTable, equipmentporttype.PortDefinitionsColumn),
 	)
-	query.sql = sql.SetNeighbors(eptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eptq.driver.Dialect(), step)
 	return query
 }
 
-// First returns the first EquipmentPortType entity in the query. Returns *ErrNotFound when no equipmentporttype was found.
+// First returns the first EquipmentPortType entity in the query. Returns *NotFoundError when no equipmentporttype was found.
 func (eptq *EquipmentPortTypeQuery) First(ctx context.Context) (*EquipmentPortType, error) {
 	epts, err := eptq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(epts) == 0 {
-		return nil, &ErrNotFound{equipmentporttype.Label}
+		return nil, &NotFoundError{equipmentporttype.Label}
 	}
 	return epts[0], nil
 }
@@ -112,14 +120,14 @@ func (eptq *EquipmentPortTypeQuery) FirstX(ctx context.Context) *EquipmentPortTy
 	return ept
 }
 
-// FirstID returns the first EquipmentPortType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first EquipmentPortType id in the query. Returns *NotFoundError when no id was found.
 func (eptq *EquipmentPortTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = eptq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmentporttype.Label}
+		err = &NotFoundError{equipmentporttype.Label}
 		return
 	}
 	return ids[0], nil
@@ -144,9 +152,9 @@ func (eptq *EquipmentPortTypeQuery) Only(ctx context.Context) (*EquipmentPortTyp
 	case 1:
 		return epts[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmentporttype.Label}
+		return nil, &NotFoundError{equipmentporttype.Label}
 	default:
-		return nil, &ErrNotSingular{equipmentporttype.Label}
+		return nil, &NotSingularError{equipmentporttype.Label}
 	}
 }
 
@@ -169,9 +177,9 @@ func (eptq *EquipmentPortTypeQuery) OnlyID(ctx context.Context) (id string, err 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmentporttype.Label}
+		err = &NotFoundError{equipmentporttype.Label}
 	default:
-		err = &ErrNotSingular{equipmentporttype.Label}
+		err = &NotSingularError{equipmentporttype.Label}
 	}
 	return
 }
@@ -255,9 +263,42 @@ func (eptq *EquipmentPortTypeQuery) Clone() *EquipmentPortTypeQuery {
 		order:      append([]Order{}, eptq.order...),
 		unique:     append([]string{}, eptq.unique...),
 		predicates: append([]predicate.EquipmentPortType{}, eptq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: eptq.sql.Clone(),
 	}
+}
+
+//  WithPropertyTypes tells the query-builder to eager-loads the nodes that are connected to
+// the "property_types" edge. The optional arguments used to configure the query builder of the edge.
+func (eptq *EquipmentPortTypeQuery) WithPropertyTypes(opts ...func(*PropertyTypeQuery)) *EquipmentPortTypeQuery {
+	query := &PropertyTypeQuery{config: eptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	eptq.withPropertyTypes = query
+	return eptq
+}
+
+//  WithLinkPropertyTypes tells the query-builder to eager-loads the nodes that are connected to
+// the "link_property_types" edge. The optional arguments used to configure the query builder of the edge.
+func (eptq *EquipmentPortTypeQuery) WithLinkPropertyTypes(opts ...func(*PropertyTypeQuery)) *EquipmentPortTypeQuery {
+	query := &PropertyTypeQuery{config: eptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	eptq.withLinkPropertyTypes = query
+	return eptq
+}
+
+//  WithPortDefinitions tells the query-builder to eager-loads the nodes that are connected to
+// the "port_definitions" edge. The optional arguments used to configure the query builder of the edge.
+func (eptq *EquipmentPortTypeQuery) WithPortDefinitions(opts ...func(*EquipmentPortDefinitionQuery)) *EquipmentPortTypeQuery {
+	query := &EquipmentPortDefinitionQuery{config: eptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	eptq.withPortDefinitions = query
+	return eptq
 }
 
 // GroupBy used to group vertices by one or more fields/columns.
@@ -302,45 +343,132 @@ func (eptq *EquipmentPortTypeQuery) Select(field string, fields ...string) *Equi
 }
 
 func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPortType, error) {
-	rows := &sql.Rows{}
-	selector := eptq.sqlQuery()
-	if unique := eptq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*EquipmentPortType = []*EquipmentPortType{}
+		_spec                      = eptq.querySpec()
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &EquipmentPortType{config: eptq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := eptq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, eptq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var epts EquipmentPortTypes
-	if err := epts.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	epts.config(eptq.config)
-	return epts, nil
+
+	if query := eptq.withPropertyTypes; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*EquipmentPortType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.PropertyType(func(s *sql.Selector) {
+			s.Where(sql.InValues(equipmentporttype.PropertyTypesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.equipment_port_type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "equipment_port_type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
+		}
+	}
+
+	if query := eptq.withLinkPropertyTypes; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*EquipmentPortType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.PropertyType(func(s *sql.Selector) {
+			s.Where(sql.InValues(equipmentporttype.LinkPropertyTypesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.link_equipment_port_type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "link_equipment_port_type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "link_equipment_port_type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.LinkPropertyTypes = append(node.Edges.LinkPropertyTypes, n)
+		}
+	}
+
+	if query := eptq.withPortDefinitions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*EquipmentPortType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.EquipmentPortDefinition(func(s *sql.Selector) {
+			s.Where(sql.InValues(equipmentporttype.PortDefinitionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.equipment_port_type_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "equipment_port_type_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PortDefinitions = append(node.Edges.PortDefinitions, n)
+		}
+	}
+
+	return nodes, nil
 }
 
 func (eptq *EquipmentPortTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := eptq.sqlQuery()
-	unique := []string{equipmentporttype.FieldID}
-	if len(eptq.unique) > 0 {
-		unique = eptq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := eptq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := eptq.querySpec()
+	return sqlgraph.CountNodes(ctx, eptq.driver, _spec)
 }
 
 func (eptq *EquipmentPortTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -349,6 +477,42 @@ func (eptq *EquipmentPortTypeQuery) sqlExist(ctx context.Context) (bool, error) 
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (eptq *EquipmentPortTypeQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   equipmentporttype.Table,
+			Columns: equipmentporttype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipmentporttype.FieldID,
+			},
+		},
+		From:   eptq.sql,
+		Unique: true,
+	}
+	if ps := eptq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := eptq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := eptq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := eptq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (eptq *EquipmentPortTypeQuery) sqlQuery() *sql.Selector {
@@ -381,7 +545,7 @@ type EquipmentPortTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -502,7 +666,7 @@ func (eptgb *EquipmentPortTypeGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(eptgb.fields)+len(eptgb.fns))
 	columns = append(columns, eptgb.fields...)
 	for _, fn := range eptgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(eptgb.fields...)
 }
@@ -622,7 +786,7 @@ func (epts *EquipmentPortTypeSelect) sqlScan(ctx context.Context, v interface{})
 }
 
 func (epts *EquipmentPortTypeSelect) sqlQuery() sql.Querier {
-	view := "equipmentporttype_view"
-	return sql.Dialect(epts.driver.Dialect()).
-		Select(epts.fields...).From(epts.sql.As(view))
+	selector := epts.sql
+	selector.Select(selector.Columns(epts.fields...)...)
+	return selector
 }

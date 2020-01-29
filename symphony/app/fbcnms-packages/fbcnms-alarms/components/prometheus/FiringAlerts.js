@@ -17,11 +17,11 @@ import TableActionDialog from '../TableActionDialog';
 import {SEVERITY} from '../Severity';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
+import {useAlarmContext} from '../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
-import type {ApiUtil} from '../AlarmsApi';
-import type {FiringAlarm, Labels} from '../AlarmAPIType';
+import type {FiringAlarm} from '../AlarmAPIType';
 
 const useStyles = makeStyles({
   loading: {
@@ -32,13 +32,8 @@ const useStyles = makeStyles({
   },
 });
 
-type Props = {
-  apiUtil: ApiUtil,
-  filterLabels?: (labels: Labels, alert: FiringAlarm) => Labels,
-};
-
-export default function FiringAlerts(props: Props) {
-  const {apiUtil, filterLabels} = props;
+export default function FiringAlerts() {
+  const {apiUtil, filterLabels} = useAlarmContext();
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
   const [currentAlert, setCurrentAlert] = useState<?FiringAlarm>(null);
   const [showDialog, setShowDialog] = useState(false);
@@ -68,7 +63,7 @@ export default function FiringAlerts(props: Props) {
     ? response.map(alert => {
         let labels = alert.labels;
         if (labels && filterLabels) {
-          labels = filterLabels(labels, alert);
+          labels = filterLabels(labels);
         }
         return {
           ...alert,

@@ -6,6 +6,8 @@ package resolver
 
 import (
 	"context"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -27,6 +29,8 @@ type serviceSearchDataModels struct {
 	locRoom     string
 	locBuilding string
 	eqt         string
+	eqpd1       string
+	eqpd2       string
 }
 
 func preparePropertyTypes() []*models.PropertyTypeInput {
@@ -88,6 +92,8 @@ func prepareServiceData(ctx context.Context, r *TestResolver) serviceSearchDataM
 		},
 	})
 
+	defs := eqt.QueryPortDefinitions().AllX(ctx)
+
 	return serviceSearchDataModels{
 		st1.ID,
 		st2.ID,
@@ -98,6 +104,8 @@ func prepareServiceData(ctx context.Context, r *TestResolver) serviceSearchDataM
 		locRoom.ID,
 		locBuilding.ID,
 		eqt.ID,
+		defs[0].ID,
+		defs[1].ID,
 	}
 }
 
@@ -113,18 +121,21 @@ func TestSearchServicesByName(t *testing.T) {
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 202",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 2010",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -148,6 +159,65 @@ func TestSearchServicesByName(t *testing.T) {
 	require.Len(t, res2.Services, 2)
 }
 
+func TestSearchServicesByStatus(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	qr, mr := r.Query(), r.Mutation()
+	ctx := viewertest.NewContext(r.client)
+
+	data := prepareServiceData(ctx, r)
+
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 201",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusMaintenance),
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 202",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusInService),
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 2010",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusInService),
+	})
+	require.NoError(t, err)
+
+	limit := 100
+	f1 := models.ServiceFilterInput{
+		FilterType: models.ServiceFilterTypeServiceStatus,
+		Operator:   models.FilterOperatorIsOneOf,
+		IDSet:      []string{models.ServiceStatusMaintenance.String()},
+	}
+	res1, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f1}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res1.Services, 1)
+
+	f2 := models.ServiceFilterInput{
+		FilterType: models.ServiceFilterTypeServiceStatus,
+		Operator:   models.FilterOperatorIsOneOf,
+		IDSet:      []string{models.ServiceStatusInService.String()},
+	}
+	res2, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f2}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res2.Services, 2)
+
+	f3 := models.ServiceFilterInput{
+		FilterType: models.ServiceFilterTypeServiceStatus,
+		Operator:   models.FilterOperatorIsOneOf,
+		IDSet:      []string{models.ServiceStatusPending.String()},
+	}
+	res3, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f3}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res3.Services, 0)
+}
+
 func TestSearchServicesByType(t *testing.T) {
 	r, err := newTestResolver(t)
 	require.NoError(t, err)
@@ -160,12 +230,14 @@ func TestSearchServicesByType(t *testing.T) {
 	s1, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	s2, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 202",
 		ServiceTypeID: data.st2,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -214,6 +286,7 @@ func TestSearchServicesByExternalID(t *testing.T) {
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
 		ExternalID:    &externalID1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -221,12 +294,14 @@ func TestSearchServicesByExternalID(t *testing.T) {
 		Name:          "Room 202",
 		ServiceTypeID: data.st2,
 		ExternalID:    &externalID2,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 203",
 		ServiceTypeID: data.st2,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -270,6 +345,7 @@ func TestSearchServicesByCustomerName(t *testing.T) {
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
 		CustomerID:    &customerA.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -277,12 +353,14 @@ func TestSearchServicesByCustomerName(t *testing.T) {
 		Name:          "Room 202",
 		ServiceTypeID: data.st2,
 		CustomerID:    &customerB.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Lobby",
 		ServiceTypeID: data.st2,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -326,12 +404,14 @@ func TestSearchServicesByProperties(t *testing.T) {
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
 		Properties:    servicePropInput,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 202",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -340,13 +420,13 @@ func TestSearchServicesByProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, all.Services, 2)
 	f := models.ServiceFilterInput{
-		FilterType: models.ServiceFilterTypeServiceInstProperty,
+		FilterType: models.ServiceFilterTypeProperty,
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
-			Name: "service_str_prop",
-			Type: models.PropertyKind("string"),
+			Name:        "service_str_prop",
+			Type:        models.PropertyKind("string"),
+			StringValue: pointer.ToString("Foo is the best"),
 		},
-		StringValue: pointer.ToString("Foo is the best"),
 	}
 	res, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f}, &limit)
 	require.NoError(t, err)
@@ -387,24 +467,56 @@ func TestSearchServicesByLocations(t *testing.T) {
 		Location: &loc3.ID,
 	})
 
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 201",
-		ServiceTypeID:       data.st1,
-		TerminationPointIds: []string{eq1.ID},
+	s1, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 201",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 202",
-		ServiceTypeID:       data.st1,
-		TerminationPointIds: []string{eq2.ID},
+	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s1.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
 	})
 	require.NoError(t, err)
 
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 203",
-		ServiceTypeID:       data.st1,
-		TerminationPointIds: []string{eq1.ID, eq2.ID},
+	s2, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 202",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	ep2 := eq2.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s2.ID,
+		PortID: ep2.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	require.NoError(t, err)
+
+	s3, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 203",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s3.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s3.ID,
+		PortID: ep2.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
 	})
 	require.NoError(t, err)
 
@@ -472,42 +584,60 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 		Location: &loc.ID,
 	})
 
-	equipmentType := r.client.EquipmentType.GetX(ctx, data.eqt)
-	defs := equipmentType.QueryPortDefinitions().AllX(ctx)
-
 	l1, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
-			{Equipment: eq1.ID, Port: defs[0].ID},
-			{Equipment: eq2.ID, Port: defs[0].ID},
+			{Equipment: eq1.ID, Port: data.eqpd1},
+			{Equipment: eq2.ID, Port: data.eqpd1},
 		},
 	})
 	l2, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
-			{Equipment: eq2.ID, Port: defs[1].ID},
-			{Equipment: eq3.ID, Port: defs[1].ID},
+			{Equipment: eq2.ID, Port: data.eqpd2},
+			{Equipment: eq3.ID, Port: data.eqpd2},
 		},
 	})
 
 	s1, _ := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 201",
-		ServiceTypeID:       data.st1,
-		TerminationPointIds: []string{eq1.ID},
+		Name:          "Room 201",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	_, _ = mr.AddServiceLink(ctx, s1.ID, l1.ID)
 	_, _ = mr.AddServiceLink(ctx, s1.ID, l2.ID)
 
+	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s1.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	require.NoError(t, err)
+
 	s2, _ := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 202",
-		ServiceTypeID:       data.st1,
-		TerminationPointIds: []string{eq1.ID},
+		Name:          "Room 202",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	_, _ = mr.AddServiceLink(ctx, s2.ID, l1.ID)
-
-	_, _ = mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 203",
-		ServiceTypeID:       data.st1,
-		TerminationPointIds: []string{eq1.ID},
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s2.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
 	})
+	require.NoError(t, err)
+
+	s3, _ := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 203",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s3.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	require.NoError(t, err)
 
 	limit := 100
 	f1 := models.ServiceFilterInput{

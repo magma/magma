@@ -30,6 +30,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -38,6 +39,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -52,6 +54,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -93,6 +96,8 @@ type Client struct {
 	FloorPlanReferencePoint *FloorPlanReferencePointClient
 	// FloorPlanScale is the client for interacting with the FloorPlanScale builders.
 	FloorPlanScale *FloorPlanScaleClient
+	// Hyperlink is the client for interacting with the Hyperlink builders.
+	Hyperlink *HyperlinkClient
 	// Link is the client for interacting with the Link builders.
 	Link *LinkClient
 	// Location is the client for interacting with the Location builders.
@@ -109,6 +114,8 @@ type Client struct {
 	PropertyType *PropertyTypeClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
+	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
+	ServiceEndpoint *ServiceEndpointClient
 	// ServiceType is the client for interacting with the ServiceType builders.
 	ServiceType *ServiceTypeClient
 	// Survey is the client for interacting with the Survey builders.
@@ -160,6 +167,7 @@ func NewClient(opts ...Option) *Client {
 		FloorPlan:                   NewFloorPlanClient(c),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(c),
 		FloorPlanScale:              NewFloorPlanScaleClient(c),
+		Hyperlink:                   NewHyperlinkClient(c),
 		Link:                        NewLinkClient(c),
 		Location:                    NewLocationClient(c),
 		LocationType:                NewLocationTypeClient(c),
@@ -168,6 +176,7 @@ func NewClient(opts ...Option) *Client {
 		Property:                    NewPropertyClient(c),
 		PropertyType:                NewPropertyTypeClient(c),
 		Service:                     NewServiceClient(c),
+		ServiceEndpoint:             NewServiceEndpointClient(c),
 		ServiceType:                 NewServiceTypeClient(c),
 		Survey:                      NewSurveyClient(c),
 		SurveyCellScan:              NewSurveyCellScanClient(c),
@@ -193,7 +202,6 @@ func Open(driverName, dataSourceName string, options ...Option) (*Client, error)
 			return nil, err
 		}
 		return NewClient(append(options, Driver(drv))...), nil
-
 	default:
 		return nil, fmt.Errorf("unsupported driver: %q", driverName)
 	}
@@ -228,6 +236,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FloorPlan:                   NewFloorPlanClient(cfg),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
 		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
@@ -236,6 +245,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
 		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
 		Survey:                      NewSurveyClient(cfg),
 		SurveyCellScan:              NewSurveyCellScanClient(cfg),
@@ -282,6 +292,7 @@ func (c *Client) Debug() *Client {
 		FloorPlan:                   NewFloorPlanClient(cfg),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
 		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
@@ -290,6 +301,7 @@ func (c *Client) Debug() *Client {
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
 		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
 		Survey:                      NewSurveyClient(cfg),
 		SurveyCellScan:              NewSurveyCellScanClient(cfg),
@@ -441,12 +453,12 @@ func (c *CheckListItemClient) GetX(ctx context.Context, id string) *CheckListIte
 func (c *CheckListItemClient) QueryWorkOrder(cli *CheckListItem) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := cli.id()
-	step := sql.NewStep(
-		sql.From(checklistitem.Table, checklistitem.FieldID, id),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.M2O, true, checklistitem.WorkOrderTable, checklistitem.WorkOrderColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, checklistitem.WorkOrderTable, checklistitem.WorkOrderColumn),
 	)
-	query.sql = sql.Neighbors(cli.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(cli.driver.Dialect(), step)
 
 	return query
 }
@@ -519,12 +531,12 @@ func (c *CheckListItemDefinitionClient) GetX(ctx context.Context, id string) *Ch
 func (c *CheckListItemDefinitionClient) QueryWorkOrderType(clid *CheckListItemDefinition) *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: c.config}
 	id := clid.id()
-	step := sql.NewStep(
-		sql.From(checklistitemdefinition.Table, checklistitemdefinition.FieldID, id),
-		sql.To(workordertype.Table, workordertype.FieldID),
-		sql.Edge(sql.M2O, true, checklistitemdefinition.WorkOrderTypeTable, checklistitemdefinition.WorkOrderTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(checklistitemdefinition.Table, checklistitemdefinition.FieldID, id),
+		sqlgraph.To(workordertype.Table, workordertype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, checklistitemdefinition.WorkOrderTypeTable, checklistitemdefinition.WorkOrderTypeColumn),
 	)
-	query.sql = sql.Neighbors(clid.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(clid.driver.Dialect(), step)
 
 	return query
 }
@@ -661,12 +673,12 @@ func (c *CustomerClient) GetX(ctx context.Context, id string) *Customer {
 func (c *CustomerClient) QueryServices(cu *Customer) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := cu.id()
-	step := sql.NewStep(
-		sql.From(customer.Table, customer.FieldID, id),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(customer.Table, customer.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
 	)
-	query.sql = sql.Neighbors(cu.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(cu.driver.Dialect(), step)
 
 	return query
 }
@@ -739,12 +751,12 @@ func (c *EquipmentClient) GetX(ctx context.Context, id string) *Equipment {
 func (c *EquipmentClient) QueryType(e *Equipment) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := e.id()
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, id),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.M2O, false, equipment.TypeTable, equipment.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipment.TypeTable, equipment.TypeColumn),
 	)
-	query.sql = sql.Neighbors(e.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
 	return query
 }
@@ -753,12 +765,12 @@ func (c *EquipmentClient) QueryType(e *Equipment) *EquipmentTypeQuery {
 func (c *EquipmentClient) QueryLocation(e *Equipment) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := e.id()
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, true, equipment.LocationTable, equipment.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, equipment.LocationTable, equipment.LocationColumn),
 	)
-	query.sql = sql.Neighbors(e.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
 	return query
 }
@@ -767,12 +779,12 @@ func (c *EquipmentClient) QueryLocation(e *Equipment) *LocationQuery {
 func (c *EquipmentClient) QueryParentPosition(e *Equipment) *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: c.config}
 	id := e.id()
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, id),
-		sql.To(equipmentposition.Table, equipmentposition.FieldID),
-		sql.Edge(sql.O2O, true, equipment.ParentPositionTable, equipment.ParentPositionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, equipment.ParentPositionTable, equipment.ParentPositionColumn),
 	)
-	query.sql = sql.Neighbors(e.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
 	return query
 }
@@ -781,12 +793,12 @@ func (c *EquipmentClient) QueryParentPosition(e *Equipment) *EquipmentPositionQu
 func (c *EquipmentClient) QueryPositions(e *Equipment) *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: c.config}
 	id := e.id()
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, id),
-		sql.To(equipmentposition.Table, equipmentposition.FieldID),
-		sql.Edge(sql.O2M, false, equipment.PositionsTable, equipment.PositionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PositionsTable, equipment.PositionsColumn),
 	)
-	query.sql = sql.Neighbors(e.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
 	return query
 }
@@ -795,12 +807,12 @@ func (c *EquipmentClient) QueryPositions(e *Equipment) *EquipmentPositionQuery {
 func (c *EquipmentClient) QueryPorts(e *Equipment) *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: c.config}
 	id := e.id()
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, id),
-		sql.To(equipmentport.Table, equipmentport.FieldID),
-		sql.Edge(sql.O2M, false, equipment.PortsTable, equipment.PortsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PortsTable, equipment.PortsColumn),
 	)
-	query.sql = sql.Neighbors(e.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
 	return query
 }
@@ -809,12 +821,12 @@ func (c *EquipmentClient) QueryPorts(e *Equipment) *EquipmentPortQuery {
 func (c *EquipmentClient) QueryWorkOrder(e *Equipment) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := e.id()
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, id),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.M2O, false, equipment.WorkOrderTable, equipment.WorkOrderColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipment.WorkOrderTable, equipment.WorkOrderColumn),
 	)
-	query.sql = sql.Neighbors(e.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
 	return query
 }
@@ -823,26 +835,12 @@ func (c *EquipmentClient) QueryWorkOrder(e *Equipment) *WorkOrderQuery {
 func (c *EquipmentClient) QueryProperties(e *Equipment) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := e.id()
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, id),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, equipment.PropertiesTable, equipment.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PropertiesTable, equipment.PropertiesColumn),
 	)
-	query.sql = sql.Neighbors(e.driver.Dialect(), step)
-
-	return query
-}
-
-// QueryService queries the service edge of a Equipment.
-func (c *EquipmentClient) QueryService(e *Equipment) *ServiceQuery {
-	query := &ServiceQuery{config: c.config}
-	id := e.id()
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, id),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, true, equipment.ServiceTable, equipment.ServicePrimaryKey...),
-	)
-	query.sql = sql.Neighbors(e.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
 	return query
 }
@@ -851,12 +849,26 @@ func (c *EquipmentClient) QueryService(e *Equipment) *ServiceQuery {
 func (c *EquipmentClient) QueryFiles(e *Equipment) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := e.id()
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, id),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.O2M, false, equipment.FilesTable, equipment.FilesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.FilesTable, equipment.FilesColumn),
 	)
-	query.sql = sql.Neighbors(e.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryHyperlinks queries the hyperlinks edge of a Equipment.
+func (c *EquipmentClient) QueryHyperlinks(e *Equipment) *HyperlinkQuery {
+	query := &HyperlinkQuery{config: c.config}
+	id := e.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.HyperlinksTable, equipment.HyperlinksColumn),
+	)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
 	return query
 }
@@ -929,12 +941,12 @@ func (c *EquipmentCategoryClient) GetX(ctx context.Context, id string) *Equipmen
 func (c *EquipmentCategoryClient) QueryTypes(ec *EquipmentCategory) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := ec.id()
-	step := sql.NewStep(
-		sql.From(equipmentcategory.Table, equipmentcategory.FieldID, id),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.O2M, true, equipmentcategory.TypesTable, equipmentcategory.TypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentcategory.Table, equipmentcategory.FieldID, id),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentcategory.TypesTable, equipmentcategory.TypesColumn),
 	)
-	query.sql = sql.Neighbors(ec.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ec.driver.Dialect(), step)
 
 	return query
 }
@@ -1007,12 +1019,12 @@ func (c *EquipmentPortClient) GetX(ctx context.Context, id string) *EquipmentPor
 func (c *EquipmentPortClient) QueryDefinition(ep *EquipmentPort) *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: c.config}
 	id := ep.id()
-	step := sql.NewStep(
-		sql.From(equipmentport.Table, equipmentport.FieldID, id),
-		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
-		sql.Edge(sql.M2O, false, equipmentport.DefinitionTable, equipmentport.DefinitionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, id),
+		sqlgraph.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipmentport.DefinitionTable, equipmentport.DefinitionColumn),
 	)
-	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
 
 	return query
 }
@@ -1021,12 +1033,12 @@ func (c *EquipmentPortClient) QueryDefinition(ep *EquipmentPort) *EquipmentPortD
 func (c *EquipmentPortClient) QueryParent(ep *EquipmentPort) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := ep.id()
-	step := sql.NewStep(
-		sql.From(equipmentport.Table, equipmentport.FieldID, id),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.M2O, true, equipmentport.ParentTable, equipmentport.ParentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, id),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, equipmentport.ParentTable, equipmentport.ParentColumn),
 	)
-	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
 
 	return query
 }
@@ -1035,12 +1047,12 @@ func (c *EquipmentPortClient) QueryParent(ep *EquipmentPort) *EquipmentQuery {
 func (c *EquipmentPortClient) QueryLink(ep *EquipmentPort) *LinkQuery {
 	query := &LinkQuery{config: c.config}
 	id := ep.id()
-	step := sql.NewStep(
-		sql.From(equipmentport.Table, equipmentport.FieldID, id),
-		sql.To(link.Table, link.FieldID),
-		sql.Edge(sql.M2O, false, equipmentport.LinkTable, equipmentport.LinkColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, id),
+		sqlgraph.To(link.Table, link.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipmentport.LinkTable, equipmentport.LinkColumn),
 	)
-	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
 
 	return query
 }
@@ -1049,12 +1061,26 @@ func (c *EquipmentPortClient) QueryLink(ep *EquipmentPort) *LinkQuery {
 func (c *EquipmentPortClient) QueryProperties(ep *EquipmentPort) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := ep.id()
-	step := sql.NewStep(
-		sql.From(equipmentport.Table, equipmentport.FieldID, id),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, equipmentport.PropertiesTable, equipmentport.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, id),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmentport.PropertiesTable, equipmentport.PropertiesColumn),
 	)
-	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryEndpoints queries the endpoints edge of a EquipmentPort.
+func (c *EquipmentPortClient) QueryEndpoints(ep *EquipmentPort) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	id := ep.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, id),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentport.EndpointsTable, equipmentport.EndpointsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
 
 	return query
 }
@@ -1127,12 +1153,12 @@ func (c *EquipmentPortDefinitionClient) GetX(ctx context.Context, id string) *Eq
 func (c *EquipmentPortDefinitionClient) QueryEquipmentPortType(epd *EquipmentPortDefinition) *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: c.config}
 	id := epd.id()
-	step := sql.NewStep(
-		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, id),
-		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
-		sql.Edge(sql.M2O, false, equipmentportdefinition.EquipmentPortTypeTable, equipmentportdefinition.EquipmentPortTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, id),
+		sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipmentportdefinition.EquipmentPortTypeTable, equipmentportdefinition.EquipmentPortTypeColumn),
 	)
-	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(epd.driver.Dialect(), step)
 
 	return query
 }
@@ -1141,12 +1167,12 @@ func (c *EquipmentPortDefinitionClient) QueryEquipmentPortType(epd *EquipmentPor
 func (c *EquipmentPortDefinitionClient) QueryPorts(epd *EquipmentPortDefinition) *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: c.config}
 	id := epd.id()
-	step := sql.NewStep(
-		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, id),
-		sql.To(equipmentport.Table, equipmentport.FieldID),
-		sql.Edge(sql.O2M, true, equipmentportdefinition.PortsTable, equipmentportdefinition.PortsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, id),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentportdefinition.PortsTable, equipmentportdefinition.PortsColumn),
 	)
-	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(epd.driver.Dialect(), step)
 
 	return query
 }
@@ -1155,12 +1181,12 @@ func (c *EquipmentPortDefinitionClient) QueryPorts(epd *EquipmentPortDefinition)
 func (c *EquipmentPortDefinitionClient) QueryEquipmentType(epd *EquipmentPortDefinition) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := epd.id()
-	step := sql.NewStep(
-		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, id),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.M2O, true, equipmentportdefinition.EquipmentTypeTable, equipmentportdefinition.EquipmentTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, id),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, equipmentportdefinition.EquipmentTypeTable, equipmentportdefinition.EquipmentTypeColumn),
 	)
-	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(epd.driver.Dialect(), step)
 
 	return query
 }
@@ -1233,12 +1259,12 @@ func (c *EquipmentPortTypeClient) GetX(ctx context.Context, id string) *Equipmen
 func (c *EquipmentPortTypeClient) QueryPropertyTypes(ept *EquipmentPortType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := ept.id()
-	step := sql.NewStep(
-		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, id),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, equipmentporttype.PropertyTypesTable, equipmentporttype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentporttype.Table, equipmentporttype.FieldID, id),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmentporttype.PropertyTypesTable, equipmentporttype.PropertyTypesColumn),
 	)
-	query.sql = sql.Neighbors(ept.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ept.driver.Dialect(), step)
 
 	return query
 }
@@ -1247,12 +1273,12 @@ func (c *EquipmentPortTypeClient) QueryPropertyTypes(ept *EquipmentPortType) *Pr
 func (c *EquipmentPortTypeClient) QueryLinkPropertyTypes(ept *EquipmentPortType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := ept.id()
-	step := sql.NewStep(
-		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, id),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, equipmentporttype.LinkPropertyTypesTable, equipmentporttype.LinkPropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentporttype.Table, equipmentporttype.FieldID, id),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmentporttype.LinkPropertyTypesTable, equipmentporttype.LinkPropertyTypesColumn),
 	)
-	query.sql = sql.Neighbors(ept.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ept.driver.Dialect(), step)
 
 	return query
 }
@@ -1261,12 +1287,12 @@ func (c *EquipmentPortTypeClient) QueryLinkPropertyTypes(ept *EquipmentPortType)
 func (c *EquipmentPortTypeClient) QueryPortDefinitions(ept *EquipmentPortType) *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: c.config}
 	id := ept.id()
-	step := sql.NewStep(
-		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, id),
-		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
-		sql.Edge(sql.O2M, true, equipmentporttype.PortDefinitionsTable, equipmentporttype.PortDefinitionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentporttype.Table, equipmentporttype.FieldID, id),
+		sqlgraph.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentporttype.PortDefinitionsTable, equipmentporttype.PortDefinitionsColumn),
 	)
-	query.sql = sql.Neighbors(ept.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ept.driver.Dialect(), step)
 
 	return query
 }
@@ -1339,12 +1365,12 @@ func (c *EquipmentPositionClient) GetX(ctx context.Context, id string) *Equipmen
 func (c *EquipmentPositionClient) QueryDefinition(ep *EquipmentPosition) *EquipmentPositionDefinitionQuery {
 	query := &EquipmentPositionDefinitionQuery{config: c.config}
 	id := ep.id()
-	step := sql.NewStep(
-		sql.From(equipmentposition.Table, equipmentposition.FieldID, id),
-		sql.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
-		sql.Edge(sql.M2O, false, equipmentposition.DefinitionTable, equipmentposition.DefinitionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, id),
+		sqlgraph.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipmentposition.DefinitionTable, equipmentposition.DefinitionColumn),
 	)
-	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
 
 	return query
 }
@@ -1353,12 +1379,12 @@ func (c *EquipmentPositionClient) QueryDefinition(ep *EquipmentPosition) *Equipm
 func (c *EquipmentPositionClient) QueryParent(ep *EquipmentPosition) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := ep.id()
-	step := sql.NewStep(
-		sql.From(equipmentposition.Table, equipmentposition.FieldID, id),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.M2O, true, equipmentposition.ParentTable, equipmentposition.ParentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, id),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, equipmentposition.ParentTable, equipmentposition.ParentColumn),
 	)
-	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
 
 	return query
 }
@@ -1367,12 +1393,12 @@ func (c *EquipmentPositionClient) QueryParent(ep *EquipmentPosition) *EquipmentQ
 func (c *EquipmentPositionClient) QueryAttachment(ep *EquipmentPosition) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := ep.id()
-	step := sql.NewStep(
-		sql.From(equipmentposition.Table, equipmentposition.FieldID, id),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.O2O, false, equipmentposition.AttachmentTable, equipmentposition.AttachmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, id),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, equipmentposition.AttachmentTable, equipmentposition.AttachmentColumn),
 	)
-	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
 
 	return query
 }
@@ -1445,12 +1471,12 @@ func (c *EquipmentPositionDefinitionClient) GetX(ctx context.Context, id string)
 func (c *EquipmentPositionDefinitionClient) QueryPositions(epd *EquipmentPositionDefinition) *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: c.config}
 	id := epd.id()
-	step := sql.NewStep(
-		sql.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, id),
-		sql.To(equipmentposition.Table, equipmentposition.FieldID),
-		sql.Edge(sql.O2M, true, equipmentpositiondefinition.PositionsTable, equipmentpositiondefinition.PositionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, id),
+		sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentpositiondefinition.PositionsTable, equipmentpositiondefinition.PositionsColumn),
 	)
-	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(epd.driver.Dialect(), step)
 
 	return query
 }
@@ -1459,12 +1485,12 @@ func (c *EquipmentPositionDefinitionClient) QueryPositions(epd *EquipmentPositio
 func (c *EquipmentPositionDefinitionClient) QueryEquipmentType(epd *EquipmentPositionDefinition) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := epd.id()
-	step := sql.NewStep(
-		sql.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, id),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.M2O, true, equipmentpositiondefinition.EquipmentTypeTable, equipmentpositiondefinition.EquipmentTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, id),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, equipmentpositiondefinition.EquipmentTypeTable, equipmentpositiondefinition.EquipmentTypeColumn),
 	)
-	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(epd.driver.Dialect(), step)
 
 	return query
 }
@@ -1537,12 +1563,12 @@ func (c *EquipmentTypeClient) GetX(ctx context.Context, id string) *EquipmentTyp
 func (c *EquipmentTypeClient) QueryPortDefinitions(et *EquipmentType) *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: c.config}
 	id := et.id()
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
-		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
-		sql.Edge(sql.O2M, false, equipmenttype.PortDefinitionsTable, equipmenttype.PortDefinitionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sqlgraph.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmenttype.PortDefinitionsTable, equipmenttype.PortDefinitionsColumn),
 	)
-	query.sql = sql.Neighbors(et.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(et.driver.Dialect(), step)
 
 	return query
 }
@@ -1551,12 +1577,12 @@ func (c *EquipmentTypeClient) QueryPortDefinitions(et *EquipmentType) *Equipment
 func (c *EquipmentTypeClient) QueryPositionDefinitions(et *EquipmentType) *EquipmentPositionDefinitionQuery {
 	query := &EquipmentPositionDefinitionQuery{config: c.config}
 	id := et.id()
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
-		sql.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
-		sql.Edge(sql.O2M, false, equipmenttype.PositionDefinitionsTable, equipmenttype.PositionDefinitionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sqlgraph.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmenttype.PositionDefinitionsTable, equipmenttype.PositionDefinitionsColumn),
 	)
-	query.sql = sql.Neighbors(et.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(et.driver.Dialect(), step)
 
 	return query
 }
@@ -1565,12 +1591,12 @@ func (c *EquipmentTypeClient) QueryPositionDefinitions(et *EquipmentType) *Equip
 func (c *EquipmentTypeClient) QueryPropertyTypes(et *EquipmentType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := et.id()
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, equipmenttype.PropertyTypesTable, equipmenttype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmenttype.PropertyTypesTable, equipmenttype.PropertyTypesColumn),
 	)
-	query.sql = sql.Neighbors(et.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(et.driver.Dialect(), step)
 
 	return query
 }
@@ -1579,12 +1605,12 @@ func (c *EquipmentTypeClient) QueryPropertyTypes(et *EquipmentType) *PropertyTyp
 func (c *EquipmentTypeClient) QueryEquipment(et *EquipmentType) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := et.id()
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.O2M, true, equipmenttype.EquipmentTable, equipmenttype.EquipmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmenttype.EquipmentTable, equipmenttype.EquipmentColumn),
 	)
-	query.sql = sql.Neighbors(et.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(et.driver.Dialect(), step)
 
 	return query
 }
@@ -1593,12 +1619,12 @@ func (c *EquipmentTypeClient) QueryEquipment(et *EquipmentType) *EquipmentQuery 
 func (c *EquipmentTypeClient) QueryCategory(et *EquipmentType) *EquipmentCategoryQuery {
 	query := &EquipmentCategoryQuery{config: c.config}
 	id := et.id()
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
-		sql.To(equipmentcategory.Table, equipmentcategory.FieldID),
-		sql.Edge(sql.M2O, false, equipmenttype.CategoryTable, equipmenttype.CategoryColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sqlgraph.To(equipmentcategory.Table, equipmentcategory.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipmenttype.CategoryTable, equipmenttype.CategoryColumn),
 	)
-	query.sql = sql.Neighbors(et.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(et.driver.Dialect(), step)
 
 	return query
 }
@@ -1735,12 +1761,12 @@ func (c *FloorPlanClient) GetX(ctx context.Context, id string) *FloorPlan {
 func (c *FloorPlanClient) QueryLocation(fp *FloorPlan) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := fp.id()
-	step := sql.NewStep(
-		sql.From(floorplan.Table, floorplan.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, floorplan.LocationTable, floorplan.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(floorplan.Table, floorplan.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.LocationTable, floorplan.LocationColumn),
 	)
-	query.sql = sql.Neighbors(fp.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(fp.driver.Dialect(), step)
 
 	return query
 }
@@ -1749,12 +1775,12 @@ func (c *FloorPlanClient) QueryLocation(fp *FloorPlan) *LocationQuery {
 func (c *FloorPlanClient) QueryReferencePoint(fp *FloorPlan) *FloorPlanReferencePointQuery {
 	query := &FloorPlanReferencePointQuery{config: c.config}
 	id := fp.id()
-	step := sql.NewStep(
-		sql.From(floorplan.Table, floorplan.FieldID, id),
-		sql.To(floorplanreferencepoint.Table, floorplanreferencepoint.FieldID),
-		sql.Edge(sql.M2O, false, floorplan.ReferencePointTable, floorplan.ReferencePointColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(floorplan.Table, floorplan.FieldID, id),
+		sqlgraph.To(floorplanreferencepoint.Table, floorplanreferencepoint.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ReferencePointTable, floorplan.ReferencePointColumn),
 	)
-	query.sql = sql.Neighbors(fp.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(fp.driver.Dialect(), step)
 
 	return query
 }
@@ -1763,12 +1789,12 @@ func (c *FloorPlanClient) QueryReferencePoint(fp *FloorPlan) *FloorPlanReference
 func (c *FloorPlanClient) QueryScale(fp *FloorPlan) *FloorPlanScaleQuery {
 	query := &FloorPlanScaleQuery{config: c.config}
 	id := fp.id()
-	step := sql.NewStep(
-		sql.From(floorplan.Table, floorplan.FieldID, id),
-		sql.To(floorplanscale.Table, floorplanscale.FieldID),
-		sql.Edge(sql.M2O, false, floorplan.ScaleTable, floorplan.ScaleColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(floorplan.Table, floorplan.FieldID, id),
+		sqlgraph.To(floorplanscale.Table, floorplanscale.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ScaleTable, floorplan.ScaleColumn),
 	)
-	query.sql = sql.Neighbors(fp.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(fp.driver.Dialect(), step)
 
 	return query
 }
@@ -1777,12 +1803,12 @@ func (c *FloorPlanClient) QueryScale(fp *FloorPlan) *FloorPlanScaleQuery {
 func (c *FloorPlanClient) QueryImage(fp *FloorPlan) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := fp.id()
-	step := sql.NewStep(
-		sql.From(floorplan.Table, floorplan.FieldID, id),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(floorplan.Table, floorplan.FieldID, id),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
 	)
-	query.sql = sql.Neighbors(fp.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(fp.driver.Dialect(), step)
 
 	return query
 }
@@ -1915,6 +1941,70 @@ func (c *FloorPlanScaleClient) GetX(ctx context.Context, id string) *FloorPlanSc
 	return fps
 }
 
+// HyperlinkClient is a client for the Hyperlink schema.
+type HyperlinkClient struct {
+	config
+}
+
+// NewHyperlinkClient returns a client for the Hyperlink from the given config.
+func NewHyperlinkClient(c config) *HyperlinkClient {
+	return &HyperlinkClient{config: c}
+}
+
+// Create returns a create builder for Hyperlink.
+func (c *HyperlinkClient) Create() *HyperlinkCreate {
+	return &HyperlinkCreate{config: c.config}
+}
+
+// Update returns an update builder for Hyperlink.
+func (c *HyperlinkClient) Update() *HyperlinkUpdate {
+	return &HyperlinkUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HyperlinkClient) UpdateOne(h *Hyperlink) *HyperlinkUpdateOne {
+	return c.UpdateOneID(h.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HyperlinkClient) UpdateOneID(id string) *HyperlinkUpdateOne {
+	return &HyperlinkUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for Hyperlink.
+func (c *HyperlinkClient) Delete() *HyperlinkDelete {
+	return &HyperlinkDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *HyperlinkClient) DeleteOne(h *Hyperlink) *HyperlinkDeleteOne {
+	return c.DeleteOneID(h.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *HyperlinkClient) DeleteOneID(id string) *HyperlinkDeleteOne {
+	return &HyperlinkDeleteOne{c.Delete().Where(hyperlink.ID(id))}
+}
+
+// Create returns a query builder for Hyperlink.
+func (c *HyperlinkClient) Query() *HyperlinkQuery {
+	return &HyperlinkQuery{config: c.config}
+}
+
+// Get returns a Hyperlink entity by its id.
+func (c *HyperlinkClient) Get(ctx context.Context, id string) (*Hyperlink, error) {
+	return c.Query().Where(hyperlink.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HyperlinkClient) GetX(ctx context.Context, id string) *Hyperlink {
+	h, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return h
+}
+
 // LinkClient is a client for the Link schema.
 type LinkClient struct {
 	config
@@ -1983,12 +2073,12 @@ func (c *LinkClient) GetX(ctx context.Context, id string) *Link {
 func (c *LinkClient) QueryPorts(l *Link) *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(link.Table, link.FieldID, id),
-		sql.To(equipmentport.Table, equipmentport.FieldID),
-		sql.Edge(sql.O2M, true, link.PortsTable, link.PortsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(link.Table, link.FieldID, id),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, link.PortsTable, link.PortsColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -1997,12 +2087,12 @@ func (c *LinkClient) QueryPorts(l *Link) *EquipmentPortQuery {
 func (c *LinkClient) QueryWorkOrder(l *Link) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(link.Table, link.FieldID, id),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(link.Table, link.FieldID, id),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2011,12 +2101,12 @@ func (c *LinkClient) QueryWorkOrder(l *Link) *WorkOrderQuery {
 func (c *LinkClient) QueryProperties(l *Link) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(link.Table, link.FieldID, id),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, link.PropertiesTable, link.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(link.Table, link.FieldID, id),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, link.PropertiesTable, link.PropertiesColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2025,12 +2115,12 @@ func (c *LinkClient) QueryProperties(l *Link) *PropertyQuery {
 func (c *LinkClient) QueryService(l *Link) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(link.Table, link.FieldID, id),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(link.Table, link.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2103,12 +2193,12 @@ func (c *LocationClient) GetX(ctx context.Context, id string) *Location {
 func (c *LocationClient) QueryType(l *Location) *LocationTypeQuery {
 	query := &LocationTypeQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(locationtype.Table, locationtype.FieldID),
-		sql.Edge(sql.M2O, false, location.TypeTable, location.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(locationtype.Table, locationtype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, location.TypeTable, location.TypeColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2117,12 +2207,12 @@ func (c *LocationClient) QueryType(l *Location) *LocationTypeQuery {
 func (c *LocationClient) QueryParent(l *Location) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, true, location.ParentTable, location.ParentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, location.ParentTable, location.ParentColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2131,12 +2221,12 @@ func (c *LocationClient) QueryParent(l *Location) *LocationQuery {
 func (c *LocationClient) QueryChildren(l *Location) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.O2M, false, location.ChildrenTable, location.ChildrenColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.ChildrenTable, location.ChildrenColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2145,12 +2235,26 @@ func (c *LocationClient) QueryChildren(l *Location) *LocationQuery {
 func (c *LocationClient) QueryFiles(l *Location) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.O2M, false, location.FilesTable, location.FilesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.FilesTable, location.FilesColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryHyperlinks queries the hyperlinks edge of a Location.
+func (c *LocationClient) QueryHyperlinks(l *Location) *HyperlinkQuery {
+	query := &HyperlinkQuery{config: c.config}
+	id := l.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.HyperlinksTable, location.HyperlinksColumn),
+	)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2159,12 +2263,12 @@ func (c *LocationClient) QueryFiles(l *Location) *FileQuery {
 func (c *LocationClient) QueryEquipment(l *Location) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.O2M, false, location.EquipmentTable, location.EquipmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.EquipmentTable, location.EquipmentColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2173,12 +2277,12 @@ func (c *LocationClient) QueryEquipment(l *Location) *EquipmentQuery {
 func (c *LocationClient) QueryProperties(l *Location) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, location.PropertiesTable, location.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.PropertiesTable, location.PropertiesColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2187,12 +2291,12 @@ func (c *LocationClient) QueryProperties(l *Location) *PropertyQuery {
 func (c *LocationClient) QuerySurvey(l *Location) *SurveyQuery {
 	query := &SurveyQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(survey.Table, survey.FieldID),
-		sql.Edge(sql.O2M, true, location.SurveyTable, location.SurveyColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(survey.Table, survey.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.SurveyTable, location.SurveyColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2201,12 +2305,12 @@ func (c *LocationClient) QuerySurvey(l *Location) *SurveyQuery {
 func (c *LocationClient) QueryWifiScan(l *Location) *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(surveywifiscan.Table, surveywifiscan.FieldID),
-		sql.Edge(sql.O2M, true, location.WifiScanTable, location.WifiScanColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.WifiScanTable, location.WifiScanColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2215,12 +2319,12 @@ func (c *LocationClient) QueryWifiScan(l *Location) *SurveyWiFiScanQuery {
 func (c *LocationClient) QueryCellScan(l *Location) *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(surveycellscan.Table, surveycellscan.FieldID),
-		sql.Edge(sql.O2M, true, location.CellScanTable, location.CellScanColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.CellScanTable, location.CellScanColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2229,12 +2333,12 @@ func (c *LocationClient) QueryCellScan(l *Location) *SurveyCellScanQuery {
 func (c *LocationClient) QueryWorkOrders(l *Location) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.O2M, true, location.WorkOrdersTable, location.WorkOrdersColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.WorkOrdersTable, location.WorkOrdersColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2243,12 +2347,12 @@ func (c *LocationClient) QueryWorkOrders(l *Location) *WorkOrderQuery {
 func (c *LocationClient) QueryFloorPlans(l *Location) *FloorPlanQuery {
 	query := &FloorPlanQuery{config: c.config}
 	id := l.id()
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, id),
-		sql.To(floorplan.Table, floorplan.FieldID),
-		sql.Edge(sql.O2M, true, location.FloorPlansTable, location.FloorPlansColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(floorplan.Table, floorplan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.FloorPlansTable, location.FloorPlansColumn),
 	)
-	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
 	return query
 }
@@ -2321,12 +2425,12 @@ func (c *LocationTypeClient) GetX(ctx context.Context, id string) *LocationType 
 func (c *LocationTypeClient) QueryLocations(lt *LocationType) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := lt.id()
-	step := sql.NewStep(
-		sql.From(locationtype.Table, locationtype.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.O2M, true, locationtype.LocationsTable, locationtype.LocationsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(locationtype.Table, locationtype.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, locationtype.LocationsTable, locationtype.LocationsColumn),
 	)
-	query.sql = sql.Neighbors(lt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(lt.driver.Dialect(), step)
 
 	return query
 }
@@ -2335,12 +2439,12 @@ func (c *LocationTypeClient) QueryLocations(lt *LocationType) *LocationQuery {
 func (c *LocationTypeClient) QueryPropertyTypes(lt *LocationType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := lt.id()
-	step := sql.NewStep(
-		sql.From(locationtype.Table, locationtype.FieldID, id),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, locationtype.PropertyTypesTable, locationtype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(locationtype.Table, locationtype.FieldID, id),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, locationtype.PropertyTypesTable, locationtype.PropertyTypesColumn),
 	)
-	query.sql = sql.Neighbors(lt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(lt.driver.Dialect(), step)
 
 	return query
 }
@@ -2349,12 +2453,12 @@ func (c *LocationTypeClient) QueryPropertyTypes(lt *LocationType) *PropertyTypeQ
 func (c *LocationTypeClient) QuerySurveyTemplateCategories(lt *LocationType) *SurveyTemplateCategoryQuery {
 	query := &SurveyTemplateCategoryQuery{config: c.config}
 	id := lt.id()
-	step := sql.NewStep(
-		sql.From(locationtype.Table, locationtype.FieldID, id),
-		sql.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
-		sql.Edge(sql.O2M, false, locationtype.SurveyTemplateCategoriesTable, locationtype.SurveyTemplateCategoriesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(locationtype.Table, locationtype.FieldID, id),
+		sqlgraph.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, locationtype.SurveyTemplateCategoriesTable, locationtype.SurveyTemplateCategoriesColumn),
 	)
-	query.sql = sql.Neighbors(lt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(lt.driver.Dialect(), step)
 
 	return query
 }
@@ -2427,12 +2531,12 @@ func (c *ProjectClient) GetX(ctx context.Context, id string) *Project {
 func (c *ProjectClient) QueryType(pr *Project) *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, id),
-		sql.To(projecttype.Table, projecttype.FieldID),
-		sql.Edge(sql.M2O, true, project.TypeTable, project.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, id),
+		sqlgraph.To(projecttype.Table, projecttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, project.TypeTable, project.TypeColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2441,12 +2545,26 @@ func (c *ProjectClient) QueryType(pr *Project) *ProjectTypeQuery {
 func (c *ProjectClient) QueryLocation(pr *Project) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, project.LocationTable, project.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, project.LocationTable, project.LocationColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryComments queries the comments edge of a Project.
+func (c *ProjectClient) QueryComments(pr *Project) *CommentQuery {
+	query := &CommentQuery{config: c.config}
+	id := pr.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, id),
+		sqlgraph.To(comment.Table, comment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.CommentsTable, project.CommentsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2455,12 +2573,12 @@ func (c *ProjectClient) QueryLocation(pr *Project) *LocationQuery {
 func (c *ProjectClient) QueryWorkOrders(pr *Project) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, id),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.O2M, false, project.WorkOrdersTable, project.WorkOrdersColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, id),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.WorkOrdersTable, project.WorkOrdersColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2469,12 +2587,12 @@ func (c *ProjectClient) QueryWorkOrders(pr *Project) *WorkOrderQuery {
 func (c *ProjectClient) QueryProperties(pr *Project) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, id),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, project.PropertiesTable, project.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, id),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.PropertiesTable, project.PropertiesColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2547,12 +2665,12 @@ func (c *ProjectTypeClient) GetX(ctx context.Context, id string) *ProjectType {
 func (c *ProjectTypeClient) QueryProjects(pt *ProjectType) *ProjectQuery {
 	query := &ProjectQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(projecttype.Table, projecttype.FieldID, id),
-		sql.To(project.Table, project.FieldID),
-		sql.Edge(sql.O2M, false, projecttype.ProjectsTable, projecttype.ProjectsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(projecttype.Table, projecttype.FieldID, id),
+		sqlgraph.To(project.Table, project.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, projecttype.ProjectsTable, projecttype.ProjectsColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2561,12 +2679,12 @@ func (c *ProjectTypeClient) QueryProjects(pt *ProjectType) *ProjectQuery {
 func (c *ProjectTypeClient) QueryProperties(pt *ProjectType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(projecttype.Table, projecttype.FieldID, id),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, projecttype.PropertiesTable, projecttype.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(projecttype.Table, projecttype.FieldID, id),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, projecttype.PropertiesTable, projecttype.PropertiesColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2575,12 +2693,12 @@ func (c *ProjectTypeClient) QueryProperties(pt *ProjectType) *PropertyTypeQuery 
 func (c *ProjectTypeClient) QueryWorkOrders(pt *ProjectType) *WorkOrderDefinitionQuery {
 	query := &WorkOrderDefinitionQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(projecttype.Table, projecttype.FieldID, id),
-		sql.To(workorderdefinition.Table, workorderdefinition.FieldID),
-		sql.Edge(sql.O2M, false, projecttype.WorkOrdersTable, projecttype.WorkOrdersColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(projecttype.Table, projecttype.FieldID, id),
+		sqlgraph.To(workorderdefinition.Table, workorderdefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, projecttype.WorkOrdersTable, projecttype.WorkOrdersColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2653,12 +2771,12 @@ func (c *PropertyClient) GetX(ctx context.Context, id string) *Property {
 func (c *PropertyClient) QueryType(pr *Property) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.M2O, false, property.TypeTable, property.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.TypeTable, property.TypeColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2667,12 +2785,12 @@ func (c *PropertyClient) QueryType(pr *Property) *PropertyTypeQuery {
 func (c *PropertyClient) QueryLocation(pr *Property) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, true, property.LocationTable, property.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.LocationTable, property.LocationColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2681,12 +2799,12 @@ func (c *PropertyClient) QueryLocation(pr *Property) *LocationQuery {
 func (c *PropertyClient) QueryEquipment(pr *Property) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.M2O, true, property.EquipmentTable, property.EquipmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.EquipmentTable, property.EquipmentColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2695,12 +2813,12 @@ func (c *PropertyClient) QueryEquipment(pr *Property) *EquipmentQuery {
 func (c *PropertyClient) QueryService(pr *Property) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2O, true, property.ServiceTable, property.ServiceColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.ServiceTable, property.ServiceColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2709,12 +2827,12 @@ func (c *PropertyClient) QueryService(pr *Property) *ServiceQuery {
 func (c *PropertyClient) QueryEquipmentPort(pr *Property) *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(equipmentport.Table, equipmentport.FieldID),
-		sql.Edge(sql.M2O, true, property.EquipmentPortTable, property.EquipmentPortColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.EquipmentPortTable, property.EquipmentPortColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2723,12 +2841,12 @@ func (c *PropertyClient) QueryEquipmentPort(pr *Property) *EquipmentPortQuery {
 func (c *PropertyClient) QueryLink(pr *Property) *LinkQuery {
 	query := &LinkQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(link.Table, link.FieldID),
-		sql.Edge(sql.M2O, true, property.LinkTable, property.LinkColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(link.Table, link.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.LinkTable, property.LinkColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2737,12 +2855,12 @@ func (c *PropertyClient) QueryLink(pr *Property) *LinkQuery {
 func (c *PropertyClient) QueryWorkOrder(pr *Property) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.M2O, true, property.WorkOrderTable, property.WorkOrderColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.WorkOrderTable, property.WorkOrderColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2751,12 +2869,12 @@ func (c *PropertyClient) QueryWorkOrder(pr *Property) *WorkOrderQuery {
 func (c *PropertyClient) QueryProject(pr *Property) *ProjectQuery {
 	query := &ProjectQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(project.Table, project.FieldID),
-		sql.Edge(sql.M2O, true, property.ProjectTable, property.ProjectColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(project.Table, project.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.ProjectTable, property.ProjectColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2765,12 +2883,12 @@ func (c *PropertyClient) QueryProject(pr *Property) *ProjectQuery {
 func (c *PropertyClient) QueryEquipmentValue(pr *Property) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.M2O, false, property.EquipmentValueTable, property.EquipmentValueColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.EquipmentValueTable, property.EquipmentValueColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2779,12 +2897,26 @@ func (c *PropertyClient) QueryEquipmentValue(pr *Property) *EquipmentQuery {
 func (c *PropertyClient) QueryLocationValue(pr *Property) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := pr.id()
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, property.LocationValueTable, property.LocationValueColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.LocationValueTable, property.LocationValueColumn),
 	)
-	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryServiceValue queries the service_value edge of a Property.
+func (c *PropertyClient) QueryServiceValue(pr *Property) *ServiceQuery {
+	query := &ServiceQuery{config: c.config}
+	id := pr.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.ServiceValueTable, property.ServiceValueColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
 	return query
 }
@@ -2857,12 +2989,12 @@ func (c *PropertyTypeClient) GetX(ctx context.Context, id string) *PropertyType 
 func (c *PropertyTypeClient) QueryProperties(pt *PropertyType) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, id),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, true, propertytype.PropertiesTable, propertytype.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, id),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, propertytype.PropertiesTable, propertytype.PropertiesColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2871,12 +3003,12 @@ func (c *PropertyTypeClient) QueryProperties(pt *PropertyType) *PropertyQuery {
 func (c *PropertyTypeClient) QueryLocationType(pt *PropertyType) *LocationTypeQuery {
 	query := &LocationTypeQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, id),
-		sql.To(locationtype.Table, locationtype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.LocationTypeTable, propertytype.LocationTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, id),
+		sqlgraph.To(locationtype.Table, locationtype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.LocationTypeTable, propertytype.LocationTypeColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2885,12 +3017,12 @@ func (c *PropertyTypeClient) QueryLocationType(pt *PropertyType) *LocationTypeQu
 func (c *PropertyTypeClient) QueryEquipmentPortType(pt *PropertyType) *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, id),
-		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.EquipmentPortTypeTable, propertytype.EquipmentPortTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, id),
+		sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.EquipmentPortTypeTable, propertytype.EquipmentPortTypeColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2899,12 +3031,12 @@ func (c *PropertyTypeClient) QueryEquipmentPortType(pt *PropertyType) *Equipment
 func (c *PropertyTypeClient) QueryLinkEquipmentPortType(pt *PropertyType) *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, id),
-		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.LinkEquipmentPortTypeTable, propertytype.LinkEquipmentPortTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, id),
+		sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.LinkEquipmentPortTypeTable, propertytype.LinkEquipmentPortTypeColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2913,12 +3045,12 @@ func (c *PropertyTypeClient) QueryLinkEquipmentPortType(pt *PropertyType) *Equip
 func (c *PropertyTypeClient) QueryEquipmentType(pt *PropertyType) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, id),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.EquipmentTypeTable, propertytype.EquipmentTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, id),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.EquipmentTypeTable, propertytype.EquipmentTypeColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2927,12 +3059,12 @@ func (c *PropertyTypeClient) QueryEquipmentType(pt *PropertyType) *EquipmentType
 func (c *PropertyTypeClient) QueryServiceType(pt *PropertyType) *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, id),
-		sql.To(servicetype.Table, servicetype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.ServiceTypeTable, propertytype.ServiceTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, id),
+		sqlgraph.To(servicetype.Table, servicetype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.ServiceTypeTable, propertytype.ServiceTypeColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2941,12 +3073,12 @@ func (c *PropertyTypeClient) QueryServiceType(pt *PropertyType) *ServiceTypeQuer
 func (c *PropertyTypeClient) QueryWorkOrderType(pt *PropertyType) *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, id),
-		sql.To(workordertype.Table, workordertype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.WorkOrderTypeTable, propertytype.WorkOrderTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, id),
+		sqlgraph.To(workordertype.Table, workordertype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.WorkOrderTypeTable, propertytype.WorkOrderTypeColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -2955,12 +3087,12 @@ func (c *PropertyTypeClient) QueryWorkOrderType(pt *PropertyType) *WorkOrderType
 func (c *PropertyTypeClient) QueryProjectType(pt *PropertyType) *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: c.config}
 	id := pt.id()
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, id),
-		sql.To(projecttype.Table, projecttype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.ProjectTypeTable, propertytype.ProjectTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, id),
+		sqlgraph.To(projecttype.Table, projecttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.ProjectTypeTable, propertytype.ProjectTypeColumn),
 	)
-	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
 }
@@ -3033,12 +3165,12 @@ func (c *ServiceClient) GetX(ctx context.Context, id string) *Service {
 func (c *ServiceClient) QueryType(s *Service) *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: c.config}
 	id := s.id()
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, id),
-		sql.To(servicetype.Table, servicetype.FieldID),
-		sql.Edge(sql.M2O, false, service.TypeTable, service.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, id),
+		sqlgraph.To(servicetype.Table, servicetype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, service.TypeTable, service.TypeColumn),
 	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
 	return query
 }
@@ -3047,12 +3179,12 @@ func (c *ServiceClient) QueryType(s *Service) *ServiceTypeQuery {
 func (c *ServiceClient) QueryDownstream(s *Service) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := s.id()
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, id),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, true, service.DownstreamTable, service.DownstreamPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, service.DownstreamTable, service.DownstreamPrimaryKey...),
 	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
 	return query
 }
@@ -3061,12 +3193,12 @@ func (c *ServiceClient) QueryDownstream(s *Service) *ServiceQuery {
 func (c *ServiceClient) QueryUpstream(s *Service) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := s.id()
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, id),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, false, service.UpstreamTable, service.UpstreamPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, service.UpstreamTable, service.UpstreamPrimaryKey...),
 	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
 	return query
 }
@@ -3075,26 +3207,12 @@ func (c *ServiceClient) QueryUpstream(s *Service) *ServiceQuery {
 func (c *ServiceClient) QueryProperties(s *Service) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := s.id()
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, id),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, service.PropertiesTable, service.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, id),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, service.PropertiesTable, service.PropertiesColumn),
 	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
-
-	return query
-}
-
-// QueryTerminationPoints queries the termination_points edge of a Service.
-func (c *ServiceClient) QueryTerminationPoints(s *Service) *EquipmentQuery {
-	query := &EquipmentQuery{config: c.config}
-	id := s.id()
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, id),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
-	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
 	return query
 }
@@ -3103,12 +3221,12 @@ func (c *ServiceClient) QueryTerminationPoints(s *Service) *EquipmentQuery {
 func (c *ServiceClient) QueryLinks(s *Service) *LinkQuery {
 	query := &LinkQuery{config: c.config}
 	id := s.id()
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, id),
-		sql.To(link.Table, link.FieldID),
-		sql.Edge(sql.M2M, false, service.LinksTable, service.LinksPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, id),
+		sqlgraph.To(link.Table, link.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, service.LinksTable, service.LinksPrimaryKey...),
 	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
 	return query
 }
@@ -3117,12 +3235,118 @@ func (c *ServiceClient) QueryLinks(s *Service) *LinkQuery {
 func (c *ServiceClient) QueryCustomer(s *Service) *CustomerQuery {
 	query := &CustomerQuery{config: c.config}
 	id := s.id()
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, id),
-		sql.To(customer.Table, customer.FieldID),
-		sql.Edge(sql.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, id),
+		sqlgraph.To(customer.Table, customer.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
 	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryEndpoints queries the endpoints edge of a Service.
+func (c *ServiceClient) QueryEndpoints(s *Service) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	id := s.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, id),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, service.EndpointsTable, service.EndpointsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
+
+	return query
+}
+
+// ServiceEndpointClient is a client for the ServiceEndpoint schema.
+type ServiceEndpointClient struct {
+	config
+}
+
+// NewServiceEndpointClient returns a client for the ServiceEndpoint from the given config.
+func NewServiceEndpointClient(c config) *ServiceEndpointClient {
+	return &ServiceEndpointClient{config: c}
+}
+
+// Create returns a create builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Create() *ServiceEndpointCreate {
+	return &ServiceEndpointCreate{config: c.config}
+}
+
+// Update returns an update builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Update() *ServiceEndpointUpdate {
+	return &ServiceEndpointUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ServiceEndpointClient) UpdateOne(se *ServiceEndpoint) *ServiceEndpointUpdateOne {
+	return c.UpdateOneID(se.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ServiceEndpointClient) UpdateOneID(id string) *ServiceEndpointUpdateOne {
+	return &ServiceEndpointUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Delete() *ServiceEndpointDelete {
+	return &ServiceEndpointDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ServiceEndpointClient) DeleteOne(se *ServiceEndpoint) *ServiceEndpointDeleteOne {
+	return c.DeleteOneID(se.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ServiceEndpointClient) DeleteOneID(id string) *ServiceEndpointDeleteOne {
+	return &ServiceEndpointDeleteOne{c.Delete().Where(serviceendpoint.ID(id))}
+}
+
+// Create returns a query builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Query() *ServiceEndpointQuery {
+	return &ServiceEndpointQuery{config: c.config}
+}
+
+// Get returns a ServiceEndpoint entity by its id.
+func (c *ServiceEndpointClient) Get(ctx context.Context, id string) (*ServiceEndpoint, error) {
+	return c.Query().Where(serviceendpoint.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ServiceEndpointClient) GetX(ctx context.Context, id string) *ServiceEndpoint {
+	se, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return se
+}
+
+// QueryPort queries the port edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryPort(se *ServiceEndpoint) *EquipmentPortQuery {
+	query := &EquipmentPortQuery{config: c.config}
+	id := se.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.PortTable, serviceendpoint.PortColumn),
+	)
+	query.sql = sqlgraph.Neighbors(se.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryService queries the service edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryService(se *ServiceEndpoint) *ServiceQuery {
+	query := &ServiceQuery{config: c.config}
+	id := se.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, serviceendpoint.ServiceTable, serviceendpoint.ServiceColumn),
+	)
+	query.sql = sqlgraph.Neighbors(se.driver.Dialect(), step)
 
 	return query
 }
@@ -3195,12 +3419,12 @@ func (c *ServiceTypeClient) GetX(ctx context.Context, id string) *ServiceType {
 func (c *ServiceTypeClient) QueryServices(st *ServiceType) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := st.id()
-	step := sql.NewStep(
-		sql.From(servicetype.Table, servicetype.FieldID, id),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(servicetype.Table, servicetype.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
 	)
-	query.sql = sql.Neighbors(st.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(st.driver.Dialect(), step)
 
 	return query
 }
@@ -3209,12 +3433,12 @@ func (c *ServiceTypeClient) QueryServices(st *ServiceType) *ServiceQuery {
 func (c *ServiceTypeClient) QueryPropertyTypes(st *ServiceType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := st.id()
-	step := sql.NewStep(
-		sql.From(servicetype.Table, servicetype.FieldID, id),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(servicetype.Table, servicetype.FieldID, id),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
 	)
-	query.sql = sql.Neighbors(st.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(st.driver.Dialect(), step)
 
 	return query
 }
@@ -3287,12 +3511,12 @@ func (c *SurveyClient) GetX(ctx context.Context, id string) *Survey {
 func (c *SurveyClient) QueryLocation(s *Survey) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := s.id()
-	step := sql.NewStep(
-		sql.From(survey.Table, survey.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, survey.LocationTable, survey.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(survey.Table, survey.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, survey.LocationTable, survey.LocationColumn),
 	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
 	return query
 }
@@ -3301,12 +3525,12 @@ func (c *SurveyClient) QueryLocation(s *Survey) *LocationQuery {
 func (c *SurveyClient) QuerySourceFile(s *Survey) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := s.id()
-	step := sql.NewStep(
-		sql.From(survey.Table, survey.FieldID, id),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.M2O, false, survey.SourceFileTable, survey.SourceFileColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(survey.Table, survey.FieldID, id),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, survey.SourceFileTable, survey.SourceFileColumn),
 	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
 	return query
 }
@@ -3315,12 +3539,12 @@ func (c *SurveyClient) QuerySourceFile(s *Survey) *FileQuery {
 func (c *SurveyClient) QueryQuestions(s *Survey) *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: c.config}
 	id := s.id()
-	step := sql.NewStep(
-		sql.From(survey.Table, survey.FieldID, id),
-		sql.To(surveyquestion.Table, surveyquestion.FieldID),
-		sql.Edge(sql.O2M, true, survey.QuestionsTable, survey.QuestionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(survey.Table, survey.FieldID, id),
+		sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, survey.QuestionsTable, survey.QuestionsColumn),
 	)
-	query.sql = sql.Neighbors(s.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
 	return query
 }
@@ -3393,12 +3617,12 @@ func (c *SurveyCellScanClient) GetX(ctx context.Context, id string) *SurveyCellS
 func (c *SurveyCellScanClient) QuerySurveyQuestion(scs *SurveyCellScan) *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: c.config}
 	id := scs.id()
-	step := sql.NewStep(
-		sql.From(surveycellscan.Table, surveycellscan.FieldID, id),
-		sql.To(surveyquestion.Table, surveyquestion.FieldID),
-		sql.Edge(sql.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, id),
+		sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
 	)
-	query.sql = sql.Neighbors(scs.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(scs.driver.Dialect(), step)
 
 	return query
 }
@@ -3407,12 +3631,12 @@ func (c *SurveyCellScanClient) QuerySurveyQuestion(scs *SurveyCellScan) *SurveyQ
 func (c *SurveyCellScanClient) QueryLocation(scs *SurveyCellScan) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := scs.id()
-	step := sql.NewStep(
-		sql.From(surveycellscan.Table, surveycellscan.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
 	)
-	query.sql = sql.Neighbors(scs.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(scs.driver.Dialect(), step)
 
 	return query
 }
@@ -3485,12 +3709,12 @@ func (c *SurveyQuestionClient) GetX(ctx context.Context, id string) *SurveyQuest
 func (c *SurveyQuestionClient) QuerySurvey(sq *SurveyQuestion) *SurveyQuery {
 	query := &SurveyQuery{config: c.config}
 	id := sq.id()
-	step := sql.NewStep(
-		sql.From(surveyquestion.Table, surveyquestion.FieldID, id),
-		sql.To(survey.Table, survey.FieldID),
-		sql.Edge(sql.M2O, false, surveyquestion.SurveyTable, surveyquestion.SurveyColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, id),
+		sqlgraph.To(survey.Table, survey.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveyquestion.SurveyTable, surveyquestion.SurveyColumn),
 	)
-	query.sql = sql.Neighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(sq.driver.Dialect(), step)
 
 	return query
 }
@@ -3499,12 +3723,12 @@ func (c *SurveyQuestionClient) QuerySurvey(sq *SurveyQuestion) *SurveyQuery {
 func (c *SurveyQuestionClient) QueryWifiScan(sq *SurveyQuestion) *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: c.config}
 	id := sq.id()
-	step := sql.NewStep(
-		sql.From(surveyquestion.Table, surveyquestion.FieldID, id),
-		sql.To(surveywifiscan.Table, surveywifiscan.FieldID),
-		sql.Edge(sql.O2M, true, surveyquestion.WifiScanTable, surveyquestion.WifiScanColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, id),
+		sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, surveyquestion.WifiScanTable, surveyquestion.WifiScanColumn),
 	)
-	query.sql = sql.Neighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(sq.driver.Dialect(), step)
 
 	return query
 }
@@ -3513,12 +3737,12 @@ func (c *SurveyQuestionClient) QueryWifiScan(sq *SurveyQuestion) *SurveyWiFiScan
 func (c *SurveyQuestionClient) QueryCellScan(sq *SurveyQuestion) *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: c.config}
 	id := sq.id()
-	step := sql.NewStep(
-		sql.From(surveyquestion.Table, surveyquestion.FieldID, id),
-		sql.To(surveycellscan.Table, surveycellscan.FieldID),
-		sql.Edge(sql.O2M, true, surveyquestion.CellScanTable, surveyquestion.CellScanColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, id),
+		sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, surveyquestion.CellScanTable, surveyquestion.CellScanColumn),
 	)
-	query.sql = sql.Neighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(sq.driver.Dialect(), step)
 
 	return query
 }
@@ -3527,12 +3751,12 @@ func (c *SurveyQuestionClient) QueryCellScan(sq *SurveyQuestion) *SurveyCellScan
 func (c *SurveyQuestionClient) QueryPhotoData(sq *SurveyQuestion) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := sq.id()
-	step := sql.NewStep(
-		sql.From(surveyquestion.Table, surveyquestion.FieldID, id),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.O2M, false, surveyquestion.PhotoDataTable, surveyquestion.PhotoDataColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, id),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, surveyquestion.PhotoDataTable, surveyquestion.PhotoDataColumn),
 	)
-	query.sql = sql.Neighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(sq.driver.Dialect(), step)
 
 	return query
 }
@@ -3605,12 +3829,12 @@ func (c *SurveyTemplateCategoryClient) GetX(ctx context.Context, id string) *Sur
 func (c *SurveyTemplateCategoryClient) QuerySurveyTemplateQuestions(stc *SurveyTemplateCategory) *SurveyTemplateQuestionQuery {
 	query := &SurveyTemplateQuestionQuery{config: c.config}
 	id := stc.id()
-	step := sql.NewStep(
-		sql.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, id),
-		sql.To(surveytemplatequestion.Table, surveytemplatequestion.FieldID),
-		sql.Edge(sql.O2M, false, surveytemplatecategory.SurveyTemplateQuestionsTable, surveytemplatecategory.SurveyTemplateQuestionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, id),
+		sqlgraph.To(surveytemplatequestion.Table, surveytemplatequestion.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, surveytemplatecategory.SurveyTemplateQuestionsTable, surveytemplatecategory.SurveyTemplateQuestionsColumn),
 	)
-	query.sql = sql.Neighbors(stc.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(stc.driver.Dialect(), step)
 
 	return query
 }
@@ -3683,12 +3907,12 @@ func (c *SurveyTemplateQuestionClient) GetX(ctx context.Context, id string) *Sur
 func (c *SurveyTemplateQuestionClient) QueryCategory(stq *SurveyTemplateQuestion) *SurveyTemplateCategoryQuery {
 	query := &SurveyTemplateCategoryQuery{config: c.config}
 	id := stq.id()
-	step := sql.NewStep(
-		sql.From(surveytemplatequestion.Table, surveytemplatequestion.FieldID, id),
-		sql.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
-		sql.Edge(sql.M2O, true, surveytemplatequestion.CategoryTable, surveytemplatequestion.CategoryColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveytemplatequestion.Table, surveytemplatequestion.FieldID, id),
+		sqlgraph.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, surveytemplatequestion.CategoryTable, surveytemplatequestion.CategoryColumn),
 	)
-	query.sql = sql.Neighbors(stq.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(stq.driver.Dialect(), step)
 
 	return query
 }
@@ -3761,12 +3985,12 @@ func (c *SurveyWiFiScanClient) GetX(ctx context.Context, id string) *SurveyWiFiS
 func (c *SurveyWiFiScanClient) QuerySurveyQuestion(swfs *SurveyWiFiScan) *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: c.config}
 	id := swfs.id()
-	step := sql.NewStep(
-		sql.From(surveywifiscan.Table, surveywifiscan.FieldID, id),
-		sql.To(surveyquestion.Table, surveyquestion.FieldID),
-		sql.Edge(sql.M2O, false, surveywifiscan.SurveyQuestionTable, surveywifiscan.SurveyQuestionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, id),
+		sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.SurveyQuestionTable, surveywifiscan.SurveyQuestionColumn),
 	)
-	query.sql = sql.Neighbors(swfs.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(swfs.driver.Dialect(), step)
 
 	return query
 }
@@ -3775,12 +3999,12 @@ func (c *SurveyWiFiScanClient) QuerySurveyQuestion(swfs *SurveyWiFiScan) *Survey
 func (c *SurveyWiFiScanClient) QueryLocation(swfs *SurveyWiFiScan) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := swfs.id()
-	step := sql.NewStep(
-		sql.From(surveywifiscan.Table, surveywifiscan.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, surveywifiscan.LocationTable, surveywifiscan.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.LocationTable, surveywifiscan.LocationColumn),
 	)
-	query.sql = sql.Neighbors(swfs.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(swfs.driver.Dialect(), step)
 
 	return query
 }
@@ -3853,12 +4077,12 @@ func (c *TechnicianClient) GetX(ctx context.Context, id string) *Technician {
 func (c *TechnicianClient) QueryWorkOrders(t *Technician) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := t.id()
-	step := sql.NewStep(
-		sql.From(technician.Table, technician.FieldID, id),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(technician.Table, technician.FieldID, id),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
 	)
-	query.sql = sql.Neighbors(t.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
 
 	return query
 }
@@ -3931,12 +4155,12 @@ func (c *WorkOrderClient) GetX(ctx context.Context, id string) *WorkOrder {
 func (c *WorkOrderClient) QueryType(wo *WorkOrder) *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(workordertype.Table, workordertype.FieldID),
-		sql.Edge(sql.M2O, false, workorder.TypeTable, workorder.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(workordertype.Table, workordertype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.TypeTable, workorder.TypeColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -3945,12 +4169,12 @@ func (c *WorkOrderClient) QueryType(wo *WorkOrder) *WorkOrderTypeQuery {
 func (c *WorkOrderClient) QueryEquipment(wo *WorkOrder) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.O2M, true, workorder.EquipmentTable, workorder.EquipmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, workorder.EquipmentTable, workorder.EquipmentColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -3959,12 +4183,12 @@ func (c *WorkOrderClient) QueryEquipment(wo *WorkOrder) *EquipmentQuery {
 func (c *WorkOrderClient) QueryLinks(wo *WorkOrder) *LinkQuery {
 	query := &LinkQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(link.Table, link.FieldID),
-		sql.Edge(sql.O2M, true, workorder.LinksTable, workorder.LinksColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(link.Table, link.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, workorder.LinksTable, workorder.LinksColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -3973,12 +4197,26 @@ func (c *WorkOrderClient) QueryLinks(wo *WorkOrder) *LinkQuery {
 func (c *WorkOrderClient) QueryFiles(wo *WorkOrder) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.O2M, false, workorder.FilesTable, workorder.FilesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.FilesTable, workorder.FilesColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryHyperlinks queries the hyperlinks edge of a WorkOrder.
+func (c *WorkOrderClient) QueryHyperlinks(wo *WorkOrder) *HyperlinkQuery {
+	query := &HyperlinkQuery{config: c.config}
+	id := wo.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.HyperlinksTable, workorder.HyperlinksColumn),
+	)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -3987,12 +4225,12 @@ func (c *WorkOrderClient) QueryFiles(wo *WorkOrder) *FileQuery {
 func (c *WorkOrderClient) QueryLocation(wo *WorkOrder) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, workorder.LocationTable, workorder.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.LocationTable, workorder.LocationColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -4001,12 +4239,12 @@ func (c *WorkOrderClient) QueryLocation(wo *WorkOrder) *LocationQuery {
 func (c *WorkOrderClient) QueryComments(wo *WorkOrder) *CommentQuery {
 	query := &CommentQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(comment.Table, comment.FieldID),
-		sql.Edge(sql.O2M, false, workorder.CommentsTable, workorder.CommentsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(comment.Table, comment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.CommentsTable, workorder.CommentsColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -4015,12 +4253,12 @@ func (c *WorkOrderClient) QueryComments(wo *WorkOrder) *CommentQuery {
 func (c *WorkOrderClient) QueryProperties(wo *WorkOrder) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, workorder.PropertiesTable, workorder.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.PropertiesTable, workorder.PropertiesColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -4029,12 +4267,12 @@ func (c *WorkOrderClient) QueryProperties(wo *WorkOrder) *PropertyQuery {
 func (c *WorkOrderClient) QueryCheckListItems(wo *WorkOrder) *CheckListItemQuery {
 	query := &CheckListItemQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(checklistitem.Table, checklistitem.FieldID),
-		sql.Edge(sql.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -4043,12 +4281,12 @@ func (c *WorkOrderClient) QueryCheckListItems(wo *WorkOrder) *CheckListItemQuery
 func (c *WorkOrderClient) QueryTechnician(wo *WorkOrder) *TechnicianQuery {
 	query := &TechnicianQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(technician.Table, technician.FieldID),
-		sql.Edge(sql.M2O, false, workorder.TechnicianTable, workorder.TechnicianColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(technician.Table, technician.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.TechnicianTable, workorder.TechnicianColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -4057,12 +4295,12 @@ func (c *WorkOrderClient) QueryTechnician(wo *WorkOrder) *TechnicianQuery {
 func (c *WorkOrderClient) QueryProject(wo *WorkOrder) *ProjectQuery {
 	query := &ProjectQuery{config: c.config}
 	id := wo.id()
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, id),
-		sql.To(project.Table, project.FieldID),
-		sql.Edge(sql.M2O, true, workorder.ProjectTable, workorder.ProjectColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(project.Table, project.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, workorder.ProjectTable, workorder.ProjectColumn),
 	)
-	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 
 	return query
 }
@@ -4135,12 +4373,12 @@ func (c *WorkOrderDefinitionClient) GetX(ctx context.Context, id string) *WorkOr
 func (c *WorkOrderDefinitionClient) QueryType(wod *WorkOrderDefinition) *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: c.config}
 	id := wod.id()
-	step := sql.NewStep(
-		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, id),
-		sql.To(workordertype.Table, workordertype.FieldID),
-		sql.Edge(sql.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, id),
+		sqlgraph.To(workordertype.Table, workordertype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
 	)
-	query.sql = sql.Neighbors(wod.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wod.driver.Dialect(), step)
 
 	return query
 }
@@ -4149,12 +4387,12 @@ func (c *WorkOrderDefinitionClient) QueryType(wod *WorkOrderDefinition) *WorkOrd
 func (c *WorkOrderDefinitionClient) QueryProjectType(wod *WorkOrderDefinition) *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: c.config}
 	id := wod.id()
-	step := sql.NewStep(
-		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, id),
-		sql.To(projecttype.Table, projecttype.FieldID),
-		sql.Edge(sql.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, id),
+		sqlgraph.To(projecttype.Table, projecttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
 	)
-	query.sql = sql.Neighbors(wod.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wod.driver.Dialect(), step)
 
 	return query
 }
@@ -4227,12 +4465,12 @@ func (c *WorkOrderTypeClient) GetX(ctx context.Context, id string) *WorkOrderTyp
 func (c *WorkOrderTypeClient) QueryWorkOrders(wot *WorkOrderType) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := wot.id()
-	step := sql.NewStep(
-		sql.From(workordertype.Table, workordertype.FieldID, id),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.O2M, true, workordertype.WorkOrdersTable, workordertype.WorkOrdersColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, workordertype.WorkOrdersTable, workordertype.WorkOrdersColumn),
 	)
-	query.sql = sql.Neighbors(wot.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wot.driver.Dialect(), step)
 
 	return query
 }
@@ -4241,12 +4479,12 @@ func (c *WorkOrderTypeClient) QueryWorkOrders(wot *WorkOrderType) *WorkOrderQuer
 func (c *WorkOrderTypeClient) QueryPropertyTypes(wot *WorkOrderType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := wot.id()
-	step := sql.NewStep(
-		sql.From(workordertype.Table, workordertype.FieldID, id),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, workordertype.PropertyTypesTable, workordertype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workordertype.PropertyTypesTable, workordertype.PropertyTypesColumn),
 	)
-	query.sql = sql.Neighbors(wot.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wot.driver.Dialect(), step)
 
 	return query
 }
@@ -4255,12 +4493,12 @@ func (c *WorkOrderTypeClient) QueryPropertyTypes(wot *WorkOrderType) *PropertyTy
 func (c *WorkOrderTypeClient) QueryDefinitions(wot *WorkOrderType) *WorkOrderDefinitionQuery {
 	query := &WorkOrderDefinitionQuery{config: c.config}
 	id := wot.id()
-	step := sql.NewStep(
-		sql.From(workordertype.Table, workordertype.FieldID, id),
-		sql.To(workorderdefinition.Table, workorderdefinition.FieldID),
-		sql.Edge(sql.O2M, true, workordertype.DefinitionsTable, workordertype.DefinitionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
+		sqlgraph.To(workorderdefinition.Table, workorderdefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, workordertype.DefinitionsTable, workordertype.DefinitionsColumn),
 	)
-	query.sql = sql.Neighbors(wot.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wot.driver.Dialect(), step)
 
 	return query
 }
@@ -4269,12 +4507,12 @@ func (c *WorkOrderTypeClient) QueryDefinitions(wot *WorkOrderType) *WorkOrderDef
 func (c *WorkOrderTypeClient) QueryCheckListDefinitions(wot *WorkOrderType) *CheckListItemDefinitionQuery {
 	query := &CheckListItemDefinitionQuery{config: c.config}
 	id := wot.id()
-	step := sql.NewStep(
-		sql.From(workordertype.Table, workordertype.FieldID, id),
-		sql.To(checklistitemdefinition.Table, checklistitemdefinition.FieldID),
-		sql.Edge(sql.O2M, false, workordertype.CheckListDefinitionsTable, workordertype.CheckListDefinitionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
+		sqlgraph.To(checklistitemdefinition.Table, checklistitemdefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListDefinitionsTable, workordertype.CheckListDefinitionsColumn),
 	)
-	query.sql = sql.Neighbors(wot.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(wot.driver.Dialect(), step)
 
 	return query
 }

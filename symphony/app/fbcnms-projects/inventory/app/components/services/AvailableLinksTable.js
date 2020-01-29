@@ -16,16 +16,16 @@ import EquipmentBreadcrumbs from '../equipment/EquipmentBreadcrumbs';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
+import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
-import {useRouter} from '@fbcnms/ui/hooks';
 import {withStyles} from '@material-ui/core/styles';
 
 import 'react-virtualized/styles.css';
 
-const styles = theme => ({
+const styles = {
   noResultsRoot: {
     display: 'flex',
     flexDirection: 'column',
@@ -34,7 +34,7 @@ const styles = theme => ({
     marginTop: '100px',
   },
   noResultsLabel: {
-    color: theme.palette.grey[600],
+    color: symphony.palette.D600,
   },
   futureState: {
     textTransform: 'capitalize',
@@ -67,7 +67,7 @@ const styles = theme => ({
       textTransform: 'none',
     },
   },
-});
+};
 
 type Props = {
   equipment: Equipment,
@@ -116,7 +116,6 @@ const showLinksByOrder = (
 
 const AvailableLinksTable = (props: Props) => {
   const {equipment, links, selectedLink, onLinkSelected, classes} = props;
-  const {history} = useRouter();
 
   const headerRenderer = ({label}) => {
     return (
@@ -135,16 +134,6 @@ const AvailableLinksTable = (props: Props) => {
           equipment={cellData}
           size="small"
           variant="body2"
-          onParentLocationClicked={locationId =>
-            history.push(
-              `inventory/` + (locationId ? `?location=${locationId}` : ''),
-            )
-          }
-          onEquipmentClicked={equipmentId =>
-            history.push(
-              `inventory/` + (equipmentId ? `?equipment=${equipmentId}` : ''),
-            )
-          }
         />
       );
     } else {
@@ -166,8 +155,14 @@ const AvailableLinksTable = (props: Props) => {
     return (
       <div className={classes.noResultsRoot}>
         <Text variant="h6" className={classes.noResultsLabel}>
-          No available links out of
-          {` ${equipment.equipmentType.name} ${equipment.name}`}
+          {`${fbt(
+            'No available links out of ' +
+              fbt.param('equipment type name', equipment.equipmentType.name) +
+              ' ' +
+              fbt.param('equipment name', equipment.name),
+            'Message when no available links found are for a chosen equipment',
+          )}
+          `}
         </Text>
       </div>
     );
@@ -219,7 +214,7 @@ const AvailableLinksTable = (props: Props) => {
             className={classes.column}
           />
           <Column
-            label="Equipment B (Selected)"
+            label="Equipment B"
             dataKey="equipment_b"
             width={250}
             flexGrow={1}
@@ -265,7 +260,6 @@ export default withStyles(styles)(
           definition {
             id
             name
-            type
           }
         }
       }

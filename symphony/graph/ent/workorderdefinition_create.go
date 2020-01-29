@@ -12,8 +12,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // WorkOrderDefinitionCreate is the builder for creating a WorkOrderDefinition entity.
@@ -142,65 +145,92 @@ func (wodc *WorkOrderDefinitionCreate) SaveX(ctx context.Context) *WorkOrderDefi
 
 func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderDefinition, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(wodc.driver.Dialect())
-		wod     = &WorkOrderDefinition{config: wodc.config}
+		wod   = &WorkOrderDefinition{config: wodc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: workorderdefinition.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: workorderdefinition.FieldID,
+			},
+		}
 	)
-	tx, err := wodc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(workorderdefinition.Table).Default()
 	if value := wodc.create_time; value != nil {
-		insert.Set(workorderdefinition.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workorderdefinition.FieldCreateTime,
+		})
 		wod.CreateTime = *value
 	}
 	if value := wodc.update_time; value != nil {
-		insert.Set(workorderdefinition.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workorderdefinition.FieldUpdateTime,
+		})
 		wod.UpdateTime = *value
 	}
 	if value := wodc.index; value != nil {
-		insert.Set(workorderdefinition.FieldIndex, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: workorderdefinition.FieldIndex,
+		})
 		wod.Index = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(workorderdefinition.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	wod.ID = strconv.FormatInt(id, 10)
-	if len(wodc._type) > 0 {
-		for eid := range wodc._type {
-			eid, err := strconv.Atoi(eid)
-			if err != nil {
-				return nil, rollback(tx, err)
-			}
-			query, args := builder.Update(workorderdefinition.TypeTable).
-				Set(workorderdefinition.TypeColumn, eid).
-				Where(sql.EQ(workorderdefinition.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := wodc._type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorderdefinition.TypeTable,
+			Columns: []string{workorderdefinition.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workordertype.FieldID,
+				},
+			},
 		}
-	}
-	if len(wodc.project_type) > 0 {
-		for eid := range wodc.project_type {
-			eid, err := strconv.Atoi(eid)
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(workorderdefinition.ProjectTypeTable).
-				Set(workorderdefinition.ProjectTypeColumn, eid).
-				Where(sql.EQ(workorderdefinition.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if nodes := wodc.project_type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   workorderdefinition.ProjectTypeTable,
+			Columns: []string{workorderdefinition.ProjectTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: projecttype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if err := sqlgraph.CreateNode(ctx, wodc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	wod.ID = strconv.FormatInt(id, 10)
 	return wod, nil
 }

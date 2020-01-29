@@ -14,13 +14,14 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PowerSearchLocationsResultsTable_locations$ref: FragmentReference;
 declare export opaque type PowerSearchLocationsResultsTable_locations$fragmentType: PowerSearchLocationsResultsTable_locations$ref;
 export type PowerSearchLocationsResultsTable_locations = $ReadOnlyArray<{|
   +id: string,
   +name: string,
+  +externalId: ?string,
   +locationType: {|
     +id: string,
     +name: string,
@@ -54,6 +55,10 @@ export type PowerSearchLocationsResultsTable_locations = $ReadOnlyArray<{|
       +id: string,
       +name: string,
     |},
+    +serviceValue: ?{|
+      +id: string,
+      +name: string,
+    |},
     +propertyType: {|
       +id: string,
       +name: string,
@@ -83,6 +88,7 @@ export type PowerSearchLocationsResultsTable_locations$data = PowerSearchLocatio
 export type PowerSearchLocationsResultsTable_locations$key = $ReadOnlyArray<{
   +$data?: PowerSearchLocationsResultsTable_locations$data,
   +$fragmentRefs: PowerSearchLocationsResultsTable_locations$ref,
+  ...
 }>;
 */
 
@@ -174,6 +180,13 @@ return {
     (v0/*: any*/),
     (v1/*: any*/),
     {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "externalId",
+      "args": null,
+      "storageKey": null
+    },
+    {
       "kind": "LinkedField",
       "alias": null,
       "name": "locationType",
@@ -241,6 +254,16 @@ return {
           "storageKey": null,
           "args": null,
           "concreteType": "Location",
+          "plural": false,
+          "selections": (v10/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "serviceValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
           "plural": false,
           "selections": (v10/*: any*/)
         },
@@ -317,5 +340,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '94f76914b09b49d6486ef324b3aae0c3';
+(node/*: any*/).hash = '9d38c67661728822a327bdc6b1b3ce23';
 module.exports = node;

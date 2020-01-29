@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
@@ -27,7 +29,11 @@ type WorkOrderDefinitionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.WorkOrderDefinition
-	// intermediate queries.
+	// eager-loading edges.
+	withType        *WorkOrderTypeQuery
+	withProjectType *ProjectTypeQuery
+	withFKs         bool
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,35 +64,35 @@ func (wodq *WorkOrderDefinitionQuery) Order(o ...Order) *WorkOrderDefinitionQuer
 // QueryType chains the current query on the type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: wodq.config}
-	step := sql.NewStep(
-		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
-		sql.To(workordertype.Table, workordertype.FieldID),
-		sql.Edge(sql.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
+		sqlgraph.To(workordertype.Table, workordertype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
 	)
-	query.sql = sql.SetNeighbors(wodq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(wodq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProjectType chains the current query on the project_type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryProjectType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: wodq.config}
-	step := sql.NewStep(
-		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
-		sql.To(projecttype.Table, projecttype.FieldID),
-		sql.Edge(sql.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
+		sqlgraph.To(projecttype.Table, projecttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(wodq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(wodq.driver.Dialect(), step)
 	return query
 }
 
-// First returns the first WorkOrderDefinition entity in the query. Returns *ErrNotFound when no workorderdefinition was found.
+// First returns the first WorkOrderDefinition entity in the query. Returns *NotFoundError when no workorderdefinition was found.
 func (wodq *WorkOrderDefinitionQuery) First(ctx context.Context) (*WorkOrderDefinition, error) {
 	wods, err := wodq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(wods) == 0 {
-		return nil, &ErrNotFound{workorderdefinition.Label}
+		return nil, &NotFoundError{workorderdefinition.Label}
 	}
 	return wods[0], nil
 }
@@ -100,14 +106,14 @@ func (wodq *WorkOrderDefinitionQuery) FirstX(ctx context.Context) *WorkOrderDefi
 	return wod
 }
 
-// FirstID returns the first WorkOrderDefinition id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first WorkOrderDefinition id in the query. Returns *NotFoundError when no id was found.
 func (wodq *WorkOrderDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = wodq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{workorderdefinition.Label}
+		err = &NotFoundError{workorderdefinition.Label}
 		return
 	}
 	return ids[0], nil
@@ -132,9 +138,9 @@ func (wodq *WorkOrderDefinitionQuery) Only(ctx context.Context) (*WorkOrderDefin
 	case 1:
 		return wods[0], nil
 	case 0:
-		return nil, &ErrNotFound{workorderdefinition.Label}
+		return nil, &NotFoundError{workorderdefinition.Label}
 	default:
-		return nil, &ErrNotSingular{workorderdefinition.Label}
+		return nil, &NotSingularError{workorderdefinition.Label}
 	}
 }
 
@@ -157,9 +163,9 @@ func (wodq *WorkOrderDefinitionQuery) OnlyID(ctx context.Context) (id string, er
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{workorderdefinition.Label}
+		err = &NotFoundError{workorderdefinition.Label}
 	default:
-		err = &ErrNotSingular{workorderdefinition.Label}
+		err = &NotSingularError{workorderdefinition.Label}
 	}
 	return
 }
@@ -243,9 +249,31 @@ func (wodq *WorkOrderDefinitionQuery) Clone() *WorkOrderDefinitionQuery {
 		order:      append([]Order{}, wodq.order...),
 		unique:     append([]string{}, wodq.unique...),
 		predicates: append([]predicate.WorkOrderDefinition{}, wodq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: wodq.sql.Clone(),
 	}
+}
+
+//  WithType tells the query-builder to eager-loads the nodes that are connected to
+// the "type" edge. The optional arguments used to configure the query builder of the edge.
+func (wodq *WorkOrderDefinitionQuery) WithType(opts ...func(*WorkOrderTypeQuery)) *WorkOrderDefinitionQuery {
+	query := &WorkOrderTypeQuery{config: wodq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	wodq.withType = query
+	return wodq
+}
+
+//  WithProjectType tells the query-builder to eager-loads the nodes that are connected to
+// the "project_type" edge. The optional arguments used to configure the query builder of the edge.
+func (wodq *WorkOrderDefinitionQuery) WithProjectType(opts ...func(*ProjectTypeQuery)) *WorkOrderDefinitionQuery {
+	query := &ProjectTypeQuery{config: wodq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	wodq.withProjectType = query
+	return wodq
 }
 
 // GroupBy used to group vertices by one or more fields/columns.
@@ -290,45 +318,96 @@ func (wodq *WorkOrderDefinitionQuery) Select(field string, fields ...string) *Wo
 }
 
 func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderDefinition, error) {
-	rows := &sql.Rows{}
-	selector := wodq.sqlQuery()
-	if unique := wodq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*WorkOrderDefinition = []*WorkOrderDefinition{}
+		withFKs                        = wodq.withFKs
+		_spec                          = wodq.querySpec()
+	)
+	if wodq.withType != nil || wodq.withProjectType != nil {
+		withFKs = true
 	}
-	query, args := selector.Query()
-	if err := wodq.driver.Query(ctx, query, args, rows); err != nil {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, workorderdefinition.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
+		node := &WorkOrderDefinition{config: wodq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, wodq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var wods WorkOrderDefinitions
-	if err := wods.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	wods.config(wodq.config)
-	return wods, nil
+
+	if query := wodq.withType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*WorkOrderDefinition)
+		for i := range nodes {
+			if fk := nodes[i].type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workordertype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Type = n
+			}
+		}
+	}
+
+	if query := wodq.withProjectType; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*WorkOrderDefinition)
+		for i := range nodes {
+			if fk := nodes[i].project_type_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(projecttype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_type_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.ProjectType = n
+			}
+		}
+	}
+
+	return nodes, nil
 }
 
 func (wodq *WorkOrderDefinitionQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := wodq.sqlQuery()
-	unique := []string{workorderdefinition.FieldID}
-	if len(wodq.unique) > 0 {
-		unique = wodq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := wodq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := wodq.querySpec()
+	return sqlgraph.CountNodes(ctx, wodq.driver, _spec)
 }
 
 func (wodq *WorkOrderDefinitionQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -337,6 +416,42 @@ func (wodq *WorkOrderDefinitionQuery) sqlExist(ctx context.Context) (bool, error
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (wodq *WorkOrderDefinitionQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   workorderdefinition.Table,
+			Columns: workorderdefinition.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: workorderdefinition.FieldID,
+			},
+		},
+		From:   wodq.sql,
+		Unique: true,
+	}
+	if ps := wodq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := wodq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := wodq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := wodq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (wodq *WorkOrderDefinitionQuery) sqlQuery() *sql.Selector {
@@ -369,7 +484,7 @@ type WorkOrderDefinitionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -490,7 +605,7 @@ func (wodgb *WorkOrderDefinitionGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(wodgb.fields)+len(wodgb.fns))
 	columns = append(columns, wodgb.fields...)
 	for _, fn := range wodgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(wodgb.fields...)
 }
@@ -610,7 +725,7 @@ func (wods *WorkOrderDefinitionSelect) sqlScan(ctx context.Context, v interface{
 }
 
 func (wods *WorkOrderDefinitionSelect) sqlQuery() sql.Querier {
-	view := "workorderdefinition_view"
-	return sql.Dialect(wods.driver.Dialect()).
-		Select(wods.fields...).From(wods.sql.As(view))
+	selector := wods.sql
+	selector.Select(selector.Columns(wods.fields...)...)
+	return selector
 }

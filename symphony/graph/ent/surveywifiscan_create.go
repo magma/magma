@@ -12,7 +12,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 )
 
@@ -267,105 +270,172 @@ func (swfsc *SurveyWiFiScanCreate) SaveX(ctx context.Context) *SurveyWiFiScan {
 
 func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(swfsc.driver.Dialect())
-		swfs    = &SurveyWiFiScan{config: swfsc.config}
+		swfs  = &SurveyWiFiScan{config: swfsc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: surveywifiscan.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveywifiscan.FieldID,
+			},
+		}
 	)
-	tx, err := swfsc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(surveywifiscan.Table).Default()
 	if value := swfsc.create_time; value != nil {
-		insert.Set(surveywifiscan.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveywifiscan.FieldCreateTime,
+		})
 		swfs.CreateTime = *value
 	}
 	if value := swfsc.update_time; value != nil {
-		insert.Set(surveywifiscan.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveywifiscan.FieldUpdateTime,
+		})
 		swfs.UpdateTime = *value
 	}
 	if value := swfsc.ssid; value != nil {
-		insert.Set(surveywifiscan.FieldSsid, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveywifiscan.FieldSsid,
+		})
 		swfs.Ssid = *value
 	}
 	if value := swfsc.bssid; value != nil {
-		insert.Set(surveywifiscan.FieldBssid, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveywifiscan.FieldBssid,
+		})
 		swfs.Bssid = *value
 	}
 	if value := swfsc.timestamp; value != nil {
-		insert.Set(surveywifiscan.FieldTimestamp, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveywifiscan.FieldTimestamp,
+		})
 		swfs.Timestamp = *value
 	}
 	if value := swfsc.frequency; value != nil {
-		insert.Set(surveywifiscan.FieldFrequency, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveywifiscan.FieldFrequency,
+		})
 		swfs.Frequency = *value
 	}
 	if value := swfsc.channel; value != nil {
-		insert.Set(surveywifiscan.FieldChannel, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveywifiscan.FieldChannel,
+		})
 		swfs.Channel = *value
 	}
 	if value := swfsc.band; value != nil {
-		insert.Set(surveywifiscan.FieldBand, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveywifiscan.FieldBand,
+		})
 		swfs.Band = *value
 	}
 	if value := swfsc.channel_width; value != nil {
-		insert.Set(surveywifiscan.FieldChannelWidth, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveywifiscan.FieldChannelWidth,
+		})
 		swfs.ChannelWidth = *value
 	}
 	if value := swfsc.capabilities; value != nil {
-		insert.Set(surveywifiscan.FieldCapabilities, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveywifiscan.FieldCapabilities,
+		})
 		swfs.Capabilities = *value
 	}
 	if value := swfsc.strength; value != nil {
-		insert.Set(surveywifiscan.FieldStrength, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveywifiscan.FieldStrength,
+		})
 		swfs.Strength = *value
 	}
 	if value := swfsc.latitude; value != nil {
-		insert.Set(surveywifiscan.FieldLatitude, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveywifiscan.FieldLatitude,
+		})
 		swfs.Latitude = *value
 	}
 	if value := swfsc.longitude; value != nil {
-		insert.Set(surveywifiscan.FieldLongitude, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveywifiscan.FieldLongitude,
+		})
 		swfs.Longitude = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(surveywifiscan.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	swfs.ID = strconv.FormatInt(id, 10)
-	if len(swfsc.survey_question) > 0 {
-		for eid := range swfsc.survey_question {
-			eid, err := strconv.Atoi(eid)
-			if err != nil {
-				return nil, rollback(tx, err)
-			}
-			query, args := builder.Update(surveywifiscan.SurveyQuestionTable).
-				Set(surveywifiscan.SurveyQuestionColumn, eid).
-				Where(sql.EQ(surveywifiscan.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := swfsc.survey_question; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveywifiscan.SurveyQuestionTable,
+			Columns: []string{surveywifiscan.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
 		}
-	}
-	if len(swfsc.location) > 0 {
-		for eid := range swfsc.location {
-			eid, err := strconv.Atoi(eid)
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(surveywifiscan.LocationTable).
-				Set(surveywifiscan.LocationColumn, eid).
-				Where(sql.EQ(surveywifiscan.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if nodes := swfsc.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveywifiscan.LocationTable,
+			Columns: []string{surveywifiscan.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if err := sqlgraph.CreateNode(ctx, swfsc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	swfs.ID = strconv.FormatInt(id, 10)
 	return swfs, nil
 }

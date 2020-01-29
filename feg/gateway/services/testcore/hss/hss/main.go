@@ -57,14 +57,14 @@ func main() {
 		}
 	}
 	// Start diameter server
-	startedChan := make(chan struct{}, 1)
+	startedChan := make(chan string, 1)
 	go func() {
 		log.Printf("Starting home subscriber server with configs:\n\t%+v", *servicer.Config)
 		err := servicer.Start(startedChan) // blocks
 		log.Fatal(err)
 	}()
-	<-startedChan
-	log.Printf("Started home subscriber server")
+	localAddr := <-startedChan
+	log.Printf("Started home subscriber server @ %s", localAddr)
 
 	// Run the service
 	err = srv.Run()

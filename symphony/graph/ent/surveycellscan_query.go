@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -27,7 +29,11 @@ type SurveyCellScanQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyCellScan
-	// intermediate queries.
+	// eager-loading edges.
+	withSurveyQuestion *SurveyQuestionQuery
+	withLocation       *LocationQuery
+	withFKs            bool
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,35 +64,35 @@ func (scsq *SurveyCellScanQuery) Order(o ...Order) *SurveyCellScanQuery {
 // QuerySurveyQuestion chains the current query on the survey_question edge.
 func (scsq *SurveyCellScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: scsq.config}
-	step := sql.NewStep(
-		sql.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
-		sql.To(surveyquestion.Table, surveyquestion.FieldID),
-		sql.Edge(sql.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
+		sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
 	)
-	query.sql = sql.SetNeighbors(scsq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(scsq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (scsq *SurveyCellScanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: scsq.config}
-	step := sql.NewStep(
-		sql.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
 	)
-	query.sql = sql.SetNeighbors(scsq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(scsq.driver.Dialect(), step)
 	return query
 }
 
-// First returns the first SurveyCellScan entity in the query. Returns *ErrNotFound when no surveycellscan was found.
+// First returns the first SurveyCellScan entity in the query. Returns *NotFoundError when no surveycellscan was found.
 func (scsq *SurveyCellScanQuery) First(ctx context.Context) (*SurveyCellScan, error) {
 	scsSlice, err := scsq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(scsSlice) == 0 {
-		return nil, &ErrNotFound{surveycellscan.Label}
+		return nil, &NotFoundError{surveycellscan.Label}
 	}
 	return scsSlice[0], nil
 }
@@ -100,14 +106,14 @@ func (scsq *SurveyCellScanQuery) FirstX(ctx context.Context) *SurveyCellScan {
 	return scs
 }
 
-// FirstID returns the first SurveyCellScan id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first SurveyCellScan id in the query. Returns *NotFoundError when no id was found.
 func (scsq *SurveyCellScanQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = scsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{surveycellscan.Label}
+		err = &NotFoundError{surveycellscan.Label}
 		return
 	}
 	return ids[0], nil
@@ -132,9 +138,9 @@ func (scsq *SurveyCellScanQuery) Only(ctx context.Context) (*SurveyCellScan, err
 	case 1:
 		return scsSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{surveycellscan.Label}
+		return nil, &NotFoundError{surveycellscan.Label}
 	default:
-		return nil, &ErrNotSingular{surveycellscan.Label}
+		return nil, &NotSingularError{surveycellscan.Label}
 	}
 }
 
@@ -157,9 +163,9 @@ func (scsq *SurveyCellScanQuery) OnlyID(ctx context.Context) (id string, err err
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{surveycellscan.Label}
+		err = &NotFoundError{surveycellscan.Label}
 	default:
-		err = &ErrNotSingular{surveycellscan.Label}
+		err = &NotSingularError{surveycellscan.Label}
 	}
 	return
 }
@@ -243,9 +249,31 @@ func (scsq *SurveyCellScanQuery) Clone() *SurveyCellScanQuery {
 		order:      append([]Order{}, scsq.order...),
 		unique:     append([]string{}, scsq.unique...),
 		predicates: append([]predicate.SurveyCellScan{}, scsq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: scsq.sql.Clone(),
 	}
+}
+
+//  WithSurveyQuestion tells the query-builder to eager-loads the nodes that are connected to
+// the "survey_question" edge. The optional arguments used to configure the query builder of the edge.
+func (scsq *SurveyCellScanQuery) WithSurveyQuestion(opts ...func(*SurveyQuestionQuery)) *SurveyCellScanQuery {
+	query := &SurveyQuestionQuery{config: scsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	scsq.withSurveyQuestion = query
+	return scsq
+}
+
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (scsq *SurveyCellScanQuery) WithLocation(opts ...func(*LocationQuery)) *SurveyCellScanQuery {
+	query := &LocationQuery{config: scsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	scsq.withLocation = query
+	return scsq
 }
 
 // GroupBy used to group vertices by one or more fields/columns.
@@ -290,45 +318,96 @@ func (scsq *SurveyCellScanQuery) Select(field string, fields ...string) *SurveyC
 }
 
 func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan, error) {
-	rows := &sql.Rows{}
-	selector := scsq.sqlQuery()
-	if unique := scsq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*SurveyCellScan = []*SurveyCellScan{}
+		withFKs                   = scsq.withFKs
+		_spec                     = scsq.querySpec()
+	)
+	if scsq.withSurveyQuestion != nil || scsq.withLocation != nil {
+		withFKs = true
 	}
-	query, args := selector.Query()
-	if err := scsq.driver.Query(ctx, query, args, rows); err != nil {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, surveycellscan.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
+		node := &SurveyCellScan{config: scsq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, scsq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var scsSlice SurveyCellScans
-	if err := scsSlice.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	scsSlice.config(scsq.config)
-	return scsSlice, nil
+
+	if query := scsq.withSurveyQuestion; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*SurveyCellScan)
+		for i := range nodes {
+			if fk := nodes[i].survey_question_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(surveyquestion.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.SurveyQuestion = n
+			}
+		}
+	}
+
+	if query := scsq.withLocation; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*SurveyCellScan)
+		for i := range nodes {
+			if fk := nodes[i].location_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
+	}
+
+	return nodes, nil
 }
 
 func (scsq *SurveyCellScanQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := scsq.sqlQuery()
-	unique := []string{surveycellscan.FieldID}
-	if len(scsq.unique) > 0 {
-		unique = scsq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := scsq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := scsq.querySpec()
+	return sqlgraph.CountNodes(ctx, scsq.driver, _spec)
 }
 
 func (scsq *SurveyCellScanQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -337,6 +416,42 @@ func (scsq *SurveyCellScanQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (scsq *SurveyCellScanQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   surveycellscan.Table,
+			Columns: surveycellscan.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveycellscan.FieldID,
+			},
+		},
+		From:   scsq.sql,
+		Unique: true,
+	}
+	if ps := scsq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := scsq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := scsq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := scsq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (scsq *SurveyCellScanQuery) sqlQuery() *sql.Selector {
@@ -369,7 +484,7 @@ type SurveyCellScanGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -490,7 +605,7 @@ func (scsgb *SurveyCellScanGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(scsgb.fields)+len(scsgb.fns))
 	columns = append(columns, scsgb.fields...)
 	for _, fn := range scsgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(scsgb.fields...)
 }
@@ -610,7 +725,7 @@ func (scss *SurveyCellScanSelect) sqlScan(ctx context.Context, v interface{}) er
 }
 
 func (scss *SurveyCellScanSelect) sqlQuery() sql.Querier {
-	view := "surveycellscan_view"
-	return sql.Dialect(scss.driver.Dialect()).
-		Select(scss.fields...).From(scss.sql.As(view))
+	selector := scss.sql
+	selector.Select(selector.Columns(scss.fields...)...)
+	return selector
 }

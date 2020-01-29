@@ -9,6 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import os
 import time
+import ctypes
 
 import s1ap_types
 from integ_tests.common.magmad_client import MagmadServiceGrpc
@@ -46,8 +47,9 @@ class TestWrapper(object):
         magmad_client = MagmadServiceGrpc()
         self._sub_util = SubscriberUtil(subscriber_client)
         # Remove existing subscribers to start
-        self._sub_util.clean_up()
+        self._sub_util.cleanup()
         self._mobility_util = MobilityUtil(mobility_client)
+        self._mobility_util.cleanup()
         self._magmad_util = MagmadUtil(magmad_client)
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()
@@ -285,8 +287,9 @@ class TestWrapper(object):
         print("************************* send SCTP SHUTDOWN")
         self._s1_util.issue_cmd(s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
         self._s1_util.cleanup()
-        self._sub_util.clean_up()
+        self._sub_util.cleanup()
         self._trf_util.cleanup()
+        self._mobility_util.cleanup()
 
         # Cloud cleanup needs to happen after cleanup for
         # subscriber util and mobility util
@@ -343,3 +346,20 @@ class TestWrapper(object):
             s1ap_types.tfwCmd.UE_DEACTIVATE_BER_ACC, deact_ded_bearer_acc
         )
         print("************* Sending deactivate EPS bearer context accept\n")
+
+    def sendPdnConnectivityReq(self, ue_id, apn):
+        req = s1ap_types.uepdnConReq_t()
+        req.ue_Id = ue_id
+        # Initial Request
+        req.reqType = 1
+        req.pdnType_pr.pres = 1
+        # PDN Type = IPv4
+        req.pdnType_pr.pdn_type = 1
+        req.pdnAPN_pr.pres = 1
+        req.pdnAPN_pr.len = len(apn)
+        req.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(
+            *[ctypes.c_ubyte(ord(c)) for c in apn[:100]]
+        )
+        self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
+
+        print("************* Sending Standalone PDN Connectivity Request\n")

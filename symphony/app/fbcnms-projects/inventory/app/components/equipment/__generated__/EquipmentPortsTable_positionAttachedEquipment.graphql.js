@@ -16,7 +16,8 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_positionAttachedEquipment$ref: FragmentReference;
@@ -31,7 +32,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
       +name: string,
       +index: ?number,
       +visibleLabel: ?string,
-      +type: string,
       +portType: ?{|
         +id: string,
         +name: string,
@@ -81,7 +81,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +id: string,
             +name: string,
@@ -99,7 +98,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +linkPropertyTypes: $ReadOnlyArray<?{|
               +id: string,
@@ -131,7 +129,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +bandwidth: ?string,
               +portType: ?{|
                 +id: string,
@@ -173,9 +170,14 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
           +id: string,
           +name: string,
         |},
+        +serviceValue: ?{|
+          +id: string,
+          +name: string,
+        |},
       |}>,
       +services: $ReadOnlyArray<?{|
-        +id: string
+        +id: string,
+        +name: string,
       |}>,
     |},
     +properties: $ReadOnlyArray<{|
@@ -205,6 +207,16 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
         +id: string,
         +name: string,
       |},
+      +serviceValue: ?{|
+        +id: string,
+        +name: string,
+      |},
+    |}>,
+    +serviceEndpoints: $ReadOnlyArray<{|
+      +role: ServiceEndpointRole,
+      +service: {|
+        +name: string
+      |},
     |}>,
   |}>,
   +equipmentType: {|
@@ -212,7 +224,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
       +id: string,
       +name: string,
       +visibleLabel: ?string,
-      +type: string,
       +bandwidth: ?string,
     |}>
   |},
@@ -222,6 +233,7 @@ export type EquipmentPortsTable_positionAttachedEquipment$data = EquipmentPortsT
 export type EquipmentPortsTable_positionAttachedEquipment$key = {
   +$data?: EquipmentPortsTable_positionAttachedEquipment$data,
   +$fragmentRefs: EquipmentPortsTable_positionAttachedEquipment$ref,
+  ...
 };
 */
 
@@ -449,6 +461,16 @@ v22 = {
       "concreteType": "Location",
       "plural": false,
       "selections": (v18/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v18/*: any*/)
     }
   ]
 };
@@ -484,7 +506,6 @@ return {
             (v1/*: any*/),
             (v2/*: any*/),
             (v3/*: any*/),
-            (v4/*: any*/),
             {
               "kind": "LinkedField",
               "alias": null,
@@ -545,7 +566,6 @@ return {
                     (v0/*: any*/),
                     (v1/*: any*/),
                     (v3/*: any*/),
-                    (v4/*: any*/),
                     (v19/*: any*/),
                     (v20/*: any*/)
                   ]
@@ -587,7 +607,6 @@ return {
                     (v0/*: any*/),
                     (v1/*: any*/),
                     (v3/*: any*/),
-                    (v4/*: any*/),
                     {
                       "kind": "LinkedField",
                       "alias": null,
@@ -637,7 +656,6 @@ return {
                             (v0/*: any*/),
                             (v1/*: any*/),
                             (v3/*: any*/),
-                            (v4/*: any*/),
                             (v20/*: any*/),
                             (v19/*: any*/)
                           ]
@@ -681,13 +699,41 @@ return {
               "args": null,
               "concreteType": "Service",
               "plural": true,
-              "selections": [
-                (v0/*: any*/)
-              ]
+              "selections": (v18/*: any*/)
             }
           ]
         },
-        (v22/*: any*/)
+        (v22/*: any*/),
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "serviceEndpoints",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "ServiceEndpoint",
+          "plural": true,
+          "selections": [
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "role",
+              "args": null,
+              "storageKey": null
+            },
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "service",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "Service",
+              "plural": false,
+              "selections": [
+                (v1/*: any*/)
+              ]
+            }
+          ]
+        }
       ]
     },
     {
@@ -711,7 +757,6 @@ return {
             (v0/*: any*/),
             (v1/*: any*/),
             (v3/*: any*/),
-            (v4/*: any*/),
             (v20/*: any*/)
           ]
         }
@@ -721,5 +766,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'e273a707bab99a09a4e85c27c17bc387';
+(node/*: any*/).hash = '2b141397ce0b3ae9eba21ce5f801f010';
 module.exports = node;

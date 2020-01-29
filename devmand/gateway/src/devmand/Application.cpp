@@ -19,9 +19,9 @@
 #include <folly/json.h>
 
 #include <devmand/Config.h>
-#include <devmand/ErrorHandler.h>
 #include <devmand/channels/ping/Engine.h>
 #include <devmand/devices/Device.h>
+#include <devmand/error/ErrorHandler.h>
 #include <devmand/utils/LifetimeTracker.h>
 
 using namespace std::chrono_literals;
@@ -43,12 +43,12 @@ Application::Application()
 void Application::init() {
   ErrorHandler::executeWithCatch(
       [this]() -> void {
+        cliEngine = addEngine<channels::cli::Engine>();
         snmpEngine = addEngine<channels::snmp::Engine>(eventBase, name);
         pingEngine =
             addEngine<channels::ping::Engine>(eventBase, IPVersion::v4);
         pingEngineIpv6 =
             addEngine<channels::ping::Engine>(eventBase, IPVersion::v6);
-        cliEngine = addEngine<channels::cli::Engine>();
       },
       [this]() { this->statusCode = EXIT_FAILURE; });
 }
@@ -97,6 +97,13 @@ void Application::pollDevices() {
   }
 }
 
+void Application::tryToApplyRunningDatastoreToDevices() {
+  for (auto& device : devices) {
+    LOG(INFO) << "About to apply running datastore to device " << device.first;
+    device.second->tryToApplyRunningDatastore();
+  }
+}
+
 void Application::doDebug() {
   LOG(INFO) << "Debug Information";
 
@@ -105,10 +112,10 @@ void Application::doDebug() {
     LOG(INFO) << "\t\t" << engine->getName()
               << ": iterations = " << engine->getNumIterations()
               << ", requests = " << engine->getNumRequests();
-    setGauge(
+    MetricSink::setGauge(
         folly::sformat("channel.{}.engine.iterations", engine->getName()),
         engine->getNumIterations());
-    setGauge(
+    MetricSink::setGauge(
         folly::sformat("channel.{}.engine.requests", engine->getName()),
         engine->getNumRequests());
   }
@@ -117,13 +124,13 @@ void Application::doDebug() {
   for (auto& device : devices) {
     LOG(INFO) << "\t\t" << device.second->getId();
   }
-  setGauge("device.count", devices.size());
+  MetricSink::setGauge("device.count", devices.size());
 
-  LOG(INFO) << "\tLiving State Objects: "
-            << utils::LifetimeTracker<devices::State>::getLivingCount();
-  setGauge(
+  LOG(INFO) << "\tLiving Datastore Objects: "
+            << utils::LifetimeTracker<devices::Datastore>::getLivingCount();
+  MetricSink::setGauge(
       "device.living_state_objects",
-      utils::LifetimeTracker<devices::State>::getLivingCount());
+      utils::LifetimeTracker<devices::Datastore>::getLivingCount());
 }
 
 UnifiedView Application::getUnifiedView() {
@@ -174,6 +181,9 @@ void Application::run() {
     // TODO move this to devices
     scheduleEvery(
         [this]() { pollDevices(); }, std::chrono::seconds(FLAGS_poll_interval));
+    scheduleEvery(
+        [this]() { tryToApplyRunningDatastoreToDevices(); },
+        std::chrono::seconds(FLAGS_poll_interval));
 
     if (FLAGS_debug_print_interval != 0) {
       scheduleEvery(
@@ -181,11 +191,11 @@ void Application::run() {
           std::chrono::seconds(FLAGS_debug_print_interval));
     }
 
-    setGauge("running", 1);
+    MetricSink::setGauge("running", 1);
 
     eventBase.loopForever();
 
-    setGauge("running", 0);
+    MetricSink::setGauge("running", 0);
 
     for (auto& service : services) {
       service->stop();
@@ -205,18 +215,19 @@ int Application::status() const {
 
 void Application::add(const cartography::DeviceConfig& deviceConfig) {
   ErrorHandler::executeWithCatch([this, &deviceConfig]() {
-    add(deviceFactory.createDevice(deviceConfig));
-    devices[deviceConfig.id]->applyConfig(deviceConfig.yangConfig);
+    addDevice(deviceFactory.createDevice(deviceConfig));
+    devices[deviceConfig.id]->setRunningDatastore(deviceConfig.yangConfig);
   });
 }
 
 void Application::del(const cartography::DeviceConfig& deviceConfig) {
+  LOG(INFO) << "deleting " << deviceConfig.id;
   if (devices.erase(deviceConfig.id) != 1) {
     LOG(ERROR) << "Failed to delete device " << deviceConfig.id;
   }
 }
 
-void Application::add(std::shared_ptr<devices::Device>&& device) {
+void Application::addDevice(std::shared_ptr<devices::Device>&& device) {
   ErrorHandler::executeWithCatch(
       [this, &device]() {
         devices.emplace(
@@ -226,39 +237,7 @@ void Application::add(std::shared_ptr<devices::Device>&& device) {
       [this]() { this->statusCode = EXIT_FAILURE; });
 }
 
-void Application::setGauge(const std::string& key, int value) {
-  setGauge(key, static_cast<double>(value), "", "");
-}
-
-void Application::setGauge(const std::string& key, size_t value) {
-  setGauge(key, static_cast<double>(value), "", "");
-}
-
-void Application::setGauge(const std::string& key, unsigned int value) {
-  setGauge(key, static_cast<double>(value), "", "");
-}
-
-void Application::setGauge(
-    const std::string& key,
-    long long unsigned int value) {
-  setGauge(key, static_cast<double>(value), "", "");
-}
-
-void Application::setGauge(const std::string& key, double value) {
-  setGauge(key, value, "", "");
-}
-
-void Application::setGauge(
-    const std::string& key,
-    double value,
-    const std::string& label_name,
-    const std::string& label_value) {
-  for (auto& service : services) {
-    service->setGauge(key, value, label_name, label_value);
-  }
-}
-
-void Application::add(std::unique_ptr<Service>&& service) {
+void Application::addService(std::unique_ptr<Service>&& service) {
   ErrorHandler::executeWithCatch(
       [this, &service]() {
         services.emplace_back(std::forward<std::unique_ptr<Service>>(service));
@@ -287,12 +266,18 @@ folly::EventBase& Application::getEventBase() {
   return eventBase;
 }
 
-DhcpdConfig& Application::getDhcpdConfig() {
-  return dhcpdConfig;
-}
-
 syslog::Manager& Application::getSyslogManager() {
   return syslogManager;
+}
+
+void Application::setGauge(
+    const std::string& key,
+    double value,
+    const std::string& labelName,
+    const std::string& labelValue) {
+  for (auto& service : services) {
+    service->setGauge(key, value, labelName, labelValue);
+  }
 }
 
 } // namespace devmand

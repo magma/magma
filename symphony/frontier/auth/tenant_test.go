@@ -10,9 +10,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
 	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/enttest"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -83,10 +83,10 @@ func TestTenantHandler(t *testing.T) {
 	t.Run("LoadError", func(t *testing.T) {
 		var m testHandler
 		m.On("Load", mock.Anything, "test").
-			Return(nil, &ent.ErrNotFound{}).
+			Return(nil, &ent.NotFoundError{}).
 			Once()
 		m.On("Load", mock.Anything, "test").
-			Return(nil, &ent.ErrNotSingular{}).
+			Return(nil, &ent.NotSingularError{}).
 			Once()
 		defer m.AssertExpectations(t)
 		h := TenantHandler(&m, &m)

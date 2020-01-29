@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/ctxgroup"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 
 	"github.com/cenkalti/backoff"
 	"github.com/golang/protobuf/ptypes/wrappers"

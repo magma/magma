@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type SurveyQuestionType = "BOOL" | "CELLULAR" | "COORDS" | "DATE" | "EMAIL" | "FLOAT" | "INTEGER" | "PHONE" | "PHOTO" | "TEXT" | "TEXTAREA" | "WIFI" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type AddEditLocationTypeCard_editingLocationType$ref: FragmentReference;
@@ -61,6 +61,7 @@ export type AddEditLocationTypeCard_editingLocationType$data = AddEditLocationTy
 export type AddEditLocationTypeCard_editingLocationType$key = {
   +$data?: AddEditLocationTypeCard_editingLocationType$data,
   +$fragmentRefs: AddEditLocationTypeCard_editingLocationType$ref,
+  ...
 };
 */
 

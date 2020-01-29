@@ -9,7 +9,7 @@
         "@fbcnms/babel-register": "^0.1.0",
         "core-js": "^2.6.9",
         "graphql": "^14.5.8",
-        "relay-compiler": "^7.0.0",
+        "relay-compiler": "^8.0.0",
         "yargs": "^13.3.0"
     }
 }

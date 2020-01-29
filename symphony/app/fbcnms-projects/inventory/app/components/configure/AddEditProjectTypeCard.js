@@ -248,6 +248,7 @@ const AddEditProjectTypeCard = (props: Props) => {
       />
       <ExpandingPanel title="Properties" className={classes.panel}>
         <PropertyTypeTable
+          supportDelete={true}
           propertyTypes={(projectTypeInput.properties ?? []: any)}
           onPropertiesChanged={properties => {
             setProjectTypeInput(
@@ -291,6 +292,7 @@ export default createFragmentContainer(AddEditProjectTypeCard, {
         isEditable
         isMandatory
         isInstanceProperty
+        isDeleted
       }
     }
   `,

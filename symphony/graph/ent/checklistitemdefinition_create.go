@@ -11,8 +11,10 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // CheckListItemDefinitionCreate is the builder for creating a CheckListItemDefinition entity.
@@ -127,58 +129,85 @@ func (clidc *CheckListItemDefinitionCreate) SaveX(ctx context.Context) *CheckLis
 
 func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*CheckListItemDefinition, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(clidc.driver.Dialect())
-		clid    = &CheckListItemDefinition{config: clidc.config}
+		clid  = &CheckListItemDefinition{config: clidc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: checklistitemdefinition.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: checklistitemdefinition.FieldID,
+			},
+		}
 	)
-	tx, err := clidc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(checklistitemdefinition.Table).Default()
 	if value := clidc.title; value != nil {
-		insert.Set(checklistitemdefinition.FieldTitle, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldTitle,
+		})
 		clid.Title = *value
 	}
 	if value := clidc._type; value != nil {
-		insert.Set(checklistitemdefinition.FieldType, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldType,
+		})
 		clid.Type = *value
 	}
 	if value := clidc.index; value != nil {
-		insert.Set(checklistitemdefinition.FieldIndex, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldIndex,
+		})
 		clid.Index = *value
 	}
 	if value := clidc.enum_values; value != nil {
-		insert.Set(checklistitemdefinition.FieldEnumValues, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldEnumValues,
+		})
 		clid.EnumValues = value
 	}
 	if value := clidc.help_text; value != nil {
-		insert.Set(checklistitemdefinition.FieldHelpText, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldHelpText,
+		})
 		clid.HelpText = value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(checklistitemdefinition.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	clid.ID = strconv.FormatInt(id, 10)
-	if len(clidc.work_order_type) > 0 {
-		for eid := range clidc.work_order_type {
-			eid, err := strconv.Atoi(eid)
-			if err != nil {
-				return nil, rollback(tx, err)
-			}
-			query, args := builder.Update(checklistitemdefinition.WorkOrderTypeTable).
-				Set(checklistitemdefinition.WorkOrderTypeColumn, eid).
-				Where(sql.EQ(checklistitemdefinition.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := clidc.work_order_type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistitemdefinition.WorkOrderTypeTable,
+			Columns: []string{checklistitemdefinition.WorkOrderTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workordertype.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, clidc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	clid.ID = strconv.FormatInt(id, 10)
 	return clid, nil
 }

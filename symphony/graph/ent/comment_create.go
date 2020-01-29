@@ -12,7 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 )
 
@@ -95,38 +96,54 @@ func (cc *CommentCreate) SaveX(ctx context.Context) *Comment {
 
 func (cc *CommentCreate) sqlSave(ctx context.Context) (*Comment, error) {
 	var (
-		builder = sql.Dialect(cc.driver.Dialect())
-		c       = &Comment{config: cc.config}
+		c     = &Comment{config: cc.config}
+		_spec = &sqlgraph.CreateSpec{
+			Table: comment.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: comment.FieldID,
+			},
+		}
 	)
-	tx, err := cc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(comment.Table).Default()
 	if value := cc.create_time; value != nil {
-		insert.Set(comment.FieldCreateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: comment.FieldCreateTime,
+		})
 		c.CreateTime = *value
 	}
 	if value := cc.update_time; value != nil {
-		insert.Set(comment.FieldUpdateTime, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: comment.FieldUpdateTime,
+		})
 		c.UpdateTime = *value
 	}
 	if value := cc.author_name; value != nil {
-		insert.Set(comment.FieldAuthorName, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: comment.FieldAuthorName,
+		})
 		c.AuthorName = *value
 	}
 	if value := cc.text; value != nil {
-		insert.Set(comment.FieldText, *value)
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: comment.FieldText,
+		})
 		c.Text = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(comment.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	c.ID = strconv.FormatInt(id, 10)
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, cc.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := _spec.ID.Value.(int64)
+	c.ID = strconv.FormatInt(id, 10)
 	return c, nil
 }

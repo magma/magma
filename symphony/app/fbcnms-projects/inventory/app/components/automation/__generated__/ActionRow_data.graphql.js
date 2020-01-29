@@ -15,6 +15,7 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 export type ActionID = "magma_reboot_node" | "%future added value";
+export type ActionsDataType = "string" | "stringArray" | "%future added value";
 export type TriggerID = "magma_alert" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ActionRow_data$ref: FragmentReference;
@@ -23,7 +24,7 @@ export type ActionRow_data = {|
   +triggerID: TriggerID,
   +supportedActions: $ReadOnlyArray<?{|
     +actionID: ActionID,
-    +dataType: string,
+    +dataType: ActionsDataType,
     +description: string,
   |}>,
   +$refType: ActionRow_data$ref,
@@ -32,6 +33,7 @@ export type ActionRow_data$data = ActionRow_data;
 export type ActionRow_data$key = {
   +$data?: ActionRow_data$data,
   +$fragmentRefs: ActionRow_data$ref,
+  ...
 };
 */
 

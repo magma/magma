@@ -16,6 +16,7 @@
 #include <folly/Singleton.h>
 #include <folly/executors/IOThreadPoolExecutor.h>
 #include <folly/futures/Future.h>
+#include <folly/futures/ThreadWheelTimekeeper.h>
 #include <gtest/gtest.h>
 #include <chrono>
 #include <ctime>
@@ -40,6 +41,8 @@ static const shared_ptr<IOThreadPoolExecutor> executor =
 class SshSessionTest : public ::testing::Test {
  protected:
   shared_ptr<server> ssh;
+  shared_ptr<folly::ThreadWheelTimekeeper> timekeeper =
+      make_shared<ThreadWheelTimekeeper>();
 
   void SetUp() override {
     devmand::test::utils::log::initLog();
@@ -56,7 +59,7 @@ TEST_F(SshSessionTest, sessionStopReading) {
   atomic_bool exceptionCaught(false);
   {
     const shared_ptr<SshSessionAsync>& session =
-        make_shared<SshSessionAsync>("testConn", executor);
+        make_shared<SshSessionAsync>("testConn", executor, timekeeper);
 
     session->openShell("127.0.0.1", 9999, "cisco", "cisco").get();
 
@@ -89,7 +92,7 @@ TEST_F(SshSessionTest, sessionWriteThenDestruct) {
   evthread_use_pthreads();
 
   const shared_ptr<SshSessionAsync>& session =
-      make_shared<SshSessionAsync>("testConn", executor);
+      make_shared<SshSessionAsync>("testConn", executor, timekeeper);
 
   session->openShell("127.0.0.1", 9999, "cisco", "cisco").get();
 
@@ -106,7 +109,7 @@ TEST_F(SshSessionTest, sessionWriteThenDestruct) {
 
 TEST_F(SshSessionTest, sessionStop) {
   const shared_ptr<SshSessionAsync>& session =
-      make_shared<SshSessionAsync>("testConn", executor);
+      make_shared<SshSessionAsync>("testConn", executor, timekeeper);
 
   session->openShell("127.0.0.1", 9999, "cisco", "cisco").get();
 

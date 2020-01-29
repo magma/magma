@@ -7,7 +7,7 @@
 
 #include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
-#include <devmand/devices/State.h>
+#include <devmand/devices/Datastore.h>
 #include <devmand/devices/cli/ModelRegistry.h>
 #include <devmand/devices/cli/ParsingUtils.h>
 #include <devmand/devices/cli/StructuredUbntDevice.h>
@@ -27,10 +27,6 @@ namespace cli {
 
 using namespace devmand::channels::cli;
 using namespace std;
-
-// TODO get out of here, this will be a shared single instance for all
-// structured devices
-auto mreg = std::unique_ptr<ModelRegistry>(new ModelRegistry());
 
 using Nis = openconfig::openconfig_network_instance::NetworkInstances;
 using Ni = Nis::NetworkInstance;
@@ -52,7 +48,7 @@ using folly::dynamic;
 static WriteCommand createInterfaceCommand(string name, bool enabled) {
   string shutdownCmd = enabled ? "no shutdown" : "shutdown";
   return WriteCommand::create(
-      "configure\ninterface " + name + "\n" + shutdownCmd + "\nend");
+      "configure\ninterface " + name + "\n" + shutdownCmd + "\nend\n");
 }
 
 static const auto shutdown = regex("shutdown");
@@ -303,18 +299,28 @@ unique_ptr<devices::Device> StructuredUbntDevice::createDeviceWithEngine(
   const std::shared_ptr<Channel>& channel = std::make_shared<Channel>(
       deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache));
 
-  return unique_ptr<StructuredUbntDevice>(
-      new StructuredUbntDevice(app, deviceConfig.id, channel, cmdCache));
+  return std::make_unique<StructuredUbntDevice>(
+      app,
+      deviceConfig.id,
+      deviceConfig.readonly,
+      channel,
+      engine.getModelRegistry(),
+      cmdCache);
 }
 
 StructuredUbntDevice::StructuredUbntDevice(
     Application& application,
     const Id id_,
+    bool readonly_,
     const shared_ptr<Channel> _channel,
+    const std::shared_ptr<ModelRegistry> _mreg,
     const shared_ptr<CliCache> _cmdCache)
-    : Device(application, id_, true), channel(_channel), cmdCache(_cmdCache) {}
+    : Device(application, id_, readonly_),
+      channel(_channel),
+      cmdCache(_cmdCache),
+      mreg(_mreg) {}
 
-void StructuredUbntDevice::setConfig(const dynamic& config) {
+void StructuredUbntDevice::setIntendedDatastore(const dynamic& config) {
   const string& json = folly::toJson(config);
   auto& bundle = mreg->getBundle(Model::OPENCONFIG_0_1_6);
   const shared_ptr<OpenconfigInterfaces>& ydkModel =
@@ -334,18 +340,17 @@ void StructuredUbntDevice::setConfig(const dynamic& config) {
         openConfig->enabled.get(); // TODO YLeaf does not support bool
     string name = openConfig->name;
     channel->executeWrite(createInterfaceCommand(name, enabled == "true"));
-    return;
   }
 }
 
-shared_ptr<State> StructuredUbntDevice::getState() {
+shared_ptr<Datastore> StructuredUbntDevice::getOperationalDatastore() {
   MLOG(MINFO) << "[" << id << "] "
               << "Retrieving state";
 
   // Reset cache
   cmdCache->wlock()->clear();
 
-  auto state = State::make(*reinterpret_cast<MetricSink*>(&app), getId());
+  auto state = Datastore::make(*reinterpret_cast<MetricSink*>(&app), getId());
   state->setStatus(true);
 
   auto& bundle = mreg->getBundle(Model::OPENCONFIG_0_1_6);

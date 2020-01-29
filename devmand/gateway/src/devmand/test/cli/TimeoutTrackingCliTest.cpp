@@ -34,8 +34,8 @@ using namespace devmand::channels::cli;
 using devmand::Application;
 using devmand::cartography::ChannelConfig;
 using devmand::cartography::DeviceConfig;
+using devmand::devices::Datastore;
 using devmand::devices::Device;
-using devmand::devices::State;
 using devmand::test::utils::cli::AsyncCli;
 using devmand::test::utils::cli::EchoCli;
 using folly::CPUThreadPoolExecutor;
@@ -67,6 +67,17 @@ static shared_ptr<TimeoutTrackingCli> getCli(shared_ptr<Cli> delegate) {
       make_shared<CPUThreadPoolExecutor>(1),
       timeout);
   return cli;
+}
+
+TEST_F(TimeoutCliTest, regularTimeout) {
+  shared_ptr<AsyncCli> delegate = getMockCli<EchoCli>(3, testExec);
+  auto testedCli = getCli(delegate);
+
+  SemiFuture<string> future =
+      testedCli->executeRead(ReadCommand::create("not returning"));
+
+  EXPECT_THROW(
+      move(future).via(testExec.get()).get(10s), CommandTimeoutException);
 }
 
 TEST_F(TimeoutCliTest, cleanDestructOnTimeout) {

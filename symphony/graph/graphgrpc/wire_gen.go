@@ -11,16 +11,26 @@ package graphgrpc
 
 import (
 	"database/sql"
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/actions/action/magmarebootnode"
+	"github.com/facebookincubator/symphony/pkg/actions/executor"
+	"github.com/facebookincubator/symphony/pkg/actions/trigger/magmaalert"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"google.golang.org/grpc"
+	"net/http"
 )
 
 // Injectors from wire.go:
 
 func NewServer(cfg Config) (*grpc.Server, func(), error) {
+	mySQLTenancy := cfg.Tenancy
 	db := cfg.DB
 	logger := cfg.Logger
-	server, cleanup, err := newServer(db, logger)
+	config := cfg.Orc8r
+	client := newOrc8rClient(config)
+	registry := newActionsRegistry(client)
+	server, cleanup, err := newServer(mySQLTenancy, db, logger, registry)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -33,6 +43,20 @@ func NewServer(cfg Config) (*grpc.Server, func(), error) {
 
 // Config defines the grpc server config.
 type Config struct {
-	DB     *sql.DB
-	Logger log.Logger
+	DB      *sql.DB
+	Logger  log.Logger
+	Orc8r   orc8r.Config
+	Tenancy *viewer.MySQLTenancy
+}
+
+func newOrc8rClient(config orc8r.Config) *http.Client {
+	client, _ := orc8r.NewClient(config)
+	return client
+}
+
+func newActionsRegistry(orc8rClient *http.Client) *executor.Registry {
+	registry := executor.NewRegistry()
+	registry.MustRegisterTrigger(magmaalert.New())
+	registry.MustRegisterAction(magmarebootnode.New(orc8rClient))
+	return registry
 }

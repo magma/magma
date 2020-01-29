@@ -14,8 +14,10 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
+type CommentsBox_comments$ref = any;
+type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type ProjectWorkOrdersList_workOrders$ref = any;
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ProjectDetails_project$ref: FragmentReference;
 declare export opaque type ProjectDetails_project$fragmentType: ProjectDetails_project$ref;
@@ -29,18 +31,15 @@ export type ProjectDetails_project = {|
     +id: string,
   |},
   +location: ?{|
-    +name: string,
     +id: string,
+    +name: string,
     +latitude: number,
     +longitude: number,
     +locationType: {|
       +mapType: ?string,
       +mapZoomLevel: ?number,
     |},
-    +locationHierarchy: $ReadOnlyArray<{|
-      +id: string,
-      +name: string,
-    |}>,
+    +$fragmentRefs: LocationBreadcrumbsTitle_locationDetails$ref,
   |},
   +properties: $ReadOnlyArray<{|
     +id: string,
@@ -52,6 +51,14 @@ export type ProjectDetails_project = {|
     +longitudeValue: ?number,
     +rangeFromValue: ?number,
     +rangeToValue: ?number,
+    +equipmentValue: ?{|
+      +id: string,
+      +name: string,
+    |},
+    +locationValue: ?{|
+      +id: string,
+      +name: string,
+    |},
     +propertyType: {|
       +id: string,
       +name: string,
@@ -72,12 +79,16 @@ export type ProjectDetails_project = {|
   +workOrders: $ReadOnlyArray<{|
     +$fragmentRefs: ProjectWorkOrdersList_workOrders$ref
   |}>,
+  +comments: $ReadOnlyArray<?{|
+    +$fragmentRefs: CommentsBox_comments$ref
+  |}>,
   +$refType: ProjectDetails_project$ref,
 |};
 export type ProjectDetails_project$data = ProjectDetails_project;
 export type ProjectDetails_project$key = {
   +$data?: ProjectDetails_project$data,
   +$fragmentRefs: ProjectDetails_project$ref,
+  ...
 };
 */
 
@@ -152,7 +163,11 @@ v9 = {
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
-};
+},
+v10 = [
+  (v0/*: any*/),
+  (v1/*: any*/)
+];
 return {
   "kind": "Fragment",
   "name": "ProjectDetails_project",
@@ -198,8 +213,8 @@ return {
       "concreteType": "Location",
       "plural": false,
       "selections": [
-        (v1/*: any*/),
         (v0/*: any*/),
+        (v1/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -240,17 +255,9 @@ return {
           ]
         },
         {
-          "kind": "LinkedField",
-          "alias": null,
-          "name": "locationHierarchy",
-          "storageKey": null,
-          "args": null,
-          "concreteType": "Location",
-          "plural": true,
-          "selections": [
-            (v0/*: any*/),
-            (v1/*: any*/)
-          ]
+          "kind": "FragmentSpread",
+          "name": "LocationBreadcrumbsTitle_locationDetails",
+          "args": null
         }
       ]
     },
@@ -272,6 +279,26 @@ return {
         (v7/*: any*/),
         (v8/*: any*/),
         (v9/*: any*/),
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "equipmentValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Equipment",
+          "plural": false,
+          "selections": (v10/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "locationValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Location",
+          "plural": false,
+          "selections": (v10/*: any*/)
+        },
         {
           "kind": "LinkedField",
           "alias": null,
@@ -338,10 +365,26 @@ return {
           "args": null
         }
       ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "comments",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Comment",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "FragmentSpread",
+          "name": "CommentsBox_comments",
+          "args": null
+        }
+      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '53419ebd7197ae2072499afc1f0dd17e';
+(node/*: any*/).hash = '3ca0e55ae3c152fb023a526a70343fd9';
 module.exports = node;

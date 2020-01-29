@@ -60,12 +60,15 @@ class AccessControlTestLTE(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.AccessControl,
-                  PipelinedController.Testing, ],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.AccessControl:
                     access_control_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'setup_type': 'LTE',
@@ -89,7 +92,8 @@ class AccessControlTestLTE(unittest.TestCase):
                             'ip': cls.BOTH_DIR_TEST_IP,
                         },
                     ]
-                }
+                },
+                'clean_restart': True,
             },
             mconfig=PipelineD(
                 allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
@@ -321,12 +325,15 @@ class AccessControlTestCWF(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.AccessControl,
-                  PipelinedController.Testing, ],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.AccessControl:
                     access_control_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'setup_type': 'CWF',
@@ -336,6 +343,7 @@ class AccessControlTestCWF(unittest.TestCase):
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'enable_queue_pgm': False,
+                'clean_restart': True,
                 'access_control': {
                     'ip_blacklist': [
                         {
@@ -353,7 +361,8 @@ class AccessControlTestCWF(unittest.TestCase):
                 }
             },
             mconfig=PipelineD(
-                allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
+                allowed_gre_peers=[{'ip': '2.2.2.2/24'},
+                                   {'ip': '1.2.3.4/24', 'key': 123}],
             ),
             loop=None,
             service_manager=cls.service_manager,

@@ -9,7 +9,6 @@ syntax = "proto3";
 
 import "orc8r/protos/common.proto";
 import "orc8r/protos/mconfig.proto";
-import "orc8r/protos/service303.proto";
 import "google/protobuf/struct.proto";
 
 package magma.orc8r;

@@ -33,6 +33,7 @@ export type CheckListItem_item$data = CheckListItem_item;
 export type CheckListItem_item$key = {
   +$data?: CheckListItem_item$data,
   +$fragmentRefs: CheckListItem_item$ref,
+  ...
 };
 */
 

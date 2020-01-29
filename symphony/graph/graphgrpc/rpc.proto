@@ -27,3 +27,24 @@ message Tenant {
 message TenantList {
     repeated Tenant tenants = 1;
 }
+
+service ActionsAlertService {
+    rpc Trigger(AlertPayload) returns (ExecutionResult);
+}
+
+message AlertPayload {
+    string tenantID = 1;
+    string alertname = 2;
+    string networkID = 3;
+    map<string, string> labels = 4;
+}
+
+message ExecutionResult {
+    repeated string successes = 1;
+    repeated executionError errors = 2;
+}
+
+message executionError {
+   string id = 1;
+   string err = 2;
+}

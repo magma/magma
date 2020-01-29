@@ -11,11 +11,13 @@
 import type {FilterProps} from './ComparisonViewTypes';
 
 import PowerSearchFilter from './PowerSearchFilter';
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
 import Tokenizer from '@fbcnms/ui/components/Tokenizer';
+import WizardContext from '@fbcnms/ui/components/design-system/Wizard/WizardContext';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {fetchQuery, graphql} from 'relay-runtime';
+import {useTokens} from './tokensHook';
 
 const locationTokenizerQuery = graphql`
   query PowerSearchLocationFilterQuery($name: String!, $types: [ID!]) {
@@ -39,9 +41,10 @@ const PowerSearchLocationFilter = (props: FilterProps) => {
     onRemoveFilter,
     editMode,
   } = props;
-
-  const [selectedLocations, setSelectedLocations] = useState([]);
+  const wizardContext = useContext(WizardContext);
   const [searchEntries, setSearchEntries] = useState([]);
+  const tokens = useTokens(value);
+  const [selectedLocations, setSelectedLocations] = useState(tokens);
 
   const fetchLocations = searchTerm =>
     fetchQuery(RelayEnvironment, locationTokenizerQuery, {
@@ -70,6 +73,9 @@ const PowerSearchLocationFilter = (props: FilterProps) => {
           searchEntries={searchEntries}
           onBlur={onInputBlurred}
           onChange={newEntries => {
+            newEntries.map(entry =>
+              wizardContext.set(entry.id, {id: entry.id, label: entry.label}),
+            );
             setSelectedLocations(newEntries);
             onValueChanged({
               id: value.id,

@@ -8,8 +8,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
 	"github.com/facebookincubator/symphony/frontier/ent/enttest"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/stretchr/testify/suite"
 	"github.com/volatiletech/authboss"
 )

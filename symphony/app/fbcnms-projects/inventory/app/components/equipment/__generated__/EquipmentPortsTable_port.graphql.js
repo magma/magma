@@ -16,7 +16,8 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_port$ref: FragmentReference;
@@ -28,7 +29,6 @@ export type EquipmentPortsTable_port = {|
     +name: string,
     +index: ?number,
     +visibleLabel: ?string,
-    +type: string,
     +portType: ?{|
       +id: string,
       +name: string,
@@ -78,7 +78,6 @@ export type EquipmentPortsTable_port = {|
         +id: string,
         +name: string,
         +visibleLabel: ?string,
-        +type: string,
         +portType: ?{|
           +id: string,
           +name: string,
@@ -96,7 +95,6 @@ export type EquipmentPortsTable_port = {|
         +id: string,
         +name: string,
         +visibleLabel: ?string,
-        +type: string,
         +portType: ?{|
           +linkPropertyTypes: $ReadOnlyArray<?{|
             +id: string,
@@ -128,7 +126,6 @@ export type EquipmentPortsTable_port = {|
             +id: string,
             +name: string,
             +visibleLabel: ?string,
-            +type: string,
             +bandwidth: ?string,
             +portType: ?{|
               +id: string,
@@ -170,9 +167,14 @@ export type EquipmentPortsTable_port = {|
         +id: string,
         +name: string,
       |},
+      +serviceValue: ?{|
+        +id: string,
+        +name: string,
+      |},
     |}>,
     +services: $ReadOnlyArray<?{|
-      +id: string
+      +id: string,
+      +name: string,
     |}>,
   |},
   +properties: $ReadOnlyArray<{|
@@ -202,6 +204,16 @@ export type EquipmentPortsTable_port = {|
       +id: string,
       +name: string,
     |},
+    +serviceValue: ?{|
+      +id: string,
+      +name: string,
+    |},
+  |}>,
+  +serviceEndpoints: $ReadOnlyArray<{|
+    +role: ServiceEndpointRole,
+    +service: {|
+      +name: string
+    |},
   |}>,
   +$refType: EquipmentPortsTable_port$ref,
 |};
@@ -209,6 +221,7 @@ export type EquipmentPortsTable_port$data = EquipmentPortsTable_port;
 export type EquipmentPortsTable_port$key = {
   +$data?: EquipmentPortsTable_port$data,
   +$fragmentRefs: EquipmentPortsTable_port$ref,
+  ...
 };
 */
 
@@ -436,6 +449,16 @@ v22 = {
       "concreteType": "Location",
       "plural": false,
       "selections": (v18/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v18/*: any*/)
     }
   ]
 };
@@ -460,7 +483,6 @@ return {
         (v1/*: any*/),
         (v2/*: any*/),
         (v3/*: any*/),
-        (v4/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -521,7 +543,6 @@ return {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v3/*: any*/),
-                (v4/*: any*/),
                 (v19/*: any*/),
                 (v20/*: any*/)
               ]
@@ -563,7 +584,6 @@ return {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v3/*: any*/),
-                (v4/*: any*/),
                 {
                   "kind": "LinkedField",
                   "alias": null,
@@ -613,7 +633,6 @@ return {
                         (v0/*: any*/),
                         (v1/*: any*/),
                         (v3/*: any*/),
-                        (v4/*: any*/),
                         (v20/*: any*/),
                         (v19/*: any*/)
                       ]
@@ -657,16 +676,44 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": true,
-          "selections": [
-            (v0/*: any*/)
-          ]
+          "selections": (v18/*: any*/)
         }
       ]
     },
-    (v22/*: any*/)
+    (v22/*: any*/),
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceEndpoints",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpoint",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "role",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "service",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
+          "plural": false,
+          "selections": [
+            (v1/*: any*/)
+          ]
+        }
+      ]
+    }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '41c2b295f1cd983e47a6d69f73c841ee';
+(node/*: any*/).hash = '187128933f87bbeaf4e56c9e7f988232';
 module.exports = node;

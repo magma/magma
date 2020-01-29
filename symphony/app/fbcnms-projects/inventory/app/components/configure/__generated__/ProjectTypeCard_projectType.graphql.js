@@ -31,6 +31,7 @@ export type ProjectTypeCard_projectType$data = ProjectTypeCard_projectType;
 export type ProjectTypeCard_projectType$key = {
   +$data?: ProjectTypeCard_projectType$data,
   +$fragmentRefs: ProjectTypeCard_projectType$ref,
+  ...
 };
 */
 

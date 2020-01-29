@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -41,23 +43,23 @@ func (fpsd *FloorPlanScaleDelete) ExecX(ctx context.Context) int {
 }
 
 func (fpsd *FloorPlanScaleDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(fpsd.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(floorplanscale.Table))
-	for _, p := range fpsd.predicates {
-		p(selector)
+	_spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: floorplanscale.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplanscale.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(floorplanscale.Table).FromSelect(selector).Query()
-	if err := fpsd.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := fpsd.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, fpsd.driver, _spec)
 }
 
 // FloorPlanScaleDeleteOne is the builder for deleting a single FloorPlanScale entity.
@@ -72,7 +74,7 @@ func (fpsdo *FloorPlanScaleDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{floorplanscale.Label}
+		return &NotFoundError{floorplanscale.Label}
 	default:
 		return nil
 	}

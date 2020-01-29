@@ -16,29 +16,24 @@ import Text from './design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
+import {typographyStyles} from './design-system/Text';
 
 const useStyles = makeStyles(theme => ({
   root: {
+    overflowX: 'hidden',
+    textOverflow: 'ellipsis',
     display: 'flex',
   },
-  upperSection: {
-    display: 'flex',
-    flexDirection: 'column',
+  notShrinkable: {
+    flexShrink: '0',
   },
-  slash: {
-    color: SymphonyTheme.palette.D400,
-    margin: '0 6px',
-  },
-  breadcrumbName: {
-    whiteSpace: 'nowrap',
+  tooltipAnchor: {
+    overflowX: 'hidden',
+    textOverflow: 'ellipsis',
     color: theme.palette.blueGrayDark,
   },
   parentBreadcrumb: {
     color: SymphonyTheme.palette.D400,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    display: 'inline-block',
   },
   hover: {
     '&:hover': {
@@ -46,15 +41,15 @@ const useStyles = makeStyles(theme => ({
     },
     cursor: 'pointer',
   },
-  largeText: {
-    fontSize: '20px',
-    lineHeight: '24px',
-    fontWeight: 500,
+  slash: {
+    color: SymphonyTheme.palette.D400,
+    margin: '0 6px',
   },
-  smallText: {
-    fontSize: '14px',
-    lineHeight: '24px',
-    fontWeight: 500,
+  breadcrumbName: {
+    color: 'unset',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
 }));
 
@@ -68,50 +63,59 @@ export type BreadcrumbData = {
 type Props = {
   data: BreadcrumbData,
   isLastBreadcrumb: boolean,
+  useEllipsis?: boolean,
   size?: 'default' | 'small' | 'large',
   variant?: TextVariant,
 };
 
 const Breadcrumb = (props: Props) => {
-  const {data, isLastBreadcrumb, size, variant} = props;
+  const {data, isLastBreadcrumb, size, variant, useEllipsis} = props;
   const {id, name, subtext, onClick} = data;
   const classes = useStyles();
+  const typographyClasses = typographyStyles();
+  const textVariant = variant ? variant : size === 'small' ? 'subtitle2' : 'h6';
+
   return (
-    <div key={id} className={classes.root}>
-      <div className={classes.upperSection}>
-        <Tooltip
-          arrow
-          interactive
-          placement="top"
-          title={
-            typeof subtext === 'string' ? (
-              <Text className={classes.subtext} variant="caption" color="light">
-                {subtext}
-              </Text>
-            ) : (
-              subtext ?? ''
-            )
-          }>
-          <div>
-            <Text
-              variant={
-                variant ? variant : size === 'small' ? 'subtitle2' : 'h6'
-              }
-              className={classNames({
-                [classes.breadcrumbName]: true,
-                [classes.parentBreadcrumb]: !isLastBreadcrumb,
-                [classes.hover]: !!onClick,
-              })}
-              onClick={() => onClick && onClick(id)}>
-              {name}
+    <div
+      key={id}
+      className={classNames(
+        {
+          [classes.notShrinkable]: !useEllipsis,
+        },
+        classes.root,
+      )}>
+      <Tooltip
+        arrow
+        interactive
+        placement="top"
+        title={
+          typeof subtext === 'string' ? (
+            <Text className={classes.subtext} variant="caption" color="light">
+              {subtext}
             </Text>
-          </div>
-        </Tooltip>
-      </div>
+          ) : (
+            subtext ?? ''
+          )
+        }>
+        <div
+          className={classNames(
+            {
+              [classes.parentBreadcrumb]: !isLastBreadcrumb,
+              [classes.hover]: !!onClick,
+            },
+            classes.tooltipAnchor,
+            typographyClasses[textVariant],
+          )}>
+          <Text
+            variant={textVariant}
+            className={classes.breadcrumbName}
+            onClick={() => onClick && onClick(id)}>
+            {name}
+          </Text>
+        </div>
+      </Tooltip>
       {!isLastBreadcrumb && (
-        <Text
-          variant={variant ? variant : size === 'small' ? 'subtitle2' : 'h6'}
-          className={classes.slash}>
+        <Text variant={textVariant} className={classes.slash}>
           {'/'}
         </Text>
       )}
