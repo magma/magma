@@ -127,7 +127,7 @@ func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int,
 }
 
 // nolint: unparam
-func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord) (*ent.Location, error) {
+func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord, commit bool) (*ent.Location, error) {
 	var currParentID *string
 	var loc *ent.Location
 	ic := getImportContext(ctx)
@@ -141,7 +141,15 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 		if err != nil {
 			return nil, errors.Wrapf(err, "missing location type: id=%q", typID)
 		}
-		loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+		if commit {
+			loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+		} else {
+			loc, err = m.queryLocationForTypeAndParent(ctx, locName, typ, currParentID)
+			if loc == nil && ent.MaskNotFound(err) == nil {
+				// no location but no error (dry run mode)
+				return nil, nil
+			}
+		}
 		currParentID = &loc.ID
 	}
 	if loc == nil {

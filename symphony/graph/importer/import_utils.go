@@ -145,13 +145,21 @@ func (m *importer) getOrCreateLocationType(ctx context.Context, name string, pro
 		SaveX(ctx)
 }
 
-func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool) {
-	log := m.log.For(ctx)
+func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name string, locType *ent.LocationType, parentID *string) (*ent.Location, error) {
 	rq := locType.QueryLocations().Where(location.Name(name))
 	if parentID != nil {
 		rq = rq.Where(location.HasParentWith(location.ID(*parentID)))
 	}
 	l, err := rq.Only(ctx)
+	if l != nil {
+		return l, nil
+	}
+	return nil, err
+}
+
+func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool) {
+	log := m.log.For(ctx)
+	l, err := m.queryLocationForTypeAndParent(ctx, name, locType, parentID)
 	if l != nil {
 		return l, false
 	}

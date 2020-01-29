@@ -143,11 +143,14 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				id := importLine.ID()
 				if id == "" {
 					// new equip
-					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, importLine)
+					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, importLine, commit)
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/verifying equipment hierarchy"})
 						continue
+					} else if parentLoc == nil && !commit {
+						continue
 					}
+
 					parentEquipmentID, positionDefinitionID, err := m.getPositionDetailsIfExists(ctx, parentLoc, importLine, true)
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/verifying equipment hierarchy"})

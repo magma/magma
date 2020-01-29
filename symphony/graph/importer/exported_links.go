@@ -116,7 +116,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 						return
 					}
 
-					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, portRecord)
+					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, portRecord, true)
 					if err != nil {
 						errorReturn(w, fmt.Sprintf("creating location hierarchy (row #%d).", numRows), log, err)
 						return
