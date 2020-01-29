@@ -32,6 +32,7 @@ const (
 // CreditControlRequest represents a call over gx
 type CreditControlRequest struct {
 	SessionID     string
+	DestHost      string
 	Type          credit_control.CreditRequestType
 	IMSI          string
 	RequestNumber uint32
@@ -64,6 +65,7 @@ type CreditControlAnswer struct {
 	ResultCode             uint32
 	ExperimentalResultCode uint32
 	SessionID              string
+	OriginHost             string
 	RequestNumber          uint32
 	RuleInstallAVP         []*RuleInstallAVP
 	RuleRemoveAVP          []*RuleRemoveAVP
@@ -148,6 +150,7 @@ type CCADiameterMessage struct {
 	SessionID          string `avp:"Session-Id"`
 	RequestNumber      uint32 `avp:"CC-Request-Number"`
 	ResultCode         uint32 `avp:"Result-Code"`
+	OriginHost         string `avp:"Origin-Host"`
 	ExperimentalResult struct {
 		VendorId               uint32 `avp:"Vendor-Id"`
 		ExperimentalResultCode uint32 `avp:"Experimental-Result-Code"`
@@ -191,6 +194,7 @@ type CCADiameterMessage struct {
 //					*[ AVP ]
 type ReAuthRequest struct {
 	SessionID        string                 `avp:"Session-Id"`
+	OriginHost       string                 `avp:"Origin-Host"`
 	RulesToRemove    []*RuleRemoveAVP       `avp:"Charging-Rule-Remove"`
 	RulesToInstall   []*RuleInstallAVP      `avp:"Charging-Rule-Install"`
 	Qos              *QosInformation        `avp:"QoS-Information"`
