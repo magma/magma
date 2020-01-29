@@ -78,7 +78,7 @@ class LocalEnforcer {
    * reset_updates resets all of the charging keys being updated in
    * failed_request. This should only be called if the *entire* request fails
    * (i.e. the entire request to the cloud timed out). Individual failures
-   * are handled when update_session_credit is called.
+   * are handled when update_session_credits_and_rules is called.
    *
    * @param failed_request - UpdateSessionRequest that couldn't be sent to the
    *                         cloud for whatever reason
@@ -105,10 +105,11 @@ class LocalEnforcer {
     const CreateSessionResponse& response);
 
   /**
-   * Update allowed credit from the cloud in the system
+   * Process the update response from the reporter and update the
+   * monitoring/charging credits and attached rules.
    * @param credit_response - message from cloud containing new credits
    */
-  void update_session_credit(const UpdateSessionResponse& response);
+  void update_session_credits_and_rules(const UpdateSessionResponse& response);
 
   /**
    * Starts the termination process for the session. When termination completes,
@@ -200,8 +201,23 @@ class LocalEnforcer {
     const std::unordered_set<uint32_t>& successful_credits,
     const std::string& imsi,
     const std::string& ip_addr,
-    RulesToProcess* rules_to_activate,
-    RulesToProcess* rules_to_deactivate);
+    RulesToProcess& rules_to_activate,
+    RulesToProcess& rules_to_deactivate);
+
+  /**
+   * Processes the charging component of UpdateSessionResponse.
+   * Updates charging credits according to the response.
+   */
+  void update_charging_credits(
+    const UpdateSessionResponse& response);
+
+  /**
+   * Processes the monitoring component of UpdateSessionResponse.
+   * Updates moniroting credits according to the response and updates rules
+   * that are installed for this session.
+   */
+  void update_monitoring_credits_and_rules(
+    const UpdateSessionResponse& response);
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by

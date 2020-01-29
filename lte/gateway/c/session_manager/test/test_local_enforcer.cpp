@@ -335,7 +335,7 @@ TEST_F(LocalEnforcerTest, test_collect_updates)
     local_enforcer->get_charging_credit("IMSI1", 1, REPORTING_TX), 2048);
 }
 
-TEST_F(LocalEnforcerTest, test_update_session_credit)
+TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules)
 {
   insert_static_rule(1, "", "rule1");
 
@@ -371,7 +371,7 @@ TEST_F(LocalEnforcerTest, test_update_session_credit)
     time(NULL),
     monitor_updates_response->Add());
   EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
-  local_enforcer->update_session_credit(update_response);
+  local_enforcer->update_session_credits_and_rules(update_response);
   EXPECT_EQ(
     local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 2072);
 }
@@ -560,7 +560,7 @@ TEST_F(LocalEnforcerTest, test_all)
   UpdateSessionResponse update_response;
   auto updates = update_response.mutable_responses();
   create_credit_update_response("IMSI2", 2, 4096, updates->Add());
-  local_enforcer->update_session_credit(update_response);
+  local_enforcer->update_session_credits_and_rules(update_response);
 
   EXPECT_EQ(
     local_enforcer->get_charging_credit("IMSI2", 2, ALLOWED_TOTAL), 6144);
@@ -607,7 +607,7 @@ TEST_F(LocalEnforcerTest, test_re_auth)
   UpdateSessionResponse update_response;
   auto updates = update_response.mutable_responses();
   create_credit_update_response("IMSI1", 1, 4096, updates->Add());
-  local_enforcer->update_session_credit(update_response);
+  local_enforcer->update_session_credits_and_rules(update_response);
 
   // when next update is collected, this should trigger an action to activate
   // the flow in pipelined
@@ -847,7 +847,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
     monitor_updates->Add());
   create_monitor_update_response(
     "IMSI1", "4", MonitoringLevel::SESSION_LEVEL, 2048, monitor_updates->Add());
-  local_enforcer->update_session_credit(update_response);
+  local_enforcer->update_session_credits_and_rules(update_response);
   assert_monitor_credit("IMSI1", REPORTING_RX, {{"3", 0}, {"4", 0}});
   assert_monitor_credit("IMSI1", REPORTING_TX, {{"3", 0}, {"4", 0}});
   assert_monitor_credit("IMSI1", REPORTED_RX, {{"3", 1024}, {"4", 1049}});
@@ -872,7 +872,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
       std::vector<std::string>{"pcrf_only"}, CheckCount(0)))
     .Times(1)
     .WillOnce(testing::Return(true));
-  local_enforcer->update_session_credit(update_response);
+  local_enforcer->update_session_credits_and_rules(update_response);
 
   // Test rule installation in usage monitor response for CCA-Update
   update_response.Clear();
@@ -897,7 +897,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
       std::vector<std::string>{"pcrf_only"}, CheckCount(0)))
     .Times(1)
     .WillOnce(testing::Return(true));
-  local_enforcer->update_session_credit(update_response);
+  local_enforcer->update_session_credits_and_rules(update_response);
 }
 
 TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer)
