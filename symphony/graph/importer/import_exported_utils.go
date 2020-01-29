@@ -103,6 +103,18 @@ func shouldSkipLine(a []int, currRow, nextLineToSkipIndex int) bool {
 	return false
 }
 
+func getVerifyBeforeCommitParam(r *http.Request) (*bool, error) {
+	verifyBeforeCommit := false
+	commitParam := r.FormValue("verify_before_commit")
+	if commitParam != "" {
+		err := json.Unmarshal([]byte(commitParam), &verifyBeforeCommit)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &verifyBeforeCommit, nil
+}
+
 // nolint: unparam
 func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int, locations []string, ignoreHierarchy bool) error {
 	currIndex := -1

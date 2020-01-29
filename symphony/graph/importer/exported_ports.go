@@ -36,7 +36,11 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "cannot parse form", http.StatusInternalServerError)
 		return
 	}
-	count, numRows := 0, 0
+	var (
+		commitRuns             []bool
+		errs                   Errors
+		modifiedCount, numRows int
+	)
 
 	err := r.ParseForm()
 	if err != nil {
@@ -52,8 +56,20 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 		nextLineToSkipIndex = 0
 	}
 
+	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
+	if err != nil {
+		errorReturn(w, "can't parse skipped lines", log, err)
+		return
+	}
+
+	if *verifyBeforeCommit {
+		commitRuns = []bool{false, true}
+	} else {
+		commitRuns = []bool{true}
+	}
+
 	for fileName := range r.MultipartForm.File {
-		first, reader, err := m.newReader(fileName, r)
+		first, _, err := m.newReader(fileName, r)
 		importHeader := NewImportHeader(first, ImportEntityPort)
 		if err != nil {
 			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
@@ -70,87 +86,99 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		for {
-			untrimmedLine, err := reader.Read()
+		for _, commit := range commitRuns {
+			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
+			if commit && *verifyBeforeCommit && len(errs) != 0 {
+				break
+			}
+			numRows, modifiedCount = 0, 0
+			_, reader, err := m.newReader(fileName, r)
 			if err != nil {
-				if err == io.EOF {
-					break
-				}
-				log.Warn("cannot read row", zap.Error(err))
-				continue
-			}
-			numRows++
-			if shouldSkipLine(skipLines, numRows, nextLineToSkipIndex) {
-				log.Warn("skipping line", zap.Error(err), zap.Int("line_number", numRows))
-				nextLineToSkipIndex++
-				continue
-			}
-			importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
-
-			id := importLine.ID()
-			if id == "" {
-				log.Warn("supporting only port editing", zap.Error(err))
-				http.Error(w, fmt.Sprintf("supporting only port editing (row #%d)", numRows), http.StatusBadRequest)
+				errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
 				return
-			} else {
-				//edit existing  port
-				port, err := m.validateLineForExistingPort(ctx, id, importLine)
-				if err != nil {
-					log.Warn("validating existing port", zap.Error(err), importLine.ZapField())
-					http.Error(w, fmt.Sprintf("%q: validating existing port: id %q (row #%d)", err, id, numRows), http.StatusBadRequest)
-					return
-				}
-				consumerServiceIds, providerServiceIds, err := m.validateServicesForPortEndpoints(ctx, importLine)
-				if err != nil {
-					errorReturn(w, fmt.Sprintf("%q: validating services where the port is to be endpoint for the services: id %q (row #%d)", err, id, numRows), log, err)
-					return
-				}
+			}
 
-				err = m.editServiceEndpoints(ctx, port, consumerServiceIds, models.ServiceEndpointRoleConsumer)
+			for {
+				untrimmedLine, err := reader.Read()
 				if err != nil {
-					errorReturn(w, fmt.Sprintf("%q: Editing services where the port is to be consumer endpoint for the services: id %q (row #%d)", err, id, numRows), log, err)
-					return
-				}
-				err = m.editServiceEndpoints(ctx, port, providerServiceIds, models.ServiceEndpointRoleProvider)
-				if err != nil {
-					errorReturn(w, fmt.Sprintf("%q: Editing services where the port is to be provider endpoint for the services: id %q (row #%d)", err, id, numRows), log, err)
-					return
-				}
-				var propInputs []*models.PropertyInput
-				parent := port.QueryParent().OnlyX(ctx)
-				definition := port.QueryDefinition().OnlyX(ctx)
-				portType, _ := definition.QueryEquipmentPortType().Only(ctx)
-				if portType != nil && importLine.Len() > importHeader.PropertyStartIdx() {
-					propInputs, err = m.validatePropertiesForPortType(ctx, importLine, portType, ImportEntityPort)
-					if err != nil {
-						log.Warn("validating property for type", zap.Error(err))
-						http.Error(w, fmt.Sprintf("validating property for type %q (row #%d). %q", portType.Name, numRows, err.Error()), http.StatusBadRequest)
-						return
+					if err == io.EOF {
+						break
 					}
+					log.Warn("cannot read row", zap.Error(err))
+					continue
+				}
+				numRows++
+				if shouldSkipLine(skipLines, numRows, nextLineToSkipIndex) {
+					log.Warn("skipping line", zap.Error(err), zap.Int("line_number", numRows))
+					nextLineToSkipIndex++
+					continue
+				}
+				importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
 
-					_, err = m.r.Mutation().EditEquipmentPort(ctx, models.EditEquipmentPortInput{
-						Side: &models.LinkSide{
-							Equipment: parent.ID,
-							Port:      definition.ID,
-						},
-						Properties: propInputs,
-					})
-					if err != nil {
-						log.Warn("saving port", zap.Error(err), importLine.ZapField())
-						http.Error(w, fmt.Sprintf("%q: saving port: id %q (row #%d)", err, id, numRows), http.StatusBadRequest)
-						return
-					}
-					count++
-					log.Info(fmt.Sprintf("(row #%d) editing port", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+				id := importLine.ID()
+				if id == "" {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "supporting only port editing"})
+					continue
 				} else {
-					log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port type or properties", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+					//edit existing  port
+					port, err := m.validateLineForExistingPort(ctx, id, importLine)
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: validating existing port: id %v", err.Error(), id)})
+						continue
+					}
+					consumerServiceIds, providerServiceIds, err := m.validateServicesForPortEndpoints(ctx, importLine)
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: validating services where the port is to be endpoint for the services: id %v", err.Error(), id)})
+						continue
+					}
+					if commit {
+						err = m.editServiceEndpoints(ctx, port, consumerServiceIds, models.ServiceEndpointRoleConsumer)
+						if err != nil {
+							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: editing services where the port is to be consumer endpoint for the services: id %v", err.Error(), id)})
+							continue
+						}
+						err = m.editServiceEndpoints(ctx, port, providerServiceIds, models.ServiceEndpointRoleProvider)
+						if err != nil {
+							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%q: editing services where the port is to be provider endpoint for the services: id %v", err.Error(), id)})
+							continue
+						}
+					}
+					var propInputs []*models.PropertyInput
+					parent := port.QueryParent().OnlyX(ctx)
+					definition := port.QueryDefinition().OnlyX(ctx)
+					portType, _ := definition.QueryEquipmentPortType().Only(ctx)
+					if portType != nil && importLine.Len() > importHeader.PropertyStartIdx() {
+						propInputs, err = m.validatePropertiesForPortType(ctx, importLine, portType, ImportEntityPort)
+						if err != nil {
+							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: validating property for type %v", err.Error(), portType.Name)})
+							continue
+						}
+						if commit {
+							_, err = m.r.Mutation().EditEquipmentPort(ctx, models.EditEquipmentPortInput{
+								Side: &models.LinkSide{
+									Equipment: parent.ID,
+									Port:      definition.ID,
+								},
+								Properties: propInputs,
+							})
+
+							if err != nil {
+								errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: saving port: id %v", err.Error(), id)})
+								continue
+							}
+							modifiedCount++
+							log.Info(fmt.Sprintf("(row #%d) editing port", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+						}
+					} else {
+						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port type or properties", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+					}
 				}
 			}
 		}
 	}
 	log.Debug("Exported ports - Done")
 	w.WriteHeader(http.StatusOK)
-	err = writeSuccessMessage(w, count, numRows, nil, true)
+	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0)
 
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)

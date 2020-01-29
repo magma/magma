@@ -6,11 +6,12 @@ package importer
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
@@ -35,11 +36,11 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 
 	log.Debug("Exported Equipment - started")
 	var (
-		err                   error
-		affectedRows, numRows int
-		errs                  Errors
-		verifyBeforeCommit    bool
-		commitRuns            []bool
+		err                    error
+		modifiedCount, numRows int
+		errs                   Errors
+		verifyBeforeCommit     *bool
+		commitRuns             []bool
 	)
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
 		log.Warn("parsing multipart form", zap.Error(err))
@@ -60,16 +61,14 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 	if len(skipLines) > 0 {
 		nextLineToSkipIndex = 0
 	}
-	commitParam := r.FormValue("verify_before_commit")
-	if commitParam != "" {
-		err := json.Unmarshal([]byte(commitParam), &verifyBeforeCommit)
-		if err != nil {
-			errorReturn(w, "can't parse run validations argument", log, err)
-			return
-		}
+
+	verifyBeforeCommit, err = getVerifyBeforeCommitParam(r)
+	if err != nil {
+		errorReturn(w, "can't parse skipped lines", log, err)
+		return
 	}
 
-	if verifyBeforeCommit {
+	if pointer.GetBool(verifyBeforeCommit) {
 		commitRuns = []bool{false, true}
 	} else {
 		commitRuns = []bool{true}
@@ -105,10 +104,10 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 
 		for _, commit := range commitRuns {
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
-			if commit && verifyBeforeCommit && len(errs) != 0 {
+			if commit && pointer.GetBool(verifyBeforeCommit) && len(errs) != 0 {
 				break
 			}
-			numRows, affectedRows = 0, 0
+			numRows, modifiedCount = 0, 0
 			_, reader, err := m.newReader(fileName, r)
 			if err != nil {
 				errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
@@ -145,7 +144,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					// new equip
 					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, importLine, commit)
 					if err != nil {
-						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/verifying equipment hierarchy"})
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/verifying equipment location hierarchy"})
 						continue
 					} else if parentLoc == nil && !commit {
 						continue
@@ -170,7 +169,6 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					}
 
 					var pos *ent.EquipmentPosition
-					var equip *ent.Equipment
 					var created bool
 					if commit {
 						pos, err = resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID, true)
@@ -183,21 +181,17 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					}
 					if commit {
 						_, created, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
-					} else {
-						equip, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
-						if equip == nil {
-							// mocking for pre-flight run
-							created = true
+						if created {
+							modifiedCount++
+						} else {
+							log.Info("Row " + strconv.FormatInt(int64(numRows), 10) + ": Equipment already exists under location/position")
 						}
+					} else {
+						_, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
 					}
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/fetching equipment"})
 						continue
-					}
-					if created {
-						affectedRows++
-					} else {
-						log.Info("Row " + strconv.FormatInt(int64(numRows), 10) + ": Equipment already exists under location/position")
 					}
 				} else {
 					// existing equip
@@ -228,7 +222,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 						inputs = append(inputs, inp)
 					}
 					if commit {
-						affectedRows++
+						modifiedCount++
 						_, err = m.r.Mutation().EditEquipment(ctx, models.EditEquipmentInput{ID: id, Name: name, Properties: inputs, ExternalID: &externalID})
 						if err != nil {
 							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("editing equipment: id %v", id)})
@@ -241,12 +235,12 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusOK)
-	err = writeSuccessMessage(w, affectedRows, numRows, errs, !verifyBeforeCommit || len(errs) == 0)
+	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0)
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return
 	}
-	log.Debug("Exported Equipment - Done", zap.Any("errors list", errs), zap.Int("all_lines", numRows), zap.Int("edited_added_rows", affectedRows))
+	log.Debug("Exported Equipment - Done", zap.Any("errors list", errs), zap.Int("all_lines", numRows), zap.Int("edited_added_rows", modifiedCount))
 }
 
 func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID string, importLine ImportRecord) (*ent.Equipment, error) {
