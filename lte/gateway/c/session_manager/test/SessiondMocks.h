@@ -69,7 +69,7 @@ class MockPipelinedClient : public PipelinedClient {
       .WillByDefault(Return(true));
     ON_CALL(*this, activate_flows_for_rules(_, _, _, _))
       .WillByDefault(Return(true));
-    ON_CALL(*this, add_ue_mac_flow(_, _)).WillByDefault(Return(true));
+    ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _)).WillByDefault(Return(true));
   }
 
   MOCK_METHOD3(setup,
@@ -91,11 +91,14 @@ class MockPipelinedClient : public PipelinedClient {
       const std::string &ip_addr,
       const std::vector<std::string> &static_rules,
       const std::vector<PolicyRule> &dynamic_rules));
-  MOCK_METHOD2(
+  MOCK_METHOD5(
     add_ue_mac_flow,
     bool(
       const SubscriberID &sid,
-      const std::string &mac_addr));
+      const std::string &ue_mac_addr,
+      const std::string &msisdn,
+      const std::string &ap_mac_addr,
+      const std::string &ap_name));
 };
 
 class MockDirectorydClient : public AsyncDirectorydClient {
