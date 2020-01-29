@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/ent/schema/index"
 )
 
 // EquipmentPortType defines the equipment port definition schema.
@@ -87,6 +88,14 @@ func (EquipmentPort) Edges() []ent.Edge {
 	}
 }
 
+// Indexes returns equipment port indexes.
+func (EquipmentPort) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Edges("definition", "parent").
+			Unique(),
+	}
+}
+
 // EquipmentPositionDefinition defines the equipment position definition schema.
 type EquipmentPositionDefinition struct {
 	schema
@@ -130,6 +139,14 @@ func (EquipmentPosition) Edges() []ent.Edge {
 			Ref("positions").
 			Unique(),
 		edge.To("attachment", Equipment.Type).
+			Unique(),
+	}
+}
+
+// Indexes returns equipment position indexes.
+func (EquipmentPosition) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Edges("definition", "parent").
 			Unique(),
 	}
 }

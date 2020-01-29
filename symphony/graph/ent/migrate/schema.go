@@ -249,6 +249,13 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "equipmentport_definition_id_parent_id",
+				Unique:  true,
+				Columns: []*schema.Column{EquipmentPortsColumns[4], EquipmentPortsColumns[3]},
+			},
+		},
 	}
 	// EquipmentPortDefinitionsColumns holds the columns for the "equipment_port_definitions" table.
 	EquipmentPortDefinitionsColumns = []*schema.Column{
@@ -325,6 +332,13 @@ var (
 
 				RefColumns: []*schema.Column{EquipmentPositionDefinitionsColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "equipmentposition_definition_id_parent_id",
+				Unique:  true,
+				Columns: []*schema.Column{EquipmentPositionsColumns[4], EquipmentPositionsColumns[3]},
 			},
 		},
 	}
