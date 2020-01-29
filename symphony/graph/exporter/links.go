@@ -42,6 +42,7 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		portBDataHeader = [...]string{"Port B Name", "Equipment B Name", "Equipment B Type"}
 		parentsAHeader  = [...]string{"Parent Equipment (3) A", "Position (3) A", "Parent Equipment (2) A", "Position (2) A", "Parent Equipment A", "Equipment Position A"}
 		parentsBHeader  = [...]string{"Parent Equipment (3) B", "Position (3) B", "Parent Equipment (2) B", "Position (2) B", "Parent Equipment B", "Equipment Position B"}
+		servicesHeader  = [...]string{"Service Names"}
 	)
 	filtersParam := url.Query().Get("filters")
 	if filtersParam != "" {
@@ -93,7 +94,7 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	portBData = append(portBData, parentsBHeader[:]...)
 
 	title := append(portAData, portBData...)
-	title = append(title, "Service Names")
+	title = append(title, servicesHeader[:]...)
 	title = append(title, propertyTypes...)
 
 	allRows[0] = title

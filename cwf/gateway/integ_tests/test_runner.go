@@ -137,6 +137,25 @@ func (testRunner *TestRunner) Authenticate(imsi string) (*radius.Packet, error) 
 	return radiusP, nil
 }
 
+// Authenticate simulates an authentication between the UE with the specified
+// IMSI and the HSS, and returns the resulting Radius packet.
+func (testRunner *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
+	fmt.Printf("************************* Sending a disconnect request UE with IMSI: %s\n", imsi)
+	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi})
+	if err != nil {
+		return &radius.Packet{}, err
+	}
+	encoded := res.GetRadiusPacket()
+	radiusP, err := radius.Parse(encoded, []byte(Secret))
+	if err != nil {
+		err = errors.Wrap(err, "Error while parsing encoded Radius packet")
+		fmt.Println(err)
+		return &radius.Packet{}, err
+	}
+	fmt.Printf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
+	return radiusP, nil
+}
+
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
 // by running an iperf3 client on the UE simulator and an iperf3 server on the
 // Magma traffic server. volume, if provided, specifies the volume of data

@@ -76,8 +76,6 @@ SemiFuture<Unit> KeepaliveCli::destroy() {
     tk->cancelAll();
   }
 
-  // TODO cancel timekeeper futures
-
   MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] "
                << "destroy: done";
   return innerDestroy;

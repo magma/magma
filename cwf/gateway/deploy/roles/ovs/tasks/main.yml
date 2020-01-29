@@ -8,35 +8,35 @@
   copy: src=magma-preferences dest=/etc/apt/preferences.d/magma-preferences
 
 - name: Install OVS Dependencies for Ubuntu
-  package:
-    name: "{{ item }}"
+  apt:
     state: present
-  become: true
-  with_items:
-    - graphviz
-    - autoconf
-    - automake
-    - bzip2
-    - debhelper
-    - dh-autoreconf
-    - libssl-dev
-    - libtool
-    - openssl
-    - procps
-    - python-all
-    - python-twisted-conch
-    - python-zopeinterface
-    - python-six
-    - build-essential
-    - fakeroot
+    update_cache: yes
+    pkg:
+      - graphviz
+      - autoconf
+      - automake
+      - bzip2
+      - debhelper
+      - dh-autoreconf
+      - libssl-dev
+      - libtool
+      - openssl
+      - procps
+      - python-all
+      - python-twisted-conch
+      - python-zope.interface
+      - python-six
+      - build-essential
+      - fakeroot
 
 - name: Install OVS v2.8.1 from Magma's pkgrepo
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    - libopenvswitch
-    - openvswitch-common
-    - openvswitch-switch
-    - python-openvswitch
+  apt:
+     state: present
+     pkg:
+       - libopenvswitch
+       - openvswitch-common
+       - openvswitch-switch
+       - python-openvswitch
 
 - name: Start OVS
   service:

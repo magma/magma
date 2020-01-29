@@ -176,7 +176,7 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit)
   EXPECT_CALL(
     *pipelined_client,
     add_ue_mac_flow(
-      testing::_, testing::_))
+      testing::_, testing::_, testing::_, testing::_, testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
 
@@ -1054,6 +1054,58 @@ TEST_F(LocalEnforcerTest, test_pipelined_setup)
 
     local_enforcer->setup(epoch,
       [](Status status, SetupFlowsResult resp) {});
+}
+
+TEST_F(LocalEnforcerTest, test_valid_apn_parsing)
+{
+  insert_static_rule(1, "", "rule1");
+
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response("IMSI1", 1, 1024, credits->Add());
+
+  EXPECT_CALL(
+    *pipelined_client,
+    add_ue_mac_flow(
+      testing::_, testing::_, "msisdn", "03-21-00-02-00-20", "Magma"))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+  SessionState::Config test_cwf_cfg;
+  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  test_cwf_cfg.mac_addr = "00:00:00:00:00:02";
+  test_cwf_cfg.radius_session_id = "5555";
+  test_cwf_cfg.apn = "03-21-00-02-00-20:Magma";
+  test_cwf_cfg.msisdn = "msisdn";
+
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
+}
+
+TEST_F(LocalEnforcerTest, test_invalid_apn_parsing)
+{
+  insert_static_rule(1, "", "rule1");
+
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response("IMSI1", 1, 1024, credits->Add());
+
+  EXPECT_CALL(
+    *pipelined_client,
+    add_ue_mac_flow(
+      testing::_, testing::_, "msisdn_test",
+      "",
+      "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay"))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+  SessionState::Config test_cwf_cfg;
+  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
+  test_cwf_cfg.radius_session_id = "1234567";
+  test_cwf_cfg.apn = "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay";
+  test_cwf_cfg.msisdn = "msisdn_test";
+
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
 }
 
 int main(int argc, char **argv)

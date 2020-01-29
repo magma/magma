@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 
@@ -160,12 +161,20 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					}
 					linkInput[i] = &models.LinkSide{Equipment: equipment.ID, Port: portDef.ID}
 				}
+
+				serviceIds, err := m.validateServicesForLinks(ctx, importLine)
+				if err != nil {
+					errorReturn(w, fmt.Sprintf("%q: validating services where the link is a part of them: id %q (row #%d)", err, id, numRows), log, err)
+					return
+				}
+
 				l, err := m.r.Mutation().AddLink(ctx, models.AddLinkInput{
 					Sides: []*models.LinkSide{
 						linkInput[0],
 						linkInput[1],
 					},
 					Properties: linkPropertyInputs,
+					ServiceIds: serviceIds,
 				})
 				if err != nil {
 					errorReturn(w, fmt.Sprintf("creating/fetching link (row #%d)", numRows), log, err)
@@ -178,6 +187,11 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 				link, err := m.validateLineForExistingLink(ctx, id, importLine)
 				if err != nil {
 					errorReturn(w, fmt.Sprintf("validating existing port: id %q (row #%d)", id, numRows), log, err)
+					return
+				}
+				serviceIds, err := m.validateServicesForLinks(ctx, importLine)
+				if err != nil {
+					errorReturn(w, fmt.Sprintf("%q: validating services where the link is a part of them: id %q (row #%d)", err, id, numRows), log, err)
 					return
 				}
 				var allPropInputs []*models.PropertyInput
@@ -205,6 +219,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 				_, err = m.r.Mutation().EditLink(ctx, models.EditLinkInput{
 					ID:         id,
 					Properties: allPropInputs,
+					ServiceIds: serviceIds,
 				})
 				if err != nil {
 					errorReturn(w, fmt.Sprintf("saving link: id %q (row #%d)", id, numRows), log, err)
@@ -343,5 +358,24 @@ func (m *importer) inputValidationsLinks(ctx context.Context, importHeader Impor
 	if !equal(hb.line[hb.prnt3Idx:], []string{"Parent Equipment (3) B", "Position (3) B", "Parent Equipment (2) B", "Position (2) B", "Parent Equipment B", "Equipment Position B"}) {
 		return errors.New("second port on first line misses sequence: 'Parent Equipment (3) B', 'Position (3) B', 'Parent Equipment (2) B', 'Position (2) B', 'Parent Equipment B' or 'Equipment Position B'")
 	}
+	if importHeader.ServiceNamesIdx() == -1 {
+		return errors.New("column 'Service Names' is missing")
+	}
 	return nil
+}
+
+func (m *importer) validateServicesForLinks(ctx context.Context, line ImportRecord) ([]string, error) {
+	serviceNamesMap := make(map[string]bool)
+	var serviceIds []string
+	serviceNames := strings.Split(line.ServiceNames(), ";")
+	for _, serviceName := range serviceNames {
+		if serviceName != "" {
+			serviceID, err := m.validateServiceExistsAndUnique(ctx, serviceNamesMap, serviceName)
+			if err != nil {
+				return nil, err
+			}
+			serviceIds = append(serviceIds, serviceID)
+		}
+	}
+	return serviceIds, nil
 }

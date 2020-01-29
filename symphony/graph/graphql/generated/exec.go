@@ -6465,11 +6465,13 @@ input AddLinkInput {
   sides: [LinkSide!]! @length(min: 2, max: 2)
   workOrder: ID
   properties: [PropertyInput!]
+  serviceIds: [ID!]
 }
 
 input EditLinkInput {
   id: ID!
   properties: [PropertyInput!]
+  serviceIds: [ID!]
 }
 
 type WorkOrderDefinition implements Node {
@@ -31952,6 +31954,12 @@ func (ec *executionContext) unmarshalInputAddLinkInput(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
+		case "serviceIds":
+			var err error
+			it.ServiceIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -32763,6 +32771,12 @@ func (ec *executionContext) unmarshalInputEditLinkInput(ctx context.Context, obj
 		case "properties":
 			var err error
 			it.Properties, err = ec.unmarshalOPropertyInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviceIds":
+			var err error
+			it.ServiceIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

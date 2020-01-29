@@ -1211,6 +1211,7 @@ func (r mutationResolver) AddLink(
 			}
 			return nil
 		}()).
+		AddServiceIDs(input.ServiceIds...).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating link: ports=%v", ids)
@@ -1278,6 +1279,23 @@ func (r mutationResolver) EditLink(
 			}
 		}
 	}
+
+	currentServiceIds, err := l.QueryService().IDs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	addedServiceIds, deletedServiceIds := resolverutil.GetDifferenceBetweenSlices(currentServiceIds, input.ServiceIds)
+	for _, serviceID := range addedServiceIds {
+		if _, err := r.AddServiceLink(ctx, serviceID, l.ID); err != nil {
+			return nil, err
+		}
+	}
+	for _, serviceID := range deletedServiceIds {
+		if _, err := r.RemoveServiceLink(ctx, serviceID, l.ID); err != nil {
+			return nil, err
+		}
+	}
+
 	return l, nil
 }
 

@@ -39,11 +39,6 @@ const (
 	locationL    = "locationL"
 	locationM    = "locationM"
 	locationS    = "locationS"
-
-	svcName  = "serviceName"
-	svc2Name = "serviceName2"
-	svc3Name = "serviceName3"
-	svc4Name = "serviceName4"
 )
 
 type portData struct {
@@ -220,29 +215,6 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 		childPortInst2: childPortInst2.ID,
 		linkID:         l.ID,
 	}
-}
-
-func prepareSvcData(ctx context.Context, t *testing.T, r TestImporterResolver) {
-	mr := r.importer.r.Mutation()
-	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
-	_, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svcName,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svc2Name,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svc3Name,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
 }
 
 func TestPortTitleInputValidation(t *testing.T) {

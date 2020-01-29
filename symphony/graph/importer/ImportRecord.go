@@ -199,6 +199,10 @@ func (l ImportRecord) ProviderPortsServices() string {
 	return l.line[l.title.ProviderPortsServicesIdx()]
 }
 
+func (l ImportRecord) ServiceNames() string {
+	return l.line[l.title.ServiceNamesIdx()]
+}
+
 func (l ImportRecord) LinkGetTwoPortsSlices() [][]string {
 	if l.entity() == ImportEntityLink {
 		idxA, idxB := l.Header().LinkGetTwoPortsRange()

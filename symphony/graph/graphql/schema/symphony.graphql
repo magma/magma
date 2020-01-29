@@ -833,11 +833,13 @@ input AddLinkInput {
   sides: [LinkSide!]! @length(min: 2, max: 2)
   workOrder: ID
   properties: [PropertyInput!]
+  serviceIds: [ID!]
 }
 
 input EditLinkInput {
   id: ID!
   properties: [PropertyInput!]
+  serviceIds: [ID!]
 }
 
 type WorkOrderDefinition implements Node {

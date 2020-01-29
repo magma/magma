@@ -97,6 +97,22 @@ class PolicyRuleEditDialog extends React.Component<Props, State> {
               })
             }
           />
+          <TextField
+            required
+            className={this.props.classes.input}
+            label="Rating Group"
+            margin="normal"
+            value={rule.rating_group}
+            type="number"
+            onChange={({target}) =>
+              this.setState({
+                rule: {
+                  ...this.state.rule,
+                  rating_group: parseInt(target.value),
+                },
+              })
+            }
+          />
           <FormControl className={this.props.classes.input}>
             <InputLabel htmlFor="trackingType">Tracking Type</InputLabel>
             <TypedSelect

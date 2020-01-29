@@ -5,6 +5,7 @@
 package importer
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/resolverutil"
@@ -48,6 +49,7 @@ func TestGeneralLinksEditImport(t *testing.T) {
 
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	ids := preparePortTypeData(ctx, t, *r)
+	prepareSvcData(ctx, t, *r)
 
 	def1 := r.client.EquipmentPortDefinition.GetX(ctx, ids.portDef1)
 	equip2 := r.client.Equipment.GetX(ctx, ids.equipParent2ID)
@@ -57,7 +59,7 @@ func TestGeneralLinksEditImport(t *testing.T) {
 	childEquip := r.client.Equipment.GetX(ctx, ids.equipChildID)
 	etyp2 := childEquip.QueryType().OnlyX(ctx)
 	var (
-		row1 = []string{ids.linkID, def1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", def2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", "", "", parentEquip, posName, "", "44", "2019-01-01", "FALSE"}
+		row1 = []string{ids.linkID, def1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", def2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", "", "", parentEquip, posName, strings.Join([]string{svcName, svc2Name}, ";"), "44", "2019-01-01", "FALSE"}
 	)
 	firstPortHeader := append(append(fixedFirstPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsAHeader...)
 	secondPortHeader := append(append(fixedSecondPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsBHeader...)
@@ -101,6 +103,9 @@ func TestGeneralLinksEditImport(t *testing.T) {
 			require.Equal(t, ptyp.Type, models.PropertyKindInt.String())
 		}
 	}
+	links, err := importer.validateServicesForLinks(ctx, r1)
+	require.Len(t, links, 2)
+	require.NoError(t, err)
 }
 
 func TestGeneralLinksAddImport(t *testing.T) {

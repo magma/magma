@@ -57,6 +57,7 @@ func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.S
 	}
 	request := &gx.CreditControlRequest{
 		SessionID:     pRequest.SessionId,
+		DestHost:      pRequest.GetTgppCtx().GetGxDestHost(),
 		Type:          credit_control.CRTTerminate,
 		IMSI:          credit_control.AddIMSIPrefix(pRequest.Sid),
 		RequestNumber: pRequest.RequestNumber,
@@ -96,14 +97,6 @@ func getGxAnswerOrError(
 	}
 }
 
-func getPolicyRulesFromDefinitions(ruleDefs []*gx.RuleDefinition) []*protos.PolicyRule {
-	policyRules := make([]*protos.PolicyRule, 0, len(ruleDefs))
-	for _, def := range ruleDefs {
-		policyRules = append(policyRules, def.ToProto())
-	}
-	return policyRules
-}
-
 func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.CreditControlAnswer) []*protos.UsageMonitoringUpdateResponse {
 	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCAInit.UsageMonitors))
 	// If there is a message wide revalidation time, apply it to every Usage Monitor
@@ -112,6 +105,7 @@ func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.Cred
 		monitors = append(monitors, &protos.UsageMonitoringUpdateResponse{
 			Credit:           monitor.ToUsageMonitoringCredit(),
 			SessionId:        sessionID,
+			TgppCtx:          &protos.TgppContext{GxDestHost: gxCCAInit.OriginHost},
 			Sid:              credit_control.AddIMSIPrefix(imsi),
 			Success:          true,
 			EventTriggers:    triggers,
@@ -271,6 +265,9 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer
 		RulesToRemove:         rulesToRemove,
 		StaticRulesToInstall:  staticRules,
 		DynamicRulesToInstall: dynamicRules,
+	}
+	if len(answer.OriginHost) > 0 {
+		res.TgppCtx = &protos.TgppContext{GxDestHost: answer.OriginHost}
 	}
 	if len(answer.UsageMonitors) == 0 {
 		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)

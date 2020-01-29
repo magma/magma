@@ -39,6 +39,7 @@ func ccaHandler(message *diam.Message) diameter.KeyAndAnswer {
 			ResultCode:             cca.ResultCode,
 			ExperimentalResultCode: cca.ExperimentalResult.ExperimentalResultCode,
 			SessionID:              sid,
+			OriginHost:             cca.OriginHost,
 			RequestNumber:          cca.RequestNumber,
 			RuleInstallAVP:         cca.RuleInstalls,
 			RuleRemoveAVP:          cca.RuleRemovals,

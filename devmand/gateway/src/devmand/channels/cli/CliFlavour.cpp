@@ -5,6 +5,7 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
+#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <devmand/channels/cli/CliFlavour.h>
 #include <regex>
@@ -108,20 +109,76 @@ void DefaultPromptResolver::removeEmptyStrings(vector<string>& split) const {
 CliFlavour::CliFlavour(
     unique_ptr<PromptResolver>&& _resolver,
     unique_ptr<CliInitializer>&& _initializer,
-    string _newline)
+    string _newline,
+    regex _baseShowConfig,
+    unsigned int _baseShowConfigIdx,
+    Optional<char> _singleIndentChar,
+    string _configSubsectionEnd)
     : resolver(forward<unique_ptr<PromptResolver>>(_resolver)),
       initializer(forward<unique_ptr<CliInitializer>>(_initializer)),
-      newline(_newline) {}
+      newline(_newline),
+      baseShowConfig(_baseShowConfig),
+      baseShowConfigIdx(_baseShowConfigIdx),
+      singleIndentChar(_singleIndentChar),
+      configSubsectionEnd(_configSubsectionEnd) {}
 
 shared_ptr<CliFlavour> CliFlavour::create(string flavour) {
   if (flavour == UBIQUITI) {
     return make_shared<CliFlavour>(
         make_unique<DefaultPromptResolver>(),
-        make_unique<UbiquitiInitializer>());
+        make_unique<UbiquitiInitializer>(),
+        "\n",
+        regex(R"(^((do )?sho?w? runn?i?n?g?-?c?o?n?f?i?g?).*)"),
+        1,
+        none,
+        "exit");
   } else {
     return make_shared<CliFlavour>(
-        make_unique<DefaultPromptResolver>(), make_unique<EmptyInitializer>());
+        make_unique<DefaultPromptResolver>(),
+        make_unique<EmptyInitializer>(),
+        "\n",
+        regex(R"(^((do )?sho?w? runn?i?n?g?-?c?o?n?f?i?g?).*)"),
+        1,
+        ' ',
+        "!");
   }
+}
+
+Optional<size_t> CliFlavour::getBaseShowConfigIdx(const string cmd) const {
+  smatch pieces_match;
+  if (regex_match(cmd, pieces_match, baseShowConfig)) {
+    return Optional<size_t>((size_t)pieces_match[baseShowConfigIdx].length());
+  }
+  return Optional<size_t>(none);
+}
+
+Optional<char> CliFlavour::getSingleIndentChar() {
+  return singleIndentChar;
+}
+
+string CliFlavour::getConfigSubsectionEnd() {
+  return configSubsectionEnd;
+}
+
+vector<string> CliFlavour::splitSubcommands(string subcommands) {
+  Optional<char> maybeIndentChar = getSingleIndentChar();
+  char indentChar = maybeIndentChar.value_or(' ');
+  vector<string> args;
+  boost::split(
+      args, subcommands, [indentChar](char s) { return s == indentChar; });
+  return args;
+}
+
+shared_ptr<PromptResolver> CliFlavour::getResolver() {
+  return resolver;
+}
+
+shared_ptr<CliInitializer> CliFlavour::getInitializer() {
+  return initializer;
+}
+
+string CliFlavour::getNewline() {
+  return newline;
 }
 
 } // namespace cli

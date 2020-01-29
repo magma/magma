@@ -455,3 +455,16 @@ func (m *importer) propExistsOnEquipment(ctx context.Context, equip *ent.Equipme
 func (m *importer) CloneContext(ctx context.Context) context.Context {
 	return viewer.NewContext(ent.NewContext(context.Background(), m.ClientFrom(ctx)), viewer.FromContext(ctx))
 }
+
+func (m *importer) validateServiceExistsAndUnique(ctx context.Context, serviceNamesMap map[string]bool, serviceName string) (string, error) {
+	client := m.ClientFrom(ctx)
+	if _, ok := serviceNamesMap[serviceName]; ok {
+		return "", errors.Errorf("Property can't be the endpoint of the same service more than once - service name=%q", serviceName)
+	}
+	serviceNamesMap[serviceName] = true
+	s, err := client.Service.Query().Where(service.Name(serviceName)).Only(ctx)
+	if err != nil {
+		return "", errors.Wrapf(err, "can't query service name=%q", serviceName)
+	}
+	return s.ID, nil
+}
