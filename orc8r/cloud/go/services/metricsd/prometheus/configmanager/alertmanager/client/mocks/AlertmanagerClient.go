@@ -5,7 +5,9 @@ package mocks
 import (
 	alert "magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
-	config "github.com/prometheus/alertmanager/config"
+	alertmanagerconfig "github.com/prometheus/alertmanager/config"
+
+	config "magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -45,6 +47,29 @@ func (_m *AlertmanagerClient) DeleteReceiver(tenantID string, receiverName strin
 	return r0
 }
 
+// GetGlobalConfig provides a mock function with given fields:
+func (_m *AlertmanagerClient) GetGlobalConfig() (*config.GlobalConfig, error) {
+	ret := _m.Called()
+
+	var r0 *config.GlobalConfig
+	if rf, ok := ret.Get(0).(func() *config.GlobalConfig); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*config.GlobalConfig)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetReceivers provides a mock function with given fields: tenantID
 func (_m *AlertmanagerClient) GetReceivers(tenantID string) ([]receivers.Receiver, error) {
 	ret := _m.Called(tenantID)
@@ -69,15 +94,15 @@ func (_m *AlertmanagerClient) GetReceivers(tenantID string) ([]receivers.Receive
 }
 
 // GetRoute provides a mock function with given fields: tenantID
-func (_m *AlertmanagerClient) GetRoute(tenantID string) (*config.Route, error) {
+func (_m *AlertmanagerClient) GetRoute(tenantID string) (*alertmanagerconfig.Route, error) {
 	ret := _m.Called(tenantID)
 
-	var r0 *config.Route
-	if rf, ok := ret.Get(0).(func(string) *config.Route); ok {
+	var r0 *alertmanagerconfig.Route
+	if rf, ok := ret.Get(0).(func(string) *alertmanagerconfig.Route); ok {
 		r0 = rf(tenantID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*config.Route)
+			r0 = ret.Get(0).(*alertmanagerconfig.Route)
 		}
 	}
 
@@ -92,11 +117,11 @@ func (_m *AlertmanagerClient) GetRoute(tenantID string) (*config.Route, error) {
 }
 
 // ModifyTenantRoute provides a mock function with given fields: tenantID, route
-func (_m *AlertmanagerClient) ModifyTenantRoute(tenantID string, route *config.Route) error {
+func (_m *AlertmanagerClient) ModifyTenantRoute(tenantID string, route *alertmanagerconfig.Route) error {
 	ret := _m.Called(tenantID, route)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *config.Route) error); ok {
+	if rf, ok := ret.Get(0).(func(string, *alertmanagerconfig.Route) error); ok {
 		r0 = rf(tenantID, route)
 	} else {
 		r0 = ret.Error(0)
@@ -112,6 +137,20 @@ func (_m *AlertmanagerClient) ReloadAlertmanager() error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SetGlobalConfig provides a mock function with given fields: globalConfig
+func (_m *AlertmanagerClient) SetGlobalConfig(globalConfig config.GlobalConfig) error {
+	ret := _m.Called(globalConfig)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(config.GlobalConfig) error); ok {
+		r0 = rf(globalConfig)
 	} else {
 		r0 = ret.Error(0)
 	}
