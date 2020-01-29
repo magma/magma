@@ -58,7 +58,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 
 	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
 	if err != nil {
-		errorReturn(w, "can't parse skipped lines", log, err)
+		errorReturn(w, "can't parse verify_before_commit param", log, err)
 		return
 	}
 

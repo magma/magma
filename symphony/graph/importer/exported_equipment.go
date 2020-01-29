@@ -183,7 +183,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 						_, created, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
 						if created {
 							modifiedCount++
-						} else {
+						} else if err == nil {
 							log.Info("Row " + strconv.FormatInt(int64(numRows), 10) + ": Equipment already exists under location/position")
 						}
 					} else {
