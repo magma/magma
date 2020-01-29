@@ -209,7 +209,8 @@ class LocalEnforcer {
    * Updates charging credits according to the response.
    */
   void update_charging_credits(
-    const UpdateSessionResponse& response);
+    const UpdateSessionResponse& response,
+    std::unordered_set<std::string>& subscribers_to_terminate);
 
   /**
    * Processes the monitoring component of UpdateSessionResponse.
@@ -217,7 +218,8 @@ class LocalEnforcer {
    * that are installed for this session.
    */
   void update_monitoring_credits_and_rules(
-    const UpdateSessionResponse& response);
+    const UpdateSessionResponse& response,
+    std::unordered_set<std::string>& subscribers_to_terminate);
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by
@@ -346,13 +348,21 @@ class LocalEnforcer {
     const std::vector<std::unique_ptr<ServiceAction>>& actions);
 
   /**
-    * Deactive rules for certain IMSI.
+    * Deactivate rules for certain IMSI.
     * Notify AAA service if the session is a CWF session.
     */
   void terminate_service(
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules);
+
+
+  /**
+    * Deactivate rules for multiple IMSIs.
+    * Notify AAA service if the session is a CWF session.
+    */
+  void terminate_multiple_services(
+    const std::unordered_set<std::string>& imsis);
 
   /**
     * Install flow for redirection through pipelined
