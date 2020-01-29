@@ -29,6 +29,9 @@ pass as a parameter to fpm.
 """
 
 import argparse
+import contextlib
+import functools
+import glob
 import hashlib
 import json
 import os
@@ -37,6 +40,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import typing
 import zipfile
 from datetime import datetime
 from functools import partial
@@ -72,6 +76,7 @@ def _higher_version(version_a, version_b):
     b = pkg_resources.parse_version(version_b)
     return a > b
 
+
 def _md5sum(filename):
     """
     It's like calling md5sum. Calculates the md5 checksum of a file.
@@ -81,6 +86,7 @@ def _md5sum(filename):
         for buf in iter(partial(f.read, 4096), b''):
             d.update(buf)
         return d.hexdigest()
+
 
 def _wget(url, dest=None):
     """
@@ -103,7 +109,6 @@ def _wget(url, dest=None):
     with open(local_path, 'wb') as f:
         f.write(r.content)
     return local_path
-
 
 
 def gen_sys_package_name(py_pkgname, use_py2=False):
@@ -324,7 +329,6 @@ def _parse_requires_txt(requires_path, depender=None, version=None):
     return dependencies
 
 
-
 @lru_cache(maxsize=128)
 def _get_pypi_metadata(pkgname):
     """
@@ -397,6 +401,12 @@ def gen_fpm_dep_string_from_lockfile(lockfile_str):
     return " ".join(deps)
 
 
+PkgInfo = typing.NamedTuple('PkgInfo',
+                            [('name', str),
+                             ('version', str),
+                             ('arch', str)])
+
+
 class DependencyFinder(object):
     """
     We want to get all the dependencies of a set of packages, recursively.
@@ -409,7 +419,12 @@ class DependencyFinder(object):
     from PyPI.
     """
     def __init__(self, packages, ignore_root=False, py2=False,
-                 preserve=False, pypi_only=False):
+                 preserve=False, pypi_only=False, build_output=None):
+        if build_output:
+            build_output = os.path.expanduser(build_output)
+        else:
+            build_output = os.getcwd()
+
         self.dep_set = {}
         self.dep_source = {}
 
@@ -418,6 +433,7 @@ class DependencyFinder(object):
         self._pypi_only = pypi_only
         self._clean = not preserve
         self._ignore_root = ignore_root
+        self._build_output = build_output
 
     def _cleanup(self, pkgname):
         """
@@ -452,57 +468,96 @@ class DependencyFinder(object):
         Return:
             Exit code of fpm call (0 is success)
         """
+
         syspkg_name = gen_sys_package_name(pkgname, self._py2)
-        cmd = "fpm -s python -t deb "
-        if not self._py2:
-            cmd += "--python-package-name-prefix=python3 "
-            cmd += "--python-bin=python3 "
-        cmd += "-n %s" % syspkg_name
 
-        # check if the package has an epoch
-        if syspkg_name in DEB_EPOCH:
-            cmd += " --epoch %d" % DEB_EPOCH[syspkg_name]
-
-        # Cleanup "bad" dependencies. Some python packages depend on packages
-        # in our PYPI_TO_DEB list of packages that break naming convention. If
-        # any of those dependencies show up there, we need to manually remove
-        # them and replace with a dep that follows convention. Some of them
-        # also depend on a different Debian epoch version, so we handle that
-        # here too.
-        deps = self.get_pkg_deps(pkgname, version, True)
-        print("pkg deps: %s %s" % (pkgname, deps))
-        for item in deps:
+        @contextlib.contextmanager
+        def lcd(path):
+            oldcwd = os.getcwd()
             try:
-                pkg, _, ver = item.split()
-            except ValueError:
-                pkg = item
-                ver = None
+                os.chdir(os.path.expanduser(path))
+                yield
+            finally:
+                os.chdir(oldcwd)
 
-            dep_syspkg = gen_sys_package_name(pkg, self._py2)
-            epoch = None
-            if ver and dep_syspkg in DEB_EPOCH:
-                print("replacing epoch for %s (in %s)" % (dep_syspkg, pkgname))
-                epoch = DEB_EPOCH[dep_syspkg]
-                ver = "%s:%s" % (epoch, ver)
+        with lcd(self._build_output):
+            candidates = glob.glob(self._build_output + '/' + syspkg_name + '_*.deb')
 
-            if pkg in PYPI_TO_DEB or epoch:
-                # got one! replace.
-                cmd += " --python-disable-dependency %s" % pkg
-                correct = gen_sys_package_name(pkg, self._py2)
-                print("replacing %s with %s" % (pkg, correct))
-                if not ver:
-                    cmd += " -d '%s'" % (correct,)
-                else:
-                    cmd += " -d '%s >= %s'" % (correct, ver)
-        if more_args:
-            cmd += " %s " % more_args
+            if self._existing_build(version, candidates):
+                print('found existing build of ' + syspkg_name + ' in ' + str(candidates))
+                return 0
+            print('attempting to build ' + syspkg_name + ' ' + version)
+
+            cmd = "fpm -s python -t deb "
+            if not self._py2:
+                cmd += "--python-package-name-prefix=python3 "
+                cmd += "--python-bin=python3 "
+            cmd += "-n %s" % syspkg_name
+
+            # check if the package has an epoch
+            if syspkg_name in DEB_EPOCH:
+                cmd += " --epoch %d" % DEB_EPOCH[syspkg_name]
+
+            # Cleanup "bad" dependencies. Some python packages depend on packages
+            # in our PYPI_TO_DEB list of packages that break naming convention. If
+            # any of those dependencies show up there, we need to manually remove
+            # them and replace with a dep that follows convention. Some of them
+            # also depend on a different Debian epoch version, so we handle that
+            # here too.
+            deps = self.get_pkg_deps(pkgname, version, True)
+            print("pkg deps: %s %s" % (pkgname, deps))
+            for item in deps:
+                try:
+                    pkg, _, ver = item.split()
+                except ValueError:
+                    pkg = item
+                    ver = None
+
+                dep_syspkg = gen_sys_package_name(pkg, self._py2)
+                epoch = None
+                if ver and dep_syspkg in DEB_EPOCH:
+                    print("replacing epoch for %s (in %s)" % (dep_syspkg, pkgname))
+                    epoch = DEB_EPOCH[dep_syspkg]
+                    ver = "%s:%s" % (epoch, ver)
+
+                if pkg in PYPI_TO_DEB or epoch:
+                    # got one! replace.
+                    cmd += " --python-disable-dependency %s" % pkg
+                    correct = gen_sys_package_name(pkg, self._py2)
+                    print("replacing %s with %s" % (pkg, correct))
+                    if not ver:
+                        cmd += " -d '%s'" % (correct,)
+                    else:
+                        cmd += " -d '%s >= %s'" % (correct, ver)
+            if more_args:
+                cmd += " %s " % more_args
+            if version:
+                cmd += " %s%s%s" % (pkgname, op, version)
+            else:
+                cmd += " %s" % pkgname
+
+            print(cmd)
+            return subprocess.call(shlex.split(cmd))
+
+    def _existing_build(self, version, candidates):
+        already_built = False
         if version:
-            cmd += " %s%s%s" % (pkgname, op, version)
-        else:
-            cmd += " %s" % pkgname
+            parsed_version = pkg_resources.parse_version(version)
+            for existing in candidates:
+                parts = os.path.basename(existing).split('_')
+                if len(parts) > 2:
+                    info = PkgInfo(name=parts[0],
+                                   version=parts[1],
+                                   arch=parts[-1][:-4])
+                    existing_version = pkg_resources.parse_version(info.version)
+                    if existing_version >= parsed_version:
+                        already_built = True
+                        break
+        elif candidates:
+            # version not specified but found a match on package name
+            already_built = True
 
-        print(cmd)
-        return subprocess.call(shlex.split(cmd))
+        return already_built
 
     @lru_cache(maxsize=128)
     def get_pkg_deps(self, pkgname, version=None, use_latest_if_needed=False):
@@ -543,7 +598,7 @@ class DependencyFinder(object):
                 return True
 
         # then check every version listed on pypi. We don't do a string match
-        # becasue sometimes we'll see things like foo>=1.9 and PyPI has
+        # because sometimes we'll see things like foo>=1.9 and PyPI has
         # apackage for foo 1.9.0 -- equivalent but not identical.
         for v in get_pypi_avail_releases(pkg):
             py_ver = pkg_resources.Requirement.parse("%s==%s" % (pkg, v))
@@ -659,8 +714,66 @@ class DependencyFinder(object):
             output['dependencies'][k] = item
         return json.dumps(output, sort_keys=True, indent=2)
 
+    def build_all(self):
+        for p in self.dep_set:
+            if self.dep_source[p] == "pypi":
+                self.py_to_deb(p, self.dep_set[p])
 
-def main():
+    def save(self, lockfile):
+        with open(lockfile, "w") as f:
+            f.write(self.lockfile())
+
+
+def expand_deps(input_deps):
+    dependencies = []
+
+    explicit = []
+    setup_py = []
+
+    for item in input_deps:
+        setup_py.append(item) if 'setup.py' in item else explicit.append(item)
+
+    input_deps = explicit + sum([get_setup_deps(item) for item in setup_py], [])
+
+    # parse dependencies from command line
+    for d in input_deps:
+        req = pkg_resources.Requirement.parse(d)
+        pkgname = req.key
+        versions = pkg_resources.Requirement.parse(d).specs
+        if versions:
+            version = versions[0][1] # take the first, lowest value
+        else:
+            version = None
+        dependencies.append((pkgname, version))
+
+    return dependencies
+
+
+def main(args):
+    # Building dependency packages with virtualenv enabled would cause packages
+    # to be installed under
+    # "/home/vagrant/build/python/lib/python3.4/site-packages/" instead of
+    # "/usr/local/lib/python3.4/dist-packages/"
+    if "VIRTUAL_ENV" in os.environ:
+        print("Error: virtualenv detected. Please deactivate.")
+        return -1
+    dependencies = expand_deps(args.deps)
+
+    df = DependencyFinder(dependencies,
+                          ignore_root=args.ig_root,
+                          py2=args.use_py2,
+                          preserve=args.preserve,
+                          pypi_only=args.force_pypi,
+                          build_output=args.build_output)
+    df.gen_dep_set()
+    df.save(args.lockfile)
+
+    if args.build:
+        df.build_all()
+
+
+if __name__ == "__main__":
+
     parser = argparse.ArgumentParser("pydep")
     subparsers = parser.add_subparsers(help="Sub-commands")
     dep_p = subparsers.add_parser("finddep",
@@ -683,63 +796,21 @@ def main():
     dep_p.add_argument('deps', nargs='+',
                         help=("List of root dependencies or path to a "
                               "setup.py file."))
+    dep_p.add_argument('--build-output')
     lock_p = subparsers.add_parser("lockfile",
                                    help="Working with pydep lockfiles.")
     lock_p.add_argument('lockfile_path', nargs='?',
-                        help=("Generate fpm dependnecy string from a lockfile,"
+                        help=("Generate fpm dependency string from a lockfile,"
                              " then exit immediately.")),
-    args = parser.parse_args()
-
     if len(sys.argv) == 1:
         parser.print_help()
-        return 0
-
-    # Building dependency packages with virtualenv enabled would cause packages
-    # to be installed under
-    # "/home/vagrant/build/python/lib/python3.4/site-packages/" instead of
-    # "/usr/local/lib/python3.4/dist-packages/"
-    if "VIRTUAL_ENV" in os.environ:
-        print("Error: virtualenv detected. Please deactivate.")
-        return -1
+        sys.exit(0)
+    args = parser.parse_args()
 
     if "lockfile_path" in args and args.lockfile_path:
         # generate the string and return
         with open(args.lockfile_path, "r") as f:
             print(gen_fpm_dep_string_from_lockfile(f.read()))
             exit(0)
-    dependencies = []
-    if len(args.deps) == 1 and "setup.py" in args.deps[0]:
-        # parse a setup.py file for deps
-        input_deps = get_setup_deps(args.deps[0])
-    else:
-        input_deps = args.deps
 
-    # parse dependencies from command line
-    for d in input_deps:
-        req = pkg_resources.Requirement.parse(d)
-        pkgname = req.key
-        versions = pkg_resources.Requirement.parse(d).specs
-        if versions:
-            version = versions[0][1] # take the first, lowest value
-        else:
-            version = None
-        dependencies.append((pkgname, version))
-
-    df = DependencyFinder(dependencies,
-                          ignore_root=args.ig_root,
-                          py2=args.use_py2,
-                          preserve=args.preserve,
-                          pypi_only=args.force_pypi)
-    df.gen_dep_set()
-
-    with open(args.lockfile, "w") as f:
-        f.write(df.lockfile())
-
-    if args.build:
-        for p in df.dep_set:
-            if df.dep_source[p] == "pypi":
-                df.py_to_deb(p, df.dep_set[p])
-
-
-if __name__ == "__main__":
-    main()
+    sys.exit(main(args))
