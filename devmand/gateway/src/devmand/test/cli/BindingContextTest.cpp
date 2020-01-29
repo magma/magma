@@ -8,7 +8,7 @@
 #define LOG_WITH_GLOG
 #include <magma_logging.h>
 
-#include <devmand/devices/cli/ModelRegistry.h>
+#include <devmand/devices/cli/schema/ModelRegistry.h>
 #include <devmand/test/cli/utils/Json.h>
 #include <devmand/test/cli/utils/Log.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
@@ -29,7 +29,7 @@ using OpenconfigInterfaces = openconfig::openconfig_interfaces::Interfaces;
 using OpenconfigInterface = OpenconfigInterfaces::Interface;
 using VlanType = openconfig::openconfig_vlan_types::VlanModeType;
 
-class ModelRegistryTest : public ::testing::Test {
+class BindingContextTest : public ::testing::Test {
  protected:
   void SetUp() override {
     devmand::test::utils::log::initLog();
@@ -39,11 +39,13 @@ class ModelRegistryTest : public ::testing::Test {
   ModelRegistry mreg;
 };
 
-TEST_F(ModelRegistryTest, caching) {
-  Bundle& bundleOpenconfig = mreg.getBundle(Model::OPENCONFIG_0_1_6);
-  Bundle& bundleOpenconfig2 = mreg.getBundle(Model::OPENCONFIG_0_1_6);
+TEST_F(BindingContextTest, caching) {
+  BindingContext& bundleOpenconfig =
+      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+  BindingContext& bundleOpenconfig2 =
+      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
   ASSERT_EQ(&bundleOpenconfig, &bundleOpenconfig2);
-  ASSERT_EQ(1, mreg.cacheSize());
+  ASSERT_EQ(1, mreg.bindingCacheSize());
 }
 
 static shared_ptr<OpenconfigInterface> interfaceCpp() {
@@ -124,21 +126,25 @@ static const string singleInterfaceJson =
     "  }\n"
     "}";
 
-TEST_F(ModelRegistryTest, jsonSerializationTopLevel) {
-  Bundle& bundleOpenconfig = mreg.getBundle(Model::OPENCONFIG_0_1_6);
+TEST_F(BindingContextTest, jsonSerializationTopLevel) {
+  BindingContext& bundleOpenconfig =
+      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
 
   shared_ptr<OpenconfigInterfaces> originalIfc = interfacesCpp();
 
-  const string& interfaceEncoded = bundleOpenconfig.encode(*originalIfc);
+  const string& interfaceEncoded =
+      bundleOpenconfig.getCodec().encode(*originalIfc);
   ASSERT_EQ(sortJson(interfaceJson), sortJson(interfaceEncoded));
 
-  const shared_ptr<Entity> decodedIfcEntity = bundleOpenconfig.decode(
-      interfaceEncoded, make_shared<OpenconfigInterfaces>());
+  const shared_ptr<Entity> decodedIfcEntity =
+      bundleOpenconfig.getCodec().decode(
+          interfaceEncoded, make_shared<OpenconfigInterfaces>());
   ASSERT_TRUE(*decodedIfcEntity == *originalIfc);
 }
 
-TEST_F(ModelRegistryTest, jsonSerializationFail) {
-  Bundle& bundleOpenconfig = mreg.getBundle(Model::OPENCONFIG_0_1_6);
+TEST_F(BindingContextTest, jsonSerializationFail) {
+  BindingContext& bundleOpenconfig =
+      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
 
   class FakeEntity : public OpenconfigInterfaces {
    public:
@@ -149,25 +155,28 @@ TEST_F(ModelRegistryTest, jsonSerializationFail) {
 
   const shared_ptr<FakeEntity> ptr = make_shared<FakeEntity>();
   ASSERT_THROW(
-      const string& interfaceEncoded = bundleOpenconfig.encode(*ptr),
-      SerializationException);
+      const string& interfaceEncoded = bundleOpenconfig.getCodec().encode(*ptr),
+      BindingSerializationException);
 }
 
-TEST_F(ModelRegistryTest, jsonDeserializationFail) {
-  Bundle& bundleOpenconfig = mreg.getBundle(Model::OPENCONFIG_0_1_6);
+TEST_F(BindingContextTest, jsonDeserializationFail) {
+  BindingContext& bundleOpenconfig =
+      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
 
   ASSERT_THROW(
-      const shared_ptr<Entity> decodedIfcEntity = bundleOpenconfig.decode(
-          "not a json", make_shared<OpenconfigInterface>()),
-      SerializationException);
+      const shared_ptr<Entity> decodedIfcEntity =
+          bundleOpenconfig.getCodec().decode(
+              "not a json", make_shared<OpenconfigInterface>()),
+      BindingSerializationException);
 }
 
-TEST_F(ModelRegistryTest, jsonSerializationNestedMultiThread) {
+TEST_F(BindingContextTest, jsonSerializationNestedMultiThread) {
   folly::CPUThreadPoolExecutor executor(8);
 
   for (int i = 0; i < 100; i++) {
     folly::Future<folly::Unit> f = folly::via(&executor, [&, i]() {
-      Bundle& bundleOpenconfig = mreg.getBundle(Model::OPENCONFIG_0_1_6);
+      BindingContext& bundleOpenconfig =
+          mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
 
       //      DLOG(INFO) << "Executing: " << i << " on thread "
       //                 << std::this_thread::get_id()
@@ -175,16 +184,18 @@ TEST_F(ModelRegistryTest, jsonSerializationNestedMultiThread) {
 
       shared_ptr<OpenconfigInterface> originalIfc = interfaceCpp();
 
-      const string& interfaceEncoded = bundleOpenconfig.encode(*originalIfc);
+      const string& interfaceEncoded =
+          bundleOpenconfig.getCodec().encode(*originalIfc);
       ASSERT_EQ(sortJson(singleInterfaceJson), sortJson(interfaceEncoded));
 
-      const shared_ptr<Entity> decodedIfcEntity = bundleOpenconfig.decode(
-          interfaceEncoded, make_shared<OpenconfigInterface>());
+      const shared_ptr<Entity> decodedIfcEntity =
+          bundleOpenconfig.getCodec().decode(
+              interfaceEncoded, make_shared<OpenconfigInterface>());
       ASSERT_TRUE(*decodedIfcEntity == *originalIfc);
     });
   }
   executor.join();
-  ASSERT_EQ(1, mreg.cacheSize());
+  ASSERT_EQ(1, mreg.bindingCacheSize());
 }
 
 } // namespace cli
