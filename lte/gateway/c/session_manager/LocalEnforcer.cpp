@@ -346,13 +346,18 @@ static bool should_activate(
   const PolicyRule &rule,
   const std::unordered_set<uint32_t>& successful_credits)
 {
-  if (
-    rule.tracking_type() == PolicyRule::ONLY_OCS ||
-    rule.tracking_type() == PolicyRule::OCS_AND_PCRF) {
-    return successful_credits.count(rule.rating_group()) > 0;
+  if (rule.tracking_type() == PolicyRule::ONLY_OCS ||
+      rule.tracking_type() == PolicyRule::OCS_AND_PCRF) {
+    const bool exists = successful_credits.count(rule.rating_group()) > 0;
+    if (!exists) {
+      MLOG(MDEBUG) << "Should not activate " << rule.id()
+                   << " because credit w/ rating group " << rule.rating_group()
+                   << " does not exist";
+    }
+    return exists;
   }
-  MLOG(MDEBUG) << "NO OCS TRACKING for this rule";
-  ;
+  MLOG(MDEBUG) << "Should activate because NO OCS TRACKING for rule "
+               << rule.id();
   // no tracking or PCRF-only tracking, activate
   return true;
 }
