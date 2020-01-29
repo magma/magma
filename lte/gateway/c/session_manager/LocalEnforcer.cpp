@@ -50,6 +50,12 @@ static void mark_rule_failures(
   const bool deactivate_success,
   const PolicyReAuthRequest& request,
   PolicyReAuthAnswer& answer_out);
+static bool isValidMacAddress(const char* mac);
+static int get_apn_split_locaion(const std::string& apn);
+static bool parse_apn(
+  const std::string& apn,
+  std::string& mac_addr,
+  std::string& name);
 
 LocalEnforcer::LocalEnforcer(
   std::shared_ptr<SessionReporter> reporter,
@@ -593,8 +599,15 @@ bool LocalEnforcer::init_session_credit(
     MLOG(MDEBUG) << "Adding UE MAC flow for subscriber " << imsi;
     SubscriberID sid;
     sid.set_id(imsi);
+    std::string apn_mac_addr;
+    std::string apn_name;
+    if (!parse_apn(cfg.apn, apn_mac_addr, apn_name)) {
+        MLOG(MWARNING) << "Failed mac/name parsiong for apn " << cfg.apn;
+        apn_mac_addr = "";
+        apn_name = cfg.apn;
+    }
     bool add_ue_mac_flow_success = pipelined_client_->add_ue_mac_flow(
-      sid, session_state->get_mac_addr());
+      sid, session_state->get_mac_addr(), cfg.msisdn, apn_mac_addr, apn_name);
     if (!add_ue_mac_flow_success) {
       MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
     }
@@ -1247,5 +1260,51 @@ static void mark_rule_failures(
         PolicyReAuthAnswer::GW_PCEF_MALFUNCTION;
     }
   }
+}
+
+static bool isValidMacAddress(const char* mac) {
+    int i = 0;
+    int s = 0;
+
+    while (*mac) {
+       if (isxdigit(*mac)) {
+          i++;
+       }
+       else if (*mac == '-') {
+          if (i == 0 || i / 2 - 1 != s) {
+            break;
+          }
+          ++s;
+       }
+       else {
+           s = -1;
+       }
+       ++mac;
+    }
+    return (i == 12 && s == 5);
+}
+
+static bool parse_apn(
+  const std::string& apn,
+  std::string& mac_addr,
+  std::string& name)
+{
+  // Format is mac:name, if format check fails return failure
+  // Format example - 1C-B9-C4-36-04-F0:Wifi-Offload-hotspot20
+  if (apn.empty()) {
+    return false;
+  }
+  auto split_location = apn.find(":");
+  if (split_location <= 0) {
+    return false;
+  }
+  auto mac = apn.substr(0, split_location);
+  if (!isValidMacAddress(mac.c_str())){
+    return false;
+  }
+  mac_addr = mac;
+  // Allow empty name, spec is unclear on this
+  name = apn.substr(split_location + 1, apn.size());
+  return true;
 }
 } // namespace magma

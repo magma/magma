@@ -90,6 +90,14 @@ message UEMacFlowRequest {
 
   // UE MAC address
   string mac_addr = 2;
+
+  string msisdn = 3;
+
+  // AP MAC address
+  string ap_mac_addr = 4;
+
+  // AP Name
+  string ap_name = 5;
 }
 
 message SubscriberQuotaUpdate{

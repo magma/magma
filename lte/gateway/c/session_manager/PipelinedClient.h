@@ -72,7 +72,10 @@ class PipelinedClient {
    */
   virtual bool add_ue_mac_flow(
     const SubscriberID &sid,
-    const std::string &mac_addr) = 0;
+    const std::string &ue_mac_addr,
+    const std::string &msisdn,
+    const std::string &ap_mac_addr,
+    const std::string &ap_name) = 0;
 };
 
 /**
@@ -124,7 +127,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   bool add_ue_mac_flow(
     const SubscriberID &sid,
-    const std::string &mac_addr);
+    const std::string &ue_mac_addr,
+    const std::string &msisdn,
+    const std::string &ap_mac_addr,
+    const std::string &ap_name);
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds

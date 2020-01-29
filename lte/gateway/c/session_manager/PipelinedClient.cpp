@@ -55,11 +55,17 @@ magma::ActivateFlowsRequest create_activate_req(
 
 magma::UEMacFlowRequest create_add_ue_mac_flow_req(
   const magma::SubscriberID &sid,
-  const std::string &mac_addr)
+  const std::string &ue_mac_addr,
+  const std::string &msisdn,
+  const std::string &ap_mac_addr,
+  const std::string &ap_name)
 {
   magma::UEMacFlowRequest req;
   req.mutable_sid()->CopyFrom(sid);
-  req.set_mac_addr(mac_addr);
+  req.set_mac_addr(ue_mac_addr);
+  req.set_msisdn(msisdn);
+  req.set_ap_mac_addr(ap_mac_addr);
+  req.set_ap_name(ap_name);
   return req;
 }
 
@@ -176,13 +182,17 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
 
 bool AsyncPipelinedClient::add_ue_mac_flow(
     const SubscriberID &sid,
-    const std::string &mac_addr)
+    const std::string &ue_mac_addr,
+    const std::string &msisdn,
+    const std::string &ap_mac_addr,
+    const std::string &ap_name)
 {
-  auto req = create_add_ue_mac_flow_req(sid, mac_addr);
-  add_ue_mac_flow_rpc(req, [mac_addr](Status status, FlowResponse resp) {
+  auto req = create_add_ue_mac_flow_req(sid, ue_mac_addr, msisdn, ap_mac_addr,
+    ap_name);
+  add_ue_mac_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not add flow for subscriber with UE MAC"
-                   << mac_addr << ": " << status.error_message();
+                   << ue_mac_addr << ": " << status.error_message();
     }
   });
   return true;
