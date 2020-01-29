@@ -138,6 +138,7 @@ type AddLinkInput struct {
 	Sides      []*LinkSide      `json:"sides"`
 	WorkOrder  *string          `json:"workOrder"`
 	Properties []*PropertyInput `json:"properties"`
+	ServiceIds []string         `json:"serviceIds"`
 }
 
 type AddLocationInput struct {
@@ -266,6 +267,7 @@ type EditEquipmentTypeInput struct {
 type EditLinkInput struct {
 	ID         string           `json:"id"`
 	Properties []*PropertyInput `json:"properties"`
+	ServiceIds []string         `json:"serviceIds"`
 }
 
 type EditLocationInput struct {

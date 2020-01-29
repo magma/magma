@@ -54,6 +54,7 @@ class AddLinkInput:
 
     sides: List[LinkSide]
     properties: List[PropertyInput]
+    serviceIds: List[str]
     workOrder: Optional[str] = None
 
 

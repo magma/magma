@@ -45,6 +45,7 @@ func writeModifiedLinksCSV(t *testing.T, r *csv.Reader, method method, skipLines
 			case MethodEdit:
 				newLine = line
 				if line[1] == portName1 {
+					newLine[25] = secondServiceName
 					newLine[26] = "new-prop-value"
 					newLine[27] = "true"
 					newLine[28] = "10"
@@ -85,6 +86,8 @@ func TestExportAndEditLinks(t *testing.T) {
 			if skipLines {
 				require.Len(t, props, 0)
 			} else {
+				s := link.QueryService().OnlyX(ctx)
+				require.Equal(t, s.Name, secondServiceName)
 				require.Len(t, props, 3)
 			}
 			for _, prop := range props {

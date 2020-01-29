@@ -103,6 +103,7 @@ def add_link(
             AddLinkInput.LinkSide(equipment=equipment_b.id, port=port_id_b),
         ],
         properties=[],
+        serviceIds=[],
     )
     try:
         link = AddLinkMutation.execute(client, add_link_input).__dict__[

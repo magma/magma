@@ -211,7 +211,7 @@ func (m *importer) validateServicesForPortEndpoints(ctx context.Context, line Im
 	consumerServiceNames := strings.Split(line.ConsumerPortsServices(), ";")
 	for _, serviceName := range consumerServiceNames {
 		if serviceName != "" {
-			serviceID, err := m.validateServiceNameExistsAndUnique(ctx, serviceNamesMap, serviceName)
+			serviceID, err := m.validateServiceExistsAndUnique(ctx, serviceNamesMap, serviceName)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -222,7 +222,7 @@ func (m *importer) validateServicesForPortEndpoints(ctx context.Context, line Im
 	providerServiceNames := strings.Split(line.ProviderPortsServices(), ";")
 	for _, serviceName := range providerServiceNames {
 		if serviceName != "" {
-			serviceID, err := m.validateServiceNameExistsAndUnique(ctx, serviceNamesMap, serviceName)
+			serviceID, err := m.validateServiceExistsAndUnique(ctx, serviceNamesMap, serviceName)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -230,19 +230,6 @@ func (m *importer) validateServicesForPortEndpoints(ctx context.Context, line Im
 		}
 	}
 	return consumerServiceIds, providerServiceIds, nil
-}
-
-func (m *importer) validateServiceNameExistsAndUnique(ctx context.Context, serviceNamesMap map[string]bool, serviceName string) (string, error) {
-	client := m.ClientFrom(ctx)
-	if _, ok := serviceNamesMap[serviceName]; ok {
-		return "", errors.Errorf("Property can't be the endpoint of the same service more than once - service name=%q", serviceName)
-	}
-	serviceNamesMap[serviceName] = true
-	s, err := client.Service.Query().Where(service.Name(serviceName)).Only(ctx)
-	if err != nil {
-		return "", errors.Wrapf(err, "can't query service name=%q", serviceName)
-	}
-	return s.ID, nil
 }
 
 func (m *importer) editServiceEndpoints(ctx context.Context, port *ent.EquipmentPort, serviceIds []string, role models.ServiceEndpointRole) error {
