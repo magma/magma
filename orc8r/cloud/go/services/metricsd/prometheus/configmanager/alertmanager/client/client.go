@@ -16,30 +16,27 @@ import (
 	"strings"
 	"sync"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 
-	amconfig "github.com/prometheus/alertmanager/config"
-
 	"gopkg.in/yaml.v2"
 )
 
 type AlertmanagerClient interface {
-	CreateReceiver(tenantID string, rec receivers.Receiver) error
-	GetReceivers(tenantID string) ([]receivers.Receiver, error)
-	UpdateReceiver(tenantID, receiverName string, newRec *receivers.Receiver) error
+	CreateReceiver(tenantID string, rec config.Receiver) error
+	GetReceivers(tenantID string) ([]config.Receiver, error)
+	UpdateReceiver(tenantID, receiverName string, newRec *config.Receiver) error
 	DeleteReceiver(tenantID, receiverName string) error
 
 	// ModifyNetworkRoute updates an existing routing tree for the given
 	// tenant, or creates one if it already exists. Ensures that the base
 	// route matches all alerts with label "tenantID" = <tenantID>.
-	ModifyTenantRoute(tenantID string, route *amconfig.Route) error
+	ModifyTenantRoute(tenantID string, route *config.Route) error
 
 	// GetRoute returns the routing tree for the given tenantID
-	GetRoute(tenantID string) (*amconfig.Route, error)
+	GetRoute(tenantID string) (*config.Route, error)
 
 	GetGlobalConfig() (*config.GlobalConfig, error)
 	SetGlobalConfig(globalConfig config.GlobalConfig) error
@@ -71,7 +68,7 @@ func NewClient(configPath, alertmanagerURL string, tenancy *alert.TenancyConfig,
 
 // CreateReceiver writes a new receiver to the config file with the tenantID
 // prepended to the name so multiple tenants can be supported
-func (c *client) CreateReceiver(tenantID string, rec receivers.Receiver) error {
+func (c *client) CreateReceiver(tenantID string, rec config.Receiver) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
@@ -90,17 +87,17 @@ func (c *client) CreateReceiver(tenantID string, rec receivers.Receiver) error {
 }
 
 // GetReceivers returns the receiver configs for the given tenantID
-func (c *client) GetReceivers(tenantID string) ([]receivers.Receiver, error) {
+func (c *client) GetReceivers(tenantID string) ([]config.Receiver, error) {
 	c.RLock()
 	defer c.RUnlock()
 	conf, err := c.readConfigFile()
 	if err != nil {
-		return []receivers.Receiver{}, nil
+		return []config.Receiver{}, nil
 	}
 
-	recs := make([]receivers.Receiver, 0)
+	recs := make([]config.Receiver, 0)
 	for _, rec := range conf.Receivers {
-		if strings.HasPrefix(rec.Name, receivers.ReceiverTenantPrefix(tenantID)) {
+		if strings.HasPrefix(rec.Name, config.ReceiverTenantPrefix(tenantID)) {
 			rec.Unsecure(tenantID)
 			recs = append(recs, *rec)
 		}
@@ -109,7 +106,7 @@ func (c *client) GetReceivers(tenantID string) ([]receivers.Receiver, error) {
 }
 
 // UpdateReceiver modifies an existing receiver
-func (c *client) UpdateReceiver(tenantID, receiverName string, newRec *receivers.Receiver) error {
+func (c *client) UpdateReceiver(tenantID, receiverName string, newRec *config.Receiver) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
@@ -119,7 +116,7 @@ func (c *client) UpdateReceiver(tenantID, receiverName string, newRec *receivers
 
 	newRec.Secure(tenantID)
 
-	receiverToUpdate := receivers.SecureReceiverName(receiverName, tenantID)
+	receiverToUpdate := config.SecureReceiverName(receiverName, tenantID)
 	receiverIdx := -1
 	for idx, rec := range conf.Receivers {
 		if rec.Name == receiverToUpdate {
@@ -148,7 +145,7 @@ func (c *client) DeleteReceiver(tenantID, receiverName string) error {
 		return err
 	}
 
-	receiverToDelete := receivers.SecureReceiverName(receiverName, tenantID)
+	receiverToDelete := config.SecureReceiverName(receiverName, tenantID)
 
 	for idx, rec := range conf.Receivers {
 		if rec.Name == receiverToDelete {
@@ -164,7 +161,7 @@ func (c *client) DeleteReceiver(tenantID, receiverName string) error {
 // ensuring that receivers are properly named and the resulting config is valid.
 // Creates a new one if it doesn't already exist. If single-tenant client this
 // just modifies the entire routing tree
-func (c *client) ModifyTenantRoute(tenantID string, route *amconfig.Route) error {
+func (c *client) ModifyTenantRoute(tenantID string, route *config.Route) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
@@ -206,12 +203,12 @@ func (c *client) ModifyTenantRoute(tenantID string, route *amconfig.Route) error
 }
 
 // GetRoute returns the base route for the given tenantID
-func (c *client) GetRoute(tenantID string) (*amconfig.Route, error) {
+func (c *client) GetRoute(tenantID string) (*config.Route, error) {
 	c.RLock()
 	defer c.RUnlock()
 	conf, err := c.readConfigFile()
 	if err != nil {
-		return &amconfig.Route{}, err
+		return &config.Route{}, err
 	}
 
 	routeIdx := conf.GetRouteIdx(config.MakeBaseRouteName(tenantID))
@@ -292,8 +289,8 @@ func (c *client) writeConfigFile(conf *config.Config) error {
 
 // secureRoute ensure that all receivers in the route have the
 // proper tenantID-prefixed receiver name
-func secureRoute(tenantID string, route *amconfig.Route) {
-	route.Receiver = receivers.SecureReceiverName(route.Receiver, tenantID)
+func secureRoute(tenantID string, route *config.Route) {
+	route.Receiver = config.SecureReceiverName(route.Receiver, tenantID)
 	for _, childRoute := range route.Routes {
 		secureRoute(tenantID, childRoute)
 	}
@@ -301,20 +298,19 @@ func secureRoute(tenantID string, route *amconfig.Route) {
 
 // unsecureRoute traverses a routing tree and reverts receiver
 // names to their non-prefixed original names
-func unsecureRoute(tenantID string, route *amconfig.Route) {
-	route.Receiver = receivers.UnsecureReceiverName(route.Receiver, tenantID)
+func unsecureRoute(tenantID string, route *config.Route) {
+	route.Receiver = config.UnsecureReceiverName(route.Receiver, tenantID)
 	for _, childRoute := range route.Routes {
 		unsecureRoute(tenantID, childRoute)
 	}
 }
 
-func (c *client) getBaseRouteForTenant(tenantID string, conf *config.Config) *amconfig.Route {
+func (c *client) getBaseRouteForTenant(tenantID string, conf *config.Config) *config.Route {
 	baseRouteName := config.MakeBaseRouteName(tenantID)
 	for _, route := range conf.Route.Routes {
 		if route.Receiver == baseRouteName {
 			return route
 		}
 	}
-	newBaseRoute := &amconfig.Route{Receiver: config.MakeBaseRouteName(tenantID)}
-	return newBaseRoute
+	return &config.Route{Receiver: config.MakeBaseRouteName(tenantID)}
 }

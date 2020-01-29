@@ -4,16 +4,15 @@ import (
 	"net/url"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 
 	amconfig "github.com/prometheus/alertmanager/config"
 )
 
 var (
 	sampleURL, _ = url.Parse("http://test.com")
-	SampleRoute  = amconfig.Route{
+	SampleRoute  = config.Route{
 		Receiver: "testReceiver",
-		Routes: []*amconfig.Route{
+		Routes: []*config.Route{
 			{
 				Receiver: "testReceiver",
 			},
@@ -22,20 +21,20 @@ var (
 			},
 		},
 	}
-	SampleReceiver = receivers.Receiver{
+	SampleReceiver = config.Receiver{
 		Name: "testReceiver",
 	}
-	SampleSlackReceiver = receivers.Receiver{
+	SampleSlackReceiver = config.Receiver{
 		Name: "slack_receiver",
-		SlackConfigs: []*receivers.SlackConfig{{
+		SlackConfigs: []*config.SlackConfig{{
 			APIURL:   "http://slack.com/12345",
 			Username: "slack_user",
 			Channel:  "slack_alert_channel",
 		}},
 	}
-	SampleWebhookReceiver = receivers.Receiver{
+	SampleWebhookReceiver = config.Receiver{
 		Name: "webhook_receiver",
-		WebhookConfigs: []*receivers.WebhookConfig{{
+		WebhookConfigs: []*config.WebhookConfig{{
 			URL: &amconfig.URL{
 				URL: sampleURL,
 			},
@@ -44,9 +43,9 @@ var (
 			},
 		}},
 	}
-	SampleEmailReceiver = receivers.Receiver{
+	SampleEmailReceiver = config.Receiver{
 		Name: "email_receiver",
-		EmailConfigs: []*receivers.EmailConfig{{
+		EmailConfigs: []*config.EmailConfig{{
 			To:        "test@mail.com",
 			From:      "sampleUser",
 			Headers:   map[string]string{"header": "value"},
@@ -55,7 +54,7 @@ var (
 	}
 	SampleConfig = config.Config{
 		Route: &SampleRoute,
-		Receivers: []*receivers.Receiver{
+		Receivers: []*config.Receiver{
 			&SampleSlackReceiver, &SampleReceiver, &SampleWebhookReceiver, &SampleEmailReceiver,
 		},
 	}
