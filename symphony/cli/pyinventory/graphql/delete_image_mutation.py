@@ -46,6 +46,11 @@ class ImageEntity(Enum):
     WORK_ORDER = "WORK_ORDER"
     SITE_SURVEY = "SITE_SURVEY"
     EQUIPMENT = "EQUIPMENT"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json

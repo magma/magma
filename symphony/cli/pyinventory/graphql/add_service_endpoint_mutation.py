@@ -44,6 +44,11 @@ def enum_field(enum_type):
 class ServiceEndpointRole(Enum):
     CONSUMER = "CONSUMER"
     PROVIDER = "PROVIDER"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
