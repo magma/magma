@@ -204,11 +204,6 @@ const arrayConfigs = [
     title: 'External ID',
     enabledByDefault: true,
   },
-  {
-    id: 'service_endpoints',
-    title: 'Service Endpoints',
-    enabledByDefault: false,
-  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};

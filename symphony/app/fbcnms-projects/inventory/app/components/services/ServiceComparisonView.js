@@ -11,13 +11,12 @@
 import type {FilterConfig} from '../comparison_view/ComparisonViewTypes';
 
 import AddServiceDialog from './AddServiceDialog';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardFooter from '@fbcnms/ui/components/CardFooter';
 import PowerSearchBar from '../power_search/PowerSearchBar';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import ServiceComparisonViewQueryRenderer from './ServiceComparisonViewQueryRenderer';
 import symphony from '@fbcnms/ui/theme/symphony';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
@@ -74,9 +73,6 @@ const ServiceComparisonView = () => {
   const [count, setCount] = useState(0);
   const [filters, setFilters] = useState([]);
   const classes = useStyles();
-  const serviceEndpointsEnabled = useContext(AppContext).isFeatureEnabled(
-    'service_endpoints',
-  );
 
   const possibleProperties = usePropertyFilters('service');
   const servicePropertiesFilterConfigs = buildPropertyFilterConfigs(
@@ -85,13 +81,10 @@ const ServiceComparisonView = () => {
 
   const locationTypesFilterConfigs = useLocationTypes();
 
-  let filterConfigs = ServiceSearchConfig.map(ent => ent.filters)
+  const filterConfigs = ServiceSearchConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(servicePropertiesFilterConfigs ?? []);
-
-  if (serviceEndpointsEnabled) {
-    filterConfigs = filterConfigs.concat(locationTypesFilterConfigs ?? []);
-  }
+    .concat(servicePropertiesFilterConfigs ?? [])
+    .concat(locationTypesFilterConfigs ?? []);
 
   const navigateToService = (selectedServiceId: ?string) => {
     history.push(
