@@ -11,7 +11,7 @@
 
 #include <devmand/channels/Engine.h>
 #include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
-#include <devmand/devices/cli/ModelRegistry.h>
+#include <devmand/devices/cli/schema/ModelRegistry.h>
 #include <folly/Executor.h>
 #include <folly/futures/ThreadWheelTimekeeper.h>
 #include <magma_logging.h>

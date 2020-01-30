@@ -75,7 +75,7 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
                      << " to OCS failed entirely: " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        enforcer_->update_session_credit(response);
+        enforcer_->update_session_credits_and_rules(response);
         // Check if we need to report more updates
         check_usage_for_reporting();
       }

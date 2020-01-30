@@ -15,8 +15,9 @@ host_address: 0.0.0.0 # Bind to all interfaces
 # Enable streaming from the cloud for subscriber updates
 enable_streaming: True
 
-# Keep subscriberdb in memory. Change to path to persist
-db_path: file::memory:?cache=shared
+# Keep subscriberdb in a file.
+# Change filename to :memory: to store subscribers in memory.
+db_path: file:/var/opt/magma/subscriber.db?cache=shared
 
 # S6A Peer Configurations
 mme_host_name: hss.magma.com

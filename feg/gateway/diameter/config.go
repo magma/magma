@@ -25,15 +25,16 @@ const (
 	DiamProductName = "magma"
 	Vendor3GPP      = uint32(10415) // diameter code for a 3GPP application
 
-	AddrFlag            = "addr"
-	NetworkFlag         = "network"
-	HostFlag            = "host"
-	RealmFlag           = "realm"
-	ProductFlag         = "product"
-	LocalAddrFlag       = "laddr"
-	DestHostFlag        = "dest_host"
-	DestRealmFlag       = "dest_realm"
-	DisableDestHostFlag = "disable_dest_host"
+	AddrFlag              = "addr"
+	NetworkFlag           = "network"
+	HostFlag              = "host"
+	RealmFlag             = "realm"
+	ProductFlag           = "product"
+	LocalAddrFlag         = "laddr"
+	DestHostFlag          = "dest_host"
+	DestRealmFlag         = "dest_realm"
+	DisableDestHostFlag   = "disable_dest_host"
+	OverwriteDestHostFlag = "overwrite_dest_host"
 
 	DefaultWatchdogIntervalSeconds = 3
 )
@@ -49,6 +50,7 @@ var (
 	_ = flag.String(DestHostFlag, "", "Diameter server host name")
 	_ = flag.String(DestRealmFlag, "", "Diameter server realm")
 	_ = flag.String(DisableDestHostFlag, "", "Disable sending dest-host AVP in requests")
+	_ = flag.String(OverwriteDestHostFlag, "", "Overwrite dest-host AVP in requests even if message includes it")
 )
 
 type DiameterServerConnConfig struct {
@@ -59,9 +61,10 @@ type DiameterServerConnConfig struct {
 
 type DiameterServerConfig struct {
 	DiameterServerConnConfig
-	DestHost        string
-	DestRealm       string
-	DisableDestHost bool
+	DestHost          string
+	DestRealm         string
+	DisableDestHost   bool
+	OverwriteDestHost bool
 }
 
 // DiameterClientConfig holds information for connecting with a diameter server

@@ -145,13 +145,21 @@ func (m *importer) getOrCreateLocationType(ctx context.Context, name string, pro
 		SaveX(ctx)
 }
 
-func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool) {
-	log := m.log.For(ctx)
+func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name string, locType *ent.LocationType, parentID *string) (*ent.Location, error) {
 	rq := locType.QueryLocations().Where(location.Name(name))
 	if parentID != nil {
 		rq = rq.Where(location.HasParentWith(location.ID(*parentID)))
 	}
 	l, err := rq.Only(ctx)
+	if l != nil {
+		return l, nil
+	}
+	return nil, err
+}
+
+func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool) {
+	log := m.log.For(ctx)
+	l, err := m.queryLocationForTypeAndParent(ctx, name, locType, parentID)
 	if l != nil {
 		return l, false
 	}
@@ -241,8 +249,7 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 	return equip, true, nil
 }
 
-func (m *importer) getOrCreateService(
-	ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, bool) {
+func (m *importer) getServiceIfExist(ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, error) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.ServiceType.Query().
@@ -252,15 +259,26 @@ func (m *importer) getOrCreateService(
 			service.Name(name),
 		)
 	service, err := rq.First(ctx)
+	if ent.MaskNotFound(err) != nil {
+		return nil, err
+	}
 	if service != nil {
 		log.Debug("service exists",
 			zap.String("name", name),
 			zap.String("type", serviceType.ID),
 		)
-		return service, false
+		return service, nil
 	}
-	if !ent.IsNotFound(err) {
-		panic(err)
+	return nil, nil
+}
+
+func (m *importer) getOrCreateService(
+	ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, bool, error) {
+	log := m.log.For(ctx)
+	service, err := m.getServiceIfExist(ctx, mr, name, serviceType, props, customerID, externalID, status)
+
+	if err != nil || service != nil {
+		return service, false, err
 	}
 
 	service, err = mr.AddService(ctx, models.ServiceCreateData{
@@ -273,17 +291,14 @@ func (m *importer) getOrCreateService(
 	})
 	if err != nil {
 		log.Error("add service", zap.String("name", name), zap.Error(err))
-		return nil, false
+		return nil, false, err
 	}
 	log.Debug("Creating new service", zap.String("service.Name", service.Name), zap.String("service.ID", service.ID))
 
-	return service, true
+	return service, true, nil
 }
 
-func (m *importer) getOrCreateCustomer(ctx context.Context, mr generated.MutationResolver, name string, externalID string) (*ent.Customer, error) {
-
-	exID := pointer.ToStringOrNil(externalID)
-
+func (m *importer) getCustomerIfExist(ctx context.Context, name string) (*ent.Customer, error) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	customer, err := client.Customer.Query().Where(customer.Name(name)).First(ctx)
@@ -296,8 +311,18 @@ func (m *importer) getOrCreateCustomer(ctx context.Context, mr generated.Mutatio
 	if !ent.IsNotFound(err) {
 		return nil, err
 	}
+	return nil, nil
+}
 
-	customer, err = mr.AddCustomer(ctx, models.AddCustomerInput{
+func (m *importer) getOrCreateCustomer(ctx context.Context, mr generated.MutationResolver, name string, externalID string) (*ent.Customer, error) {
+	log := m.log.For(ctx)
+	_, err := m.getCustomerIfExist(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	exID := pointer.ToStringOrNil(externalID)
+	customer, err := mr.AddCustomer(ctx, models.AddCustomerInput{
 		Name:       name,
 		ExternalID: exID,
 	})
