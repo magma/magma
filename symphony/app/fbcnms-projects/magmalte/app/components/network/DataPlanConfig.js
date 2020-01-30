@@ -109,7 +109,7 @@ class DataPlanConfig extends React.Component<Props, State> {
           </TableCell>
           <TableCell>
             <div className={classes.rowIcon}>
-              <NestedRouteLink to={`/edit/${encodeURIComponent(id)}/`}>
+              <NestedRouteLink to={`/edit/${encodeURIComponent(id)}`}>
                 <IconButton color="primary">
                   <EditIcon />
                 </IconButton>
@@ -138,7 +138,7 @@ class DataPlanConfig extends React.Component<Props, State> {
               <TableCell>Download Speed</TableCell>
               <TableCell>Upload Speed</TableCell>
               <TableCell>
-                <NestedRouteLink to="/edit/">
+                <NestedRouteLink to="/add">
                   <Button>Add Data Plan</Button>
                 </NestedRouteLink>
               </TableCell>
@@ -146,7 +146,7 @@ class DataPlanConfig extends React.Component<Props, State> {
           </TableHead>
           {rows && <TableBody>{rows}</TableBody>}
         </Table>
-        <Route path={`${match.path}/edit`} component={this.renderEditDialog} />
+        <Route path={`${match.path}/add`} component={this.renderEditDialog} />
         <Route
           path={`${match.path}/edit/:dataPlanId`}
           component={this.renderEditDialog}
@@ -180,10 +180,9 @@ class DataPlanConfig extends React.Component<Props, State> {
           return;
         }
         // Creates a new object without the deleted subprofiles
-        const {
-          [dataPlanId]: deletedProfile, // eslint-disable-line no-unused-vars
-          ...newSubProfiles
-        } = nullthrows(config.sub_profiles);
+        const {[dataPlanId]: _deletedProfile, ...newSubProfiles} = nullthrows(
+          config.sub_profiles,
+        );
         const newConfig = {
           ...config,
           sub_profiles: newSubProfiles,
