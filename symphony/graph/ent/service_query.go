@@ -444,9 +444,18 @@ func (sq *ServiceQuery) Select(field string, fields ...string) *ServiceSelect {
 
 func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 	var (
-		nodes   []*Service = []*Service{}
-		withFKs            = sq.withFKs
-		_spec              = sq.querySpec()
+		nodes       = []*Service{}
+		withFKs     = sq.withFKs
+		_spec       = sq.querySpec()
+		loadedTypes = [7]bool{
+			sq.withType != nil,
+			sq.withDownstream != nil,
+			sq.withUpstream != nil,
+			sq.withProperties != nil,
+			sq.withLinks != nil,
+			sq.withCustomer != nil,
+			sq.withEndpoints != nil,
+		}
 	)
 	if sq.withType != nil {
 		withFKs = true
@@ -468,6 +477,7 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, sq.driver, _spec); err != nil {

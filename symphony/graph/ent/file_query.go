@@ -268,9 +268,9 @@ func (fq *FileQuery) Select(field string, fields ...string) *FileSelect {
 
 func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
 	var (
-		nodes   []*File = []*File{}
-		withFKs         = fq.withFKs
-		_spec           = fq.querySpec()
+		nodes   = []*File{}
+		withFKs = fq.withFKs
+		_spec   = fq.querySpec()
 	)
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, file.ForeignKeys...)

@@ -369,9 +369,15 @@ func (fpq *FloorPlanQuery) Select(field string, fields ...string) *FloorPlanSele
 
 func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 	var (
-		nodes   []*FloorPlan = []*FloorPlan{}
-		withFKs              = fpq.withFKs
-		_spec                = fpq.querySpec()
+		nodes       = []*FloorPlan{}
+		withFKs     = fpq.withFKs
+		_spec       = fpq.querySpec()
+		loadedTypes = [4]bool{
+			fpq.withLocation != nil,
+			fpq.withReferencePoint != nil,
+			fpq.withScale != nil,
+			fpq.withImage != nil,
+		}
 	)
 	if fpq.withLocation != nil || fpq.withReferencePoint != nil || fpq.withScale != nil || fpq.withImage != nil {
 		withFKs = true
@@ -393,6 +399,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, fpq.driver, _spec); err != nil {

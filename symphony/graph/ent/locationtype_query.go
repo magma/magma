@@ -345,8 +345,13 @@ func (ltq *LocationTypeQuery) Select(field string, fields ...string) *LocationTy
 
 func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, error) {
 	var (
-		nodes []*LocationType = []*LocationType{}
-		_spec                 = ltq.querySpec()
+		nodes       = []*LocationType{}
+		_spec       = ltq.querySpec()
+		loadedTypes = [3]bool{
+			ltq.withLocations != nil,
+			ltq.withPropertyTypes != nil,
+			ltq.withSurveyTemplateCategories != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &LocationType{config: ltq.config}
@@ -359,6 +364,7 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, ltq.driver, _spec); err != nil {

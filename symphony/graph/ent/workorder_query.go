@@ -546,9 +546,22 @@ func (woq *WorkOrderQuery) Select(field string, fields ...string) *WorkOrderSele
 
 func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 	var (
-		nodes   []*WorkOrder = []*WorkOrder{}
-		withFKs              = woq.withFKs
-		_spec                = woq.querySpec()
+		nodes       = []*WorkOrder{}
+		withFKs     = woq.withFKs
+		_spec       = woq.querySpec()
+		loadedTypes = [11]bool{
+			woq.withType != nil,
+			woq.withEquipment != nil,
+			woq.withLinks != nil,
+			woq.withFiles != nil,
+			woq.withHyperlinks != nil,
+			woq.withLocation != nil,
+			woq.withComments != nil,
+			woq.withProperties != nil,
+			woq.withCheckListItems != nil,
+			woq.withTechnician != nil,
+			woq.withProject != nil,
+		}
 	)
 	if woq.withType != nil || woq.withLocation != nil || woq.withTechnician != nil || woq.withProject != nil {
 		withFKs = true
@@ -570,6 +583,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, woq.driver, _spec); err != nil {

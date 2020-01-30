@@ -7,8 +7,10 @@ package resolver
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sort"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
@@ -22,7 +24,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"golang.org/x/xerrors"
 )
 
 type queryResolver struct{ resolver }
@@ -41,11 +42,7 @@ func (r queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
 			zap.String("id", id),
 			zap.Error(err),
 		)
-	var e *ent.NotFoundError
-	if xerrors.As(err, &e) {
-		err = nil
-	}
-	return nil, err
+	return nil, ent.MaskNotFound(err)
 }
 
 func (r queryResolver) Location(ctx context.Context, id string) (*ent.Location, error) {
@@ -80,7 +77,7 @@ func (r queryResolver) Locations(
 	before *ent.Cursor, last *int,
 ) (*ent.LocationConnection, error) {
 	query := r.ClientFrom(ctx).Location.Query()
-	if onlyTopLevel != nil && *onlyTopLevel {
+	if pointer.GetBool(onlyTopLevel) {
 		query = query.Where(location.Not(location.HasParent()))
 	}
 	if name != nil {
@@ -175,7 +172,7 @@ func (r queryResolver) WorkOrders(
 	showCompleted *bool,
 ) (*ent.WorkOrderConnection, error) {
 	query := r.ClientFrom(ctx).WorkOrder.Query()
-	if showCompleted != nil && !*showCompleted {
+	if pointer.GetBool(showCompleted) {
 		query = query.Where(workorder.StatusIn(
 			models.WorkOrderStatusPending.String(),
 			models.WorkOrderStatusPlanned.String(),
@@ -265,26 +262,24 @@ func (r queryResolver) SearchForEntity(
 	return &models.SearchEntriesConnection{Edges: edges}, nil
 }
 
-func (r queryResolver) PossibleProperties(ctx context.Context, entityType models.PropertyEntity) ([]*ent.PropertyType, error) {
-	var pts []*ent.PropertyType
-	var err error
+func (r queryResolver) PossibleProperties(ctx context.Context, entityType models.PropertyEntity) (pts []*ent.PropertyType, err error) {
+	client := r.ClientFrom(ctx)
 	switch entityType {
 	case models.PropertyEntityEquipment:
-		pts, err = r.ClientFrom(ctx).EquipmentType.Query().QueryPropertyTypes().All(ctx)
+		pts, err = client.EquipmentType.Query().QueryPropertyTypes().All(ctx)
 	case models.PropertyEntityService:
-		pts, err = r.ClientFrom(ctx).ServiceType.Query().QueryPropertyTypes().All(ctx)
+		pts, err = client.ServiceType.Query().QueryPropertyTypes().All(ctx)
 	case models.PropertyEntityLink:
-		pts, err = r.ClientFrom(ctx).EquipmentPortType.Query().QueryLinkPropertyTypes().All(ctx)
+		pts, err = client.EquipmentPortType.Query().QueryLinkPropertyTypes().All(ctx)
 	case models.PropertyEntityPort:
-		pts, err = r.ClientFrom(ctx).EquipmentPortType.Query().QueryPropertyTypes().All(ctx)
+		pts, err = client.EquipmentPortType.Query().QueryPropertyTypes().All(ctx)
 	case models.PropertyEntityLocation:
-		pts, err = r.ClientFrom(ctx).LocationType.Query().QueryPropertyTypes().All(ctx)
+		pts, err = client.LocationType.Query().QueryPropertyTypes().All(ctx)
 	default:
-		return nil, errors.Errorf("entity type is not supported: %s", entityType)
+		return nil, fmt.Errorf("unsupported entity type: %s", entityType)
 	}
-
 	if err != nil {
-		return nil, errors.Wrap(err, "querying property types")
+		return nil, fmt.Errorf("querying property types: %w", err)
 	}
 
 	type key struct{ name, typ string }
@@ -305,7 +300,7 @@ func (r queryResolver) PossibleProperties(ctx context.Context, entityType models
 func (r queryResolver) Surveys(ctx context.Context) ([]*ent.Survey, error) {
 	surveys, err := r.ClientFrom(ctx).Survey.Query().All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "querying all surveys")
+		return nil, fmt.Errorf("querying all surveys: %w", err)
 	}
 	return surveys, nil
 }
@@ -357,9 +352,8 @@ func (r queryResolver) ActionsRules(
 ) (*models.ActionsRulesSearchResult, error) {
 	results, err := r.ClientFrom(ctx).ActionsRule.Query().All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to query action rules")
+		return nil, fmt.Errorf("querying action rules: %w", err)
 	}
-
 	return &models.ActionsRulesSearchResult{
 		Results: results,
 		Count:   len(results),
@@ -369,17 +363,14 @@ func (r queryResolver) ActionsRules(
 func (r queryResolver) ActionsTriggers(
 	ctx context.Context,
 ) (*models.ActionsTriggersSearchResult, error) {
-	ac := actions.FromContext(ctx)
-	triggers := ac.Triggers()
-
+	triggers := actions.FromContext(ctx).Triggers()
 	ret := make([]*models.ActionsTrigger, len(triggers))
-	for i, trigger := range ac.Triggers() {
+	for i, trigger := range triggers {
 		ret[i] = &models.ActionsTrigger{
 			TriggerID:   trigger.ID(),
 			Description: trigger.Description(),
 		}
 	}
-
 	return &models.ActionsTriggersSearchResult{
 		Results: ret,
 		Count:   len(ret),
@@ -389,10 +380,10 @@ func (r queryResolver) ActionsTriggers(
 func (r queryResolver) ActionsTrigger(
 	ctx context.Context, triggerID core.TriggerID,
 ) (*models.ActionsTrigger, error) {
-	ac := actions.FromContext(ctx)
-	trigger, err := ac.TriggerForID(triggerID)
+	trigger, err := actions.FromContext(ctx).
+		TriggerForID(triggerID)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting trigger")
+		return nil, fmt.Errorf("getting trigger: %w", err)
 	}
 	return &models.ActionsTrigger{
 		TriggerID:   triggerID,
@@ -400,7 +391,7 @@ func (r queryResolver) ActionsTrigger(
 	}, nil
 }
 
-func (r queryResolver) FindLocationWithDuplicateProperties(ctx context.Context, locationTypeID string, propertyName string) ([]string, error) {
+func (r queryResolver) FindLocationWithDuplicateProperties(ctx context.Context, locationTypeID, propertyName string) ([]string, error) {
 	query := r.ClientFrom(ctx).
 		LocationType.
 		Query().

@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // WorkOrderDefinition is the model entity for the WorkOrderDefinition schema.
@@ -40,6 +42,37 @@ type WorkOrderDefinitionEdges struct {
 	Type *WorkOrderType
 	// ProjectType holds the value of the project_type edge.
 	ProjectType *ProjectType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// TypeErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderDefinitionEdges) TypeErr() (*WorkOrderType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workordertype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// ProjectTypeErr returns the ProjectType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderDefinitionEdges) ProjectTypeErr() (*ProjectType, error) {
+	if e.loadedTypes[1] {
+		if e.ProjectType == nil {
+			// The edge project_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: projecttype.Label}
+		}
+		return e.ProjectType, nil
+	}
+	return nil, &NotLoadedError{edge: "project_type"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

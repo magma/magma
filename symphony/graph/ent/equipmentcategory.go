@@ -36,6 +36,18 @@ type EquipmentCategory struct {
 type EquipmentCategoryEdges struct {
 	// Types holds the value of the types edge.
 	Types []*EquipmentType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TypesErr returns the Types value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentCategoryEdges) TypesErr() ([]*EquipmentType, error) {
+	if e.loadedTypes[0] {
+		return e.Types, nil
+	}
+	return nil, &NotLoadedError{edge: "types"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

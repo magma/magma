@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/project"
+	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 )
 
 // Project is the model entity for the Project schema.
@@ -50,6 +52,64 @@ type ProjectEdges struct {
 	WorkOrders []*WorkOrder
 	// Properties holds the value of the properties edge.
 	Properties []*Property
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [5]bool
+}
+
+// TypeErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProjectEdges) TypeErr() (*ProjectType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: projecttype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// LocationErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProjectEdges) LocationErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// CommentsErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) CommentsErr() ([]*Comment, error) {
+	if e.loadedTypes[2] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
+}
+
+// WorkOrdersErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) WorkOrdersErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[3] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
+}
+
+// PropertiesErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) PropertiesErr() ([]*Property, error) {
+	if e.loadedTypes[4] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

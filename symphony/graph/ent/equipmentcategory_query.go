@@ -295,8 +295,11 @@ func (ecq *EquipmentCategoryQuery) Select(field string, fields ...string) *Equip
 
 func (ecq *EquipmentCategoryQuery) sqlAll(ctx context.Context) ([]*EquipmentCategory, error) {
 	var (
-		nodes []*EquipmentCategory = []*EquipmentCategory{}
-		_spec                      = ecq.querySpec()
+		nodes       = []*EquipmentCategory{}
+		_spec       = ecq.querySpec()
+		loadedTypes = [1]bool{
+			ecq.withTypes != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &EquipmentCategory{config: ecq.config}
@@ -309,6 +312,7 @@ func (ecq *EquipmentCategoryQuery) sqlAll(ctx context.Context) ([]*EquipmentCate
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, ecq.driver, _spec); err != nil {

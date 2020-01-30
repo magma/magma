@@ -40,6 +40,36 @@ type EquipmentPortTypeEdges struct {
 	LinkPropertyTypes []*PropertyType
 	// PortDefinitions holds the value of the port_definitions edge.
 	PortDefinitions []*EquipmentPortDefinition
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// PropertyTypesErr returns the PropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortTypeEdges) PropertyTypesErr() ([]*PropertyType, error) {
+	if e.loadedTypes[0] {
+		return e.PropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "property_types"}
+}
+
+// LinkPropertyTypesErr returns the LinkPropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortTypeEdges) LinkPropertyTypesErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.LinkPropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "link_property_types"}
+}
+
+// PortDefinitionsErr returns the PortDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortTypeEdges) PortDefinitionsErr() ([]*EquipmentPortDefinition, error) {
+	if e.loadedTypes[2] {
+		return e.PortDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "port_definitions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

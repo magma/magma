@@ -267,8 +267,8 @@ func (fpsq *FloorPlanScaleQuery) Select(field string, fields ...string) *FloorPl
 
 func (fpsq *FloorPlanScaleQuery) sqlAll(ctx context.Context) ([]*FloorPlanScale, error) {
 	var (
-		nodes []*FloorPlanScale = []*FloorPlanScale{}
-		_spec                   = fpsq.querySpec()
+		nodes = []*FloorPlanScale{}
+		_spec = fpsq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &FloorPlanScale{config: fpsq.config}

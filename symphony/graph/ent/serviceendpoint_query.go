@@ -319,9 +319,13 @@ func (seq *ServiceEndpointQuery) Select(field string, fields ...string) *Service
 
 func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint, error) {
 	var (
-		nodes   []*ServiceEndpoint = []*ServiceEndpoint{}
-		withFKs                    = seq.withFKs
-		_spec                      = seq.querySpec()
+		nodes       = []*ServiceEndpoint{}
+		withFKs     = seq.withFKs
+		_spec       = seq.querySpec()
+		loadedTypes = [2]bool{
+			seq.withPort != nil,
+			seq.withService != nil,
+		}
 	)
 	if seq.withPort != nil || seq.withService != nil {
 		withFKs = true
@@ -343,6 +347,7 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, seq.driver, _spec); err != nil {

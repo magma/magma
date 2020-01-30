@@ -294,9 +294,12 @@ func (clidq *CheckListItemDefinitionQuery) Select(field string, fields ...string
 
 func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*CheckListItemDefinition, error) {
 	var (
-		nodes   []*CheckListItemDefinition = []*CheckListItemDefinition{}
-		withFKs                            = clidq.withFKs
-		_spec                              = clidq.querySpec()
+		nodes       = []*CheckListItemDefinition{}
+		withFKs     = clidq.withFKs
+		_spec       = clidq.querySpec()
+		loadedTypes = [1]bool{
+			clidq.withWorkOrderType != nil,
+		}
 	)
 	if clidq.withWorkOrderType != nil {
 		withFKs = true
@@ -318,6 +321,7 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, clidq.driver, _spec); err != nil {

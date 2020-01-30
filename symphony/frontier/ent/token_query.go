@@ -294,9 +294,12 @@ func (tq *TokenQuery) Select(field string, fields ...string) *TokenSelect {
 
 func (tq *TokenQuery) sqlAll(ctx context.Context) ([]*Token, error) {
 	var (
-		nodes   []*Token = []*Token{}
-		withFKs          = tq.withFKs
-		_spec            = tq.querySpec()
+		nodes       = []*Token{}
+		withFKs     = tq.withFKs
+		_spec       = tq.querySpec()
+		loadedTypes = [1]bool{
+			tq.withUser != nil,
+		}
 	)
 	if tq.withUser != nil {
 		withFKs = true
@@ -318,6 +321,7 @@ func (tq *TokenQuery) sqlAll(ctx context.Context) ([]*Token, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {

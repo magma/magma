@@ -13,7 +13,11 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/project"
+	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // WorkOrder is the model entity for the WorkOrder schema.
@@ -76,6 +80,128 @@ type WorkOrderEdges struct {
 	Technician *Technician
 	// Project holds the value of the project edge.
 	Project *Project
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [11]bool
+}
+
+// TypeErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) TypeErr() (*WorkOrderType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workordertype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// EquipmentErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) EquipmentErr() ([]*Equipment, error) {
+	if e.loadedTypes[1] {
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
+}
+
+// LinksErr returns the Links value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) LinksErr() ([]*Link, error) {
+	if e.loadedTypes[2] {
+		return e.Links, nil
+	}
+	return nil, &NotLoadedError{edge: "links"}
+}
+
+// FilesErr returns the Files value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) FilesErr() ([]*File, error) {
+	if e.loadedTypes[3] {
+		return e.Files, nil
+	}
+	return nil, &NotLoadedError{edge: "files"}
+}
+
+// HyperlinksErr returns the Hyperlinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) HyperlinksErr() ([]*Hyperlink, error) {
+	if e.loadedTypes[4] {
+		return e.Hyperlinks, nil
+	}
+	return nil, &NotLoadedError{edge: "hyperlinks"}
+}
+
+// LocationErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) LocationErr() (*Location, error) {
+	if e.loadedTypes[5] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// CommentsErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) CommentsErr() ([]*Comment, error) {
+	if e.loadedTypes[6] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
+}
+
+// PropertiesErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) PropertiesErr() ([]*Property, error) {
+	if e.loadedTypes[7] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// CheckListItemsErr returns the CheckListItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) CheckListItemsErr() ([]*CheckListItem, error) {
+	if e.loadedTypes[8] {
+		return e.CheckListItems, nil
+	}
+	return nil, &NotLoadedError{edge: "check_list_items"}
+}
+
+// TechnicianErr returns the Technician value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) TechnicianErr() (*Technician, error) {
+	if e.loadedTypes[9] {
+		if e.Technician == nil {
+			// The edge technician was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: technician.Label}
+		}
+		return e.Technician, nil
+	}
+	return nil, &NotLoadedError{edge: "technician"}
+}
+
+// ProjectErr returns the Project value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) ProjectErr() (*Project, error) {
+	if e.loadedTypes[10] {
+		if e.Project == nil {
+			// The edge project was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: project.Label}
+		}
+		return e.Project, nil
+	}
+	return nil, &NotLoadedError{edge: "project"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

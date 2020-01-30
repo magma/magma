@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/link"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // Link is the model entity for the Link schema.
@@ -43,6 +44,50 @@ type LinkEdges struct {
 	Properties []*Property
 	// Service holds the value of the service edge.
 	Service []*Service
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// PortsErr returns the Ports value or an error if the edge
+// was not loaded in eager-loading.
+func (e LinkEdges) PortsErr() ([]*EquipmentPort, error) {
+	if e.loadedTypes[0] {
+		return e.Ports, nil
+	}
+	return nil, &NotLoadedError{edge: "ports"}
+}
+
+// WorkOrderErr returns the WorkOrder value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LinkEdges) WorkOrderErr() (*WorkOrder, error) {
+	if e.loadedTypes[1] {
+		if e.WorkOrder == nil {
+			// The edge work_order was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workorder.Label}
+		}
+		return e.WorkOrder, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order"}
+}
+
+// PropertiesErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e LinkEdges) PropertiesErr() ([]*Property, error) {
+	if e.loadedTypes[2] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// ServiceErr returns the Service value or an error if the edge
+// was not loaded in eager-loading.
+func (e LinkEdges) ServiceErr() ([]*Service, error) {
+	if e.loadedTypes[3] {
+		return e.Service, nil
+	}
+	return nil, &NotLoadedError{edge: "service"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

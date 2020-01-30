@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 )
 
@@ -48,6 +50,46 @@ type SurveyEdges struct {
 	SourceFile *File
 	// Questions holds the value of the questions edge.
 	Questions []*SurveyQuestion
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// LocationErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyEdges) LocationErr() (*Location, error) {
+	if e.loadedTypes[0] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// SourceFileErr returns the SourceFile value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyEdges) SourceFileErr() (*File, error) {
+	if e.loadedTypes[1] {
+		if e.SourceFile == nil {
+			// The edge source_file was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: file.Label}
+		}
+		return e.SourceFile, nil
+	}
+	return nil, &NotLoadedError{edge: "source_file"}
+}
+
+// QuestionsErr returns the Questions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyEdges) QuestionsErr() ([]*SurveyQuestion, error) {
+	if e.loadedTypes[2] {
+		return e.Questions, nil
+	}
+	return nil, &NotLoadedError{edge: "questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

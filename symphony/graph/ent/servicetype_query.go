@@ -320,8 +320,12 @@ func (stq *ServiceTypeQuery) Select(field string, fields ...string) *ServiceType
 
 func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error) {
 	var (
-		nodes []*ServiceType = []*ServiceType{}
-		_spec                = stq.querySpec()
+		nodes       = []*ServiceType{}
+		_spec       = stq.querySpec()
+		loadedTypes = [2]bool{
+			stq.withServices != nil,
+			stq.withPropertyTypes != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &ServiceType{config: stq.config}
@@ -334,6 +338,7 @@ func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error)
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, stq.driver, _spec); err != nil {

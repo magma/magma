@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 )
 
@@ -45,6 +46,59 @@ type EquipmentTypeEdges struct {
 	Equipment []*Equipment
 	// Category holds the value of the category edge.
 	Category *EquipmentCategory
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [5]bool
+}
+
+// PortDefinitionsErr returns the PortDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentTypeEdges) PortDefinitionsErr() ([]*EquipmentPortDefinition, error) {
+	if e.loadedTypes[0] {
+		return e.PortDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "port_definitions"}
+}
+
+// PositionDefinitionsErr returns the PositionDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentTypeEdges) PositionDefinitionsErr() ([]*EquipmentPositionDefinition, error) {
+	if e.loadedTypes[1] {
+		return e.PositionDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "position_definitions"}
+}
+
+// PropertyTypesErr returns the PropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentTypeEdges) PropertyTypesErr() ([]*PropertyType, error) {
+	if e.loadedTypes[2] {
+		return e.PropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "property_types"}
+}
+
+// EquipmentErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentTypeEdges) EquipmentErr() ([]*Equipment, error) {
+	if e.loadedTypes[3] {
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
+}
+
+// CategoryErr returns the Category value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentTypeEdges) CategoryErr() (*EquipmentCategory, error) {
+	if e.loadedTypes[4] {
+		if e.Category == nil {
+			// The edge category was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentcategory.Label}
+		}
+		return e.Category, nil
+	}
+	return nil, &NotLoadedError{edge: "category"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

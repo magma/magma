@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 )
 
 // EquipmentPosition is the model entity for the EquipmentPosition schema.
@@ -40,6 +42,51 @@ type EquipmentPositionEdges struct {
 	Parent *Equipment
 	// Attachment holds the value of the attachment edge.
 	Attachment *Equipment
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// DefinitionErr returns the Definition value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPositionEdges) DefinitionErr() (*EquipmentPositionDefinition, error) {
+	if e.loadedTypes[0] {
+		if e.Definition == nil {
+			// The edge definition was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentpositiondefinition.Label}
+		}
+		return e.Definition, nil
+	}
+	return nil, &NotLoadedError{edge: "definition"}
+}
+
+// ParentErr returns the Parent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPositionEdges) ParentErr() (*Equipment, error) {
+	if e.loadedTypes[1] {
+		if e.Parent == nil {
+			// The edge parent was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipment.Label}
+		}
+		return e.Parent, nil
+	}
+	return nil, &NotLoadedError{edge: "parent"}
+}
+
+// AttachmentErr returns the Attachment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPositionEdges) AttachmentErr() (*Equipment, error) {
+	if e.loadedTypes[2] {
+		if e.Attachment == nil {
+			// The edge attachment was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipment.Label}
+		}
+		return e.Attachment, nil
+	}
+	return nil, &NotLoadedError{edge: "attachment"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

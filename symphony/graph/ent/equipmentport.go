@@ -13,7 +13,10 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/link"
 )
 
 // EquipmentPort is the model entity for the EquipmentPort schema.
@@ -45,6 +48,69 @@ type EquipmentPortEdges struct {
 	Properties []*Property
 	// Endpoints holds the value of the endpoints edge.
 	Endpoints []*ServiceEndpoint
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [5]bool
+}
+
+// DefinitionErr returns the Definition value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortEdges) DefinitionErr() (*EquipmentPortDefinition, error) {
+	if e.loadedTypes[0] {
+		if e.Definition == nil {
+			// The edge definition was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentportdefinition.Label}
+		}
+		return e.Definition, nil
+	}
+	return nil, &NotLoadedError{edge: "definition"}
+}
+
+// ParentErr returns the Parent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortEdges) ParentErr() (*Equipment, error) {
+	if e.loadedTypes[1] {
+		if e.Parent == nil {
+			// The edge parent was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipment.Label}
+		}
+		return e.Parent, nil
+	}
+	return nil, &NotLoadedError{edge: "parent"}
+}
+
+// LinkErr returns the Link value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortEdges) LinkErr() (*Link, error) {
+	if e.loadedTypes[2] {
+		if e.Link == nil {
+			// The edge link was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: link.Label}
+		}
+		return e.Link, nil
+	}
+	return nil, &NotLoadedError{edge: "link"}
+}
+
+// PropertiesErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortEdges) PropertiesErr() ([]*Property, error) {
+	if e.loadedTypes[3] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// EndpointsErr returns the Endpoints value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortEdges) EndpointsErr() ([]*ServiceEndpoint, error) {
+	if e.loadedTypes[4] {
+		return e.Endpoints, nil
+	}
+	return nil, &NotLoadedError{edge: "endpoints"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
