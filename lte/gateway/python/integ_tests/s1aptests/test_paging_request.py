@@ -27,7 +27,7 @@ class TestPagingRequest(unittest.TestCase):
         """ Multi Enb Multi UE attach detach """
         # column is a enb parameter,  row is a number of enbs
         # column description: 1.Cell Id, 2.Tac, 3.EnbType, 4.PLMN Id
-        enb_list = list([(1, 1, 1, "001010")])
+        enb_list = [(1, 1, 1, "001010")]
 
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
