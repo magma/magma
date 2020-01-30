@@ -117,7 +117,7 @@ class ServiceDetailsQuery:
         service: Optional[Node] = None
 
     data: Optional[ServiceDetailsQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

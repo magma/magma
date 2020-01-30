@@ -177,7 +177,7 @@ class AddLocationTypeMutation:
         addLocationType: Optional[LocationType] = None
 
     data: Optional[AddLocationTypeMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

@@ -144,7 +144,7 @@ class AddServiceTypeMutation:
         addServiceType: Optional[ServiceType] = None
 
     data: Optional[AddServiceTypeMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

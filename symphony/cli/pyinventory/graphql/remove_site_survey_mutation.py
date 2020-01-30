@@ -40,7 +40,7 @@ class RemoveSiteSurveyMutation:
         removeSiteSurvey: str
 
     data: Optional[RemoveSiteSurveyMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

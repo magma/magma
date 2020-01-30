@@ -129,7 +129,7 @@ class LocationTypesQuery:
         locationTypes: Optional[LocationTypeConnection] = None
 
     data: Optional[LocationTypesQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

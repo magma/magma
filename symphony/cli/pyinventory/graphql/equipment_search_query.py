@@ -139,7 +139,7 @@ class EquipmentSearchQuery:
         equipmentSearch: EquipmentSearchResult
 
     data: Optional[EquipmentSearchQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

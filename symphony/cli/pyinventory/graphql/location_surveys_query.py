@@ -136,7 +136,7 @@ class LocationSurveysQuery:
         location: Optional[Node] = None
 
     data: Optional[LocationSurveysQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

@@ -159,7 +159,7 @@ class EquipmentTypesQuery:
         equipmentTypes: EquipmentTypeConnection
 
     data: Optional[EquipmentTypesQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

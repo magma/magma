@@ -176,7 +176,7 @@ class CreateSurveyMutation:
         createSurvey: Optional[str] = None
 
     data: Optional[CreateSurveyMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

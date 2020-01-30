@@ -77,7 +77,7 @@ class DeleteImageMutation:
         deleteImage: Optional[File] = None
 
     data: Optional[DeleteImageMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

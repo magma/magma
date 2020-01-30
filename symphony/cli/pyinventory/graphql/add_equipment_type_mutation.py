@@ -194,7 +194,7 @@ class AddEquipmentTypeMutation:
         addEquipmentType: Optional[EquipmentType] = None
 
     data: Optional[AddEquipmentTypeMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

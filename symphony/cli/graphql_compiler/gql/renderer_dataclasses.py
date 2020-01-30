@@ -127,7 +127,7 @@ class DataclassesRenderer:
 
             # operation fields
             buffer.write(f'data: Optional[{parsed_op.name}Data] = None')
-            buffer.write('errors: Any = None')
+            buffer.write('errors: Optional[Any] = None')
             buffer.write('')
 
             # Execution functions

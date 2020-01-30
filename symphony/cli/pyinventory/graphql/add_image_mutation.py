@@ -86,7 +86,7 @@ class AddImageMutation:
         addImage: Optional[File] = None
 
     data: Optional[AddImageMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

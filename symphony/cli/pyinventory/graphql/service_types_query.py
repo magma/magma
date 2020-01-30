@@ -131,7 +131,7 @@ class ServiceTypesQuery:
         serviceTypes: Optional[ServiceTypeConnection] = None
 
     data: Optional[ServiceTypesQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off
