@@ -106,8 +106,7 @@ int mme_api_get_emm_config(
   uint8_t num_gummei;
   AssertFatal(mme_config_p->served_tai.nb_tai >= 1, "No TAI configured");
   OAILOG_INFO(
-    LOG_NAS,
-    "Number of GUMMEIs supported = %d\n", mme_config_p->gummei.nb);
+    LOG_NAS, "Number of GUMMEIs supported = %d\n", mme_config_p->gummei.nb);
 
   config->tai_list.numberoflists = 0;
   // TODO actually we support only one partial TAI list.
@@ -456,11 +455,10 @@ int mme_api_new_guti(
          nb_gummei++) {
       /* comparing UE serving cell plmn with the gummei list in
        * mme configuration. */
-      IS_PLMN_EQUAL(
-        ue_context->emm_context.originating_tai,
-        mme_config.gummei.gummei[nb_gummei].plmn,
-        is_plmn_equal);
-      if (is_plmn_equal) {
+      if (IS_PLMN_EQUAL(
+            ue_context->emm_context.originating_tai,
+            mme_config.gummei.gummei[nb_gummei].plmn)) {
+        is_plmn_equal = true;
         /* Copies the GUMMEI value from configuration to the emm context */
         COPY_GUMMEI(guti, _emm_data.conf.gummei.gummei[nb_gummei]);
         break;
@@ -470,7 +468,6 @@ int mme_api_new_guti(
       is_plmn_equal = false;
     } else {
       OAILOG_ERROR(LOG_NAS, "Serving PLMN not matching with GUMMEI List!\n");
-      unlock_ue_contexts(ue_context);
       OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
     }
     // TODO Find another way to generate m_tmsi
@@ -491,14 +488,10 @@ int mme_api_new_guti(
          * if PLMN matches is_plmn_equal will be set to 'true', if not 'false'.
          * _emm_data.conf.tai_list value gets updated with
          * mme configuration file TAI_LIST values */
-        IS_PLMN_EQUAL(
-          _emm_data.conf.tai_list.partial_tai_list[i]
-            .u.tai_one_plmn_non_consecutive_tacs,
-          guti->gummei.plmn,
-          is_plmn_equal);
-
-        if (is_plmn_equal) {
-          is_plmn_equal = false;
+        if (IS_PLMN_EQUAL(
+              _emm_data.conf.tai_list.partial_tai_list[i]
+                .u.tai_one_plmn_non_consecutive_tacs,
+              guti->gummei.plmn)) {
           tai_list->partial_tai_list[j].numberofelements =
             _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
           tai_list->partial_tai_list[j].typeoflist =
@@ -528,13 +521,10 @@ int mme_api_new_guti(
          * if PLMN matches is_plmn_equal will be set to 'true', if not 'false'.
          * _emm_data.conf.tai_list value gets updated with
          * mme configuration file TAI_LIST values */
-        IS_PLMN_EQUAL(
-          _emm_data.conf.tai_list.partial_tai_list[i]
-            .u.tai_one_plmn_consecutive_tacs,
-          guti->gummei.plmn,
-          is_plmn_equal);
-
-        if (is_plmn_equal) {
+        if (IS_PLMN_EQUAL(
+              _emm_data.conf.tai_list.partial_tai_list[i]
+                .u.tai_one_plmn_consecutive_tacs,
+              guti->gummei.plmn)) {
           is_plmn_equal = false;
           tai_list->partial_tai_list[j].numberofelements =
             _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
@@ -561,12 +551,11 @@ int mme_api_new_guti(
              p_cnt <
              (_emm_data.conf.tai_list.partial_tai_list[i].numberofelements + 1);
              p_cnt++) {
-          IS_PLMN_EQUAL(
-            _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[p_cnt],
-            guti->gummei.plmn,
-            is_plmn_equal);
-
-          if (is_plmn_equal) {
+          if (IS_PLMN_EQUAL(
+                _emm_data.conf.tai_list.partial_tai_list[i]
+                  .u.tai_many_plmn[p_cnt],
+                guti->gummei.plmn)) {
+            is_plmn_equal = true;
             tai_list->partial_tai_list[j].numberofelements =
               _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
             tai_list->partial_tai_list[j].typeoflist =
