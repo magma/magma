@@ -58,6 +58,7 @@ func (Location) Fields() []ent.Field {
 		field.String("name").
 			NotEmpty(),
 		field.String("external_id").
+			Unique().
 			Optional(),
 		field.Float("latitude").
 			Default(0).
