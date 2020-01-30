@@ -75,3 +75,6 @@ orc8r/cloud/helm/**/.secrets/
 # Clion config
 devmand/gateway/.idea/
 devmand/gateway/cmake-build-debug/
+
+# Log files
+*.log
