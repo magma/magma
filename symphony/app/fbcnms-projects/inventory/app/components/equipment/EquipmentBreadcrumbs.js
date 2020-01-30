@@ -48,8 +48,8 @@ const styles = theme => ({
 
 type Props = {
   equipment: Equipment,
-  onParentLocationClicked: (locationId: string) => void,
-  onEquipmentClicked: (equipmentId: string) => void,
+  onParentLocationClicked?: (locationId: string) => void,
+  onEquipmentClicked?: (equipmentId: string) => void,
   size?: 'default' | 'small' | 'large',
   showSelfEquipment: boolean,
   textClassName?: string,
@@ -64,6 +64,7 @@ const EquipmentBreadcrumbs = (props: Props) => {
     onParentLocationClicked,
     size,
     showSelfEquipment,
+    textClassName,
     variant,
   } = props;
 
@@ -85,27 +86,31 @@ const EquipmentBreadcrumbs = (props: Props) => {
     ServerLogger.info(LogEvents.EQUIPMENT_CARD_LOCATION_BREADCRUMB_CLICKED, {
       locationId,
     });
-    onParentLocationClicked(locationId);
+    onParentLocationClicked && onParentLocationClicked(locationId);
   };
   const onEquipmentClickedCallback = id => {
     ServerLogger.info(LogEvents.EQUIPMENT_CARD_EQUIPMENT_BREADCRUMB_CLICKED, {
       equipmentId: id,
     });
-    onEquipmentClicked(id);
+    onEquipmentClicked && onEquipmentClicked(id);
   };
   const breadcrumbs = [
     ...equipment.locationHierarchy.map(l => ({
       id: l.id,
       name: l.name,
       subtext: size === 'small' ? null : l.locationType.name,
-      onClick: () => onLocationClickedCallback(l.id),
+      ...(onParentLocationClicked && {
+        onClick: () => onLocationClickedCallback(l.id),
+      }),
     })),
     ...equipment.positionHierarchy.map(pos => ({
       id: pos.id,
       name: nullthrows(pos.parentEquipment).name,
       subtext: size === 'small' ? null : positionSubText(pos),
-      onClick: () =>
-        onEquipmentClickedCallback(nullthrows(pos.parentEquipment).id),
+      ...(onEquipmentClicked && {
+        onClick: () =>
+          onEquipmentClickedCallback(nullthrows(pos.parentEquipment).id),
+      }),
     })),
     ...(showSelfEquipment
       ? [
@@ -113,13 +118,20 @@ const EquipmentBreadcrumbs = (props: Props) => {
             id: equipment.id,
             name: equipment.name,
             subtext: size === 'small' ? null : equipment.equipmentType.name,
-            onClick: () => onEquipmentClickedCallback(equipment.id),
+            ...(onEquipmentClicked && {
+              onClick: () => onEquipmentClickedCallback(equipment.id),
+            }),
           },
         ]
       : []),
   ];
   return (
-    <Breadcrumbs breadcrumbs={breadcrumbs} size={size} variant={variant} />
+    <Breadcrumbs
+      breadcrumbs={breadcrumbs}
+      size={size}
+      variant={variant}
+      textClassName={textClassName}
+    />
   );
 };
 

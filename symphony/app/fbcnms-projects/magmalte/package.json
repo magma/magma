@@ -35,7 +35,7 @@
     "url": "^0.11.0"
   },
   "devDependencies": {
-    "@testing-library/react": "^8.0.2",
+    "@testing-library/react": "^9.4.0",
     "@testing-library/react-hooks": "^3.2.1",
     "fbcnms-webpack-config": "^0.1.0",
     "identity-obj-proxy": "^3.0.0",

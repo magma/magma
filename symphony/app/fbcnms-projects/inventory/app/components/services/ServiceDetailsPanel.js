@@ -19,6 +19,7 @@ import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import IconButton from '@material-ui/core/IconButton';
+import NameInput from '@fbcnms/ui/components/design-system/Form/NameInput';
 import PropertyValueInput from '../form/PropertyValueInput';
 import React, {useRef, useState} from 'react';
 import SideBar from '@fbcnms/ui/components/layout/SideBar';
@@ -28,7 +29,7 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import useStateWithCallback from 'use-state-with-callback';
 import useVerticalScrollingEffect from '../../common/useVerticalScrollingEffect';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
@@ -108,6 +109,7 @@ const ServiceDetailsPanel = (props: Props) => {
     if (
       dirtyValue == 'equipment' ||
       dirtyValue == 'location' ||
+      dirtyValue == 'service' ||
       dirtyValue == 'customer'
     ) {
       // don't wait for blur because there is no blur in those selection values
@@ -144,7 +146,6 @@ const ServiceDetailsPanel = (props: Props) => {
         externalId: editableService.externalId,
         customerId: editableService.customer?.id,
         properties: toPropertyInput(editableService.properties),
-        terminationPointIds: [],
         upstreamServiceIds: [],
       },
     };
@@ -216,16 +217,12 @@ const ServiceDetailsPanel = (props: Props) => {
           detailsPaneClass={classes.detailPane}
           className={classes.panel}>
           <div className={classes.input}>
-            <FormField label="Name">
-              <TextField
-                name="name"
-                variant="outlined"
-                margin="dense"
-                onChange={event => onChangeDetail('name', event.target.value)}
-                value={editableService.name}
-                onBlur={editService}
-              />
-            </FormField>
+            <NameInput
+              value={editableService.name}
+              onChange={event => onChangeDetail('name', event.target.value)}
+              onBlur={editService}
+              hasSpacer={false}
+            />
           </div>
           <div className={classes.input}>
             <FormField label="Service ID">
@@ -273,24 +270,22 @@ const ServiceDetailsPanel = (props: Props) => {
           expansionPanelSummaryClassName={classes.expansionPanel}
           detailsPaneClass={classes.detailPane}
           className={classes.panel}>
-          <FormValidationContextProvider>
-            {editableService.properties.map((property, index) => (
-              <PropertyValueInput
-                fullWidth
-                required={!!property.propertyType.isMandatory}
-                disabled={!property.propertyType.isInstanceProperty}
-                label={property.propertyType.name}
-                className={classes.input}
-                margin="dense"
-                inputType="Property"
-                property={property}
-                // $FlowFixMe pass property and not property type
-                onChange={onChangeProperty(index)}
-                onBlur={editService}
-                headlineVariant="form"
-              />
-            ))}
-          </FormValidationContextProvider>
+          {editableService.properties.map((property, index) => (
+            <PropertyValueInput
+              fullWidth
+              required={!!property.propertyType.isMandatory}
+              disabled={!property.propertyType.isInstanceProperty}
+              label={property.propertyType.name}
+              className={classes.input}
+              margin="dense"
+              inputType="Property"
+              property={property}
+              // $FlowFixMe pass property and not property type
+              onChange={onChangeProperty(index)}
+              onBlur={editService}
+              headlineVariant="form"
+            />
+          ))}
         </ExpandingPanel>
       </div>
     </SideBar>
@@ -323,6 +318,7 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           longitudeValue
           rangeFromValue
           rangeToValue
+          isMandatory
         }
       }
       properties {
@@ -349,6 +345,10 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           name
         }
         locationValue {
+          id
+          name
+        }
+        serviceValue {
           id
           name
         }

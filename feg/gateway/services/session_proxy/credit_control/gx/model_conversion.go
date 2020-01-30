@@ -9,14 +9,13 @@ LICENSE file in the root directory of this source tree.
 package gx
 
 import (
-	"strings"
 	"time"
 
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/lte/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -28,14 +27,15 @@ var eventTriggerConversionMap = map[EventTrigger]protos.EventTrigger{
 
 func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMonitoringUpdateRequest) *CreditControlRequest {
 	ccr.SessionID = update.SessionId
+	ccr.DestHost = update.GetTgppCtx().GetGxDestHost()
 	ccr.RequestNumber = update.RequestNumber
 	ccr.Type = credit_control.CRTUpdate
-	ccr.IMSI = removeSidPrefix(update.Sid)
+	ccr.IMSI = credit_control.RemoveIMSIPrefix(update.Sid)
 	ccr.IPAddr = update.UeIpv4
 	ccr.HardwareAddr = update.HardwareAddr
 	ccr.UsageReports = []*UsageReport{(&UsageReport{}).FromUsageMonitorUpdate(update.Update)}
-	ccr.RATType = credit_control.GetRATType(update.RatType)
-	ccr.IPCANType = credit_control.GetIPCANType(update.RatType)
+	ccr.RATType = GetRATType(update.RatType)
+	ccr.IPCANType = GetIPCANType(update.RatType)
 	return ccr
 }
 
@@ -50,9 +50,10 @@ func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRe
 }
 
 func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
-	monitoringKey := ""
-	if rd.MonitoringKey != nil {
-		monitoringKey = *rd.MonitoringKey
+	monitoringKey := []byte{}
+	if len(rd.MonitoringKey) > 0 {
+		// no conversion needed - Monitoring-Key AVP is Octet String already
+		monitoringKey = rd.MonitoringKey
 	}
 	var ratingGroup uint32 = 0
 	if rd.RatingGroup != nil {
@@ -93,11 +94,12 @@ func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
 }
 
 func (rd *RuleDefinition) getTrackingType() protos.PolicyRule_TrackingType {
-	if rd.MonitoringKey != nil && rd.RatingGroup != nil {
+	monKeyPresent := len(rd.MonitoringKey) > 0
+	if monKeyPresent && rd.RatingGroup != nil {
 		return protos.PolicyRule_OCS_AND_PCRF
-	} else if rd.MonitoringKey != nil && rd.RatingGroup == nil {
+	} else if monKeyPresent && rd.RatingGroup == nil {
 		return protos.PolicyRule_ONLY_PCRF
-	} else if rd.MonitoringKey == nil && rd.RatingGroup != nil {
+	} else if (!monKeyPresent) && rd.RatingGroup != nil {
 		return protos.PolicyRule_ONLY_OCS
 	} else {
 		return protos.PolicyRule_NO_TRACKING
@@ -188,6 +190,14 @@ func ConvertToProtoTimestamp(unixTime *time.Time) *timestamp.Timestamp {
 		return nil
 	}
 	return protoTimestamp
+}
+
+func RuleIDsToProtosRuleInstalls(ruleIDs []string) []*protos.StaticRuleInstall {
+	ruleInstalls := make([]*protos.StaticRuleInstall, len(ruleIDs))
+	for idx, ruleID := range ruleIDs {
+		ruleInstalls[idx] = &protos.StaticRuleInstall{RuleId: ruleID}
+	}
+	return ruleInstalls
 }
 
 func ParseRuleInstallAVPs(
@@ -284,14 +294,17 @@ func getQoSInfo(qosInfo *QosInformation) *protos.QoSInformation {
 	if qosInfo == nil {
 		return nil
 	}
-	return &protos.QoSInformation{
+	res := &protos.QoSInformation{
 		BearerId: qosInfo.BearerIdentifier,
-		Qci:      protos.QCI(*qosInfo.Qci),
 	}
+	if qosInfo.Qci != nil {
+		res.Qci = protos.QCI(*qosInfo.Qci)
+	}
+	return res
 }
 
 func (report *UsageReport) FromUsageMonitorUpdate(update *protos.UsageMonitorUpdate) *UsageReport {
-	report.MonitoringKey = string(update.MonitoringKey)
+	report.MonitoringKey = update.MonitoringKey
 	report.Level = MonitoringLevel(update.Level)
 	report.InputOctets = update.BytesTx
 	report.OutputOctets = update.BytesRx // receive == output
@@ -303,18 +316,39 @@ func (monitor *UsageMonitoringInfo) ToUsageMonitoringCredit() *protos.UsageMonit
 	if monitor.GrantedServiceUnit == nil || monitor.GrantedServiceUnit.IsEmpty() {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_DISABLE,
-			MonitoringKey: []byte(monitor.MonitoringKey),
+			MonitoringKey: monitor.MonitoringKey,
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}
 	} else {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_CONTINUE,
-			MonitoringKey: []byte(monitor.MonitoringKey),
+			MonitoringKey: monitor.MonitoringKey,
 			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}
 	}
 }
-func removeSidPrefix(imsi string) string {
-	return strings.TrimPrefix(imsi, "IMSI")
+
+func GetRATType(pRATType protos.RATType) credit_control.RATType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.RAT_EUTRAN
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.RAT_WLAN
+	default:
+		return credit_control.RAT_EUTRAN
+	}
+}
+
+// Since we don't specify the IP CAN type at session initialization, and we
+// only support WLAN and EUTRAN, we will infer the IP CAN type from RAT type.
+func GetIPCANType(pRATType protos.RATType) credit_control.IPCANType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.IPCAN_3GPP
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.IPCAN_Non3GPP
+	default:
+		return credit_control.IPCAN_Non3GPP
+	}
 }

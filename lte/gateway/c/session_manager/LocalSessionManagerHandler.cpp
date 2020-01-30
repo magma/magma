@@ -75,7 +75,7 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
                      << " to OCS failed entirely: " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        enforcer_->update_session_credit(response);
+        enforcer_->update_session_credits_and_rules(response);
         // Check if we need to report more updates
         check_usage_for_reporting();
       }
@@ -263,8 +263,9 @@ void LocalSessionManagerHandlerImpl::send_create_session(
             Status(
               grpc::FAILED_PRECONDITION, "Failed to initialize session");
         } else {
-          MLOG(MINFO) << "Successfully initialized new session "
-                      << "in sessiond for subscriber " << imsi;
+          MLOG(MINFO) << "Successfully initialized new session " << sid
+                      << " in sessiond for subscriber " << imsi
+                      << " with default bearer id" << cfg.bearer_id;
           add_session_to_directory_record(imsi, sid);
         }
       } else {

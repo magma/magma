@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
 )
@@ -41,23 +43,23 @@ func (td *TokenDelete) ExecX(ctx context.Context) int {
 }
 
 func (td *TokenDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(td.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(token.Table))
-	for _, p := range td.predicates {
-		p(selector)
+	_spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: token.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: token.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(token.Table).FromSelect(selector).Query()
-	if err := td.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := td.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, td.driver, _spec)
 }
 
 // TokenDeleteOne is the builder for deleting a single Token entity.
@@ -72,7 +74,7 @@ func (tdo *TokenDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{token.Label}
+		return &NotFoundError{token.Label}
 	default:
 		return nil
 	}

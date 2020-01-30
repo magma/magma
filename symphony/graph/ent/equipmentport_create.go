@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 )
 
 // EquipmentPortCreate is the builder for creating a EquipmentPort entity.
@@ -30,6 +31,7 @@ type EquipmentPortCreate struct {
 	parent      map[string]struct{}
 	link        map[string]struct{}
 	properties  map[string]struct{}
+	endpoints   map[string]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -138,6 +140,26 @@ func (epc *EquipmentPortCreate) AddProperties(p ...*Property) *EquipmentPortCrea
 	return epc.AddPropertyIDs(ids...)
 }
 
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (epc *EquipmentPortCreate) AddEndpointIDs(ids ...string) *EquipmentPortCreate {
+	if epc.endpoints == nil {
+		epc.endpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		epc.endpoints[ids[i]] = struct{}{}
+	}
+	return epc
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (epc *EquipmentPortCreate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPortCreate {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return epc.AddEndpointIDs(ids...)
+}
+
 // Save creates the EquipmentPort in the database.
 func (epc *EquipmentPortCreate) Save(ctx context.Context) (*EquipmentPort, error) {
 	if epc.create_time == nil {
@@ -174,8 +196,8 @@ func (epc *EquipmentPortCreate) SaveX(ctx context.Context) *EquipmentPort {
 
 func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, error) {
 	var (
-		ep   = &EquipmentPort{config: epc.config}
-		spec = &sqlgraph.CreateSpec{
+		ep    = &EquipmentPort{config: epc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipmentport.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -184,7 +206,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 		}
 	)
 	if value := epc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentport.FieldCreateTime,
@@ -192,7 +214,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 		ep.CreateTime = *value
 	}
 	if value := epc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentport.FieldUpdateTime,
@@ -220,7 +242,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epc.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -243,7 +265,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epc.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -266,7 +288,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -289,15 +311,38 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, epc.driver, spec); err != nil {
+	if nodes := epc.endpoints; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmentport.EndpointsTable,
+			Columns: []string{equipmentport.EndpointsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: serviceendpoint.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if err := sqlgraph.CreateNode(ctx, epc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	ep.ID = strconv.FormatInt(id, 10)
 	return ep, nil
 }

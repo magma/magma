@@ -59,7 +59,7 @@ const (
 	CheckListDefinitionsColumn = "work_order_type_id"
 )
 
-// Columns holds all SQL columns are workordertype fields.
+// Columns holds all SQL columns for workordertype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

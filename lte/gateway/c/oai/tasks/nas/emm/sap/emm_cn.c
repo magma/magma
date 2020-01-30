@@ -62,7 +62,6 @@
 #include "conversions.h"
 #include "esm_sap.h"
 #include "service303.h"
-#include "nas_itti_messaging.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_apn_selection.h"
 #include "mme_config.h"
@@ -82,7 +81,6 @@
 #include "mme_app_state.h"
 #include "mme_app_messages_types.h"
 #include "mme_app_sgs_fsm.h"
-#include "nas_messages_types.h"
 #include "nas_procedures.h"
 #include "nas/networkDef.h"
 #include "security_types.h"
@@ -104,7 +102,6 @@ extern int emm_cn_wrapper_attach_accept(emm_context_t *emm_context);
 
 static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg);
 static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg);
-static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id);
 static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP);
 static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
 
@@ -114,7 +111,6 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
 static const char *_emm_cn_primitive_str[] = {
   "EMM_CN_AUTHENTICATION_PARAM_RES",
   "EMM_CN_AUTHENTICATION_PARAM_FAIL",
-  "EMM_CN_DEREGISTER_UE",
   "EMM_CN_ULA_SUCCESS",
   "EMM_CN_CS_RESPONSE_SUCCESS",
   "EMM_CN_ULA_OR_CSRSP_FAIL",
@@ -163,7 +159,6 @@ static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg)
         "id " MME_UE_S1AP_ID_FMT "...\n",
         msg->ue_id);
     }
-    unlock_ue_contexts(ue_mm_context);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -198,7 +193,6 @@ static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg)
         "id " MME_UE_S1AP_ID_FMT "...\n",
         msg->ue_id);
     }
-    unlock_ue_contexts(ue_mm_context);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -213,27 +207,6 @@ static int _emm_cn_smc_fail(const emm_cn_smc_fail_t *msg)
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-//------------------------------------------------------------------------------
-static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id)
-{
-  int rc = RETURNok;
-
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  OAILOG_WARNING(
-    LOG_NAS_EMM,
-    "EMM-PROC  - "
-    "TODO deregister UE " MME_UE_S1AP_ID_FMT
-    ", following procedure is a test\n",
-    ue_id);
-  emm_detach_request_ies_t params = {0};
-  params.type = EMM_DETACH_TYPE_EPS;
-  params.switch_off = false;
-  params.is_native_sc = false;
-  params.ksi = 0;
-  increment_counter("ue_detach", 1, 1, "cause", "deregister_ue");
-  emm_proc_detach_request(ue_id, &params);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
 //------------------------------------------------------------------------------
 void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
 {
@@ -331,7 +304,6 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
      * by HSS,send Attach Reject to UE
      */
     _handle_apn_mismatch(ue_mm_context);
-    unlock_ue_contexts(ue_mm_context);
     return RETURNerror;
   }
 
@@ -427,7 +399,6 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
         "Failed to Perform PDN connectivity procedure requested by ue"
         "for (ue_id =" MME_UE_S1AP_ID_FMT ")\n",
         ue_mm_context->mme_ue_s1ap_id);
-      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
     if (!is_pdn_context_exist_for_apn) {
@@ -436,10 +407,8 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
         increment_counter("mme_spgw_create_session_req", 1, NO_LABELS);
       }
     }
-    unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
 }
 
@@ -474,7 +443,6 @@ static int _emm_cn_implicit_detach_ue(const uint32_t ue_id)
     rc = emm_proc_sgs_detach_request(ue_id, EMM_SGS_NW_INITIATED_EPS_DETACH);
   }
 
-  emm_context_unlock(emm_ctx_p);
   emm_proc_detach_request(ue_id, &params);
   increment_counter("ue_detach", 1, 1, "cause", "implicit_detach");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -497,44 +465,58 @@ static int _emm_cn_nw_initiated_detach_ue(
 }
 
 //------------------------------------------------------------------------------
-static int _is_csfb_enabled(struct emm_context_s *emm_ctx_p, bstring esm_data)
+static int _emm_proc_combined_attach_req(struct emm_context_s* emm_ctx_p, bstring esm_data)
 {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  ue_mm_context_t *ue_mm_context_p =
+  ue_mm_context_t* ue_mm_context_p =
     PARENT_STRUCT(emm_ctx_p, struct ue_mm_context_s, emm_context);
-  char *non_eps_service_control = bdata(mme_config.non_eps_service_control);
+
+  if (!ue_mm_context_p) {
+    OAILOG_ERROR(LOG_NAS_EMM, "Failed to get ue context from emm context \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+  char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
 
   if (emm_ctx_p->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI) {
     if (
       !(strcmp(non_eps_service_control, "SMS")) ||
       !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
-      if(is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
-         emm_ctx_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
-    } else {
-      OAILOG_DEBUG(
-        LOG_NAS_EMM, " Sending CS Domain Location Update Request to MME APP");
-        nas_emm_attach_proc_t *attach_proc =
-      get_nas_specific_procedure_attach(emm_ctx_p);
-      nas_itti_cs_domain_location_update_req(
-        attach_proc->ue_id, ATTACH_REQUEST);
-      /* Store ESM message Activate Default EPS bearer to be sent in Attach Accept triggered after receiving
-       * Location Update Accept
-       */
-      emm_ctx_p->csfbparams.esm_data = esm_data;
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      if (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
+        emm_ctx_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
+        rc = RETURNerror;
+      } else {
+        rc = mme_app_handle_nas_cs_domain_location_update_req(
+          ue_mm_context_p, ATTACH_REQUEST);
+        /* Store ESM message, Activate Default EPS bearer Context Req to be
+         * sent in Attach Accept triggered after receiving
+         * SGS-Location Update Accept
+         */
+        if (rc != RETURNok) {
+          OAILOG_ERROR(
+            LOG_MME_APP, "Failed to send SGS Location Update Request to MSC for"
+            "ue_id" MME_UE_S1AP_ID_FMT "\n", ue_mm_context_p->mme_ue_s1ap_id);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+        }
+        emm_ctx_p->csfbparams.esm_data = esm_data;
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
       }
     }
   }
-  OAILOG_DEBUG(LOG_NAS_EMM, "is_csfb_enabled = False\n");
+  if (rc != RETURNok) {
+    OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "Failed to send SGS Location Update Req for ue_id " MME_UE_S1AP_ID_FMT
+      "\n", ue_mm_context_p->mme_ue_s1ap_id);
+  }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
-static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
+static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
-  struct emm_context_s *emm_ctx = NULL;
+  struct emm_context_s* emm_ctx = NULL;
   esm_proc_pdn_type_t esm_pdn_type = ESM_PDN_TYPE_IPV4;
   ESM_msg esm_msg = {.header = {0}};
   EpsQualityOfService qos = {0};
@@ -542,16 +524,14 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
   bool is_standalone = false;  // warning hardcoded
   bool triggered_by_ue = true; // warning hardcoded
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc_p->mme_ue_contexts, msg_pP->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {
-    OAILOG_WARNING(
-      LOG_NAS_EMM,
-      "EMMCN-SAP  - ue mm context null ..\n");
+    OAILOG_WARNING(LOG_NAS_EMM, "EMMCN-SAP  - ue mm context null ..\n");
   }
 
   if (emm_ctx == NULL) {
@@ -565,10 +545,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
 
   memset(&esm_msg, 0, sizeof(ESM_msg));
 
-  if (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) {
-    is_standalone = emm_ctx->esm_ctx.is_standalone;
-    emm_ctx->esm_ctx.is_standalone = false;
-  }
+  is_standalone = emm_ctx->esm_ctx.is_standalone;
 
   switch (msg_pP->pdn_type) {
     case IPv4:
@@ -636,7 +613,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
      */
     char emm_cn_sap_buffer[EMM_CN_SAP_BUFFER_SIZE];
     int size = esm_msg_encode(
-      &esm_msg, (uint8_t *) emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
+      &esm_msg, (uint8_t*) emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
 
     OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
 
@@ -659,7 +636,6 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
       /*
        * Return indication that ESM procedure failed
        */
-      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
   } else {
@@ -668,14 +644,10 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
       "ESM send activate_default_eps_bearer_context_request failed\n");
   }
 
-  /*************************************************************************/
-  /*
-   * END OF CODE THAT WAS IN esm_sap.c/_esm_sap_recv()
+  /* Notify SGS Location update request to MME App
+   * if attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI
    */
-  /*************************************************************************/
-  /*Send ITTI Location update request message to MME App if attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI*/
-  if (_is_csfb_enabled(emm_ctx, rsp) == RETURNok) {
-    unlock_ue_contexts(ue_mm_context);
+  if (_emm_proc_combined_attach_req(emm_ctx, rsp) == RETURNok) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
@@ -714,7 +686,6 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
       }
     }
   }
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -805,7 +776,6 @@ static int _emm_cn_ula_or_csrsp_fail(const emm_cn_ula_or_csrsp_fail_t* msg)
       "pdn_connection_estb_failed");
     rc = emm_proc_attach_reject(msg->ue_id, EMM_CAUSE_ESM_FAILURE);
   }
-  emm_context_unlock(emm_ctx_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -850,7 +820,6 @@ static int _emm_cn_activate_dedicated_bearer_req(
 
   rc = esm_sap_send(&esm_sap);
 
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -883,57 +852,16 @@ static int _emm_cn_deactivate_dedicated_bearer_req(
 
   rc = esm_sap_send(&esm_sap);
 
-  unlock_ue_contexts(ue_mm_context);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
-int compare_tmsi(tmsi_mobile_identity_t tmsi1, tmsi_mobile_identity_t tmsi2)
-{
-  int rc = RETURNok;
-
-  /*
-  OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - No. of valid IMSI digits %d %d\n",tmsi1.numOfValidImsiDigits,tmsi2.numOfValidImsiDigits);
-  OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - oddeven %d %d\n",tmsi1.oddeven,tmsi2.oddeven);
-  if ((tmsi1.numOfValidImsiDigits != tmsi2.numOfValidImsiDigits) ||
-                               (tmsi1.oddeven != tmsi2.oddeven)) {
-    rc = RETURNerror;
-  }
-OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - TMSI1 Digit1 %d TMSI2 Digit1 %d\n",tmsi1.digit1, tmsi2.digit1);
-OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - TMSI1 Digit2 %d TMSI2 Digit2 %d\n",tmsi1.digit2, tmsi2.digit2);
-OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - TMSI1 Digit3 %d TMSI2 Digit3 %d\n",tmsi1.digit3, tmsi2.digit3);
-OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - TMSI1 Digit4 %d TMSI2 Digit4 %d\n",tmsi1.digit4, tmsi2.digit4);
-OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - TMSI1 Digit5 %d TMSI2 Digit5 %d\n",tmsi1.digit5, tmsi2.digit5);
-OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - TMSI1 Digit6 %d TMSI2 Digit6 %d\n",tmsi1.digit6, tmsi2.digit6);
-OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - TMSI1 Digit7 %d TMSI2 Digit7 %d\n",tmsi1.digit7, tmsi2.digit7);
-OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - TMSI1 Digit8 %d TMSI2 Digit8 %d\n",tmsi1.digit8, tmsi2.digit8);
-OAILOG_INFO (LOG_NAS_EMM, "EMMCN-SAP - TMSI1 Digit9 %d TMSI2 Digit9 %d\n",tmsi1.digit9, tmsi2.digit9);
-
-  if ((tmsi1.digit1 != tmsi2.digit1) ||
-  (tmsi1.digit2 != tmsi2.digit2) ||
-  (tmsi1.digit3 != tmsi2.digit3) ||
-  (tmsi1.digit4 != tmsi2.digit4) ||
-  (tmsi1.digit5 != tmsi2.digit5) ||
-  (tmsi1.digit6 != tmsi2.digit6) ||
-  (tmsi1.digit7 != tmsi2.digit7) ||
-  (tmsi1.digit8 != tmsi2.digit8) ||
-  (tmsi1.digit9 != tmsi2.digit9)) {
-    rc = RETURNerror;
-  }*/
-  if (
-    (tmsi1.tmsi[0] != tmsi2.tmsi[0]) || (tmsi1.tmsi[1] != tmsi2.tmsi[1]) ||
-    (tmsi1.tmsi[2] != tmsi2.tmsi[2]) || (tmsi1.tmsi[3] != tmsi2.tmsi[3])) {
-    rc = RETURNerror;
-  }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
 //------------------------------------------------------------------------------
-static int _send_attach_accept(struct emm_context_s *emm_ctx_p)
+static int _send_attach_accept(struct emm_context_s* emm_ctx_p)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  nas_emm_attach_proc_t *attach_proc =
+  nas_emm_attach_proc_t* attach_proc =
     get_nas_specific_procedure_attach(emm_ctx_p);
 
   /*
@@ -972,9 +900,7 @@ static int _send_attach_accept(struct emm_context_s *emm_ctx_p)
 }
 
 //------------------------------------------------------------------------------
-static int _handle_cs_domain_loc_updt_acc(
-  mme_ue_s1ap_id_t ue_id,
-  struct emm_context_s *emm_ctx_p)
+int emm_send_cs_domain_attach_or_tau_accept(struct ue_mm_context_s* ue_context_p)
 {
   int rc = RETURNok;
   emm_fsm_state_t fsm_state = EMM_DEREGISTERED;
@@ -983,147 +909,43 @@ static int _handle_cs_domain_loc_updt_acc(
   /*If Location Updt Accept is received for TAU,trigger TAU accept
   * If Location Updt Accept is received for Attach, trigger Attach accept
   */
-  fsm_state = emm_fsm_get_state(emm_ctx_p);
-  /*If fsm_state is REGISTERED,Location Update Accept is received for TAU procedure
-  * If fsm_state is DE-REGISTERED,Location Update Accept is received for Attach procedure
-  */
-  if (EMM_REGISTERED == fsm_state) {
+  fsm_state = emm_fsm_get_state(&ue_context_p->emm_context);
+  /* If fsm_state is REGISTERED, Location Update Accept is received for
+   * TAU procedure
+   * If fsm_state is DE-REGISTERED,Location Update Accept is received for
+   * Attach procedure
+   */
+  if (fsm_state == EMM_REGISTERED) {
     OAILOG_ERROR(
       LOG_NAS_EMM,
-      "EMMCN-SAP  - emm_ctx_p->csfbparams.presencemask %d\n",
-      emm_ctx_p->csfbparams.presencemask);
-    //Trigger Sending of TAU Accept
-    nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(emm_ctx_p);
+      "EMMCN-SAP  - ue_context_p->emm_context.csfbparams.presencemask %d\n",
+      ue_context_p->emm_context.csfbparams.presencemask);
+    // Trigger Sending of TAU Accept
+    nas_emm_tau_proc_t* tau_proc =
+      get_nas_specific_procedure_tau(&ue_context_p->emm_context);
     if (tau_proc) {
       if ((emm_proc_tracking_area_update_accept(tau_proc)) == RETURNerror) {
         OAILOG_ERROR(
           LOG_NAS_EMM,
           "EMMCN-SAP  - "
           "Failed to send TAU accept for UE id " MME_UE_S1AP_ID_FMT "...\n",
-          ue_id);
+          ue_context_p->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
       }
     }
   } else {
-    if (_send_attach_accept(emm_ctx_p) == RETURNerror) {
+    if (_send_attach_accept(&ue_context_p->emm_context) == RETURNerror) {
       OAILOG_ERROR(
         LOG_NAS_EMM,
         "EMMCN-SAP  - "
         "Failed to send Attach accept for UE id " MME_UE_S1AP_ID_FMT "...\n",
-        ue_id);
+        ue_context_p->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
-//------------------------------------------------------------------------------
-static int _emm_cn_cs_domain_loc_updt_acc(
-  emm_cn_cs_domain_location_updt_acc_t emm_cn_sgs_location_updt_acc)
-{
-  int rc = RETURNok;
-
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  OAILOG_DEBUG(
-    LOG_NAS_EMM,
-    "EMM-PROC SGS LOCATION UPDATE ACCEPT " MME_UE_S1AP_ID_FMT "\n",
-    emm_cn_sgs_location_updt_acc.ue_id);
-
-  struct emm_context_s *emm_ctx_p = NULL;
-  emm_ctx_p = emm_context_get(&_emm_data, emm_cn_sgs_location_updt_acc.ue_id);
-  if (emm_ctx_p == NULL) {
-    OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "EMMCN-SAP  - "
-      "Failed to find UE associated to id " MME_UE_S1AP_ID_FMT "...\n",
-      emm_cn_sgs_location_updt_acc.ue_id);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-  }
-
-  if (true == emm_cn_sgs_location_updt_acc.is_sgs_assoc_exists) {
-    //Store Additional Updt type to be sent in Attach Accept if SMS ONLY is enabled
-    if (emm_cn_sgs_location_updt_acc.presencemask & ADD_UPDT_TYPE) {
-      emm_ctx_p->csfbparams.additional_updt_res =
-        emm_cn_sgs_location_updt_acc.add_updt_res;
-      emm_ctx_p->csfbparams.presencemask |= ADD_UPDATE_TYPE;
-    }
-    if ((_handle_cs_domain_loc_updt_acc(
-           emm_cn_sgs_location_updt_acc.ue_id, emm_ctx_p) == RETURNok))
-      emm_context_unlock(emm_ctx_p);
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
-  }
-  //Store LAI to be sent in Attach Accept/TAU Accept
-  emm_ctx_p->csfbparams.presencemask |= LAI_CSFB;
-  emm_ctx_p->csfbparams.lai.mccdigit2 =
-    emm_cn_sgs_location_updt_acc.laicsfb.mccdigit2;
-  emm_ctx_p->csfbparams.lai.mccdigit1 =
-    emm_cn_sgs_location_updt_acc.laicsfb.mccdigit1;
-  emm_ctx_p->csfbparams.lai.mncdigit3 =
-    emm_cn_sgs_location_updt_acc.laicsfb.mncdigit3;
-  emm_ctx_p->csfbparams.lai.mccdigit3 =
-    emm_cn_sgs_location_updt_acc.laicsfb.mccdigit3;
-  emm_ctx_p->csfbparams.lai.mncdigit2 =
-    emm_cn_sgs_location_updt_acc.laicsfb.mncdigit2;
-  emm_ctx_p->csfbparams.lai.mncdigit1 =
-    emm_cn_sgs_location_updt_acc.laicsfb.mncdigit1;
-  emm_ctx_p->csfbparams.lai.lac = emm_cn_sgs_location_updt_acc.laicsfb.lac;
-
-  //Store Mobile Identity to be sent in Attach Accept/TAU Accept
-  OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMCN-SAP - Mobile Identity presence mask %d \n",
-    emm_cn_sgs_location_updt_acc.presencemask);
-  if (emm_cn_sgs_location_updt_acc.presencemask & MOBILE_IDENTITY) {
-    emm_ctx_p->csfbparams.presencemask |= MOBILE_IDENTITY;
-    if (
-      emm_cn_sgs_location_updt_acc.mobileid.imsi.typeofidentity ==
-      MOBILE_IDENTITY_IMSI) {
-      memcpy(
-        &emm_ctx_p->csfbparams.mobileid.imsi,
-        &emm_cn_sgs_location_updt_acc.mobileid.imsi,
-        sizeof(emm_cn_sgs_location_updt_acc.mobileid.imsi));
-    } else if (
-      emm_cn_sgs_location_updt_acc.mobileid.tmsi.typeofidentity ==
-      MOBILE_IDENTITY_TMSI) {
-      // If the rcvd TMSI is different from the stored TMSI, store the new TMSI and set flag
-      if (
-        (compare_tmsi(
-          emm_ctx_p->csfbparams.mobileid.tmsi,
-          emm_cn_sgs_location_updt_acc.mobileid.tmsi)) == RETURNerror) {
-        OAILOG_INFO(LOG_NAS_EMM, "EMMCN-SAP - New TMSI Allocated\n");
-        memcpy(
-          &emm_ctx_p->csfbparams.mobileid.tmsi,
-          &emm_cn_sgs_location_updt_acc.mobileid.tmsi,
-          sizeof(emm_cn_sgs_location_updt_acc.mobileid.tmsi));
-        emm_ctx_p->csfbparams.newTmsiAllocated = true;
-      }
-    }
-  }
-
-  /*Store the status of Location Update procedure(success/failure) to send appropriate cause
-   *in Attach Accept/TAU Accept
-  */
-  emm_ctx_p->csfbparams.sgs_loc_updt_status = SUCCESS;
-
-  //Store Additional Updt type to be sent in Attach Accept if SMS ONLY is enabled
-  if (emm_cn_sgs_location_updt_acc.presencemask & ADD_UPDT_TYPE) {
-    emm_ctx_p->csfbparams.additional_updt_res =
-      emm_cn_sgs_location_updt_acc.add_updt_res;
-    emm_ctx_p->csfbparams.presencemask |= ADD_UPDATE_TYPE;
-  }
-
-  OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMCN-SAP - Mobile Identity presence mask %d \n",
-    emm_cn_sgs_location_updt_acc.presencemask);
-  //Send Attach Accept/TAU Accept
-  rc = _handle_cs_domain_loc_updt_acc(
-    emm_cn_sgs_location_updt_acc.ue_id, emm_ctx_p);
-
-  emm_context_unlock(emm_ctx_p);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
 //------------------------------------------------------------------------------
 static int _emm_cn_cs_domain_loc_updt_fail(
   emm_cn_cs_domain_location_updt_fail_t emm_cn_sgs_location_updt_fail)
@@ -1137,7 +959,7 @@ static int _emm_cn_cs_domain_loc_updt_fail(
     emm_cn_sgs_location_updt_fail.ue_id);
 
   emm_fsm_state_t fsm_state = EMM_DEREGISTERED;
-  struct emm_context_s *emm_ctx_p = NULL;
+  struct emm_context_s* emm_ctx_p = NULL;
   emm_ctx_p = emm_context_get(&_emm_data, emm_cn_sgs_location_updt_fail.ue_id);
   if (emm_ctx_p == NULL) {
     OAILOG_ERROR(
@@ -1172,8 +994,8 @@ static int _emm_cn_cs_domain_loc_updt_fail(
   emm_ctx_p->csfbparams.sgs_loc_updt_status = FAILURE;
   fsm_state = emm_fsm_get_state(emm_ctx_p);
 
-  if (EMM_DEREGISTERED == fsm_state) {
-    nas_emm_attach_proc_t *attach_proc =
+  if (fsm_state == EMM_DEREGISTERED) {
+    nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_ctx_p);
     /*
    * Setup the ESM message container
@@ -1210,20 +1032,16 @@ static int _emm_cn_cs_domain_loc_updt_fail(
       emm_ctx_p->tau_updt_type !=
       EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING_WITH_IMSI_ATTACH) {
       //Trigger Sending of TAU Accept
-      nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(emm_ctx_p);
+      nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_ctx_p);
       if (tau_proc) rc = emm_proc_tracking_area_update_accept(tau_proc);
     } else {
       //Send TAU Reject to UE and initiate IMSI detach towards MSC
       rc = emm_proc_tracking_area_update_reject(
         emm_cn_sgs_location_updt_fail.ue_id, emm_ctx_p->emm_cause);
-      //TODO pruthvi- Invoke  SGS IMSI detach
-      //emm_proc_sgs_detach_request(ue_id,EMM_SGS_NW_INITIATED_IMPLICIT_NONEPS_DETACH);
     }
   }
   //Store SGS Reject Cause to be sent in Attach/TAU
   emm_ctx_p->emm_cause = emm_cn_sgs_location_updt_fail.reject_cause;
-
-  emm_context_unlock(emm_ctx_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1265,7 +1083,6 @@ static int _emm_cn_cs_domain_mm_information_req(
     if (ue_context_p->sgs_context == NULL) {
       OAILOG_WARNING(
         LOG_NAS_EMM, " Invalid SGS context for IMSI" IMSI_64_FMT "\n", imsi64);
-      emm_context_unlock(ctxt);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 
@@ -1290,7 +1107,6 @@ static int _emm_cn_cs_domain_mm_information_req(
       "imsi" IMSI_64_FMT "\n",
       imsi64);
   }
-  emm_context_unlock(ctxt);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1327,7 +1143,6 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
       "Building of deactivate_eps_bearer_context_request failed for bearer"
       "%u\n",
       msg->lbi);
-    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   /*
@@ -1341,7 +1156,6 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
   } else {
     OAILOG_ERROR(
       LOG_NAS_EMM, "Message encoding failed for bearer %u\n", msg->lbi);
-    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -1361,17 +1175,16 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
       "Processing eps_bearer_context_deactivate_request failed for bearer"
       "%u\n",
       msg->lbi);
-    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
   /*
    * Execute the PDN disconnect procedure requested by the UE
    */
-  int pid = esm_proc_pdn_disconnect_request(
-    &ue_mm_context_p->emm_context, pti, &esm_cause);
+  // Fetch the pdn conn id using the linked bearer id
+  int pid = ue_mm_context_p->bearer_contexts[EBI_TO_INDEX(msg->lbi)]->pdn_cx_id;
 
-  if (pid != RETURNerror) {
+  if (pid < MAX_APN_PER_UE) {
     /*
      * Release the associated default EPS bearer context
      */
@@ -1389,8 +1202,11 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
         "Processing bearer deactivation failed for ebi %u\n",
         msg->lbi);
     }
+  } else {
+    OAILOG_ERROR(
+      LOG_NAS_EMM, "ESM-PROC  - No PDN connection found (lbi=%u)\n", msg->lbi);
+    rc = RETURNerror;
   }
-  unlock_ue_contexts(ue_mm_context_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1414,10 +1230,6 @@ int emm_cn_send(const emm_cn_t *msg)
 
     case _EMMCN_AUTHENTICATION_PARAM_FAIL:
       rc = _emm_cn_authentication_fail(msg->u.auth_fail);
-      break;
-
-    case EMMCN_DEREGISTER_UE:
-      rc = _emm_cn_deregister_ue(msg->u.deregister.ue_id);
       break;
 
     case EMMCN_ULA_SUCCESS:
@@ -1448,11 +1260,6 @@ int emm_cn_send(const emm_cn_t *msg)
         msg->u.emm_cn_nw_initiated_detach.detach_type);
       break;
 
-    case EMMCN_CS_DOMAIN_LOCATION_UPDT_ACC:
-      rc = _emm_cn_cs_domain_loc_updt_acc(
-        msg->u.emm_cn_cs_domain_location_updt_acc);
-      break;
-
     case EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL:
       rc = _emm_cn_cs_domain_loc_updt_fail(
         msg->u.emm_cn_cs_domain_location_updt_fail);
@@ -1463,7 +1270,7 @@ int emm_cn_send(const emm_cn_t *msg)
         msg->u.emm_cn_cs_domain_mm_information_req);
       break;
 
-   case EMMCN_DEACTIVATE_BEARER_REQ:
+    case EMMCN_DEACTIVATE_BEARER_REQ:
       rc = _emm_cn_deactivate_dedicated_bearer_req(
         msg->u.deactivate_dedicated_bearer_req);
       break;

@@ -301,7 +301,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
         <LeftIcon
           className={classNames(classes.icon, classes.leftIcon)}
           size="small"
-          color="inhreit"
+          color="inherit"
         />
       ) : null}
       <Text variant="body2" weight="medium" className={classes.buttonText}>
@@ -311,7 +311,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
         <RightIcon
           className={classNames(classes.icon, classes.rightIcon)}
           size="small"
-          color="inhreit"
+          color="inherit"
         />
       ) : null}
     </button>

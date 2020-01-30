@@ -43,6 +43,7 @@
 #include "3gpp_36.401.h"
 #include "common_types.h"
 #include "nas/securityDef.h"
+#include "nas/as_message.h"
 
 #define MME_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                           \
   (mSGpTR)->ittiMsg.mme_app_connection_establishment_cnf

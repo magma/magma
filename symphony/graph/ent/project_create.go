@@ -15,6 +15,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
@@ -32,6 +33,7 @@ type ProjectCreate struct {
 	creator     *string
 	_type       map[string]struct{}
 	location    map[string]struct{}
+	comments    map[string]struct{}
 	work_orders map[string]struct{}
 	properties  map[string]struct{}
 }
@@ -134,6 +136,26 @@ func (pc *ProjectCreate) SetLocation(l *Location) *ProjectCreate {
 	return pc.SetLocationID(l.ID)
 }
 
+// AddCommentIDs adds the comments edge to Comment by ids.
+func (pc *ProjectCreate) AddCommentIDs(ids ...string) *ProjectCreate {
+	if pc.comments == nil {
+		pc.comments = make(map[string]struct{})
+	}
+	for i := range ids {
+		pc.comments[ids[i]] = struct{}{}
+	}
+	return pc
+}
+
+// AddComments adds the comments edges to Comment.
+func (pc *ProjectCreate) AddComments(c ...*Comment) *ProjectCreate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pc.AddCommentIDs(ids...)
+}
+
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (pc *ProjectCreate) AddWorkOrderIDs(ids ...string) *ProjectCreate {
 	if pc.work_orders == nil {
@@ -213,8 +235,8 @@ func (pc *ProjectCreate) SaveX(ctx context.Context) *Project {
 
 func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 	var (
-		pr   = &Project{config: pc.config}
-		spec = &sqlgraph.CreateSpec{
+		pr    = &Project{config: pc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: project.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -223,7 +245,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		}
 	)
 	if value := pc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: project.FieldCreateTime,
@@ -231,7 +253,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		pr.CreateTime = *value
 	}
 	if value := pc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: project.FieldUpdateTime,
@@ -239,7 +261,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		pr.UpdateTime = *value
 	}
 	if value := pc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: project.FieldName,
@@ -247,7 +269,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		pr.Name = *value
 	}
 	if value := pc.description; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: project.FieldDescription,
@@ -255,7 +277,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		pr.Description = value
 	}
 	if value := pc.creator; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: project.FieldCreator,
@@ -283,7 +305,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -306,7 +328,30 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.comments; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.CommentsTable,
+			Columns: []string{project.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: comment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -329,7 +374,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -352,15 +397,15 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, pc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, pc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	pr.ID = strconv.FormatInt(id, 10)
 	return pr, nil
 }

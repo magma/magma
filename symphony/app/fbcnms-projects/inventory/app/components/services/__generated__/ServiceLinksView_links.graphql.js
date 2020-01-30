@@ -35,6 +35,7 @@ export type ServiceLinksView_links$data = ServiceLinksView_links;
 export type ServiceLinksView_links$key = $ReadOnlyArray<{
   +$data?: ServiceLinksView_links$data,
   +$fragmentRefs: ServiceLinksView_links$ref,
+  ...
 }>;
 */
 

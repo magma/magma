@@ -59,10 +59,15 @@ void SessionState::add_used_credit(
 
   CreditKey charging_key;
   if (session_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
+    MLOG(MDEBUG) << "Updating used charging credit for Rule=" << rule_id
+                 << " Rating Group=" << charging_key.rating_group
+                 << " Service Identifier=" << charging_key.service_identifier;
     charging_pool_.add_used_credit(charging_key, used_tx, used_rx);
   }
   std::string monitoring_key;
   if (session_rules_.get_monitoring_key_for_rule_id(rule_id, &monitoring_key)) {
+    MLOG(MDEBUG) << "Updating used monitoring credit for Rule=" << rule_id
+                 << " Monitoring Key=" << monitoring_key;
     monitor_pool_.add_used_credit(monitoring_key, used_tx, used_rx);
   }
   auto session_level_key_p = monitor_pool_.get_session_level_key();
@@ -80,12 +85,8 @@ void SessionState::get_updates_from_charging_pool(
   // charging updates
   std::vector<CreditUsage> charging_updates;
   charging_pool_.get_updates(
-    imsi_,
-    config_.ue_ipv4,
-    &session_rules_,
-    &charging_updates,
-    actions_out);
-  for (const auto &update : charging_updates) {
+    imsi_, config_.ue_ipv4, &session_rules_, &charging_updates, actions_out);
+  for (const auto& update : charging_updates) {
     auto new_req = update_request_out.mutable_updates()->Add();
     new_req->set_session_id(session_id_);
     new_req->set_request_number(request_number_);
@@ -112,12 +113,8 @@ void SessionState::get_updates_from_monitor_pool(
   // monitor updates
   std::vector<UsageMonitorUpdate> monitor_updates;
   monitor_pool_.get_updates(
-    imsi_,
-    config_.ue_ipv4,
-    &session_rules_,
-    &monitor_updates,
-    actions_out);
-  for (const auto &update : monitor_updates) {
+    imsi_, config_.ue_ipv4, &session_rules_, &monitor_updates, actions_out);
+  for (const auto& update : monitor_updates) {
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
     new_req->set_session_id(session_id_);
     new_req->set_request_number(request_number_);
@@ -184,7 +181,7 @@ void SessionState::complete_termination()
   charging_pool_.get_termination_updates(&termination);
   try {
     on_termination_callback_(termination);
-  } catch (std::bad_function_call &) {
+  } catch (std::bad_function_call&) {
     MLOG(MERROR) << "Missing termination callback function while terminating "
                     "session for IMSI "
                  << imsi_ << " and session id " << session_id_;
@@ -213,12 +210,12 @@ bool SessionState::deactivate_static_rule(const std::string& rule_id)
   return session_rules_.deactivate_static_rule(rule_id);
 }
 
-ChargingCreditPool &SessionState::get_charging_pool()
+ChargingCreditPool& SessionState::get_charging_pool()
 {
   return charging_pool_;
 }
 
-UsageMonitoringCreditPool &SessionState::get_monitor_pool()
+UsageMonitoringCreditPool& SessionState::get_monitor_pool()
 {
   return monitor_pool_;
 }
@@ -226,17 +223,17 @@ UsageMonitoringCreditPool &SessionState::get_monitor_pool()
 bool SessionState::is_same_config(const Config& new_config)
 {
   return config_.ue_ipv4.compare(new_config.ue_ipv4) == 0 &&
-    config_.spgw_ipv4.compare(new_config.spgw_ipv4) == 0 &&
-    config_.msisdn.compare(new_config.msisdn) == 0 &&
-    config_.apn.compare(new_config.apn) == 0 &&
-    config_.imei.compare(new_config.imei) == 0 &&
-    config_.plmn_id.compare(new_config.plmn_id) == 0 &&
-    config_.imsi_plmn_id.compare(new_config.imsi_plmn_id) == 0 &&
-    config_.user_location.compare(new_config.user_location) == 0 &&
-    config_.rat_type == new_config.rat_type &&
-    config_.hardware_addr.compare(new_config.hardware_addr) == 0 &&
-    config_.radius_session_id.compare(new_config.radius_session_id) == 0 &&
-    config_.bearer_id == new_config.bearer_id;
+         config_.spgw_ipv4.compare(new_config.spgw_ipv4) == 0 &&
+         config_.msisdn.compare(new_config.msisdn) == 0 &&
+         config_.apn.compare(new_config.apn) == 0 &&
+         config_.imei.compare(new_config.imei) == 0 &&
+         config_.plmn_id.compare(new_config.plmn_id) == 0 &&
+         config_.imsi_plmn_id.compare(new_config.imsi_plmn_id) == 0 &&
+         config_.user_location.compare(new_config.user_location) == 0 &&
+         config_.rat_type == new_config.rat_type &&
+         config_.hardware_addr.compare(new_config.hardware_addr) == 0 &&
+         config_.radius_session_id.compare(new_config.radius_session_id) == 0 &&
+         config_.bearer_id == new_config.bearer_id;
 }
 
 std::string SessionState::get_session_id()

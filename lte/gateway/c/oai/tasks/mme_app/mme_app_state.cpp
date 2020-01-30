@@ -59,8 +59,7 @@ mme_app_desc_t* get_locked_mme_nas_state(bool read_from_db)
  */
 mme_app_desc_t* get_mme_nas_state(bool read_from_db)
 {
-  return magma::lte::MmeNasStateManager::getInstance().get_mme_nas_state(
-    read_from_db);
+  return magma::lte::MmeNasStateManager::getInstance().get_state(read_from_db);
 }
 
 /**
@@ -79,6 +78,6 @@ void put_mme_nas_state(mme_app_desc_t** task_state_ptr)
  */
 void clear_mme_nas_state()
 {
-  magma::lte::MmeNasStateManager::getInstance().free_in_memory_mme_nas_state();
+  magma::lte::MmeNasStateManager::getInstance().free_state();
 }
 

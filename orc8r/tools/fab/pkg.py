@@ -112,7 +112,7 @@ def upload_pkgs_to_aws():
 
     # Get the version of magma we are releasing
     magma_version = run('ls ~/magma-packages'
-                        ' | grep "^magma-[0-9].*"'
+                        ' | grep "^magma_[0-9].*"'
                         ' | xargs -I "%" dpkg -I ~/magma-packages/%'
                         ' | grep "Version"'
                         ' | awk \'{print $2}\'')

@@ -6,6 +6,9 @@ package resolver
 
 import (
 	"context"
+	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -56,12 +59,12 @@ func (serviceResolver) Properties(ctx context.Context, obj *ent.Service) ([]*ent
 	return obj.QueryProperties().All(ctx)
 }
 
-func (serviceResolver) TerminationPoints(ctx context.Context, obj *ent.Service) ([]*ent.Equipment, error) {
-	return obj.QueryTerminationPoints().All(ctx)
-}
-
 func (serviceResolver) Links(ctx context.Context, obj *ent.Service) ([]*ent.Link, error) {
 	return obj.QueryLinks().All(ctx)
+}
+
+func (serviceResolver) Endpoints(ctx context.Context, obj *ent.Service) ([]*ent.ServiceEndpoint, error) {
+	return obj.QueryEndpoints().All(ctx)
 }
 
 func (serviceResolver) rootNode(ctx context.Context, eq *ent.Equipment) *ent.Equipment {
@@ -84,23 +87,31 @@ func (r serviceResolver) Topology(ctx context.Context, obj *ent.Service) (*model
 		return nil, errors.Wrap(err, "querying links equipments")
 	}
 
-	var nodes []*ent.Equipment
+	var nodes []ent.Noder
 	eqsMap := make(map[string]*ent.Equipment)
 	for _, eq := range eqs {
 		node := r.rootNode(ctx, eq)
-		eqsMap[node.ID] = eq
+		eqsMap[node.ID] = node
 		nodes = append(nodes, node)
 	}
 
-	tps, err := obj.QueryTerminationPoints().All(ctx)
+	eps, err := obj.QueryEndpoints().All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "querying termination points")
 	}
 
-	for _, tp := range tps {
-		node := r.rootNode(ctx, tp)
-		if _, ok := eqsMap[node.ID]; !ok {
-			nodes = append(nodes, node)
+	for _, ep := range eps {
+		equipment, err := ep.QueryPort().QueryParent().Only(ctx)
+		if err != nil {
+			if !ent.IsNotFound(err) {
+				return nil, errors.Wrap(err, "querying equipment of endpoint")
+			}
+		} else {
+			node := r.rootNode(ctx, equipment)
+			if _, ok := eqsMap[node.ID]; !ok {
+				nodes = append(nodes, node)
+				eqsMap[node.ID] = node
+			}
 		}
 	}
 
@@ -121,8 +132,75 @@ func (r serviceResolver) Topology(ctx context.Context, obj *ent.Service) (*model
 		}
 		node0 := r.rootNode(ctx, leqs[0])
 		node1 := r.rootNode(ctx, leqs[1])
-		links = append(links, &models.TopologyLink{Source: node0.ID, Target: node1.ID})
+		links = append(links, &models.TopologyLink{Type: models.TopologyLinkTypePhysical, Source: node0, Target: node1})
 	}
 
 	return &models.NetworkTopology{Nodes: nodes, Links: links}, nil
+}
+
+type serviceEndpointResolver struct{}
+
+func (r serviceEndpointResolver) Port(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.EquipmentPort, error) {
+	return obj.QueryPort().Only(ctx)
+}
+
+func (r serviceEndpointResolver) Role(ctx context.Context, obj *ent.ServiceEndpoint) (models.ServiceEndpointRole, error) {
+	return models.ServiceEndpointRole(obj.Role), nil
+}
+
+func (serviceEndpointResolver) Service(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.Service, error) {
+	return obj.QueryService().Only(ctx)
+}
+
+func (r mutationResolver) RemoveService(ctx context.Context, id string) (string, error) {
+	client := r.ClientFrom(ctx)
+
+	if _, err := client.ServiceEndpoint.Delete().
+		Where(serviceendpoint.HasServiceWith(service.ID(id))).
+		Exec(ctx); err != nil {
+		return "", errors.Wrapf(err, "deleting service endpoints: id=%q", id)
+	}
+
+	if _, err := client.Property.Delete().
+		Where(property.HasServiceWith(service.ID(id))).
+		Exec(ctx); err != nil {
+		return "", errors.Wrapf(err, "deleting service properties: id=%q", id)
+	}
+	if err := client.Service.DeleteOneID(id).Exec(ctx); err != nil {
+		return "", errors.Wrapf(err, "deleting service: id=%q", id)
+	}
+	return id, nil
+}
+
+func (r mutationResolver) AddServiceEndpoint(ctx context.Context, input models.AddServiceEndpointInput) (*ent.Service, error) {
+	client := r.ClientFrom(ctx)
+	s, err := client.Service.Get(ctx, input.ID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying service: id=%q", input.ID)
+	}
+
+	if _, err := client.ServiceEndpoint.
+		Create().
+		SetRole(input.Role.String()).
+		SetServiceID(input.ID).
+		SetPortID(input.PortID).Save(ctx); err != nil {
+		return nil, errors.Wrapf(err, "Creating service endpoint: service id=%q", input.ID)
+	}
+
+	return s, nil
+}
+
+func (r mutationResolver) RemoveServiceEndpoint(ctx context.Context, serviceEndpointID string) (*ent.Service, error) {
+	client := r.ClientFrom(ctx)
+
+	s, err := client.Service.Query().Where(service.HasEndpointsWith(serviceendpoint.ID(serviceEndpointID))).Only(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "query service")
+	}
+
+	if err := client.ServiceEndpoint.DeleteOneID(serviceEndpointID).Exec(ctx); err != nil {
+		return nil, errors.Wrap(err, "query endpoint")
+	}
+
+	return s, nil
 }

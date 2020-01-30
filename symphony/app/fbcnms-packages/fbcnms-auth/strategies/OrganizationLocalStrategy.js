@@ -8,6 +8,9 @@
  * @format
  */
 
+import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
+import type {UserType} from '@fbcnms/sequelize-models/models/user.js';
+
 import bcrypt from 'bcryptjs';
 import {Strategy as LocalStrategy} from 'passport-local';
 import {getUserFromRequest} from '../util';
@@ -19,23 +22,30 @@ export default function() {
       passwordField: 'password',
       passReqToCallback: true,
     },
-    async (req, email, password, done) => {
-      try {
-        const user = await getUserFromRequest(req, email);
-        if (!user) {
-          return done(null, false, {
-            message: 'Username or password invalid!',
-          });
-        }
-
-        if (await bcrypt.compare(password, user.password)) {
-          done(null, user);
-        } else {
-          done(null, false, {message: 'Invalid username or password!'});
-        }
-      } catch (error) {
-        done(error);
-      }
-    },
+    validateUser,
   );
+}
+
+export async function validateUser(
+  req: FBCNMSMiddleWareRequest,
+  email: string,
+  password: string,
+  done: (?Error, UserType | ?boolean, ?{message: string}) => void,
+) {
+  try {
+    const user = await getUserFromRequest(req, email);
+    if (!user) {
+      return done(null, false, {
+        message: 'Username or password invalid!',
+      });
+    }
+
+    if (await bcrypt.compare(password, user.password)) {
+      done(null, user);
+    } else {
+      done(null, false, {message: 'Invalid username or password!'});
+    }
+  } catch (error) {
+    done(error);
+  }
 }

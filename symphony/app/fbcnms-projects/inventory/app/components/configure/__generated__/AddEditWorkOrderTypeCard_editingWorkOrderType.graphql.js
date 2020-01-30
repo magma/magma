@@ -15,7 +15,7 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type AddEditWorkOrderTypeCard_editingWorkOrderType$ref: FragmentReference;
 declare export opaque type AddEditWorkOrderTypeCard_editingWorkOrderType$fragmentType: AddEditWorkOrderTypeCard_editingWorkOrderType$ref;
@@ -56,6 +56,7 @@ export type AddEditWorkOrderTypeCard_editingWorkOrderType$data = AddEditWorkOrde
 export type AddEditWorkOrderTypeCard_editingWorkOrderType$key = {
   +$data?: AddEditWorkOrderTypeCard_editingWorkOrderType$data,
   +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
+  ...
 };
 */
 

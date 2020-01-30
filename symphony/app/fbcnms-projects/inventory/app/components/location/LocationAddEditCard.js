@@ -12,6 +12,7 @@ import type {
   AddLocationMutationResponse,
   AddLocationMutationVariables,
 } from '../../mutations/__generated__/AddLocationMutation.graphql';
+import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {
   EditLocationMutationResponse,
   EditLocationMutationVariables,
@@ -24,6 +25,7 @@ import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
 import AddLocationMutation from '../../mutations/AddLocationMutation';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardFooter from '@fbcnms/ui/components/CardFooter';
@@ -160,6 +162,10 @@ const locationAddEditCardQuery = graphql`
             id
             name
           }
+          serviceValue {
+            id
+            name
+          }
         }
       }
     }
@@ -195,6 +201,9 @@ const locationAddEditCard__locationTypeQuery = graphql`
 `;
 
 class LocationAddEditCard extends React.Component<Props, State> {
+  static contextType = AppContext;
+  context: AppContextType;
+
   componentDidMount() {
     this.getEditingLocation().then(editingLocation => {
       this.setState({
@@ -212,7 +221,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
   render() {
     const {classes} = this.props;
     const {editingLocation} = this.state;
-
+    const externalIDEnabled = this.context.isFeatureEnabled('external_id');
     if (!editingLocation) {
       return (
         <div className={classes.loadingContainer}>
@@ -236,19 +245,21 @@ class LocationAddEditCard extends React.Component<Props, State> {
                   inputClass={classes.input}
                 />
               </Grid>
-              <Grid item xs={12} sm={12} lg={6} xl={4}>
-                <FormField
-                  label="External ID"
-                  hasSpacer
-                  className={classes.externalIdFormField}>
-                  <TextInput
-                    className={classes.input}
-                    type="string"
-                    value={editingLocation.externalId ?? ''}
-                    onChange={this._onExternalIdChanged}
-                  />
-                </FormField>
-              </Grid>
+              {externalIDEnabled && (
+                <Grid item xs={12} sm={12} lg={6} xl={4}>
+                  <FormField
+                    label="External ID"
+                    hasSpacer
+                    className={classes.externalIdFormField}>
+                    <TextInput
+                      className={classes.input}
+                      type="string"
+                      value={editingLocation.externalId ?? ''}
+                      onChange={this._onExternalIdChanged}
+                    />
+                  </FormField>
+                </Grid>
+              )}
             </Grid>
             <Grid container spacing={0} className={classes.row}>
               <Grid item xs={12} sm={12} lg={6} xl={4}>
@@ -363,12 +374,17 @@ class LocationAddEditCard extends React.Component<Props, State> {
       }
 
       const parentProxy = store.get(parentId);
-      parentProxy.setValue(
-        parentProxy.getValue('numChildren') + 1,
-        'numChildren',
-      );
-      const currNodes = parentProxy.getLinkedRecords('children') || [];
-      parentProxy.setLinkedRecords([...currNodes, newNode], 'children');
+      const currNodes = parentProxy.getLinkedRecords('children');
+      const parentLoaded =
+        currNodes !== null &&
+        (currNodes.length === 0 || !!currNodes.find(node => node != undefined));
+      if (parentLoaded) {
+        parentProxy.setLinkedRecords([...currNodes, newNode], 'children');
+        parentProxy.setValue(
+          parentProxy.getValue('numChildren') + 1,
+          'numChildren',
+        );
+      }
     };
 
     AddLocationMutation(variables, callbacks, updater);

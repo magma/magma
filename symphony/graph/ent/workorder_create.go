@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/project"
@@ -46,6 +47,7 @@ type WorkOrderCreate struct {
 	equipment        map[string]struct{}
 	links            map[string]struct{}
 	files            map[string]struct{}
+	hyperlinks       map[string]struct{}
 	location         map[string]struct{}
 	comments         map[string]struct{}
 	properties       map[string]struct{}
@@ -266,6 +268,26 @@ func (woc *WorkOrderCreate) AddFiles(f ...*File) *WorkOrderCreate {
 	return woc.AddFileIDs(ids...)
 }
 
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (woc *WorkOrderCreate) AddHyperlinkIDs(ids ...string) *WorkOrderCreate {
+	if woc.hyperlinks == nil {
+		woc.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		woc.hyperlinks[ids[i]] = struct{}{}
+	}
+	return woc
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (woc *WorkOrderCreate) AddHyperlinks(h ...*Hyperlink) *WorkOrderCreate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return woc.AddHyperlinkIDs(ids...)
+}
+
 // SetLocationID sets the location edge to Location by id.
 func (woc *WorkOrderCreate) SetLocationID(id string) *WorkOrderCreate {
 	if woc.location == nil {
@@ -448,8 +470,8 @@ func (woc *WorkOrderCreate) SaveX(ctx context.Context) *WorkOrder {
 
 func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 	var (
-		wo   = &WorkOrder{config: woc.config}
-		spec = &sqlgraph.CreateSpec{
+		wo    = &WorkOrder{config: woc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: workorder.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -458,7 +480,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		}
 	)
 	if value := woc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workorder.FieldCreateTime,
@@ -466,7 +488,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.CreateTime = *value
 	}
 	if value := woc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workorder.FieldUpdateTime,
@@ -474,7 +496,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.UpdateTime = *value
 	}
 	if value := woc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workorder.FieldName,
@@ -482,7 +504,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.Name = *value
 	}
 	if value := woc.status; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workorder.FieldStatus,
@@ -490,7 +512,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.Status = *value
 	}
 	if value := woc.priority; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workorder.FieldPriority,
@@ -498,7 +520,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.Priority = *value
 	}
 	if value := woc.description; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workorder.FieldDescription,
@@ -506,7 +528,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.Description = *value
 	}
 	if value := woc.owner_name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workorder.FieldOwnerName,
@@ -514,7 +536,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.OwnerName = *value
 	}
 	if value := woc.install_date; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workorder.FieldInstallDate,
@@ -522,7 +544,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.InstallDate = *value
 	}
 	if value := woc.creation_date; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workorder.FieldCreationDate,
@@ -530,7 +552,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.CreationDate = *value
 	}
 	if value := woc.assignee; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workorder.FieldAssignee,
@@ -538,7 +560,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		wo.Assignee = *value
 	}
 	if value := woc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: workorder.FieldIndex,
@@ -566,7 +588,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := woc.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -589,7 +611,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := woc.links; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -612,7 +634,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := woc.files; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -635,7 +657,30 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := woc.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.HyperlinksTable,
+			Columns: []string{workorder.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := woc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -658,7 +703,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := woc.comments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -681,7 +726,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := woc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -704,7 +749,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := woc.check_list_items; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -727,7 +772,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := woc.technician; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -750,7 +795,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := woc.project; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -773,15 +818,15 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, woc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, woc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	wo.ID = strconv.FormatInt(id, 10)
 	return wo, nil
 }

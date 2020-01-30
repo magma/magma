@@ -10,11 +10,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/facebookincubator/symphony/cloud/ctxgroup"
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/pkg/ctxgroup"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -41,7 +41,7 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 	var (
 		err             error
 		filterInput     []*models.EquipmentFilterInput
-		equipDataHeader = [...]string{bom + "Equipment ID", "Equipment Name", "Equipment Type"}
+		equipDataHeader = [...]string{bom + "Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
 		parentsHeader   = [...]string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}
 	)
 	filtersParam := url.Query().Get("filters")
@@ -168,7 +168,7 @@ func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
-	row := []string{equipment.ID, equipment.Name, equipment.QueryType().OnlyX(ctx).Name}
+	row := []string{equipment.ID, equipment.Name, equipment.QueryType().OnlyX(ctx).Name, equipment.ExternalID}
 	row = append(row, lParents...)
 	row = append(row, eParents...)
 	row = append(row, properties...)

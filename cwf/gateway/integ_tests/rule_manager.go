@@ -48,10 +48,7 @@ func NewRuleManager() (*RuleManager, error) {
 // storage
 func (manager *RuleManager) AddStaticPassAll(ruleID string, monitoringKey string) error {
 	fmt.Printf("************************* Adding a Pass-All static rule: %s\n", ruleID)
-	staticPassAll, err := getStaticPassAll(ruleID, monitoringKey)
-	if err != nil {
-		return err
-	}
+	staticPassAll := getStaticPassAll(ruleID, monitoringKey)
 	return manager.insertStaticRuleIntoRedis(staticPassAll)
 }
 

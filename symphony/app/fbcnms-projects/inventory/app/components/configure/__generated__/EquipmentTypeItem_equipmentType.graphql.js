@@ -39,6 +39,7 @@ export type EquipmentTypeItem_equipmentType$data = EquipmentTypeItem_equipmentTy
 export type EquipmentTypeItem_equipmentType$key = {
   +$data?: EquipmentTypeItem_equipmentType$data,
   +$fragmentRefs: EquipmentTypeItem_equipmentType$ref,
+  ...
 };
 */
 

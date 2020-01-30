@@ -20,9 +20,9 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
 )
 
 // NewAIA outputs a authentication information answer (AIA) to reply to an

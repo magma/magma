@@ -208,6 +208,48 @@ equipment,
 <dd>
 <section class="desc"></section>
 </dd>
+<dt id="pyinventory.InventoryClient.add_file"><code class="name flex">
+<span>def <span class="ident">add_file</span></span>(<span>client, local_file_path, entity_type, entity_id, category=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function adds file to an entity of a given type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>client (object):</dt>
+<dt>Client object</dt>
+<dt>local_file_path (str):</dt>
+<dt>local system path to the file</dt>
+<dt>entity_type (str):</dt>
+<dt>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dt>
+<dt>entity_id (string):</dt>
+<dt>valid entity ID</dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>client.add_file(client, './document.pdf', 'LOCATION', location.id)</p></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_files"><code class="name flex">
+<span>def <span class="ident">add_files</span></span>(<span>client, local_directory_path, entity_type, entity_id, category=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function adds all files located in folder to an entity of a given type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>client (object):</dt>
+<dt>Client object</dt>
+<dt>local_file_path (str):</dt>
+<dt>local system path to the file</dt>
+<dt>entity_type (str):</dt>
+<dt>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dt>
+<dt>entity_id (string):</dt>
+<dt>valid entity ID</dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>client.add_files(client, './documents_folder/', 'LOCATION', location.id)</p></section>
+</dd>
 <dt id="pyinventory.InventoryClient.add_link"><code class="name flex">
 <span>def <span class="ident">add_link</span></span>(<span>client, equipment_a, port_name_a, equipment_b, port_name_b)</span>
 </code></dt>
@@ -302,7 +344,13 @@ None)</p></section>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.InventoryClient.add_service"><code class="name flex">
-<span>def <span class="ident">add_service</span></span>(<span>client, name, external_id, service_type, customer, properties_dict, termination_points, links)</span>
+<span>def <span class="ident">add_service</span></span>(<span>client, name, external_id, service_type, customer, properties_dict, links)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_service_endpoint"><code class="name flex">
+<span>def <span class="ident">add_service_endpoint</span></span>(<span>client, service, port, role)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -379,6 +427,12 @@ attached to it</dd>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_customer"><code class="name flex">
 <span>def <span class="ident">delete_customer</span></span>(<span>client, customer)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_document"><code class="name flex">
+<span>def <span class="ident">delete_document</span></span>(<span>client, document)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -561,6 +615,12 @@ client.addLocation([('Country', 'England'), ('City', 'London')], {})
 locations = client.get_location_children([('Country', 'England')])</p>
 <h1 id="this-call-will-return-a-list-with-2-locations-milton-keynes-and-london">This call will return a list with 2 locations: 'Milton Keynes' and 'London'</h1></section>
 </dd>
+<dt id="pyinventory.InventoryClient.get_location_documents"><code class="name flex">
+<span>def <span class="ident">get_location_documents</span></span>(<span>client, location)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
 <dt id="pyinventory.InventoryClient.get_locations_by_external_id"><code class="name flex">
 <span>def <span class="ident">get_locations_by_external_id</span></span>(<span>client, external_id)</span>
 </code></dt>
@@ -581,6 +641,12 @@ locations = client.get_location_children([('Country', 'England')])</p>
 </dd>
 <dt id="pyinventory.InventoryClient.get_or_create_equipment_type"><code class="name flex">
 <span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client, name, category, properties, ports_dict, position_list)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_port"><code class="name flex">
+<span>def <span class="ident">get_port</span></span>(<span>client, equipment, port_name)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -705,11 +771,14 @@ with the paremeter jsonFilePath (the next parameter of this function)</dd>
 <li><code><a title="pyinventory.InventoryClient.add_equipment" href="#pyinventory.InventoryClient.add_equipment">add_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_equipment_to_position" href="#pyinventory.InventoryClient.add_equipment_to_position">add_equipment_to_position</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_equipment_type" href="#pyinventory.InventoryClient.add_equipment_type">add_equipment_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_file" href="#pyinventory.InventoryClient.add_file">add_file</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_files" href="#pyinventory.InventoryClient.add_files">add_files</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_link" href="#pyinventory.InventoryClient.add_link">add_link</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_location" href="#pyinventory.InventoryClient.add_location">add_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_location_image" href="#pyinventory.InventoryClient.add_location_image">add_location_image</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_location_type" href="#pyinventory.InventoryClient.add_location_type">add_location_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_service" href="#pyinventory.InventoryClient.add_service">add_service</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_service_endpoint" href="#pyinventory.InventoryClient.add_service_endpoint">add_service_endpoint</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_service_type" href="#pyinventory.InventoryClient.add_service_type">add_service_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_site_survey_image" href="#pyinventory.InventoryClient.add_site_survey_image">add_site_survey_image</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.apply_location_template_to_location" href="#pyinventory.InventoryClient.apply_location_template_to_location">apply_location_template_to_location</a></code></li>
@@ -720,6 +789,7 @@ with the paremeter jsonFilePath (the next parameter of this function)</dd>
 <li><code><a title="pyinventory.InventoryClient.copy_equipment_with_all_attachments" href="#pyinventory.InventoryClient.copy_equipment_with_all_attachments">copy_equipment_with_all_attachments</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_all_equipments" href="#pyinventory.InventoryClient.delete_all_equipments">delete_all_equipments</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_customer" href="#pyinventory.InventoryClient.delete_customer">delete_customer</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_document" href="#pyinventory.InventoryClient.delete_document">delete_document</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_equipment" href="#pyinventory.InventoryClient.delete_equipment">delete_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_equipment_type_with_equipments" href="#pyinventory.InventoryClient.delete_equipment_type_with_equipments">delete_equipment_type_with_equipments</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_location" href="#pyinventory.InventoryClient.delete_location">delete_location</a></code></li>
@@ -738,10 +808,12 @@ with the paremeter jsonFilePath (the next parameter of this function)</dd>
 <li><code><a title="pyinventory.InventoryClient.get_link_in_port_of_equipment" href="#pyinventory.InventoryClient.get_link_in_port_of_equipment">get_link_in_port_of_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location" href="#pyinventory.InventoryClient.get_location">get_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location_children" href="#pyinventory.InventoryClient.get_location_children">get_location_children</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_location_documents" href="#pyinventory.InventoryClient.get_location_documents">get_location_documents</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_locations_by_external_id" href="#pyinventory.InventoryClient.get_locations_by_external_id">get_locations_by_external_id</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment" href="#pyinventory.InventoryClient.get_or_create_equipment">get_or_create_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment_in_position" href="#pyinventory.InventoryClient.get_or_create_equipment_in_position">get_or_create_equipment_in_position</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment_type" href="#pyinventory.InventoryClient.get_or_create_equipment_type">get_or_create_equipment_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_port" href="#pyinventory.InventoryClient.get_port">get_port</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_service" href="#pyinventory.InventoryClient.get_service">get_service</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_site_surveys" href="#pyinventory.InventoryClient.get_site_surveys">get_site_surveys</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.move_location" href="#pyinventory.InventoryClient.move_location">move_location</a></code></li>

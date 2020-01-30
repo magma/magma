@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"

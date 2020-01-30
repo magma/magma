@@ -148,6 +148,14 @@ class InOutController(MagmaController):
                                              resubmit_table=next_table)
 
         # set a direction bit for incoming (internet -> UE) traffic.
+        match = MagmaMatch(in_port=OFPP_LOCAL)
+        actions = [load_direction(parser, Direction.IN)]
+        flows.add_resubmit_next_service_flow(dp, tbl_num, match,
+                                             actions=actions,
+                                             priority=flows.DEFAULT_PRIORITY,
+                                             resubmit_table=next_table)
+
+        # set a direction bit for incoming (internet -> UE) traffic.
         match = MagmaMatch(in_port=self._uplink_port)
         actions = [load_direction(parser, Direction.IN)]
         flows.add_resubmit_next_service_flow(dp, tbl_num, match,

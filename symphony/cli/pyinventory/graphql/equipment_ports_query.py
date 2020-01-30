@@ -32,6 +32,7 @@ class EquipmentPortsQuery:
   equipment: node(id: $id) {
     ... on Equipment {
       ports {
+        id
         definition {
           id
           name
@@ -66,6 +67,7 @@ class EquipmentPortsQuery:
                 class Link:
                     id: str
 
+                id: str
                 definition: EquipmentPortDefinition
                 link: Optional[Link] = None
 
@@ -74,7 +76,7 @@ class EquipmentPortsQuery:
         equipment: Optional[Node] = None
 
     data: Optional[EquipmentPortsQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

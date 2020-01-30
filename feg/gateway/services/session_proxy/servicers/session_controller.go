@@ -16,6 +16,7 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/policydb"
+	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/metrics"
@@ -23,6 +24,7 @@ import (
 	orcprotos "magma/orc8r/cloud/go/protos"
 
 	"github.com/golang/glog"
+	"github.com/thoas/go-funk"
 	"golang.org/x/net/context"
 )
 
@@ -75,7 +77,7 @@ func (srv *CentralSessionController) CreateSession(
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")
-	imsi := removeSidPrefix(request.Subscriber.Id)
+	imsi := credit_control.RemoveIMSIPrefix(request.Subscriber.Id)
 	sessionID := request.SessionId
 	gxCCAInit, err := srv.sendInitialGxRequest(imsi, request)
 	metrics.UpdateGxRecentRequestMetrics(err)
@@ -86,30 +88,22 @@ func (srv *CentralSessionController) CreateSession(
 	}
 	metrics.PcrfCcrInitRequests.Inc()
 
-	var staticRuleNames []string
-	var dynamicRuleDefs []*gx.RuleDefinition
-	for _, rule := range gxCCAInit.RuleInstallAVP {
-		staticRuleNames = append(staticRuleNames, rule.RuleNames...)
-		if len(rule.RuleBaseNames) > 0 {
-			staticRuleNames = append(staticRuleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
-		}
-		dynamicRuleDefs = append(dynamicRuleDefs, rule.RuleDefinitions...)
-	}
+	staticRuleInstalls, dynamicRuleInstalls := gx.ParseRuleInstallAVPs(srv.dbClient, gxCCAInit.RuleInstallAVP)
+	chargingKeys := srv.getChargingKeysFromRuleInstalls(staticRuleInstalls, dynamicRuleInstalls)
+
+	// These rules should not be tracked by OCS or PCRF, they come directly from the orc8r
+	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
+	omnipresentRuleIDs = append(omnipresentRuleIDs, srv.dbClient.GetRuleIDsForBaseNames(omnipresentBaseNames)...)
+	staticRuleInstalls = append(staticRuleInstalls, gx.RuleIDsToProtosRuleInstalls(omnipresentRuleIDs)...)
+
+	usageMonitors := getUsageMonitorsFromCCA_I(imsi, sessionID, gxCCAInit)
 
 	if srv.cfg.UseGyForAuthOnly {
-		return srv.handleUseGyForAuthOnly(imsi, request, gxCCAInit)
+		return srv.handleUseGyForAuthOnly(imsi, request, staticRuleInstalls, dynamicRuleInstalls, usageMonitors)
 	}
-
-	policyRules := getPolicyRulesFromDefinitions(dynamicRuleDefs)
-	keys, err := srv.dbClient.GetChargingKeysForRules(staticRuleNames, policyRules)
-	if err != nil {
-		glog.Errorf("Failed to get charging keys for rules: %s", err)
-		return nil, err
-	}
-	keys = removeDuplicateChargingKeys(keys)
 	credits := []*protos.CreditUpdateResponse{}
 
-	if len(keys) > 0 {
+	if len(chargingKeys) > 0 {
 		if srv.cfg.InitMethod == gy.PerSessionInit {
 			_, err = srv.sendSingleCreditRequest(getCCRInitRequest(imsi, request))
 			metrics.UpdateGyRecentRequestMetrics(err)
@@ -121,7 +115,7 @@ func (srv *CentralSessionController) CreateSession(
 			metrics.OcsCcrInitRequests.Inc()
 		}
 
-		gyCCRInit := getCCRInitialCreditRequest(imsi, request, keys, srv.cfg.InitMethod)
+		gyCCRInit := getCCRInitialCreditRequest(imsi, request, chargingKeys, srv.cfg.InitMethod)
 		gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 		metrics.UpdateGyRecentRequestMetrics(err)
 		if err != nil {
@@ -129,31 +123,28 @@ func (srv *CentralSessionController) CreateSession(
 			glog.Errorf("Failed to send second single credit request: %s", err)
 			return nil, err
 		}
-		credits = getInitialCreditResponsesFromCCA(gyCCAInit, gyCCRInit)
+		credits = getInitialCreditResponsesFromCCA(gyCCRInit, gyCCAInit)
 
 		metrics.OcsCcrInitRequests.Inc()
 	}
 
-	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
-		srv.dbClient,
-		gxCCAInit.RuleInstallAVP,
-	)
-
 	return &protos.CreateSessionResponse{
 		Credits:       credits,
-		StaticRules:   staticRules,
-		DynamicRules:  dynamicRules,
-		UsageMonitors: getUsageMonitorsFromCCA_I(imsi, sessionID, gxCCAInit),
+		StaticRules:   staticRuleInstalls,
+		DynamicRules:  dynamicRuleInstalls,
+		UsageMonitors: usageMonitors,
 	}, nil
 }
 
 func (srv *CentralSessionController) handleUseGyForAuthOnly(
 	imsi string,
 	pReq *protos.CreateSessionRequest,
-	gxCCAInit *gx.CreditControlAnswer,
+	staticRuleInstalls []*protos.StaticRuleInstall,
+	dynamicRuleInstalls []*protos.DynamicRuleInstall,
+	usageMonitors []*protos.UsageMonitoringUpdateResponse,
 ) (*protos.CreateSessionResponse, error) {
 	gyCCRInit := getCCRInitRequest(imsi, pReq)
-	_, err := srv.sendSingleCreditRequest(gyCCRInit)
+	gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 	metrics.UpdateGyRecentRequestMetrics(err)
 	if err != nil {
 		metrics.OcsCcrInitSendFailures.Inc()
@@ -162,16 +153,27 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 	}
 	metrics.OcsCcrInitRequests.Inc()
 
-	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
-		srv.dbClient,
-		gxCCAInit.RuleInstallAVP,
-	)
-	usageMonitors := getUsageMonitorsFromCCA_I(imsi, pReq.SessionId, gxCCAInit)
+	err = validateGyCCAIMSCC(gyCCAInit)
+	if err != nil {
+		glog.Errorf("MSCC Avp Failure: %s", err)
+		return nil, err
+	}
 	return &protos.CreateSessionResponse{
-		StaticRules:   staticRules,
-		DynamicRules:  dynamicRules,
+		StaticRules:   staticRuleInstalls,
+		DynamicRules:  dynamicRuleInstalls,
 		UsageMonitors: usageMonitors,
 	}, nil
+}
+
+func (srv *CentralSessionController) getChargingKeysFromRuleInstalls(
+	staticRuleInstalls []*protos.StaticRuleInstall,
+	dynamicRuleInstalls []*protos.DynamicRuleInstall,
+) []policydb.ChargingKey {
+	staticRuleIDs := funk.Map(staticRuleInstalls, func(s *protos.StaticRuleInstall) string { return s.RuleId }).([]string)
+	dynamicRuleDef := funk.Map(dynamicRuleInstalls, func(d *protos.DynamicRuleInstall) *protos.PolicyRule { return d.PolicyRule }).([]*protos.PolicyRule)
+	keys := srv.dbClient.GetChargingKeysForRules(staticRuleIDs, dynamicRuleDef)
+	return removeDuplicateChargingKeys(keys)
+
 }
 
 func removeDuplicateChargingKeys(keysIn []policydb.ChargingKey) []policydb.ChargingKey {

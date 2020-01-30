@@ -8,16 +8,17 @@ import (
 	"context"
 	"encoding/csv"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 const serviceNameTitle = "Service Name"
@@ -25,6 +26,7 @@ const serviceTypeTitle = "Service Type"
 const serviceExternalIDTitle = "Service External ID"
 const customerNameTitle = "Customer Name"
 const customerExternalIDTitle = "Customer External ID"
+const statusTitle = "Status"
 const strPropTitle = "service_str_prop"
 const intPropTitle = "service_int_prop"
 const boolPropTitle = "service_bool_prop"
@@ -89,7 +91,7 @@ func prepareServiceData(ctx context.Context, t *testing.T, r TestExporterResolve
 		Name:          "L2 S1",
 		ExternalID:    pointer.ToString("XS542"),
 		ServiceTypeID: serviceType1.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+		Status:        pointerToServiceStatus(models.ServiceStatusInService),
 	})
 	require.NoError(t, err)
 
@@ -117,7 +119,7 @@ func prepareServiceData(ctx context.Context, t *testing.T, r TestExporterResolve
 		ServiceTypeID: serviceType2.ID,
 		CustomerID:    &customer1.ID,
 		Properties:    []*models.PropertyInput{&strProp, &intProp, &boolProp},
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+		Status:        pointerToServiceStatus(models.ServiceStatusMaintenance),
 	})
 	require.NoError(t, err)
 
@@ -126,7 +128,7 @@ func prepareServiceData(ctx context.Context, t *testing.T, r TestExporterResolve
 		ServiceTypeID: serviceType2.ID,
 		CustomerID:    &customer2.ID,
 		Properties:    []*models.PropertyInput{&floatProp},
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+		Status:        pointerToServiceStatus(models.ServiceStatusDisconnected),
 	})
 	require.NoError(t, err)
 }
@@ -163,6 +165,7 @@ func TestEmptyServicesDataExport(t *testing.T) {
 			serviceExternalIDTitle,
 			customerNameTitle,
 			customerExternalIDTitle,
+			statusTitle,
 		}, ln)
 	}
 }
@@ -203,6 +206,7 @@ func TestServicesExport(t *testing.T) {
 				serviceExternalIDTitle,
 				customerNameTitle,
 				customerExternalIDTitle,
+				statusTitle,
 				strPropTitle,
 				intPropTitle,
 				boolPropTitle,
@@ -215,6 +219,7 @@ func TestServicesExport(t *testing.T) {
 				"XS542",
 				"",
 				"",
+				models.ServiceStatusInService.String(),
 				"",
 				"",
 				"",
@@ -227,6 +232,7 @@ func TestServicesExport(t *testing.T) {
 				"",
 				"Customer 1",
 				"AD123",
+				models.ServiceStatusMaintenance.String(),
 				"Foo",
 				"10",
 				"false",
@@ -239,6 +245,7 @@ func TestServicesExport(t *testing.T) {
 				"",
 				"Customer 2",
 				"",
+				models.ServiceStatusDisconnected.String(),
 				"Foo is the best",
 				"0",
 				"false",
@@ -316,6 +323,7 @@ func TestServiceWithFilters(t *testing.T) {
 						"",
 						"Customer 1",
 						"AD123",
+						models.ServiceStatusMaintenance.String(),
 						"Foo",
 						"10",
 						"false",
@@ -331,6 +339,7 @@ func TestServiceWithFilters(t *testing.T) {
 						"XS542",
 						"",
 						"",
+						models.ServiceStatusInService.String(),
 					})
 				}
 			}

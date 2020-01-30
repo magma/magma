@@ -8,11 +8,14 @@
  * @format
  */
 
+import type {AppContextType} from '@fbcnms/ui/context/AppContext';
+import type {FeatureID} from '@fbcnms/types/features';
 import type {Property} from '../../common/Property';
 import type {PropertyType} from '../../common/PropertyType';
 import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -62,18 +65,25 @@ const styles = _theme => ({
   },
 });
 
-const propertyTypeLabels = {
-  date: 'Date',
-  int: 'Number',
-  float: 'Float',
-  string: 'Text',
-  email: 'Email',
-  gps_location: 'Coordinates',
-  bool: 'True or False',
-  range: 'Range',
-  enum: 'Multiple choice',
-  equipment: 'Equipment',
-  location: 'Location',
+type PropertyTypeInfo = {|
+  label: string,
+  featureFlag?: FeatureID,
+|};
+
+const propertyTypeLabels: {[string]: PropertyTypeInfo} = {
+  date: {label: 'Date'},
+  datetime_local: {label: 'Date & Time'},
+  int: {label: 'Number'},
+  float: {label: 'Float'},
+  string: {label: 'Text'},
+  email: {label: 'Email'},
+  gps_location: {label: 'Coordinates'},
+  bool: {label: 'True or False'},
+  range: {label: 'Range'},
+  enum: {label: 'Multiple choice'},
+  equipment: {label: 'Equipment'},
+  location: {label: 'Location'},
+  service: {label: 'Service', featureFlag: 'services'},
 };
 
 type Props = {
@@ -84,6 +94,8 @@ type Props = {
 } & WithStyles<typeof styles>;
 
 class PropertyTypeTable extends React.Component<Props> {
+  static contextType = AppContext;
+  context: AppContextType;
   render() {
     const {classes} = this.props;
     const propertyTypes = this.props.propertyTypes;
@@ -124,7 +136,7 @@ class PropertyTypeTable extends React.Component<Props> {
             {propertyTypes
               .filter(property => !property.isDeleted)
               .map((property, i) => (
-                <DraggableTableRow id={property.id} index={i} key={property.id}>
+                <DraggableTableRow id={property.id} index={i} key={i}>
                   <TableCell
                     className={classes.cell}
                     component="div"
@@ -136,6 +148,7 @@ class PropertyTypeTable extends React.Component<Props> {
                       className={classes.input}
                       value={property.name}
                       onChange={this._handleChange('name', i)}
+                      onBlur={() => this._handleNameBlur(i)}
                       margin="dense"
                     />
                   </TableCell>
@@ -156,11 +169,19 @@ class PropertyTypeTable extends React.Component<Props> {
                         },
                       }}
                       margin="dense">
-                      {Object.keys(propertyTypeLabels).map(type => (
-                        <MenuItem key={type} value={type}>
-                          {propertyTypeLabels[type]}
-                        </MenuItem>
-                      ))}
+                      {Object.keys(propertyTypeLabels)
+                        .filter(
+                          type =>
+                            !propertyTypeLabels[type].featureFlag ||
+                            this.context.isFeatureEnabled(
+                              propertyTypeLabels[type].featureFlag,
+                            ),
+                        )
+                        .map(type => (
+                          <MenuItem key={type} value={type}>
+                            {propertyTypeLabels[type].label}
+                          </MenuItem>
+                        ))}
                     </TextField>
                   </TableCell>
                   <TableCell
@@ -240,6 +261,23 @@ class PropertyTypeTable extends React.Component<Props> {
         changedProp,
         // $FlowFixMe: need to figure out how to cast string to PropertyKind
         event.target.value,
+      ),
+    );
+  };
+
+  _handleNameBlur = index => {
+    const name = this.props.propertyTypes[index]?.name;
+    const trimmedName = name && name.trim();
+    if (name === trimmedName) {
+      return;
+    }
+
+    this.props.onPropertiesChanged(
+      updateItem<PropertyType, 'name'>(
+        this.props.propertyTypes,
+        index,
+        'name',
+        trimmedName,
       ),
     );
   };

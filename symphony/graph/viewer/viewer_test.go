@@ -11,8 +11,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -45,16 +45,32 @@ func TestViewerHandler(t *testing.T) {
 				assert.NotZero(t, rec.Body.Len())
 			},
 		},
+		{
+			name: "ReadOnlyUser",
+			prepare: func(req *http.Request) {
+				req.Header.Set(TenantHeader, "test")
+				req.Header.Set(ReadOnlyHeader, "true")
+			},
+			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusOK, rec.Code)
+				assert.NotZero(t, rec.Body.Len())
+			},
+		},
 	}
 
 	h := TenancyHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			viewer := FromContext(r.Context())
+			ctx := r.Context()
+			viewer := FromContext(ctx)
 			require.NotNil(t, viewer)
-			assert.NotNil(t, log.FieldsFromContext(r.Context()))
+			assert.NotNil(t, log.FieldsFromContext(ctx))
 			_, _ = io.WriteString(w, viewer.Tenant)
+			if r.Header.Get(ReadOnlyHeader) != "" {
+				_, err := ent.FromContext(ctx).Tx(ctx)
+				require.EqualError(t, err, "ent: starting a transaction: permission denied: read-only user")
+			}
 		}),
-		nil,
+		NewFixedTenancy(&ent.Client{}),
 	)
 	for _, tc := range tests {
 		tc := tc

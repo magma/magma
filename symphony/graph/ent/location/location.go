@@ -57,6 +57,13 @@ const (
 	FilesInverseTable = "files"
 	// FilesColumn is the table column denoting the files relation/edge.
 	FilesColumn = "location_file_id"
+	// HyperlinksTable is the table the holds the hyperlinks relation/edge.
+	HyperlinksTable = "hyperlinks"
+	// HyperlinksInverseTable is the table name for the Hyperlink entity.
+	// It exists in this package in order to avoid circular dependency with the "hyperlink" package.
+	HyperlinksInverseTable = "hyperlinks"
+	// HyperlinksColumn is the table column denoting the hyperlinks relation/edge.
+	HyperlinksColumn = "location_hyperlink_id"
 	// EquipmentTable is the table the holds the equipment relation/edge.
 	EquipmentTable = "equipment"
 	// EquipmentInverseTable is the table name for the Equipment entity.
@@ -108,7 +115,7 @@ const (
 	FloorPlansColumn = "location_id"
 )
 
-// Columns holds all SQL columns are location fields.
+// Columns holds all SQL columns for location fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -118,6 +125,12 @@ var Columns = []string{
 	FieldLatitude,
 	FieldLongitude,
 	FieldSiteSurveyNeeded,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Location type.
+var ForeignKeys = []string{
+	"type_id",
+	"parent_id",
 }
 
 var (

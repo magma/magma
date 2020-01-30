@@ -14,6 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
+type ServiceEndpointsView_endpoints$ref = any;
 type ServiceLinksView_links$ref = any;
 export type ServiceStatus = "DISCONNECTED" | "IN_SERVICE" | "MAINTENANCE" | "PENDING" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
@@ -34,12 +35,16 @@ export type ServicePanel_service = {|
     +id: string,
     +$fragmentRefs: ServiceLinksView_links$ref,
   |}>,
+  +endpoints: $ReadOnlyArray<?{|
+    +$fragmentRefs: ServiceEndpointsView_endpoints$ref
+  |}>,
   +$refType: ServicePanel_service$ref,
 |};
 export type ServicePanel_service$data = ServicePanel_service;
 export type ServicePanel_service$key = {
   +$data?: ServicePanel_service$data,
   +$fragmentRefs: ServicePanel_service$ref,
+  ...
 };
 */
 
@@ -121,10 +126,26 @@ return {
           "args": null
         }
       ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "endpoints",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpoint",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "FragmentSpread",
+          "name": "ServiceEndpointsView_endpoints",
+          "args": null
+        }
+      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'eaf2a0ad573b59046b4aa8ddc78afcaa';
+(node/*: any*/).hash = '7f357b32c905fbee028440218bf69241';
 module.exports = node;

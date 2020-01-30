@@ -10,8 +10,11 @@
 
 import * as React from 'react';
 import axios from 'axios';
+import fbt from 'fbt';
+import shortid from 'shortid';
+import {FilesUploadContext} from './context/FilesUploadContextProvider';
 import {makeStyles} from '@material-ui/styles';
-import {useRef} from 'react';
+import {useContext, useRef} from 'react';
 
 const useStyles = makeStyles({
   hiddenInput: {
@@ -25,7 +28,7 @@ const useStyles = makeStyles({
   fileButton: {
     cursor: 'pointer',
     display: 'flex',
-    width: 'fit-content',
+    width: '100%',
   },
 });
 
@@ -42,6 +45,7 @@ export const FileUploadButton = (props: {
         type="file"
         onChange={props.onFileChanged}
         ref={inputRef}
+        multiple
       />
       <div
         className={classes.fileButton}
@@ -54,47 +58,55 @@ export const FileUploadButton = (props: {
 
 type Props = {
   button: React.Node,
-  onProgress?: (progress: number) => void,
+  onProgress?: (fileId: string, progress: number) => void,
   onFileUploaded: (file: File, key: string) => void,
 };
 
-class FileUpload extends React.Component<Props> {
-  input = null;
+const FileUpload = ({button, onProgress, onFileUploaded}: Props) => {
+  const uploadContext = useContext(FilesUploadContext);
 
-  constructor(props: Props) {
-    super(props);
-
-    this.input = null;
-  }
-
-  render() {
-    const {button} = this.props;
-    return (
-      <FileUploadButton button={button} onFileChanged={this.onFileChanged} />
-    );
-  }
-
-  openFileDialog = () => {
-    if (this.input) {
-      this.input.click();
-    }
+  const onFileProgress = (fileId, progress) => {
+    uploadContext.setFileProgress(fileId, progress);
+    onProgress && onProgress(fileId, progress);
   };
 
-  onFileChanged = async (e: SyntheticEvent<HTMLInputElement>) => {
-    const files = e.currentTarget.files;
-    if (!files || files.length === 0) {
+  const onFilesChanged = async (e: SyntheticEvent<HTMLInputElement>) => {
+    const eventFiles = Array.from(e.currentTarget.files);
+    if (!eventFiles || eventFiles.length === 0) {
       return;
     }
 
-    const file = files[0];
-    uploadFile(file, this.props.onFileUploaded, this.props.onProgress);
+    await Promise.all(
+      eventFiles.map(async file => {
+        const fileId = shortid.generate();
+        uploadContext.addFile(fileId, file.name);
+        try {
+          await uploadFile(fileId, file, onFileUploaded, onFileProgress);
+        } catch (e) {
+          uploadContext.setFileUploadError(
+            fileId,
+            fbt(
+              'We had a problem uploading this file',
+              'Error message describing that we had an error while uploading the file',
+            ),
+          );
+        }
+      }),
+    );
   };
-}
+  return (
+    <FileUploadButton
+      button={button}
+      onFileChanged={async e => await onFilesChanged(e)}
+    />
+  );
+};
 
 export async function uploadFile(
+  id: string,
   file: File,
   onUpload: (File, string) => void,
-  onProgress?: number => void,
+  onProgress?: (fileId: string, progress: number) => void,
 ) {
   const signingResponse = await axios.get('/store/put', {
     params: {
@@ -110,7 +122,7 @@ export async function uploadFile(
       const percentCompleted = Math.round(
         (progressEvent.loaded * 100) / progressEvent.total,
       );
-      onProgress && onProgress(percentCompleted);
+      onProgress && onProgress(id, percentCompleted);
     },
   };
   await axios.put(signingResponse.data.URL, file, config);

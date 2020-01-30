@@ -21,7 +21,7 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 
 import {cleanup, render, wait} from '@testing-library/react';
 
-import {RAW_AGENT, RAW_DEVICES} from '../test/DevicesMock';
+import {RAW_DEVICES} from '../test/DevicesMock';
 
 jest.mock('@fbcnms/magma-api');
 
@@ -44,9 +44,6 @@ afterEach(cleanup);
 
 describe('<DevicesStatusTable />', () => {
   beforeEach(() => {
-    MagmaAPIBindings.getSymphonyByNetworkIdAgents.mockResolvedValueOnce({
-      [RAW_AGENT.id]: RAW_AGENT,
-    });
     MagmaAPIBindings.getSymphonyByNetworkIdDevices.mockResolvedValueOnce(
       RAW_DEVICES,
     );
@@ -57,9 +54,6 @@ describe('<DevicesStatusTable />', () => {
 
     await wait();
 
-    expect(MagmaAPIBindings.getSymphonyByNetworkIdAgents).toHaveBeenCalledTimes(
-      1,
-    );
     expect(
       MagmaAPIBindings.getSymphonyByNetworkIdDevices,
     ).toHaveBeenCalledTimes(1);

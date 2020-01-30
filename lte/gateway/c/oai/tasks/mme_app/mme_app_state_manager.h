@@ -25,7 +25,8 @@ extern "C" {
 #include "mme_config.h"
 }
 
-#include <cpp_redis/cpp_redis>
+#include <redis_utils/redis_client.h>
+#include <state_manager.h>
 
 #include "mme_app_state_converter.h"
 #include "ServiceConfigLoader.h"
@@ -38,7 +39,8 @@ namespace lte {
  * and freeing state structs, and writing/reading state to db.
  */
 
-class MmeNasStateManager {
+class MmeNasStateManager :
+  public StateManager<mme_app_desc_t, MmeNasState, MmeNasStateConverter> {
  public:
   /**
    * Returns an instance of MmeNasStateManager, guaranteed to be thread safe and
@@ -67,14 +69,14 @@ class MmeNasStateManager {
     * debug flag; if set to true, the state is loaded from the data store on
     * every get.
     */
-  mme_app_desc_t* get_mme_nas_state(bool read_from_db);
+  mme_app_desc_t* get_state(bool read_from_db) override;
 
   /**
     * Release the memory for MME NAS state and destroy the read-write lock. This
     * is only called when task terminates
     */
 
-  void free_in_memory_mme_nas_state();
+  void free_state() override;
 
   /**
    * Copy constructor and assignment operator are marked as deleted functions.
@@ -108,9 +110,6 @@ class MmeNasStateManager {
   // Write an empty value to data store, if needed for debugging
   void clear_db_state();
 
-  // Establish connection with the data store
-  int initialize_db_connection();
-
   // Acquire lock on the complete MME NAS state
   void lock_mme_nas_state();
 
@@ -118,21 +117,14 @@ class MmeNasStateManager {
   void unlock_mme_nas_state();
 
   /**
-   * Read MME NAS state from redis. This function locks the in-memory state
-   * structure to maintain thread-safety between MME and NAS task
-   */
-  int read_state_from_db();
-
-  /**
    * Initialize memory for MME state before reading from data-store, the state
    * manager owns the memory allocated for MME state and frees it when the
    * task terminates
    */
-  void create_mme_nas_state();
+  void create_state() override;
 
   // Clean-up the in-memory hashtables
   void clear_mme_nas_hashtables();
-
 };
 } // namespace lte
 } // namespace magma

@@ -10,7 +10,7 @@
 
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {Equipment} from '../../common/Equipment';
-import type {Location} from '../../common/Location';
+import type {LocationMoreActionsButton_location} from './__generated__/LocationMoreActionsButton_location.graphql';
 import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
@@ -43,7 +43,9 @@ type Props = {
   onWorkOrderSelected: (workOrderId: string) => void,
   onEdit: () => void,
   onAddEquipment: () => void,
-  onLocationRemoved: (removedLocation: Location) => void,
+  onLocationRemoved: (
+    removedLocation: LocationMoreActionsButton_location,
+  ) => void,
 } & WithStyles<typeof styles> &
   WithSnackbarProps;
 
@@ -123,6 +125,7 @@ const locationsPropertiesCardQuery = graphql`
         name
         latitude
         longitude
+        externalId
         locationType {
           id
           name
@@ -153,12 +156,16 @@ const locationsPropertiesCardQuery = graphql`
         files {
           id
         }
+        hyperlinks {
+          id
+        }
         surveys {
           id
         }
         ...LocationSiteSurveyTab_location
         ...LocationDocumentsCard_location
         ...LocationFloorPlansTab_location
+        ...LocationMoreActionsButton_location
       }
     }
   }

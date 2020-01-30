@@ -35,6 +35,7 @@ setup(
         'magma.pipelined.qos',
         'magma.pkt_tester',
         'magma.policydb',
+        'magma.policydb.servicers',
         'magma.redirectd',
         'magma.redirectd.templates',
         'magma.subscriberdb',
@@ -54,6 +55,7 @@ setup(
         'scripts/hello_cli.py',
         'scripts/mobility_cli.py',
         'scripts/ocs_cli.py',
+        'scripts/packet_tracer_cli.py',
         'scripts/packet_ryu_cli.py',
         'scripts/pcrf_cli.py',
         'scripts/pipelined_cli.py',
@@ -94,6 +96,7 @@ setup(
         'idna==2.8',
         'python-dateutil==2.8',
         'six>=1.12.0',
+        'eventlet>=0.24'
     ],
     extras_require={
         'dev': [

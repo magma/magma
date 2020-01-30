@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 )
 
 // EquipmentPort is the model entity for the EquipmentPort schema.
@@ -24,26 +25,89 @@ type EquipmentPort struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentPortQuery when eager-loading is set.
+	Edges         EquipmentPortEdges `json:"edges"`
+	parent_id     *string
+	definition_id *string
+	link_id       *string
 }
 
-// FromRows scans the sql response data into EquipmentPort.
-func (ep *EquipmentPort) FromRows(rows *sql.Rows) error {
-	var scanep struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
+// EquipmentPortEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPortEdges struct {
+	// Definition holds the value of the definition edge.
+	Definition *EquipmentPortDefinition
+	// Parent holds the value of the parent edge.
+	Parent *Equipment
+	// Link holds the value of the link edge.
+	Link *Link
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// Endpoints holds the value of the endpoints edge.
+	Endpoints []*ServiceEndpoint
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*EquipmentPort) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // id
+		&sql.NullTime{},  // create_time
+		&sql.NullTime{},  // update_time
 	}
-	// the order here should be the same as in the `equipmentport.Columns`.
-	if err := rows.Scan(
-		&scanep.ID,
-		&scanep.CreateTime,
-		&scanep.UpdateTime,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*EquipmentPort) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // parent_id
+		&sql.NullInt64{}, // definition_id
+		&sql.NullInt64{}, // link_id
 	}
-	ep.ID = strconv.Itoa(scanep.ID)
-	ep.CreateTime = scanep.CreateTime.Time
-	ep.UpdateTime = scanep.UpdateTime.Time
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the EquipmentPort fields.
+func (ep *EquipmentPort) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipmentport.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	ep.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		ep.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		ep.UpdateTime = value.Time
+	}
+	values = values[2:]
+	if len(values) == len(equipmentport.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field parent_id", value)
+		} else if value.Valid {
+			ep.parent_id = new(string)
+			*ep.parent_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field definition_id", value)
+		} else if value.Valid {
+			ep.definition_id = new(string)
+			*ep.definition_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[2].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field link_id", value)
+		} else if value.Valid {
+			ep.link_id = new(string)
+			*ep.link_id = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -65,6 +129,11 @@ func (ep *EquipmentPort) QueryLink() *LinkQuery {
 // QueryProperties queries the properties edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryProperties() *PropertyQuery {
 	return (&EquipmentPortClient{ep.config}).QueryProperties(ep)
+}
+
+// QueryEndpoints queries the endpoints edge of the EquipmentPort.
+func (ep *EquipmentPort) QueryEndpoints() *ServiceEndpointQuery {
+	return (&EquipmentPortClient{ep.config}).QueryEndpoints(ep)
 }
 
 // Update returns a builder for updating this EquipmentPort.
@@ -106,18 +175,6 @@ func (ep *EquipmentPort) id() int {
 
 // EquipmentPorts is a parsable slice of EquipmentPort.
 type EquipmentPorts []*EquipmentPort
-
-// FromRows scans the sql response data into EquipmentPorts.
-func (ep *EquipmentPorts) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanep := &EquipmentPort{}
-		if err := scanep.FromRows(rows); err != nil {
-			return err
-		}
-		*ep = append(*ep, scanep)
-	}
-	return nil
-}
 
 func (ep EquipmentPorts) config(cfg config) {
 	for _i := range ep {

@@ -324,22 +324,25 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       id: editingServiceType?.id ?? 'ServiceType@tmp0',
       name: editingServiceType?.name ?? '',
       numberOfServices: editingServiceType?.numberOfServices ?? 0,
-      propertyTypes: propertyTypes || [
-        {
-          id: 'PropertyType@tmp',
-          name: '',
-          type: 'string',
-          index: editingServiceType?.propertyTypes?.length ?? 0,
-          booleanValue: false,
-          stringValue: null,
-          intValue: null,
-          floatValue: null,
-          latitudeValue: null,
-          longitudeValue: null,
-          isEditable: true,
-          isInstanceProperty: true,
-        },
-      ],
+      propertyTypes:
+        propertyTypes.length > 0
+          ? propertyTypes
+          : [
+              {
+                id: 'PropertyType@tmp',
+                name: '',
+                type: 'string',
+                index: editingServiceType?.propertyTypes?.length ?? 0,
+                booleanValue: false,
+                stringValue: null,
+                intValue: null,
+                floatValue: null,
+                latitudeValue: null,
+                longitudeValue: null,
+                isEditable: true,
+                isInstanceProperty: true,
+              },
+            ],
     };
   }
 }

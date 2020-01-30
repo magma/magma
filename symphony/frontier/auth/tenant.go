@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/bobesa/go-domain-util/domainutil"
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/tenant"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 )
@@ -71,7 +71,7 @@ func TenantHandler(handler http.Handler, loader TenantLoader) http.Handler {
 				trace.StringAttribute("tenant", name),
 			)
 			handler.ServeHTTP(w, r.WithContext(ctx))
-		case *ent.ErrNotFound:
+		case *ent.NotFoundError:
 			http.Error(w, "tenant not found", http.StatusNotFound)
 		default:
 			http.Error(w, "cannot load tenant", http.StatusInternalServerError)

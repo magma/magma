@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 24ab714a3310e9ed30bd2a5e6c1ee006
+ * @relayHash eea5591e67a8f5903c9ebb4d10465f58
  */
 
 /* eslint-disable */
@@ -24,6 +24,7 @@ export type AddEquipmentInput = {|
   positionDefinition?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
   workOrder?: ?string,
+  externalId?: ?string,
 |};
 export type PropertyInput = {|
   id?: ?string,
@@ -38,6 +39,7 @@ export type PropertyInput = {|
   rangeToValue?: ?number,
   equipmentIDValue?: ?string,
   locationIDValue?: ?string,
+  serviceIDValue?: ?string,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
 |};

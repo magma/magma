@@ -8,7 +8,10 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
@@ -142,13 +145,21 @@ func (m *importer) getOrCreateLocationType(ctx context.Context, name string, pro
 		SaveX(ctx)
 }
 
-func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool) {
-	log := m.log.For(ctx)
+func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name string, locType *ent.LocationType, parentID *string) (*ent.Location, error) {
 	rq := locType.QueryLocations().Where(location.Name(name))
 	if parentID != nil {
 		rq = rq.Where(location.HasParentWith(location.ID(*parentID)))
 	}
 	l, err := rq.Only(ctx)
+	if l != nil {
+		return l, nil
+	}
+	return nil, err
+}
+
+func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool) {
+	log := m.log.For(ctx)
+	l, err := m.queryLocationForTypeAndParent(ctx, name, locType, parentID)
 	if l != nil {
 		return l, false
 	}
@@ -171,7 +182,7 @@ func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitud
 	return l, true
 }
 
-func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
+func (m *importer) getEquipmentIfExist(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, error) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.EquipmentType.Query().
@@ -190,20 +201,26 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 	}
 	equip, err := rq.First(ctx)
 	if ent.MaskNotFound(err) != nil {
-		return nil, false, err
+		return nil, err
 	}
 	if equip != nil {
 		log.Debug("equipment exists",
 			zap.String("name", name),
 			zap.String("type", equipType.ID),
 		)
-		return equip, false, nil
+		return equip, nil
 	}
-	if !ent.IsNotFound(err) {
-		panic(err)
-	}
-	var locID *string
+	return nil, nil
+}
 
+func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
+	log := m.log.For(ctx)
+	eq, err := m.getEquipmentIfExist(ctx, mr, name, equipType, externalID, loc, position, props)
+	if err != nil || eq != nil {
+		return eq, false, err
+	}
+
+	var locID *string
 	if loc != nil {
 		locID = &loc.ID
 	}
@@ -215,25 +232,24 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 		parentEquipmentID = &p
 		positionDefinitionID = &d
 	}
-
-	equip, err = mr.AddEquipment(ctx, models.AddEquipmentInput{
+	equip, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:               name,
 		Type:               equipType.ID,
 		Location:           locID,
 		Parent:             parentEquipmentID,
 		PositionDefinition: positionDefinitionID,
 		Properties:         props,
+		ExternalID:         externalID,
 	})
 	if err != nil {
 		log.Error("add equipment", zap.String("name", name), zap.Error(err))
 		return nil, false, err
 	}
 	log.Debug("Creating new equipment", zap.String("equip.Name", equip.Name), zap.String("equip.ID", equip.ID))
-
 	return equip, true, nil
 }
 
-func (m *importer) getOrCreateService(ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput) (*ent.Service, bool) {
+func (m *importer) getServiceIfExist(ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, error) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.ServiceType.Query().
@@ -243,30 +259,80 @@ func (m *importer) getOrCreateService(ctx context.Context, mr generated.Mutation
 			service.Name(name),
 		)
 	service, err := rq.First(ctx)
+	if ent.MaskNotFound(err) != nil {
+		return nil, err
+	}
 	if service != nil {
 		log.Debug("service exists",
 			zap.String("name", name),
 			zap.String("type", serviceType.ID),
 		)
-		return service, false
+		return service, nil
 	}
-	if !ent.IsNotFound(err) {
-		panic(err)
+	return nil, nil
+}
+
+func (m *importer) getOrCreateService(
+	ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, bool, error) {
+	log := m.log.For(ctx)
+	service, err := m.getServiceIfExist(ctx, mr, name, serviceType, props, customerID, externalID, status)
+
+	if err != nil || service != nil {
+		return service, false, err
 	}
 
 	service, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          name,
 		ServiceTypeID: serviceType.ID,
 		Properties:    props,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+		Status:        pointerToServiceStatus(status),
+		CustomerID:    customerID,
+		ExternalID:    externalID,
 	})
 	if err != nil {
 		log.Error("add service", zap.String("name", name), zap.Error(err))
-		return nil, false
+		return nil, false, err
 	}
 	log.Debug("Creating new service", zap.String("service.Name", service.Name), zap.String("service.ID", service.ID))
 
-	return service, true
+	return service, true, nil
+}
+
+func (m *importer) getCustomerIfExist(ctx context.Context, name string) (*ent.Customer, error) {
+	log := m.log.For(ctx)
+	client := m.ClientFrom(ctx)
+	customer, err := client.Customer.Query().Where(customer.Name(name)).First(ctx)
+	if customer != nil {
+		log.Debug("customer exists",
+			zap.String("name", name),
+		)
+		return customer, nil
+	}
+	if !ent.IsNotFound(err) {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (m *importer) getOrCreateCustomer(ctx context.Context, mr generated.MutationResolver, name string, externalID string) (*ent.Customer, error) {
+	log := m.log.For(ctx)
+	_, err := m.getCustomerIfExist(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	exID := pointer.ToStringOrNil(externalID)
+	customer, err := mr.AddCustomer(ctx, models.AddCustomerInput{
+		Name:       name,
+		ExternalID: exID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	log.Debug("Creating new customer", zap.String("customer.Name", customer.Name),
+		zap.String("customer.ID", customer.ID))
+
+	return customer, nil
 }
 
 func (m *importer) deleteEquipmentIfExists(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, loc *ent.Location, pos *ent.EquipmentPosition) error {
@@ -413,4 +479,17 @@ func (m *importer) propExistsOnEquipment(ctx context.Context, equip *ent.Equipme
 
 func (m *importer) CloneContext(ctx context.Context) context.Context {
 	return viewer.NewContext(ent.NewContext(context.Background(), m.ClientFrom(ctx)), viewer.FromContext(ctx))
+}
+
+func (m *importer) validateServiceExistsAndUnique(ctx context.Context, serviceNamesMap map[string]bool, serviceName string) (string, error) {
+	client := m.ClientFrom(ctx)
+	if _, ok := serviceNamesMap[serviceName]; ok {
+		return "", errors.Errorf("Property can't be the endpoint of the same service more than once - service name=%q", serviceName)
+	}
+	serviceNamesMap[serviceName] = true
+	s, err := client.Service.Query().Where(service.Name(serviceName)).Only(ctx)
+	if err != nil {
+		return "", errors.Wrapf(err, "can't query service name=%q", serviceName)
+	}
+	return s.ID, nil
 }

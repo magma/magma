@@ -50,7 +50,6 @@ int mme_app_handle_sgsap_service_abort_request(mme_app_desc_t *mme_app_desc_p,
 {
   imsi64_t imsi64 = INVALID_IMSI64;
   struct ue_mm_context_s *ue_context_p = NULL;
-  int rc = RETURNok;
   sgs_fsm_t sgs_fsm;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -82,7 +81,6 @@ int mme_app_handle_sgsap_service_abort_request(mme_app_desc_t *mme_app_desc_p,
       "SGS context not found in mme_app_handle_sgsap_service_abort_req for "
       "IMSI %s\n",
       itti_sgsap_service_abort_req_p->imsi);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -97,12 +95,10 @@ int mme_app_handle_sgsap_service_abort_request(mme_app_desc_t *mme_app_desc_p,
       LOG_MME_APP,
       "Error in invoking FSM handler for primitive %d \n",
       sgs_fsm.primitive);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  unlock_ue_contexts(ue_context_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /**********************************************************************************
@@ -116,8 +112,6 @@ int mme_app_handle_sgsap_service_abort_request(mme_app_desc_t *mme_app_desc_p,
 ***********************************************************************************/
 int sgs_fsm_associated_service_abort_request(const sgs_fsm_t *fsm_evt)
 {
-  int rc = RETURNok;
-
   OAILOG_FUNC_IN(LOG_MME_APP);
   sgs_context_t *sgs_context = (sgs_context_t *) fsm_evt->ctx;
 
@@ -140,7 +134,7 @@ int sgs_fsm_associated_service_abort_request(const sgs_fsm_t *fsm_evt)
       fsm_evt->ue_id);
   }
 
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /**********************************************************************************
@@ -153,8 +147,6 @@ int sgs_fsm_associated_service_abort_request(const sgs_fsm_t *fsm_evt)
 ***********************************************************************************/
 int sgs_fsm_null_service_abort_request(const sgs_fsm_t *fsm_evt)
 {
-  int rc = RETURNok;
-
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_ERROR(
     LOG_MME_APP,
@@ -162,7 +154,7 @@ int sgs_fsm_null_service_abort_request(const sgs_fsm_t *fsm_evt)
     "state for UE ID %d\n",
     fsm_evt->ue_id);
 
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /**********************************************************************************
@@ -175,8 +167,6 @@ int sgs_fsm_null_service_abort_request(const sgs_fsm_t *fsm_evt)
 ***********************************************************************************/
 int sgs_fsm_la_update_req_service_abort_request(const sgs_fsm_t *fsm_evt)
 {
-  int rc = RETURNok;
-
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_ERROR(
     LOG_MME_APP,
@@ -184,5 +174,5 @@ int sgs_fsm_la_update_req_service_abort_request(const sgs_fsm_t *fsm_evt)
     "LA-UPDATE-REQUESTED stae for UE ID %d\n",
     fsm_evt->ue_id);
 
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }

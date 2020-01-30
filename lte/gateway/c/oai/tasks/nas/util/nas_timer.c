@@ -45,6 +45,7 @@
 #include "dynamic_memory_check.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
+#include "log.h"
 
 //------------------------------------------------------------------------------
 int nas_timer_init(void)
@@ -78,7 +79,7 @@ long int nas_timer_start(
     timer_setup(
       sec,
       usec,
-      TASK_NAS_MME,
+      TASK_MME_APP,
       INSTANCE_DEFAULT,
       TIMER_ONE_SHOT,
       &cb,
@@ -102,22 +103,19 @@ long int nas_timer_stop(long int timer_id, void **nas_timer_callback_arg)
     *nas_timer_callback_arg = NULL;
   }
   return (NAS_TIMER_INACTIVE_ID);
-  /*
-  // TODO: Fix me: Amar
-  timer_remove (timer_id);
-  if (nas_timer_callback_arg) {
-    *nas_timer_callback_arg = NULL;
-  }
-  return (NAS_TIMER_INACTIVE_ID);
-	*/
 }
 
 //------------------------------------------------------------------------------
-void nas_timer_handle_signal_expiry(long timer_id, nas_itti_timer_arg_t *cb)
+void mme_app_nas_timer_handle_signal_expiry(
+  long timer_id,
+  nas_itti_timer_arg_t *cb)
 {
-  if (!timer_exists(timer_id)) {
-    return;
+  OAILOG_FUNC_IN(LOG_NAS);
+  if ((!timer_exists(timer_id)) || (cb->nas_timer_callback == NULL)) {
+    OAILOG_ERROR(
+      LOG_NAS, "Invalid timer id %ld \n", timer_id);
+    OAILOG_FUNC_OUT(LOG_NAS);
   }
-
   cb->nas_timer_callback(cb->nas_timer_callback_arg);
+  OAILOG_FUNC_OUT(LOG_NAS);
 }

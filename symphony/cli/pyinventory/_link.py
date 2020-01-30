@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 from gql.gql.client import OperationException
 
-from .consts import Equipment, Link
+from .consts import Equipment, EquipmentPort, Link
 from .exceptions import (
     EquipmentPortIsNotUniqueException,
     EquipmentPortNotFoundException,
@@ -55,6 +55,13 @@ def _find_port_definition_id(
     return port.definition.id
 
 
+def get_port(
+    client: GraphqlClient, equipment: Equipment, port_name: str
+) -> EquipmentPort:
+    port = _find_port_info(client, equipment, port_name)
+    return EquipmentPort(id=port.id)
+
+
 def add_link(
     client: GraphqlClient,
     equipment_a: Equipment,
@@ -96,6 +103,7 @@ def add_link(
             AddLinkInput.LinkSide(equipment=equipment_b.id, port=port_id_b),
         ],
         properties=[],
+        serviceIds=[],
     )
     try:
         link = AddLinkMutation.execute(client, add_link_input).__dict__[

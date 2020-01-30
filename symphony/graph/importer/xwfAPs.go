@@ -232,7 +232,7 @@ func (m *importer) ProcessXwfApsCSV(w http.ResponseWriter, r *http.Request) {
 					StringValue:    &apStatusVal,
 				},
 			}
-			m.getOrCreateEquipment(ctx, mr, "ap_"+apNameVal, accesspointEquipmentType, hotspot, nil, accessPointPropertyInput)
+			m.getOrCreateEquipment(ctx, mr, "ap_"+apNameVal, accesspointEquipmentType, nil, hotspot, nil, accessPointPropertyInput)
 
 		}
 		log.Debug("Done!!")

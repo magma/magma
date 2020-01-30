@@ -6,11 +6,12 @@ package directive
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"strings"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/gqlerror"
@@ -26,19 +27,27 @@ func New(logger log.Logger) generated.DirectiveRoot {
 	d := &directive{logger}
 	return generated.DirectiveRoot{
 		Length:      d.Length,
+		Range:       d.Range,
 		UniqueField: d.UniqueField,
 	}
 }
 
-func (d *directive) Length(ctx context.Context, obj interface{}, next graphql.Resolver, min int, max *int) (res interface{}, err error) {
+func (d *directive) recoverFromPanic(ctx context.Context, err *error) {
+	if r := recover(); r != nil {
+		d.logger.For(ctx).
+			Error("panic recovery",
+				zap.Stack("stacktrace"),
+				zap.Reflect("error", r),
+			)
+		*err = fmt.Errorf("recovered from panic %q: %w", r, *err)
+	}
+}
+
+func (d *directive) Length(ctx context.Context, _ interface{}, next graphql.Resolver, min int, max *int) (res interface{}, err error) {
 	if res, err = next(ctx); err != nil {
 		return
 	}
-	defer func() {
-		if err := recover(); err != nil {
-			d.logger.For(ctx).Error("panic recovery", zap.Reflect("error", err))
-		}
-	}()
+	defer d.recoverFromPanic(ctx, &err)
 	length := reflect.Indirect(reflect.ValueOf(res)).Len()
 	if length < min {
 		return nil, gqlerror.Errorf("Field length %d below allowed minimum %d", length, min)
@@ -49,7 +58,28 @@ func (d *directive) Length(ctx context.Context, obj interface{}, next graphql.Re
 	return
 }
 
-func (d *directive) UniqueField(ctx context.Context, obj interface{}, next graphql.Resolver, typ, field string) (interface{}, error) {
+func (d *directive) Range(ctx context.Context, _ interface{}, next graphql.Resolver, min, max *float64) (res interface{}, err error) {
+	if res, err = next(ctx); err != nil {
+		return
+	}
+	defer d.recoverFromPanic(ctx, &err)
+	var value float64
+	switch rv := reflect.Indirect(reflect.ValueOf(res)); rv.Kind() {
+	case reflect.Float32, reflect.Float64:
+		value = rv.Float()
+	default:
+		value = float64(rv.Int())
+	}
+	if min != nil && value < *min {
+		return nil, gqlerror.Errorf("Field value %f below allowed minimum %f", value, *min)
+	}
+	if max != nil && value > *max {
+		return nil, gqlerror.Errorf("Field value %f above allowed maximum %f", value, *max)
+	}
+	return
+}
+
+func (d *directive) UniqueField(ctx context.Context, _ interface{}, next graphql.Resolver, typ, field string) (interface{}, error) {
 	objs, err := next(ctx)
 	if err != nil {
 		return objs, err

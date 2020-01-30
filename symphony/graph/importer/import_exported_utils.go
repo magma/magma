@@ -6,7 +6,9 @@ package importer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -14,8 +16,11 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/pkg/errors"
 )
+
+const maxEquipmentParents = 3
 
 // ImportEntity specifies an entity that can be imported
 type ImportEntity string
@@ -25,9 +30,90 @@ const (
 	ImportEntityEquipment ImportEntity = "EQUIPMENT"
 	// ImportEntityPort specifies a port for import
 	ImportEntityPort ImportEntity = "PORT"
+	// ImportEntityLink specifies a link for import
+	ImportEntityLink ImportEntity = "LINK"
+	// ImportEntityPortInLink specifies a port sub-slice inside a link entity for import
+	ImportEntityPortInLink ImportEntity = "PORT_IN_LINK"
 	// ImportEntityService specifies a service for import
 	ImportEntityService ImportEntity = "SERVICE"
 )
+
+// SuccessMessage is the type returns to client on success import
+type SuccessMessage struct {
+	MessageCode  int `json:"messageCode"`
+	SuccessLines int `json:"successLines"`
+	AllLines     int `json:"allLines"`
+}
+
+type ReturnMessage struct {
+	Summary SuccessMessage `json:"summary"`
+	Errors  Errors         `json:"errors"`
+}
+
+func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, isSuccess bool) error {
+	w.Header().Set("Content-Type", "application/json")
+	messageCode := int(SuccessfullyUploaded)
+	if !isSuccess {
+		messageCode = int(FailedToUpload)
+	}
+	msg, err := json.Marshal(ReturnMessage{
+		Summary: SuccessMessage{
+			MessageCode:  messageCode,
+			SuccessLines: success,
+			AllLines:     all,
+		},
+		Errors: errs,
+	})
+	if err != nil {
+		return err
+	}
+	w.Write(msg)
+	return nil
+}
+
+// ErrorLine represents a line which failed to validate
+type ErrorLine struct {
+	Line    int    `json:"line"`
+	Error   string `json:"error"`
+	Message string `json:"message"`
+}
+
+// ErrorLine represents a summary of the errors while uploading a CSV file
+type Errors []ErrorLine
+
+func getLinesToSkip(r *http.Request) ([]int, error) {
+	var skipLines []int
+	arg := r.FormValue("skip_lines")
+	if arg != "" {
+		err := json.Unmarshal([]byte(arg), &skipLines)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(skipLines) > 0 {
+		skipLines = sortSlice(skipLines, true)
+	}
+	return skipLines, nil
+}
+
+func shouldSkipLine(a []int, currRow, nextLineToSkipIndex int) bool {
+	if nextLineToSkipIndex >= 0 && nextLineToSkipIndex < len(a) {
+		return currRow == a[nextLineToSkipIndex]
+	}
+	return false
+}
+
+func getVerifyBeforeCommitParam(r *http.Request) (*bool, error) {
+	verifyBeforeCommit := false
+	commitParam := r.FormValue("verify_before_commit")
+	if commitParam != "" {
+		err := json.Unmarshal([]byte(commitParam), &verifyBeforeCommit)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &verifyBeforeCommit, nil
+}
 
 // nolint: unparam
 func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int, locations []string, ignoreHierarchy bool) error {
@@ -53,7 +139,7 @@ func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int,
 }
 
 // nolint: unparam
-func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord) (*ent.Location, error) {
+func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord, commit bool) (*ent.Location, error) {
 	var currParentID *string
 	var loc *ent.Location
 	ic := getImportContext(ctx)
@@ -67,7 +153,15 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 		if err != nil {
 			return nil, errors.Wrapf(err, "missing location type: id=%q", typID)
 		}
-		loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+		if commit {
+			loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+		} else {
+			loc, err = m.queryLocationForTypeAndParent(ctx, locName, typ, currParentID)
+			if loc == nil && ent.MaskNotFound(err) == nil {
+				// no location but no error (dry run mode)
+				return nil, nil
+			}
+		}
 		currParentID = &loc.ID
 	}
 	if loc == nil {
@@ -110,17 +204,17 @@ func (m *importer) verifyPositionHierarchy(ctx context.Context, equipment *ent.E
 
 		defName := directPos.QueryDefinition().OnlyX(ctx).Name
 		if defName != importLine.Position() {
-			return errors.Errorf("wrong position name. should be %q, but %q", importLine.Position(), defName)
+			return errors.Errorf("wrong position name. should be %v, but %v", importLine.Position(), defName)
 		}
 		pName := directPos.QueryParent().OnlyX(ctx).Name
 		if pName != importLine.DirectParent() {
-			return errors.Errorf("wrong equipment parent name. should be %q, but %q", importLine.DirectParent(), pName)
+			return errors.Errorf("wrong equipment parent name. should be %v, but %v", importLine.DirectParent(), pName)
 		}
 	}
 	return nil
 }
 
-func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord) (*string, *string, error) {
+func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord, mustBeEmpty bool) (*string, *string, error) {
 	l := importLine.line
 	title := importLine.title
 	if importLine.Position() == "" {
@@ -161,15 +255,83 @@ func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *en
 	if err != nil {
 		return nil, nil, err
 	}
-	hasAttachment, err := equip.QueryPositions().
-		Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.ID(def.ID))).
-		QueryAttachment().
-		Exist(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-	if hasAttachment {
-		return nil, nil, errors.Errorf("position %q already has attachment", importLine.Position())
+
+	if mustBeEmpty {
+		hasAttachment, err := equip.QueryPositions().
+			Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.ID(def.ID))).
+			QueryAttachment().
+			Exist(ctx)
+		if err != nil {
+			return nil, nil, err
+		}
+		if hasAttachment {
+			return nil, nil, errors.Errorf("position %q already has attachment", importLine.Position())
+		}
 	}
 	return &equip.ID, &def.ID, nil
+}
+
+func (m *importer) validatePropertiesForPortType(ctx context.Context, line ImportRecord, portType *ent.EquipmentPortType, entity ImportEntity) ([]*models.PropertyInput, error) {
+	var pInputs []*models.PropertyInput
+	var propTypes []*ent.PropertyType
+	var err error
+	switch entity {
+	case ImportEntityPort:
+		propTypes, err = portType.QueryPropertyTypes().All(ctx)
+	case ImportEntityLink:
+		propTypes, err = portType.QueryLinkPropertyTypes().All(ctx)
+	default:
+		return nil, errors.New(fmt.Sprintf("ImportEntity not supported %s", entity))
+	}
+	if ent.MaskNotFound(err) != nil {
+		return nil, errors.Wrap(err, "can't query property types for port type")
+	}
+	for _, ptype := range propTypes {
+		ptypeName := ptype.Name
+		pInput, err := line.GetPropertyInput(m.ClientFrom(ctx), ctx, portType, ptypeName)
+		if err != nil {
+			return nil, err
+		}
+		pInputs = append(pInputs, pInput)
+	}
+	return pInputs, nil
+}
+
+func (m *importer) validatePort(ctx context.Context, portData PortData, port ent.EquipmentPort) error {
+	def, err := port.QueryDefinition().Only(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "fetching equipment port definition")
+	}
+	if def.Name != portData.Name {
+		return errors.Errorf("wrong port type. should be %q, but %q", def.Name, portData.Name)
+	}
+	portType, err := def.QueryEquipmentPortType().Only(ctx)
+	if ent.MaskNotFound(err) != nil {
+		return errors.Wrapf(err, "fetching equipment port type")
+	}
+	var tempPortType string
+	if ent.IsNotFound(err) {
+		tempPortType = ""
+	} else {
+		tempPortType = portType.Name
+	}
+	if tempPortType != portData.TypeName {
+		return errors.Errorf("wrong port type. should be %q, but %q", tempPortType, portData.TypeName)
+	}
+
+	equipment, err := port.QueryParent().Only(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "fetching equipment for port")
+	}
+	if equipment.Name != portData.EquipmentName {
+		return errors.Errorf("wrong equipment. should be %q, but %q", equipment.Name, portData.EquipmentName)
+	}
+	equipmentType, err := equipment.QueryType().Only(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "fetching equipment type for equipment")
+	}
+	if equipmentType.Name != portData.EquipmentTypeName {
+		return errors.Errorf("wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
+	}
+	return nil
 }

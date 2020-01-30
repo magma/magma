@@ -53,6 +53,8 @@ class PropertyKind(Enum):
     gps_location = "gps_location"
     equipment = "equipment"
     location = "location"
+    service = "service"
+    datetime_local = "datetime_local"
 
 
 @dataclass_json
@@ -152,12 +154,12 @@ class EquipmentTypesQuery:
 
                 node: Optional[EquipmentType] = None
 
-            edges: Optional[List[EquipmentTypeEdge]] = None
+            edges: List[EquipmentTypeEdge]
 
         equipmentTypes: EquipmentTypeConnection
 
     data: Optional[EquipmentTypesQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

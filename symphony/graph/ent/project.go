@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 )
 
 // Project is the model entity for the Project schema.
@@ -30,40 +31,100 @@ type Project struct {
 	Description *string `json:"description,omitempty"`
 	// Creator holds the value of the "creator" field.
 	Creator *string `json:"creator,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProjectQuery when eager-loading is set.
+	Edges               ProjectEdges `json:"edges"`
+	project_location_id *string
+	type_id             *string
 }
 
-// FromRows scans the sql response data into Project.
-func (pr *Project) FromRows(rows *sql.Rows) error {
-	var scanpr struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		Description sql.NullString
-		Creator     sql.NullString
+// ProjectEdges holds the relations/edges for other nodes in the graph.
+type ProjectEdges struct {
+	// Type holds the value of the type edge.
+	Type *ProjectType
+	// Location holds the value of the location edge.
+	Location *Location
+	// Comments holds the value of the comments edge.
+	Comments []*Comment
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Project) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // description
+		&sql.NullString{}, // creator
 	}
-	// the order here should be the same as in the `project.Columns`.
-	if err := rows.Scan(
-		&scanpr.ID,
-		&scanpr.CreateTime,
-		&scanpr.UpdateTime,
-		&scanpr.Name,
-		&scanpr.Description,
-		&scanpr.Creator,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Project) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // project_location_id
+		&sql.NullInt64{}, // type_id
 	}
-	pr.ID = strconv.Itoa(scanpr.ID)
-	pr.CreateTime = scanpr.CreateTime.Time
-	pr.UpdateTime = scanpr.UpdateTime.Time
-	pr.Name = scanpr.Name.String
-	if scanpr.Description.Valid {
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Project fields.
+func (pr *Project) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(project.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	pr.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		pr.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		pr.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		pr.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field description", values[3])
+	} else if value.Valid {
 		pr.Description = new(string)
-		*pr.Description = scanpr.Description.String
+		*pr.Description = value.String
 	}
-	if scanpr.Creator.Valid {
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field creator", values[4])
+	} else if value.Valid {
 		pr.Creator = new(string)
-		*pr.Creator = scanpr.Creator.String
+		*pr.Creator = value.String
+	}
+	values = values[5:]
+	if len(values) == len(project.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_location_id", value)
+		} else if value.Valid {
+			pr.project_location_id = new(string)
+			*pr.project_location_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+		} else if value.Valid {
+			pr.type_id = new(string)
+			*pr.type_id = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }
@@ -76,6 +137,11 @@ func (pr *Project) QueryType() *ProjectTypeQuery {
 // QueryLocation queries the location edge of the Project.
 func (pr *Project) QueryLocation() *LocationQuery {
 	return (&ProjectClient{pr.config}).QueryLocation(pr)
+}
+
+// QueryComments queries the comments edge of the Project.
+func (pr *Project) QueryComments() *CommentQuery {
+	return (&ProjectClient{pr.config}).QueryComments(pr)
 }
 
 // QueryWorkOrders queries the work_orders edge of the Project.
@@ -137,18 +203,6 @@ func (pr *Project) id() int {
 
 // Projects is a parsable slice of Project.
 type Projects []*Project
-
-// FromRows scans the sql response data into Projects.
-func (pr *Projects) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanpr := &Project{}
-		if err := scanpr.FromRows(rows); err != nil {
-			return err
-		}
-		*pr = append(*pr, scanpr)
-	}
-	return nil
-}
 
 func (pr Projects) config(cfg config) {
 	for _i := range pr {

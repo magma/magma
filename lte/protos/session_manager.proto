@@ -16,7 +16,7 @@ package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
 message RuleRecord {
-  string sid = 1;
+  string sid = 1; // System Identification Number
   string rule_id = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
@@ -138,6 +138,7 @@ enum EventTrigger {
 }
 
 message PolicyReAuthRequest {
+  // NOTE: if no session_id is specified, apply to all sessions for the IMSI
   string session_id = 1;
   string imsi = 2;
   repeated string rules_to_remove = 3;
@@ -229,6 +230,8 @@ service LocalSessionManager {
 service SessionProxyResponder {
   rpc ChargingReAuth(ChargingReAuthRequest) returns (ChargingReAuthAnswer) {}
 
+  // NOTE: if no session_id is specified, apply to all sessions for the IMSI
+  //
   rpc PolicyReAuth(PolicyReAuthRequest) returns (PolicyReAuthAnswer) {}
 }
 
@@ -302,7 +305,7 @@ message CreditUsageUpdate {
   CreditUsage usage = 1;
   string session_id = 2;
   uint32 request_number = 3; // unique among session
-  string sid = 4;
+  string sid = 4; // System Identification Number
   bytes msisdn = 5;
   string ue_ipv4 = 6;
   string spgw_ipv4 = 7;
@@ -313,6 +316,7 @@ message CreditUsageUpdate {
   bytes user_location = 12;
   RATType rat_type = 13;
   bytes hardware_addr = 14; // MAC Address for WLAN
+  TgppContext tgpp_ctx = 15;
 }
 
 message CreditUpdateResponse {
@@ -320,7 +324,7 @@ message CreditUpdateResponse {
     UPDATE = 0;
   }
   bool success = 1;
-  string sid = 2;
+  string sid = 2; // System Identification Number
   uint32 charging_key = 3;
   ChargingCredit credit = 4;
   ResponseType type = 5;
@@ -333,6 +337,7 @@ message CreditUpdateResponse {
   }
   // When this is set to an infinite limit, field 'credit' should be ignored
   CreditLimitType limit_type = 9;
+  TgppContext tgpp_ctx = 10;
 }
 
 // PCRF USAGE MONITORING
@@ -367,17 +372,18 @@ message UsageMonitoringUpdateRequest {
   UsageMonitorUpdate update = 1;
   string session_id = 2;
   uint32 request_number = 3; // unique among session
-  string sid = 4;
+  string sid = 4; // System Identification Number
   string ue_ipv4 = 5;
   bytes hardware_addr = 6; // MAC Address for WLAN
   RATType rat_type = 7;
+  TgppContext tgpp_ctx = 8;
 }
 
 // Response to a usage monitor update with the credit received and session info
 message UsageMonitoringUpdateResponse {
   UsageMonitoringCredit credit = 1;
   string session_id = 2;
-  string sid = 3;
+  string sid = 3; // System Identification Number
   bool success = 4;
   repeated EventTrigger event_triggers = 5;
   google.protobuf.Timestamp revalidation_time = 6;
@@ -385,6 +391,7 @@ message UsageMonitoringUpdateResponse {
   repeated string rules_to_remove = 8;
   repeated StaticRuleInstall static_rules_to_install = 9;
   repeated DynamicRuleInstall dynamic_rules_to_install = 10;
+  TgppContext tgpp_ctx = 11;
 }
 
 
@@ -398,6 +405,12 @@ message QosInformationRequest {
   uint32 preemption_capability = 4;
   uint32 preemption_vulnerability = 5;
   uint32 qos_class_id = 6;
+}
+
+// TgppContext is a session specific 3GPP context session proxy may meed session manager to persist
+message TgppContext {
+  string gx_dest_host = 1;
+  string gy_dest_host = 2;
 }
 
 message CreateSessionRequest {
@@ -424,6 +437,7 @@ message CreateSessionResponse {
   repeated StaticRuleInstall static_rules = 7; // static rules
   repeated DynamicRuleInstall dynamic_rules = 8; // dynamic rules
   string session_id = 9;
+  TgppContext tgpp_ctx = 10;
 }
 
 message StaticRuleInstall {
@@ -449,12 +463,12 @@ message UpdateSessionResponse {
 }
 
 message SessionTerminateResponse {
-  string sid = 1;
+  string sid = 1; // System Identification Number
   string session_id = 2;
 }
 
 message SessionTerminateRequest {
-  string sid = 1;
+  string sid = 1; // System Identification Number
   string session_id = 2;
   string apn = 3;
   uint32 request_number = 4;
@@ -469,6 +483,7 @@ message SessionTerminateRequest {
   bytes user_location = 13;
   RATType rat_type = 14;
   bytes hardware_addr = 15; // MAC Address for WLAN
+  TgppContext tgpp_ctx = 16;
 }
 
 service CentralSessionController {

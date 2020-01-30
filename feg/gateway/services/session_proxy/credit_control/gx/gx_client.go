@@ -14,9 +14,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/golang/glog"
 
 	"magma/feg/gateway/diameter"
@@ -215,16 +215,13 @@ func (gxClient *GxClient) createCreditControlMessage(
 	m.NewAVP(avp.RATType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(request.RATType))
 
 	if ip := net.ParseIP(request.IPAddr); ipNotZeros(ip) {
-		if iplen := len(ip); iplen == net.IPv4len {
-			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(ip))
+		if ipV4 := ip.To4(); ipV4 != nil {
+			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(ipV4))
 		} else if gxClient.framedIpv4AddrRequired {
 			defaultIp := getDefaultFramedIpv4Addr()
 			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(defaultIp))
-		} else if iplen > net.IPv4len && iplen <= net.IPv6len {
-			m.NewAVP(
-				avp.FramedIPv6Prefix, avp.Mbit,
-				0,
-				datatype.OctetString(append([]byte{0, byte(iplen) * 8}, []byte(ip)...)))
+		} else if ipV6 := ip.To16(); ipV6 != nil {
+			m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(ipV6))
 		}
 	} else if gxClient.framedIpv4AddrRequired {
 		defaultIp := getDefaultFramedIpv4Addr()
@@ -356,7 +353,11 @@ func (gxClient *GxClient) getAdditionalAvps(request *CreditControlRequest) ([]*d
 	if request.Type == credit_control.CRTInit || len(request.UsageReports) == 0 {
 		return []*diam.AVP{}, nil
 	}
-	avpList := make([]*diam.AVP, 0, len(request.UsageReports)+1)
+	avpList := make([]*diam.AVP, 0, len(request.UsageReports)+2)
+	if len(request.DestHost) > 0 {
+		avpList = append(avpList,
+			diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.DestHost)))
+	}
 	for _, usage := range request.UsageReports {
 		avpList = append(avpList, getUsageMonitoringAVP(usage))
 	}
@@ -436,5 +437,9 @@ func getDefaultFramedIpv4Addr() net.IP {
 	if len(ip) == 0 {
 		ip = defaultFramedIpv4Addr
 	}
-	return net.ParseIP(ip)
+	ipV4V6 := net.ParseIP(ip)
+	if ipV4 := ipV4V6.To4(); ipV4 != nil {
+		return ipV4
+	}
+	return ipV4V6
 }

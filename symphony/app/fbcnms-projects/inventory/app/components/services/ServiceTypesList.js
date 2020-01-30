@@ -85,7 +85,7 @@ graphql`
 
 const serviceTypesQuery = graphql`
   query ServiceTypesListQuery {
-    serviceTypes(first: 50)
+    serviceTypes(first: 500)
       @connection(key: "ServiceTypesListQuery_serviceTypes") {
       edges {
         node {

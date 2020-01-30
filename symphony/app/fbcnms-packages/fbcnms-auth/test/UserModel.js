@@ -33,6 +33,13 @@ export const USERS = [
     role: AccessRoles.SUPERUSER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
   },
+  {
+    id: '4',
+    email: 'readonlyuser@123.com',
+    organization: 'readonlyorg',
+    role: AccessRoles.READ_ONLY_USER,
+    password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
+  },
 ];
 
 export const USERS_EXPECTED = [
@@ -41,7 +48,7 @@ export const USERS_EXPECTED = [
     id: 1,
     email: 'valid@123.com',
     organization: 'validorg',
-    role: 0,
+    role: AccessRoles.USER,
     tabs: [],
   },
   {
@@ -49,7 +56,7 @@ export const USERS_EXPECTED = [
     id: 2,
     email: 'noorg@123.com',
     organization: 'nottakenintoconsideration',
-    role: 0,
+    role: AccessRoles.USER,
     tabs: [],
   },
   {
@@ -57,7 +64,15 @@ export const USERS_EXPECTED = [
     id: 3,
     email: 'superuser@123.com',
     organization: 'validorg',
-    role: 3,
+    role: AccessRoles.SUPERUSER,
+    tabs: [],
+  },
+  {
+    networkIDs: [],
+    id: 4,
+    email: 'readonlyuser@123.com',
+    organization: 'readonlyorg',
+    role: AccessRoles.READ_ONLY_USER,
     tabs: [],
   },
 ];

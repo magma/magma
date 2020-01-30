@@ -51,7 +51,6 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "mme_app_desc.h"
-#include "nas_messages_types.h"
 #include "s6a_messages_types.h"
 #include "service303.h"
 #include "sgs_messages_types.h"
@@ -150,16 +149,18 @@ int mme_app_send_s6a_update_location_req(
    */
   if (ue_context_p->location_info_confirmed_in_hss == false) {
     // Start ULR Response timer
-    if (
-      timer_setup(
-        ue_context_p->ulr_response_timer.sec,
-        0,
-        TASK_MME_APP,
-        INSTANCE_DEFAULT,
-        TIMER_ONE_SHOT,
-        (void*) &(ue_context_p->mme_ue_s1ap_id),
-        sizeof(mme_ue_s1ap_id_t),
-        &(ue_context_p->ulr_response_timer.id)) < 0) {
+    nas_itti_timer_arg_t timer_callback_fun = {0};
+    timer_callback_fun.nas_timer_callback = mme_app_handle_ulr_timer_expiry;
+    timer_callback_fun.nas_timer_callback_arg = (void *) &(ue_context_p->mme_ue_s1ap_id);
+    if (timer_setup(
+      ue_context_p->ulr_response_timer.sec,
+      0,
+      TASK_MME_APP,
+      INSTANCE_DEFAULT,
+      TIMER_ONE_SHOT,
+      &timer_callback_fun,
+      sizeof(timer_callback_fun),
+      &(ue_context_p->ulr_response_timer.id)) < 0) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to start Update location update response timer for UE id  %d "
@@ -243,7 +244,6 @@ int mme_app_handle_s6a_update_location_ans(
           LOG_MME_APP,
           "Failed to handle Un-successful ULA message for ue_id (%u)\n",
           ue_mm_context->mme_ue_s1ap_id);
-        unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
     }
@@ -261,14 +261,12 @@ int mme_app_handle_s6a_update_location_ans(
         LOG_MME_APP,
         "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
         ue_mm_context->mme_ue_s1ap_id);
-      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     } else {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to send PDN Connectivity failure to NAS for ue_id (%u)\n",
         ue_mm_context->mme_ue_s1ap_id);
-      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   }
@@ -353,7 +351,6 @@ int mme_app_handle_s6a_update_location_ans(
   }
   rc = nas_proc_ula_success(ue_mm_context->mme_ue_s1ap_id);
 
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -401,7 +398,6 @@ int mme_app_handle_s6a_cancel_location_req(
       "imsi " IMSI_64_FMT "\n",
       clr_pP->cancellation_type,
       imsi);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   /*
@@ -423,7 +419,6 @@ int mme_app_handle_s6a_cancel_location_req(
       ue_context_p, true, false /* s-tmsi */, CN_DOMAIN_PS);
     // Set the flag and send detach to UE after receiving service req
     ue_context_p->emm_context.nw_init_bearer_deactv = true;
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   } else {
     // Send N/W Initiated Detach Request to NAS module
@@ -441,7 +436,6 @@ int mme_app_handle_s6a_cancel_location_req(
         "Failed to handle network initiated Detach Request in nas module for "
         "ue-id: " MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
-      unlock_ue_contexts(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     } else {
       // Send SGS explicit network initiated Detach Ind to SGS
@@ -451,7 +445,6 @@ int mme_app_handle_s6a_cancel_location_req(
       }
     }
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 

@@ -12,12 +12,13 @@ import (
 
 	"github.com/AlekSi/pointer"
 
-	"github.com/facebookincubator/symphony/cloud/ctxgroup"
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/pkg/ctxgroup"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -43,7 +44,8 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		filterInput    []*models.PortFilterInput
 		portDataHeader = [...]string{bom + "Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
-		linkHeader     = [...]string{"Linked Port ID", "Linked Port name", "Linked Port Equipment ID", "Linked Port Equipment"}
+		linkHeader     = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
+		serviceHeader  = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
 	)
 	filtersParam := url.Query().Get("filters")
 	if filtersParam != "" {
@@ -93,6 +95,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	title := append(portDataHeader[:], orderedLocTypes...)
 	title = append(title, parentsHeader[:]...)
 	title = append(title, linkHeader[:]...)
+	title = append(title, serviceHeader[:]...)
 	title = append(title, propertyTypes...)
 
 	allrows[0] = title
@@ -122,6 +125,7 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 		lParents, properties []string
 		linkData             = make([]string, 4)
 		eParents             = make([]string, maxEquipmentParents)
+		serviceData          = make([]string, 2)
 	)
 	parentEquip, err := port.QueryParent().Only(ctx)
 	if err != nil {
@@ -175,6 +179,18 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 		}
 		return nil
 	})
+	g.Go(func(ctx context.Context) error {
+		consumerServicesStr, err := getServicesOfPortAsEndpoint(ctx, port, models.ServiceEndpointRoleConsumer)
+		if err != nil {
+			return err
+		}
+		providerServicesStr, err := getServicesOfPortAsEndpoint(ctx, port, models.ServiceEndpointRoleProvider)
+		if err != nil {
+			return err
+		}
+		serviceData = []string{consumerServicesStr, providerServicesStr}
+		return nil
+	})
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
@@ -189,9 +205,26 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	row = append(row, eParents...)
 	row = append(row, posName)
 	row = append(row, linkData...)
+	row = append(row, serviceData...)
 	row = append(row, properties...)
 
 	return row, nil
+}
+
+func getServicesOfPortAsEndpoint(ctx context.Context, port *ent.EquipmentPort, role models.ServiceEndpointRole) (string, error) {
+	services, err := port.
+		QueryEndpoints().
+		Where(serviceendpoint.Role(role.String())).
+		QueryService().
+		All(ctx)
+	if err != nil {
+		return "", errors.Wrapf(err, "querying port for services (id=%s)", port.ID)
+	}
+	var servicesList []string
+	for _, service := range services {
+		servicesList = append(servicesList, service.Name)
+	}
+	return strings.Join(servicesList, ";"), nil
 }
 
 func paramToPortFilterInput(params string) ([]*models.PortFilterInput, error) {

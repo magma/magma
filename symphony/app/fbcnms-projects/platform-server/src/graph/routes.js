@@ -11,6 +11,7 @@ import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 const express = require('express');
 const proxy = require('express-http-proxy');
+import {AccessRoles} from '@fbcnms/auth/roles';
 
 const {GRAPH_HOST} = require('../config');
 
@@ -36,6 +37,8 @@ const proxyMiddleware = () => {
         const organization = await srcReq.organization();
         proxyReqOpts.headers['x-auth-organization'] = organization.name;
         proxyReqOpts.headers['x-auth-user-email'] = srcReq.user.email;
+        proxyReqOpts.headers['x-auth-user-readonly'] =
+          srcReq.user.role === AccessRoles.READ_ONLY_USER ? 'TRUE' : 'FALSE';
 
         return proxyReqOpts;
       },

@@ -24,12 +24,22 @@ import (
 )
 
 func TestMAR_Successful(t *testing.T) {
-	testMARSuccessful(t, true)
-	testMARSuccessful(t, false)
+	testMARSuccessful(t, true, false)
+	testMARSuccessful(t, false, false)
+	testMARSuccessful(t, true, true)
+	testMARSuccessful(t, false, true)
 }
 
-func testMARSuccessful(t *testing.T, verifyAuthorization bool) {
+func testMARSuccessful(t *testing.T, verifyAuthorization bool, clearAAAserver bool) {
 	hss := getTestHSSDiameterServer(t)
+	subscriber, err := hss.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
+	assert.NoError(t, err)
+	if clearAAAserver {
+		subscriber.State.TgppAaaServerName = ""
+	}
+	_, err = hss.UpdateSubscriber(context.Background(), subscriber)
+	assert.NoError(t, err)
+
 	swxProxy := getTestSwxProxy(t, hss, verifyAuthorization, false, true)
 	mar := &fegprotos.AuthenticationRequest{
 		UserName:             "sub1",

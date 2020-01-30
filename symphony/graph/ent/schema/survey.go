@@ -20,6 +20,8 @@ func (Survey) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
 		field.String("owner_name").Optional(),
+		field.Time("creation_timestamp").
+			StructTag(`gqlgen:"creationTimestamp"`).Optional(),
 		field.Time("completion_timestamp").
 			StructTag(`gqlgen:"completionTimestamp"`),
 	}

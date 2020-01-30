@@ -36,6 +36,12 @@ type PrometheusAlertClient interface {
 	DeleteRule(filePrefix, ruleName string) error
 	BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkUpdateResults, error)
 	ReloadPrometheus() error
+	Tenancy() TenancyConfig
+}
+
+type TenancyConfig struct {
+	RestrictorLabel string
+	RestrictQueries bool
 }
 
 type client struct {
@@ -43,16 +49,16 @@ type client struct {
 	rulesDir      string
 	prometheusURL string
 	fsClient      fsclient.FSClient
-	multitenancy  bool
+	tenancy       TenancyConfig
 }
 
-func NewClient(fileLocks *FileLocker, rulesDir, prometheusURL string, fsClient fsclient.FSClient, multitenant bool) PrometheusAlertClient {
+func NewClient(fileLocks *FileLocker, rulesDir, prometheusURL string, fsClient fsclient.FSClient, tenancy TenancyConfig) PrometheusAlertClient {
 	return &client{
 		fileLocks:     fileLocks,
 		rulesDir:      rulesDir,
 		prometheusURL: prometheusURL,
 		fsClient:      fsClient,
-		multitenancy:  multitenant,
+		tenancy:       tenancy,
 	}
 }
 
@@ -90,6 +96,10 @@ func (c *client) WriteRule(filePrefix string, rule rulefmt.Rule) error {
 	if err != nil {
 		return err
 	}
+	err = SecureRule(c.tenancy.RestrictQueries, c.tenancy.RestrictorLabel, filePrefix, &rule)
+	if err != nil {
+		return err
+	}
 	ruleFile.AddRule(rule)
 
 	err = c.writeRuleFile(ruleFile, filename)
@@ -110,11 +120,9 @@ func (c *client) UpdateRule(filePrefix string, rule rulefmt.Rule) error {
 		return err
 	}
 
-	if c.multitenancy {
-		err = SecureRule(filePrefix, &rule)
-		if err != nil {
-			return err
-		}
+	err = SecureRule(c.tenancy.RestrictQueries, c.tenancy.RestrictorLabel, filePrefix, &rule)
+	if err != nil {
+		return err
 	}
 
 	err = ruleFile.ReplaceRule(rule)
@@ -187,12 +195,11 @@ func (c *client) BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkU
 	results := NewBulkUpdateResults()
 	for _, newRule := range rules {
 		ruleName := newRule.Alert
-		if c.multitenancy {
-			err := SecureRule(filePrefix, &newRule)
-			if err != nil {
-				results.Errors[ruleName] = err
-				continue
-			}
+
+		err := SecureRule(c.tenancy.RestrictQueries, c.tenancy.RestrictorLabel, filePrefix, &newRule)
+		if err != nil {
+			results.Errors[ruleName] = err
+			continue
 		}
 
 		if ruleFile.GetRule(ruleName) != nil {
@@ -213,6 +220,10 @@ func (c *client) BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkU
 		return results, err
 	}
 	return results, nil
+}
+
+func (c *client) Tenancy() TenancyConfig {
+	return c.tenancy
 }
 
 func (c *client) ReloadPrometheus() error {

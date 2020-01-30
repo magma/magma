@@ -64,12 +64,17 @@ const (
 	CategoryColumn = "category_id"
 )
 
-// Columns holds all SQL columns are equipmenttype fields.
+// Columns holds all SQL columns for equipmenttype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldName,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentType type.
+var ForeignKeys = []string{
+	"category_id",
 }
 
 var (

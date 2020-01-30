@@ -155,6 +155,14 @@ func DeviceID(v string) predicate.Equipment {
 	)
 }
 
+// ExternalID applies equality check predicate on the "external_id" field. It's identical to ExternalIDEQ.
+func ExternalID(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExternalID), v))
+	},
+	)
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Equipment {
 	return predicate.Equipment(func(s *sql.Selector) {
@@ -727,6 +735,146 @@ func DeviceIDContainsFold(v string) predicate.Equipment {
 	)
 }
 
+// ExternalIDEQ applies the EQ predicate on the "external_id" field.
+func ExternalIDEQ(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDNEQ applies the NEQ predicate on the "external_id" field.
+func ExternalIDNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDIn applies the In predicate on the "external_id" field.
+func ExternalIDIn(vs ...string) predicate.Equipment {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Equipment(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldExternalID), v...))
+	},
+	)
+}
+
+// ExternalIDNotIn applies the NotIn predicate on the "external_id" field.
+func ExternalIDNotIn(vs ...string) predicate.Equipment {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Equipment(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldExternalID), v...))
+	},
+	)
+}
+
+// ExternalIDGT applies the GT predicate on the "external_id" field.
+func ExternalIDGT(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDGTE applies the GTE predicate on the "external_id" field.
+func ExternalIDGTE(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDLT applies the LT predicate on the "external_id" field.
+func ExternalIDLT(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDLTE applies the LTE predicate on the "external_id" field.
+func ExternalIDLTE(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDContains applies the Contains predicate on the "external_id" field.
+func ExternalIDContains(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDHasPrefix applies the HasPrefix predicate on the "external_id" field.
+func ExternalIDHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDHasSuffix applies the HasSuffix predicate on the "external_id" field.
+func ExternalIDHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDIsNil applies the IsNil predicate on the "external_id" field.
+func ExternalIDIsNil() predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldExternalID)))
+	},
+	)
+}
+
+// ExternalIDNotNil applies the NotNil predicate on the "external_id" field.
+func ExternalIDNotNil() predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldExternalID)))
+	},
+	)
+}
+
+// ExternalIDEqualFold applies the EqualFold predicate on the "external_id" field.
+func ExternalIDEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldExternalID), v))
+	},
+	)
+}
+
+// ExternalIDContainsFold applies the ContainsFold predicate on the "external_id" field.
+func ExternalIDContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldExternalID), v))
+	},
+	)
+}
+
 // HasType applies the HasEdge predicate on the "type" edge.
 func HasType() predicate.Equipment {
 	return predicate.Equipment(func(s *sql.Selector) {
@@ -937,36 +1085,6 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.Equipment {
 	)
 }
 
-// HasService applies the HasEdge predicate on the "service" edge.
-func HasService() predicate.Equipment {
-	return predicate.Equipment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ServiceTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ServiceTable, ServicePrimaryKey...),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	},
-	)
-}
-
-// HasServiceWith applies the HasEdge predicate on the "service" edge with a given conditions (other predicates).
-func HasServiceWith(preds ...predicate.Service) predicate.Equipment {
-	return predicate.Equipment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ServiceInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ServiceTable, ServicePrimaryKey...),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	},
-	)
-}
-
 // HasFiles applies the HasEdge predicate on the "files" edge.
 func HasFiles() predicate.Equipment {
 	return predicate.Equipment(func(s *sql.Selector) {
@@ -987,6 +1105,36 @@ func HasFilesWith(preds ...predicate.File) predicate.Equipment {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(FilesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, FilesTable, FilesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	},
+	)
+}
+
+// HasHyperlinks applies the HasEdge predicate on the "hyperlinks" edge.
+func HasHyperlinks() predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HyperlinksTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HyperlinksTable, HyperlinksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	},
+	)
+}
+
+// HasHyperlinksWith applies the HasEdge predicate on the "hyperlinks" edge with a given conditions (other predicates).
+func HasHyperlinksWith(preds ...predicate.Hyperlink) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(HyperlinksInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HyperlinksTable, HyperlinksColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

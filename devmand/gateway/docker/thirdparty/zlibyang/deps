@@ -1,0 +1,8 @@
+g++
+gdebi-core
+libcurl4-openssl-dev
+libpcre3-dev
+libtool-bin
+libbison-dev 
+libfl-dev
+pkg-config

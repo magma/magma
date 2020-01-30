@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 3714052a183f122778b503992bde7ed1
+ * @relayHash 5c25b007ecff0b465c29fcbbec92ad52
  */
 
 /* eslint-disable */
@@ -16,7 +16,7 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type AddWorkOrderCard__workOrderTypeQueryVariables = {|
   workOrderTypeId: string
 |};

@@ -12,20 +12,27 @@ import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import FBCAlarms from '@fbcnms/alarms/components/Alarms';
 import {MagmaAlarmsApiUtil} from './AlarmApi';
-import type {FiringAlarm, Labels} from '@fbcnms/alarms/components/AlarmAPIType';
+import type {Labels} from '@fbcnms/alarms/components/AlarmAPIType';
 
 export default function Alarms() {
   const {isFeatureEnabled} = React.useContext(AppContext);
-  const experimentalAlertsEnabled = isFeatureEnabled('alerts_experimental');
-  const thresholdEditorEnabled = isFeatureEnabled('alert_threshold_expression');
+  const disabledTabs = React.useMemo(
+    () =>
+      [
+        isFeatureEnabled('alert_receivers') ? null : 'receivers',
+        isFeatureEnabled('alert_routes') ? null : 'routes',
+        isFeatureEnabled('alert_suppressions') ? null : 'suppressions',
+      ].filter(Boolean),
+    [isFeatureEnabled],
+  );
   return (
     <FBCAlarms
       apiUtil={MagmaAlarmsApiUtil}
       makeTabLink={({match, keyName}) =>
         `/nms/${match.params.networkId || ''}/alerts/${keyName}`
       }
-      experimentalTabsEnabled={experimentalAlertsEnabled}
-      thresholdEditorEnabled={thresholdEditorEnabled}
+      disabledTabs={disabledTabs}
+      thresholdEditorEnabled={true}
       filterLabels={filterSymphonyLabels}
     />
   );
@@ -34,7 +41,7 @@ export default function Alarms() {
 /**
  * Filters out hidden system labels from the firing alerts table
  */
-function filterSymphonyLabels(labels: Labels, _alarm: FiringAlarm) {
+function filterSymphonyLabels(labels: Labels) {
   const labelsToFilter = ['monitor', 'networkID'];
   const filtered = {...labels};
   for (const label of labelsToFilter) {

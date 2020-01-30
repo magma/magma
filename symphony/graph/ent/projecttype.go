@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 )
 
 // ProjectType is the model entity for the ProjectType schema.
@@ -28,34 +29,64 @@ type ProjectType struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description *string `json:"description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProjectTypeQuery when eager-loading is set.
+	Edges ProjectTypeEdges `json:"edges"`
 }
 
-// FromRows scans the sql response data into ProjectType.
-func (pt *ProjectType) FromRows(rows *sql.Rows) error {
-	var scanpt struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		Description sql.NullString
+// ProjectTypeEdges holds the relations/edges for other nodes in the graph.
+type ProjectTypeEdges struct {
+	// Projects holds the value of the projects edge.
+	Projects []*Project
+	// Properties holds the value of the properties edge.
+	Properties []*PropertyType
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrderDefinition
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*ProjectType) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // description
 	}
-	// the order here should be the same as in the `projecttype.Columns`.
-	if err := rows.Scan(
-		&scanpt.ID,
-		&scanpt.CreateTime,
-		&scanpt.UpdateTime,
-		&scanpt.Name,
-		&scanpt.Description,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the ProjectType fields.
+func (pt *ProjectType) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(projecttype.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	pt.ID = strconv.Itoa(scanpt.ID)
-	pt.CreateTime = scanpt.CreateTime.Time
-	pt.UpdateTime = scanpt.UpdateTime.Time
-	pt.Name = scanpt.Name.String
-	if scanpt.Description.Valid {
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	pt.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		pt.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		pt.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		pt.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field description", values[3])
+	} else if value.Valid {
 		pt.Description = new(string)
-		*pt.Description = scanpt.Description.String
+		*pt.Description = value.String
 	}
 	return nil
 }
@@ -120,18 +151,6 @@ func (pt *ProjectType) id() int {
 
 // ProjectTypes is a parsable slice of ProjectType.
 type ProjectTypes []*ProjectType
-
-// FromRows scans the sql response data into ProjectTypes.
-func (pt *ProjectTypes) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanpt := &ProjectType{}
-		if err := scanpt.FromRows(rows); err != nil {
-			return err
-		}
-		*pt = append(*pt, scanpt)
-	}
-	return nil
-}
 
 func (pt ProjectTypes) config(cfg config) {
 	for _i := range pt {

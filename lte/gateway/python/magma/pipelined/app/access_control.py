@@ -116,9 +116,13 @@ class AccessControlController(MagmaController):
             self._add_gre_tun_allow_flow(datapath, peer.ip, peer.key)
 
     def _add_gre_tun_allow_flow(self, datapath, gre_ip, gre_key):
-        # TODO check if the tun_id match matches the lower 32 bits
-        ulink_match_gre = MagmaMatch(direction=Direction.OUT,
-                                     tun_ipv4_src=gre_ip, tunnel_id=gre_key)
+        #TODO how to check if protobuf field is set(only works for msgs in pr3)
+        if gre_key:
+            ulink_match_gre = MagmaMatch(direction=Direction.OUT,
+                                         tun_ipv4_src=gre_ip, tunnel_id=gre_key)
+        else:
+            ulink_match_gre = MagmaMatch(direction=Direction.OUT,
+                                         tun_ipv4_src=gre_ip)
 
         flows.add_resubmit_next_service_flow(datapath, self._tunnel_acl_scratch,
                                              ulink_match_gre, [],

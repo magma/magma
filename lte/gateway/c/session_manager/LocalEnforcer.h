@@ -78,7 +78,7 @@ class LocalEnforcer {
    * reset_updates resets all of the charging keys being updated in
    * failed_request. This should only be called if the *entire* request fails
    * (i.e. the entire request to the cloud timed out). Individual failures
-   * are handled when update_session_credit is called.
+   * are handled when update_session_credits_and_rules is called.
    *
    * @param failed_request - UpdateSessionRequest that couldn't be sent to the
    *                         cloud for whatever reason
@@ -105,10 +105,11 @@ class LocalEnforcer {
     const CreateSessionResponse& response);
 
   /**
-   * Update allowed credit from the cloud in the system
+   * Process the update response from the reporter and update the
+   * monitoring/charging credits and attached rules.
    * @param credit_response - message from cloud containing new credits
    */
-  void update_session_credit(const UpdateSessionResponse& response);
+  void update_session_credits_and_rules(const UpdateSessionResponse& response);
 
   /**
    * Starts the termination process for the session. When termination completes,
@@ -139,6 +140,15 @@ class LocalEnforcer {
   ChargingReAuthAnswer::Result init_charging_reauth(
     ChargingReAuthRequest request);
 
+  /**
+   * Handles the equivalent of a RAR.
+   * For the matching session ID, activate and/or deactivate the specified
+   * rules.
+   * Afterwards, a bearer is created.
+   *
+   * NOTE: If an empty session ID is specified, apply changes to all matching
+   * sessions with the specified IMSI.
+   */
   void init_policy_reauth(
     PolicyReAuthRequest request,
     PolicyReAuthAnswer& answer_out);
@@ -191,8 +201,25 @@ class LocalEnforcer {
     const std::unordered_set<uint32_t>& successful_credits,
     const std::string& imsi,
     const std::string& ip_addr,
-    RulesToProcess* rules_to_activate,
-    RulesToProcess* rules_to_deactivate);
+    RulesToProcess& rules_to_activate,
+    RulesToProcess& rules_to_deactivate);
+
+  /**
+   * Processes the charging component of UpdateSessionResponse.
+   * Updates charging credits according to the response.
+   */
+  void update_charging_credits(
+    const UpdateSessionResponse& response,
+    std::unordered_set<std::string>& subscribers_to_terminate);
+
+  /**
+   * Processes the monitoring component of UpdateSessionResponse.
+   * Updates moniroting credits according to the response and updates rules
+   * that are installed for this session.
+   */
+  void update_monitoring_credits_and_rules(
+    const UpdateSessionResponse& response,
+    std::unordered_set<std::string>& subscribers_to_terminate);
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by
@@ -243,6 +270,17 @@ class LocalEnforcer {
     const std::unique_ptr<SessionState>& session,
     RulesToProcess& rules_to_activate,
     RulesToProcess& rules_to_deactivate);
+
+  /**
+   * For the matching session ID, activate and/or deactivate the specified
+   * rules.
+   * Also create a bearer for the session.
+   */
+  void init_policy_reauth_for_session(
+    const PolicyReAuthRequest& request,
+    const std::unique_ptr<SessionState>& session,
+    bool& activate_success,
+    bool& deactivate_success);
 
   /**
    * Completes the session termination and executes the callback function
@@ -310,13 +348,21 @@ class LocalEnforcer {
     const std::vector<std::unique_ptr<ServiceAction>>& actions);
 
   /**
-    * Deactive rules for certain IMSI.
+    * Deactivate rules for certain IMSI.
     * Notify AAA service if the session is a CWF session.
     */
   void terminate_service(
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules);
+
+
+  /**
+    * Deactivate rules for multiple IMSIs.
+    * Notify AAA service if the session is a CWF session.
+    */
+  void terminate_multiple_services(
+    const std::unordered_set<std::string>& imsis);
 
   /**
     * Install flow for redirection through pipelined

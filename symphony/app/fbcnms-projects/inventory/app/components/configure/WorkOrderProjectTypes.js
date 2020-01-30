@@ -88,7 +88,7 @@ const useStyles = makeStyles(theme => ({
 
 const projectTypesQuery = graphql`
   query WorkOrderProjectTypesQuery {
-    projectTypes(first: 50)
+    projectTypes(first: 500)
       @connection(key: "WorkOrderProjectTypesQuery_projectTypes") {
       edges {
         node {
@@ -98,7 +98,7 @@ const projectTypesQuery = graphql`
         }
       }
     }
-    workOrderTypes(first: 50) {
+    workOrderTypes {
       edges {
         node {
           ...ProjectTypeWorkOrderTemplatesPanel_workOrderTypes

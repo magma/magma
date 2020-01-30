@@ -23,6 +23,7 @@ import ServiceEquipmentTopology from './ServiceEquipmentTopology';
 import ServiceHeader from './ServiceHeader';
 import ServicePanel from './ServicePanel';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {withRouter} from 'react-router-dom';
@@ -89,37 +90,39 @@ const ServiceCard = (props: Props) => {
     history.push(match.url);
   };
   return (
-    <Grid container className={classes.root}>
-      <Grid item xs={6} sm={8} lg={8} xl={9}>
-        <div className={classes.topologyPanel}>
-          <ServiceHeader
-            service={service}
-            onBackClicked={navigateToMainPage}
-            onServiceRemoved={navigateToMainPage}
-          />
-          <Card className={classes.topologyCard}>
-            <CardHeader className={classes.titleText}>Topology</CardHeader>
-            <ServiceEquipmentTopology
-              topology={service.topology}
-              terminationPoints={service.terminationPoints}
+    <FormValidationContextProvider>
+      <Grid container className={classes.root}>
+        <Grid item xs={6} sm={8} lg={8} xl={9}>
+          <div className={classes.topologyPanel}>
+            <ServiceHeader
+              service={service}
+              onBackClicked={navigateToMainPage}
+              onServiceRemoved={navigateToMainPage}
             />
-          </Card>
-        </div>
+            <Card className={classes.topologyCard}>
+              <CardHeader className={classes.titleText}>Topology</CardHeader>
+              <ServiceEquipmentTopology
+                topology={service.topology}
+                endpoints={service.endpoints}
+              />
+            </Card>
+          </div>
+        </Grid>
+        <Grid item xs={6} sm={4} lg={4} xl={3} className={classes.sidePanel}>
+          <ServicePanel
+            service={service}
+            onOpenDetailsPanel={() => setDetailsPanelShown(true)}
+            ref={panelRef}
+          />
+          <ServiceDetailsPanel
+            shown={detailsPanelShown}
+            service={service}
+            panelWidth={panelWidth}
+            onClose={() => setDetailsPanelShown(false)}
+          />
+        </Grid>
       </Grid>
-      <Grid item xs={6} sm={4} lg={4} xl={3} className={classes.sidePanel}>
-        <ServicePanel
-          service={service}
-          onOpenDetailsPanel={() => setDetailsPanelShown(true)}
-          ref={panelRef}
-        />
-        <ServiceDetailsPanel
-          shown={detailsPanelShown}
-          service={service}
-          panelWidth={panelWidth}
-          onClose={() => setDetailsPanelShown(false)}
-        />
-      </Grid>
-    </Grid>
+    </FormValidationContextProvider>
   );
 };
 
@@ -132,11 +135,11 @@ export default withRouter(
           name
           ...ServiceDetailsPanel_service
           ...ServicePanel_service
-          terminationPoints {
-            ...ServiceEquipmentTopology_terminationPoints
-          }
           topology {
             ...ServiceEquipmentTopology_topology
+          }
+          endpoints {
+            ...ServiceEquipmentTopology_endpoints
           }
         }
       `,

@@ -16,7 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PowerSearchLinksResultsTable_links$ref: FragmentReference;
@@ -101,12 +101,17 @@ export type PowerSearchLinksResultsTable_links = $ReadOnlyArray<{|
     +id: string,
     +status: WorkOrderStatus,
   |},
+  +services: $ReadOnlyArray<?{|
+    +id: string,
+    +name: string,
+  |}>,
   +$refType: PowerSearchLinksResultsTable_links$ref,
 |}>;
 export type PowerSearchLinksResultsTable_links$data = PowerSearchLinksResultsTable_links;
 export type PowerSearchLinksResultsTable_links$key = $ReadOnlyArray<{
   +$data?: PowerSearchLinksResultsTable_links$data,
   +$fragmentRefs: PowerSearchLinksResultsTable_links$ref,
+  ...
 }>;
 */
 
@@ -216,7 +221,11 @@ v14 = {
   "name": "isInstanceProperty",
   "args": null,
   "storageKey": null
-};
+},
+v15 = [
+  (v0/*: any*/),
+  (v2/*: any*/)
+];
 return {
   "kind": "Fragment",
   "name": "PowerSearchLinksResultsTable_links",
@@ -351,10 +360,7 @@ return {
                       "args": null,
                       "concreteType": "EquipmentPortType",
                       "plural": false,
-                      "selections": [
-                        (v0/*: any*/),
-                        (v2/*: any*/)
-                      ]
+                      "selections": (v15/*: any*/)
                     }
                   ]
                 }
@@ -431,10 +437,20 @@ return {
           "storageKey": null
         }
       ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "services",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": true,
+      "selections": (v15/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '8273986dcdb823c1311ba256c7cc3b34';
+(node/*: any*/).hash = '1f762af83fe696ca157c3697b4b35e8b';
 module.exports = node;

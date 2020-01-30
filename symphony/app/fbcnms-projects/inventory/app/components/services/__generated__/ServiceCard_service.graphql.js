@@ -15,7 +15,7 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type ServiceDetailsPanel_service$ref = any;
-type ServiceEquipmentTopology_terminationPoints$ref = any;
+type ServiceEquipmentTopology_endpoints$ref = any;
 type ServiceEquipmentTopology_topology$ref = any;
 type ServicePanel_service$ref = any;
 import type { FragmentReference } from "relay-runtime";
@@ -24,12 +24,12 @@ declare export opaque type ServiceCard_service$fragmentType: ServiceCard_service
 export type ServiceCard_service = {|
   +id: string,
   +name: string,
-  +terminationPoints: $ReadOnlyArray<?{|
-    +$fragmentRefs: ServiceEquipmentTopology_terminationPoints$ref
-  |}>,
   +topology: {|
     +$fragmentRefs: ServiceEquipmentTopology_topology$ref
   |},
+  +endpoints: $ReadOnlyArray<?{|
+    +$fragmentRefs: ServiceEquipmentTopology_endpoints$ref
+  |}>,
   +$fragmentRefs: ServiceDetailsPanel_service$ref & ServicePanel_service$ref,
   +$refType: ServiceCard_service$ref,
 |};
@@ -37,6 +37,7 @@ export type ServiceCard_service$data = ServiceCard_service;
 export type ServiceCard_service$key = {
   +$data?: ServiceCard_service$data,
   +$fragmentRefs: ServiceCard_service$ref,
+  ...
 };
 */
 
@@ -65,22 +66,6 @@ const node/*: ReaderFragment*/ = {
     {
       "kind": "LinkedField",
       "alias": null,
-      "name": "terminationPoints",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "Equipment",
-      "plural": true,
-      "selections": [
-        {
-          "kind": "FragmentSpread",
-          "name": "ServiceEquipmentTopology_terminationPoints",
-          "args": null
-        }
-      ]
-    },
-    {
-      "kind": "LinkedField",
-      "alias": null,
       "name": "topology",
       "storageKey": null,
       "args": null,
@@ -90,6 +75,22 @@ const node/*: ReaderFragment*/ = {
         {
           "kind": "FragmentSpread",
           "name": "ServiceEquipmentTopology_topology",
+          "args": null
+        }
+      ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "endpoints",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpoint",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "FragmentSpread",
+          "name": "ServiceEquipmentTopology_endpoints",
           "args": null
         }
       ]
@@ -107,5 +108,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = '8282fa4a93fe9c919d3f42b9dc90f1b2';
+(node/*: any*/).hash = 'b365b307bdc31d3d737c3f7f1b6d33fe';
 module.exports = node;

@@ -29,6 +29,7 @@ export type DocumentMenu_document$data = DocumentMenu_document;
 export type DocumentMenu_document$key = {
   +$data?: DocumentMenu_document$data,
   +$fragmentRefs: DocumentMenu_document$ref,
+  ...
 };
 */
 

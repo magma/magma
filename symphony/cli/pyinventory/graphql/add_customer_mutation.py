@@ -58,7 +58,7 @@ class AddCustomerMutation:
         addCustomer: Optional[Customer] = None
 
     data: Optional[AddCustomerMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

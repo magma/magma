@@ -50,6 +50,8 @@ type Tx struct {
 	FloorPlanReferencePoint *FloorPlanReferencePointClient
 	// FloorPlanScale is the client for interacting with the FloorPlanScale builders.
 	FloorPlanScale *FloorPlanScaleClient
+	// Hyperlink is the client for interacting with the Hyperlink builders.
+	Hyperlink *HyperlinkClient
 	// Link is the client for interacting with the Link builders.
 	Link *LinkClient
 	// Location is the client for interacting with the Location builders.
@@ -66,6 +68,8 @@ type Tx struct {
 	PropertyType *PropertyTypeClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
+	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
+	ServiceEndpoint *ServiceEndpointClient
 	// ServiceType is the client for interacting with the ServiceType builders.
 	ServiceType *ServiceTypeClient
 	// Survey is the client for interacting with the Survey builders.
@@ -122,6 +126,7 @@ func (tx *Tx) Client() *Client {
 		FloorPlan:                   NewFloorPlanClient(tx.config),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(tx.config),
 		FloorPlanScale:              NewFloorPlanScaleClient(tx.config),
+		Hyperlink:                   NewHyperlinkClient(tx.config),
 		Link:                        NewLinkClient(tx.config),
 		Location:                    NewLocationClient(tx.config),
 		LocationType:                NewLocationTypeClient(tx.config),
@@ -130,6 +135,7 @@ func (tx *Tx) Client() *Client {
 		Property:                    NewPropertyClient(tx.config),
 		PropertyType:                NewPropertyTypeClient(tx.config),
 		Service:                     NewServiceClient(tx.config),
+		ServiceEndpoint:             NewServiceEndpointClient(tx.config),
 		ServiceType:                 NewServiceTypeClient(tx.config),
 		Survey:                      NewSurveyClient(tx.config),
 		SurveyCellScan:              NewSurveyCellScanClient(tx.config),

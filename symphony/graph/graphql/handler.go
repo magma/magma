@@ -8,13 +8,17 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/99designs/gqlgen-contrib/gqlapollotracing"
+	"github.com/NYTimes/gziphandler"
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/graph/graphql/tracer"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	gqlprometheus "github.com/99designs/gqlgen-contrib/prometheus"
 	"github.com/99designs/gqlgen/graphql"
@@ -53,7 +57,7 @@ func NewHandler(logger log.Logger, orc8rClient *http.Client) (http.Handler, erro
 		))
 	router.Path("/query").
 		Handler(ochttp.WithRouteTag(
-			handler.GraphQL(
+			gziphandler.GzipHandler(handler.GraphQL(
 				generated.NewExecutableSchema(
 					generated.Config{
 						Resolvers:  rsv,
@@ -63,15 +67,19 @@ func NewHandler(logger log.Logger, orc8rClient *http.Client) (http.Handler, erro
 				handler.RequestMiddleware(gqlprometheus.RequestMiddleware()),
 				handler.ResolverMiddleware(gqlprometheus.ResolverMiddleware()),
 				handler.Tracer(tracer.New()),
+				handler.RequestMiddleware(gqlapollotracing.RequestMiddleware()),
+				handler.Tracer(gqlapollotracing.NewTracer()),
 				handler.ErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
 					gqlerr := graphql.DefaultErrorPresenter(ctx, err)
-					if _, ok := err.(*gqlerror.Error); !ok {
+					if strings.Contains(err.Error(), ent.ErrReadOnly.Error()) {
+						gqlerr.Message = "Permission denied"
+					} else if _, ok := err.(*gqlerror.Error); !ok {
 						logger.For(ctx).Error("graphql internal error", zap.Error(err))
 						gqlerr.Message = "Sorry, something went wrong"
 					}
 					return gqlerr
 				}),
-			),
+			)),
 			"query",
 		))
 

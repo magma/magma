@@ -9,12 +9,12 @@ import (
 	"math"
 	"sync"
 
-	"github.com/facebookincubator/symphony/cloud/ctxgroup"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 
 	"github.com/pkg/errors"
 	"golang.org/x/sync/semaphore"
@@ -30,29 +30,16 @@ func (locationTypeResolver) NumberOfLocations(ctx context.Context, obj *ent.Loca
 	return obj.QueryLocations().Count(ctx)
 }
 
-func (locationTypeResolver) IsSite(ctx context.Context, obj *ent.LocationType) (bool, error) {
-	return obj.Site, nil
-}
-
-func (locationTypeResolver) Locations(ctx context.Context, typ *ent.LocationType, enforceHasLatLong *bool) (*models.LocationConnection, error) {
+func (locationTypeResolver) Locations(ctx context.Context, typ *ent.LocationType, enforceHasLatLong *bool) (*ent.LocationConnection, error) {
 	query := typ.QueryLocations()
 	if enforceHasLatLong != nil && *enforceHasLatLong {
 		query = query.Where(location.LatitudeNEQ(0), location.LongitudeNEQ(0))
 	}
-
-	locs, err := query.All(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed querying locations of type %q", typ.ID)
-	}
-	edges := make([]*models.LocationEdge, len(locs))
-	for i, l := range locs {
-		edges[i] = &models.LocationEdge{Node: l}
-	}
-	return &models.LocationConnection{Edges: edges}, err
+	return query.Paginate(ctx, nil, nil, nil, nil)
 }
 
-func (locationTypeResolver) SurveyTemplateCategories(ctx context.Context, ent *ent.LocationType) ([]*ent.SurveyTemplateCategory, error) {
-	return ent.QuerySurveyTemplateCategories().All(ctx)
+func (locationTypeResolver) SurveyTemplateCategories(ctx context.Context, obj *ent.LocationType) ([]*ent.SurveyTemplateCategory, error) {
+	return obj.QuerySurveyTemplateCategories().All(ctx)
 }
 
 type locationResolver struct{}
@@ -107,6 +94,10 @@ func (locationResolver) Images(ctx context.Context, obj *ent.Location) ([]*ent.F
 
 func (locationResolver) Files(ctx context.Context, obj *ent.Location) ([]*ent.File, error) {
 	return obj.QueryFiles().Where(file.Type(models.FileTypeFile.String())).All(ctx)
+}
+
+func (locationResolver) Hyperlinks(ctx context.Context, obj *ent.Location) ([]*ent.Hyperlink, error) {
+	return obj.QueryHyperlinks().All(ctx)
 }
 
 type topologist struct {
@@ -190,7 +181,7 @@ func (t *topologist) build(ctx context.Context, eq *ent.Equipment, depth int) er
 		for _, leq := range leqs {
 			root := t.rootNode(ctx, leq)
 			key := t.hkey(eq.ID, root.ID)
-			value := &models.TopologyLink{Source: eq.ID, Target: root.ID}
+			value := &models.TopologyLink{Type: models.TopologyLinkTypePhysical, Source: eq, Target: root}
 			if _, loaded := t.links.LoadOrStore(key, value); !loaded {
 				g.Go(func(ctx context.Context) error {
 					return t.build(ctx, root, depth+1)
@@ -202,7 +193,7 @@ func (t *topologist) build(ctx context.Context, eq *ent.Equipment, depth int) er
 }
 
 func (t *topologist) topology() *models.NetworkTopology {
-	var nodes []*ent.Equipment
+	var nodes []ent.Noder
 	t.equipment.Range(func(_, value interface{}) bool {
 		nodes = append(nodes, value.(*ent.Equipment))
 		return true

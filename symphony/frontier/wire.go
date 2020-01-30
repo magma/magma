@@ -9,10 +9,10 @@ package main
 import (
 	"errors"
 
-	"github.com/facebookincubator/symphony/cloud/log"
-	"github.com/facebookincubator/symphony/cloud/server"
-	"github.com/facebookincubator/symphony/cloud/server/xserver"
 	"github.com/facebookincubator/symphony/frontier/handler"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/server"
+	"github.com/facebookincubator/symphony/pkg/server/xserver"
 
 	"github.com/google/wire"
 	"go.opencensus.io/stats/view"

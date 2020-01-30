@@ -19,10 +19,10 @@ The Federated Gateway supports the following features and functionalities:
 1. Hosting centralized control plane interface towards HSS, PCRF, OCS and MSC/VLR on behalf of distributed AGW/EPCs.
 2. Establishing diameter connection with HSS, PCRF and OCS directly as 1:1 or via DRA. 
 3. Establishing SCTP/IP connection with MSC/VLR.
-4. Interfacing with AGW over GPRC interface by responding to remote calls from EPC (MME and Sessiond/PCEF) components,
+4. Interfacing with AGW over GRPC interface by responding to remote calls from EPC (MME and Sessiond/PCEF) components,
     converting these remote calls to 3GPP compliant messages and then sending these messages to the appropriate core network 
     components such as HSS, PCRF, OCS and MSC.  Similarly the FeG receives 3GPP compliant messages from HSS, PCRF, OCS and MSC 
-    and converts these to the appropriate GPRC messages before sending them to the AGW. 
+    and converts these to the appropriate GRPC messages before sending them to the AGW. 
 
 
 

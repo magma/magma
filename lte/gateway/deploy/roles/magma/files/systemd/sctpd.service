@@ -6,6 +6,7 @@
 #
 [Unit]
 Description=Magma sctpd service
+PartOf=magma@mme.service
 Before=magma@mme.service
 
 [Service]

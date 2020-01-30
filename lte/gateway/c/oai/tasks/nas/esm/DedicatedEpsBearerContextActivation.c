@@ -35,7 +35,6 @@
 #include "esm_ebr_context.h"
 #include "emm_sap.h"
 #include "mme_config.h"
-#include "nas_itti_messaging.h"
 #include "3gpp_24.301.h"
 #include "3gpp_36.401.h"
 #include "EsmCause.h"

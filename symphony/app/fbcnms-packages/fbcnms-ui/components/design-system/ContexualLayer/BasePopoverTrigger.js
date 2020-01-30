@@ -8,24 +8,27 @@
  * @format
  */
 
+import type {ContextualLayerPosition} from './BaseContexualLayer';
 import type {TRefCallbackFor} from '../types/TRefFor.flow';
 
 import * as React from 'react';
 import BaseContexualLayer from './BaseContexualLayer';
 import HideOnEsc from './HideOnEsc';
-import MenuContextProvider from './MenuContext';
+import MenuContextProvider from '../Select/MenuContext';
 import OnOutsideClickNode from './OnOutsideClickNode';
 import {useCallback, useRef, useState} from 'react';
 
 type Props = {
   children: (
     onShow: () => void,
+    onHide: () => void,
     contextRef: TRefCallbackFor<?HTMLElement>,
   ) => React.Node,
   popover: React.Node,
+  position?: ContextualLayerPosition,
 };
 
-const BasePopoverTrigger = ({children, popover}: Props) => {
+const BasePopoverTrigger = ({children, popover, position = 'below'}: Props) => {
   const [isVisible, setIsVisible] = useState(false);
   const contextRef = useRef<?HTMLElement>(null);
 
@@ -47,14 +50,14 @@ const BasePopoverTrigger = ({children, popover}: Props) => {
 
   return (
     <>
-      {children(onShow, refCallback)}
+      {children(onShow, onHide, refCallback)}
       {contextRef.current != null ? (
         <BaseContexualLayer
           context={contextRef.current}
-          position="below"
+          position={position}
           hidden={!isVisible}>
           <HideOnEsc onEsc={onHide}>
-            <MenuContextProvider value={{onClose: onHide}}>
+            <MenuContextProvider value={{shown: isVisible, onClose: onHide}}>
               <OnOutsideClickNode isVisible={isVisible} onOutsideClick={onHide}>
                 {ref => <div ref={ref}>{popover}</div>}
               </OnOutsideClickNode>

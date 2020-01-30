@@ -293,7 +293,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
           .filter(definition => !!definition.name)
           .map(deleteTempId),
         ports: portDefinitions
-          .filter(port => !!port.name || !!port.type)
+          .filter(port => !!port.name)
           .map(portDefinition => ({
             ...portDefinition,
             portTypeID: portDefinition.portType?.id,
@@ -413,7 +413,6 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
           id: 'PortDefinition@tmp',
           name: '',
           visibleLabel: '',
-          type: '',
           portType: null,
           index: editingEquipmentType?.portDefinitions.length ?? 0,
         },

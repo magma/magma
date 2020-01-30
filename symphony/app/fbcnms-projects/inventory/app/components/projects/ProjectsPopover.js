@@ -12,42 +12,57 @@ import * as React from 'react';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
-import ClearIcon from '@material-ui/icons/Clear';
-import IconButton from '@material-ui/core/IconButton';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import WorkOrderPopover from '../work_orders/WorkOrderPopover';
 import emptyFunction from '@fbcnms/util/emptyFunction';
+import fbt from 'fbt';
+import symphony from '@fbcnms/ui/theme/symphony';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
+const cardTop = '116px';
 const useStyles = makeStyles(theme => ({
-  root: {
-    marginTop: '8px',
-    maxWidth: '600px',
-  },
-  title: {
-    marginBottom: '12px',
-  },
   card: {
+    display: 'flex',
+    flexDirection: 'column',
     position: 'absolute',
-    maxHeight: '400px',
-    overflow: 'scroll',
-    right: 0,
-    bottom: 0,
+    right: '10px',
+    top: cardTop,
+    maxWidth: '40%',
+    width: '416px',
+    maxHeight: `calc(100% - ${cardTop} - 40px)`,
+    borderRadius: '8px',
+    overflow: 'hidden',
   },
   cardHeader: {
-    paddingBottom: '0px',
-    fontSize: '18px',
+    paddingBottom: '8px',
+    paddingTop: '8px',
+    alignItems: 'baseline',
+    borderBottom: `2px solid ${symphony.palette.separator}`,
+  },
+  cardHeaderContent: {
+    paddingTop: '4px',
   },
   cardContent: {
-    borderTop: '2px solid #f0f0f0',
-    paddingBottom: '27px',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    padding: '0',
   },
-  cardBottom: {
-    borderTop: '2px solid #f0f0f0',
+  workOrderBlock: {
+    overflowY: 'hidden',
+    padding: '0',
+    borderBottom: `2px solid ${symphony.palette.separatorLight}`,
+    '&:last-child': {
+      borderBottom: 'none',
+    },
+  },
+  noWorkordersPlaceholder: {
+    marginTop: '16px',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   media: {
     height: 0,
@@ -68,34 +83,35 @@ const useStyles = makeStyles(theme => ({
 
 type Props = {
   projectId: ?string,
-  onClearButtonClicked: () => void,
 };
 
 const ProjectsPopoverQuery = graphql`
   query ProjectsPopoverQuery($projectId: ID!) {
-    project(id: $projectId) {
-      id
-      name
-      location {
+    project: node(id: $projectId) {
+      ... on Project {
         id
         name
-        latitude
-        longitude
-      }
-      workOrders {
-        id
-        name
-        description
-        ownerName
-        status
-        priority
-        assignee
-        installDate
         location {
           id
           name
           latitude
           longitude
+        }
+        workOrders {
+          id
+          name
+          description
+          ownerName
+          status
+          priority
+          assignee
+          installDate
+          location {
+            id
+            name
+            latitude
+            longitude
+          }
         }
       }
     }
@@ -103,7 +119,7 @@ const ProjectsPopoverQuery = graphql`
 `;
 
 const ProjectsPopover = (props: Props) => {
-  const {projectId, onClearButtonClicked} = props;
+  const {projectId} = props;
   const classes = useStyles();
   const router = useRouter();
 
@@ -119,48 +135,50 @@ const ProjectsPopover = (props: Props) => {
           variables={{projectId}}
           render={props => {
             const {project} = props;
-            const headerContent = `${project.name}${project.location &&
-              ' (' +
-                project.location.latitude +
-                ' , ' +
-                project.location.longitude +
-                ')'}`;
+            const pLoc = project.location;
+            const headerContent = (
+              <div className={classes.cardHeaderContent}>
+                <Text variant="subtitle1">{project.name}</Text>
+                {pLoc && (
+                  <Text variant="body2">
+                    {` (${pLoc.latitude}, ${pLoc.longitude})`}
+                  </Text>
+                )}
+              </div>
+            );
             return (
               <Card className={classes.card}>
                 <CardHeader
-                  action={
-                    ((
-                      <IconButton>
-                        <MoreVertIcon />
-                      </IconButton>
-                    ),
-                    (
-                      <IconButton
-                        aria-label="clear"
-                        onClick={onClearButtonClicked}>
-                        <ClearIcon />
-                      </IconButton>
-                    ))
-                  }
                   subheader={headerContent}
                   className={classes.cardHeader}
                 />
-                <CardContent>
-                  {project.workOrders.map(workOrder => (
-                    <div className={classes.cardContent}>
-                      <WorkOrderPopover
-                        onWorkOrderChanged={emptyFunction}
-                        displayFullDetails={true}
-                        selectedView={'status'}
-                        workOrder={workOrder}
-                        onWorkOrderClick={() => {
-                          router.history.push(
-                            `/workorders/search?workorder=${workOrder.id}`,
-                          );
-                        }}
-                      />
+                <CardContent className={classes.cardContent}>
+                  {project.workOrders?.length ? (
+                    project.workOrders.map(workOrder => (
+                      <div className={classes.workOrderBlock}>
+                        <WorkOrderPopover
+                          onWorkOrderChanged={emptyFunction}
+                          displayFullDetails={true}
+                          selectedView={'status'}
+                          workOrder={workOrder}
+                          onWorkOrderClick={() => {
+                            router.history.push(
+                              `/workorders/search?workorder=${workOrder.id}`,
+                            );
+                          }}
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <div className={classes.noWorkordersPlaceholder}>
+                      <Text variant="subtitle1" color="gray">
+                        {fbt(
+                          'No work orders related to this project',
+                          'Placeholder in ProjectsPopover card',
+                        )}
+                      </Text>
                     </div>
-                  ))}
+                  )}
                 </CardContent>
               </Card>
             );

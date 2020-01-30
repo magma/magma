@@ -9,17 +9,10 @@
  */
 
 import React from 'react';
+import {Link} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles(theme => ({
-  tableCell: {
-    fontSize: '12px',
-    lineHeight: '16px',
-    color: theme.palette.blueGrayDark,
-    fontWeight: 400,
-    borderBottom: 'none',
-  },
+const useStyles = makeStyles({
   link: {
     color: '#3984ff',
     fontSize: '12px',
@@ -27,7 +20,7 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 500,
     textDecoration: 'none',
   },
-}));
+});
 
 type Props = {
   field: {
@@ -38,17 +31,14 @@ type Props = {
 
 const FieldValue = (props: Props) => {
   const {field} = props;
-  const {history} = useRouter();
   const classes = useStyles();
 
   switch (field.type) {
     case 'ID':
       return (
-        <span onClick={() => history.push(`/id/${field.value}`)}>
-          <a className={classes.link} href="#">
-            {field.value}
-          </a>
-        </span>
+        <Link className={classes.link} to={`/id/${field.value}`}>
+          {field.value}
+        </Link>
       );
     default:
       return <span>{field.value}</span>;

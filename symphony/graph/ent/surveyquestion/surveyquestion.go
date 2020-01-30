@@ -91,7 +91,7 @@ const (
 	PhotoDataColumn = "survey_question_photo_datum_id"
 )
 
-// Columns holds all SQL columns are surveyquestion fields.
+// Columns holds all SQL columns for surveyquestion fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -114,6 +114,11 @@ var Columns = []string{
 	FieldFloatData,
 	FieldIntData,
 	FieldDateData,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the SurveyQuestion type.
+var ForeignKeys = []string{
+	"survey_id",
 }
 
 var (

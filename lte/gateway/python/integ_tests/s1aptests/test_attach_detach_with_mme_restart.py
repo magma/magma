@@ -24,7 +24,10 @@ class TestAttachDetachWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ Basic attach/detach test with a single UE """
+        """
+        Basic attach/detach test with two UEs,
+        where MME restarts between each attach and detach
+        """
         num_ues = 2
         detach_type = [s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
                        s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value]

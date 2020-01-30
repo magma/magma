@@ -68,7 +68,7 @@ graphql`
 
 const equipmentPortTypesQuery = graphql`
   query PortDefinitionsAddEditTable__equipmentPortTypesQuery {
-    equipmentPortTypes(first: 50)
+    equipmentPortTypes(first: 500)
       @connection(key: "PortDefinitionsTable_equipmentPortTypes") {
       edges {
         node {
@@ -137,10 +137,7 @@ class PortDefinitionsAddEditTable extends React.Component<Props, State> {
           </TableHead>
           <DroppableTableBody onDragEnd={this._onDragEnd}>
             {portDefinitions.map((portDefinition, i) => (
-              <DraggableTableRow
-                key={portDefinition.id}
-                id={portDefinition.id}
-                index={i}>
+              <DraggableTableRow key={i} id={portDefinition.id} index={i}>
                 <TableCell className={classes.cell} component="div" scope="row">
                   {this.getEditablePortPropertyCell(
                     i,

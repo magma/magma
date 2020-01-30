@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 )
 
 // Equipment is the model entity for the Equipment schema.
@@ -30,35 +31,131 @@ type Equipment struct {
 	FutureState string `json:"future_state,omitempty"`
 	// DeviceID holds the value of the "device_id" field.
 	DeviceID string `json:"device_id,omitempty"`
+	// ExternalID holds the value of the "external_id" field.
+	ExternalID string `json:"external_id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentQuery when eager-loading is set.
+	Edges              EquipmentEdges `json:"edges"`
+	type_id            *string
+	work_order_id      *string
+	parent_position_id *string
+	location_id        *string
 }
 
-// FromRows scans the sql response data into Equipment.
-func (e *Equipment) FromRows(rows *sql.Rows) error {
-	var scane struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		FutureState sql.NullString
-		DeviceID    sql.NullString
+// EquipmentEdges holds the relations/edges for other nodes in the graph.
+type EquipmentEdges struct {
+	// Type holds the value of the type edge.
+	Type *EquipmentType
+	// Location holds the value of the location edge.
+	Location *Location
+	// ParentPosition holds the value of the parent_position edge.
+	ParentPosition *EquipmentPosition
+	// Positions holds the value of the positions edge.
+	Positions []*EquipmentPosition
+	// Ports holds the value of the ports edge.
+	Ports []*EquipmentPort
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// Files holds the value of the files edge.
+	Files []*File
+	// Hyperlinks holds the value of the hyperlinks edge.
+	Hyperlinks []*Hyperlink
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Equipment) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // future_state
+		&sql.NullString{}, // device_id
+		&sql.NullString{}, // external_id
 	}
-	// the order here should be the same as in the `equipment.Columns`.
-	if err := rows.Scan(
-		&scane.ID,
-		&scane.CreateTime,
-		&scane.UpdateTime,
-		&scane.Name,
-		&scane.FutureState,
-		&scane.DeviceID,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Equipment) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // type_id
+		&sql.NullInt64{}, // work_order_id
+		&sql.NullInt64{}, // parent_position_id
+		&sql.NullInt64{}, // location_id
 	}
-	e.ID = strconv.Itoa(scane.ID)
-	e.CreateTime = scane.CreateTime.Time
-	e.UpdateTime = scane.UpdateTime.Time
-	e.Name = scane.Name.String
-	e.FutureState = scane.FutureState.String
-	e.DeviceID = scane.DeviceID.String
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Equipment fields.
+func (e *Equipment) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipment.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	e.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		e.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		e.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		e.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field future_state", values[3])
+	} else if value.Valid {
+		e.FutureState = value.String
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field device_id", values[4])
+	} else if value.Valid {
+		e.DeviceID = value.String
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field external_id", values[5])
+	} else if value.Valid {
+		e.ExternalID = value.String
+	}
+	values = values[6:]
+	if len(values) == len(equipment.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+		} else if value.Valid {
+			e.type_id = new(string)
+			*e.type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_id", value)
+		} else if value.Valid {
+			e.work_order_id = new(string)
+			*e.work_order_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[2].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field parent_position_id", value)
+		} else if value.Valid {
+			e.parent_position_id = new(string)
+			*e.parent_position_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[3].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+		} else if value.Valid {
+			e.location_id = new(string)
+			*e.location_id = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -97,14 +194,14 @@ func (e *Equipment) QueryProperties() *PropertyQuery {
 	return (&EquipmentClient{e.config}).QueryProperties(e)
 }
 
-// QueryService queries the service edge of the Equipment.
-func (e *Equipment) QueryService() *ServiceQuery {
-	return (&EquipmentClient{e.config}).QueryService(e)
-}
-
 // QueryFiles queries the files edge of the Equipment.
 func (e *Equipment) QueryFiles() *FileQuery {
 	return (&EquipmentClient{e.config}).QueryFiles(e)
+}
+
+// QueryHyperlinks queries the hyperlinks edge of the Equipment.
+func (e *Equipment) QueryHyperlinks() *HyperlinkQuery {
+	return (&EquipmentClient{e.config}).QueryHyperlinks(e)
 }
 
 // Update returns a builder for updating this Equipment.
@@ -140,6 +237,8 @@ func (e *Equipment) String() string {
 	builder.WriteString(e.FutureState)
 	builder.WriteString(", device_id=")
 	builder.WriteString(e.DeviceID)
+	builder.WriteString(", external_id=")
+	builder.WriteString(e.ExternalID)
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -152,18 +251,6 @@ func (e *Equipment) id() int {
 
 // EquipmentSlice is a parsable slice of Equipment.
 type EquipmentSlice []*Equipment
-
-// FromRows scans the sql response data into EquipmentSlice.
-func (e *EquipmentSlice) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scane := &Equipment{}
-		if err := scane.FromRows(rows); err != nil {
-			return err
-		}
-		*e = append(*e, scane)
-	}
-	return nil
-}
 
 func (e EquipmentSlice) config(cfg config) {
 	for _i := range e {

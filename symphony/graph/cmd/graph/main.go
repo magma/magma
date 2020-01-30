@@ -12,12 +12,12 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/facebookincubator/symphony/cloud/ctxgroup"
-	"github.com/facebookincubator/symphony/cloud/ctxutil"
-	"github.com/facebookincubator/symphony/cloud/log"
-	"github.com/facebookincubator/symphony/cloud/oc"
-	"github.com/facebookincubator/symphony/cloud/orc8r"
-	"github.com/facebookincubator/symphony/cloud/server"
+	"github.com/facebookincubator/symphony/pkg/ctxgroup"
+	"github.com/facebookincubator/symphony/pkg/ctxutil"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/oc"
+	"github.com/facebookincubator/symphony/pkg/orc8r"
+	"github.com/facebookincubator/symphony/pkg/server"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jessevdk/go-flags"

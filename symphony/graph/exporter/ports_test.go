@@ -30,11 +30,13 @@ const p2Title = "Parent Equipment (2)"
 const p1Title = "Parent Equipment"
 const positionTitle = "Equipment Position"
 const linkPID = "Linked Port ID"
-const linkPName = "Linked Port name"
-const linkEID = "Linked Port Equipment ID"
-const linkEName = "Linked Port Equipment"
+const linkPName = "Linked Port Name"
+const linkEID = "Linked Equipment ID"
+const linkEName = "Linked Equipment"
 const propStr = "propStr"
 const propStr2 = "propStr2"
+const consumerEndpointServices = "Consumer Endpoint for These Services"
+const providerEndpointServices = "Provider Endpoint for These Services"
 
 func TestEmptyPortsDataExport(t *testing.T) {
 	r, err := newExporterTestResolver(t)
@@ -75,6 +77,8 @@ func TestEmptyPortsDataExport(t *testing.T) {
 			linkPName,
 			linkEID,
 			linkEName,
+			consumerEndpointServices,
+			providerEndpointServices,
 		}, ln)
 	}
 }
@@ -125,6 +129,8 @@ func TestPortsExport(t *testing.T) {
 				linkPName,
 				linkEID,
 				linkEName,
+				consumerEndpointServices,
+				providerEndpointServices,
 				propStr,
 				propStr2,
 			}, ln)
@@ -147,6 +153,8 @@ func TestPortsExport(t *testing.T) {
 				"port2",
 				"--",
 				currEquip,
+				"S1;S2",
+				"",
 				"t1",
 				"",
 			})
@@ -170,6 +178,8 @@ func TestPortsExport(t *testing.T) {
 				"--",
 				parentEquip,
 				"",
+				"S1",
+				"",
 				"",
 			})
 		default:
@@ -189,15 +199,6 @@ func TestPortWithFilters(t *testing.T) {
 	defer server.Close()
 
 	prepareData(ctx, t, *r)
-	/*
-		helper: data now is of type:
-		loc(grandParent):
-			loc(parent):
-				loc(child):
-						parentEquipment(equipemtnType): with portType1 (has 2 string props)
-						childEquipment(equipemtnType): with portType2 (no props props)
-						these ports are linked together
-	*/
 	loc := r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx)
 	pDef2 := r.client.EquipmentPortDefinition.Query().Where(equipmentportdefinition.Name(portName2)).OnlyX(ctx)
 
@@ -285,6 +286,8 @@ func TestPortWithFilters(t *testing.T) {
 						parentEquip,
 						"",
 						"",
+						"",
+						"",
 					}, ln[1:])
 					require.Equal(t, 2, linesCount)
 				}
@@ -309,6 +312,8 @@ func TestPortWithFilters(t *testing.T) {
 						"port2",
 						"--",
 						currEquip,
+						"S1;S2",
+						"",
 						"t1",
 						"",
 					}, ln[1:])

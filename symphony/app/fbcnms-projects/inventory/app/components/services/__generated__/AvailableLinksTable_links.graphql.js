@@ -42,6 +42,7 @@ export type AvailableLinksTable_links$data = AvailableLinksTable_links;
 export type AvailableLinksTable_links$key = $ReadOnlyArray<{
   +$data?: AvailableLinksTable_links$data,
   +$fragmentRefs: AvailableLinksTable_links$ref,
+  ...
 }>;
 */
 

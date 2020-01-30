@@ -14,7 +14,7 @@ COPY go.* ./
 RUN go mod download
 
 # Copy shared components
-COPY cloud /src/symphony/cloud
+COPY pkg /src/symphony/pkg
 
 # Build service
 WORKDIR /src/symphony/frontier

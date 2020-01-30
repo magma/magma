@@ -10,6 +10,7 @@
 
 import type {SiteSurveyPane_survey} from './__generated__/SiteSurveyPane_survey.graphql.js';
 
+import DateTimeFormat from '../../common/DateTimeFormat.js';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useMemo, useState} from 'react';
 import Select from '@material-ui/core/Select';
@@ -126,13 +127,7 @@ const SiteSurveyPane = (props: Props) => {
           <Text className={classes.surveyName}>{name}</Text>
           <Typography className={classes.completionDate}>
             {'Completed: '}
-            {new Intl.DateTimeFormat('default', {
-              hour: 'numeric',
-              minute: 'numeric',
-              year: 'numeric',
-              month: 'numeric',
-              day: 'numeric',
-            }).format(new Date(completionTimestamp * 1000))}
+            {DateTimeFormat.dateTime(completionTimestamp * 1000)}
           </Typography>
         </div>
         <Select

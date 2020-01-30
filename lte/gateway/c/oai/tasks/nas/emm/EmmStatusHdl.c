@@ -132,7 +132,6 @@ int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause)
    */
   emm_as_set_security_data(&emm_sap.u.emm_as.u.status.sctx, sctx, false, true);
   rc = emm_sap_send(&emm_sap);
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

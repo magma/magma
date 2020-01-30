@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // WorkOrder is the model entity for the WorkOrder schema.
@@ -42,53 +43,163 @@ type WorkOrder struct {
 	Assignee string `json:"assignee,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the WorkOrderQuery when eager-loading is set.
+	Edges         WorkOrderEdges `json:"edges"`
+	project_id    *string
+	type_id       *string
+	location_id   *string
+	technician_id *string
 }
 
-// FromRows scans the sql response data into WorkOrder.
-func (wo *WorkOrder) FromRows(rows *sql.Rows) error {
-	var scanwo struct {
-		ID           int
-		CreateTime   sql.NullTime
-		UpdateTime   sql.NullTime
-		Name         sql.NullString
-		Status       sql.NullString
-		Priority     sql.NullString
-		Description  sql.NullString
-		OwnerName    sql.NullString
-		InstallDate  sql.NullTime
-		CreationDate sql.NullTime
-		Assignee     sql.NullString
-		Index        sql.NullInt64
+// WorkOrderEdges holds the relations/edges for other nodes in the graph.
+type WorkOrderEdges struct {
+	// Type holds the value of the type edge.
+	Type *WorkOrderType
+	// Equipment holds the value of the equipment edge.
+	Equipment []*Equipment
+	// Links holds the value of the links edge.
+	Links []*Link
+	// Files holds the value of the files edge.
+	Files []*File
+	// Hyperlinks holds the value of the hyperlinks edge.
+	Hyperlinks []*Hyperlink
+	// Location holds the value of the location edge.
+	Location *Location
+	// Comments holds the value of the comments edge.
+	Comments []*Comment
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// CheckListItems holds the value of the check_list_items edge.
+	CheckListItems []*CheckListItem
+	// Technician holds the value of the technician edge.
+	Technician *Technician
+	// Project holds the value of the project edge.
+	Project *Project
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*WorkOrder) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // status
+		&sql.NullString{}, // priority
+		&sql.NullString{}, // description
+		&sql.NullString{}, // owner_name
+		&sql.NullTime{},   // install_date
+		&sql.NullTime{},   // creation_date
+		&sql.NullString{}, // assignee
+		&sql.NullInt64{},  // index
 	}
-	// the order here should be the same as in the `workorder.Columns`.
-	if err := rows.Scan(
-		&scanwo.ID,
-		&scanwo.CreateTime,
-		&scanwo.UpdateTime,
-		&scanwo.Name,
-		&scanwo.Status,
-		&scanwo.Priority,
-		&scanwo.Description,
-		&scanwo.OwnerName,
-		&scanwo.InstallDate,
-		&scanwo.CreationDate,
-		&scanwo.Assignee,
-		&scanwo.Index,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*WorkOrder) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // project_id
+		&sql.NullInt64{}, // type_id
+		&sql.NullInt64{}, // location_id
+		&sql.NullInt64{}, // technician_id
 	}
-	wo.ID = strconv.Itoa(scanwo.ID)
-	wo.CreateTime = scanwo.CreateTime.Time
-	wo.UpdateTime = scanwo.UpdateTime.Time
-	wo.Name = scanwo.Name.String
-	wo.Status = scanwo.Status.String
-	wo.Priority = scanwo.Priority.String
-	wo.Description = scanwo.Description.String
-	wo.OwnerName = scanwo.OwnerName.String
-	wo.InstallDate = scanwo.InstallDate.Time
-	wo.CreationDate = scanwo.CreationDate.Time
-	wo.Assignee = scanwo.Assignee.String
-	wo.Index = int(scanwo.Index.Int64)
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the WorkOrder fields.
+func (wo *WorkOrder) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(workorder.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	wo.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		wo.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		wo.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		wo.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field status", values[3])
+	} else if value.Valid {
+		wo.Status = value.String
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field priority", values[4])
+	} else if value.Valid {
+		wo.Priority = value.String
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field description", values[5])
+	} else if value.Valid {
+		wo.Description = value.String
+	}
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field owner_name", values[6])
+	} else if value.Valid {
+		wo.OwnerName = value.String
+	}
+	if value, ok := values[7].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field install_date", values[7])
+	} else if value.Valid {
+		wo.InstallDate = value.Time
+	}
+	if value, ok := values[8].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field creation_date", values[8])
+	} else if value.Valid {
+		wo.CreationDate = value.Time
+	}
+	if value, ok := values[9].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field assignee", values[9])
+	} else if value.Valid {
+		wo.Assignee = value.String
+	}
+	if value, ok := values[10].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[10])
+	} else if value.Valid {
+		wo.Index = int(value.Int64)
+	}
+	values = values[11:]
+	if len(values) == len(workorder.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_id", value)
+		} else if value.Valid {
+			wo.project_id = new(string)
+			*wo.project_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+		} else if value.Valid {
+			wo.type_id = new(string)
+			*wo.type_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[2].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+		} else if value.Valid {
+			wo.location_id = new(string)
+			*wo.location_id = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[3].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field technician_id", value)
+		} else if value.Valid {
+			wo.technician_id = new(string)
+			*wo.technician_id = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -110,6 +221,11 @@ func (wo *WorkOrder) QueryLinks() *LinkQuery {
 // QueryFiles queries the files edge of the WorkOrder.
 func (wo *WorkOrder) QueryFiles() *FileQuery {
 	return (&WorkOrderClient{wo.config}).QueryFiles(wo)
+}
+
+// QueryHyperlinks queries the hyperlinks edge of the WorkOrder.
+func (wo *WorkOrder) QueryHyperlinks() *HyperlinkQuery {
+	return (&WorkOrderClient{wo.config}).QueryHyperlinks(wo)
 }
 
 // QueryLocation queries the location edge of the WorkOrder.
@@ -199,18 +315,6 @@ func (wo *WorkOrder) id() int {
 
 // WorkOrders is a parsable slice of WorkOrder.
 type WorkOrders []*WorkOrder
-
-// FromRows scans the sql response data into WorkOrders.
-func (wo *WorkOrders) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanwo := &WorkOrder{}
-		if err := scanwo.FromRows(rows); err != nil {
-			return err
-		}
-		*wo = append(*wo, scanwo)
-	}
-	return nil
-}
 
 func (wo WorkOrders) config(cfg config) {
 	for _i := range wo {

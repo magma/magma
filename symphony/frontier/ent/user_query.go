@@ -8,12 +8,14 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
@@ -27,6 +29,8 @@ type UserQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.User
+	// eager-loading edges.
+	withTokens *TokenQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -67,14 +71,14 @@ func (uq *UserQuery) QueryTokens() *TokenQuery {
 	return query
 }
 
-// First returns the first User entity in the query. Returns *ErrNotFound when no user was found.
+// First returns the first User entity in the query. Returns *NotFoundError when no user was found.
 func (uq *UserQuery) First(ctx context.Context) (*User, error) {
 	us, err := uq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(us) == 0 {
-		return nil, &ErrNotFound{user.Label}
+		return nil, &NotFoundError{user.Label}
 	}
 	return us[0], nil
 }
@@ -88,14 +92,14 @@ func (uq *UserQuery) FirstX(ctx context.Context) *User {
 	return u
 }
 
-// FirstID returns the first User id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first User id in the query. Returns *NotFoundError when no id was found.
 func (uq *UserQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = uq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{user.Label}
+		err = &NotFoundError{user.Label}
 		return
 	}
 	return ids[0], nil
@@ -120,9 +124,9 @@ func (uq *UserQuery) Only(ctx context.Context) (*User, error) {
 	case 1:
 		return us[0], nil
 	case 0:
-		return nil, &ErrNotFound{user.Label}
+		return nil, &NotFoundError{user.Label}
 	default:
-		return nil, &ErrNotSingular{user.Label}
+		return nil, &NotSingularError{user.Label}
 	}
 }
 
@@ -145,9 +149,9 @@ func (uq *UserQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{user.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = &ErrNotSingular{user.Label}
+		err = &NotSingularError{user.Label}
 	}
 	return
 }
@@ -236,6 +240,17 @@ func (uq *UserQuery) Clone() *UserQuery {
 	}
 }
 
+//  WithTokens tells the query-builder to eager-loads the nodes that are connected to
+// the "tokens" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithTokens(opts ...func(*TokenQuery)) *UserQuery {
+	query := &TokenQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withTokens = query
+	return uq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -278,45 +293,64 @@ func (uq *UserQuery) Select(field string, fields ...string) *UserSelect {
 }
 
 func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
-	rows := &sql.Rows{}
-	selector := uq.sqlQuery()
-	if unique := uq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*User = []*User{}
+		_spec         = uq.querySpec()
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &User{config: uq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := uq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, uq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var us Users
-	if err := us.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	us.config(uq.config)
-	return us, nil
+
+	if query := uq.withTokens; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Token(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.TokensColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Tokens = append(node.Edges.Tokens, n)
+		}
+	}
+
+	return nodes, nil
 }
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := uq.sqlQuery()
-	unique := []string{user.FieldID}
-	if len(uq.unique) > 0 {
-		unique = uq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := uq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := uq.querySpec()
+	return sqlgraph.CountNodes(ctx, uq.driver, _spec)
 }
 
 func (uq *UserQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -325,6 +359,42 @@ func (uq *UserQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   user.Table,
+			Columns: user.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: user.FieldID,
+			},
+		},
+		From:   uq.sql,
+		Unique: true,
+	}
+	if ps := uq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := uq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := uq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := uq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (uq *UserQuery) sqlQuery() *sql.Selector {
@@ -598,7 +668,7 @@ func (us *UserSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (us *UserSelect) sqlQuery() sql.Querier {
-	view := "user_view"
-	return sql.Dialect(us.driver.Dialect()).
-		Select(us.fields...).From(us.sql.As(view))
+	selector := us.sql
+	selector.Select(selector.Columns(us.fields...)...)
+	return selector
 }

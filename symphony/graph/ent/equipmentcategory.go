@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
 )
 
 // EquipmentCategory is the model entity for the EquipmentCategory schema.
@@ -26,29 +27,54 @@ type EquipmentCategory struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentCategoryQuery when eager-loading is set.
+	Edges EquipmentCategoryEdges `json:"edges"`
 }
 
-// FromRows scans the sql response data into EquipmentCategory.
-func (ec *EquipmentCategory) FromRows(rows *sql.Rows) error {
-	var scanec struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		Name       sql.NullString
+// EquipmentCategoryEdges holds the relations/edges for other nodes in the graph.
+type EquipmentCategoryEdges struct {
+	// Types holds the value of the types edge.
+	Types []*EquipmentType
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*EquipmentCategory) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
 	}
-	// the order here should be the same as in the `equipmentcategory.Columns`.
-	if err := rows.Scan(
-		&scanec.ID,
-		&scanec.CreateTime,
-		&scanec.UpdateTime,
-		&scanec.Name,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the EquipmentCategory fields.
+func (ec *EquipmentCategory) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipmentcategory.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	ec.ID = strconv.Itoa(scanec.ID)
-	ec.CreateTime = scanec.CreateTime.Time
-	ec.UpdateTime = scanec.UpdateTime.Time
-	ec.Name = scanec.Name.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	ec.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		ec.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		ec.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		ec.Name = value.String
+	}
 	return nil
 }
 
@@ -98,18 +124,6 @@ func (ec *EquipmentCategory) id() int {
 
 // EquipmentCategories is a parsable slice of EquipmentCategory.
 type EquipmentCategories []*EquipmentCategory
-
-// FromRows scans the sql response data into EquipmentCategories.
-func (ec *EquipmentCategories) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanec := &EquipmentCategory{}
-		if err := scanec.FromRows(rows); err != nil {
-			return err
-		}
-		*ec = append(*ec, scanec)
-	}
-	return nil
-}
 
 func (ec EquipmentCategories) config(cfg config) {
 	for _i := range ec {

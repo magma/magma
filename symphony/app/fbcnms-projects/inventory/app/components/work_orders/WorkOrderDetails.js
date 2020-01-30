@@ -26,6 +26,7 @@ import type {Theme, WithStyles} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
+import AddHyperlinkButton from '../AddHyperlinkButton';
 import AddImageMutation from '../../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import CheckListTable from '../checklist/CheckListTable';
@@ -42,6 +43,7 @@ import FormValidationContext, {
   FormValidationContextProvider,
 } from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
+import InsertLinkIcon from '@material-ui/icons/InsertLink';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
@@ -62,8 +64,8 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
+import {priorityValues, statusValues} from '../../common/WorkOrder';
 import {sortPropertiesByIndex} from '../../common/Property';
-import {statusValues} from '../../common/WorkOrder';
 import {withRouter} from 'react-router-dom';
 import {withSnackbar} from 'notistack';
 import {withStyles} from '@material-ui/core/styles';
@@ -98,6 +100,7 @@ const styles = (theme: Theme) => ({
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
+    height: '100%',
   },
   input: {
     paddingBottom: '24px',
@@ -107,7 +110,7 @@ const styles = (theme: Theme) => ({
   },
   cards: {
     overflowY: 'auto',
-    overflow: 'hidden',
+    overflowX: 'hidden',
     flexGrow: 1,
   },
   card: {
@@ -121,11 +124,18 @@ const styles = (theme: Theme) => ({
     width: 'calc(100% + 48px)',
   },
   uploadButtonContainer: {
+    display: 'flex',
     marginRight: '8px',
+    marginTop: '4px',
   },
   uploadButton: {
     cursor: 'pointer',
     fill: theme.palette.primary.main,
+  },
+  hyperlinkButton: {
+    padding: 0,
+    minWidth: 'unset',
+    marginRight: '16px',
   },
   dense: {
     paddingTop: '9px',
@@ -235,23 +245,23 @@ class WorkOrderDetails extends React.Component<Props, State> {
     const actionsEnabled = this.context.isFeatureEnabled('planned_equipment');
     return (
       <div className={classes.root}>
-        <WorkOrderHeader
-          workOrderName={this.props.workOrder.name}
-          workOrder={workOrder}
-          properties={properties}
-          checklist={checklist}
-          locationId={locationId}
-          onWorkOrderRemoved={onWorkOrderRemoved}
-          onCancelClicked={onCancelClicked}
-        />
         <FormValidationContextProvider>
+          <WorkOrderHeader
+            workOrderName={this.props.workOrder.name}
+            workOrder={workOrder}
+            properties={properties}
+            checklist={checklist}
+            locationId={locationId}
+            onWorkOrderRemoved={onWorkOrderRemoved}
+            onCancelClicked={onCancelClicked}
+          />
           <FormValidationContext.Consumer>
             {validationContext => {
               validationContext.editLock.check({
                 fieldId: 'status',
                 fieldDisplayName: 'Status',
                 value: workOrder.status,
-                checkCallbalck: value =>
+                checkCallback: value =>
                   value === 'DONE' ? 'Work order is on DONE state' : '',
               });
               return (
@@ -290,6 +300,35 @@ class WorkOrderDetails extends React.Component<Props, State> {
                                   this._setWorkOrderDetail('project', project)
                                 }
                               />
+                            </FormField>
+                          </Grid>
+                          <Grid item xs={12} sm={6} lg={4} xl={4}>
+                            <FormField label="Priority">
+                              <TextField
+                                select
+                                className={classes.gridInput}
+                                disabled={validationContext.editLock.detected}
+                                variant="outlined"
+                                value={workOrder.priority}
+                                InputProps={{
+                                  classes: {
+                                    input: classes.dense,
+                                  },
+                                }}
+                                onChange={event => {
+                                  this._setWorkOrderDetail(
+                                    'priority',
+                                    event.target.value,
+                                  );
+                                }}>
+                                {priorityValues.map(option => (
+                                  <MenuItem
+                                    key={option.value}
+                                    value={option.value}>
+                                    {option.label}
+                                  </MenuItem>
+                                ))}
+                              </TextField>
                             </FormField>
                           </Grid>
                           <Grid item xs={12} sm={6} lg={4} xl={4}>
@@ -447,6 +486,14 @@ class WorkOrderDetails extends React.Component<Props, State> {
                         rightContent={
                           !validationContext.editLock.detected && (
                             <div className={classes.uploadButtonContainer}>
+                              <AddHyperlinkButton
+                                className={classes.hyperlinkButton}
+                                skin="regular"
+                                entityType="WORK_ORDER"
+                                allowCategories={false}
+                                entityId={workOrder.id}>
+                                <InsertLinkIcon color="primary" />
+                              </AddHyperlinkButton>
                               {this.state.isLoadingDocument ? (
                                 <CircularProgress size={24} />
                               ) : (
@@ -472,6 +519,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
                             ...this.props.workOrder.files,
                             ...this.props.workOrder.images,
                           ]}
+                          hyperlinks={this.props.workOrder.hyperlinks}
                         />
                       </ExpandingPanel>
                       <ExpandingPanel
@@ -689,15 +737,22 @@ export default withRouter(
               files {
                 ...EntityDocumentsTable_files
               }
+              hyperlinks {
+                ...EntityDocumentsTable_hyperlinks
+              }
               comments {
                 ...CommentsBox_comments
               }
               project {
                 name
                 id
+                type {
+                  id
+                  name
+                }
               }
               checkList {
-                ...CheckListTable_list
+                ...CheckListTable_list @relay(mask: false)
               }
             }
           `,

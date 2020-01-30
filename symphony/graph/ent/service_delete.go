@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 )
@@ -41,23 +43,23 @@ func (sd *ServiceDelete) ExecX(ctx context.Context) int {
 }
 
 func (sd *ServiceDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(sd.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(service.Table))
-	for _, p := range sd.predicates {
-		p(selector)
+	_spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: service.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: service.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(service.Table).FromSelect(selector).Query()
-	if err := sd.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := sd.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, sd.driver, _spec)
 }
 
 // ServiceDeleteOne is the builder for deleting a single Service entity.
@@ -72,7 +74,7 @@ func (sdo *ServiceDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{service.Label}
+		return &NotFoundError{service.Label}
 	default:
 		return nil
 	}

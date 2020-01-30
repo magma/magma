@@ -151,7 +151,7 @@ int handle_sgs_downlink_unitdata(
     sgs_dl_unitdata_p,
     sizeof(itti_sgsap_downlink_unitdata_t));
   // send it to NAS module for further processing
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -169,7 +169,7 @@ int handle_sgs_release_req(const itti_sgsap_release_req_t *sgs_release_req_p)
   OAILOG_DEBUG(LOG_SGS, "Received SGS Release Request message from FedGW\n");
   memcpy(sgs_rel_req_p, sgs_release_req_p, sizeof(itti_sgsap_release_req_t));
   // send it to NAS module for further processing
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 /* Fed GW calls below function, on reception of MM Information Request from MSC/VLR
@@ -205,7 +205,7 @@ int handle_sgs_mm_information_request(
     "Imsi :%s \n",
     mm_information_req_p->imsi);
 
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 

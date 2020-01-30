@@ -8,12 +8,15 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -29,6 +32,11 @@ type SurveyQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Survey
+	// eager-loading edges.
+	withLocation   *LocationQuery
+	withSourceFile *FileQuery
+	withQuestions  *SurveyQuestionQuery
+	withFKs        bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -93,14 +101,14 @@ func (sq *SurveyQuery) QueryQuestions() *SurveyQuestionQuery {
 	return query
 }
 
-// First returns the first Survey entity in the query. Returns *ErrNotFound when no survey was found.
+// First returns the first Survey entity in the query. Returns *NotFoundError when no survey was found.
 func (sq *SurveyQuery) First(ctx context.Context) (*Survey, error) {
 	sSlice, err := sq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(sSlice) == 0 {
-		return nil, &ErrNotFound{survey.Label}
+		return nil, &NotFoundError{survey.Label}
 	}
 	return sSlice[0], nil
 }
@@ -114,14 +122,14 @@ func (sq *SurveyQuery) FirstX(ctx context.Context) *Survey {
 	return s
 }
 
-// FirstID returns the first Survey id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Survey id in the query. Returns *NotFoundError when no id was found.
 func (sq *SurveyQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{survey.Label}
+		err = &NotFoundError{survey.Label}
 		return
 	}
 	return ids[0], nil
@@ -146,9 +154,9 @@ func (sq *SurveyQuery) Only(ctx context.Context) (*Survey, error) {
 	case 1:
 		return sSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{survey.Label}
+		return nil, &NotFoundError{survey.Label}
 	default:
-		return nil, &ErrNotSingular{survey.Label}
+		return nil, &NotSingularError{survey.Label}
 	}
 }
 
@@ -171,9 +179,9 @@ func (sq *SurveyQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{survey.Label}
+		err = &NotFoundError{survey.Label}
 	default:
-		err = &ErrNotSingular{survey.Label}
+		err = &NotSingularError{survey.Label}
 	}
 	return
 }
@@ -262,6 +270,39 @@ func (sq *SurveyQuery) Clone() *SurveyQuery {
 	}
 }
 
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *SurveyQuery) WithLocation(opts ...func(*LocationQuery)) *SurveyQuery {
+	query := &LocationQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withLocation = query
+	return sq
+}
+
+//  WithSourceFile tells the query-builder to eager-loads the nodes that are connected to
+// the "source_file" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *SurveyQuery) WithSourceFile(opts ...func(*FileQuery)) *SurveyQuery {
+	query := &FileQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withSourceFile = query
+	return sq
+}
+
+//  WithQuestions tells the query-builder to eager-loads the nodes that are connected to
+// the "questions" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *SurveyQuery) WithQuestions(opts ...func(*SurveyQuestionQuery)) *SurveyQuery {
+	query := &SurveyQuestionQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withQuestions = query
+	return sq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -304,45 +345,128 @@ func (sq *SurveyQuery) Select(field string, fields ...string) *SurveySelect {
 }
 
 func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
-	rows := &sql.Rows{}
-	selector := sq.sqlQuery()
-	if unique := sq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*Survey = []*Survey{}
+		withFKs           = sq.withFKs
+		_spec             = sq.querySpec()
+	)
+	if sq.withLocation != nil || sq.withSourceFile != nil {
+		withFKs = true
 	}
-	query, args := selector.Query()
-	if err := sq.driver.Query(ctx, query, args, rows); err != nil {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, survey.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
+		node := &Survey{config: sq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, sq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var sSlice Surveys
-	if err := sSlice.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	sSlice.config(sq.config)
-	return sSlice, nil
+
+	if query := sq.withLocation; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*Survey)
+		for i := range nodes {
+			if fk := nodes[i].location_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
+	}
+
+	if query := sq.withSourceFile; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*Survey)
+		for i := range nodes {
+			if fk := nodes[i].survey_source_file_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(file.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_source_file_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.SourceFile = n
+			}
+		}
+	}
+
+	if query := sq.withQuestions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Survey)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SurveyQuestion(func(s *sql.Selector) {
+			s.Where(sql.InValues(survey.QuestionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.survey_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Questions = append(node.Edges.Questions, n)
+		}
+	}
+
+	return nodes, nil
 }
 
 func (sq *SurveyQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := sq.sqlQuery()
-	unique := []string{survey.FieldID}
-	if len(sq.unique) > 0 {
-		unique = sq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := sq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := sq.querySpec()
+	return sqlgraph.CountNodes(ctx, sq.driver, _spec)
 }
 
 func (sq *SurveyQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -351,6 +475,42 @@ func (sq *SurveyQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (sq *SurveyQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   survey.Table,
+			Columns: survey.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: survey.FieldID,
+			},
+		},
+		From:   sq.sql,
+		Unique: true,
+	}
+	if ps := sq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := sq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := sq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := sq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (sq *SurveyQuery) sqlQuery() *sql.Selector {
@@ -624,7 +784,7 @@ func (ss *SurveySelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ss *SurveySelect) sqlQuery() sql.Querier {
-	view := "survey_view"
-	return sql.Dialect(ss.driver.Dialect()).
-		Select(ss.fields...).From(ss.sql.As(view))
+	selector := ss.sql
+	selector.Select(selector.Columns(ss.fields...)...)
+	return selector
 }

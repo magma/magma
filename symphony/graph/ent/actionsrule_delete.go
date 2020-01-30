@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -41,23 +43,23 @@ func (ard *ActionsRuleDelete) ExecX(ctx context.Context) int {
 }
 
 func (ard *ActionsRuleDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(ard.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(actionsrule.Table))
-	for _, p := range ard.predicates {
-		p(selector)
+	_spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: actionsrule.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: actionsrule.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(actionsrule.Table).FromSelect(selector).Query()
-	if err := ard.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := ard.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, ard.driver, _spec)
 }
 
 // ActionsRuleDeleteOne is the builder for deleting a single ActionsRule entity.
@@ -72,7 +74,7 @@ func (ardo *ActionsRuleDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{actionsrule.Label}
+		return &NotFoundError{actionsrule.Label}
 	default:
 		return nil
 	}

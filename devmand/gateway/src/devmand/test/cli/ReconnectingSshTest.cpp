@@ -131,7 +131,7 @@ TEST_F(ReconnectingSshTest, serverDisconnectSendCommands) {
   ensureConnected(cli);
 }
 
-TEST_F(ReconnectingSshTest, serverDisconnectWaithForKeepalive) {
+TEST_F(ReconnectingSshTest, serverDisconnectWaitForKeepalive) {
   int cmdTimeout = 5;
   int keepaliveFreq = 5;
   IoConfigurationBuilder ioConfigurationBuilder(

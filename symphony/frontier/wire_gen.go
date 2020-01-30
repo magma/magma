@@ -11,11 +11,11 @@ package main
 
 import (
 	"errors"
-	"github.com/facebookincubator/symphony/cloud/log"
-	"github.com/facebookincubator/symphony/cloud/oc"
-	"github.com/facebookincubator/symphony/cloud/server"
-	"github.com/facebookincubator/symphony/cloud/server/xserver"
 	"github.com/facebookincubator/symphony/frontier/handler"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/oc"
+	"github.com/facebookincubator/symphony/pkg/server"
+	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"go.opencensus.io/stats/view"
 	"gocloud.dev/server/health"
 )

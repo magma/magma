@@ -33,6 +33,7 @@ export type LocationWiFiScanCoverageMap_wifiData$data = LocationWiFiScanCoverage
 export type LocationWiFiScanCoverageMap_wifiData$key = $ReadOnlyArray<{
   +$data?: LocationWiFiScanCoverageMap_wifiData$data,
   +$fragmentRefs: LocationWiFiScanCoverageMap_wifiData$ref,
+  ...
 }>;
 */
 

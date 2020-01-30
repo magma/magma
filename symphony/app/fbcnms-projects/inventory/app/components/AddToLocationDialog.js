@@ -19,6 +19,7 @@ import CSVFileUpload from './CSVFileUpload';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
+import DialogConfirm from '@fbcnms/ui/components/DialogConfirm';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogError from '@fbcnms/ui/components/DialogError';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -48,6 +49,7 @@ type State = {
   selectedLocationType: ?LocationType,
   isLoading: boolean,
   errorMessage: ?string,
+  successMessage: ?string,
 };
 
 const styles = _ => ({
@@ -77,6 +79,7 @@ class AddToLocationDialog extends React.Component<Props, State> {
       selectedLocationType: null,
       isLoading: false,
       errorMessage: null,
+      successMessage: null,
     };
   }
 
@@ -96,6 +99,10 @@ class AddToLocationDialog extends React.Component<Props, State> {
     const portsExportImportEnabled = this.context.isFeatureEnabled(
       'import_exported_ports',
     );
+    const linksExportImportEnabled = this.context.isFeatureEnabled(
+      'import_exported_links',
+    );
+    const servicesEnabled = this.context.isFeatureEnabled('services');
     return (
       <Dialog maxWidth="sm" open={this.props.open} onClose={this.props.onClose}>
         {show === 'location' ? (
@@ -136,6 +143,9 @@ class AddToLocationDialog extends React.Component<Props, State> {
                 {this.state.errorMessage && (
                   <DialogError message={this.state.errorMessage} />
                 )}
+                {this.state.successMessage && (
+                  <DialogConfirm message={this.state.successMessage} />
+                )}
                 {this.documentsLink('csv-upload.html')}
                 <div className={classes.uploadContent}>
                   {ruralUploadEnabled && (
@@ -145,39 +155,27 @@ class AddToLocationDialog extends React.Component<Props, State> {
                         onProgress={() =>
                           this.setState({isLoading: true, errorMessage: null})
                         }
-                        onFileUploaded={() =>
-                          this.setState({isLoading: false, errorMessage: null})
-                        }
+                        onFileUploaded={msg => this.onFileUploaded(msg)}
                         uploadPath={UploadAPIUrls.rural_ran()}
-                        onUploadFailed={msg =>
-                          this.setState({errorMessage: msg, isLoading: false})
-                        }
+                        onUploadFailed={msg => this.onUploadFailed(msg)}
                       />
                       <CSVFileUpload
                         button={<Button variant="text">Rural Transport</Button>}
                         onProgress={() =>
                           this.setState({isLoading: true, errorMessage: null})
                         }
-                        onFileUploaded={() =>
-                          this.setState({isLoading: false, errorMessage: null})
-                        }
+                        onFileUploaded={msg => this.onFileUploaded(msg)}
                         uploadPath={UploadAPIUrls.rural_transport()}
-                        onUploadFailed={msg =>
-                          this.setState({errorMessage: msg, isLoading: false})
-                        }
+                        onUploadFailed={msg => this.onUploadFailed(msg)}
                       />
                       <CSVFileUpload
                         button={<Button variant="text">Rural Locations</Button>}
                         onProgress={() =>
                           this.setState({isLoading: true, errorMessage: null})
                         }
-                        onFileUploaded={() =>
-                          this.setState({isLoading: false, errorMessage: null})
-                        }
+                        onFileUploaded={msg => this.onFileUploaded(msg)}
                         uploadPath={UploadAPIUrls.rural_locations()}
-                        onUploadFailed={msg =>
-                          this.setState({errorMessage: msg, isLoading: false})
-                        }
+                        onUploadFailed={msg => this.onUploadFailed(msg)}
                       />
                       <CSVFileUpload
                         button={
@@ -186,13 +184,9 @@ class AddToLocationDialog extends React.Component<Props, State> {
                         onProgress={() =>
                           this.setState({isLoading: true, errorMessage: null})
                         }
-                        onFileUploaded={() =>
-                          this.setState({isLoading: false, errorMessage: null})
-                        }
+                        onFileUploaded={msg => this.onFileUploaded(msg)}
                         uploadPath={UploadAPIUrls.rural_legacy_locations()}
-                        onUploadFailed={msg =>
-                          this.setState({errorMessage: msg, isLoading: false})
-                        }
+                        onUploadFailed={msg => this.onUploadFailed(msg)}
                       />
                     </>
                   )}
@@ -202,13 +196,9 @@ class AddToLocationDialog extends React.Component<Props, State> {
                       onProgress={() =>
                         this.setState({isLoading: true, errorMessage: null})
                       }
-                      onFileUploaded={() =>
-                        this.setState({isLoading: false, errorMessage: null})
-                      }
+                      onFileUploaded={msg => this.onFileUploaded(msg)}
                       uploadPath={UploadAPIUrls.ftth()}
-                      onUploadFailed={msg =>
-                        this.setState({errorMessage: msg, isLoading: false})
-                      }
+                      onUploadFailed={msg => this.onUploadFailed(msg)}
                     />
                   )}
                   {xwfUploadEnabled && (
@@ -220,13 +210,9 @@ class AddToLocationDialog extends React.Component<Props, State> {
                         onProgress={() =>
                           this.setState({isLoading: true, errorMessage: null})
                         }
-                        onFileUploaded={() =>
-                          this.setState({isLoading: false, errorMessage: null})
-                        }
+                        onFileUploaded={msg => this.onFileUploaded(msg)}
                         uploadPath={UploadAPIUrls.xwf1()}
-                        onUploadFailed={msg =>
-                          this.setState({errorMessage: msg, isLoading: false})
-                        }
+                        onUploadFailed={msg => this.onUploadFailed(msg)}
                       />
                       <CSVFileUpload
                         button={
@@ -237,13 +223,9 @@ class AddToLocationDialog extends React.Component<Props, State> {
                         onProgress={() =>
                           this.setState({isLoading: true, errorMessage: null})
                         }
-                        onFileUploaded={() =>
-                          this.setState({isLoading: false, errorMessage: null})
-                        }
+                        onFileUploaded={msg => this.onFileUploaded(msg)}
                         uploadPath={UploadAPIUrls.xwfAps()}
-                        onUploadFailed={msg =>
-                          this.setState({errorMessage: msg, isLoading: false})
-                        }
+                        onUploadFailed={msg => this.onUploadFailed(msg)}
                       />
                     </>
                   )}
@@ -252,26 +234,18 @@ class AddToLocationDialog extends React.Component<Props, State> {
                     onProgress={() =>
                       this.setState({isLoading: true, errorMessage: null})
                     }
-                    onFileUploaded={() =>
-                      this.setState({isLoading: false, errorMessage: null})
-                    }
+                    onFileUploaded={msg => this.onFileUploaded(msg)}
                     uploadPath={UploadAPIUrls.position_definition()}
-                    onUploadFailed={msg =>
-                      this.setState({errorMessage: msg, isLoading: false})
-                    }
+                    onUploadFailed={msg => this.onUploadFailed(msg)}
                   />
                   <CSVFileUpload
                     button={<Button variant="text">Upload Port Def</Button>}
                     onProgress={() =>
                       this.setState({isLoading: true, errorMessage: null})
                     }
-                    onFileUploaded={() =>
-                      this.setState({isLoading: false, errorMessage: null})
-                    }
+                    onFileUploaded={msg => this.onFileUploaded(msg)}
                     uploadPath={UploadAPIUrls.port_definition()}
-                    onUploadFailed={msg =>
-                      this.setState({errorMessage: msg, isLoading: false})
-                    }
+                    onUploadFailed={msg => this.onUploadFailed(msg)}
                   />
                   <CSVFileUpload
                     button={
@@ -280,39 +254,27 @@ class AddToLocationDialog extends React.Component<Props, State> {
                     onProgress={() =>
                       this.setState({isLoading: true, errorMessage: null})
                     }
-                    onFileUploaded={() =>
-                      this.setState({isLoading: false, errorMessage: null})
-                    }
+                    onFileUploaded={msg => this.onFileUploaded(msg)}
                     uploadPath={UploadAPIUrls.port_connect()}
-                    onUploadFailed={msg =>
-                      this.setState({errorMessage: msg, isLoading: false})
-                    }
+                    onUploadFailed={msg => this.onUploadFailed(msg)}
                   />
                   <CSVFileUpload
                     button={<Button variant="text">Upload Locations</Button>}
                     onProgress={() =>
                       this.setState({isLoading: true, errorMessage: null})
                     }
-                    onFileUploaded={() =>
-                      this.setState({isLoading: false, errorMessage: null})
-                    }
+                    onFileUploaded={msg => this.onFileUploaded(msg)}
                     uploadPath={UploadAPIUrls.locations()}
-                    onUploadFailed={msg =>
-                      this.setState({errorMessage: msg, isLoading: false})
-                    }
+                    onUploadFailed={msg => this.onUploadFailed(msg)}
                   />
                   <CSVFileUpload
                     button={<Button variant="text">Upload Equipment</Button>}
                     onProgress={() =>
                       this.setState({isLoading: true, errorMessage: null})
                     }
-                    onFileUploaded={() =>
-                      this.setState({isLoading: false, errorMessage: null})
-                    }
+                    onFileUploaded={msg => this.onFileUploaded(msg)}
                     uploadPath={UploadAPIUrls.equipment()}
-                    onUploadFailed={msg =>
-                      this.setState({errorMessage: msg, isLoading: false})
-                    }
+                    onUploadFailed={msg => this.onUploadFailed(msg)}
                   />
                   {equipmentExportImportEnabled && (
                     <CSVFileUpload
@@ -324,13 +286,10 @@ class AddToLocationDialog extends React.Component<Props, State> {
                       onProgress={() =>
                         this.setState({isLoading: true, errorMessage: null})
                       }
-                      onFileUploaded={() =>
-                        this.setState({isLoading: false, errorMessage: null})
-                      }
+                      entity={'equipment'}
+                      onFileUploaded={msg => this.onFileUploaded(msg)}
                       uploadPath={UploadAPIUrls.exported_equipment()}
-                      onUploadFailed={msg =>
-                        this.setState({errorMessage: msg, isLoading: false})
-                      }
+                      onUploadFailed={msg => this.onUploadFailed(msg)}
                     />
                   )}
                   {portsExportImportEnabled && (
@@ -341,13 +300,38 @@ class AddToLocationDialog extends React.Component<Props, State> {
                       onProgress={() =>
                         this.setState({isLoading: true, errorMessage: null})
                       }
-                      onFileUploaded={() =>
-                        this.setState({isLoading: false, errorMessage: null})
-                      }
+                      entity={'port'}
+                      onFileUploaded={msg => this.onFileUploaded(msg)}
                       uploadPath={UploadAPIUrls.exported_ports()}
-                      onUploadFailed={msg =>
-                        this.setState({errorMessage: msg, isLoading: false})
+                      onUploadFailed={msg => this.onUploadFailed(msg)}
+                    />
+                  )}
+                  {linksExportImportEnabled && (
+                    <CSVFileUpload
+                      button={
+                        <Button variant="text">Upload Exported Links</Button>
                       }
+                      onProgress={() =>
+                        this.setState({isLoading: true, errorMessage: null})
+                      }
+                      entity={'link'}
+                      onFileUploaded={msg => this.onFileUploaded(msg)}
+                      uploadPath={UploadAPIUrls.exported_links()}
+                      onUploadFailed={msg => this.onUploadFailed(msg)}
+                    />
+                  )}
+                  {servicesEnabled && (
+                    <CSVFileUpload
+                      button={
+                        <Button variant="text">Upload Exported Service</Button>
+                      }
+                      onProgress={() =>
+                        this.setState({isLoading: true, errorMessage: null})
+                      }
+                      entity={'service'}
+                      onFileUploaded={msg => this.onFileUploaded(msg)}
+                      uploadPath={UploadAPIUrls.exported_service()}
+                      onUploadFailed={msg => this.onUploadFailed(msg)}
                     />
                   )}
                 </div>
@@ -383,6 +367,14 @@ class AddToLocationDialog extends React.Component<Props, State> {
     }
 
     return '';
+  }
+
+  onFileUploaded(msg: string) {
+    this.setState({isLoading: false, errorMessage: null, successMessage: msg});
+  }
+
+  onUploadFailed(msg: string) {
+    this.setState({errorMessage: msg, isLoading: false, successMessage: null});
   }
 
   handleTabChange = (event: SyntheticEvent<*>, value: number) => {

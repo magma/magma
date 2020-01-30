@@ -229,16 +229,11 @@ int esm_proc_default_eps_bearer_context_request(
       ue_id,
       ebi);
 
-    /* If VoLTE is enabled, send ACTIVATE DEFAULT EPS BEARER CONTEXT REQUEST
+    /* Send ACTIVATE DEFAULT EPS BEARER CONTEXT REQUEST
      * in ERAB SETUP REQ mesage
      */
-    if (mme_config.eps_network_feature_support
-          .ims_voice_over_ps_session_in_s1) {
-      rc =
-        _default_eps_bearer_activate_in_bearer_setup_req(emm_context, ebi, msg);
-      OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
-    }
-    rc = _default_eps_bearer_activate(emm_context, ebi, msg);
+    rc =
+      _default_eps_bearer_activate_in_bearer_setup_req(emm_context, ebi, msg);
   } else {
     OAILOG_INFO(
       LOG_NAS_ESM,
@@ -526,8 +521,12 @@ static void _default_eps_bearer_activate_t3485_handler(void *args)
        */
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
 
-      if (mme_config.eps_network_feature_support
-            .ims_voice_over_ps_session_in_s1) {
+      /* If standalone PDN connectivity request is received send activate
+       * default eps bearer req message in erab setup req s1ap message.
+       * If PDN connectivity is received along with attach req send
+       * activate default eps bearer req message in ICS req
+       */
+      if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone) {
         rc = _default_eps_bearer_activate_in_bearer_setup_req(
           esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       } else {

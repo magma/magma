@@ -8,18 +8,22 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 )
 
 // EquipmentPortQuery is the builder for querying EquipmentPort entities.
@@ -30,6 +34,13 @@ type EquipmentPortQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentPort
+	// eager-loading edges.
+	withDefinition *EquipmentPortDefinitionQuery
+	withParent     *EquipmentQuery
+	withLink       *LinkQuery
+	withProperties *PropertyQuery
+	withEndpoints  *ServiceEndpointQuery
+	withFKs        bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -106,14 +117,26 @@ func (epq *EquipmentPortQuery) QueryProperties() *PropertyQuery {
 	return query
 }
 
-// First returns the first EquipmentPort entity in the query. Returns *ErrNotFound when no equipmentport was found.
+// QueryEndpoints chains the current query on the endpoints edge.
+func (epq *EquipmentPortQuery) QueryEndpoints() *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: epq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, epq.sqlQuery()),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentport.EndpointsTable, equipmentport.EndpointsColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
+	return query
+}
+
+// First returns the first EquipmentPort entity in the query. Returns *NotFoundError when no equipmentport was found.
 func (epq *EquipmentPortQuery) First(ctx context.Context) (*EquipmentPort, error) {
 	eps, err := epq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(eps) == 0 {
-		return nil, &ErrNotFound{equipmentport.Label}
+		return nil, &NotFoundError{equipmentport.Label}
 	}
 	return eps[0], nil
 }
@@ -127,14 +150,14 @@ func (epq *EquipmentPortQuery) FirstX(ctx context.Context) *EquipmentPort {
 	return ep
 }
 
-// FirstID returns the first EquipmentPort id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first EquipmentPort id in the query. Returns *NotFoundError when no id was found.
 func (epq *EquipmentPortQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = epq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmentport.Label}
+		err = &NotFoundError{equipmentport.Label}
 		return
 	}
 	return ids[0], nil
@@ -159,9 +182,9 @@ func (epq *EquipmentPortQuery) Only(ctx context.Context) (*EquipmentPort, error)
 	case 1:
 		return eps[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmentport.Label}
+		return nil, &NotFoundError{equipmentport.Label}
 	default:
-		return nil, &ErrNotSingular{equipmentport.Label}
+		return nil, &NotSingularError{equipmentport.Label}
 	}
 }
 
@@ -184,9 +207,9 @@ func (epq *EquipmentPortQuery) OnlyID(ctx context.Context) (id string, err error
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmentport.Label}
+		err = &NotFoundError{equipmentport.Label}
 	default:
-		err = &ErrNotSingular{equipmentport.Label}
+		err = &NotSingularError{equipmentport.Label}
 	}
 	return
 }
@@ -275,6 +298,61 @@ func (epq *EquipmentPortQuery) Clone() *EquipmentPortQuery {
 	}
 }
 
+//  WithDefinition tells the query-builder to eager-loads the nodes that are connected to
+// the "definition" edge. The optional arguments used to configure the query builder of the edge.
+func (epq *EquipmentPortQuery) WithDefinition(opts ...func(*EquipmentPortDefinitionQuery)) *EquipmentPortQuery {
+	query := &EquipmentPortDefinitionQuery{config: epq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	epq.withDefinition = query
+	return epq
+}
+
+//  WithParent tells the query-builder to eager-loads the nodes that are connected to
+// the "parent" edge. The optional arguments used to configure the query builder of the edge.
+func (epq *EquipmentPortQuery) WithParent(opts ...func(*EquipmentQuery)) *EquipmentPortQuery {
+	query := &EquipmentQuery{config: epq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	epq.withParent = query
+	return epq
+}
+
+//  WithLink tells the query-builder to eager-loads the nodes that are connected to
+// the "link" edge. The optional arguments used to configure the query builder of the edge.
+func (epq *EquipmentPortQuery) WithLink(opts ...func(*LinkQuery)) *EquipmentPortQuery {
+	query := &LinkQuery{config: epq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	epq.withLink = query
+	return epq
+}
+
+//  WithProperties tells the query-builder to eager-loads the nodes that are connected to
+// the "properties" edge. The optional arguments used to configure the query builder of the edge.
+func (epq *EquipmentPortQuery) WithProperties(opts ...func(*PropertyQuery)) *EquipmentPortQuery {
+	query := &PropertyQuery{config: epq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	epq.withProperties = query
+	return epq
+}
+
+//  WithEndpoints tells the query-builder to eager-loads the nodes that are connected to
+// the "endpoints" edge. The optional arguments used to configure the query builder of the edge.
+func (epq *EquipmentPortQuery) WithEndpoints(opts ...func(*ServiceEndpointQuery)) *EquipmentPortQuery {
+	query := &ServiceEndpointQuery{config: epq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	epq.withEndpoints = query
+	return epq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -317,45 +395,185 @@ func (epq *EquipmentPortQuery) Select(field string, fields ...string) *Equipment
 }
 
 func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, error) {
-	rows := &sql.Rows{}
-	selector := epq.sqlQuery()
-	if unique := epq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*EquipmentPort = []*EquipmentPort{}
+		withFKs                  = epq.withFKs
+		_spec                    = epq.querySpec()
+	)
+	if epq.withDefinition != nil || epq.withParent != nil || epq.withLink != nil {
+		withFKs = true
 	}
-	query, args := selector.Query()
-	if err := epq.driver.Query(ctx, query, args, rows); err != nil {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, equipmentport.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
+		node := &EquipmentPort{config: epq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, epq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var eps EquipmentPorts
-	if err := eps.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	eps.config(epq.config)
-	return eps, nil
+
+	if query := epq.withDefinition; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*EquipmentPort)
+		for i := range nodes {
+			if fk := nodes[i].definition_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipmentportdefinition.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "definition_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Definition = n
+			}
+		}
+	}
+
+	if query := epq.withParent; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*EquipmentPort)
+		for i := range nodes {
+			if fk := nodes[i].parent_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipment.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Parent = n
+			}
+		}
+	}
+
+	if query := epq.withLink; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*EquipmentPort)
+		for i := range nodes {
+			if fk := nodes[i].link_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(link.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "link_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Link = n
+			}
+		}
+	}
+
+	if query := epq.withProperties; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*EquipmentPort)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Property(func(s *sql.Selector) {
+			s.Where(sql.InValues(equipmentport.PropertiesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.equipment_port_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "equipment_port_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Properties = append(node.Edges.Properties, n)
+		}
+	}
+
+	if query := epq.withEndpoints; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*EquipmentPort)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.ServiceEndpoint(func(s *sql.Selector) {
+			s.Where(sql.InValues(equipmentport.EndpointsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.port_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "port_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "port_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Endpoints = append(node.Edges.Endpoints, n)
+		}
+	}
+
+	return nodes, nil
 }
 
 func (epq *EquipmentPortQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := epq.sqlQuery()
-	unique := []string{equipmentport.FieldID}
-	if len(epq.unique) > 0 {
-		unique = epq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := epq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := epq.querySpec()
+	return sqlgraph.CountNodes(ctx, epq.driver, _spec)
 }
 
 func (epq *EquipmentPortQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -364,6 +582,42 @@ func (epq *EquipmentPortQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (epq *EquipmentPortQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   equipmentport.Table,
+			Columns: equipmentport.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipmentport.FieldID,
+			},
+		},
+		From:   epq.sql,
+		Unique: true,
+	}
+	if ps := epq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := epq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := epq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := epq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (epq *EquipmentPortQuery) sqlQuery() *sql.Selector {
@@ -637,7 +891,7 @@ func (eps *EquipmentPortSelect) sqlScan(ctx context.Context, v interface{}) erro
 }
 
 func (eps *EquipmentPortSelect) sqlQuery() sql.Querier {
-	view := "equipmentport_view"
-	return sql.Dialect(eps.driver.Dialect()).
-		Select(eps.fields...).From(eps.sql.As(view))
+	selector := eps.sql
+	selector.Select(selector.Columns(eps.fields...)...)
+	return selector
 }

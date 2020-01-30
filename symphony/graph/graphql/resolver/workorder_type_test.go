@@ -6,8 +6,9 @@
 package resolver
 
 import (
-	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"testing"
+
+	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"

@@ -20,7 +20,6 @@ class TestAttachWithoutIpsAvailable(unittest.TestCase):
         self._blocks = []
 
     def tearDown(self):
-        # TODO(wlq): Add back original blocks/restore state
         for block in self._blocks:
             self._s1ap_wrapper.mobility_util.add_ip_block(block)
         self._s1ap_wrapper.cleanup()
@@ -30,8 +29,7 @@ class TestAttachWithoutIpsAvailable(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
 
         # Clear blocks
-        self._blocks.extend(self._s1ap_wrapper.mobility_util.list_ip_blocks())
-        self._s1ap_wrapper.mobility_util.remove_ip_blocks(self._blocks)
+        self._s1ap_wrapper.mobility_util.cleanup()
 
         req = self._s1ap_wrapper.ue_req
         print("************************* Running End to End attach for ",

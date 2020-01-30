@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/store/sign/signtest"
 
 	"github.com/google/uuid"

@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -25,6 +27,7 @@ type CommentQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Comment
+	withFKs    bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -53,14 +56,14 @@ func (cq *CommentQuery) Order(o ...Order) *CommentQuery {
 	return cq
 }
 
-// First returns the first Comment entity in the query. Returns *ErrNotFound when no comment was found.
+// First returns the first Comment entity in the query. Returns *NotFoundError when no comment was found.
 func (cq *CommentQuery) First(ctx context.Context) (*Comment, error) {
 	cs, err := cq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(cs) == 0 {
-		return nil, &ErrNotFound{comment.Label}
+		return nil, &NotFoundError{comment.Label}
 	}
 	return cs[0], nil
 }
@@ -74,14 +77,14 @@ func (cq *CommentQuery) FirstX(ctx context.Context) *Comment {
 	return c
 }
 
-// FirstID returns the first Comment id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Comment id in the query. Returns *NotFoundError when no id was found.
 func (cq *CommentQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = cq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{comment.Label}
+		err = &NotFoundError{comment.Label}
 		return
 	}
 	return ids[0], nil
@@ -106,9 +109,9 @@ func (cq *CommentQuery) Only(ctx context.Context) (*Comment, error) {
 	case 1:
 		return cs[0], nil
 	case 0:
-		return nil, &ErrNotFound{comment.Label}
+		return nil, &NotFoundError{comment.Label}
 	default:
-		return nil, &ErrNotSingular{comment.Label}
+		return nil, &NotSingularError{comment.Label}
 	}
 }
 
@@ -131,9 +134,9 @@ func (cq *CommentQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{comment.Label}
+		err = &NotFoundError{comment.Label}
 	default:
-		err = &ErrNotSingular{comment.Label}
+		err = &NotSingularError{comment.Label}
 	}
 	return
 }
@@ -264,45 +267,42 @@ func (cq *CommentQuery) Select(field string, fields ...string) *CommentSelect {
 }
 
 func (cq *CommentQuery) sqlAll(ctx context.Context) ([]*Comment, error) {
-	rows := &sql.Rows{}
-	selector := cq.sqlQuery()
-	if unique := cq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*Comment = []*Comment{}
+		withFKs            = cq.withFKs
+		_spec              = cq.querySpec()
+	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, comment.ForeignKeys...)
 	}
-	query, args := selector.Query()
-	if err := cq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.ScanValues = func() []interface{} {
+		node := &Comment{config: cq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, cq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var cs Comments
-	if err := cs.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	cs.config(cq.config)
-	return cs, nil
+	return nodes, nil
 }
 
 func (cq *CommentQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := cq.sqlQuery()
-	unique := []string{comment.FieldID}
-	if len(cq.unique) > 0 {
-		unique = cq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := cq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := cq.querySpec()
+	return sqlgraph.CountNodes(ctx, cq.driver, _spec)
 }
 
 func (cq *CommentQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -311,6 +311,42 @@ func (cq *CommentQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (cq *CommentQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   comment.Table,
+			Columns: comment.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: comment.FieldID,
+			},
+		},
+		From:   cq.sql,
+		Unique: true,
+	}
+	if ps := cq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := cq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := cq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := cq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (cq *CommentQuery) sqlQuery() *sql.Selector {
@@ -584,7 +620,7 @@ func (cs *CommentSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (cs *CommentSelect) sqlQuery() sql.Querier {
-	view := "comment_view"
-	return sql.Dialect(cs.driver.Dialect()).
-		Select(cs.fields...).From(cs.sql.As(view))
+	selector := cs.sql
+	selector.Select(selector.Columns(cs.fields...)...)
+	return selector
 }

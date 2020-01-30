@@ -20,7 +20,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/resolverutil"
 
 	"github.com/pkg/errors"
 )
@@ -38,6 +37,7 @@ const (
 	enum                = "enum"
 	equipmentVal        = "equipment"
 	locationVal         = "location"
+	serviceVal          = "service"
 )
 
 func index(a []string, x string) int {
@@ -50,7 +50,8 @@ func index(a []string, x string) int {
 }
 
 func locationTypeHierarchy(ctx context.Context, c *ent.Client) ([]string, error) {
-	locTypeResult, err := resolverutil.LocationTypes(ctx, c)
+	locTypeResult, err := c.LocationType.Query().
+		Paginate(ctx, nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +140,7 @@ func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTy
 			if ent.IsNotFound(err) {
 				break
 			}
-			return nil, errors.Wrapf(err, "error querying parent location for location: %s", currLoc.Name)
+			return nil, errors.Wrapf(err, "querying parent location for location: %s", parents[idx])
 		}
 	}
 	return parents, nil
@@ -155,7 +156,8 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 	switch entity {
 	case models.PropertyEntityEquipment:
 		var equipTypesWithEquipment []ent.EquipmentType
-		equipTypes, err := resolverutil.EquipmentTypes(ctx, c)
+		equipTypes, err := c.EquipmentType.Query().
+			Paginate(ctx, nil, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -188,7 +190,8 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		}
 	case models.PropertyEntityLocation:
 		var locTypesWithInstances []ent.LocationType
-		locTypes, err := resolverutil.LocationTypes(ctx, c)
+		locTypes, err := c.LocationType.Query().
+			Paginate(ctx, nil, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -221,7 +224,8 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		}
 	case models.PropertyEntityPort, models.PropertyEntityLink:
 		var relevantPortTypes []ent.EquipmentPortType
-		portTypes, err := resolverutil.EquipmentPortTypes(ctx, c)
+		portTypes, err := c.EquipmentPortType.Query().
+			Paginate(ctx, nil, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -274,7 +278,8 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		}
 	case models.PropertyEntityService:
 		var serviceTypesWithServices []ent.ServiceType
-		serviceTypes, err := resolverutil.ServiceTypes(ctx, c)
+		serviceTypes, err := c.ServiceType.Query().
+			Paginate(ctx, nil, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -451,6 +456,16 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 			id, _ = property.QueryLocationValue().OnlyID(ctx)
 		}
 		return id, nil
+	case serviceVal:
+		property, ok := v.(*ent.Property)
+		if !ok {
+			return "", nil
+		}
+		value, _ := property.QueryServiceValue().Only(ctx)
+		if value == nil {
+			return "", nil
+		}
+		return value.Name, nil
 	default:
 		return "", errors.Errorf("type not supported %s", typ)
 	}

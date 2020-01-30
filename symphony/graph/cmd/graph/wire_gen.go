@@ -10,12 +10,12 @@
 package main
 
 import (
-	"github.com/facebookincubator/symphony/cloud/log"
-	"github.com/facebookincubator/symphony/cloud/mysql"
-	"github.com/facebookincubator/symphony/cloud/server"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
 	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/mysql"
+	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
@@ -53,8 +53,10 @@ func NewApplication(flags *cliFlags) (*application, func(), error) {
 	}
 	db := mysql.Open(string2)
 	graphgrpcConfig := graphgrpc.Config{
-		DB:     db,
-		Logger: logger,
+		DB:      db,
+		Logger:  logger,
+		Orc8r:   orc8rConfig,
+		Tenancy: mySQLTenancy,
 	}
 	grpcServer, cleanup3, err := graphgrpc.NewServer(graphgrpcConfig)
 	if err != nil {

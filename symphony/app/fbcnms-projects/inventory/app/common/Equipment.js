@@ -16,7 +16,7 @@ import type {
 import type {FutureState, WorkOrder} from './WorkOrder';
 import type {Location} from './Location';
 import type {Property} from './Property';
-import type {Service} from './Service';
+import type {Service, ServiceEndpoint} from './Service';
 
 import {getInitialPropertyFromType} from './PropertyType';
 
@@ -50,6 +50,7 @@ export type EquipmentPort = {
   parentEquipment: Equipment,
   link: ?Link,
   properties: Array<Property>,
+  serviceEndpoints: Array<ServiceEndpoint>,
 };
 
 export type Link = {
@@ -78,6 +79,7 @@ export const getInitialPortFromDefinition = (
     ? definition.portType.propertyTypes.map(getInitialPropertyFromType)
     : [],
   link: null,
+  serviceEndpoints: [],
 });
 
 export const getNonInstancePositionDefinitions = (

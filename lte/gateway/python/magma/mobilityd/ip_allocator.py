@@ -132,12 +132,6 @@ class IPAllocator:
                 lambda key: store.ip_states(client, key))
             self._sid_ips_map = store.SIDIPsDict(client)
 
-        # TODO: once we are no longer clearing all values on initialization,
-        # we should add unit tests to ensure values are written to Redis
-        # correctly.
-        self._assigned_ip_blocks.clear()
-        self._sid_ips_map.clear()
-
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
 
@@ -239,6 +233,8 @@ class IPAllocator:
             for sid in remove_sids:
                 self._sid_ips_map.pop(sid)
 
+            for block in remove_blocks:
+                logging.info('Removed IP block %s from IPv4 address pool', block)
             return remove_blocks
 
     def list_added_ip_blocks(self) -> List[ip_network]:
@@ -395,7 +391,7 @@ class IPAllocator:
                     "(%s, %s) pair is not found", sid, str(ip))
             if not self._test_ip_state(ip, IPState.ALLOCATED):
                 logging.error("IP not found in used list, check if IP is "
-                             "already released: <%s, %s>", sid, ip)
+                              "already released: <%s, %s>", sid, ip)
                 raise IPNotInUseError("IP not found in used list: %s", str(ip))
 
             self._mark_ip_state(ip, IPState.RELEASED)

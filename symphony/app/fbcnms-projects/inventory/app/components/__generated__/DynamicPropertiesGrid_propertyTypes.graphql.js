@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type DynamicPropertiesGrid_propertyTypes$ref: FragmentReference;
 declare export opaque type DynamicPropertiesGrid_propertyTypes$fragmentType: DynamicPropertiesGrid_propertyTypes$ref;
@@ -38,6 +38,7 @@ export type DynamicPropertiesGrid_propertyTypes$data = DynamicPropertiesGrid_pro
 export type DynamicPropertiesGrid_propertyTypes$key = $ReadOnlyArray<{
   +$data?: DynamicPropertiesGrid_propertyTypes$data,
   +$fragmentRefs: DynamicPropertiesGrid_propertyTypes$ref,
+  ...
 }>;
 */
 

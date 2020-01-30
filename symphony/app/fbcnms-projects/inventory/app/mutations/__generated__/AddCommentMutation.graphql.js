@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 6ef7b66c3fc805490b9cbd3d584814e8
+ * @relayHash 960fea50de2b63c23ab49dff00c63a28
  */
 
 /* eslint-disable */
@@ -16,7 +16,7 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type TextCommentPost_comment$ref = any;
-export type CommentEntity = "WORK_ORDER" | "%future added value";
+export type CommentEntity = "PROJECT" | "WORK_ORDER" | "%future added value";
 export type CommentInput = {|
   entityType: CommentEntity,
   id: string,

@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
@@ -41,23 +43,23 @@ func (wod *WorkOrderDelete) ExecX(ctx context.Context) int {
 }
 
 func (wod *WorkOrderDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(wod.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(workorder.Table))
-	for _, p := range wod.predicates {
-		p(selector)
+	_spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: workorder.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: workorder.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(workorder.Table).FromSelect(selector).Query()
-	if err := wod.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := wod.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, wod.driver, _spec)
 }
 
 // WorkOrderDeleteOne is the builder for deleting a single WorkOrder entity.
@@ -72,7 +74,7 @@ func (wodo *WorkOrderDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{workorder.Label}
+		return &NotFoundError{workorder.Label}
 	default:
 		return nil
 	}

@@ -78,8 +78,8 @@ const styles = {
 type SearchSource = 'Options' | 'UserInput';
 
 export type Entry = {
-  id: string,
-  label: string,
+  +id: string,
+  +label: string,
 };
 
 const autoSuggestStyles = (theme: Theme, searchSource: SearchSource) => ({

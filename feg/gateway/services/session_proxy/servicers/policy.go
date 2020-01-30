@@ -43,8 +43,8 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		GcID:          pReq.GcId,
 		Qos:           qos,
 		HardwareAddr:  pReq.HardwareAddr,
-		RATType:       credit_control.GetRATType(pReq.RatType),
-		IPCANType:     credit_control.GetIPCANType(pReq.RatType),
+		RATType:       gx.GetRATType(pReq.RatType),
+		IPCANType:     gx.GetIPCANType(pReq.RatType),
 	}
 
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
@@ -57,13 +57,14 @@ func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.S
 	}
 	request := &gx.CreditControlRequest{
 		SessionID:     pRequest.SessionId,
+		DestHost:      pRequest.GetTgppCtx().GetGxDestHost(),
 		Type:          credit_control.CRTTerminate,
-		IMSI:          removeSidPrefix(pRequest.Sid),
+		IMSI:          credit_control.AddIMSIPrefix(pRequest.Sid),
 		RequestNumber: pRequest.RequestNumber,
 		IPAddr:        pRequest.UeIpv4,
 		UsageReports:  reports,
-		RATType:       credit_control.GetRATType(pRequest.RatType),
-		IPCANType:     credit_control.GetIPCANType(pRequest.RatType),
+		RATType:       gx.GetRATType(pRequest.RatType),
+		IPCANType:     gx.GetIPCANType(pRequest.RatType),
 	}
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }
@@ -96,14 +97,6 @@ func getGxAnswerOrError(
 	}
 }
 
-func getPolicyRulesFromDefinitions(ruleDefs []*gx.RuleDefinition) []*protos.PolicyRule {
-	policyRules := make([]*protos.PolicyRule, 0, len(ruleDefs))
-	for _, def := range ruleDefs {
-		policyRules = append(policyRules, def.ToProto())
-	}
-	return policyRules
-}
-
 func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.CreditControlAnswer) []*protos.UsageMonitoringUpdateResponse {
 	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCAInit.UsageMonitors))
 	// If there is a message wide revalidation time, apply it to every Usage Monitor
@@ -112,7 +105,8 @@ func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.Cred
 		monitors = append(monitors, &protos.UsageMonitoringUpdateResponse{
 			Credit:           monitor.ToUsageMonitoringCredit(),
 			SessionId:        sessionID,
-			Sid:              addSidPrefix(imsi),
+			TgppCtx:          &protos.TgppContext{GxDestHost: gxCCAInit.OriginHost},
+			Sid:              credit_control.AddIMSIPrefix(imsi),
 			Success:          true,
 			EventTriggers:    triggers,
 			RevalidationTime: revalidationTime,
@@ -242,9 +236,9 @@ func addMissingGxResponses(
 		responses = append(responses, &protos.UsageMonitoringUpdateResponse{
 			Success:   false,
 			SessionId: ccr.SessionID,
-			Sid:       addSidPrefix(ccr.IMSI),
+			Sid:       credit_control.AddIMSIPrefix(ccr.IMSI),
 			Credit: &protos.UsageMonitoringCredit{
-				MonitoringKey: []byte(ccr.UsageReports[0].MonitoringKey),
+				MonitoringKey: ccr.UsageReports[0].MonitoringKey,
 				Level:         protos.MonitoringLevel(ccr.UsageReports[0].Level),
 			},
 		})
@@ -266,18 +260,21 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer
 	res := &protos.UsageMonitoringUpdateResponse{
 		Success:               answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
 		SessionId:             request.SessionID,
-		Sid:                   addSidPrefix(request.IMSI),
+		Sid:                   credit_control.AddIMSIPrefix(request.IMSI),
 		ResultCode:            answer.ResultCode,
 		RulesToRemove:         rulesToRemove,
 		StaticRulesToInstall:  staticRules,
 		DynamicRulesToInstall: dynamicRules,
+	}
+	if len(answer.OriginHost) > 0 {
+		res.TgppCtx = &protos.TgppContext{GxDestHost: answer.OriginHost}
 	}
 	if len(answer.UsageMonitors) == 0 {
 		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
 		res.Credit =
 			&protos.UsageMonitoringCredit{
 				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: []byte(request.UsageReports[0].MonitoringKey),
+				MonitoringKey: request.UsageReports[0].MonitoringKey,
 				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
 	} else {
 		res.Credit = answer.UsageMonitors[0].ToUsageMonitoringCredit()

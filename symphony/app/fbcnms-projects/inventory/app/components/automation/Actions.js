@@ -75,12 +75,14 @@ export default function Actions() {
           <Button
             variant="text"
             onClick={() => history.push('/automation/actions/list')}>
-            Upload Locations
+            View Rules
           </Button>
         </div>
       </ActionsHead>
       <div className={classes.main}>
-        <Text variant="h6">Get Started</Text>
+        <Text variant="h3">Actions</Text>
+        <div className={classes.spacer} />
+        <Text variant="h6">Whenever...</Text>
         <Grid container spacing={3}>
           {results.map(trigger => (
             <Grid key={trigger?.triggerID} item xs={3}>

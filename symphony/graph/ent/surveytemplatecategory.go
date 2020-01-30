@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 )
 
 // SurveyTemplateCategory is the model entity for the SurveyTemplateCategory schema.
@@ -28,32 +29,77 @@ type SurveyTemplateCategory struct {
 	CategoryTitle string `json:"category_title,omitempty"`
 	// CategoryDescription holds the value of the "category_description" field.
 	CategoryDescription string `json:"category_description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyTemplateCategoryQuery when eager-loading is set.
+	Edges                                     SurveyTemplateCategoryEdges `json:"edges"`
+	location_type_survey_template_category_id *string
 }
 
-// FromRows scans the sql response data into SurveyTemplateCategory.
-func (stc *SurveyTemplateCategory) FromRows(rows *sql.Rows) error {
-	var scanstc struct {
-		ID                  int
-		CreateTime          sql.NullTime
-		UpdateTime          sql.NullTime
-		CategoryTitle       sql.NullString
-		CategoryDescription sql.NullString
+// SurveyTemplateCategoryEdges holds the relations/edges for other nodes in the graph.
+type SurveyTemplateCategoryEdges struct {
+	// SurveyTemplateQuestions holds the value of the survey_template_questions edge.
+	SurveyTemplateQuestions []*SurveyTemplateQuestion
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*SurveyTemplateCategory) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // category_title
+		&sql.NullString{}, // category_description
 	}
-	// the order here should be the same as in the `surveytemplatecategory.Columns`.
-	if err := rows.Scan(
-		&scanstc.ID,
-		&scanstc.CreateTime,
-		&scanstc.UpdateTime,
-		&scanstc.CategoryTitle,
-		&scanstc.CategoryDescription,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyTemplateCategory) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // location_type_survey_template_category_id
 	}
-	stc.ID = strconv.Itoa(scanstc.ID)
-	stc.CreateTime = scanstc.CreateTime.Time
-	stc.UpdateTime = scanstc.UpdateTime.Time
-	stc.CategoryTitle = scanstc.CategoryTitle.String
-	stc.CategoryDescription = scanstc.CategoryDescription.String
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the SurveyTemplateCategory fields.
+func (stc *SurveyTemplateCategory) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(surveytemplatecategory.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	stc.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		stc.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		stc.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field category_title", values[2])
+	} else if value.Valid {
+		stc.CategoryTitle = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field category_description", values[3])
+	} else if value.Valid {
+		stc.CategoryDescription = value.String
+	}
+	values = values[4:]
+	if len(values) == len(surveytemplatecategory.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_type_survey_template_category_id", value)
+		} else if value.Valid {
+			stc.location_type_survey_template_category_id = new(string)
+			*stc.location_type_survey_template_category_id = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -105,18 +151,6 @@ func (stc *SurveyTemplateCategory) id() int {
 
 // SurveyTemplateCategories is a parsable slice of SurveyTemplateCategory.
 type SurveyTemplateCategories []*SurveyTemplateCategory
-
-// FromRows scans the sql response data into SurveyTemplateCategories.
-func (stc *SurveyTemplateCategories) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanstc := &SurveyTemplateCategory{}
-		if err := scanstc.FromRows(rows); err != nil {
-			return err
-		}
-		*stc = append(*stc, scanstc)
-	}
-	return nil
-}
 
 func (stc SurveyTemplateCategories) config(cfg config) {
 	for _i := range stc {

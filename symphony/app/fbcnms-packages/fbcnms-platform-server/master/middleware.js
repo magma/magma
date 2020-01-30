@@ -23,6 +23,6 @@ export const masterOrgMiddleware = asyncHandler(
       }
     }
 
-    return res.redirect(req.access.loginUrl);
+    return res.redirect(req.access?.loginUrl || '/user/login');
   },
 );

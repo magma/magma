@@ -42,6 +42,7 @@ class AddEquipmentInput:
         rangeToValue: Optional[float] = None
         equipmentIDValue: Optional[str] = None
         locationIDValue: Optional[str] = None
+        serviceIDValue: Optional[str] = None
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
 
@@ -52,6 +53,7 @@ class AddEquipmentInput:
     parent: Optional[str] = None
     positionDefinition: Optional[str] = None
     workOrder: Optional[str] = None
+    externalId: Optional[str] = None
 
 
 @dataclass_json
@@ -79,7 +81,7 @@ class AddEquipmentMutation:
         addEquipment: Optional[Equipment] = None
 
     data: Optional[AddEquipmentMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

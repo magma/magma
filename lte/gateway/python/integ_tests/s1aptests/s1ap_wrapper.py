@@ -47,8 +47,9 @@ class TestWrapper(object):
         magmad_client = MagmadServiceGrpc()
         self._sub_util = SubscriberUtil(subscriber_client)
         # Remove existing subscribers to start
-        self._sub_util.clean_up()
+        self._sub_util.cleanup()
         self._mobility_util = MobilityUtil(mobility_client)
+        self._mobility_util.cleanup()
         self._magmad_util = MagmadUtil(magmad_client)
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()
@@ -286,8 +287,9 @@ class TestWrapper(object):
         print("************************* send SCTP SHUTDOWN")
         self._s1_util.issue_cmd(s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
         self._s1_util.cleanup()
-        self._sub_util.clean_up()
+        self._sub_util.cleanup()
         self._trf_util.cleanup()
+        self._mobility_util.cleanup()
 
         # Cloud cleanup needs to happen after cleanup for
         # subscriber util and mobility util

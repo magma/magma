@@ -18,6 +18,7 @@ type Props = {
   onOpen?: () => void,
   onClose?: () => void,
   open?: boolean,
+  contentClickTriggerClose?: boolean,
 };
 
 const useClasses = makeStyles(theme => ({
@@ -78,6 +79,10 @@ export default function Popout(props: Props) {
   const classes = useClasses();
   const relativeRef = React.useRef();
   const [open, togglePopout] = React.useState(false);
+  const handleClose = React.useCallback(
+    () => (onClose ? onClose() : togglePopout(false)),
+    [onClose, togglePopout],
+  );
 
   const relativeRefPosition = relativeRef.current
     ? relativeRef.current.getBoundingClientRect()
@@ -114,9 +119,8 @@ export default function Popout(props: Props) {
         PaperProps={{className: classes.menuPaper}}
         id="navigation-menu"
         open={props.open !== undefined ? props.open : open}
-        onClose={() => {
-          onClose ? onClose() : togglePopout(false);
-        }}>
+        onClose={handleClose}
+        onClick={props.contentClickTriggerClose && handleClose}>
         {content}
       </Popover>
     </div>

@@ -27,6 +27,7 @@ const inventoryEntitiesTypeaheadQuery = graphql`
           entityType
           name
           type
+          externalId
         }
       }
     }
@@ -82,9 +83,18 @@ class InventoryEntitiesTypeahead extends React.Component<Props, State> {
         return;
       }
 
-      this.setState({
-        suggestions: response.searchForEntity.edges.map(edge => edge.node),
+      const suggestions = response.searchForEntity.edges
+        .filter(Boolean)
+        .map(edge => ({
+          ...edge.node,
+        }));
+      suggestions.forEach(node => {
+        if (!!node.externalId) {
+          node.type = `${node.type} - ${node.externalId}`;
+        }
       });
+
+      this.setState({suggestions});
     });
   }
 

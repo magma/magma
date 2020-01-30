@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/pkg/errors"
@@ -23,14 +24,14 @@ func handleServiceFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput)
 	switch filter.FilterType {
 	case models.ServiceFilterTypeServiceInstName:
 		return serviceNameFilter(q, filter)
+	case models.ServiceFilterTypeServiceStatus:
+		return serviceStatusFilter(q, filter)
 	case models.ServiceFilterTypeServiceType:
 		return serviceTypeFilter(q, filter)
 	case models.ServiceFilterTypeServiceInstExternalID:
 		return externalIDFilter(q, filter)
 	case models.ServiceFilterTypeServiceInstCustomerName:
 		return customerNameFilter(q, filter)
-	case models.ServiceFilterTypeServiceInstProperty:
-		return servicePropertyFilter(q, filter)
 	default:
 		return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
 	}
@@ -41,6 +42,13 @@ func serviceNameFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (
 		return q.Where(service.NameContainsFold(*filter.StringValue)), nil
 	}
 	return nil, errors.Errorf("operation %q not supported", filter.Operator)
+}
+
+func serviceStatusFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
+	if filter.Operator == models.FilterOperatorIsOneOf {
+		return q.Where(service.StatusIn(filter.IDSet...)), nil
+	}
+	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
 func serviceTypeFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
@@ -64,25 +72,49 @@ func customerNameFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) 
 	return nil, errors.Errorf("operation %q not supported", filter.Operator)
 }
 
+func handleServicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
+	if filter.FilterType == models.ServiceFilterTypeProperty {
+		return servicePropertyFilter(q, filter)
+	}
+	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
+}
+
 func servicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
 	p := filter.PropertyValue
 	switch filter.Operator {
 	case models.FilterOperatorIs:
-		q = q.Where(
-			service.HasPropertiesWith(
-				property.HasTypeWith(
-					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
-				),
-			),
-		)
 		pred, err := GetPropertyPredicate(*p)
 		if err != nil {
 			return nil, err
 		}
-		if pred != nil {
-			q = q.Where(service.HasPropertiesWith(pred))
+		predForType, err := GetPropertyTypePredicate(*p)
+		if err != nil {
+			return nil, err
 		}
+
+		q = q.Where(
+			service.Or(
+				service.HasPropertiesWith(
+					property.And(
+						property.HasTypeWith(
+							propertytype.Name(p.Name),
+							propertytype.Type(p.Type.String()),
+						),
+						pred,
+					),
+				),
+				service.And(
+					service.HasTypeWith(servicetype.HasPropertyTypesWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+						predForType,
+					)),
+					service.Not(service.HasPropertiesWith(
+						property.HasTypeWith(
+							propertytype.Name(p.Name),
+							propertytype.Type(p.Type.String()),
+						)),
+					))))
 		return q, nil
 	default:
 		return nil, errors.Errorf("operator %q not supported", filter.Operator)
@@ -100,8 +132,13 @@ func serviceLocationFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 	if filter.Operator == models.FilterOperatorIsOneOf {
 		var ps []predicate.Service
 		for _, lid := range filter.IDSet {
-			ps = append(ps, service.HasTerminationPointsWith(
-				equipment.HasLocationWith(BuildLocationAncestorFilter(lid, 1, *filter.MaxDepth))))
+			eqPred := BuildGeneralEquipmentAncestorFilter(
+				equipment.HasLocationWith(BuildLocationAncestorFilter(lid, 1, *filter.MaxDepth)),
+				1,
+				*filter.MaxDepth)
+			ps = append(ps, service.HasEndpointsWith(
+				serviceendpoint.HasPortWith(equipmentport.HasParentWith(eqPred)),
+				serviceendpoint.Role(models.ServiceEndpointRoleConsumer.String())))
 		}
 		return q.Where(service.Or(ps...)), nil
 	}
@@ -117,10 +154,11 @@ func handleEquipmentInServiceFilter(q *ent.ServiceQuery, filter *models.ServiceF
 
 func equipmentInServiceTypeFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
 	if filter.Operator == models.FilterOperatorContains {
+		equipmentNameQuery := equipment.NameContainsFold(*filter.StringValue)
 		return q.Where(
 			service.Or(service.HasLinksWith(
-				link.HasPortsWith(equipmentport.HasParentWith(equipment.NameContainsFold(*filter.StringValue)))),
-				service.HasTerminationPointsWith(equipment.NameContainsFold(*filter.StringValue)))), nil
+				link.HasPortsWith(equipmentport.HasParentWith(equipmentNameQuery))),
+				service.HasEndpointsWith(serviceendpoint.HasPortWith(equipmentport.HasParentWith(equipmentNameQuery))))), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

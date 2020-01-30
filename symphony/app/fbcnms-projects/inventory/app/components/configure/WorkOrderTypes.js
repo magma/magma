@@ -71,7 +71,7 @@ type State = {
 
 const workOrderTypesQuery = graphql`
   query WorkOrderTypesQuery {
-    workOrderTypes(first: 50) @connection(key: "Configure_workOrderTypes") {
+    workOrderTypes(first: 500) @connection(key: "Configure_workOrderTypes") {
       edges {
         node {
           id

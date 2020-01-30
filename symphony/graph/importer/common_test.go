@@ -8,15 +8,24 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
-	"github.com/facebookincubator/symphony/cloud/testdb"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/graphql/resolver"
-
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
+
+	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/graphql/resolver"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/testdb"
+
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	svcName  = "serviceName"
+	svc2Name = "serviceName2"
+	svc3Name = "serviceName3"
+	svc4Name = "serviceName4"
 )
 
 type TestImporterResolver struct {
@@ -40,4 +49,27 @@ func newResolver(t *testing.T, drv dialect.Driver) (*TestImporterResolver, error
 
 	i := newImporter(logtest.NewTestLogger(t), r)
 	return &TestImporterResolver{drv, client, *i}, nil
+}
+
+func prepareSvcData(ctx context.Context, t *testing.T, r TestImporterResolver) {
+	mr := r.importer.r.Mutation()
+	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
+	_, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          svcName,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          svc2Name,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          svc3Name,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
 }

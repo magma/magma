@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/ent/schema/index"
 )
 
 // EquipmentPortType defines the equipment port definition schema.
@@ -82,6 +83,16 @@ func (EquipmentPort) Edges() []ent.Edge {
 		edge.To("link", Link.Type).
 			Unique(),
 		edge.To("properties", Property.Type),
+		edge.From("endpoints", ServiceEndpoint.Type).
+			Ref("port"),
+	}
+}
+
+// Indexes returns equipment port indexes.
+func (EquipmentPort) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Edges("definition", "parent").
+			Unique(),
 	}
 }
 
@@ -128,6 +139,14 @@ func (EquipmentPosition) Edges() []ent.Edge {
 			Ref("positions").
 			Unique(),
 		edge.To("attachment", Equipment.Type).
+			Unique(),
+	}
+}
+
+// Indexes returns equipment position indexes.
+func (EquipmentPosition) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Edges("definition", "parent").
 			Unique(),
 	}
 }
@@ -193,6 +212,8 @@ func (Equipment) Fields() []ent.Field {
 			Optional(),
 		field.String("device_id").
 			Optional(),
+		field.String("external_id").
+			Optional(),
 	}
 }
 
@@ -213,8 +234,7 @@ func (Equipment) Edges() []ent.Edge {
 		edge.To("work_order", WorkOrder.Type).
 			Unique(),
 		edge.To("properties", Property.Type),
-		edge.From("service", Service.Type).
-			Ref("termination_points"),
 		edge.To("files", File.Type),
+		edge.To("hyperlinks", Hyperlink.Type),
 	}
 }

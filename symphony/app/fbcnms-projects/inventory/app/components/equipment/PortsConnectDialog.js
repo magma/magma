@@ -8,13 +8,12 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
 import type {Equipment, EquipmentPort} from '../../common/Equipment';
 import type {PowerSearchEquipmentResultsTable_equipment} from '../comparison_view/__generated__/PowerSearchEquipmentResultsTable_equipment.graphql';
 import type {Property} from '../../common/Property';
 import type {WithStyles} from '@material-ui/core';
 
-import AvailablePortsTable from './AvailablePortsTable';
+import AvailablePortsTable from '../AvailablePortsTable';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -30,11 +29,11 @@ import StepLabel from '@material-ui/core/StepLabel';
 import Stepper from '@material-ui/core/Stepper';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
+import {WizardContextProvider} from '@fbcnms/ui/components/design-system/Wizard/WizardContext';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql} from 'react-relay';
 import {sortPropertiesByIndex} from '../../common/Property';
 import {uniqBy} from 'lodash';
-import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
@@ -84,8 +83,7 @@ type Props = {
   equipment: Equipment,
   port: EquipmentPort,
   onConnectPorts: (EquipmentPort, Array<Property>) => void,
-} & WithStyles<typeof styles> &
-  ContextRouter;
+} & WithStyles<typeof styles>;
 
 type State = {
   activeEquipement: ?Equipment,
@@ -112,11 +110,11 @@ const portsConnectDialogQuery = graphql`
             bandwidth
           }
         }
-        positions {
-          ...EquipmentPortsTable_position @relay(mask: false)
-        }
-        ports {
-          ...EquipmentPortsTable_port @relay(mask: false)
+        descendentsIncludingSelf {
+          ports(availableOnly: true) {
+            id
+            ...AvailablePortsTable_ports
+          }
         }
       }
     }
@@ -135,15 +133,13 @@ class PortsConnectDialog extends React.Component<Props, State> {
   }
 
   handleElementSelected = equipment => {
-    this.setState(state => ({
-      activeStep: state.activeStep + 1,
+    this.setState({
       activeEquipement: equipment,
-    }));
+    });
   };
 
   handlePortSelected = (port: EquipmentPort) => {
     this.setState(state => ({
-      activeStep: state.activeStep + 1,
       targetPort: port,
       linkProperties: uniqBy(
         [...state.linkProperties, ...this._getPortProperties(port)],
@@ -167,8 +163,8 @@ class PortsConnectDialog extends React.Component<Props, State> {
     });
 
   getStepContent = () => {
-    const {history, classes} = this.props;
-    const {linkProperties} = this.state;
+    const {classes} = this.props;
+    const {linkProperties, activeEquipement, targetPort} = this.state;
     const EquipmentTable = (props: {
       equipment: PowerSearchEquipmentResultsTable_equipment,
     }) => {
@@ -176,10 +172,8 @@ class PortsConnectDialog extends React.Component<Props, State> {
         <div className={classes.searchResults}>
           <PowerSearchEquipmentResultsTable
             equipment={props.equipment}
-            onEquipmentSelected={this.handleElementSelected}
-            onWorkOrderSelected={workOrderId =>
-              history.replace(`inventory?workorder=${workOrderId}`)
-            }
+            selectedEquipment={activeEquipement}
+            onRowSelected={this.handleElementSelected}
           />
         </div>
       );
@@ -198,15 +192,20 @@ class PortsConnectDialog extends React.Component<Props, State> {
           <InventoryQueryRenderer
             query={portsConnectDialogQuery}
             variables={{
-              equipmentId: nullthrows(this.state.activeEquipement).id,
+              equipmentId: nullthrows(activeEquipement).id,
             }}
             render={props => {
               const {equipment} = props;
+              const availablePorts = equipment.descendentsIncludingSelf
+                .map(a => a.ports)
+                .flat()
+                .filter(p => p.id != this.props.port.id);
               return (
                 <AvailablePortsTable
-                  equipment={equipment}
-                  onPortClicked={this.handlePortSelected}
-                  sourcePortId={this.props.port.id}
+                  equipment={nullthrows(activeEquipement)}
+                  ports={availablePorts}
+                  selectedPort={targetPort}
+                  onPortSelected={this.handlePortSelected}
                 />
               );
             }}
@@ -229,8 +228,8 @@ class PortsConnectDialog extends React.Component<Props, State> {
           <PortsConnectConfirmation
             aSideEquipment={this.props.equipment}
             aSidePort={this.props.port}
-            zSideEquipment={nullthrows(this.state.activeEquipement)}
-            zSidePort={nullthrows(this.state.targetPort)}
+            zSideEquipment={nullthrows(activeEquipement)}
+            zSidePort={nullthrows(targetPort)}
           />
         );
       default:
@@ -258,7 +257,12 @@ class PortsConnectDialog extends React.Component<Props, State> {
 
   render() {
     const {classes} = this.props;
-    const {activeStep} = this.state;
+    const {
+      activeStep,
+      activeEquipement,
+      targetPort,
+      linkProperties,
+    } = this.state;
     const lastStep = activeStep == steps.length - 1;
     const connector = (
       <StepConnector
@@ -274,27 +278,34 @@ class PortsConnectDialog extends React.Component<Props, State> {
     return (
       <>
         <DialogContent div className={classes.root}>
-          <Stepper
-            alternativeLabel
-            activeStep={activeStep}
-            connector={connector}>
-            {steps.map(label => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          <div className={classes.content}>{this.getStepContent()}</div>
+          <WizardContextProvider>
+            <Stepper
+              alternativeLabel
+              activeStep={activeStep}
+              connector={connector}>
+              {steps.map(label => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+            <div className={classes.content}>{this.getStepContent()}</div>
+          </WizardContextProvider>
         </DialogContent>
         <DialogActions>
           <Button
             disabled={activeStep === 0}
-            skin="regular"
+            skin="gray"
             onClick={this.handleBack}>
             Back
           </Button>
           {!lastStep && (
-            <Button disabled={activeStep != 2} onClick={this.handleNext}>
+            <Button
+              disabled={
+                (activeStep === 0 && !activeEquipement) ||
+                (activeStep === 1 && !targetPort)
+              }
+              onClick={this.handleNext}>
               Next
             </Button>
           )}
@@ -304,8 +315,8 @@ class PortsConnectDialog extends React.Component<Props, State> {
               color="primary"
               onClick={() =>
                 this.props.onConnectPorts(
-                  nullthrows(this.state.targetPort),
-                  this.state.linkProperties,
+                  nullthrows(targetPort),
+                  linkProperties,
                 )
               }>
               Connect
@@ -317,4 +328,4 @@ class PortsConnectDialog extends React.Component<Props, State> {
   }
 }
 
-export default withRouter(withStyles(styles)(PortsConnectDialog));
+export default withStyles(styles)(PortsConnectDialog);

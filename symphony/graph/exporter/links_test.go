@@ -26,18 +26,13 @@ import (
 )
 
 const (
-	portAIDTitle        = "Port A ID"
 	portANameTitle      = "Port A Name"
-	portATypeTitle      = "Port A Type"
-	portBIDTitle        = "Port B ID"
 	portBNameTitle      = "Port B Name"
-	portBTypeTitle      = "Port B Type"
-	equipmentAIDTitle   = "Equipment A ID"
 	equipmentANameTitle = "Equipment A Name"
 	equipmentATypeTitle = "Equipment A Type"
-	equipmentBIDTitle   = "Equipment B ID"
 	equipmentBNameTitle = "Equipment B Name"
 	equipmentBTypeTitle = "Equipment B Type"
+	serviceNamesTitle   = "Service Names"
 )
 
 //prepareLinkData: data will be of type:
@@ -162,7 +157,7 @@ func prepareLinkData(ctx context.Context, t *testing.T, r TestExporterResolver) 
 	portDef2 := equipmentType2.QueryPortDefinitions().Where(equipmentportdefinition.Name(portName2)).OnlyX(ctx)
 	portDef3 := equipmentType2.QueryPortDefinitions().Where(equipmentportdefinition.Name(portName3)).OnlyX(ctx)
 	propType2 := portDef1.QueryEquipmentPortType().QueryLinkPropertyTypes().Where(propertytype.Name(propStr2)).OnlyX(ctx)
-	_, _ = mr.AddLink(ctx, models.AddLinkInput{
+	l1, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
 			{Equipment: parentEquipment.ID, Port: portDef1.ID},
 			{Equipment: childEquip1.ID, Port: portDef2.ID},
@@ -175,12 +170,30 @@ func prepareLinkData(ctx context.Context, t *testing.T, r TestExporterResolver) 
 		},
 	})
 
-	_, _ = mr.AddLink(ctx, models.AddLinkInput{
+	l2, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
 			{Equipment: childEquip1.ID, Port: portDef3.ID},
 			{Equipment: childEquip2.ID, Port: portDef3.ID},
 		},
 	})
+	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
+	s1, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "S1",
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	s2, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "S2",
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	_, _ = mr.AddServiceLink(ctx, s1.ID, l1.ID)
+	_, _ = mr.AddServiceLink(ctx, s2.ID, l1.ID)
+	_, _ = mr.AddServiceLink(ctx, s1.ID, l2.ID)
+
 	require.NoError(t, err)
 }
 
@@ -211,18 +224,25 @@ func TestEmptyLinksDataExport(t *testing.T) {
 		require.NoError(t, err, "error reading row")
 		require.EqualValues(t, []string{
 			"\ufeffLink ID",
-			portAIDTitle,
 			portANameTitle,
-			portATypeTitle,
-			equipmentAIDTitle,
 			equipmentANameTitle,
 			equipmentATypeTitle,
-			portBIDTitle,
+			"Parent Equipment (3) A",
+			"Position (3) A",
+			"Parent Equipment (2) A",
+			"Position (2) A",
+			"Parent Equipment A",
+			"Equipment Position A",
 			portBNameTitle,
-			portBTypeTitle,
-			equipmentBIDTitle,
 			equipmentBNameTitle,
 			equipmentBTypeTitle,
+			"Parent Equipment (3) B",
+			"Position (3) B",
+			"Parent Equipment (2) B",
+			"Position (2) B",
+			"Parent Equipment B",
+			"Equipment Position B",
+			serviceNamesTitle,
 		}, ln)
 	}
 }
@@ -255,59 +275,88 @@ func TestLinksExport(t *testing.T) {
 		}
 		require.NoError(t, err, "error reading row")
 		switch {
-		case ln[1] == portAIDTitle:
+		case ln[1] == portANameTitle:
 			require.EqualValues(t, []string{
 				"\ufeffLink ID",
-				portAIDTitle,
 				portANameTitle,
-				portATypeTitle,
-				equipmentAIDTitle,
 				equipmentANameTitle,
 				equipmentATypeTitle,
-				portBIDTitle,
+				locTypeNameL,
+				locTypeNameM,
+				"Parent Equipment (3) A",
+				"Position (3) A",
+				"Parent Equipment (2) A",
+				"Position (2) A",
+				"Parent Equipment A",
+				"Equipment Position A",
 				portBNameTitle,
-				portBTypeTitle,
-				equipmentBIDTitle,
 				equipmentBNameTitle,
 				equipmentBTypeTitle,
+				locTypeNameL,
+				locTypeNameM,
+				"Parent Equipment (3) B",
+				"Position (3) B",
+				"Parent Equipment (2) B",
+				"Position (2) B",
+				"Parent Equipment B",
+				"Equipment Position B",
+				serviceNamesTitle,
 				propStr,
 				propStr2,
 			}, ln)
-		case ln[2] == portName1:
-			ln[4] = "--"
-			ln[7] = "--"
-			ln[10] = "--"
-			require.EqualValues(t, ln[2:], []string{
+		case ln[1] == portName1:
+			require.EqualValues(t, ln[1:], []string{
 				portName1,
-				"portType1",
-				"--",
 				parentEquip,
 				equipmentTypeName,
-				"--",
-				portName2,
+				grandParentLocation,
+				parentLocation,
 				"",
-				"--",
+				"",
+				"",
+				"",
+				"",
+				"",
+				portName2,
 				currEquip,
 				equipmentType2Name,
+				grandParentLocation,
+				parentLocation,
+				"",
+				"",
+				"",
+				"",
+				parentEquip,
+				positionName,
+				"S1;S2",
 				"t1",
 				"p2",
 			})
-		case ln[2] == portName3:
-			ln[4] = "--"
-			ln[7] = "--"
-			ln[10] = "--"
-			require.EqualValues(t, ln[2:], []string{
+		case ln[1] == portName3:
+			require.EqualValues(t, ln[1:], []string{
 				portName3,
-				"",
-				"--",
 				currEquip,
 				equipmentType2Name,
-				"--",
-				portName3,
+				grandParentLocation,
+				parentLocation,
 				"",
-				"--",
+				"",
+				"",
+				"",
+				parentEquip,
+				positionName,
+				portName3,
 				currEquip2,
 				equipmentType2Name,
+				grandParentLocation,
+				parentLocation,
+				"",
+				"",
+				"",
+				"",
+				"",
+				"",
+				"S1",
 				"",
 				"",
 			})
@@ -397,26 +446,35 @@ func TestLinksWithFilters(t *testing.T) {
 			}
 			linesCount++
 			require.NoError(t, err, "error reading row")
-			require.True(t, ln[2] == portName1 || ln[2] == portANameTitle)
+			require.True(t, ln[1] == portName1 || ln[1] == portANameTitle)
 			if ln[2] == portName1 {
-				ln[4] = "--"
-				ln[7] = "--"
-				ln[10] = "--"
 				require.EqualValues(t, []string{
 					portName1,
-					"portType1",
-					"--",
 					parentEquip,
 					equipmentTypeName,
-					"--",
-					portName2,
+					grandParentLocation,
+					parentLocation,
 					"",
-					"--",
+					"",
+					"",
+					"",
+					"",
+					"",
+					portName2,
 					currEquip,
 					equipmentType2Name,
+					grandParentLocation,
+					parentLocation,
+					"",
+					"",
+					"",
+					"",
+					parentEquip,
+					positionName,
+					"S1;S2",
 					"t1",
 					"p2",
-				}, ln[2:])
+				}, ln[1:])
 			}
 		}
 		require.Equal(t, 2, linesCount)

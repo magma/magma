@@ -9,10 +9,11 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -232,115 +233,155 @@ func (cliu *CheckListItemUpdate) ExecX(ctx context.Context) {
 }
 
 func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(cliu.driver.Dialect())
-		selector = builder.Select(checklistitem.FieldID).From(builder.Table(checklistitem.Table))
-	)
-	for _, p := range cliu.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   checklistitem.Table,
+			Columns: checklistitem.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: checklistitem.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = cliu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := cliu.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := cliu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(checklistitem.Table)
-	)
-	updater = updater.Where(sql.InInts(checklistitem.FieldID, ids...))
 	if value := cliu.title; value != nil {
-		updater.Set(checklistitem.FieldTitle, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldTitle,
+		})
 	}
 	if value := cliu._type; value != nil {
-		updater.Set(checklistitem.FieldType, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldType,
+		})
 	}
 	if value := cliu.index; value != nil {
-		updater.Set(checklistitem.FieldIndex, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: checklistitem.FieldIndex,
+		})
 	}
 	if value := cliu.addindex; value != nil {
-		updater.Add(checklistitem.FieldIndex, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: checklistitem.FieldIndex,
+		})
 	}
 	if cliu.clearindex {
-		updater.SetNull(checklistitem.FieldIndex)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: checklistitem.FieldIndex,
+		})
 	}
 	if value := cliu.checked; value != nil {
-		updater.Set(checklistitem.FieldChecked, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: checklistitem.FieldChecked,
+		})
 	}
 	if cliu.clearchecked {
-		updater.SetNull(checklistitem.FieldChecked)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Column: checklistitem.FieldChecked,
+		})
 	}
 	if value := cliu.string_val; value != nil {
-		updater.Set(checklistitem.FieldStringVal, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldStringVal,
+		})
 	}
 	if cliu.clearstring_val {
-		updater.SetNull(checklistitem.FieldStringVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldStringVal,
+		})
 	}
 	if value := cliu.enum_values; value != nil {
-		updater.Set(checklistitem.FieldEnumValues, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldEnumValues,
+		})
 	}
 	if cliu.clearenum_values {
-		updater.SetNull(checklistitem.FieldEnumValues)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldEnumValues,
+		})
 	}
 	if value := cliu.help_text; value != nil {
-		updater.Set(checklistitem.FieldHelpText, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldHelpText,
+		})
 	}
 	if cliu.clearhelp_text {
-		updater.SetNull(checklistitem.FieldHelpText)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldHelpText,
+		})
 	}
 	if cliu.clearedWorkOrder {
-		query, args := builder.Update(checklistitem.WorkOrderTable).
-			SetNull(checklistitem.WorkOrderColumn).
-			Where(sql.InInts(workorder.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistitem.WorkOrderTable,
+			Columns: []string{checklistitem.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(cliu.work_order) > 0 {
-		for eid := range cliu.work_order {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(checklistitem.WorkOrderTable).
-				Set(checklistitem.WorkOrderColumn, eid).
-				Where(sql.InInts(checklistitem.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := cliu.work_order; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistitem.WorkOrderTable,
+			Columns: []string{checklistitem.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, cliu.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // CheckListItemUpdateOne is the builder for updating a single CheckListItem entity.
@@ -551,132 +592,149 @@ func (cliuo *CheckListItemUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckListItem, err error) {
-	var (
-		builder  = sql.Dialect(cliuo.driver.Dialect())
-		selector = builder.Select(checklistitem.Columns...).From(builder.Table(checklistitem.Table))
-	)
-	checklistitem.ID(cliuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = cliuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   checklistitem.Table,
+			Columns: checklistitem.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  cliuo.id,
+				Type:   field.TypeString,
+				Column: checklistitem.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		cli = &CheckListItem{config: cliuo.config}
-		if err := cli.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into CheckListItem: %v", err)
-		}
-		id = cli.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("CheckListItem with id: %v", cliuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one CheckListItem with the same id: %v", cliuo.id)
-	}
-
-	tx, err := cliuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(checklistitem.Table)
-	)
-	updater = updater.Where(sql.InInts(checklistitem.FieldID, ids...))
 	if value := cliuo.title; value != nil {
-		updater.Set(checklistitem.FieldTitle, *value)
-		cli.Title = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldTitle,
+		})
 	}
 	if value := cliuo._type; value != nil {
-		updater.Set(checklistitem.FieldType, *value)
-		cli.Type = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldType,
+		})
 	}
 	if value := cliuo.index; value != nil {
-		updater.Set(checklistitem.FieldIndex, *value)
-		cli.Index = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: checklistitem.FieldIndex,
+		})
 	}
 	if value := cliuo.addindex; value != nil {
-		updater.Add(checklistitem.FieldIndex, *value)
-		cli.Index += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: checklistitem.FieldIndex,
+		})
 	}
 	if cliuo.clearindex {
-		var value int
-		cli.Index = value
-		updater.SetNull(checklistitem.FieldIndex)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: checklistitem.FieldIndex,
+		})
 	}
 	if value := cliuo.checked; value != nil {
-		updater.Set(checklistitem.FieldChecked, *value)
-		cli.Checked = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: checklistitem.FieldChecked,
+		})
 	}
 	if cliuo.clearchecked {
-		var value bool
-		cli.Checked = value
-		updater.SetNull(checklistitem.FieldChecked)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Column: checklistitem.FieldChecked,
+		})
 	}
 	if value := cliuo.string_val; value != nil {
-		updater.Set(checklistitem.FieldStringVal, *value)
-		cli.StringVal = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldStringVal,
+		})
 	}
 	if cliuo.clearstring_val {
-		var value string
-		cli.StringVal = value
-		updater.SetNull(checklistitem.FieldStringVal)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldStringVal,
+		})
 	}
 	if value := cliuo.enum_values; value != nil {
-		updater.Set(checklistitem.FieldEnumValues, *value)
-		cli.EnumValues = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldEnumValues,
+		})
 	}
 	if cliuo.clearenum_values {
-		var value string
-		cli.EnumValues = value
-		updater.SetNull(checklistitem.FieldEnumValues)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldEnumValues,
+		})
 	}
 	if value := cliuo.help_text; value != nil {
-		updater.Set(checklistitem.FieldHelpText, *value)
-		cli.HelpText = value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: checklistitem.FieldHelpText,
+		})
 	}
 	if cliuo.clearhelp_text {
-		cli.HelpText = nil
-		updater.SetNull(checklistitem.FieldHelpText)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldHelpText,
+		})
 	}
 	if cliuo.clearedWorkOrder {
-		query, args := builder.Update(checklistitem.WorkOrderTable).
-			SetNull(checklistitem.WorkOrderColumn).
-			Where(sql.InInts(workorder.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistitem.WorkOrderTable,
+			Columns: []string{checklistitem.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(cliuo.work_order) > 0 {
-		for eid := range cliuo.work_order {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(checklistitem.WorkOrderTable).
-				Set(checklistitem.WorkOrderColumn, eid).
-				Where(sql.InInts(checklistitem.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := cliuo.work_order; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistitem.WorkOrderTable,
+			Columns: []string{checklistitem.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	cli = &CheckListItem{config: cliuo.config}
+	_spec.Assign = cli.assignValues
+	_spec.ScanValues = cli.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, cliuo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return cli, nil

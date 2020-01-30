@@ -26,6 +26,8 @@ const (
 	FieldName = "name"
 	// FieldOwnerName holds the string denoting the owner_name vertex property in the database.
 	FieldOwnerName = "owner_name"
+	// FieldCreationTimestamp holds the string denoting the creation_timestamp vertex property in the database.
+	FieldCreationTimestamp = "creation_timestamp"
 	// FieldCompletionTimestamp holds the string denoting the completion_timestamp vertex property in the database.
 	FieldCompletionTimestamp = "completion_timestamp"
 
@@ -54,14 +56,21 @@ const (
 	QuestionsColumn = "survey_id"
 )
 
-// Columns holds all SQL columns are survey fields.
+// Columns holds all SQL columns for survey fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldName,
 	FieldOwnerName,
+	FieldCreationTimestamp,
 	FieldCompletionTimestamp,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Survey type.
+var ForeignKeys = []string{
+	"location_id",
+	"survey_source_file_id",
 }
 
 var (

@@ -31,6 +31,8 @@ const path = require('path');
 const fbcPassport = require('@fbcnms/auth/passport').default;
 const session = require('express-session');
 const {sequelize, Organization} = require('@fbcnms/sequelize-models');
+const OrganizationBasicLocalStrategy = require('@fbcnms/auth/strategies/OrganizationBasicLocalStrategy')
+  .default;
 const OrganizationLocalStrategy = require('@fbcnms/auth/strategies/OrganizationLocalStrategy')
   .default;
 const OrganizationSamlStrategy = require('@fbcnms/auth/strategies/OrganizationSamlStrategy')
@@ -73,6 +75,7 @@ app.use(passport.initialize());
 app.use(passport.session()); // must be after sessionMiddleware
 
 fbcPassport.use();
+passport.use('basic_local', OrganizationBasicLocalStrategy());
 passport.use('local', OrganizationLocalStrategy());
 passport.use(
   'saml',
@@ -94,9 +97,15 @@ app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());
 
 app.use(configureAccess({loginUrl: '/user/login'}));
 
-// All /graph endpoints don't use CORS and are JSON (no form),
+// All /graph and /webhooks endpoints don't use CORS and are JSON (no form),
 // so no CSRF is needed
 app.use('/graph', access(USER), require('./graph/routes'));
+app.use(
+  '/webhooks',
+  passport.authenticate('basic_local', {session: false}),
+  access(USER),
+  require('./webhooks/routes').default,
+);
 
 app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
 

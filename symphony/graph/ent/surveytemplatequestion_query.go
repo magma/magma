@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
@@ -27,6 +28,9 @@ type SurveyTemplateQuestionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyTemplateQuestion
+	// eager-loading edges.
+	withCategory *SurveyTemplateCategoryQuery
+	withFKs      bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -67,14 +71,14 @@ func (stqq *SurveyTemplateQuestionQuery) QueryCategory() *SurveyTemplateCategory
 	return query
 }
 
-// First returns the first SurveyTemplateQuestion entity in the query. Returns *ErrNotFound when no surveytemplatequestion was found.
+// First returns the first SurveyTemplateQuestion entity in the query. Returns *NotFoundError when no surveytemplatequestion was found.
 func (stqq *SurveyTemplateQuestionQuery) First(ctx context.Context) (*SurveyTemplateQuestion, error) {
 	stqs, err := stqq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(stqs) == 0 {
-		return nil, &ErrNotFound{surveytemplatequestion.Label}
+		return nil, &NotFoundError{surveytemplatequestion.Label}
 	}
 	return stqs[0], nil
 }
@@ -88,14 +92,14 @@ func (stqq *SurveyTemplateQuestionQuery) FirstX(ctx context.Context) *SurveyTemp
 	return stq
 }
 
-// FirstID returns the first SurveyTemplateQuestion id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first SurveyTemplateQuestion id in the query. Returns *NotFoundError when no id was found.
 func (stqq *SurveyTemplateQuestionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = stqq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{surveytemplatequestion.Label}
+		err = &NotFoundError{surveytemplatequestion.Label}
 		return
 	}
 	return ids[0], nil
@@ -120,9 +124,9 @@ func (stqq *SurveyTemplateQuestionQuery) Only(ctx context.Context) (*SurveyTempl
 	case 1:
 		return stqs[0], nil
 	case 0:
-		return nil, &ErrNotFound{surveytemplatequestion.Label}
+		return nil, &NotFoundError{surveytemplatequestion.Label}
 	default:
-		return nil, &ErrNotSingular{surveytemplatequestion.Label}
+		return nil, &NotSingularError{surveytemplatequestion.Label}
 	}
 }
 
@@ -145,9 +149,9 @@ func (stqq *SurveyTemplateQuestionQuery) OnlyID(ctx context.Context) (id string,
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{surveytemplatequestion.Label}
+		err = &NotFoundError{surveytemplatequestion.Label}
 	default:
-		err = &ErrNotSingular{surveytemplatequestion.Label}
+		err = &NotSingularError{surveytemplatequestion.Label}
 	}
 	return
 }
@@ -236,6 +240,17 @@ func (stqq *SurveyTemplateQuestionQuery) Clone() *SurveyTemplateQuestionQuery {
 	}
 }
 
+//  WithCategory tells the query-builder to eager-loads the nodes that are connected to
+// the "category" edge. The optional arguments used to configure the query builder of the edge.
+func (stqq *SurveyTemplateQuestionQuery) WithCategory(opts ...func(*SurveyTemplateCategoryQuery)) *SurveyTemplateQuestionQuery {
+	query := &SurveyTemplateCategoryQuery{config: stqq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	stqq.withCategory = query
+	return stqq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -278,45 +293,71 @@ func (stqq *SurveyTemplateQuestionQuery) Select(field string, fields ...string) 
 }
 
 func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyTemplateQuestion, error) {
-	rows := &sql.Rows{}
-	selector := stqq.sqlQuery()
-	if unique := stqq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*SurveyTemplateQuestion = []*SurveyTemplateQuestion{}
+		withFKs                           = stqq.withFKs
+		_spec                             = stqq.querySpec()
+	)
+	if stqq.withCategory != nil {
+		withFKs = true
 	}
-	query, args := selector.Query()
-	if err := stqq.driver.Query(ctx, query, args, rows); err != nil {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, surveytemplatequestion.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
+		node := &SurveyTemplateQuestion{config: stqq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, stqq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var stqs SurveyTemplateQuestions
-	if err := stqs.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	stqs.config(stqq.config)
-	return stqs, nil
+
+	if query := stqq.withCategory; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*SurveyTemplateQuestion)
+		for i := range nodes {
+			if fk := nodes[i].category_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(surveytemplatecategory.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Category = n
+			}
+		}
+	}
+
+	return nodes, nil
 }
 
 func (stqq *SurveyTemplateQuestionQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := stqq.sqlQuery()
-	unique := []string{surveytemplatequestion.FieldID}
-	if len(stqq.unique) > 0 {
-		unique = stqq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := stqq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := stqq.querySpec()
+	return sqlgraph.CountNodes(ctx, stqq.driver, _spec)
 }
 
 func (stqq *SurveyTemplateQuestionQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -325,6 +366,42 @@ func (stqq *SurveyTemplateQuestionQuery) sqlExist(ctx context.Context) (bool, er
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (stqq *SurveyTemplateQuestionQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   surveytemplatequestion.Table,
+			Columns: surveytemplatequestion.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveytemplatequestion.FieldID,
+			},
+		},
+		From:   stqq.sql,
+		Unique: true,
+	}
+	if ps := stqq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := stqq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := stqq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := stqq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (stqq *SurveyTemplateQuestionQuery) sqlQuery() *sql.Selector {
@@ -598,7 +675,7 @@ func (stqs *SurveyTemplateQuestionSelect) sqlScan(ctx context.Context, v interfa
 }
 
 func (stqs *SurveyTemplateQuestionSelect) sqlQuery() sql.Querier {
-	view := "surveytemplatequestion_view"
-	return sql.Dialect(stqs.driver.Dialect()).
-		Select(stqs.fields...).From(stqs.sql.As(view))
+	selector := stqs.sql
+	selector.Select(selector.Columns(stqs.fields...)...)
+	return selector
 }

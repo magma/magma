@@ -7,9 +7,11 @@ package importer
 import (
 	"context"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"net/http"
 	"net/textproto"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -35,6 +37,25 @@ func findIndex(a []string, x string) int {
 		}
 	}
 	return -1
+}
+
+func findStringContainsIndex(a []string, x string) int {
+	for i, n := range a {
+		if strings.Contains(n, x) {
+			return i
+		}
+	}
+	return -1
+}
+
+func sortSlice(a []int, acs bool) []int {
+	sort.Slice(a, func(i, j int) bool {
+		if acs {
+			return a[i] < a[j]
+		}
+		return a[i] > a[j]
+	})
+	return a
 }
 
 func findIndexForSimilar(a []string, x string) int {
@@ -80,6 +101,15 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 		return &models.PropertyInput{
 			PropertyTypeID: propertyType.ID,
 			IntValue:       &intVal,
+		}, nil
+	case "float":
+		floatVal, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return nil, err
+		}
+		return &models.PropertyInput{
+			PropertyTypeID: propertyType.ID,
+			FloatValue:     &floatVal,
 		}, nil
 	case "gps_location": // 45.6 , 67.89
 		split := strings.Split(value, ",")
@@ -128,6 +158,42 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 			PropertyTypeID: propertyType.ID,
 			BooleanValue:   &b,
 		}, nil
+	case "location":
+		if value != "" {
+			return &models.PropertyInput{
+				PropertyTypeID:  propertyType.ID,
+				LocationIDValue: &value,
+			}, nil
+		} else {
+			return &models.PropertyInput{
+				PropertyTypeID:  propertyType.ID,
+				LocationIDValue: nil,
+			}, nil
+		}
+	case "equipment":
+		if value != "" {
+			return &models.PropertyInput{
+				PropertyTypeID:   propertyType.ID,
+				EquipmentIDValue: &value,
+			}, nil
+		} else {
+			return &models.PropertyInput{
+				PropertyTypeID:   propertyType.ID,
+				EquipmentIDValue: nil,
+			}, nil
+		}
+	case "service":
+		if value != "" {
+			return &models.PropertyInput{
+				PropertyTypeID: propertyType.ID,
+				ServiceIDValue: &value,
+			}, nil
+		} else {
+			return &models.PropertyInput{
+				PropertyTypeID: propertyType.ID,
+				ServiceIDValue: nil,
+			}, nil
+		}
 	default:
 		return &models.PropertyInput{
 			PropertyTypeID: propertyType.ID,
@@ -313,4 +379,13 @@ func (m *importer) trimLine(line []string) []string {
 		line[i] = strings.Trim(value, " ")
 	}
 	return line
+}
+
+func errorReturn(w http.ResponseWriter, msg string, log *zap.Logger, err error) {
+	log.Warn(msg, zap.Error(err))
+	if err == nil {
+		http.Error(w, msg, http.StatusBadRequest)
+	} else {
+		http.Error(w, fmt.Sprintf("%s %q", msg, err), http.StatusBadRequest)
+	}
 }

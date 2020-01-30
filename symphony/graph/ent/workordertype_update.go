@@ -8,11 +8,12 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -265,247 +266,241 @@ func (wotu *WorkOrderTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(wotu.driver.Dialect())
-		selector = builder.Select(workordertype.FieldID).From(builder.Table(workordertype.Table))
-	)
-	for _, p := range wotu.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   workordertype.Table,
+			Columns: workordertype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: workordertype.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = wotu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := wotu.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := wotu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(workordertype.Table)
-	)
-	updater = updater.Where(sql.InInts(workordertype.FieldID, ids...))
 	if value := wotu.update_time; value != nil {
-		updater.Set(workordertype.FieldUpdateTime, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workordertype.FieldUpdateTime,
+		})
 	}
 	if value := wotu.name; value != nil {
-		updater.Set(workordertype.FieldName, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workordertype.FieldName,
+		})
 	}
 	if value := wotu.description; value != nil {
-		updater.Set(workordertype.FieldDescription, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workordertype.FieldDescription,
+		})
 	}
 	if wotu.cleardescription {
-		updater.SetNull(workordertype.FieldDescription)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: workordertype.FieldDescription,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if nodes := wotu.removedWorkOrders; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workordertype.WorkOrdersTable,
+			Columns: []string{workordertype.WorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
-	}
-	if len(wotu.removedWorkOrders) > 0 {
-		eids := make([]int, len(wotu.removedWorkOrders))
-		for eid := range wotu.removedWorkOrders {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(workordertype.WorkOrdersTable).
-			SetNull(workordertype.WorkOrdersColumn).
-			Where(sql.InInts(workordertype.WorkOrdersColumn, ids...)).
-			Where(sql.InInts(workorder.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(wotu.work_orders) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range wotu.work_orders {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(workorder.FieldID, eid)
-			}
-			query, args := builder.Update(workordertype.WorkOrdersTable).
-				Set(workordertype.WorkOrdersColumn, id).
-				Where(sql.And(p, sql.IsNull(workordertype.WorkOrdersColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(wotu.work_orders) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"WorkOrderType\"", keys(wotu.work_orders))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(wotu.removedPropertyTypes) > 0 {
-		eids := make([]int, len(wotu.removedPropertyTypes))
-		for eid := range wotu.removedPropertyTypes {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := wotu.work_orders; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workordertype.WorkOrdersTable,
+			Columns: []string{workordertype.WorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(workordertype.PropertyTypesTable).
-			SetNull(workordertype.PropertyTypesColumn).
-			Where(sql.InInts(workordertype.PropertyTypesColumn, ids...)).
-			Where(sql.InInts(propertytype.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(wotu.property_types) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range wotu.property_types {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(propertytype.FieldID, eid)
-			}
-			query, args := builder.Update(workordertype.PropertyTypesTable).
-				Set(workordertype.PropertyTypesColumn, id).
-				Where(sql.And(p, sql.IsNull(workordertype.PropertyTypesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(wotu.property_types) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"WorkOrderType\"", keys(wotu.property_types))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if len(wotu.removedDefinitions) > 0 {
-		eids := make([]int, len(wotu.removedDefinitions))
-		for eid := range wotu.removedDefinitions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := wotu.removedPropertyTypes; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workordertype.PropertyTypesTable,
+			Columns: []string{workordertype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(workordertype.DefinitionsTable).
-			SetNull(workordertype.DefinitionsColumn).
-			Where(sql.InInts(workordertype.DefinitionsColumn, ids...)).
-			Where(sql.InInts(workorderdefinition.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(wotu.definitions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range wotu.definitions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(workorderdefinition.FieldID, eid)
-			}
-			query, args := builder.Update(workordertype.DefinitionsTable).
-				Set(workordertype.DefinitionsColumn, id).
-				Where(sql.And(p, sql.IsNull(workordertype.DefinitionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(wotu.definitions) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotu.definitions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(wotu.removedCheckListDefinitions) > 0 {
-		eids := make([]int, len(wotu.removedCheckListDefinitions))
-		for eid := range wotu.removedCheckListDefinitions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := wotu.property_types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workordertype.PropertyTypesTable,
+			Columns: []string{workordertype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(workordertype.CheckListDefinitionsTable).
-			SetNull(workordertype.CheckListDefinitionsColumn).
-			Where(sql.InInts(workordertype.CheckListDefinitionsColumn, ids...)).
-			Where(sql.InInts(checklistitemdefinition.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(wotu.check_list_definitions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range wotu.check_list_definitions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(checklistitemdefinition.FieldID, eid)
-			}
-			query, args := builder.Update(workordertype.CheckListDefinitionsTable).
-				Set(workordertype.CheckListDefinitionsColumn, id).
-				Where(sql.And(p, sql.IsNull(workordertype.CheckListDefinitionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(wotu.check_list_definitions) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"check_list_definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotu.check_list_definitions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := wotu.removedDefinitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workordertype.DefinitionsTable,
+			Columns: []string{workordertype.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorderdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wotu.definitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workordertype.DefinitionsTable,
+			Columns: []string{workordertype.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorderdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := wotu.removedCheckListDefinitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workordertype.CheckListDefinitionsTable,
+			Columns: []string{workordertype.CheckListDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistitemdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wotu.check_list_definitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workordertype.CheckListDefinitionsTable,
+			Columns: []string{workordertype.CheckListDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistitemdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if n, err = sqlgraph.UpdateNodes(ctx, wotu.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // WorkOrderTypeUpdateOne is the builder for updating a single WorkOrderType entity.
@@ -746,252 +741,235 @@ func (wotuo *WorkOrderTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrderType, err error) {
-	var (
-		builder  = sql.Dialect(wotuo.driver.Dialect())
-		selector = builder.Select(workordertype.Columns...).From(builder.Table(workordertype.Table))
-	)
-	workordertype.ID(wotuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = wotuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   workordertype.Table,
+			Columns: workordertype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  wotuo.id,
+				Type:   field.TypeString,
+				Column: workordertype.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		wot = &WorkOrderType{config: wotuo.config}
-		if err := wot.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into WorkOrderType: %v", err)
-		}
-		id = wot.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("WorkOrderType with id: %v", wotuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one WorkOrderType with the same id: %v", wotuo.id)
-	}
-
-	tx, err := wotuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(workordertype.Table)
-	)
-	updater = updater.Where(sql.InInts(workordertype.FieldID, ids...))
 	if value := wotuo.update_time; value != nil {
-		updater.Set(workordertype.FieldUpdateTime, *value)
-		wot.UpdateTime = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workordertype.FieldUpdateTime,
+		})
 	}
 	if value := wotuo.name; value != nil {
-		updater.Set(workordertype.FieldName, *value)
-		wot.Name = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workordertype.FieldName,
+		})
 	}
 	if value := wotuo.description; value != nil {
-		updater.Set(workordertype.FieldDescription, *value)
-		wot.Description = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: workordertype.FieldDescription,
+		})
 	}
 	if wotuo.cleardescription {
-		var value string
-		wot.Description = value
-		updater.SetNull(workordertype.FieldDescription)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: workordertype.FieldDescription,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	if nodes := wotuo.removedWorkOrders; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workordertype.WorkOrdersTable,
+			Columns: []string{workordertype.WorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
-	}
-	if len(wotuo.removedWorkOrders) > 0 {
-		eids := make([]int, len(wotuo.removedWorkOrders))
-		for eid := range wotuo.removedWorkOrders {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(workordertype.WorkOrdersTable).
-			SetNull(workordertype.WorkOrdersColumn).
-			Where(sql.InInts(workordertype.WorkOrdersColumn, ids...)).
-			Where(sql.InInts(workorder.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(wotuo.work_orders) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range wotuo.work_orders {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(workorder.FieldID, eid)
-			}
-			query, args := builder.Update(workordertype.WorkOrdersTable).
-				Set(workordertype.WorkOrdersColumn, id).
-				Where(sql.And(p, sql.IsNull(workordertype.WorkOrdersColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(wotuo.work_orders) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.work_orders))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(wotuo.removedPropertyTypes) > 0 {
-		eids := make([]int, len(wotuo.removedPropertyTypes))
-		for eid := range wotuo.removedPropertyTypes {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := wotuo.work_orders; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workordertype.WorkOrdersTable,
+			Columns: []string{workordertype.WorkOrdersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(workordertype.PropertyTypesTable).
-			SetNull(workordertype.PropertyTypesColumn).
-			Where(sql.InInts(workordertype.PropertyTypesColumn, ids...)).
-			Where(sql.InInts(propertytype.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(wotuo.property_types) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range wotuo.property_types {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(propertytype.FieldID, eid)
-			}
-			query, args := builder.Update(workordertype.PropertyTypesTable).
-				Set(workordertype.PropertyTypesColumn, id).
-				Where(sql.And(p, sql.IsNull(workordertype.PropertyTypesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(wotuo.property_types) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.property_types))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if len(wotuo.removedDefinitions) > 0 {
-		eids := make([]int, len(wotuo.removedDefinitions))
-		for eid := range wotuo.removedDefinitions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := wotuo.removedPropertyTypes; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workordertype.PropertyTypesTable,
+			Columns: []string{workordertype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(workordertype.DefinitionsTable).
-			SetNull(workordertype.DefinitionsColumn).
-			Where(sql.InInts(workordertype.DefinitionsColumn, ids...)).
-			Where(sql.InInts(workorderdefinition.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(wotuo.definitions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range wotuo.definitions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(workorderdefinition.FieldID, eid)
-			}
-			query, args := builder.Update(workordertype.DefinitionsTable).
-				Set(workordertype.DefinitionsColumn, id).
-				Where(sql.And(p, sql.IsNull(workordertype.DefinitionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(wotuo.definitions) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.definitions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(wotuo.removedCheckListDefinitions) > 0 {
-		eids := make([]int, len(wotuo.removedCheckListDefinitions))
-		for eid := range wotuo.removedCheckListDefinitions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := wotuo.property_types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workordertype.PropertyTypesTable,
+			Columns: []string{workordertype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(workordertype.CheckListDefinitionsTable).
-			SetNull(workordertype.CheckListDefinitionsColumn).
-			Where(sql.InInts(workordertype.CheckListDefinitionsColumn, ids...)).
-			Where(sql.InInts(checklistitemdefinition.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(wotuo.check_list_definitions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range wotuo.check_list_definitions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(checklistitemdefinition.FieldID, eid)
-			}
-			query, args := builder.Update(workordertype.CheckListDefinitionsTable).
-				Set(workordertype.CheckListDefinitionsColumn, id).
-				Where(sql.And(p, sql.IsNull(workordertype.CheckListDefinitionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(wotuo.check_list_definitions) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"check_list_definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.check_list_definitions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := wotuo.removedDefinitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workordertype.DefinitionsTable,
+			Columns: []string{workordertype.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorderdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wotuo.definitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   workordertype.DefinitionsTable,
+			Columns: []string{workordertype.DefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorderdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := wotuo.removedCheckListDefinitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workordertype.CheckListDefinitionsTable,
+			Columns: []string{workordertype.CheckListDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistitemdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wotuo.check_list_definitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workordertype.CheckListDefinitionsTable,
+			Columns: []string{workordertype.CheckListDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistitemdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	wot = &WorkOrderType{config: wotuo.config}
+	_spec.Assign = wot.assignValues
+	_spec.ScanValues = wot.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, wotuo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return wot, nil

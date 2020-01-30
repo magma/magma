@@ -20,9 +20,9 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -34,6 +34,7 @@ type EquipmentCreate struct {
 	name            *string
 	future_state    *string
 	device_id       *string
+	external_id     *string
 	_type           map[string]struct{}
 	location        map[string]struct{}
 	parent_position map[string]struct{}
@@ -41,8 +42,8 @@ type EquipmentCreate struct {
 	ports           map[string]struct{}
 	work_order      map[string]struct{}
 	properties      map[string]struct{}
-	service         map[string]struct{}
 	files           map[string]struct{}
+	hyperlinks      map[string]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -103,6 +104,20 @@ func (ec *EquipmentCreate) SetDeviceID(s string) *EquipmentCreate {
 func (ec *EquipmentCreate) SetNillableDeviceID(s *string) *EquipmentCreate {
 	if s != nil {
 		ec.SetDeviceID(*s)
+	}
+	return ec
+}
+
+// SetExternalID sets the external_id field.
+func (ec *EquipmentCreate) SetExternalID(s string) *EquipmentCreate {
+	ec.external_id = &s
+	return ec
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (ec *EquipmentCreate) SetNillableExternalID(s *string) *EquipmentCreate {
+	if s != nil {
+		ec.SetExternalID(*s)
 	}
 	return ec
 }
@@ -247,26 +262,6 @@ func (ec *EquipmentCreate) AddProperties(p ...*Property) *EquipmentCreate {
 	return ec.AddPropertyIDs(ids...)
 }
 
-// AddServiceIDs adds the service edge to Service by ids.
-func (ec *EquipmentCreate) AddServiceIDs(ids ...string) *EquipmentCreate {
-	if ec.service == nil {
-		ec.service = make(map[string]struct{})
-	}
-	for i := range ids {
-		ec.service[ids[i]] = struct{}{}
-	}
-	return ec
-}
-
-// AddService adds the service edges to Service.
-func (ec *EquipmentCreate) AddService(s ...*Service) *EquipmentCreate {
-	ids := make([]string, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return ec.AddServiceIDs(ids...)
-}
-
 // AddFileIDs adds the files edge to File by ids.
 func (ec *EquipmentCreate) AddFileIDs(ids ...string) *EquipmentCreate {
 	if ec.files == nil {
@@ -285,6 +280,26 @@ func (ec *EquipmentCreate) AddFiles(f ...*File) *EquipmentCreate {
 		ids[i] = f[i].ID
 	}
 	return ec.AddFileIDs(ids...)
+}
+
+// AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
+func (ec *EquipmentCreate) AddHyperlinkIDs(ids ...string) *EquipmentCreate {
+	if ec.hyperlinks == nil {
+		ec.hyperlinks = make(map[string]struct{})
+	}
+	for i := range ids {
+		ec.hyperlinks[ids[i]] = struct{}{}
+	}
+	return ec
+}
+
+// AddHyperlinks adds the hyperlinks edges to Hyperlink.
+func (ec *EquipmentCreate) AddHyperlinks(h ...*Hyperlink) *EquipmentCreate {
+	ids := make([]string, len(h))
+	for i := range h {
+		ids[i] = h[i].ID
+	}
+	return ec.AddHyperlinkIDs(ids...)
 }
 
 // Save creates the Equipment in the database.
@@ -332,8 +347,8 @@ func (ec *EquipmentCreate) SaveX(ctx context.Context) *Equipment {
 
 func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 	var (
-		e    = &Equipment{config: ec.config}
-		spec = &sqlgraph.CreateSpec{
+		e     = &Equipment{config: ec.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipment.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -342,7 +357,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 		}
 	)
 	if value := ec.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipment.FieldCreateTime,
@@ -350,7 +365,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 		e.CreateTime = *value
 	}
 	if value := ec.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipment.FieldUpdateTime,
@@ -358,7 +373,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 		e.UpdateTime = *value
 	}
 	if value := ec.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldName,
@@ -366,7 +381,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 		e.Name = *value
 	}
 	if value := ec.future_state; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldFutureState,
@@ -374,12 +389,20 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 		e.FutureState = *value
 	}
 	if value := ec.device_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipment.FieldDeviceID,
 		})
 		e.DeviceID = *value
+	}
+	if value := ec.external_id; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipment.FieldExternalID,
+		})
+		e.ExternalID = *value
 	}
 	if nodes := ec._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -402,7 +425,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ec.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -425,7 +448,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ec.parent_position; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -448,7 +471,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ec.positions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -471,7 +494,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ec.ports; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -494,7 +517,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ec.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -517,7 +540,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ec.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -540,30 +563,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
-	}
-	if nodes := ec.service; len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   equipment.ServiceTable,
-			Columns: equipment.ServicePrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: service.FieldID,
-				},
-			},
-		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ec.files; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -586,15 +586,38 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, ec.driver, spec); err != nil {
+	if nodes := ec.hyperlinks; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipment.HyperlinksTable,
+			Columns: []string{equipment.HyperlinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: hyperlink.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if err := sqlgraph.CreateNode(ctx, ec.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	e.ID = strconv.FormatInt(id, 10)
 	return e, nil
 }

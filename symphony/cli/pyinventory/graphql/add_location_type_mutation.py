@@ -53,6 +53,8 @@ class PropertyKind(Enum):
     gps_location = "gps_location"
     equipment = "equipment"
     location = "location"
+    service = "service"
+    datetime_local = "datetime_local"
 
 
 class SurveyQuestionType(Enum):
@@ -175,7 +177,7 @@ class AddLocationTypeMutation:
         addLocationType: Optional[LocationType] = None
 
     data: Optional[AddLocationTypeMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

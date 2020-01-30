@@ -53,6 +53,8 @@ class PropertyKind(Enum):
     gps_location = "gps_location"
     equipment = "equipment"
     location = "location"
+    service = "service"
+    datetime_local = "datetime_local"
 
 
 @dataclass_json
@@ -193,7 +195,7 @@ class EditEquipmentTypeMutation:
         editEquipmentType: Optional[EquipmentType] = None
 
     data: Optional[EditEquipmentTypeMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

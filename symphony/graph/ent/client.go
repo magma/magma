@@ -30,6 +30,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
+	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -38,6 +39,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -94,6 +96,8 @@ type Client struct {
 	FloorPlanReferencePoint *FloorPlanReferencePointClient
 	// FloorPlanScale is the client for interacting with the FloorPlanScale builders.
 	FloorPlanScale *FloorPlanScaleClient
+	// Hyperlink is the client for interacting with the Hyperlink builders.
+	Hyperlink *HyperlinkClient
 	// Link is the client for interacting with the Link builders.
 	Link *LinkClient
 	// Location is the client for interacting with the Location builders.
@@ -110,6 +114,8 @@ type Client struct {
 	PropertyType *PropertyTypeClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
+	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
+	ServiceEndpoint *ServiceEndpointClient
 	// ServiceType is the client for interacting with the ServiceType builders.
 	ServiceType *ServiceTypeClient
 	// Survey is the client for interacting with the Survey builders.
@@ -161,6 +167,7 @@ func NewClient(opts ...Option) *Client {
 		FloorPlan:                   NewFloorPlanClient(c),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(c),
 		FloorPlanScale:              NewFloorPlanScaleClient(c),
+		Hyperlink:                   NewHyperlinkClient(c),
 		Link:                        NewLinkClient(c),
 		Location:                    NewLocationClient(c),
 		LocationType:                NewLocationTypeClient(c),
@@ -169,6 +176,7 @@ func NewClient(opts ...Option) *Client {
 		Property:                    NewPropertyClient(c),
 		PropertyType:                NewPropertyTypeClient(c),
 		Service:                     NewServiceClient(c),
+		ServiceEndpoint:             NewServiceEndpointClient(c),
 		ServiceType:                 NewServiceTypeClient(c),
 		Survey:                      NewSurveyClient(c),
 		SurveyCellScan:              NewSurveyCellScanClient(c),
@@ -228,6 +236,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FloorPlan:                   NewFloorPlanClient(cfg),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
 		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
@@ -236,6 +245,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
 		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
 		Survey:                      NewSurveyClient(cfg),
 		SurveyCellScan:              NewSurveyCellScanClient(cfg),
@@ -282,6 +292,7 @@ func (c *Client) Debug() *Client {
 		FloorPlan:                   NewFloorPlanClient(cfg),
 		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
 		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
 		Link:                        NewLinkClient(cfg),
 		Location:                    NewLocationClient(cfg),
 		LocationType:                NewLocationTypeClient(cfg),
@@ -290,6 +301,7 @@ func (c *Client) Debug() *Client {
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
 		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
 		Survey:                      NewSurveyClient(cfg),
 		SurveyCellScan:              NewSurveyCellScanClient(cfg),
@@ -833,20 +845,6 @@ func (c *EquipmentClient) QueryProperties(e *Equipment) *PropertyQuery {
 	return query
 }
 
-// QueryService queries the service edge of a Equipment.
-func (c *EquipmentClient) QueryService(e *Equipment) *ServiceQuery {
-	query := &ServiceQuery{config: c.config}
-	id := e.id()
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, id),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, equipment.ServiceTable, equipment.ServicePrimaryKey...),
-	)
-	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
-
-	return query
-}
-
 // QueryFiles queries the files edge of a Equipment.
 func (c *EquipmentClient) QueryFiles(e *Equipment) *FileQuery {
 	query := &FileQuery{config: c.config}
@@ -855,6 +853,20 @@ func (c *EquipmentClient) QueryFiles(e *Equipment) *FileQuery {
 		sqlgraph.From(equipment.Table, equipment.FieldID, id),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, equipment.FilesTable, equipment.FilesColumn),
+	)
+	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryHyperlinks queries the hyperlinks edge of a Equipment.
+func (c *EquipmentClient) QueryHyperlinks(e *Equipment) *HyperlinkQuery {
+	query := &HyperlinkQuery{config: c.config}
+	id := e.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, id),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.HyperlinksTable, equipment.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
 
@@ -1053,6 +1065,20 @@ func (c *EquipmentPortClient) QueryProperties(ep *EquipmentPort) *PropertyQuery 
 		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, id),
 		sqlgraph.To(property.Table, property.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, equipmentport.PropertiesTable, equipmentport.PropertiesColumn),
+	)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryEndpoints queries the endpoints edge of a EquipmentPort.
+func (c *EquipmentPortClient) QueryEndpoints(ep *EquipmentPort) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	id := ep.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, id),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentport.EndpointsTable, equipmentport.EndpointsColumn),
 	)
 	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
 
@@ -1915,6 +1941,70 @@ func (c *FloorPlanScaleClient) GetX(ctx context.Context, id string) *FloorPlanSc
 	return fps
 }
 
+// HyperlinkClient is a client for the Hyperlink schema.
+type HyperlinkClient struct {
+	config
+}
+
+// NewHyperlinkClient returns a client for the Hyperlink from the given config.
+func NewHyperlinkClient(c config) *HyperlinkClient {
+	return &HyperlinkClient{config: c}
+}
+
+// Create returns a create builder for Hyperlink.
+func (c *HyperlinkClient) Create() *HyperlinkCreate {
+	return &HyperlinkCreate{config: c.config}
+}
+
+// Update returns an update builder for Hyperlink.
+func (c *HyperlinkClient) Update() *HyperlinkUpdate {
+	return &HyperlinkUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HyperlinkClient) UpdateOne(h *Hyperlink) *HyperlinkUpdateOne {
+	return c.UpdateOneID(h.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HyperlinkClient) UpdateOneID(id string) *HyperlinkUpdateOne {
+	return &HyperlinkUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for Hyperlink.
+func (c *HyperlinkClient) Delete() *HyperlinkDelete {
+	return &HyperlinkDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *HyperlinkClient) DeleteOne(h *Hyperlink) *HyperlinkDeleteOne {
+	return c.DeleteOneID(h.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *HyperlinkClient) DeleteOneID(id string) *HyperlinkDeleteOne {
+	return &HyperlinkDeleteOne{c.Delete().Where(hyperlink.ID(id))}
+}
+
+// Create returns a query builder for Hyperlink.
+func (c *HyperlinkClient) Query() *HyperlinkQuery {
+	return &HyperlinkQuery{config: c.config}
+}
+
+// Get returns a Hyperlink entity by its id.
+func (c *HyperlinkClient) Get(ctx context.Context, id string) (*Hyperlink, error) {
+	return c.Query().Where(hyperlink.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HyperlinkClient) GetX(ctx context.Context, id string) *Hyperlink {
+	h, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return h
+}
+
 // LinkClient is a client for the Link schema.
 type LinkClient struct {
 	config
@@ -2149,6 +2239,20 @@ func (c *LocationClient) QueryFiles(l *Location) *FileQuery {
 		sqlgraph.From(location.Table, location.FieldID, id),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, location.FilesTable, location.FilesColumn),
+	)
+	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryHyperlinks queries the hyperlinks edge of a Location.
+func (c *LocationClient) QueryHyperlinks(l *Location) *HyperlinkQuery {
+	query := &HyperlinkQuery{config: c.config}
+	id := l.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, id),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.HyperlinksTable, location.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.Neighbors(l.driver.Dialect(), step)
 
@@ -2445,6 +2549,20 @@ func (c *ProjectClient) QueryLocation(pr *Project) *LocationQuery {
 		sqlgraph.From(project.Table, project.FieldID, id),
 		sqlgraph.To(location.Table, location.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, project.LocationTable, project.LocationColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryComments queries the comments edge of a Project.
+func (c *ProjectClient) QueryComments(pr *Project) *CommentQuery {
+	query := &CommentQuery{config: c.config}
+	id := pr.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, id),
+		sqlgraph.To(comment.Table, comment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.CommentsTable, project.CommentsColumn),
 	)
 	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 
@@ -2789,6 +2907,20 @@ func (c *PropertyClient) QueryLocationValue(pr *Property) *LocationQuery {
 	return query
 }
 
+// QueryServiceValue queries the service_value edge of a Property.
+func (c *PropertyClient) QueryServiceValue(pr *Property) *ServiceQuery {
+	query := &ServiceQuery{config: c.config}
+	id := pr.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.ServiceValueTable, property.ServiceValueColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+
+	return query
+}
+
 // PropertyTypeClient is a client for the PropertyType schema.
 type PropertyTypeClient struct {
 	config
@@ -3085,20 +3217,6 @@ func (c *ServiceClient) QueryProperties(s *Service) *PropertyQuery {
 	return query
 }
 
-// QueryTerminationPoints queries the termination_points edge of a Service.
-func (c *ServiceClient) QueryTerminationPoints(s *Service) *EquipmentQuery {
-	query := &EquipmentQuery{config: c.config}
-	id := s.id()
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, id),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
-	)
-	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
-
-	return query
-}
-
 // QueryLinks queries the links edge of a Service.
 func (c *ServiceClient) QueryLinks(s *Service) *LinkQuery {
 	query := &LinkQuery{config: c.config}
@@ -3123,6 +3241,112 @@ func (c *ServiceClient) QueryCustomer(s *Service) *CustomerQuery {
 		sqlgraph.Edge(sqlgraph.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
 	)
 	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryEndpoints queries the endpoints edge of a Service.
+func (c *ServiceClient) QueryEndpoints(s *Service) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	id := s.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, id),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, service.EndpointsTable, service.EndpointsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
+
+	return query
+}
+
+// ServiceEndpointClient is a client for the ServiceEndpoint schema.
+type ServiceEndpointClient struct {
+	config
+}
+
+// NewServiceEndpointClient returns a client for the ServiceEndpoint from the given config.
+func NewServiceEndpointClient(c config) *ServiceEndpointClient {
+	return &ServiceEndpointClient{config: c}
+}
+
+// Create returns a create builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Create() *ServiceEndpointCreate {
+	return &ServiceEndpointCreate{config: c.config}
+}
+
+// Update returns an update builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Update() *ServiceEndpointUpdate {
+	return &ServiceEndpointUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ServiceEndpointClient) UpdateOne(se *ServiceEndpoint) *ServiceEndpointUpdateOne {
+	return c.UpdateOneID(se.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ServiceEndpointClient) UpdateOneID(id string) *ServiceEndpointUpdateOne {
+	return &ServiceEndpointUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Delete() *ServiceEndpointDelete {
+	return &ServiceEndpointDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ServiceEndpointClient) DeleteOne(se *ServiceEndpoint) *ServiceEndpointDeleteOne {
+	return c.DeleteOneID(se.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ServiceEndpointClient) DeleteOneID(id string) *ServiceEndpointDeleteOne {
+	return &ServiceEndpointDeleteOne{c.Delete().Where(serviceendpoint.ID(id))}
+}
+
+// Create returns a query builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Query() *ServiceEndpointQuery {
+	return &ServiceEndpointQuery{config: c.config}
+}
+
+// Get returns a ServiceEndpoint entity by its id.
+func (c *ServiceEndpointClient) Get(ctx context.Context, id string) (*ServiceEndpoint, error) {
+	return c.Query().Where(serviceendpoint.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ServiceEndpointClient) GetX(ctx context.Context, id string) *ServiceEndpoint {
+	se, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return se
+}
+
+// QueryPort queries the port edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryPort(se *ServiceEndpoint) *EquipmentPortQuery {
+	query := &EquipmentPortQuery{config: c.config}
+	id := se.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.PortTable, serviceendpoint.PortColumn),
+	)
+	query.sql = sqlgraph.Neighbors(se.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryService queries the service edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryService(se *ServiceEndpoint) *ServiceQuery {
+	query := &ServiceQuery{config: c.config}
+	id := se.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, serviceendpoint.ServiceTable, serviceendpoint.ServiceColumn),
+	)
+	query.sql = sqlgraph.Neighbors(se.driver.Dialect(), step)
 
 	return query
 }
@@ -3977,6 +4201,20 @@ func (c *WorkOrderClient) QueryFiles(wo *WorkOrder) *FileQuery {
 		sqlgraph.From(workorder.Table, workorder.FieldID, id),
 		sqlgraph.To(file.Table, file.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, workorder.FilesTable, workorder.FilesColumn),
+	)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryHyperlinks queries the hyperlinks edge of a WorkOrder.
+func (c *WorkOrderClient) QueryHyperlinks(wo *WorkOrder) *HyperlinkQuery {
+	query := &HyperlinkQuery{config: c.config}
+	id := wo.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.HyperlinksTable, workorder.HyperlinksColumn),
 	)
 	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 

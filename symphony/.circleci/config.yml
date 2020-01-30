@@ -37,12 +37,16 @@ executors:
     docker:
       - image: circleci/node
   golangci:
+    parameters:
+      tag:
+        default: v1.23
+        type: string
     docker:
-      - image: golangci/golangci-lint
+      - image: golangci/golangci-lint:<<parameters.tag>>
   terraform:
     parameters:
       tag:
-        default: 0.12.18
+        default: 0.12.20
         type: string
     docker:
       - image: hashicorp/terraform:<<parameters.tag>>
@@ -323,12 +327,18 @@ jobs:
           command: docker-compose up -d --scale tests=0 --scale pytests=0
       - run:
           name: Run go tests
-          command: |
+          command:
             docker-compose run --use-aliases -e GOTESTSUM_JUNITFILE=integration.xml tests
-            mv integration/tests/integration.xml ~/test-results/
       - run:
           name: Run python tests
-          command: docker-compose run --use-aliases pytests
+          command:
+            docker-compose run --use-aliases pytests
+      - run:
+          name: Collect tests results
+          command: |
+            mv integration/tests/integration.xml ~/test-results/
+            mv integration/pytests/*.xml ~/test-results/
+          when: always
       - run:
           name: Stop and remove containers
           command: docker-compose down
@@ -460,6 +470,7 @@ jobs:
               --grid "<<parameters.grid>>" \
               --token "$<<parameters.token>>" \
               --report-file ~/test-results/testim.xml \
+              --base-url testimio.staging.thesymphony.cloud/ \
               <<#parameters.options>><<parameters.options>><</parameters.options>>
       - *storetestdir
 

@@ -62,7 +62,7 @@ graphql`
 
 const workOrderTypesQuery = graphql`
   query WorkOrderTypesListQuery {
-    workOrderTypes(first: 50)
+    workOrderTypes(first: 500)
       @connection(key: "WorkOrderTypesListQuery_workOrderTypes") {
       edges {
         node {

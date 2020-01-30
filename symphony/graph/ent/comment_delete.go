@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -41,23 +43,23 @@ func (cd *CommentDelete) ExecX(ctx context.Context) int {
 }
 
 func (cd *CommentDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(cd.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(comment.Table))
-	for _, p := range cd.predicates {
-		p(selector)
+	_spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: comment.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: comment.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(comment.Table).FromSelect(selector).Query()
-	if err := cd.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := cd.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, cd.driver, _spec)
 }
 
 // CommentDeleteOne is the builder for deleting a single Comment entity.
@@ -72,7 +74,7 @@ func (cdo *CommentDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{comment.Label}
+		return &NotFoundError{comment.Label}
 	default:
 		return nil
 	}

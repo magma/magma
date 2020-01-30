@@ -44,7 +44,6 @@
 #include "common_types.h"
 #include "common_defs.h"
 #include "s1ap_messages_types.h"
-#include "nas_messages_types.h"
 #include "s6a_messages_types.h"
 #include "security_types.h"
 #include "sgw_ie_defs.h"
@@ -168,13 +167,6 @@ typedef struct bearer_context_s {
   priority_level_t priority_level;
   pre_emption_vulnerability_t preemption_vulnerability;
   pre_emption_capability_t preemption_capability;
-
-  /* Save QoS and TFT to be sent to SGW.
-   * At SGW, context will be created after
-   * receiving itti_s11_pcrf_ded_bearer_actv_rsp_t
-   */
-  traffic_flow_template_t  *saved_tft;
-  bearer_qos_t             *saved_qos;
 } bearer_context_t;
 
 /** @struct pdn_context_s
@@ -358,9 +350,6 @@ typedef struct sgs_context_s {
  * according to 3GPP TS.23.401 #5.7.2
  */
 typedef struct ue_mm_context_s {
-  /* mutex on the ue_mm_context_t + emm_context_s + esm_context_t */
-  pthread_mutex_t recmutex;
-
   /* msisdn: The basic MSISDN of the UE. The presence is dictated by its storage
    *         in the HSS, set by S6A UPDATE LOCATION ANSWER
    */
@@ -457,7 +446,7 @@ typedef struct ue_mm_context_s {
   bool location_info_confirmed_in_hss;
   /* S6a- update location request guard timer */
   struct mme_app_timer_t ulr_response_timer;
-  sgs_context_t *sgs_context;
+  sgs_context_t* sgs_context;
   uint8_t attach_type;
   lai_t lai;
   int cs_fallback_indicator;
@@ -601,10 +590,6 @@ void mme_notify_ue_context_released(
 void mme_remove_ue_context(
   mme_ue_context_t *const mme_ue_context,
   struct ue_mm_context_s *const ue_context_p);
-
-int lock_ue_contexts(ue_mm_context_t *const ue_context_p);
-
-int unlock_ue_contexts(ue_mm_context_t *const ue_context_p);
 
 /** \brief Allocate memory for a new UE context
  * @returns Pointer to the new structure, NULL if allocation failed

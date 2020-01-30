@@ -19,12 +19,7 @@ import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
 import {EquipmentCriteriaConfig} from './EquipmentSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-
-import {
-  buildPropertyFilterConfigs,
-  getPossibleProperties,
-  getSelectedFilter,
-} from './FilterUtils';
+import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
 
 type Props = {
   filters: FiltersQuery,
@@ -35,12 +30,7 @@ type Props = {
 const EquipmentPowerSearchBar = (props: Props) => {
   const {onFiltersChanged, filters, footer} = props;
 
-  const equipmentDataResponse = usePropertyFilters('equipment');
-
-  const possibleProperties = getPossibleProperties(
-    equipmentDataResponse.response,
-  );
-
+  const possibleProperties = usePropertyFilters('equipment');
   const equipmentPropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
@@ -49,8 +39,8 @@ const EquipmentPowerSearchBar = (props: Props) => {
 
   const filterConfigs = EquipmentCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(equipmentPropertiesFilterConfigs)
-    .concat(locationTypesFilterConfigs);
+    .concat(equipmentPropertiesFilterConfigs ?? [])
+    .concat(locationTypesFilterConfigs ?? []);
 
   return (
     <PowerSearchBar
@@ -61,7 +51,7 @@ const EquipmentPowerSearchBar = (props: Props) => {
       onFilterRemoved={handleFilterRemoved}
       onFilterBlurred={handleFilterBlurred}
       getSelectedFilter={(filterConfig: FilterConfig) =>
-        getSelectedFilter(filterConfig, possibleProperties)
+        getSelectedFilter(filterConfig, possibleProperties ?? [])
       }
       placeholder="Filter..."
       searchConfig={EquipmentCriteriaConfig}

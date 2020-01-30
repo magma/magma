@@ -77,7 +77,7 @@ type State = {
 
 const serviceTypesQuery = graphql`
   query ServiceTypesQuery {
-    serviceTypes(first: 50) @connection(key: "ServiceTypes_serviceTypes") {
+    serviceTypes(first: 500) @connection(key: "ServiceTypes_serviceTypes") {
       edges {
         node {
           ...ServiceTypeItem_serviceType

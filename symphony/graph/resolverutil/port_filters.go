@@ -6,9 +6,10 @@ package resolverutil
 
 import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
-
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -30,8 +31,11 @@ func handlePortFilter(q *ent.EquipmentPortQuery, filter *models.PortFilterInput)
 }
 
 func portEquipmentFilter(q *ent.EquipmentPortQuery, filter *models.PortFilterInput) (*ent.EquipmentPortQuery, error) {
-	if filter.Operator == models.FilterOperatorContains {
+	switch filter.Operator {
+	case models.FilterOperatorContains:
 		return q.Where(equipmentport.HasParentWith(equipment.NameContainsFold(*filter.StringValue))), nil
+	case models.FilterOperatorIsOneOf:
+		return q.Where(equipmentport.HasParentWith(equipment.IDIn(filter.IDSet...))), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
@@ -154,4 +158,22 @@ func handlePortPropertyFilter(q *ent.EquipmentPortQuery, filter *models.PortFilt
 	default:
 		return nil, errors.Errorf("operator %q not supported", filter.Operator)
 	}
+}
+
+func handlePortServiceFilter(q *ent.EquipmentPortQuery, filter *models.PortFilterInput) (*ent.EquipmentPortQuery, error) {
+	if filter.FilterType == models.PortFilterTypeServiceInst {
+		return portServiceFilter(q, filter)
+	}
+	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
+}
+
+func portServiceFilter(q *ent.EquipmentPortQuery, filter *models.PortFilterInput) (*ent.EquipmentPortQuery, error) {
+	query := equipmentport.HasEndpointsWith(serviceendpoint.HasServiceWith(service.IDIn(filter.IDSet...)))
+	switch filter.Operator {
+	case models.FilterOperatorIsOneOf:
+		return q.Where(query), nil
+	case models.FilterOperatorIsNotOneOf:
+		return q.Where(equipmentport.Not(query)), nil
+	}
+	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

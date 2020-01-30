@@ -270,8 +270,8 @@ func (swfsc *SurveyWiFiScanCreate) SaveX(ctx context.Context) *SurveyWiFiScan {
 
 func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan, error) {
 	var (
-		swfs = &SurveyWiFiScan{config: swfsc.config}
-		spec = &sqlgraph.CreateSpec{
+		swfs  = &SurveyWiFiScan{config: swfsc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: surveywifiscan.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -280,7 +280,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		}
 	)
 	if value := swfsc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveywifiscan.FieldCreateTime,
@@ -288,7 +288,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.CreateTime = *value
 	}
 	if value := swfsc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveywifiscan.FieldUpdateTime,
@@ -296,7 +296,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.UpdateTime = *value
 	}
 	if value := swfsc.ssid; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveywifiscan.FieldSsid,
@@ -304,7 +304,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.Ssid = *value
 	}
 	if value := swfsc.bssid; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveywifiscan.FieldBssid,
@@ -312,7 +312,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.Bssid = *value
 	}
 	if value := swfsc.timestamp; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveywifiscan.FieldTimestamp,
@@ -320,7 +320,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.Timestamp = *value
 	}
 	if value := swfsc.frequency; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveywifiscan.FieldFrequency,
@@ -328,7 +328,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.Frequency = *value
 	}
 	if value := swfsc.channel; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveywifiscan.FieldChannel,
@@ -336,7 +336,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.Channel = *value
 	}
 	if value := swfsc.band; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveywifiscan.FieldBand,
@@ -344,7 +344,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.Band = *value
 	}
 	if value := swfsc.channel_width; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveywifiscan.FieldChannelWidth,
@@ -352,7 +352,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.ChannelWidth = *value
 	}
 	if value := swfsc.capabilities; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveywifiscan.FieldCapabilities,
@@ -360,7 +360,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.Capabilities = *value
 	}
 	if value := swfsc.strength; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveywifiscan.FieldStrength,
@@ -368,7 +368,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.Strength = *value
 	}
 	if value := swfsc.latitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: surveywifiscan.FieldLatitude,
@@ -376,7 +376,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		swfs.Latitude = *value
 	}
 	if value := swfsc.longitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: surveywifiscan.FieldLongitude,
@@ -404,7 +404,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := swfsc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -427,15 +427,15 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, swfsc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, swfsc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	swfs.ID = strconv.FormatInt(id, 10)
 	return swfs, nil
 }

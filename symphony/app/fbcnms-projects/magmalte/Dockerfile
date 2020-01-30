@@ -19,10 +19,11 @@ RUN yarn run build
 
 FROM node:10-alpine
 
-COPY --from=builder /usr/src /usr/src
-
 # Install required binaries
-RUN apk add ca-certificates curl
+RUN apk add ca-certificates curl bash
+COPY fbcnms-projects/magmalte/wait-for-it.sh /usr/local/bin
+
+COPY --from=builder /usr/src /usr/src
 
 WORKDIR /usr/src/fbcnms-projects/magmalte
 CMD ["yarn run start:prod"]

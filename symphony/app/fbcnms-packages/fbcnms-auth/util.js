@@ -28,7 +28,7 @@ const FIELD_MAP = {
   networkIDs: 'networkIDs',
   organization: 'organization',
   password: 'password',
-  superUser: 'role',
+  role: 'role',
   tabs: 'tabs',
 };
 
@@ -92,9 +92,13 @@ export async function getPropsToUpdate(
             String(body[prop]),
           );
           break;
-        case 'superUser':
-          userProperties.role =
-            body[prop] == true ? AccessRoles.SUPERUSER : AccessRoles.USER;
+        case 'role':
+          userProperties[prop] =
+            body[prop] === AccessRoles.SUPERUSER
+              ? AccessRoles.SUPERUSER
+              : body[prop] === AccessRoles.READ_ONLY_USER
+              ? AccessRoles.READ_ONLY_USER
+              : AccessRoles.USER;
           break;
         case 'networkIDs':
           const networkIDsunsafe = body[prop];

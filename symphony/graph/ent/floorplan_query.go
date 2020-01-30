@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
@@ -30,6 +31,12 @@ type FloorPlanQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.FloorPlan
+	// eager-loading edges.
+	withLocation       *LocationQuery
+	withReferencePoint *FloorPlanReferencePointQuery
+	withScale          *FloorPlanScaleQuery
+	withImage          *FileQuery
+	withFKs            bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -106,14 +113,14 @@ func (fpq *FloorPlanQuery) QueryImage() *FileQuery {
 	return query
 }
 
-// First returns the first FloorPlan entity in the query. Returns *ErrNotFound when no floorplan was found.
+// First returns the first FloorPlan entity in the query. Returns *NotFoundError when no floorplan was found.
 func (fpq *FloorPlanQuery) First(ctx context.Context) (*FloorPlan, error) {
 	fps, err := fpq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(fps) == 0 {
-		return nil, &ErrNotFound{floorplan.Label}
+		return nil, &NotFoundError{floorplan.Label}
 	}
 	return fps[0], nil
 }
@@ -127,14 +134,14 @@ func (fpq *FloorPlanQuery) FirstX(ctx context.Context) *FloorPlan {
 	return fp
 }
 
-// FirstID returns the first FloorPlan id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first FloorPlan id in the query. Returns *NotFoundError when no id was found.
 func (fpq *FloorPlanQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = fpq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{floorplan.Label}
+		err = &NotFoundError{floorplan.Label}
 		return
 	}
 	return ids[0], nil
@@ -159,9 +166,9 @@ func (fpq *FloorPlanQuery) Only(ctx context.Context) (*FloorPlan, error) {
 	case 1:
 		return fps[0], nil
 	case 0:
-		return nil, &ErrNotFound{floorplan.Label}
+		return nil, &NotFoundError{floorplan.Label}
 	default:
-		return nil, &ErrNotSingular{floorplan.Label}
+		return nil, &NotSingularError{floorplan.Label}
 	}
 }
 
@@ -184,9 +191,9 @@ func (fpq *FloorPlanQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{floorplan.Label}
+		err = &NotFoundError{floorplan.Label}
 	default:
-		err = &ErrNotSingular{floorplan.Label}
+		err = &NotSingularError{floorplan.Label}
 	}
 	return
 }
@@ -275,6 +282,50 @@ func (fpq *FloorPlanQuery) Clone() *FloorPlanQuery {
 	}
 }
 
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (fpq *FloorPlanQuery) WithLocation(opts ...func(*LocationQuery)) *FloorPlanQuery {
+	query := &LocationQuery{config: fpq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fpq.withLocation = query
+	return fpq
+}
+
+//  WithReferencePoint tells the query-builder to eager-loads the nodes that are connected to
+// the "reference_point" edge. The optional arguments used to configure the query builder of the edge.
+func (fpq *FloorPlanQuery) WithReferencePoint(opts ...func(*FloorPlanReferencePointQuery)) *FloorPlanQuery {
+	query := &FloorPlanReferencePointQuery{config: fpq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fpq.withReferencePoint = query
+	return fpq
+}
+
+//  WithScale tells the query-builder to eager-loads the nodes that are connected to
+// the "scale" edge. The optional arguments used to configure the query builder of the edge.
+func (fpq *FloorPlanQuery) WithScale(opts ...func(*FloorPlanScaleQuery)) *FloorPlanQuery {
+	query := &FloorPlanScaleQuery{config: fpq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fpq.withScale = query
+	return fpq
+}
+
+//  WithImage tells the query-builder to eager-loads the nodes that are connected to
+// the "image" edge. The optional arguments used to configure the query builder of the edge.
+func (fpq *FloorPlanQuery) WithImage(opts ...func(*FileQuery)) *FloorPlanQuery {
+	query := &FileQuery{config: fpq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fpq.withImage = query
+	return fpq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -317,45 +368,146 @@ func (fpq *FloorPlanQuery) Select(field string, fields ...string) *FloorPlanSele
 }
 
 func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
-	rows := &sql.Rows{}
-	selector := fpq.sqlQuery()
-	if unique := fpq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*FloorPlan = []*FloorPlan{}
+		withFKs              = fpq.withFKs
+		_spec                = fpq.querySpec()
+	)
+	if fpq.withLocation != nil || fpq.withReferencePoint != nil || fpq.withScale != nil || fpq.withImage != nil {
+		withFKs = true
 	}
-	query, args := selector.Query()
-	if err := fpq.driver.Query(ctx, query, args, rows); err != nil {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, floorplan.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
+		node := &FloorPlan{config: fpq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, fpq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var fps FloorPlans
-	if err := fps.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	fps.config(fpq.config)
-	return fps, nil
+
+	if query := fpq.withLocation; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*FloorPlan)
+		for i := range nodes {
+			if fk := nodes[i].location_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
+	}
+
+	if query := fpq.withReferencePoint; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*FloorPlan)
+		for i := range nodes {
+			if fk := nodes[i].floor_plan_reference_point_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(floorplanreferencepoint.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_reference_point_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.ReferencePoint = n
+			}
+		}
+	}
+
+	if query := fpq.withScale; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*FloorPlan)
+		for i := range nodes {
+			if fk := nodes[i].floor_plan_scale_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(floorplanscale.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_scale_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Scale = n
+			}
+		}
+	}
+
+	if query := fpq.withImage; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*FloorPlan)
+		for i := range nodes {
+			if fk := nodes[i].floor_plan_image_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(file.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_image_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Image = n
+			}
+		}
+	}
+
+	return nodes, nil
 }
 
 func (fpq *FloorPlanQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := fpq.sqlQuery()
-	unique := []string{floorplan.FieldID}
-	if len(fpq.unique) > 0 {
-		unique = fpq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := fpq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := fpq.querySpec()
+	return sqlgraph.CountNodes(ctx, fpq.driver, _spec)
 }
 
 func (fpq *FloorPlanQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -364,6 +516,42 @@ func (fpq *FloorPlanQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (fpq *FloorPlanQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   floorplan.Table,
+			Columns: floorplan.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplan.FieldID,
+			},
+		},
+		From:   fpq.sql,
+		Unique: true,
+	}
+	if ps := fpq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := fpq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := fpq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := fpq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (fpq *FloorPlanQuery) sqlQuery() *sql.Selector {
@@ -637,7 +825,7 @@ func (fps *FloorPlanSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (fps *FloorPlanSelect) sqlQuery() sql.Querier {
-	view := "floorplan_view"
-	return sql.Dialect(fps.driver.Dialect()).
-		Select(fps.fields...).From(fps.sql.As(view))
+	selector := fps.sql
+	selector.Select(selector.Columns(fps.fields...)...)
+	return selector
 }

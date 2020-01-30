@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -25,6 +27,7 @@ type FileQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.File
+	withFKs    bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -53,14 +56,14 @@ func (fq *FileQuery) Order(o ...Order) *FileQuery {
 	return fq
 }
 
-// First returns the first File entity in the query. Returns *ErrNotFound when no file was found.
+// First returns the first File entity in the query. Returns *NotFoundError when no file was found.
 func (fq *FileQuery) First(ctx context.Context) (*File, error) {
 	fs, err := fq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(fs) == 0 {
-		return nil, &ErrNotFound{file.Label}
+		return nil, &NotFoundError{file.Label}
 	}
 	return fs[0], nil
 }
@@ -74,14 +77,14 @@ func (fq *FileQuery) FirstX(ctx context.Context) *File {
 	return f
 }
 
-// FirstID returns the first File id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first File id in the query. Returns *NotFoundError when no id was found.
 func (fq *FileQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = fq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{file.Label}
+		err = &NotFoundError{file.Label}
 		return
 	}
 	return ids[0], nil
@@ -106,9 +109,9 @@ func (fq *FileQuery) Only(ctx context.Context) (*File, error) {
 	case 1:
 		return fs[0], nil
 	case 0:
-		return nil, &ErrNotFound{file.Label}
+		return nil, &NotFoundError{file.Label}
 	default:
-		return nil, &ErrNotSingular{file.Label}
+		return nil, &NotSingularError{file.Label}
 	}
 }
 
@@ -131,9 +134,9 @@ func (fq *FileQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{file.Label}
+		err = &NotFoundError{file.Label}
 	default:
-		err = &ErrNotSingular{file.Label}
+		err = &NotSingularError{file.Label}
 	}
 	return
 }
@@ -264,45 +267,42 @@ func (fq *FileQuery) Select(field string, fields ...string) *FileSelect {
 }
 
 func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
-	rows := &sql.Rows{}
-	selector := fq.sqlQuery()
-	if unique := fq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes   []*File = []*File{}
+		withFKs         = fq.withFKs
+		_spec           = fq.querySpec()
+	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, file.ForeignKeys...)
 	}
-	query, args := selector.Query()
-	if err := fq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.ScanValues = func() []interface{} {
+		node := &File{config: fq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, fq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var fs Files
-	if err := fs.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	fs.config(fq.config)
-	return fs, nil
+	return nodes, nil
 }
 
 func (fq *FileQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := fq.sqlQuery()
-	unique := []string{file.FieldID}
-	if len(fq.unique) > 0 {
-		unique = fq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := fq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := fq.querySpec()
+	return sqlgraph.CountNodes(ctx, fq.driver, _spec)
 }
 
 func (fq *FileQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -311,6 +311,42 @@ func (fq *FileQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   file.Table,
+			Columns: file.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: file.FieldID,
+			},
+		},
+		From:   fq.sql,
+		Unique: true,
+	}
+	if ps := fq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := fq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := fq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := fq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (fq *FileQuery) sqlQuery() *sql.Selector {
@@ -584,7 +620,7 @@ func (fs *FileSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (fs *FileSelect) sqlQuery() sql.Querier {
-	view := "file_view"
-	return sql.Dialect(fs.driver.Dialect()).
-		Select(fs.fields...).From(fs.sql.As(view))
+	selector := fs.sql
+	selector.Select(selector.Columns(fs.fields...)...)
+	return selector
 }

@@ -7,7 +7,7 @@ package auth
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/volatiletech/authboss"
 	"go.uber.org/zap"
 )

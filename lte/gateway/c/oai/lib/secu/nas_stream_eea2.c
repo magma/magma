@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -41,7 +41,6 @@ int nas_stream_encrypt_eea2(
   uint8_t *data;
   uint32_t zero_bit = 0;
   uint32_t byte_length;
-  uint32_t len = 0;
 
   DevAssert(stream_cipher != NULL);
   DevAssert(out != NULL);
@@ -76,8 +75,6 @@ int nas_stream_encrypt_eea2(
     data[byte_length - 1] =
       data[byte_length - 1] & (uint8_t)(0xFF << (8 - zero_bit));
 
-  len = sizeof(out);
-  memset(out, 0, len);
   memcpy(out, data, byte_length);
   free_wrapper((void **) &data);
   free_wrapper((void **) &ctx);

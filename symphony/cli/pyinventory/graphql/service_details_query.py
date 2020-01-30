@@ -24,26 +24,53 @@ DATETIME_FIELD = field(
 )
 
 
+def enum_field(enum_type):
+    def encode_enum(value):
+        return value.value
+
+    def decode_enum(t, value):
+        return t(value)
+
+    return field(
+        metadata={
+            "dataclasses_json": {
+                "encoder": encode_enum,
+                "decoder": partial(decode_enum, enum_type),
+            }
+        }
+    )
+
+
+class ServiceEndpointRole(Enum):
+    CONSUMER = "CONSUMER"
+    PROVIDER = "PROVIDER"
+
+
 @dataclass_json
 @dataclass
 class ServiceDetailsQuery:
     __QUERY__ = """
     query ServiceDetailsQuery($id: ID!) {
-  service(id: $id) {
-    id
-    name
-    externalId
-    customer {
+  service: node(id: $id) {
+    ... on Service {
       id
       name
       externalId
-    }
-    terminationPoints {
-      id
-      name
-    }
-    links {
-      id
+      customer {
+        id
+        name
+        externalId
+      }
+      endpoints {
+        id
+        port {
+          id
+        }
+        role
+      }
+      links {
+        id
+      }
     }
   }
 }
@@ -55,7 +82,7 @@ class ServiceDetailsQuery:
     class ServiceDetailsQueryData:
         @dataclass_json
         @dataclass
-        class Service:
+        class Node:
             @dataclass_json
             @dataclass
             class Customer:
@@ -65,9 +92,15 @@ class ServiceDetailsQuery:
 
             @dataclass_json
             @dataclass
-            class Equipment:
+            class ServiceEndpoint:
+                @dataclass_json
+                @dataclass
+                class EquipmentPort:
+                    id: str
+
                 id: str
-                name: str
+                port: EquipmentPort
+                role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
 
             @dataclass_json
             @dataclass
@@ -76,15 +109,15 @@ class ServiceDetailsQuery:
 
             id: str
             name: str
-            terminationPoints: List[Equipment]
+            endpoints: List[ServiceEndpoint]
             links: List[Link]
             externalId: Optional[str] = None
             customer: Optional[Customer] = None
 
-        service: Optional[Service] = None
+        service: Optional[Node] = None
 
     data: Optional[ServiceDetailsQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

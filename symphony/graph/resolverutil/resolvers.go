@@ -15,58 +15,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// LocationTypes is a helper to bring location types
-func LocationTypes(ctx context.Context, client *ent.Client) (*models.LocationTypeConnection, error) {
-	lts, err := client.LocationType.Query().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying location types")
-	}
-	edges := make([]*models.LocationTypeEdge, len(lts))
-	for i, lt := range lts {
-		edges[i] = &models.LocationTypeEdge{Node: lt}
-	}
-	return &models.LocationTypeConnection{Edges: edges}, err
-}
-
-// EquipmentTypes is a helper to bring equipment types
-func EquipmentTypes(ctx context.Context, client *ent.Client) (*models.EquipmentTypeConnection, error) {
-	ets, err := client.EquipmentType.Query().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying equipment types")
-	}
-	edges := make([]*models.EquipmentTypeEdge, len(ets))
-	for i, et := range ets {
-		edges[i] = &models.EquipmentTypeEdge{Node: et}
-	}
-	return &models.EquipmentTypeConnection{Edges: edges}, err
-}
-
-// ServiceTypes is a helper to bring service types
-func ServiceTypes(ctx context.Context, client *ent.Client) (*models.ServiceTypeConnection, error) {
-	sts, err := client.ServiceType.Query().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying service types")
-	}
-	edges := make([]*models.ServiceTypeEdge, len(sts))
-	for i, et := range sts {
-		edges[i] = &models.ServiceTypeEdge{Node: et}
-	}
-	return &models.ServiceTypeConnection{Edges: edges}, err
-}
-
-// EquipmentPortTypes is a helper to bring equipment port types
-func EquipmentPortTypes(ctx context.Context, client *ent.Client) (*models.EquipmentPortTypeConnection, error) {
-	ets, err := client.EquipmentPortType.Query().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying equipment types")
-	}
-	edges := make([]*models.EquipmentPortTypeEdge, len(ets))
-	for i, et := range ets {
-		edges[i] = &models.EquipmentPortTypeEdge{Node: et}
-	}
-	return &models.EquipmentPortTypeConnection{Edges: edges}, err
-}
-
 // EquipmentTypes is a helper to bring equipment types
 func EquipmentSearch(ctx context.Context, client *ent.Client, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error) {
 	var (
@@ -108,13 +56,13 @@ func EquipmentSearch(ctx context.Context, client *ent.Client, filters []*models.
 			return nil, err
 		}
 	}
-
 	return &models.EquipmentSearchResult{
 		Equipment: res,
 		Count:     c,
-	}, err
+	}, nil
 }
 
+// nolint: dupl
 func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortFilterInput, limit *int) (*models.PortSearchResult, error) {
 	var (
 		query = client.EquipmentPort.Query()
@@ -138,6 +86,10 @@ func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortF
 			if query, err = handlePortPropertyFilter(query, f); err != nil {
 				return nil, err
 			}
+		case strings.HasPrefix(f.FilterType.String(), "SERVICE_INST"):
+			if query, err = handlePortServiceFilter(query, f); err != nil {
+				return nil, err
+			}
 		}
 	}
 	count, err := query.Clone().Count(ctx)
@@ -148,15 +100,13 @@ func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortF
 		query.Limit(*limit)
 	}
 	ports, err := query.All(ctx)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "Querying links failed")
 	}
-
 	return &models.PortSearchResult{
 		Ports: ports,
 		Count: count,
-	}, err
+	}, nil
 }
 
 // nolint: dupl
@@ -189,15 +139,13 @@ func LocationSearch(ctx context.Context, client *ent.Client, filters []*models.L
 		query.Limit(*limit)
 	}
 	locs, err := query.All(ctx)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "Querying locations failed")
 	}
-
 	return &models.LocationSearchResult{
 		Locations: locs,
 		Count:     count,
-	}, err
+	}, nil
 }
 
 // nolint: dupl
@@ -239,11 +187,9 @@ func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkF
 		query.Limit(*limit)
 	}
 	links, err := query.All(ctx)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "Querying links failed")
 	}
-
 	return &models.LinkSearchResult{
 		Links: links,
 		Count: count,
@@ -260,6 +206,10 @@ func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.Se
 		switch {
 		case strings.HasPrefix(f.FilterType.String(), "SERVICE_"):
 			if query, err = handleServiceFilter(query, f); err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(f.FilterType.String(), "PROPERTY"):
+			if query, err = handleServicePropertyFilter(query, f); err != nil {
 				return nil, err
 			}
 		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
@@ -281,12 +231,11 @@ func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.Se
 		query.Limit(*limit)
 	}
 	services, err := query.All(ctx)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "Querying services failed")
 	}
 	return &models.ServiceSearchResult{
 		Services: services,
 		Count:    count,
-	}, err
+	}, nil
 }

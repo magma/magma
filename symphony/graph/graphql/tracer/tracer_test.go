@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/vektah/gqlparser/ast"
-	"go.opencensus.io/trace"
 )
 
 type testTracer struct {
@@ -25,28 +24,9 @@ func (t *testTracer) StartFieldExecution(ctx context.Context, field graphql.Coll
 }
 
 func TestTracerStartFieldExecution(t *testing.T) {
-	t.Run("user", func(t *testing.T) {
-		var m testTracer
-		m.On("StartFieldExecution", mock.Anything, mock.Anything).
-			Return(context.Background()).
-			Once()
-		defer m.AssertExpectations(t)
-		field := graphql.CollectedField{Field: &ast.Field{Name: "name"}}
-		_ = tracer{&m}.StartFieldExecution(context.Background(), field)
-	})
-	t.Run("internal", func(t *testing.T) {
-		var m testTracer
-		defer m.AssertExpectations(t)
-		trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
-		ctx := tracer{&m}.StartFieldExecution(
-			context.Background(),
-			graphql.CollectedField{
-				Field: &ast.Field{
-					Name:             "__schema",
-					ObjectDefinition: &ast.Definition{Name: "Query"},
-				},
-			},
-		)
-		assert.False(t, trace.FromContext(ctx).IsRecordingEvents())
-	})
+	var m testTracer
+	defer m.AssertExpectations(t)
+	ctx := context.Background()
+	field := graphql.CollectedField{Field: &ast.Field{Name: "name"}}
+	assert.Equal(t, ctx, tracer{&m}.StartFieldExecution(ctx, field))
 }

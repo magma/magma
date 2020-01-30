@@ -83,6 +83,14 @@ class ConfigManagerTest(TestCase):
                 loop=loop,
             )
 
+            # Process an empty set of updates
+            updates = []
+            config_manager.process_update(CONFIG_STREAM_NAME, updates, False)
+
+            # No services should be updated or restarted due to empty updates
+            restarter.assert_not_called()
+            updater.assert_not_called()
+
             # Verify that config update restarts all services
             update_str = MessageToJson(updated_mconfig)
             updates = [

@@ -25,6 +25,7 @@ export type LocationEquipmentTopology_equipment$data = LocationEquipmentTopology
 export type LocationEquipmentTopology_equipment$key = $ReadOnlyArray<{
   +$data?: LocationEquipmentTopology_equipment$data,
   +$fragmentRefs: LocationEquipmentTopology_equipment$ref,
+  ...
 }>;
 */
 

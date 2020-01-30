@@ -70,7 +70,6 @@
 #include "mme_api.h"
 #include "mme_app_state.h"
 #include "mme_app_messages_types.h"
-#include "nas_messages_types.h"
 #include "s11_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "nas/securityDef.h"
@@ -83,6 +82,117 @@
 #else
 #define TASK_SPGW TASK_S11
 #endif
+
+int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+
+  uint8_t item = 0; // This function call is used for default bearer only
+  ue_mm_context_t* ue_context_p = NULL;
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+
+  if (mme_app_desc_p) {
+    ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+      &mme_app_desc_p->mme_ue_contexts, ue_id);
+  }
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "ue_context_p is NULL, did not send S11_MODIFY_BEARER_REQUEST\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
+  bearer_context_t* bearer_cntxt =
+    mme_app_get_bearer_context(ue_context_p, ebi);
+  if (bearer_cntxt == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Bearer context is null, did not send S11_MODIFY_BEARER_REQUEST for ebi"
+      "%u\n",
+      ebi);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
+  pdn_cid_t cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
+  pdn_context_t* pdn_context_p = ue_context_p->pdn_contexts[cid];
+  if (pdn_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Did not find PDN context for ebi %u\n", ebi);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
+  MessageDef* message_p =
+    itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP, "Cannot allocate memory to S11_MODIFY_BEARER_REQUEST\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
+  itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
+    &message_p->ittiMsg.s11_modify_bearer_request;
+  s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
+  /*
+   * Delay Value in integer multiples of 50 millisecs, or zero
+   */
+  s11_modify_bearer_request->delay_dl_packet_notif_req = 0;
+  s11_modify_bearer_request->bearer_contexts_to_be_modified
+    .bearer_contexts[item]
+    .eps_bearer_id = ebi;
+  s11_modify_bearer_request->bearer_contexts_to_be_modified
+    .bearer_contexts[item]
+    .s1_eNB_fteid.teid = bearer_cntxt->enb_fteid_s1u.teid;
+  s11_modify_bearer_request->bearer_contexts_to_be_modified
+    .bearer_contexts[item]
+    .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
+  s11_modify_bearer_request->peer_ip =
+    pdn_context_p->s_gw_address_s11_s4.address.ipv4_address;
+  s11_modify_bearer_request->teid = pdn_context_p->s_gw_teid_s11_s4;
+
+  if (bearer_cntxt->enb_fteid_s1u.ipv4) {
+    s11_modify_bearer_request->bearer_contexts_to_be_modified
+      .bearer_contexts[item]
+      .s1_eNB_fteid.ipv4 = 1;
+    memcpy(
+      &s11_modify_bearer_request->bearer_contexts_to_be_modified
+         .bearer_contexts[item]
+         .s1_eNB_fteid.ipv4_address,
+      &bearer_cntxt->enb_fteid_s1u.ipv4_address,
+      sizeof(bearer_cntxt->enb_fteid_s1u.ipv4_address));
+  } else if (bearer_cntxt->enb_fteid_s1u.ipv6) {
+    s11_modify_bearer_request->bearer_contexts_to_be_modified
+      .bearer_contexts[item]
+      .s1_eNB_fteid.ipv6 = 1;
+    memcpy(
+      &s11_modify_bearer_request->bearer_contexts_to_be_modified
+         .bearer_contexts[item]
+         .s1_eNB_fteid.ipv6_address,
+      &bearer_cntxt->enb_fteid_s1u.ipv6_address,
+      sizeof(bearer_cntxt->enb_fteid_s1u.ipv6_address));
+  } else {
+    OAILOG_ERROR(LOG_MME_APP, "Unknown IP address\n");
+  }
+
+  // Only one bearer context to be sent for secondary PDN
+  s11_modify_bearer_request->bearer_contexts_to_be_modified.num_bearer_context =
+    1;
+  s11_modify_bearer_request->bearer_contexts_to_be_removed.num_bearer_context =
+    0;
+  s11_modify_bearer_request->mme_fq_csid.node_id_type = GLOBAL_UNICAST_IPv4;
+  s11_modify_bearer_request->mme_fq_csid.csid = 0;
+  memset(
+    &s11_modify_bearer_request->indication_flags,
+    0,
+    sizeof(s11_modify_bearer_request->indication_flags));
+  s11_modify_bearer_request->rat_type = RAT_EUTRAN;
+
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Sending S11_MODIFY_BEARER_REQUEST to SGW for ue" MME_UE_S1AP_ID_FMT "\n",
+    ue_id);
+  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+}
+
 
 void print_bearer_ids_helper(const ebi_t *ebi, uint32_t no_of_bearers)
 {
@@ -140,27 +250,12 @@ int _send_pcrf_bearer_actv_rsp(
   s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
     .s1u_sgw_fteid = bc->s_gw_fteid_s1u;
   s11_nw_init_actv_bearer_rsp->bearer_contexts.num_bearer_context++;
-  //Saved TFT to be sent to SGW in order to save in the SPGW context
-  if (bc->saved_tft) {
-    memcpy(
-      &s11_nw_init_actv_bearer_rsp->tft,
-      bc->saved_tft,
-      sizeof(traffic_flow_template_t));
-  }
-  //Saved QoS to be sent to SGW in order to save in the SPGW context
-  if (bc->saved_qos) {
-    memcpy(
-      &s11_nw_init_actv_bearer_rsp->eps_bearer_qos,
-      bc->saved_qos,
-      sizeof(bearer_qos_t));
-  }
 
   OAILOG_INFO(
     LOG_MME_APP,
-    "Sending create_dedicated_bearer_rsp to SGW with EBI %u\n",
-    s11_nw_init_actv_bearer_rsp->bearer_contexts
-      .bearer_contexts[msg_bearer_index]
-      .eps_bearer_id);
+    "Sending create_dedicated_bearer_rsp to SGW with EBI %u s1u teid %u\n",
+    ebi,
+    bc->s_gw_fteid_s1u.teid);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
@@ -243,7 +338,6 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
       mme_app_handle_nw_initiated_detach_request(
         ue_context_p->mme_ue_s1ap_id, SGS_INITIATED_IMSI_DETACH);
       ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_NONE;
-      unlock_ue_contexts(ue_context_p);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
   }
@@ -430,16 +524,20 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
    * If timer expires treat this as failure of ongoing procedure and abort corresponding NAS procedure such as ATTACH
    * or SERVICE REQUEST. Send UE context release command to eNB
    */
-  if (
-    timer_setup(
-      ue_context_p->initial_context_setup_rsp_timer.sec,
-      0,
-      TASK_MME_APP,
-      INSTANCE_DEFAULT,
-      TIMER_ONE_SHOT,
-      (void *) &(ue_context_p->mme_ue_s1ap_id),
-      sizeof(mme_ue_s1ap_id_t),
-      &(ue_context_p->initial_context_setup_rsp_timer.id)) < 0) {
+  nas_itti_timer_arg_t timer_callback_fun = {0};
+  timer_callback_fun.nas_timer_callback =
+    mme_app_handle_initial_context_setup_rsp_timer_expiry;
+  timer_callback_fun.nas_timer_callback_arg =
+    (void *) &(ue_context_p->mme_ue_s1ap_id);
+  if (timer_setup(
+    ue_context_p->initial_context_setup_rsp_timer.sec,
+    0,
+    TASK_MME_APP,
+    INSTANCE_DEFAULT,
+    TIMER_ONE_SHOT,
+    &timer_callback_fun,
+    sizeof(timer_callback_fun),
+    &(ue_context_p->initial_context_setup_rsp_timer.id)) < 0) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "Failed to start initial context setup response timer for UE id  %d \n",
@@ -450,10 +548,9 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
     OAILOG_INFO(
       LOG_MME_APP,
       "MME APP : Sent Initial context Setup Request and Started guard timer "
-      "for UE id  %d \n",
-      ue_context_p->mme_ue_s1ap_id);
+      "for UE id  %d timer_id :%lx \n",
+      ue_context_p->mme_ue_s1ap_id, (long)ue_context_p->initial_context_setup_rsp_timer.id);
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -583,24 +680,9 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
       /*
        * Error during ue context malloc
        */
-      DevMessage("mme_create_new_ue_context");
+      OAILOG_ERROR(LOG_MME_APP, "Failed to create new ue context \n");
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
-    // Initialize timers to INVALID IDs
-    ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    ue_context_p->initial_context_setup_rsp_timer.id =
-      MME_APP_TIMER_INACTIVE_ID;
-    ue_context_p->initial_context_setup_rsp_timer.sec =
-      MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE;
-    ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    ue_context_p->paging_response_timer.sec =
-      MME_APP_PAGING_RESPONSE_TIMER_VALUE;
-    ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    ue_context_p->ulr_response_timer.sec = MME_APP_ULR_RESPONSE_TIMER_VALUE;
-    ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    ue_context_p->ue_context_modification_timer.sec =
-      MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE;
     is_mm_ctx_new = true;
     // Allocate new mme_ue_s1ap_id
     ue_context_p->mme_ue_s1ap_id = mme_app_ctx_get_new_ue_id();
@@ -661,8 +743,6 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
 
   initial_pP->nas = NULL;
 
-  unlock_ue_contexts(ue_context_p);
-
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -707,7 +787,6 @@ void mme_app_handle_erab_setup_req(
       OAILOG_WARNING(
         LOG_MME_APP,
         "Failed to allocate the memory for s1ap erab set request message\n");
-      unlock_ue_contexts(ue_context_p);
       bdestroy_wrapper(&nas_msg);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
@@ -763,7 +842,6 @@ void mme_app_handle_erab_setup_req(
       ebi);
     bdestroy_wrapper(&nas_msg);
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -817,9 +895,7 @@ void mme_app_handle_delete_session_rsp(
    * send pdn disconnect response to NAS.
    * NAS will trigger deactivate Bearer Context Req to UE
    */
-  if (
-    (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) &&
-    (ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
+  if (ue_context_p->emm_context.esm_ctx.is_pdn_disconnect) {
     pdn_disconnect_rsp.ue_id = ue_context_p->mme_ue_s1ap_id;
     pdn_disconnect_rsp.lbi = delete_sess_resp_pP->lbi;
     if ((nas_proc_pdn_disconnect_rsp(&pdn_disconnect_rsp)) != RETURNok) {
@@ -830,8 +906,6 @@ void mme_app_handle_delete_session_rsp(
         ue_context_p->mme_ue_s1ap_id,
         pdn_disconnect_rsp.lbi);
     }
-
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -863,9 +937,7 @@ void mme_app_handle_delete_session_rsp(
       "Deleting UE context associated in MME for "
       "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n ",
       ue_context_p->mme_ue_s1ap_id);
-    unlock_ue_contexts(ue_context_p);
     mme_remove_ue_context(&mme_app_desc_p->mme_ue_contexts, ue_context_p);
-    // return now, otherwize will unlock ue context already free
     OAILOG_FUNC_OUT(LOG_MME_APP);
   } else {
     if (ue_context_p->ue_context_rel_cause == S1AP_INVALID_CAUSE) {
@@ -881,7 +953,9 @@ void mme_app_handle_delete_session_rsp(
           SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) &&
         (ue_context_p->sgs_context->ts9_timer.id ==
          MME_APP_TIMER_INACTIVE_ID)) {
-        // Notify S1AP to send UE Context Release Command to eNB or free s1 context locally.
+        /* Notify S1AP to send UE Context Release Command to eNB or free
+         * s1 context locally.
+         */
         mme_app_itti_ue_context_release(
           ue_context_p, ue_context_p->ue_context_rel_cause);
         ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
@@ -893,8 +967,6 @@ void mme_app_handle_delete_session_rsp(
       ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
     }
   }
-
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -969,7 +1041,6 @@ int mme_app_handle_create_sess_resp(
       bearer_id,
       transaction_identifier);
     rc = nas_proc_ula_or_csrsp_fail(&create_session_response_fail);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "success");
@@ -984,12 +1055,13 @@ int mme_app_handle_create_sess_resp(
     /*
      * Depending on s11 result we have to send reject or accept for bearers
      */
-    DevCheck(
-      (bearer_id < BEARERS_PER_UE) && (bearer_id >= 0),
-      bearer_id,
-      BEARERS_PER_UE,
-      0);
-
+    if (ue_context_p->emm_context.esm_ctx.n_active_ebrs > BEARERS_PER_UE) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "The total number of active EPS bearers has exceeded %d\n",
+        ue_context_p->emm_context.esm_ctx.n_active_ebrs);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    }
     if (
       create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
         .cause.cause_value != REQUEST_ACCEPTED) {
@@ -1109,7 +1181,6 @@ int mme_app_handle_create_sess_resp(
   }
 
   nas_proc_cs_respose_success(&nas_pdn_cs_respose_success);
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -1249,8 +1320,6 @@ void mme_app_handle_initial_context_setup_rsp(mme_app_desc_t *mme_app_desc_p,
       ue_context_p->sgs_context->mt_call_in_progress = false;
     }
   }
-
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -1289,7 +1358,6 @@ void mme_app_handle_release_access_bearers_resp(mme_app_desc_t *mme_app_desc_p,
       &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
     ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -1325,7 +1393,6 @@ void mme_app_handle_s11_create_bearer_req(
       " of ue_id: " MME_UE_S1AP_ID_FMT "\n",
       linked_eps_bearer_id,
       ue_context_p->mme_ue_s1ap_id);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -1392,7 +1459,6 @@ void mme_app_handle_s11_create_bearer_req(
     free_wrapper((void **) &activate_ded_bearer_req.tft);
     free_wrapper((void **) &activate_ded_bearer_req.pco);
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -1540,43 +1606,47 @@ void mme_app_handle_e_rab_setup_rsp(
     // not send S11 response
     // TODO create a procedure with bearers to receive a response from NAS
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_mobile_reachability_timer_expiry(
-  struct ue_mm_context_s *ue_context_p)
+void mme_app_handle_mobile_reachability_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p != NULL);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t *) (args));
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+    mme_ue_s1ap_id,
+    "Mobile reachability timer");
+  if (ue_context_p == NULL) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Expired- Mobile Reachability Timer for UE id  %d \n",
-    ue_context_p->mme_ue_s1ap_id);
-  //Set PPF flag to false
-  ue_context_p->ppf = false;
+
   // Start Implicit Detach timer
-  if (
-    timer_setup(
-      ue_context_p->implicit_detach_timer.sec,
-      0,
-      TASK_MME_APP,
-      INSTANCE_DEFAULT,
-      TIMER_ONE_SHOT,
-      (void *) &(ue_context_p->mme_ue_s1ap_id),
-      sizeof(mme_ue_s1ap_id_t),
-      &(ue_context_p->implicit_detach_timer.id)) < 0) {
+  nas_itti_timer_arg_t timer_callback_fun = {0};
+  timer_callback_fun.nas_timer_callback =
+    mme_app_handle_implicit_detach_timer_expiry;
+  timer_callback_fun.nas_timer_callback_arg =
+    (void *) &(ue_context_p->mme_ue_s1ap_id);
+  if (timer_setup(
+    ue_context_p->implicit_detach_timer.sec,
+    0,
+    TASK_MME_APP,
+    INSTANCE_DEFAULT,
+    TIMER_ONE_SHOT,
+    &timer_callback_fun,
+    sizeof(timer_callback_fun),
+    &(ue_context_p->implicit_detach_timer.id)) < 0) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Failed to start Implicit Detach timer for UE id  %d \n",
+      "Failed to start Implicit Detach timer for UE id: " MME_UE_S1AP_ID_FMT
+      "\n",
       ue_context_p->mme_ue_s1ap_id);
     ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
   } else {
     OAILOG_DEBUG(
       LOG_MME_APP,
-      "Started Implicit Detach timer for UE id  %d \n",
+      "Started Implicit Detach timer for UE id: " MME_UE_S1AP_ID_FMT  "\n",
       ue_context_p->mme_ue_s1ap_id);
   }
   /* PPF is set to false due to "Inactivity of UE including non reception of periodic TAU
@@ -1586,32 +1656,33 @@ void mme_app_handle_mobile_reachability_timer_expiry(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
-void mme_app_handle_implicit_detach_timer_expiry(
-  struct ue_mm_context_s *ue_context_p)
+void mme_app_handle_implicit_detach_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p != NULL);
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Implicit Detach timer expired for UE id" MME_UE_S1AP_ID_FMT "\n",
-    ue_context_p->mme_ue_s1ap_id);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+    mme_ue_s1ap_id,
+    "Implicit detach timer");
+  if (ue_context_p == NULL) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
-
   // Initiate Implicit Detach for the UE
-  nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
+  nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_initial_context_setup_rsp_timer_expiry(
-  struct ue_mm_context_s *ue_context_p)
+void mme_app_handle_initial_context_setup_rsp_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p != NULL);
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Expired- Initial context setup rsp timer for UE id  %d \n",
-    ue_context_p->mme_ue_s1ap_id);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+    mme_ue_s1ap_id,
+    "Initial context setup response timer");
+  if (ue_context_p == NULL) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
   /* *********Abort the ongoing procedure*********
    * Check if UE is registered already that implies service request procedure is active. If so then release the S1AP
@@ -1621,7 +1692,7 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
   ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD;
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
-    nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
+    nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
     increment_counter(
       "ue_attach",
       1,
@@ -1718,7 +1789,6 @@ void mme_app_handle_initial_context_setup_failure(
         INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
     }
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
@@ -1838,7 +1908,6 @@ int mme_app_paging_request_helper(
       LOG_MME_APP,
       "Paging process attempted for connected UE with id %d\n",
       ue_context_p->mme_ue_s1ap_id);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_PAGING_REQUEST);
@@ -1846,7 +1915,6 @@ int mme_app_paging_request_helper(
     OAILOG_ERROR(
       LOG_MME_APP,
       "Failed to allocate the memory for paging request message\n");
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   itti_s1ap_paging_request_t *paging_request =
@@ -1886,17 +1954,21 @@ int mme_app_paging_request_helper(
   rc = itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
   if (!set_timer) {
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
+  nas_itti_timer_arg_t timer_callback_fun = {0};
+  timer_callback_fun.nas_timer_callback =
+    (void *) mme_app_handle_paging_timer_expiry;
+  timer_callback_fun.nas_timer_callback_arg =
+    (void *) &(ue_context_p->mme_ue_s1ap_id);
   int timer_rc = timer_setup(
     ue_context_p->paging_response_timer.sec,
     0,
     TASK_MME_APP,
     INSTANCE_DEFAULT,
     TIMER_ONE_SHOT,
-    (void *) &(ue_context_p->mme_ue_s1ap_id),
-    sizeof(mme_ue_s1ap_id_t),
+    &timer_callback_fun,
+    sizeof(timer_callback_fun),
     &(ue_context_p->paging_response_timer.id));
   if (timer_rc < 0) {
     OAILOG_ERROR(
@@ -1904,7 +1976,6 @@ int mme_app_paging_request_helper(
       "Failed to start paging timer for ue %d\n",
       ue_context_p->mme_ue_s1ap_id);
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, timer_rc);
 }
 
@@ -1927,21 +1998,38 @@ int mme_app_handle_initial_paging_request(mme_app_desc_t *mme_app_desc_p,
     ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS);
 }
 
-int mme_app_handle_paging_timer_expiry(ue_mm_context_t *ue_context_p)
-{
-  ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  return mme_app_paging_request_helper(
-    ue_context_p, false, true /* s-tmsi */, CN_DOMAIN_PS);
-}
-
-void mme_app_handle_ulr_timer_expiry(ue_mm_context_t* ue_context_p)
+void mme_app_handle_paging_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+    mme_ue_s1ap_id,
+    "Paging timer");
 
-  OAILOG_ERROR(
-    LOG_MME_APP,
-    "Update Location Timer expired for ue-id" MME_UE_S1AP_ID_FMT "\n",
-    ue_context_p->mme_ue_s1ap_id);
+  if (ue_context_p == NULL) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  if ((mme_app_paging_request_helper(
+    ue_context_p, false, true /* s-tmsi */, CN_DOMAIN_PS)) != RETURNok) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to send Paging Message for ue_id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void mme_app_handle_ulr_timer_expiry(void* args)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+    mme_ue_s1ap_id,
+    "Update location timer");
+  if (ue_context_p == NULL) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
   // Send PDN CONNECTIVITY FAIL message  to NAS layer
@@ -2053,38 +2141,34 @@ void mme_app_handle_suspend_acknowledge(mme_app_desc_t *mme_app_desc_p,
 }
 
 //------------------------------------------------------------------------------
-int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_extended_service_req_t *const nas_extended_service_req_pP)
+int mme_app_handle_nas_extended_service_req(
+  const mme_ue_s1ap_id_t ue_id,
+  const uint8_t service_type,
+  uint8_t csfb_response)
 {
   struct ue_mm_context_s *ue_context_p = NULL;
+  mme_app_desc_t* mme_app_desc_p = NULL;
   int rc = RETURNok;
-  mme_ue_s1ap_id_t ue_id = INVALID_MME_UE_S1AP_ID;
-  Service_Type serviceType = -1;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(nas_extended_service_req_pP);
 
-  serviceType = nas_extended_service_req_pP->servType;
-  ue_id = nas_extended_service_req_pP->ue_id;
   if (ue_id == INVALID_MME_UE_S1AP_ID) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "ERROR***** Invalid UE Id received from NAS in Extended Service "
-      "Request\n");
+      "ERROR***** Invalid UE Id received in Extended Service Request \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
+  mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts,
-        ue_id);
+    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts, ue_id);
   if (ue_context_p) {
     if (ue_id != ue_context_p->mme_ue_s1ap_id) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "ERROR***** Abnormal case: ue_id does not match with ue_id in "
-        "ue_context %d, %d\n",
+        "ue_context" MME_UE_S1AP_ID_FMT "," MME_UE_S1AP_ID_FMT "\n",
         ue_id,
         ue_context_p->mme_ue_s1ap_id);
-      unlock_ue_contexts(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   } else {
@@ -2096,19 +2180,26 @@ int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  switch (serviceType) {
+  switch (service_type) {
     /* Extended Service request received for CSFB */
     case MO_CS_FB1:
     case MT_CS_FB1:
     case MO_CS_FB:
       if (ue_context_p->sgs_context != NULL) {
         ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_MO_CALL;
-        /*If call_cancelled is set to TRUE when MO call is triggered. Set call_cancelled to false*/
-        if (ue_context_p->sgs_context->call_cancelled == true) {
+        /* If call_cancelled is set to TRUE when MO call is triggered.
+         * Set call_cancelled to false
+         */
+        if (ue_context_p->sgs_context->call_cancelled) {
           ue_context_p->sgs_context->call_cancelled = false;
         }
         mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
       } else {
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "SGS context is NULL for ue_id:" MME_UE_S1AP_ID_FMT
+          "So send Service Reject to UE \n",
+          ue_context_p->mme_ue_s1ap_id);
         /* send Service Reject to UE */
         mme_app_notify_service_reject_to_nas(
           ue_context_p->mme_ue_s1ap_id,
@@ -2117,19 +2208,21 @@ int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
       }
       break;
     case MT_CS_FB:
-      if (nas_extended_service_req_pP->csfb_response == CSFB_REJECTED_BY_UE) {
-        if (ue_context_p->sgs_context != NULL) {
-          /*If call_cancelled is set to TRUE and we receive EXT Service Request with csfb_response
-          *set to call_rejected. Set call_cancelled to false*/
-          if (ue_context_p->sgs_context->call_cancelled == true) {
+      if (csfb_response == CSFB_REJECTED_BY_UE) {
+        if (ue_context_p->sgs_context) {
+          /* If call_cancelled is set to TRUE and
+           * receive EXT Service Request with csfb_response
+           * set to call_rejected. Set call_cancelled to false
+           */
+          if (ue_context_p->sgs_context->call_cancelled) {
             ue_context_p->sgs_context->call_cancelled = false;
           }
-          if (
-            (rc = mme_app_send_sgsap_paging_reject(
+          rc = mme_app_send_sgsap_paging_reject(
                ue_context_p,
                ue_context_p->emm_context._imsi64,
                ue_context_p->emm_context._imsi.length,
-               SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER)) != RETURNok) {
+               SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER);
+          if (rc != RETURNok) {
             OAILOG_WARNING(
               LOG_MME_APP,
               "Failed to send SGSAP-Paging Reject for imsi with reject cause:"
@@ -2141,37 +2234,60 @@ int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
         } else {
           OAILOG_ERROR(
             LOG_MME_APP,
-            "sgs_context is null for ue" IMSI_64_FMT "\n",
+            "sgs_context is null for IMSI" IMSI_64_FMT "\n",
             ue_context_p->emm_context._imsi64);
+           OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
         }
       } else if (
-        nas_extended_service_req_pP->csfb_response == CSFB_ACCEPTED_BY_UE) {
-        DevAssert(ue_context_p->sgs_context);
-        /*Set mt_call_in_progress flag as UE accepted the MT Call.
-          * This will be used to decide whether to abort the on going MT call or
-          * not when SERVICE ABORT request is received from MSC/VLR
-          */
+        csfb_response == CSFB_ACCEPTED_BY_UE) {
+        if (!ue_context_p->sgs_context) {
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            "sgs_context is null for IMSI" IMSI_64_FMT "\n",
+            ue_context_p->emm_context._imsi64);
+           OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+        }
+        /* Set mt_call_in_progress flag as UE accepted the MT Call.
+         * This will be used to decide whether to abort the on going MT call or
+         * not when SERVICE ABORT request is received from MSC/VLR
+         */
         ue_context_p->sgs_context->mt_call_in_progress = true;
+        /* If call_cancelled is set, send Service Reject to UE as MSC/VLR
+         * has triggered SGSAP SERVICE ABORT procedure
+         */
         if (ue_context_p->sgs_context->call_cancelled) {
-          /*Sending Service Reject to UE as MSC/VLR has triggered SGSAP SERVICE ABORT*/
+          /* If UE's ECM state is IDLE send
+           * service_reject in Establish cnf else send in DL NAS Transport
+           */
           if (ue_context_p->ecm_state == ECM_IDLE) {
+            OAILOG_ERROR(
+              LOG_MME_APP,
+              "MT CS call is accepted by UE in idle mode for ue_id:"
+              MME_UE_S1AP_ID_FMT " But MT_CALL_CANCEL is set by MSC,"
+             " so sending service reject to UE \n",
+              ue_id);
             mme_app_notify_service_reject_to_nas(
-              ue_context_p->mme_ue_s1ap_id,
+              ue_id,
               EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE,
-              MT_CALL_CANCELLED_BY_NW_IN_IDLE_STATE);
+              INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
           } else if (ue_context_p->ecm_state == ECM_CONNECTED) {
+            OAILOG_ERROR(
+              LOG_MME_APP,
+              "MT CS call is accepted by UE in connected mode for ue_id:"
+              MME_UE_S1AP_ID_FMT " But MT_CALL_CANCEL is set by MSC,"
+             " so sending service reject to UE \n",
+              ue_id);
             mme_app_notify_service_reject_to_nas(
-              ue_context_p->mme_ue_s1ap_id,
+              ue_id,
               EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE,
-              MT_CALL_CANCELLED_BY_NW_IN_CONNECTED_STATE);
+              UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
           }
-          //Reset call_cancelled flag
+          // Reset call_cancelled flag
           ue_context_p->sgs_context->call_cancelled = false;
           OAILOG_WARNING(
             LOG_MME_APP,
-            "Sending Service Reject to NAS as MSC has triggered SGSAP SERVICE "
-            "ABORT"
-            "Request for UE id :%u \n",
+            "Sending Service Reject to NAS module as MSC has triggered SGS "
+            "SERVICE ABORT Request for ue_id: " MME_UE_S1AP_ID_FMT "\n",
             ue_id);
         } else {
           mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
@@ -2179,8 +2295,9 @@ int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
       } else {
         OAILOG_WARNING(
           LOG_MME_APP,
-          "Invalid csfb_response for service type :%d and ue_id :%u \n",
-          nas_extended_service_req_pP->servType,
+          "Invalid csfb_response for service type :%d and ue_id: "
+          MME_UE_S1AP_ID_FMT "\n",
+          service_type,
           ue_id);
       }
       break;
@@ -2190,9 +2307,16 @@ int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
         ue_context_p->sgs_context->is_emergency_call = true;
         mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
       } else {
-        /* send Service Reject to UE */
-        mme_app_notify_service_reject_to_nas(ue_context_p->mme_ue_s1ap_id, EMM_CAUSE_CONGESTION,
-             UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
+        // Notify NAS module to send Service Reject message to UE
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "For MO_CS_FB_EMRGNCY_CALL, SGS context is not found for ue_id:"
+          MME_UE_S1AP_ID_FMT " MME shall send Service Reject to ue",
+          ue_context_p->mme_ue_s1ap_id);
+        mme_app_notify_service_reject_to_nas(
+          ue_context_p->mme_ue_s1ap_id,
+          EMM_CAUSE_CONGESTION,
+          UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
       }
       break;
     /* packet service via s1 */
@@ -2206,23 +2330,22 @@ int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
       OAILOG_ERROR(
         LOG_MME_APP,
         "ERROR***** Invalid Service Type Received %d\n",
-        serviceType);
+        service_type);
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_ue_context_modification_timer_expiry(
-  struct ue_mm_context_s *ue_context_p)
+void mme_app_handle_ue_context_modification_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p != NULL);
-
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Expired- UE context modification timer for UE id  %d \n",
-    ue_context_p->mme_ue_s1ap_id);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t *) (args));
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+    mme_ue_s1ap_id,
+    "UE context modification timer");
+  if (ue_context_p == NULL) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
   if (ue_context_p->sgs_context != NULL) {
@@ -2244,10 +2367,17 @@ int handle_csfb_s1ap_procedure_failure(
   char *failed_statement,
   uint8_t failed_procedure)
 {
-  int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p != NULL);
 
+  if (!ue_context_p) {
+    OAILOG_ERROR(LOG_MME_APP, "Failed to find UE context \n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
+  OAILOG_ERROR(
+    LOG_MME_APP,
+    "Handle handle_csfb_s1ap_procedure_failure for ue_id"
+    MME_UE_S1AP_ID_FMT "\n", ue_context_p->mme_ue_s1ap_id);
   /* If ICS procedure is initiated due to CS-Paging in UE idle mode
    * On ICS failure, send sgsap-Paging Reject to VLR
    */
@@ -2274,24 +2404,18 @@ int handle_csfb_s1ap_procedure_failure(
         increment_counter(
           "sgsap_paging_reject", 1, 1, "cause", failed_statement);
       }
-      rc = mme_app_notify_service_reject_to_nas(
-        ue_context_p->mme_ue_s1ap_id,
-        EMM_CAUSE_CONGESTION,
-        UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
-    } else if (
-      ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MO_CALL) {
-      /* send Service Reject to UE */
-      rc = mme_app_notify_service_reject_to_nas(
-        ue_context_p->mme_ue_s1ap_id,
-        EMM_CAUSE_CONGESTION,
-        UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
     }
+    // send Service Reject to UE
+    mme_app_notify_service_reject_to_nas(
+      ue_context_p->mme_ue_s1ap_id,
+      EMM_CAUSE_CONGESTION,
+      failed_procedure);
     ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_NONE;
     if (failed_statement) {
       increment_counter("nas service reject", 1, 1, "cause", failed_statement);
     }
   }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /****************************************************************************
@@ -2305,39 +2429,46 @@ int handle_csfb_s1ap_procedure_failure(
  **          emm_casue: failed cause                                       **
  **          Failed_procedure: ICS/UE context modification                 **
  **                                                                        **
- ** Outputs:                                                               **
- **      Return:    RETURNok, RETURNerror                                  **
- **                                                                        **
  ***************************************************************************/
-
-int mme_app_notify_service_reject_to_nas(
+void mme_app_notify_service_reject_to_nas(
   mme_ue_s1ap_id_t ue_id,
   uint8_t emm_cause,
   uint8_t failed_procedure)
 {
-  int rc = RETURNok;
-  MessageDef *message_p = NULL;
-  itti_nas_notify_service_reject_t *itti_nas_notify_service_reject_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(
     LOG_MME_APP,
     " Ongoing Service request procedure failed,"
-    "send Notify Service Reject to NAS for ue_id :%u \n",
+    "send Notify Service Reject to NAS module for ue_id :"
+    MME_UE_S1AP_ID_FMT" \n",
     ue_id);
-  message_p = itti_alloc_new_message(TASK_MME_APP, NAS_NOTIFY_SERVICE_REJECT);
-  itti_nas_notify_service_reject_p =
-    &message_p->ittiMsg.nas_notify_service_reject;
-  memset(
-    (void *) itti_nas_notify_service_reject_p,
-    0,
-    sizeof(itti_nas_extended_service_req_t));
-
-  itti_nas_notify_service_reject_p->ue_id = ue_id;
-  itti_nas_notify_service_reject_p->emm_cause = emm_cause;
-  itti_nas_notify_service_reject_p->failed_procedure = failed_procedure;
-
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  switch (failed_procedure) {
+    case INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED: {
+      if ((emm_proc_service_reject(ue_id, emm_cause)) != RETURNok) {
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "emm_proc_service_reject() failed for ue_id "MME_UE_S1AP_ID_FMT "\n",
+          ue_id);
+      }
+      break;
+    }
+    case UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED: {
+      if ((emm_send_service_reject_in_dl_nas(ue_id, emm_cause)) != RETURNok) {
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "emm_send_service_reject_in_dl_nas() failed for ue_id "
+          MME_UE_S1AP_ID_FMT "\n",
+          ue_id);
+        }
+      break;
+    }
+    default: {
+      OAILOG_ERROR(LOG_MME_APP, "Invalid failed procedure for ue-id"
+        MME_UE_S1AP_ID_FMT "\n", ue_id);
+      break;
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
 void mme_app_handle_create_dedicated_bearer_rsp(
@@ -2488,7 +2619,6 @@ void mme_app_handle_modify_ue_ambr_request(mme_app_desc_t *mme_app_desc_p,
         for UE id %d\n",
       ue_context_p->mme_ue_s1ap_id);
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -2572,7 +2702,6 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
   free_wrapper((void **) &activate_ded_bearer_req.tft);
   free_wrapper((void **) &activate_ded_bearer_req.pco);
 
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -2755,7 +2884,6 @@ void mme_app_handle_nw_init_bearer_deactv_req(
         REQUEST_ACCEPTED);
     }
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -2942,7 +3070,6 @@ void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   ue_context_p->path_switch_req = true;
 
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -2967,7 +3094,6 @@ void mme_app_handle_erab_rel_cmd(
       "UE context doesn't exist for ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_id);
     bdestroy_wrapper(&nas_msg);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -2980,7 +3106,6 @@ void mme_app_handle_erab_rel_cmd(
       ue_id,
       ebi);
     bdestroy_wrapper(&nas_msg);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -3009,7 +3134,9 @@ void mme_app_handle_erab_rel_cmd(
           (rel_index < pdn_context_p->esm_data.n_bearers));
          idx++) {
       int8_t bearer_index = pdn_context_p->bearer_contexts[idx];
-      if (ue_context_p->bearer_contexts[bearer_index]) {
+      if (
+        (bearer_index != INVALID_BEARER_INDEX) &&
+        (ue_context_p->bearer_contexts[bearer_index])) {
         s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[rel_index].e_rab_id =
           ue_context_p->bearer_contexts[bearer_index]->ebi;
         rel_index++;
@@ -3033,7 +3160,6 @@ void mme_app_handle_erab_rel_cmd(
     ebi);
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -3238,4 +3364,30 @@ void mme_app_update_paging_tai_list(
       break;
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+// Fetch UE context based on mme_ue_s1ap_id and return pointer to UE context
+ue_mm_context_t* mme_app_get_ue_context_for_timer(
+  mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  OAILOG_INFO(LOG_MME_APP, "Expired- %s for ue_id " MME_UE_S1AP_ID_FMT
+    "\n",
+    timer_name,
+    mme_ue_s1ap_id);
+
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  struct ue_mm_context_s* ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts,
+    mme_ue_s1ap_id);
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to get ue context while handling %s for ue_id "
+      MME_UE_S1AP_ID_FMT "\n",
+      timer_name,
+      mme_ue_s1ap_id);
+    return NULL;
+  }
+  return ue_context_p;
 }

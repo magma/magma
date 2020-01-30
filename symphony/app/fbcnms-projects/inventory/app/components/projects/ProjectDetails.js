@@ -22,6 +22,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import CommentsBox from '../comments/CommentsBox';
 import EditProjectMutation from '../../mutations/EditProjectMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
@@ -113,6 +114,16 @@ const styles = (theme: Theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: '24px',
+  },
+  commentsBoxContainer: {
+    padding: '0px',
+  },
+  inExpandingPanelFix: {
+    paddingLeft: '24px',
+    paddingRight: '24px',
+  },
+  commentsLog: {
+    maxHeight: '400px',
   },
   map: {
     minHeight: '232px',
@@ -346,6 +357,18 @@ class ProjectDetails extends React.Component<Props, State> {
                     }
                   />
                 </ExpandingPanel>
+                <ExpandingPanel
+                  title="Comments"
+                  detailsPaneClass={classes.commentsBoxContainer}
+                  className={classes.card}>
+                  <CommentsBox
+                    boxElementsClass={classes.inExpandingPanelFix}
+                    commentsLogClass={classes.commentsLog}
+                    relatedEntityId={project.id}
+                    relatedEntityType="PROJECT"
+                    comments={this.props.project.comments}
+                  />
+                </ExpandingPanel>
               </Grid>
             </Grid>
           </div>
@@ -409,6 +432,14 @@ export default withRouter(
                 longitudeValue
                 rangeFromValue
                 rangeToValue
+                equipmentValue {
+                  id
+                  name
+                }
+                locationValue {
+                  id
+                  name
+                }
                 propertyType {
                   id
                   name
@@ -428,6 +459,9 @@ export default withRouter(
               }
               workOrders {
                 ...ProjectWorkOrdersList_workOrders
+              }
+              comments {
+                ...CommentsBox_comments
               }
             }
           `,

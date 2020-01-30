@@ -30,6 +30,7 @@ export type ActionsAddDialog_triggerData$data = ActionsAddDialog_triggerData;
 export type ActionsAddDialog_triggerData$key = {
   +$data?: ActionsAddDialog_triggerData$data,
   +$fragmentRefs: ActionsAddDialog_triggerData$ref,
+  ...
 };
 */
 

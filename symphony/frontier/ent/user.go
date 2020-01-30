@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/frontier/ent/user"
 )
 
 // User is the model entity for the User schema.
@@ -36,49 +37,87 @@ type User struct {
 	Networks []string `json:"networks,omitempty"`
 	// Tabs holds the value of the "tabs" field.
 	Tabs []string `json:"tabs,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges UserEdges `json:"edges"`
 }
 
-// FromRows scans the sql response data into User.
-func (u *User) FromRows(rows *sql.Rows) error {
-	var scanu struct {
-		ID        int
-		CreatedAt sql.NullTime
-		UpdatedAt sql.NullTime
-		Email     sql.NullString
-		Password  sql.NullString
-		Role      sql.NullInt64
-		Tenant    sql.NullString
-		Networks  []byte
-		Tabs      []byte
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Tokens holds the value of the tokens edge.
+	Tokens []*Token
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*User) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // created_at
+		&sql.NullTime{},   // updated_at
+		&sql.NullString{}, // email
+		&sql.NullString{}, // password
+		&sql.NullInt64{},  // role
+		&sql.NullString{}, // tenant
+		&[]byte{},         // networks
+		&[]byte{},         // tabs
 	}
-	// the order here should be the same as in the `user.Columns`.
-	if err := rows.Scan(
-		&scanu.ID,
-		&scanu.CreatedAt,
-		&scanu.UpdatedAt,
-		&scanu.Email,
-		&scanu.Password,
-		&scanu.Role,
-		&scanu.Tenant,
-		&scanu.Networks,
-		&scanu.Tabs,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the User fields.
+func (u *User) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(user.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	u.ID = scanu.ID
-	u.CreatedAt = scanu.CreatedAt.Time
-	u.UpdatedAt = scanu.UpdatedAt.Time
-	u.Email = scanu.Email.String
-	u.Password = scanu.Password.String
-	u.Role = int(scanu.Role.Int64)
-	u.Tenant = scanu.Tenant.String
-	if value := scanu.Networks; len(value) > 0 {
-		if err := json.Unmarshal(value, &u.Networks); err != nil {
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	u.ID = int(value.Int64)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field created_at", values[0])
+	} else if value.Valid {
+		u.CreatedAt = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field updated_at", values[1])
+	} else if value.Valid {
+		u.UpdatedAt = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field email", values[2])
+	} else if value.Valid {
+		u.Email = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field password", values[3])
+	} else if value.Valid {
+		u.Password = value.String
+	}
+	if value, ok := values[4].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field role", values[4])
+	} else if value.Valid {
+		u.Role = int(value.Int64)
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field tenant", values[5])
+	} else if value.Valid {
+		u.Tenant = value.String
+	}
+
+	if value, ok := values[6].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field networks", values[6])
+	} else if value != nil && len(*value) > 0 {
+		if err := json.Unmarshal(*value, &u.Networks); err != nil {
 			return fmt.Errorf("unmarshal field networks: %v", err)
 		}
 	}
-	if value := scanu.Tabs; len(value) > 0 {
-		if err := json.Unmarshal(value, &u.Tabs); err != nil {
+
+	if value, ok := values[7].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field tabs", values[7])
+	} else if value != nil && len(*value) > 0 {
+		if err := json.Unmarshal(*value, &u.Tabs); err != nil {
 			return fmt.Errorf("unmarshal field tabs: %v", err)
 		}
 	}
@@ -134,18 +173,6 @@ func (u *User) String() string {
 
 // Users is a parsable slice of User.
 type Users []*User
-
-// FromRows scans the sql response data into Users.
-func (u *Users) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanu := &User{}
-		if err := scanu.FromRows(rows); err != nil {
-			return err
-		}
-		*u = append(*u, scanu)
-	}
-	return nil
-}
 
 func (u Users) config(cfg config) {
 	for _i := range u {

@@ -513,15 +513,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
                 id: 'Category@tmp',
                 categoryTitle: '',
                 categoryDescription: '',
-                surveyTemplateQuestions: [
-                  {
-                    id: 'Question@tmp',
-                    questionTitle: '',
-                    questionDescription: '',
-                    questionType: 'BOOL',
-                    index: 0,
-                  },
-                ],
+                surveyTemplateQuestions: [],
               },
             ],
     };

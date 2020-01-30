@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
 )
 
 // EquipmentPortType is the model entity for the EquipmentPortType schema.
@@ -26,29 +27,58 @@ type EquipmentPortType struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentPortTypeQuery when eager-loading is set.
+	Edges EquipmentPortTypeEdges `json:"edges"`
 }
 
-// FromRows scans the sql response data into EquipmentPortType.
-func (ept *EquipmentPortType) FromRows(rows *sql.Rows) error {
-	var scanept struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		Name       sql.NullString
+// EquipmentPortTypeEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPortTypeEdges struct {
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType
+	// LinkPropertyTypes holds the value of the link_property_types edge.
+	LinkPropertyTypes []*PropertyType
+	// PortDefinitions holds the value of the port_definitions edge.
+	PortDefinitions []*EquipmentPortDefinition
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*EquipmentPortType) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
 	}
-	// the order here should be the same as in the `equipmentporttype.Columns`.
-	if err := rows.Scan(
-		&scanept.ID,
-		&scanept.CreateTime,
-		&scanept.UpdateTime,
-		&scanept.Name,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the EquipmentPortType fields.
+func (ept *EquipmentPortType) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipmentporttype.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	ept.ID = strconv.Itoa(scanept.ID)
-	ept.CreateTime = scanept.CreateTime.Time
-	ept.UpdateTime = scanept.UpdateTime.Time
-	ept.Name = scanept.Name.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	ept.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		ept.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		ept.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		ept.Name = value.String
+	}
 	return nil
 }
 
@@ -108,18 +138,6 @@ func (ept *EquipmentPortType) id() int {
 
 // EquipmentPortTypes is a parsable slice of EquipmentPortType.
 type EquipmentPortTypes []*EquipmentPortType
-
-// FromRows scans the sql response data into EquipmentPortTypes.
-func (ept *EquipmentPortTypes) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanept := &EquipmentPortType{}
-		if err := scanept.FromRows(rows); err != nil {
-			return err
-		}
-		*ept = append(*ept, scanept)
-	}
-	return nil
-}
 
 func (ept EquipmentPortTypes) config(cfg config) {
 	for _i := range ept {

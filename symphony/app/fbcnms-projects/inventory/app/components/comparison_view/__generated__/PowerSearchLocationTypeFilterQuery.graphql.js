@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 576dfeb71962c23dbe48354b2aeefdbb
+ * @relayHash 48efd8187174c7def73615342cf101ec
  */
 
 /* eslint-disable */
@@ -18,7 +18,7 @@ import type { ConcreteRequest } from 'relay-runtime';
 export type PowerSearchLocationTypeFilterQueryVariables = {||};
 export type PowerSearchLocationTypeFilterQueryResponse = {|
   +locationTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,
@@ -35,7 +35,7 @@ export type PowerSearchLocationTypeFilterQuery = {|
 
 /*
 query PowerSearchLocationTypeFilterQuery {
-  locationTypes(first: 50) {
+  locationTypes {
     edges {
       node {
         id
@@ -52,14 +52,8 @@ var v0 = [
     "kind": "LinkedField",
     "alias": null,
     "name": "locationTypes",
-    "storageKey": "locationTypes(first:50)",
-    "args": [
-      {
-        "kind": "Literal",
-        "name": "first",
-        "value": 50
-      }
-    ],
+    "storageKey": null,
+    "args": null,
     "concreteType": "LocationTypeConnection",
     "plural": false,
     "selections": [
@@ -122,11 +116,11 @@ return {
     "operationKind": "query",
     "name": "PowerSearchLocationTypeFilterQuery",
     "id": null,
-    "text": "query PowerSearchLocationTypeFilterQuery {\n  locationTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query PowerSearchLocationTypeFilterQuery {\n  locationTypes {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'cf67fcab81f4a29c18222aeebeb27e43';
+(node/*: any*/).hash = 'f395dc103ec13db0fa455e3d8b56103f';
 module.exports = node;

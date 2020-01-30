@@ -14,24 +14,23 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
+type ForceNetworkTopology_topology$ref = any;
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServiceEquipmentTopology_topology$ref: FragmentReference;
 declare export opaque type ServiceEquipmentTopology_topology$fragmentType: ServiceEquipmentTopology_topology$ref;
 export type ServiceEquipmentTopology_topology = {|
   +nodes: $ReadOnlyArray<{|
-    +id: string,
-    +name: string,
+    +id?: string,
+    +name?: string,
   |}>,
-  +links: $ReadOnlyArray<{|
-    +source: string,
-    +target: string,
-  |}>,
+  +$fragmentRefs: ForceNetworkTopology_topology$ref,
   +$refType: ServiceEquipmentTopology_topology$ref,
 |};
 export type ServiceEquipmentTopology_topology$data = ServiceEquipmentTopology_topology;
 export type ServiceEquipmentTopology_topology$key = {
   +$data?: ServiceEquipmentTopology_topology$data,
   +$fragmentRefs: ServiceEquipmentTopology_topology$ref,
+  ...
 };
 */
 
@@ -49,52 +48,38 @@ const node/*: ReaderFragment*/ = {
       "name": "nodes",
       "storageKey": null,
       "args": null,
-      "concreteType": "Equipment",
+      "concreteType": null,
       "plural": true,
       "selections": [
         {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "id",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "name",
-          "args": null,
-          "storageKey": null
+          "kind": "InlineFragment",
+          "type": "Equipment",
+          "selections": [
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "id",
+              "args": null,
+              "storageKey": null
+            },
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "name",
+              "args": null,
+              "storageKey": null
+            }
+          ]
         }
       ]
     },
     {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "links",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "TopologyLink",
-      "plural": true,
-      "selections": [
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "source",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "target",
-          "args": null,
-          "storageKey": null
-        }
-      ]
+      "kind": "FragmentSpread",
+      "name": "ForceNetworkTopology_topology",
+      "args": null
     }
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = '63c26d79e91218be27e4d2ced941d0ff';
+(node/*: any*/).hash = '3aacf7059c6ccea42895132c69cbb030';
 module.exports = node;

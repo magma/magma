@@ -9,25 +9,26 @@ LICENSE file in the root directory of this source tree.
 package streamer
 
 import (
+	"fmt"
 	"sort"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	lteModels "magma/lte/cloud/go/plugin/models"
 	lteProtos "magma/lte/cloud/go/protos"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
-
-	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/pkg/errors"
 )
 
 const (
 	policyStreamName   = "policydb"
 	baseNameStreamName = "base_names"
-
 	mappingsStreamName = "rule_mappings"
+	networkWideRules   = "network_wide_rules"
 )
 
 type PoliciesProvider struct{}
@@ -60,64 +61,7 @@ func createRuleProtoFromEnt(ruleEnt configurator.NetworkEntity) *lteProtos.Polic
 	}
 
 	cfg := ruleEnt.Config.(*lteModels.PolicyRuleConfig)
-	return &lteProtos.PolicyRule{
-		Id:            ruleEnt.Key,
-		Priority:      swag.Uint32Value(cfg.Priority),
-		RatingGroup:   cfg.RatingGroup,
-		MonitoringKey: cfg.MonitoringKey,
-		Redirect:      redirectInfoToProto(cfg.Redirect),
-		FlowList:      flowListToProto(cfg.FlowList),
-		Qos:           qosModelToProto(cfg.Qos),
-		TrackingType:  lteProtos.PolicyRule_TrackingType(lteProtos.PolicyRule_TrackingType_value[cfg.TrackingType]),
-		HardTimeout:   0,
-	}
-}
-
-func flowListToProto(flowList []*lteModels.FlowDescription) []*lteProtos.FlowDescription {
-	ret := make([]*lteProtos.FlowDescription, 0, len(flowList))
-	for _, srcFlow := range flowList {
-		protoFlow := &lteProtos.FlowDescription{
-			Action: lteProtos.FlowDescription_Action(lteProtos.FlowDescription_Action_value[swag.StringValue(srcFlow.Action)]),
-		}
-		protos.FillIn(srcFlow, protoFlow)
-
-		protoFlow.Match = &lteProtos.FlowMatch{
-			Direction: lteProtos.FlowMatch_Direction(lteProtos.FlowMatch_Direction_value[swag.StringValue(srcFlow.Match.Direction)]),
-			IpProto:   lteProtos.FlowMatch_IPProto(lteProtos.FlowMatch_IPProto_value[*srcFlow.Match.IPProto]),
-		}
-		protos.FillIn(srcFlow.Match, protoFlow.Match)
-
-		ret = append(ret, protoFlow)
-	}
-	return ret
-}
-
-func redirectInfoToProto(redirectModel *lteModels.RedirectInformation) *lteProtos.RedirectInformation {
-	if redirectModel == nil {
-		return nil
-	}
-
-	return &lteProtos.RedirectInformation{
-		Support:       lteProtos.RedirectInformation_Support(lteProtos.RedirectInformation_Support_value[swag.StringValue(redirectModel.Support)]),
-		AddressType:   lteProtos.RedirectInformation_AddressType(lteProtos.RedirectInformation_AddressType_value[swag.StringValue(redirectModel.AddressType)]),
-		ServerAddress: swag.StringValue(redirectModel.ServerAddress),
-	}
-}
-
-func qosModelToProto(qosModel *lteModels.FlowQos) *lteProtos.FlowQos {
-	if qosModel == nil {
-		return nil
-	}
-
-	return &lteProtos.FlowQos{
-		MaxReqBwUl: swag.Uint32Value(qosModel.MaxReqBwUl),
-		MaxReqBwDl: swag.Uint32Value(qosModel.MaxReqBwDl),
-		// The following values haven't been exposed via the API yet
-		GbrUl: 0,
-		GbrDl: 0,
-		Qci:   0,
-		Arp:   nil,
-	}
+	return cfg.ToProto(ruleEnt.Key)
 }
 
 func rulesToUpdates(rules []*lteProtos.PolicyRule) ([]*protos.DataUpdate, error) {
@@ -206,7 +150,7 @@ func (r *RuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) 
 		return nil, errors.Wrap(err, "failed to load base names")
 	}
 
-	policiesBySid, err := r.getActivePoliciesBySid(ruleEnts, bnEnts)
+	policiesBySid, err := r.getAssignedPoliciesBySid(ruleEnts, bnEnts)
 	if err != nil {
 		return nil, err
 	}
@@ -225,19 +169,19 @@ func (r *RuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) 
 	return ret, nil
 }
 
-func (r *RuleMappingsProvider) getActivePoliciesBySid(policyRules []configurator.NetworkEntity, baseNames []configurator.NetworkEntity) (map[string]*lteProtos.ActivePolicies, error) {
+func (r *RuleMappingsProvider) getAssignedPoliciesBySid(policyRules []configurator.NetworkEntity, baseNames []configurator.NetworkEntity) (map[string]*lteProtos.AssignedPolicies, error) {
 	allEnts := make([]configurator.NetworkEntity, 0, len(policyRules)+len(baseNames))
 	allEnts = append(allEnts, policyRules...)
 	allEnts = append(allEnts, baseNames...)
 
-	policiesBySid := map[string]*lteProtos.ActivePolicies{}
+	policiesBySid := map[string]*lteProtos.AssignedPolicies{}
 	for _, ent := range allEnts {
 		for _, tk := range ent.Associations {
 			switch tk.Type {
 			case lte.SubscriberEntityType:
 				policies, found := policiesBySid[tk.Key]
 				if !found {
-					policies = &lteProtos.ActivePolicies{}
+					policies = &lteProtos.AssignedPolicies{}
 					policiesBySid[tk.Key] = policies
 				}
 
@@ -265,4 +209,39 @@ func (r *RuleMappingsProvider) getActivePoliciesBySid(policyRules []configurator
 
 func sortUpdates(updates []*protos.DataUpdate) {
 	sort.Slice(updates, func(i, j int) bool { return updates[i].Key < updates[j].Key })
+}
+
+type NetworkWideRulesProvider struct{}
+
+func (r *NetworkWideRulesProvider) GetStreamName() string {
+	return networkWideRules
+}
+
+func (r *NetworkWideRulesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	if err != nil {
+		return nil, err
+	}
+	iNetworkSubscriberConfig, err := configurator.LoadNetworkConfig(gwEnt.NetworkID, lte.NetworkSubscriberConfigType)
+	if err == merrors.ErrNotFound {
+		return []*protos.DataUpdate{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	config, ok := iNetworkSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+	if !ok {
+		return nil, fmt.Errorf("Failed to convert to NetworkSubscriberConfig")
+	}
+
+	assignedPolicies := &lteProtos.AssignedPolicies{AssignedPolicies: config.NetworkWideRuleNames}
+	for _, baseName := range config.NetworkWideBaseNames {
+		assignedPolicies.AssignedBaseNames = append(assignedPolicies.AssignedBaseNames, string(baseName))
+	}
+
+	marshaledPolicies, err := proto.Marshal(assignedPolicies)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal active policies")
+	}
+	return []*protos.DataUpdate{{Key: "", Value: marshaledPolicies}}, nil
 }

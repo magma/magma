@@ -20,10 +20,10 @@ import (
 
 	definitions "magma/feg/gateway/services/swx_proxy/servicers"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,6 +37,19 @@ func TestNewSAA_SuccessfulRegistration(t *testing.T) {
 	subscriber, err := server.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
 	assert.NoError(t, err)
 	assert.True(t, subscriber.GetState().GetTgppAaaServerRegistered())
+}
+
+func TestNewSAA_SuccessfulDeregistration(t *testing.T) {
+	sar := createSAR("sub1", definitions.ServerAssignnmentType_USER_DEREGISTRATION)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewSAA(server, sar)
+	assert.NoError(t, err)
+	checkSAASuccessDeregistration(t, response)
+
+	subscriber, err := server.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
+	assert.NoError(t, err)
+	assert.False(t, subscriber.GetState().GetTgppAaaServerRegistered())
+	assert.Empty(t, subscriber.GetState().TgppAaaServerName)
 }
 
 func TestNewSAA_SuccessfulUserDataRequest(t *testing.T) {
@@ -165,6 +178,16 @@ func checkSAASuccess(t *testing.T, response *diam.Message) {
 	assert.Equal(t, datatype.Enumerated(lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED), profile.Non3GPPIPAccess)
 	assert.Equal(t, datatype.Enumerated(definitions.END_USER_E164), profile.SubscriptionId.SubscriptionIdType)
 	assert.Equal(t, datatype.UTF8String("12345"), profile.SubscriptionId.SubscriptionIdData)
+}
+
+// checkSAASuccessDeregistration ensures that a successful SAA with a deregistration command contains all the expected data
+func checkSAASuccessDeregistration(t *testing.T, response *diam.Message) {
+	saa := testUnmarshalSAA(t, response)
+	assert.Equal(t, diam.Success, int(saa.ResultCode))
+	assert.Equal(t, datatype.DiameterIdentity(""), saa.AAAServerName)
+	assert.Equal(t, datatype.UTF8String("sub1"), saa.UserName)
+	assert.Equal(t, int32(definitions.AuthSessionState_NO_STATE_MAINTAINED), saa.AuthSessionState)
+
 }
 
 // testUnmarshalSAA unmarshals an SAA message and checks that the SessionID,

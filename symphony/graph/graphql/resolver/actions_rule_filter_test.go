@@ -7,7 +7,7 @@ package resolver
 import (
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/stretchr/testify/assert"
 )
 

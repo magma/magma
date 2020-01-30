@@ -108,7 +108,11 @@ function UsersSettings(props: Props) {
     <TableRow key={row.id}>
       <TableCell>{row.email}</TableCell>
       <TableCell>
-        {row.role == UserRoles.USER ? 'User' : 'Super User'}
+        {row.role == UserRoles.USER
+          ? 'User'
+          : row.role === UserRoles.READ_ONLY_USER
+          ? 'Read Only User'
+          : 'Super User'}
       </TableCell>
       <TableCell>{renderList(row.networkIDs || [])}</TableCell>
       <TableCell>

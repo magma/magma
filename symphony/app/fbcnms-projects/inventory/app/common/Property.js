@@ -10,6 +10,8 @@
 
 import type {PropertyType} from './PropertyType';
 
+import DateTimeFormat from './DateTimeFormat.js';
+
 export type Property = {|
   id?: ?string,
   propertyType: PropertyType,
@@ -27,6 +29,7 @@ export type Property = {|
   rangeToValue?: ?number,
   equipmentValue?: ?{id: string, name: string},
   locationValue?: ?{id: string, name: string},
+  serviceValue?: ?{id: string, name: string},
   isInstanceProperty?: ?boolean,
 |};
 
@@ -52,6 +55,8 @@ export const getPropertyValue = (property: Property | PropertyType) => {
       case 'enum':
       case 'string':
         return property.stringValue;
+      case 'datetime_local':
+        return DateTimeFormat.dateTime(property.stringValue);
       case 'bool':
         return property.booleanValue != undefined
           ? property.booleanValue.toString()
@@ -83,6 +88,8 @@ export const getPropertyValue = (property: Property | PropertyType) => {
         return property.propertyType ? property.equipmentValue?.name : null;
       case 'location':
         return property.propertyType ? property.locationValue?.name : null;
+      case 'service':
+        return property.propertyType ? property.serviceValue?.name : null;
     }
   }
 };
@@ -110,5 +117,7 @@ export const toPropertyInput = (properties: Array<Property>): Array<any> => {
       equipmentIDValue: property.equipmentValue?.id ?? null,
       locationValue: undefined,
       locationIDValue: property.locationValue?.id ?? null,
+      serviceValue: undefined,
+      serviceIDValue: property.serviceValue?.id ?? null,
     }));
 };

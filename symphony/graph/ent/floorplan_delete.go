@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -41,23 +43,23 @@ func (fpd *FloorPlanDelete) ExecX(ctx context.Context) int {
 }
 
 func (fpd *FloorPlanDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(fpd.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(floorplan.Table))
-	for _, p := range fpd.predicates {
-		p(selector)
+	_spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: floorplan.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplan.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(floorplan.Table).FromSelect(selector).Query()
-	if err := fpd.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := fpd.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, fpd.driver, _spec)
 }
 
 // FloorPlanDeleteOne is the builder for deleting a single FloorPlan entity.
@@ -72,7 +74,7 @@ func (fpdo *FloorPlanDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{floorplan.Label}
+		return &NotFoundError{floorplan.Label}
 	default:
 		return nil
 	}

@@ -40,7 +40,7 @@ class RemoveCustomerMutation:
         removeCustomer: str
 
     data: Optional[RemoveCustomerMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

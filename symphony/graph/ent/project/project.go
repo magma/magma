@@ -45,6 +45,13 @@ const (
 	LocationInverseTable = "locations"
 	// LocationColumn is the table column denoting the location relation/edge.
 	LocationColumn = "project_location_id"
+	// CommentsTable is the table the holds the comments relation/edge.
+	CommentsTable = "comments"
+	// CommentsInverseTable is the table name for the Comment entity.
+	// It exists in this package in order to avoid circular dependency with the "comment" package.
+	CommentsInverseTable = "comments"
+	// CommentsColumn is the table column denoting the comments relation/edge.
+	CommentsColumn = "project_comment_id"
 	// WorkOrdersTable is the table the holds the work_orders relation/edge.
 	WorkOrdersTable = "work_orders"
 	// WorkOrdersInverseTable is the table name for the WorkOrder entity.
@@ -61,7 +68,7 @@ const (
 	PropertiesColumn = "project_id"
 )
 
-// Columns holds all SQL columns are project fields.
+// Columns holds all SQL columns for project fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -69,6 +76,12 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldCreator,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Project type.
+var ForeignKeys = []string{
+	"project_location_id",
+	"type_id",
 }
 
 var (

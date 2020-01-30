@@ -12,11 +12,11 @@ import (
 	"hash/fnv"
 	"io"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/volatiletech/authboss"
 	"go.uber.org/zap"
 )
@@ -66,7 +66,7 @@ func (s *UserStorer) Load(ctx context.Context, key string) (authboss.User, error
 	case nil:
 		logger.Debug("loaded user")
 		return &User{u, userUpdater{u.Update()}}, nil
-	case *ent.ErrNotFound:
+	case *ent.NotFoundError:
 		logger.Debug("user not found")
 		return nil, authboss.ErrUserNotFound
 	default:

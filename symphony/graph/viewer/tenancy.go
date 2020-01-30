@@ -13,10 +13,10 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	entsql "github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/cloud/log"
-	cloudmysql "github.com/facebookincubator/symphony/cloud/mysql"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
+	"github.com/facebookincubator/symphony/pkg/log"
+	pkgmysql "github.com/facebookincubator/symphony/pkg/mysql"
 	"go.opencensus.io/trace"
 
 	"github.com/go-sql-driver/mysql"
@@ -67,7 +67,7 @@ func NewMySQLTenancy(dsn string) (*MySQLTenancy, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing dsn")
 	}
-	db := cloudmysql.Open(dsn)
+	db := pkgmysql.Open(dsn)
 	checker := sqlhealth.New(db)
 	tenancy := &MySQLTenancy{
 		Checker: checker,
@@ -128,9 +128,9 @@ func (m *MySQLTenancy) migrate(ctx context.Context, client *ent.Client) error {
 
 func (m *MySQLTenancy) dbFor(name string) *sql.DB {
 	m.config.DBName = DBName(name)
-	db := cloudmysql.Open(m.config.FormatDSN())
+	db := pkgmysql.Open(m.config.FormatDSN())
 	db.SetMaxOpenConns(10)
-	m.closers = append(m.closers, cloudmysql.RecordStats(db))
+	m.closers = append(m.closers, pkgmysql.RecordStats(db))
 	return db
 }
 

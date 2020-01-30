@@ -40,7 +40,7 @@ class RemoveServiceTypeMutation:
         removeServiceType: str
 
     data: Optional[RemoveServiceTypeMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

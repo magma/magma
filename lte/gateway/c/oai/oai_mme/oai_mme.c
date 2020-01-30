@@ -39,7 +39,6 @@
 #include "sctp_primitives_server.h"
 #include "s1ap_mme.h"
 #include "mme_app_extern.h"
-#include "nas_defs.h"
 /* FreeDiameter headers for support of S6A interface */
 #include "s6a_defs.h"
 #include "sgs_defs.h"
@@ -101,7 +100,6 @@ int main(int argc, char *argv[])
   send_app_health_to_service303(TASK_MME_APP, false);
 
   CHECK_INIT_RETURN(mme_app_init(&mme_config));
-  CHECK_INIT_RETURN(nas_init(&mme_config));
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(sgw_init(&spgw_config, mme_config.use_stateless));

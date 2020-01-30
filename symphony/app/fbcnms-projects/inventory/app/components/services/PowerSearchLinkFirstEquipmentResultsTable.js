@@ -19,7 +19,6 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
 
 import 'react-virtualized/styles.css';
 
@@ -62,11 +61,14 @@ const useStyles = makeStyles(theme => ({
   },
   row: {
     '&:hover': {
-      backgroundColor: symphony.palette.B50,
+      backgroundColor: symphony.palette.background,
     },
     '&:focus': {
       outline: 'none',
     },
+  },
+  clickableRow: {
+    cursor: 'pointer',
   },
 }));
 
@@ -78,7 +80,6 @@ type Props = {
 
 const PowerSearchLinkFirstEquipmentResultsTable = (props: Props) => {
   const classes = useStyles();
-  const {history} = useRouter();
   const {equipment, selectedEquipment, onEquipmentSelected} = props;
 
   const headerRenderer = ({label}) => {
@@ -97,16 +98,6 @@ const PowerSearchLinkFirstEquipmentResultsTable = (props: Props) => {
         <EquipmentBreadcrumbs
           equipment={rowData}
           showSelfEquipment={false}
-          onParentLocationClicked={locationId =>
-            history.push(
-              `inventory/` + (locationId ? `?location=${locationId}` : ''),
-            )
-          }
-          onEquipmentClicked={equipmentId =>
-            history.push(
-              `inventory/` + (equipmentId ? `?equipment=${equipmentId}` : ''),
-            )
-          }
           variant="body2"
         />
       );
@@ -145,6 +136,7 @@ const PowerSearchLinkFirstEquipmentResultsTable = (props: Props) => {
             classNames({
               [classes.header]: index === -1,
               [classes.row]: index !== -1,
+              [classes.clickableRow]: onRowClicked != null,
               [classes.checked]:
                 selectedEquipment &&
                 index !== -1 &&

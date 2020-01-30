@@ -25,6 +25,8 @@ const (
 	propName4          = "prop4"
 	propName5          = "prop5"
 	propName6          = "prop6"
+	propName7          = "prop7"
+	propName8          = "prop8"
 	propDefValue       = "defaultVal"
 	locTypeNameL       = "locTypeLarge"
 	locTypeNameM       = "locTypeMedium"
@@ -143,7 +145,7 @@ func TestTitleLocationTypeInputValidation(t *testing.T) {
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	ic := getImportContext(ctx)
 	var (
-		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type"}
+		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
 		parentsHeader   = [...]string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}
 	)
 	locTypeIDS := prepareBasicData(ctx, t, *r)
@@ -161,9 +163,9 @@ func TestTitleLocationTypeInputValidation(t *testing.T) {
 	err = importer.inputValidations(ctx, NewImportHeader(locationTypeInOrder, ImportEntityEquipment))
 	require.NoError(t, err)
 	require.EqualValues(t, ic.indexToLocationTypeID, map[int]string{
-		3: locTypeIDS.locTypeIDL,
-		4: locTypeIDS.locTypeIDM,
-		5: locTypeIDS.locTypeIDS,
+		4: locTypeIDS.locTypeIDL,
+		5: locTypeIDS.locTypeIDM,
+		6: locTypeIDS.locTypeIDS,
 	})
 }
 
@@ -176,7 +178,7 @@ func TestTitleEquipmentTypeInputValidation(t *testing.T) {
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	ic := getImportContext(ctx)
 	var (
-		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type"}
+		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
 		parentsHeader   = [...]string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}
 	)
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
@@ -197,10 +199,10 @@ func TestTitleEquipmentTypeInputValidation(t *testing.T) {
 		equipmentType3Name: ids.equipTypeID3,
 	})
 	require.EqualValues(t, ic.propNameToIndex, map[string]int{
-		propName1: 12,
-		propName2: 13,
-		propName3: 14,
-		propName4: 15,
+		propName1: 13,
+		propName2: 14,
+		propName3: 15,
+		propName4: 16,
 	})
 	require.EqualValues(t, ic.equipmentTypeIDToProperties[ic.equipmentTypeNameToID[equipmentTypeName]], []string{
 		propName1,
@@ -226,30 +228,30 @@ func TestLocationHierarchy(t *testing.T) {
 	ids := prepareEquipmentTypeData(ctx, t, *r)
 
 	var (
-		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type"}
+		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
 		parentsHeader   = [...]string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}
-		test1           = []string{"", "", equipmentTypeName, "locNameL", "", "", "", "", "", ""}
-		test2           = []string{"", "", equipmentTypeName, "locNameL", "locNameM", "locNameS", "", "", "", ""}
-		test3           = []string{"", "", equipmentTypeName, "", "locNameM", "", "", "", "", ""}
+		test1           = []string{"", "", equipmentTypeName, "1", "locNameL", "", "", "", "", "", ""}
+		test2           = []string{"", "", equipmentTypeName, "1", "locNameL", "locNameM", "locNameS", "", "", "", ""}
+		test3           = []string{"", "", equipmentTypeName, "1", "", "locNameM", "", "", "", "", ""}
 	)
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
 	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err = importer.inputValidations(ctx, title)
 	require.NoError(t, err)
 
-	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test1, title))
+	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test1, title), true)
 	require.NoError(t, err)
 	require.Equal(t, loc.Name, "locNameL")
 	require.Equal(t, loc.QueryType().OnlyXID(ctx), ids.locTypeIDL)
 	require.False(t, loc.QueryChildren().ExistX(ctx))
 
-	loc2, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test2, title))
+	loc2, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test2, title), true)
 	require.NoError(t, err)
 	require.Equal(t, loc2.Name, "locNameS")
 	require.Equal(t, loc2.QueryType().OnlyXID(ctx), ids.locTypeIDS)
 	require.Equal(t, loc2.QueryParent().OnlyX(ctx).Name, "locNameM")
 
-	loc3, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test3, title))
+	loc3, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test3, title), true)
 	require.NoError(t, err)
 	require.Equal(t, loc3.Name, "locNameM")
 	require.Equal(t, loc3.QueryType().OnlyXID(ctx), ids.locTypeIDM)
@@ -269,19 +271,19 @@ func TestPosition(t *testing.T) {
 	}
 	require.NoError(t, err)
 	var (
-		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type"}
+		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
 		parentsHeader   = [...]string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}
-		locCreate       = []string{"", "", equipmentTypeName, "locNameL", "locNameM", "", "", "", "", "", "", ""}
-		test1           = []string{"", "test", "type1", "locNameL", "locNameM", "", "", "", "", "", "", "pos1"}
-		test2           = []string{"", "test", "type1", "locNameL", "locNameM", "", "", "", "", "", "equip1", ""}
-		test3           = []string{"", "test", "type1", "locNameL", "locNameM", "", "", "", "equip1", "", "", "pos1"}
-		test4           = []string{"", "test", "type1", "locNameL", "locNameM", "", "", "", "", "", "equip1", "pos1"}
+		locCreate       = []string{"", "", equipmentTypeName, "1", "locNameL", "locNameM", "", "", "", "", "", "", ""}
+		test1           = []string{"", "test", "type1", "1", "locNameL", "locNameM", "", "", "", "", "", "", "pos1"}
+		test2           = []string{"", "test", "type1", "1", "locNameL", "locNameM", "", "", "", "", "", "equip1", ""}
+		test3           = []string{"", "test", "type1", "1", "locNameL", "locNameM", "", "", "", "equip1", "", "", "pos1"}
+		test4           = []string{"", "test", "type1", "1", "locNameL", "locNameM", "", "", "", "", "", "equip1", "pos1"}
 	)
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
 	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err = importer.inputValidations(ctx, title)
 	require.NoError(t, err)
-	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title))
+	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title), true)
 	require.NoError(t, err)
 	equipmentType, err := importer.r.Mutation().AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:      "type1",
@@ -295,17 +297,17 @@ func TestPosition(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, _, err = importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test1, title))
+	_, _, err = importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test1, title), true)
 	require.Error(t, err)
-	eq, def, err := importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test2, title))
+	eq, def, err := importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test2, title), true)
 	require.Nil(t, err)
 	require.Nil(t, eq)
 	require.Nil(t, def)
 
-	_, _, err = importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test3, title))
+	_, _, err = importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test3, title), true)
 	require.NoError(t, err)
 
-	equipID, defID, err := importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test4, title))
+	equipID, defID, err := importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test4, title), true)
 	require.NoError(t, err)
 	fetchedEquip, err := importer.r.Query().Equipment(ctx, *equipID)
 	require.NoError(t, err)
@@ -325,11 +327,11 @@ func TestValidatePropertiesForType(t *testing.T) {
 	data := prepareEquipmentTypeData(ctx, t, *r)
 
 	var (
-		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type"}
+		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
 		parentsHeader   = [...]string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}
-		row1            = []string{"", "e1", equipmentTypeName, "locNameL", "locNameM", "", "", "", "", "", "", "", "strVal", "54", "", "", "", ""}
-		row2            = []string{"", "e2", equipmentType2Name, "locNameL", "locNameM", "", "", "", "", "", "", "", "", "", "29/03/88", "false", "", ""}
-		row3            = []string{"", "e3", equipmentType3Name, "locNameL", "locNameM", "", "", "", "", "", "", "", "", "", "", "", "30.23-50", "45.8,88.9"}
+		row1            = []string{"", "e1", equipmentTypeName, "1id", "locNameL", "locNameM", "", "", "", "", "", "", "", "strVal", "54", "", "", "", ""}
+		row2            = []string{"", "e2", equipmentType2Name, "1id", "locNameL", "locNameM", "", "", "", "", "", "", "", "", "", "29/03/88", "false", "", ""}
+		row3            = []string{"", "e3", equipmentType3Name, "1id", "locNameL", "locNameM", "", "", "", "", "", "", "", "", "", "", "", "30.23-50", "45.8,88.9"}
 	)
 
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
@@ -422,15 +424,15 @@ func TestValidateForExistingEquipment(t *testing.T) {
 		Name: "pos2",
 	}
 	var (
-		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type"}
+		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
 		parentsHeader   = [...]string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}
-		locCreate       = []string{"", "", equipmentTypeName, "locNameL", "locNameM", "", "", "", "", ""}
+		locCreate       = []string{"", "", equipmentTypeName, "1id", "locNameL", "locNameM", "", "", "", "", ""}
 	)
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
 	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err = importer.inputValidations(ctx, title)
 	require.NoError(t, err)
-	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title))
+	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title), true)
 	require.NoError(t, err)
 	equipmentType, err := importer.r.Mutation().AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:      "type1",
@@ -459,8 +461,8 @@ func TestValidateForExistingEquipment(t *testing.T) {
 	})
 	require.NoError(t, err)
 	var (
-		test1 = []string{child.ID, "c_new_name", "type1", "locNameL", "locNameM", "", "", "", "", "", "parent", "pos1"}
-		test2 = []string{grandchild.ID, "gc_new_name", "type1", "locNameL", "locNameM", "", "", "", "parent", "pos1", "child", "pos2"}
+		test1 = []string{child.ID, "c_new_name", "type1", "1id", "locNameL", "locNameM", "", "", "", "", "", "parent", "pos1"}
+		test2 = []string{grandchild.ID, "gc_new_name", "type1", "1id", "locNameL", "locNameM", "", "", "", "parent", "pos1", "child", "pos2"}
 	)
 	_, err = importer.validateLineForExistingEquipment(ctx, child.ID, NewImportRecord(test1, title))
 	require.NoError(t, err)

@@ -49,11 +49,6 @@ const (
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
 	PropertiesColumn = "service_id"
-	// TerminationPointsTable is the table the holds the termination_points relation/edge. The primary key declared below.
-	TerminationPointsTable = "service_termination_points"
-	// TerminationPointsInverseTable is the table name for the Equipment entity.
-	// It exists in this package in order to avoid circular dependency with the "equipment" package.
-	TerminationPointsInverseTable = "equipment"
 	// LinksTable is the table the holds the links relation/edge. The primary key declared below.
 	LinksTable = "service_links"
 	// LinksInverseTable is the table name for the Link entity.
@@ -64,9 +59,16 @@ const (
 	// CustomerInverseTable is the table name for the Customer entity.
 	// It exists in this package in order to avoid circular dependency with the "customer" package.
 	CustomerInverseTable = "customers"
+	// EndpointsTable is the table the holds the endpoints relation/edge.
+	EndpointsTable = "service_endpoints"
+	// EndpointsInverseTable is the table name for the ServiceEndpoint entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceendpoint" package.
+	EndpointsInverseTable = "service_endpoints"
+	// EndpointsColumn is the table column denoting the endpoints relation/edge.
+	EndpointsColumn = "service_id"
 )
 
-// Columns holds all SQL columns are service fields.
+// Columns holds all SQL columns for service fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -76,6 +78,11 @@ var Columns = []string{
 	FieldStatus,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the Service type.
+var ForeignKeys = []string{
+	"type_id",
+}
+
 var (
 	// DownstreamPrimaryKey and DownstreamColumn2 are the table columns denoting the
 	// primary key for the downstream relation (M2M).
@@ -83,9 +90,6 @@ var (
 	// UpstreamPrimaryKey and UpstreamColumn2 are the table columns denoting the
 	// primary key for the upstream relation (M2M).
 	UpstreamPrimaryKey = []string{"service_id", "downstream_id"}
-	// TerminationPointsPrimaryKey and TerminationPointsColumn2 are the table columns denoting the
-	// primary key for the termination_points relation (M2M).
-	TerminationPointsPrimaryKey = []string{"service_id", "equipment_id"}
 	// LinksPrimaryKey and LinksColumn2 are the table columns denoting the
 	// primary key for the links relation (M2M).
 	LinksPrimaryKey = []string{"service_id", "link_id"}
