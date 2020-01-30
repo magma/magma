@@ -31,7 +31,6 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-#include "assertions.h"
 #include "common_defs.h"
 #include "log.h"
 #include "mme_app_ue_context.h"
@@ -41,20 +40,26 @@
 #include "mme_app_desc.h"
 #include "s6a_messages_types.h"
 
-int mme_app_handle_s6a_reset_req(mme_app_desc_t *mme_app_desc_p,
-    const s6a_reset_req_t *const rsr_pP)
+int mme_app_handle_s6a_reset_req(
+  mme_app_desc_t* mme_app_desc_p,
+  const s6a_reset_req_t* const rsr_pP)
 {
   int rc = RETURNok;
-  struct ue_mm_context_s *ue_context_p = NULL;
-  hash_node_t *node = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
+  hash_node_t* node = NULL;
   unsigned int i = 0;
   unsigned int num_elements = 0;
-  hash_table_ts_t *hashtblP = NULL;
+  hash_table_ts_t* hashtblP = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(rsr_pP);
 
-  OAILOG_DEBUG(LOG_MME_APP, "%s S6a Reset Request recieved \n", __FUNCTION__);
+  OAILOG_DEBUG(LOG_MME_APP, "S6a Reset Request recieved\n");
+
+  if (rsr_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP, "Invalid S6a Reset Request ITTI message received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   hashtblP = mme_app_desc_p->mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl;
   if (!hashtblP) {
@@ -70,7 +75,7 @@ int mme_app_handle_s6a_reset_req(mme_app_desc_t *mme_app_desc_p,
     while (node) {
       num_elements++;
       hashtable_ts_get(
-        hashtblP, (const hash_key_t) node->key, (void **) &ue_context_p);
+        hashtblP, (const hash_key_t) node->key, (void**) &ue_context_p);
       if (ue_context_p != NULL) {
         if (ue_context_p->mm_state == UE_REGISTERED) {
           /*

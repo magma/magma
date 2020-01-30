@@ -35,7 +35,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "assertions.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "mme_config.h"
@@ -86,7 +85,11 @@ void *mme_app_thread(void *args)
      * message is sent to the task.
      */
     itti_receive_msg(TASK_MME_APP, &received_message_p);
-    DevAssert(received_message_p);
+    if (received_message_p == NULL) {
+      OAILOG_ERROR(
+        TASK_MME_APP, "Received an invalid Message from ITTI message queue\n");
+      continue;
+    }
     OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
     mme_app_desc_p = get_locked_mme_nas_state(false);
 
@@ -424,16 +427,11 @@ void *mme_app_thread(void *args)
       } break;
 
       default: {
-        OAILOG_DEBUG(
+        OAILOG_ERROR(
           LOG_MME_APP,
-          "Unkwnon message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p),
-          ITTI_MSG_NAME(received_message_p));
-        AssertFatal(
-          0,
-          "Unkwnon message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p),
-          ITTI_MSG_NAME(received_message_p));
+          "Unknown message (%s) received with message Id: %d\n",
+          ITTI_MSG_NAME(received_message_p),
+          ITTI_MSG_ID(received_message_p));
       } break;
     }
 

@@ -31,7 +31,6 @@
 #include <stdbool.h>
 
 #include "log.h"
-#include "assertions.h"
 #include "intertask_interface.h"
 #include "gcc_diag.h"
 #include "mme_config.h"
@@ -66,7 +65,15 @@ void mme_app_send_delete_session_request(
   MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_DELETE_SESSION_REQUEST);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for S11 Delete Session Request "
+      "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " and LBI: %u\n",
+      ue_context_p->mme_ue_s1ap_id,
+      ebi);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   S11_DELETE_SESSION_REQUEST(message_p).local_teid = ue_context_p->mme_teid_s11;
   S11_DELETE_SESSION_REQUEST(message_p).teid =
     ue_context_p->pdn_contexts[cid]->s_gw_teid_s11_s4;
