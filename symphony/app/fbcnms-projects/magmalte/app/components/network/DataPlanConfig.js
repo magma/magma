@@ -107,8 +107,6 @@ class DataPlanConfig extends React.Component<Props, State> {
               ? 'Unlimited'
               : profile.max_ul_bit_rate / BITRATE_MULTIPLIER + ' Mbps'}
           </TableCell>
-          {/* TODO: Subscriber Count */}
-          <TableCell>0</TableCell>
           <TableCell>
             <div className={classes.rowIcon}>
               <NestedRouteLink to={`/edit/${encodeURIComponent(id)}/`}>
@@ -139,7 +137,6 @@ class DataPlanConfig extends React.Component<Props, State> {
               <TableCell>Data Plan Name</TableCell>
               <TableCell>Download Speed</TableCell>
               <TableCell>Upload Speed</TableCell>
-              <TableCell>Subscriber Count</TableCell>
               <TableCell>
                 <NestedRouteLink to="/edit/">
                   <Button>Add Data Plan</Button>
