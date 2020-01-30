@@ -640,6 +640,54 @@ func TestAddAndDeleteLocationImages(t *testing.T) {
 	require.Len(t, files, 2, "verifying 2 files remained")
 }
 
+func TestAddAndDeleteLocationHyperlink(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, lr := r.Mutation(), r.Location()
+
+	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
+		Name: "location_type_name_1",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "location_type_name_1", locationType.Name)
+
+	location, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name: "location_name_1",
+		Type: locationType.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, locationType.ID, location.QueryType().OnlyXID(ctx))
+
+	category := "TSS"
+	url := "http://some.url"
+	displayName := "link to some url"
+	hyperlink, err := mr.AddHyperlink(ctx, models.AddHyperlinkInput{
+		EntityType:  models.ImageEntityLocation,
+		EntityID:    location.ID,
+		URL:         url,
+		DisplayName: &displayName,
+		Category:    &category,
+	})
+	require.NoError(t, err)
+	require.Equal(t, url, hyperlink.URL, "verifying hyperlink url")
+	require.Equal(t, displayName, hyperlink.Name, "verifying hyperlink display name")
+	require.Equal(t, category, hyperlink.Category, "verifying 1st hyperlink category")
+
+	hyperlinks, err := lr.Hyperlinks(ctx, location)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 1, "verifying has 1 hyperlink")
+
+	deletedHyperlink, err := mr.DeleteHyperlink(ctx, hyperlink.ID)
+	require.NoError(t, err)
+	require.Equal(t, hyperlink.ID, deletedHyperlink.ID, "verifying return id of deleted hyperlink")
+
+	hyperlinks, err = lr.Hyperlinks(ctx, location)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 0, "verifying no hyperlinks remained")
+}
+
 func TestDeleteLocation(t *testing.T) {
 	r, err := newTestResolver(t)
 	require.NoError(t, err)

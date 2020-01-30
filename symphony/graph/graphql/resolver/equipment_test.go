@@ -146,6 +146,65 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 	assert.Equal(t, fetchedProperties[0].StringVal, val)
 }
 
+func TestAddAndDeleteEquipmentHyperlink(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, er := r.Mutation(), r.Equipment()
+
+	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name: "equipment_type_name_1",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "equipment_type_name_1", equipmentType.Name)
+
+	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
+		Name: "location_type_name_1",
+	})
+	require.NoError(t, err)
+	location, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name: "location_name_1",
+		Type: locationType.ID,
+	})
+	require.NoError(t, err)
+
+	equipment, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "equipment_name_1",
+		Type:     equipmentType.ID,
+		Location: &location.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, equipmentType.ID, equipment.QueryType().OnlyXID(ctx))
+
+	category := "TSS"
+	url := "http://some.url"
+	displayName := "link to some url"
+	hyperlink, err := mr.AddHyperlink(ctx, models.AddHyperlinkInput{
+		EntityType:  models.ImageEntityEquipment,
+		EntityID:    equipment.ID,
+		URL:         url,
+		DisplayName: &displayName,
+		Category:    &category,
+	})
+	require.NoError(t, err)
+	require.Equal(t, url, hyperlink.URL, "verifying hyperlink url")
+	require.Equal(t, displayName, hyperlink.Name, "verifying hyperlink display name")
+	require.Equal(t, category, hyperlink.Category, "verifying 1st hyperlink category")
+
+	hyperlinks, err := er.Hyperlinks(ctx, equipment)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 1, "verifying has 1 hyperlink")
+
+	deletedHyperlink, err := mr.DeleteHyperlink(ctx, hyperlink.ID)
+	require.NoError(t, err)
+	require.Equal(t, hyperlink.ID, deletedHyperlink.ID, "verifying return id of deleted hyperlink")
+
+	hyperlinks, err = er.Hyperlinks(ctx, equipment)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 0, "verifying no hyperlinks remained")
+}
+
 func TestOrc8rStatusEquipment(t *testing.T) {
 	ts := time.Now().Add(time.Hour/2).Unix() * 1000
 	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
