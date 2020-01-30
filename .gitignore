@@ -78,3 +78,7 @@ devmand/gateway/cmake-build-debug/
 
 # Log files
 *.log
+
+# Cscope and tags
+cscope.*
+tags
