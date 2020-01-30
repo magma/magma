@@ -49,11 +49,10 @@ type EditingSubscriber = {
 
 type Props = ContextRouter &
   WithStyles<typeof styles> & {
-    open: boolean,
     onClose: () => void,
     onSave: (subscriberID: string) => void,
     onSaveError: (reason: any) => void,
-    editingSubscriber: ?subscriber,
+    editingSubscriber?: subscriber,
     subProfiles: Array<string>,
   };
 
@@ -104,7 +103,7 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
     ) : null;
 
     return (
-      <Dialog open={this.props.open} onClose={this.props.onClose}>
+      <Dialog open={true} onClose={this.props.onClose}>
         <DialogTitle>
           {this.props.editingSubscriber ? 'Edit Subscriber' : 'Add Subscriber'}
         </DialogTitle>
@@ -172,8 +171,13 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
       return;
     }
 
+    let {imsiID} = this.state.editingSubscriber;
+    if (!imsiID.startsWith('IMSI')) {
+      imsiID = `IMSI${imsiID}`;
+    }
+
     const data = {
-      id: 'IMSI' + this.state.editingSubscriber.imsiID,
+      id: imsiID,
       lte: {
         state: this.state.editingSubscriber.lteState,
         auth_algo: 'MILENAGE', // default auth algo
