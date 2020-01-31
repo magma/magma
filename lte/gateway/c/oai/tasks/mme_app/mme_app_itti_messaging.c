@@ -148,6 +148,8 @@ int mme_app_send_s11_release_access_bearers_req(
 
   release_access_bearers_request_p->originating_node = NODE_TYPE_MME;
 
+  message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;
+
   rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -229,6 +231,8 @@ int mme_app_send_s11_create_session_req(
     (char*) (&session_request_p->imsi.digit),
     ue_mm_context->emm_context._imsi.length);
   session_request_p->imsi.length = ue_mm_context->emm_context._imsi.length;
+
+  message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;
 
   /*
    * Copy the MSISDN
