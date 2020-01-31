@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 )
 
@@ -60,6 +62,37 @@ type SurveyWiFiScanEdges struct {
 	SurveyQuestion *SurveyQuestion
 	// Location holds the value of the location edge.
 	Location *Location
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// SurveyQuestionErr returns the SurveyQuestion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyWiFiScanEdges) SurveyQuestionErr() (*SurveyQuestion, error) {
+	if e.loadedTypes[0] {
+		if e.SurveyQuestion == nil {
+			// The edge survey_question was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: surveyquestion.Label}
+		}
+		return e.SurveyQuestion, nil
+	}
+	return nil, &NotLoadedError{edge: "survey_question"}
+}
+
+// LocationErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyWiFiScanEdges) LocationErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

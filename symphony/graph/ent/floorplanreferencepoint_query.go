@@ -267,8 +267,8 @@ func (fprpq *FloorPlanReferencePointQuery) Select(field string, fields ...string
 
 func (fprpq *FloorPlanReferencePointQuery) sqlAll(ctx context.Context) ([]*FloorPlanReferencePoint, error) {
 	var (
-		nodes []*FloorPlanReferencePoint = []*FloorPlanReferencePoint{}
-		_spec                            = fprpq.querySpec()
+		nodes = []*FloorPlanReferencePoint{}
+		_spec = fprpq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &FloorPlanReferencePoint{config: fprpq.config}

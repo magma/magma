@@ -267,8 +267,8 @@ func (arq *ActionsRuleQuery) Select(field string, fields ...string) *ActionsRule
 
 func (arq *ActionsRuleQuery) sqlAll(ctx context.Context) ([]*ActionsRule, error) {
 	var (
-		nodes []*ActionsRule = []*ActionsRule{}
-		_spec                = arq.querySpec()
+		nodes = []*ActionsRule{}
+		_spec = arq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &ActionsRule{config: arq.config}

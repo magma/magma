@@ -370,8 +370,14 @@ func (wotq *WorkOrderTypeQuery) Select(field string, fields ...string) *WorkOrde
 
 func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, error) {
 	var (
-		nodes []*WorkOrderType = []*WorkOrderType{}
-		_spec                  = wotq.querySpec()
+		nodes       = []*WorkOrderType{}
+		_spec       = wotq.querySpec()
+		loadedTypes = [4]bool{
+			wotq.withWorkOrders != nil,
+			wotq.withPropertyTypes != nil,
+			wotq.withDefinitions != nil,
+			wotq.withCheckListDefinitions != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &WorkOrderType{config: wotq.config}
@@ -384,6 +390,7 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, wotq.driver, _spec); err != nil {

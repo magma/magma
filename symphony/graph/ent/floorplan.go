@@ -13,7 +13,11 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
+	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
+	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 )
 
 // FloorPlan is the model entity for the FloorPlan schema.
@@ -46,6 +50,65 @@ type FloorPlanEdges struct {
 	Scale *FloorPlanScale
 	// Image holds the value of the image edge.
 	Image *File
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// LocationErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FloorPlanEdges) LocationErr() (*Location, error) {
+	if e.loadedTypes[0] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// ReferencePointErr returns the ReferencePoint value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FloorPlanEdges) ReferencePointErr() (*FloorPlanReferencePoint, error) {
+	if e.loadedTypes[1] {
+		if e.ReferencePoint == nil {
+			// The edge reference_point was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: floorplanreferencepoint.Label}
+		}
+		return e.ReferencePoint, nil
+	}
+	return nil, &NotLoadedError{edge: "reference_point"}
+}
+
+// ScaleErr returns the Scale value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FloorPlanEdges) ScaleErr() (*FloorPlanScale, error) {
+	if e.loadedTypes[2] {
+		if e.Scale == nil {
+			// The edge scale was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: floorplanscale.Label}
+		}
+		return e.Scale, nil
+	}
+	return nil, &NotLoadedError{edge: "scale"}
+}
+
+// ImageErr returns the Image value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FloorPlanEdges) ImageErr() (*File, error) {
+	if e.loadedTypes[3] {
+		if e.Image == nil {
+			// The edge image was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: file.Label}
+		}
+		return e.Image, nil
+	}
+	return nil, &NotLoadedError{edge: "image"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

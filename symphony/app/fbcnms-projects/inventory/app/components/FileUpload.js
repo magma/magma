@@ -25,11 +25,6 @@ const useStyles = makeStyles({
     position: 'absolute',
     zIndex: -1,
   },
-  fileButton: {
-    cursor: 'pointer',
-    display: 'flex',
-    width: '100%',
-  },
 });
 
 export const FileUploadButton = (props: {
@@ -47,11 +42,9 @@ export const FileUploadButton = (props: {
         ref={inputRef}
         multiple
       />
-      <div
-        className={classes.fileButton}
-        onClick={() => inputRef.current && inputRef.current.click()}>
+      <span onClick={() => inputRef.current && inputRef.current.click()}>
         {props.button}
-      </div>
+      </span>
     </>
   );
 };

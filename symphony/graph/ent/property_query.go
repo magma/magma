@@ -541,9 +541,22 @@ func (pq *PropertyQuery) Select(field string, fields ...string) *PropertySelect 
 
 func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	var (
-		nodes   []*Property = []*Property{}
-		withFKs             = pq.withFKs
-		_spec               = pq.querySpec()
+		nodes       = []*Property{}
+		withFKs     = pq.withFKs
+		_spec       = pq.querySpec()
+		loadedTypes = [11]bool{
+			pq.withType != nil,
+			pq.withLocation != nil,
+			pq.withEquipment != nil,
+			pq.withService != nil,
+			pq.withEquipmentPort != nil,
+			pq.withLink != nil,
+			pq.withWorkOrder != nil,
+			pq.withProject != nil,
+			pq.withEquipmentValue != nil,
+			pq.withLocationValue != nil,
+			pq.withServiceValue != nil,
+		}
 	)
 	if pq.withType != nil || pq.withLocation != nil || pq.withEquipment != nil || pq.withService != nil || pq.withEquipmentPort != nil || pq.withLink != nil || pq.withWorkOrder != nil || pq.withProject != nil || pq.withEquipmentValue != nil || pq.withLocationValue != nil || pq.withServiceValue != nil {
 		withFKs = true
@@ -565,6 +578,7 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {

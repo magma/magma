@@ -396,9 +396,16 @@ func (pq *ProjectQuery) Select(field string, fields ...string) *ProjectSelect {
 
 func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 	var (
-		nodes   []*Project = []*Project{}
-		withFKs            = pq.withFKs
-		_spec              = pq.querySpec()
+		nodes       = []*Project{}
+		withFKs     = pq.withFKs
+		_spec       = pq.querySpec()
+		loadedTypes = [5]bool{
+			pq.withType != nil,
+			pq.withLocation != nil,
+			pq.withComments != nil,
+			pq.withWorkOrders != nil,
+			pq.withProperties != nil,
+		}
 	)
 	if pq.withType != nil || pq.withLocation != nil {
 		withFKs = true
@@ -420,6 +427,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {

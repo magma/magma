@@ -294,9 +294,12 @@ func (stqq *SurveyTemplateQuestionQuery) Select(field string, fields ...string) 
 
 func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyTemplateQuestion, error) {
 	var (
-		nodes   []*SurveyTemplateQuestion = []*SurveyTemplateQuestion{}
-		withFKs                           = stqq.withFKs
-		_spec                             = stqq.querySpec()
+		nodes       = []*SurveyTemplateQuestion{}
+		withFKs     = stqq.withFKs
+		_spec       = stqq.querySpec()
+		loadedTypes = [1]bool{
+			stqq.withCategory != nil,
+		}
 	)
 	if stqq.withCategory != nil {
 		withFKs = true
@@ -318,6 +321,7 @@ func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyT
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, stqq.driver, _spec); err != nil {

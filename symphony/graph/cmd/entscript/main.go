@@ -11,6 +11,8 @@ import (
 	"github.com/jessevdk/go-flags"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/graphql/generated"
+	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
@@ -56,11 +58,45 @@ func main() {
 		logger.For(ctx).Fatal("cannot get ent client for tenant", zap.String("tenant", cf.Tenant), zap.Error(err))
 		return
 	}
-	ctx = ent.NewContext(ctx, client)
-	utilityFunc(ctx, client, logger)
+
+	tx, err := client.Tx(ctx)
+	if err != nil {
+		logger.For(ctx).Error("cannot begin transaction", zap.Error(err))
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			if err := tx.Rollback(); err != nil {
+				logger.For(ctx).Error("cannot rollback transaction", zap.Error(err))
+			}
+			panic(r)
+		}
+	}()
+
+	ctx = ent.NewContext(ctx, tx.Client())
+
+	// Since the client is already uses transaction we can't have transactions on graphql also
+	r, err := resolver.New(logger, resolver.WithTransaction(false))
+	if err != nil {
+		logger.For(ctx).Error("cannot initialize graphql resolver", zap.Error(err))
+		return
+	}
+
+	if err := utilityFunc(ctx, r, logger); err != nil {
+		logger.For(ctx).Error("failed to run function", zap.Error(err))
+		if err := tx.Rollback(); err != nil {
+			logger.For(ctx).Error("cannot rollback transaction", zap.Error(err))
+		}
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		logger.For(ctx).Error("cannot commit transaction", zap.Error(err))
+	}
 }
 
-func utilityFunc(ctx context.Context, client *ent.Client, logger log.Logger) {
+func utilityFunc(ctx context.Context, r generated.ResolverRoot, logger log.Logger) error {
 	/**
 	Add your Go code in this function
 	You need to run this code from the same version production is at to avoid schema mismatches
@@ -68,10 +104,16 @@ func utilityFunc(ctx context.Context, client *ent.Client, logger log.Logger) {
 	*/
 	/*
 		Example code:
-		count, err := client.EquipmentPosition.Delete().Where(equipmentposition.ID("30064771558")).Exec(ctx)
+		client := ent.FromContext(ctx)
+		eqt, err := r.Mutation().AddEquipmentType(ctx, models.AddEquipmentTypeInput{Name: "My new type"})
 		if err != nil {
-			logger.For(ctx).Fatal("failed to delete equipment position", zap.String("ID", "30064771558"))
+			return errors.Wrap(err, "failed to create equipment type")
 		}
-		logger.For(ctx).Info("equipment position deleted", zap.Int("count", count))
+		logger.For(ctx).Info("equipment created", zap.String("ID", eqt.ID))
+		client.EquipmentType.UpdateOneID(eqt.ID).SetName("My new type 2").ExecX(ctx)
+		if err != nil {
+			return errors.Wrapf(err, "failed to update equipment type id=%q", eqt.ID)
+		}
 	*/
+	return nil
 }

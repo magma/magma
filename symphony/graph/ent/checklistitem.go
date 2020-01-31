@@ -13,6 +13,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // CheckListItem is the model entity for the CheckListItem schema.
@@ -44,6 +45,23 @@ type CheckListItem struct {
 type CheckListItemEdges struct {
 	// WorkOrder holds the value of the work_order edge.
 	WorkOrder *WorkOrder
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// WorkOrderErr returns the WorkOrder value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CheckListItemEdges) WorkOrderErr() (*WorkOrder, error) {
+	if e.loadedTypes[0] {
+		if e.WorkOrder == nil {
+			// The edge work_order was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workorder.Label}
+		}
+		return e.WorkOrder, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

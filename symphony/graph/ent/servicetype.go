@@ -40,6 +40,27 @@ type ServiceTypeEdges struct {
 	Services []*Service
 	// PropertyTypes holds the value of the property_types edge.
 	PropertyTypes []*PropertyType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// ServicesErr returns the Services value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceTypeEdges) ServicesErr() ([]*Service, error) {
+	if e.loadedTypes[0] {
+		return e.Services, nil
+	}
+	return nil, &NotLoadedError{edge: "services"}
+}
+
+// PropertyTypesErr returns the PropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceTypeEdges) PropertyTypesErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.PropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "property_types"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

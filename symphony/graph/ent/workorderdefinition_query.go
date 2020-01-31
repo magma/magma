@@ -319,9 +319,13 @@ func (wodq *WorkOrderDefinitionQuery) Select(field string, fields ...string) *Wo
 
 func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderDefinition, error) {
 	var (
-		nodes   []*WorkOrderDefinition = []*WorkOrderDefinition{}
-		withFKs                        = wodq.withFKs
-		_spec                          = wodq.querySpec()
+		nodes       = []*WorkOrderDefinition{}
+		withFKs     = wodq.withFKs
+		_spec       = wodq.querySpec()
+		loadedTypes = [2]bool{
+			wodq.withType != nil,
+			wodq.withProjectType != nil,
+		}
 	)
 	if wodq.withType != nil || wodq.withProjectType != nil {
 		withFKs = true
@@ -343,6 +347,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, wodq.driver, _spec); err != nil {

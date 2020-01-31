@@ -470,9 +470,19 @@ func (ptq *PropertyTypeQuery) Select(field string, fields ...string) *PropertyTy
 
 func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, error) {
 	var (
-		nodes   []*PropertyType = []*PropertyType{}
-		withFKs                 = ptq.withFKs
-		_spec                   = ptq.querySpec()
+		nodes       = []*PropertyType{}
+		withFKs     = ptq.withFKs
+		_spec       = ptq.querySpec()
+		loadedTypes = [8]bool{
+			ptq.withProperties != nil,
+			ptq.withLocationType != nil,
+			ptq.withEquipmentPortType != nil,
+			ptq.withLinkEquipmentPortType != nil,
+			ptq.withEquipmentType != nil,
+			ptq.withServiceType != nil,
+			ptq.withWorkOrderType != nil,
+			ptq.withProjectType != nil,
+		}
 	)
 	if ptq.withLocationType != nil || ptq.withEquipmentPortType != nil || ptq.withLinkEquipmentPortType != nil || ptq.withEquipmentType != nil || ptq.withServiceType != nil || ptq.withWorkOrderType != nil || ptq.withProjectType != nil {
 		withFKs = true
@@ -494,6 +504,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, ptq.driver, _spec); err != nil {

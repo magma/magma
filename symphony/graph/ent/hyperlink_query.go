@@ -268,9 +268,9 @@ func (hq *HyperlinkQuery) Select(field string, fields ...string) *HyperlinkSelec
 
 func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 	var (
-		nodes   []*Hyperlink = []*Hyperlink{}
-		withFKs              = hq.withFKs
-		_spec                = hq.querySpec()
+		nodes   = []*Hyperlink{}
+		withFKs = hq.withFKs
+		_spec   = hq.querySpec()
 	)
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, hyperlink.ForeignKeys...)

@@ -319,9 +319,13 @@ func (swfsq *SurveyWiFiScanQuery) Select(field string, fields ...string) *Survey
 
 func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan, error) {
 	var (
-		nodes   []*SurveyWiFiScan = []*SurveyWiFiScan{}
-		withFKs                   = swfsq.withFKs
-		_spec                     = swfsq.querySpec()
+		nodes       = []*SurveyWiFiScan{}
+		withFKs     = swfsq.withFKs
+		_spec       = swfsq.querySpec()
+		loadedTypes = [2]bool{
+			swfsq.withSurveyQuestion != nil,
+			swfsq.withLocation != nil,
+		}
 	)
 	if swfsq.withSurveyQuestion != nil || swfsq.withLocation != nil {
 		withFKs = true
@@ -343,6 +347,7 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, swfsq.driver, _spec); err != nil {

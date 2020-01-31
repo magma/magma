@@ -346,9 +346,14 @@ func (epdq *EquipmentPortDefinitionQuery) Select(field string, fields ...string)
 
 func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*EquipmentPortDefinition, error) {
 	var (
-		nodes   []*EquipmentPortDefinition = []*EquipmentPortDefinition{}
-		withFKs                            = epdq.withFKs
-		_spec                              = epdq.querySpec()
+		nodes       = []*EquipmentPortDefinition{}
+		withFKs     = epdq.withFKs
+		_spec       = epdq.querySpec()
+		loadedTypes = [3]bool{
+			epdq.withEquipmentPortType != nil,
+			epdq.withPorts != nil,
+			epdq.withEquipmentType != nil,
+		}
 	)
 	if epdq.withEquipmentPortType != nil || epdq.withEquipmentType != nil {
 		withFKs = true
@@ -370,6 +375,7 @@ func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*Equipm
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, epdq.driver, _spec); err != nil {

@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
+	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 )
 
 // EquipmentPositionDefinition is the model entity for the EquipmentPositionDefinition schema.
@@ -43,6 +44,32 @@ type EquipmentPositionDefinitionEdges struct {
 	Positions []*EquipmentPosition
 	// EquipmentType holds the value of the equipment_type edge.
 	EquipmentType *EquipmentType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// PositionsErr returns the Positions value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPositionDefinitionEdges) PositionsErr() ([]*EquipmentPosition, error) {
+	if e.loadedTypes[0] {
+		return e.Positions, nil
+	}
+	return nil, &NotLoadedError{edge: "positions"}
+}
+
+// EquipmentTypeErr returns the EquipmentType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPositionDefinitionEdges) EquipmentTypeErr() (*EquipmentType, error) {
+	if e.loadedTypes[1] {
+		if e.EquipmentType == nil {
+			// The edge equipment_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmenttype.Label}
+		}
+		return e.EquipmentType, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment_type"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

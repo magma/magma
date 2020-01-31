@@ -6,9 +6,11 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"sync"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
@@ -32,7 +34,7 @@ func (locationTypeResolver) NumberOfLocations(ctx context.Context, obj *ent.Loca
 
 func (locationTypeResolver) Locations(ctx context.Context, typ *ent.LocationType, enforceHasLatLong *bool) (*ent.LocationConnection, error) {
 	query := typ.QueryLocations()
-	if enforceHasLatLong != nil && *enforceHasLatLong {
+	if pointer.GetBool(enforceHasLatLong) {
 		query = query.Where(location.LatitudeNEQ(0), location.LongitudeNEQ(0))
 	}
 	return query.Paginate(ctx, nil, nil, nil, nil)
@@ -66,10 +68,7 @@ func (r locationResolver) FloorPlans(ctx context.Context, obj *ent.Location) ([]
 
 func (locationResolver) ParentLocation(ctx context.Context, obj *ent.Location) (*ent.Location, error) {
 	parent, err := obj.QueryParent().Only(ctx)
-	if ent.IsNotFound(err) {
-		err = nil
-	}
-	return parent, err
+	return parent, ent.MaskNotFound(err)
 }
 
 func (locationResolver) Children(ctx context.Context, obj *ent.Location) ([]*ent.Location, error) {
@@ -114,10 +113,8 @@ func (*topologist) rootNode(ctx context.Context, eq *ent.Equipment) *ent.Equipme
 		if err != nil {
 			break
 		}
-
 		parent = p
 	}
-
 	return parent
 }
 
@@ -233,28 +230,29 @@ func (locationResolver) Topology(ctx context.Context, loc *ent.Location, depth *
 	return t.topology(), nil
 }
 
-func (locationResolver) LocationHierarchy(ctx context.Context, l *ent.Location) ([]*ent.Location, error) {
-	var locs []*ent.Location
-	for l != nil {
-		pl, err := l.QueryParent().Only(ctx)
-		if err != nil && !ent.IsNotFound(err) {
-			return nil, errors.Wrapf(err, "querying parent location of %v", l.ID)
+func (locationResolver) LocationHierarchy(ctx context.Context, location *ent.Location) ([]*ent.Location, error) {
+	var locations []*ent.Location
+	for {
+		parent, err := location.QueryParent().Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return locations, nil
+			}
+			return nil, fmt.Errorf("querying parent location: %w", err)
 		}
-		if pl != nil {
-			locs = append([]*ent.Location{pl}, locs...)
-		}
-		l = pl
+		locations = append([]*ent.Location{parent}, locations...)
+		location = parent
 	}
-	return locs, nil
 }
 
-func (locationResolver) DistanceKm(ctx context.Context, location *ent.Location, latitude float64, longitude float64) (float64, error) {
-	const Radian = math.Pi / 180
-	const EarthRadiusKm = 6371
-
+func (locationResolver) DistanceKm(_ context.Context, location *ent.Location, latitude, longitude float64) (float64, error) {
+	const (
+		radian        = math.Pi / 180
+		earthRadiusKm = 6371
+	)
 	locLat, locLong := location.Latitude, location.Longitude
-	a := 0.5 - math.Cos((latitude-locLat)*Radian)/2 +
-		math.Cos(locLat*Radian)*math.Cos(latitude*Radian)*
-			(1-math.Cos((longitude-locLong)*Radian))/2
-	return EarthRadiusKm * 2 * math.Asin(math.Sqrt(a)), nil
+	a := 0.5 - math.Cos((latitude-locLat)*radian)/2 +
+		math.Cos(locLat*radian)*math.Cos(latitude*radian)*
+			(1-math.Cos((longitude-locLong)*radian))/2
+	return earthRadiusKm * 2 * math.Asin(math.Sqrt(a)), nil
 }

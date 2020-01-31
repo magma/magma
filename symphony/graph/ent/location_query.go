@@ -569,9 +569,23 @@ func (lq *LocationQuery) Select(field string, fields ...string) *LocationSelect 
 
 func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 	var (
-		nodes   []*Location = []*Location{}
-		withFKs             = lq.withFKs
-		_spec               = lq.querySpec()
+		nodes       = []*Location{}
+		withFKs     = lq.withFKs
+		_spec       = lq.querySpec()
+		loadedTypes = [12]bool{
+			lq.withType != nil,
+			lq.withParent != nil,
+			lq.withChildren != nil,
+			lq.withFiles != nil,
+			lq.withHyperlinks != nil,
+			lq.withEquipment != nil,
+			lq.withProperties != nil,
+			lq.withSurvey != nil,
+			lq.withWifiScan != nil,
+			lq.withCellScan != nil,
+			lq.withWorkOrders != nil,
+			lq.withFloorPlans != nil,
+		}
 	)
 	if lq.withType != nil || lq.withParent != nil {
 		withFKs = true
@@ -593,6 +607,7 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, lq.driver, _spec); err != nil {

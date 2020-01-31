@@ -295,8 +295,11 @@ func (tq *TechnicianQuery) Select(field string, fields ...string) *TechnicianSel
 
 func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 	var (
-		nodes []*Technician = []*Technician{}
-		_spec               = tq.querySpec()
+		nodes       = []*Technician{}
+		_spec       = tq.querySpec()
+		loadedTypes = [1]bool{
+			tq.withWorkOrders != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &Technician{config: tq.config}
@@ -309,6 +312,7 @@ func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
