@@ -14,7 +14,7 @@ import (
 	"regexp"
 	"strings"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 
 	"github.com/golang/glog"
@@ -32,7 +32,7 @@ func main() {
 	fsClient := fsclient.NewFSClient()
 
 	// Read config file
-	configFile := receivers.Config{}
+	configFile := config.Config{}
 	file, err := fsClient.ReadFile(*alertmanagerConfPath)
 	if err != nil {
 		glog.Fatalf("error reading config files: %v", err)
@@ -62,18 +62,18 @@ func main() {
 // based tenancy. Replaces 'network_base_route' with 'tenant_base_route'
 const deprecatedTenancyPostfix = "network_base_route"
 
-func migrateToTenantBasedConfig(conf *receivers.Config) {
+func migrateToTenantBasedConfig(conf *config.Config) {
 	for _, route := range conf.Route.Routes {
 		matched, _ := regexp.MatchString(fmt.Sprintf(".*_%s", deprecatedTenancyPostfix), route.Receiver)
 		if matched {
-			migratedName := strings.Replace(route.Receiver, deprecatedTenancyPostfix, receivers.TenantBaseRoutePostfix, 1)
+			migratedName := strings.Replace(route.Receiver, deprecatedTenancyPostfix, config.TenantBaseRoutePostfix, 1)
 			route.Receiver = migratedName
 		}
 	}
 	for _, receiver := range conf.Receivers {
 		matched, _ := regexp.MatchString(fmt.Sprintf(".*_%s", deprecatedTenancyPostfix), receiver.Name)
 		if matched {
-			migratedName := strings.Replace(receiver.Name, deprecatedTenancyPostfix, receivers.TenantBaseRoutePostfix, 1)
+			migratedName := strings.Replace(receiver.Name, deprecatedTenancyPostfix, config.TenantBaseRoutePostfix, 1)
 			receiver.Name = migratedName
 		}
 	}

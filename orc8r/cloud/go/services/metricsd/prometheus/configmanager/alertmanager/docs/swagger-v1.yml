@@ -3,7 +3,7 @@ swagger: '2.0'
 info:
   title: Alertmanager Configurer Model Definitions and Paths
   description: Alertmanager Configurer REST APIs
-  version: 1.0.0
+  version: 1.0.1
 
 paths:
   /{tenant_id}/receiver:
@@ -128,6 +128,33 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
 
+  /global:
+    get:
+      summary: Retrieve alertmanager global config
+      tags:
+        - Routes
+      responses:
+        '200':
+          description: Alerting tree
+          schema:
+            $ref: '#/definitions/global_config'
+      post:
+        summary: Modify alertmanager global config
+        tags:
+          - Routes
+        parameters:
+          - in: body
+            name: global_config
+            description: Global config to be set
+            required: true
+            schema:
+              $ref: '#/definitions/global_config'
+        responses:
+          '200':
+            description: OK
+          default:
+            $ref: '#/responses/UnexpectedError'
+
 parameters:
   tenant_id:
     description: Tenant ID
@@ -154,6 +181,8 @@ definitions:
     required:
       - api_url
     properties:
+      http_config:
+        $ref: '#/definitions/http_config'
       api_url:
         type: string
       channel:
@@ -284,6 +313,79 @@ definitions:
         type: string
       repeat_interval:
         type: string
+
+  global_config:
+    type: object
+    properties:
+      resolve_timeout:
+        type: string
+      http_config:
+        $ref: '#/definitions/http_config'
+      smtp_from:
+        type: string
+      smtp_hello:
+        type: string
+      smtp_smarthost:
+        type: string
+      smtp_auth_username:
+        type: string
+      smtp_auth_password:
+        type: string
+      smtp_auth_secret:
+        type: string
+      smtp_auth_identity:
+        type: string
+      smtp_require_tls:
+        type: string
+      slack_api_url:
+        type: string
+      pagerduty_url:
+        type: string
+      hipchat_api_url:
+        type: string
+      hipchat_auth_token:
+        type: string
+      opsgenie_api_url:
+        type: string
+      opsgenie_api_key:
+        type: string
+      wechat_api_url:
+        type: string
+      wechat_api_corp_id:
+        type: string
+      victorops_api_url:
+        type: string
+      victorops_api_key:
+        type: string
+
+  http_config:
+    type: object
+    properties:
+      basic_auth:
+        $ref: '#/definitions/basic_auth'
+      bearer_token:
+        type: string
+      proxy_url:
+        type: string
+      tls_config:
+        $ref: '#/definitions/tls_config'
+
+  basic_auth:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+
+  tls_config:
+    type: object
+    properties:
+      server_name:
+        type: string
+      insecure_skip_verify:
+        type: boolean
+
 
   error:
     type: object

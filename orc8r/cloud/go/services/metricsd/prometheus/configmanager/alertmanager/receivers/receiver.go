@@ -13,99 +13,38 @@ import (
 	"strings"
 	"time"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/common"
+
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"
-	"gopkg.in/yaml.v2"
 )
-
-// Config uses a custom receiver struct to avoid scrubbing of 'secrets' during
-// marshaling
-type Config struct {
-	Global       *config.GlobalConfig  `yaml:"global,omitempty" json:"global,omitempty"`
-	Route        *config.Route         `yaml:"route,omitempty" json:"route,omitempty"`
-	InhibitRules []*config.InhibitRule `yaml:"inhibit_rules,omitempty" json:"inhibit_rules,omitempty"`
-	Receivers    []*Receiver           `yaml:"receivers,omitempty" json:"receivers,omitempty"`
-	Templates    []string              `yaml:"templates" json:"templates"`
-}
-
-// GetReceiver returns the receiver config with the given name
-func (c *Config) GetReceiver(name string) *Receiver {
-	for _, rec := range c.Receivers {
-		if rec.Name == name {
-			return rec
-		}
-	}
-	return nil
-}
-
-func (c *Config) GetRouteIdx(name string) int {
-	for idx, route := range c.Route.Routes {
-		if route.Receiver == name {
-			return idx
-		}
-	}
-	return -1
-}
-
-func (c *Config) initializeNetworkBaseRoute(route *config.Route, matcherLabel, tenantID string) error {
-	baseRouteName := makeBaseRouteName(tenantID)
-	if c.GetReceiver(baseRouteName) != nil {
-		return fmt.Errorf("Base route for tenant %s already exists", tenantID)
-	}
-
-	c.Receivers = append(c.Receivers, &Receiver{Name: baseRouteName})
-	route.Receiver = baseRouteName
-
-	if matcherLabel != "" {
-		route.Match = map[string]string{matcherLabel: tenantID}
-	}
-
-	c.Route.Routes = append(c.Route.Routes, route)
-
-	return c.Validate()
-}
-
-// Validate makes sure that the config is properly formed. Unmarshal the yaml
-// data into an alertmanager Config struct to ensure that it is properly formed
-func (c *Config) Validate() error {
-	yamlData, err := yaml.Marshal(c)
-	if err != nil {
-		return err
-	}
-
-	err = yaml.Unmarshal(yamlData, &config.Config{})
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 // Receiver uses custom notifier configs to allow for marshaling of secrets.
 type Receiver struct {
 	Name string `yaml:"name" json:"name"`
 
-	SlackConfigs   []*SlackConfig          `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
-	WebhookConfigs []*config.WebhookConfig `yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
-	EmailConfigs   []*EmailConfig          `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
+	SlackConfigs   []*SlackConfig   `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
+	WebhookConfigs []*WebhookConfig `yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
+	EmailConfigs   []*EmailConfig   `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
 }
 
 // Secure replaces the receiver's name with a tenantID prefix
 func (r *Receiver) Secure(tenantID string) {
-	r.Name = secureReceiverName(r.Name, tenantID)
+	r.Name = SecureReceiverName(r.Name, tenantID)
 }
 
 // Unsecure removes the tenantID prefix from the receiver name
 func (r *Receiver) Unsecure(tenantID string) {
-	r.Name = unsecureReceiverName(r.Name, tenantID)
+	r.Name = UnsecureReceiverName(r.Name, tenantID)
 }
 
-func secureReceiverName(name, tenantID string) string {
-	return receiverTenantPrefix(tenantID) + name
+func SecureReceiverName(name, tenantID string) string {
+	return ReceiverTenantPrefix(tenantID) + name
 }
 
-func unsecureReceiverName(name, tenantID string) string {
-	if strings.HasPrefix(name, receiverTenantPrefix(tenantID)) {
-		return name[len(receiverTenantPrefix(tenantID)):]
+func UnsecureReceiverName(name, tenantID string) string {
+	if strings.HasPrefix(name, ReceiverTenantPrefix(tenantID)) {
+		return name[len(ReceiverTenantPrefix(tenantID)):]
 	}
 	return name
 }
@@ -114,6 +53,8 @@ func unsecureReceiverName(name, tenantID string) string {
 // is marshaled as is instead of being obscured which is how alertmanager handles
 // secrets
 type SlackConfig struct {
+	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+
 	APIURL      string                `yaml:"api_url" json:"api_url"`
 	Channel     string                `yaml:"channel" json:"channel"`
 	Username    string                `yaml:"username" json:"username"`
@@ -163,6 +104,16 @@ func (e EmailConfig) MarshalYAML() (interface{}, error) {
 	valFalse := false
 	e.RequireTLS = &valFalse
 	return e, nil
+}
+
+// WebhookConfig is a copy of prometheus/alertmanager/config.WebhookConfig with
+// alertmanager-configurer's custom HTTPConfig
+type WebhookConfig struct {
+	config.NotifierConfig
+
+	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
+
+	URL *config.URL `yaml:"url" json:"url"`
 }
 
 // RouteJSONWrapper Provides a struct to marshal/unmarshal into a rulefmt.Rule
@@ -280,4 +231,8 @@ func (r *RouteJSONWrapper) ToPrometheusConfig() (config.Route, error) {
 		RepeatInterval: repeatIntervalP,
 	}
 	return route, nil
+}
+
+func ReceiverTenantPrefix(tenantID string) string {
+	return strings.Replace(tenantID, "_", "", -1) + "_"
 }

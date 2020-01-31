@@ -37,7 +37,7 @@ var (
     }`, webhookURL, slackURL)
 
 	testWebhookURL, _ = url.Parse(webhookURL)
-	testWebhookConfig = config.WebhookConfig{
+	testWebhookConfig = receivers.WebhookConfig{
 		NotifierConfig: config.NotifierConfig{
 			VSendResolved: true,
 		},
