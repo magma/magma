@@ -133,6 +133,7 @@ func (srv *CentralSessionController) CreateSession(
 		StaticRules:   staticRuleInstalls,
 		DynamicRules:  dynamicRuleInstalls,
 		UsageMonitors: usageMonitors,
+		TgppCtx:       &protos.TgppContext{GxDestHost: gxCCAInit.OriginHost},
 	}, nil
 }
 
