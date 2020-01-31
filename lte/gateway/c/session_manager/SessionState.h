@@ -58,7 +58,9 @@ class SessionState {
     const std::string& session_id,
     const std::string& core_session_id,
     const SessionState::Config& cfg,
-    StaticRuleStore& rule_store);
+    StaticRuleStore& rule_store,
+    const std::string& monitoring_dest_host,
+    const std::string& charging_dest_host);
 
   /**
    * new_report sets the state of terminating session to aggregating, to tell if
@@ -160,6 +162,12 @@ class SessionState {
 
   bool qos_enabled();
 
+  void set_charging_dest_host(const std::string& host);
+
+  void set_monitoring_dest_host(const std::string& host);
+
+  void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context);
+
  private:
   /**
    * State transitions of a session:
@@ -198,6 +206,8 @@ class SessionState {
   SessionRules session_rules_;
   SessionState::State curr_state_;
   SessionState::Config config_;
+  std::string monitoring_dest_host_;
+  std::string charging_dest_host_;
   std::function<void(SessionTerminateRequest)> on_termination_callback_;
 
  private:
