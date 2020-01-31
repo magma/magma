@@ -38,6 +38,18 @@ type Technician struct {
 type TechnicianEdges struct {
 	// WorkOrders holds the value of the work_orders edge.
 	WorkOrders []*WorkOrder
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// WorkOrdersErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e TechnicianEdges) WorkOrdersErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[0] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

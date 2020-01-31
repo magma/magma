@@ -55,6 +55,11 @@ class PropertyKind(Enum):
     location = "location"
     service = "service"
     datetime_local = "datetime_local"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 class SurveyQuestionType(Enum):
@@ -70,6 +75,11 @@ class SurveyQuestionType(Enum):
     FLOAT = "FLOAT"
     INTEGER = "INTEGER"
     DATE = "DATE"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -177,7 +187,7 @@ class AddLocationTypeMutation:
         addLocationType: Optional[LocationType] = None
 
     data: Optional[AddLocationTypeMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

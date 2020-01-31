@@ -154,10 +154,7 @@ func (equipmentResolver) Positions(ctx context.Context, obj *ent.Equipment) ([]*
 
 func (equipmentResolver) Ports(ctx context.Context, obj *ent.Equipment, availableOnly *bool) ([]*ent.EquipmentPort, error) {
 	q := obj.QueryPorts()
-	if availableOnly == nil {
-		availableOnly = pointer.ToBool(false)
-	}
-	if *availableOnly {
+	if pointer.GetBool(availableOnly) {
 		q.Where(equipmentport.Not(equipmentport.HasLink()))
 	}
 	return q.All(ctx)
@@ -167,7 +164,7 @@ func (equipmentResolver) Properties(ctx context.Context, obj *ent.Equipment) ([]
 	return obj.QueryProperties().All(ctx)
 }
 
-func (equipmentResolver) FutureState(ctx context.Context, obj *ent.Equipment) (*models.FutureState, error) {
+func (equipmentResolver) FutureState(_ context.Context, obj *ent.Equipment) (*models.FutureState, error) {
 	fs := models.FutureState(obj.FutureState)
 	return &fs, nil
 }

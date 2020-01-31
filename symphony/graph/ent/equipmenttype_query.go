@@ -396,9 +396,16 @@ func (etq *EquipmentTypeQuery) Select(field string, fields ...string) *Equipment
 
 func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, error) {
 	var (
-		nodes   []*EquipmentType = []*EquipmentType{}
-		withFKs                  = etq.withFKs
-		_spec                    = etq.querySpec()
+		nodes       = []*EquipmentType{}
+		withFKs     = etq.withFKs
+		_spec       = etq.querySpec()
+		loadedTypes = [5]bool{
+			etq.withPortDefinitions != nil,
+			etq.withPositionDefinitions != nil,
+			etq.withPropertyTypes != nil,
+			etq.withEquipment != nil,
+			etq.withCategory != nil,
+		}
 	)
 	if etq.withCategory != nil {
 		withFKs = true
@@ -420,6 +427,7 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, etq.driver, _spec); err != nil {

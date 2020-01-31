@@ -60,7 +60,7 @@ class LocationDocumentsQuery:
         location: Optional[Node] = None
 
     data: Optional[LocationDocumentsQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

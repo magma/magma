@@ -63,7 +63,7 @@ class LatestPythonPackageQuery:
         latestPythonPackage: Optional[LatestPythonPackageResult] = None
 
     data: Optional[LatestPythonPackageQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

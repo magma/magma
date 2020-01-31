@@ -40,7 +40,7 @@ class RemoveEquipmentMutation:
         removeEquipment: str
 
     data: Optional[RemoveEquipmentMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

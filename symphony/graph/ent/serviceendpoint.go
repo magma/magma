@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 )
 
@@ -40,6 +42,37 @@ type ServiceEndpointEdges struct {
 	Port *EquipmentPort
 	// Service holds the value of the service edge.
 	Service *Service
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// PortErr returns the Port value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEndpointEdges) PortErr() (*EquipmentPort, error) {
+	if e.loadedTypes[0] {
+		if e.Port == nil {
+			// The edge port was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentport.Label}
+		}
+		return e.Port, nil
+	}
+	return nil, &NotLoadedError{edge: "port"}
+}
+
+// ServiceErr returns the Service value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEndpointEdges) ServiceErr() (*Service, error) {
+	if e.loadedTypes[1] {
+		if e.Service == nil {
+			// The edge service was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: service.Label}
+		}
+		return e.Service, nil
+	}
+	return nil, &NotLoadedError{edge: "service"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

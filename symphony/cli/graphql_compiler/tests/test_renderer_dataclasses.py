@@ -286,6 +286,51 @@ class TestRendererDataclasses(BaseTest):
         assert node.author.login == 'whatever'
         assert node.authorAssociation == m.CommentAuthorAssociation.FIRST_TIMER
 
+    def test_simple_query_with_missing_enums(self):
+        query = """
+            query MyIssues {
+              viewer {
+                issues(first: 5) {
+                  edges {
+                    node {
+                      author { login }
+                      authorAssociation
+                    }
+                  }
+                }
+              }
+            }
+        """
+        parsed = self.github_parser.parse(query)
+        rendered = self.github_dataclass_renderer.render(parsed)
+
+        m = self.load_module(rendered)
+        response = m.MyIssues.from_json("""
+            {
+                "data": {
+                    "viewer": {
+                        "issues": {
+                            "edges": [
+                                {
+                                    "node": {
+                                        "author": { "login": "whatever" },
+                                        "authorAssociation": "VALUE_THAT_DOES_NOT_EXIST"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+            """)
+
+        assert response
+
+        node = response.data.viewer.issues.edges[0].node
+        assert node
+        assert node.author.login == 'whatever'
+        assert node.authorAssociation == m.CommentAuthorAssociation.MISSING_ENUM
+
     def test_simple_query_with_enums_default_value(self):
         """
             enum LengthUnit {

@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
 // Service is the model entity for the Service schema.
@@ -53,6 +54,77 @@ type ServiceEdges struct {
 	Customer []*Customer
 	// Endpoints holds the value of the endpoints edge.
 	Endpoints []*ServiceEndpoint
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [7]bool
+}
+
+// TypeErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEdges) TypeErr() (*ServiceType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: servicetype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// DownstreamErr returns the Downstream value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) DownstreamErr() ([]*Service, error) {
+	if e.loadedTypes[1] {
+		return e.Downstream, nil
+	}
+	return nil, &NotLoadedError{edge: "downstream"}
+}
+
+// UpstreamErr returns the Upstream value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) UpstreamErr() ([]*Service, error) {
+	if e.loadedTypes[2] {
+		return e.Upstream, nil
+	}
+	return nil, &NotLoadedError{edge: "upstream"}
+}
+
+// PropertiesErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) PropertiesErr() ([]*Property, error) {
+	if e.loadedTypes[3] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// LinksErr returns the Links value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) LinksErr() ([]*Link, error) {
+	if e.loadedTypes[4] {
+		return e.Links, nil
+	}
+	return nil, &NotLoadedError{edge: "links"}
+}
+
+// CustomerErr returns the Customer value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) CustomerErr() ([]*Customer, error) {
+	if e.loadedTypes[5] {
+		return e.Customer, nil
+	}
+	return nil, &NotLoadedError{edge: "customer"}
+}
+
+// EndpointsErr returns the Endpoints value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) EndpointsErr() ([]*ServiceEndpoint, error) {
+	if e.loadedTypes[6] {
+		return e.Endpoints, nil
+	}
+	return nil, &NotLoadedError{edge: "endpoints"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

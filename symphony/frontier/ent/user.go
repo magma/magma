@@ -46,6 +46,18 @@ type User struct {
 type UserEdges struct {
 	// Tokens holds the value of the tokens edge.
 	Tokens []*Token
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TokensErr returns the Tokens value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TokensErr() ([]*Token, error) {
+	if e.loadedTypes[0] {
+		return e.Tokens, nil
+	}
+	return nil, &NotLoadedError{edge: "tokens"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

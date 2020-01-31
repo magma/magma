@@ -345,8 +345,13 @@ func (ptq *ProjectTypeQuery) Select(field string, fields ...string) *ProjectType
 
 func (ptq *ProjectTypeQuery) sqlAll(ctx context.Context) ([]*ProjectType, error) {
 	var (
-		nodes []*ProjectType = []*ProjectType{}
-		_spec                = ptq.querySpec()
+		nodes       = []*ProjectType{}
+		_spec       = ptq.querySpec()
+		loadedTypes = [3]bool{
+			ptq.withProjects != nil,
+			ptq.withProperties != nil,
+			ptq.withWorkOrders != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &ProjectType{config: ptq.config}
@@ -359,6 +364,7 @@ func (ptq *ProjectTypeQuery) sqlAll(ctx context.Context) ([]*ProjectType, error)
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, ptq.driver, _spec); err != nil {

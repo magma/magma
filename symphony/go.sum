@@ -112,10 +112,8 @@ github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385 h1:clC1lXBpe2kTj2VHdaI
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
-github.com/facebookincubator/ent v0.0.0-20200122095037-28b9ef193fb3 h1:dlcdVp5iFAdr/VmjYWmXJgUwevnumVeE27bLRh5gvAI=
-github.com/facebookincubator/ent v0.0.0-20200122095037-28b9ef193fb3/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
-github.com/facebookincubator/ent v0.0.0-20200128090427-7a480e3943d9 h1:lEtiUaPf8O85yBumMfxO676vfC6hijS8zK8rH72owYo=
-github.com/facebookincubator/ent v0.0.0-20200128090427-7a480e3943d9/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
+github.com/facebookincubator/ent v0.0.0-20200130095708-112d442dac7c h1:NcR4zBKGt2wCnGQCiE9jLECzC8Yfpxy10BXSEDRANMA=
+github.com/facebookincubator/ent v0.0.0-20200130095708-112d442dac7c/go.mod h1:HPlhuedKSDmFMBdvuPjio8lFficaUcO4U3eMtVxM2Zs=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fortytw2/leaktest v1.2.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=

@@ -1078,6 +1078,54 @@ func TestExecuteWorkOrderRemoveParentEquipment(t *testing.T) {
 	assert.Nil(t, fetchedPChildEquipment)
 }
 
+func TestAddAndDeleteWorkOrderHyperlink(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, wor := r.Mutation(), r.WorkOrder()
+
+	workOrderType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "work_order_type_name_1",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "work_order_type_name_1", workOrderType.Name)
+
+	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "work_order_name_1",
+		WorkOrderTypeID: workOrderType.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, workOrderType.ID, workOrder.QueryType().OnlyXID(ctx))
+
+	category := "TSS"
+	url := "http://some.url"
+	displayName := "link to some url"
+	hyperlink, err := mr.AddHyperlink(ctx, models.AddHyperlinkInput{
+		EntityType:  models.ImageEntityWorkOrder,
+		EntityID:    workOrder.ID,
+		URL:         url,
+		DisplayName: &displayName,
+		Category:    &category,
+	})
+	require.NoError(t, err)
+	require.Equal(t, url, hyperlink.URL, "verifying hyperlink url")
+	require.Equal(t, displayName, hyperlink.Name, "verifying hyperlink display name")
+	require.Equal(t, category, hyperlink.Category, "verifying 1st hyperlink category")
+
+	hyperlinks, err := wor.Hyperlinks(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 1, "verifying has 1 hyperlink")
+
+	deletedHyperlink, err := mr.DeleteHyperlink(ctx, hyperlink.ID)
+	require.NoError(t, err)
+	require.Equal(t, hyperlink.ID, deletedHyperlink.ID, "verifying return id of deleted hyperlink")
+
+	hyperlinks, err = wor.Hyperlinks(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 0, "verifying no hyperlinks remained")
+}
+
 func TestDeleteWorkOrderWithAttachmentAndLinksAdded(t *testing.T) {
 	r, err := newTestResolver(t)
 	require.NoError(t, err)

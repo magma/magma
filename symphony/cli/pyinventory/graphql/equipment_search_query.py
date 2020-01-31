@@ -46,6 +46,11 @@ class EquipmentFilterType(Enum):
     PROPERTY = "PROPERTY"
     LOCATION_INST = "LOCATION_INST"
     EQUIPMENT_TYPE = "EQUIPMENT_TYPE"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 class FilterOperator(Enum):
@@ -55,6 +60,11 @@ class FilterOperator(Enum):
     IS_NOT_ONE_OF = "IS_NOT_ONE_OF"
     DATE_GREATER_THAN = "DATE_GREATER_THAN"
     DATE_LESS_THAN = "DATE_LESS_THAN"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 class PropertyKind(Enum):
@@ -71,6 +81,11 @@ class PropertyKind(Enum):
     location = "location"
     service = "service"
     datetime_local = "datetime_local"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -139,7 +154,7 @@ class EquipmentSearchQuery:
         equipmentSearch: EquipmentSearchResult
 
     data: Optional[EquipmentSearchQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

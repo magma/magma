@@ -267,8 +267,8 @@ func (alq *AuditLogQuery) Select(field string, fields ...string) *AuditLogSelect
 
 func (alq *AuditLogQuery) sqlAll(ctx context.Context) ([]*AuditLog, error) {
 	var (
-		nodes []*AuditLog = []*AuditLog{}
-		_spec             = alq.querySpec()
+		nodes = []*AuditLog{}
+		_spec = alq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &AuditLog{config: alq.config}

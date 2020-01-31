@@ -55,6 +55,11 @@ class PropertyKind(Enum):
     location = "location"
     service = "service"
     datetime_local = "datetime_local"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -159,7 +164,7 @@ class EquipmentTypesQuery:
         equipmentTypes: EquipmentTypeConnection
 
     data: Optional[EquipmentTypesQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 )
 
@@ -43,6 +44,23 @@ type SurveyTemplateQuestion struct {
 type SurveyTemplateQuestionEdges struct {
 	// Category holds the value of the category edge.
 	Category *SurveyTemplateCategory
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// CategoryErr returns the Category value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyTemplateQuestionEdges) CategoryErr() (*SurveyTemplateCategory, error) {
+	if e.loadedTypes[0] {
+		if e.Category == nil {
+			// The edge category was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: surveytemplatecategory.Label}
+		}
+		return e.Category, nil
+	}
+	return nil, &NotLoadedError{edge: "category"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

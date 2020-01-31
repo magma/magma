@@ -267,8 +267,8 @@ func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {
 
 func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 	var (
-		nodes []*Todo = []*Todo{}
-		_spec         = tq.querySpec()
+		nodes = []*Todo{}
+		_spec = tq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &Todo{config: tq.config}

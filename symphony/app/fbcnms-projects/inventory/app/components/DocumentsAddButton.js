@@ -19,6 +19,7 @@ import type {WithSnackbarProps} from 'notistack';
 
 import AddImageMutation from '../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import FileUpload from './FileUpload';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import React from 'react';
@@ -78,7 +79,9 @@ class DocumentsAddButton extends React.Component<Props, State> {
           </PopoverMenu>
         ) : (
           <FileUpload
-            button={Strings.documents.uploadButton}
+            button={
+              <Button skin="primary">{Strings.documents.uploadButton}</Button>
+            }
             onFileUploaded={this.onDocumentUploaded(null)}
           />
         )}

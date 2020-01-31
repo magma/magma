@@ -346,9 +346,14 @@ func (sq *SurveyQuery) Select(field string, fields ...string) *SurveySelect {
 
 func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	var (
-		nodes   []*Survey = []*Survey{}
-		withFKs           = sq.withFKs
-		_spec             = sq.querySpec()
+		nodes       = []*Survey{}
+		withFKs     = sq.withFKs
+		_spec       = sq.querySpec()
+		loadedTypes = [3]bool{
+			sq.withLocation != nil,
+			sq.withSourceFile != nil,
+			sq.withQuestions != nil,
+		}
 	)
 	if sq.withLocation != nil || sq.withSourceFile != nil {
 		withFKs = true
@@ -370,6 +375,7 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, sq.driver, _spec); err != nil {

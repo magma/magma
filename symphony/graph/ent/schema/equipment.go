@@ -213,6 +213,7 @@ func (Equipment) Fields() []ent.Field {
 		field.String("device_id").
 			Optional(),
 		field.String("external_id").
+			Unique().
 			Optional(),
 	}
 }

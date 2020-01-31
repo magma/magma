@@ -371,9 +371,15 @@ func (lq *LinkQuery) Select(field string, fields ...string) *LinkSelect {
 
 func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 	var (
-		nodes   []*Link = []*Link{}
-		withFKs         = lq.withFKs
-		_spec           = lq.querySpec()
+		nodes       = []*Link{}
+		withFKs     = lq.withFKs
+		_spec       = lq.querySpec()
+		loadedTypes = [4]bool{
+			lq.withPorts != nil,
+			lq.withWorkOrder != nil,
+			lq.withProperties != nil,
+			lq.withService != nil,
+		}
 	)
 	if lq.withWorkOrder != nil {
 		withFKs = true
@@ -395,6 +401,7 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, lq.driver, _spec); err != nil {

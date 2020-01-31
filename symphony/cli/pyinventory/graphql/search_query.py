@@ -79,7 +79,7 @@ class SearchQuery:
         searchForEntity: SearchEntriesConnection
 
     data: Optional[SearchQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

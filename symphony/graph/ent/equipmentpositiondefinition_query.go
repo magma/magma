@@ -321,9 +321,13 @@ func (epdq *EquipmentPositionDefinitionQuery) Select(field string, fields ...str
 
 func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*EquipmentPositionDefinition, error) {
 	var (
-		nodes   []*EquipmentPositionDefinition = []*EquipmentPositionDefinition{}
-		withFKs                                = epdq.withFKs
-		_spec                                  = epdq.querySpec()
+		nodes       = []*EquipmentPositionDefinition{}
+		withFKs     = epdq.withFKs
+		_spec       = epdq.querySpec()
+		loadedTypes = [2]bool{
+			epdq.withPositions != nil,
+			epdq.withEquipmentType != nil,
+		}
 	)
 	if epdq.withEquipmentType != nil {
 		withFKs = true
@@ -345,6 +349,7 @@ func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*Eq
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, epdq.driver, _spec); err != nil {

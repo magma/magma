@@ -81,7 +81,7 @@ class AddLinkMutation:
         addLink: Optional[Link] = None
 
     data: Optional[AddLinkMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

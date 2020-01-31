@@ -14,6 +14,8 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
+	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 )
 
 // EquipmentPortDefinition is the model entity for the EquipmentPortDefinition schema.
@@ -48,6 +50,46 @@ type EquipmentPortDefinitionEdges struct {
 	Ports []*EquipmentPort
 	// EquipmentType holds the value of the equipment_type edge.
 	EquipmentType *EquipmentType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// EquipmentPortTypeErr returns the EquipmentPortType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortDefinitionEdges) EquipmentPortTypeErr() (*EquipmentPortType, error) {
+	if e.loadedTypes[0] {
+		if e.EquipmentPortType == nil {
+			// The edge equipment_port_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentporttype.Label}
+		}
+		return e.EquipmentPortType, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment_port_type"}
+}
+
+// PortsErr returns the Ports value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortDefinitionEdges) PortsErr() ([]*EquipmentPort, error) {
+	if e.loadedTypes[1] {
+		return e.Ports, nil
+	}
+	return nil, &NotLoadedError{edge: "ports"}
+}
+
+// EquipmentTypeErr returns the EquipmentType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortDefinitionEdges) EquipmentTypeErr() (*EquipmentType, error) {
+	if e.loadedTypes[2] {
+		if e.EquipmentType == nil {
+			// The edge equipment_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmenttype.Label}
+		}
+		return e.EquipmentType, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment_type"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

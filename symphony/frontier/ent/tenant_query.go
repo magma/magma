@@ -267,8 +267,8 @@ func (tq *TenantQuery) Select(field string, fields ...string) *TenantSelect {
 
 func (tq *TenantQuery) sqlAll(ctx context.Context) ([]*Tenant, error) {
 	var (
-		nodes []*Tenant = []*Tenant{}
-		_spec           = tq.querySpec()
+		nodes = []*Tenant{}
+		_spec = tq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &Tenant{config: tq.config}

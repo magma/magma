@@ -6655,6 +6655,7 @@ input AddProjectTypeInput {
   name: String! @length(min: 1)
   description: String
   properties: [PropertyTypeInput!]
+    @uniqueField(typ: "property type", field: "Name")
   workOrders: [WorkOrderDefinitionInput!]
 }
 
@@ -6663,6 +6664,7 @@ input EditProjectTypeInput {
   name: String! @length(min: 1)
   description: String
   properties: [PropertyTypeInput!]
+    @uniqueField(typ: "property type", field: "Name")
   workOrders: [WorkOrderDefinitionInput!]
 }
 
@@ -32193,9 +32195,32 @@ func (ec *executionContext) unmarshalInputAddProjectTypeInput(ctx context.Contex
 			}
 		case "properties":
 			var err error
-			it.Properties, err = ec.unmarshalOPropertyTypeInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInputᚄ(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) {
+				return ec.unmarshalOPropertyTypeInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInputᚄ(ctx, v)
+			}
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				typ, err := ec.unmarshalNString2string(ctx, "property type")
+				if err != nil {
+					return nil, err
+				}
+				field, err := ec.unmarshalNString2string(ctx, "Name")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.UniqueField == nil {
+					return nil, errors.New("directive uniqueField is not implemented")
+				}
+				return ec.directives.UniqueField(ctx, obj, directive0, typ, field)
+			}
+
+			tmp, err := directive1(ctx)
 			if err != nil {
 				return it, err
+			}
+			if data, ok := tmp.([]*models.PropertyTypeInput); ok {
+				it.Properties = data
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/facebookincubator/symphony/graph/graphql/models.PropertyTypeInput`, tmp)
 			}
 		case "workOrders":
 			var err error
@@ -33019,9 +33044,32 @@ func (ec *executionContext) unmarshalInputEditProjectTypeInput(ctx context.Conte
 			}
 		case "properties":
 			var err error
-			it.Properties, err = ec.unmarshalOPropertyTypeInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInputᚄ(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) {
+				return ec.unmarshalOPropertyTypeInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInputᚄ(ctx, v)
+			}
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				typ, err := ec.unmarshalNString2string(ctx, "property type")
+				if err != nil {
+					return nil, err
+				}
+				field, err := ec.unmarshalNString2string(ctx, "Name")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.UniqueField == nil {
+					return nil, errors.New("directive uniqueField is not implemented")
+				}
+				return ec.directives.UniqueField(ctx, obj, directive0, typ, field)
+			}
+
+			tmp, err := directive1(ctx)
 			if err != nil {
 				return it, err
+			}
+			if data, ok := tmp.([]*models.PropertyTypeInput); ok {
+				it.Properties = data
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/facebookincubator/symphony/graph/graphql/models.PropertyTypeInput`, tmp)
 			}
 		case "workOrders":
 			var err error

@@ -54,6 +54,11 @@ class SurveyQuestionType(Enum):
     FLOAT = "FLOAT"
     INTEGER = "INTEGER"
     DATE = "DATE"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -136,7 +141,7 @@ class LocationSurveysQuery:
         location: Optional[Node] = None
 
     data: Optional[LocationSurveysQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

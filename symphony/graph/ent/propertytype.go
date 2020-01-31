@@ -13,7 +13,13 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
+	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // PropertyType is the model entity for the PropertyType schema.
@@ -87,6 +93,116 @@ type PropertyTypeEdges struct {
 	WorkOrderType *WorkOrderType
 	// ProjectType holds the value of the project_type edge.
 	ProjectType *ProjectType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [8]bool
+}
+
+// PropertiesErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e PropertyTypeEdges) PropertiesErr() ([]*Property, error) {
+	if e.loadedTypes[0] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// LocationTypeErr returns the LocationType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyTypeEdges) LocationTypeErr() (*LocationType, error) {
+	if e.loadedTypes[1] {
+		if e.LocationType == nil {
+			// The edge location_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: locationtype.Label}
+		}
+		return e.LocationType, nil
+	}
+	return nil, &NotLoadedError{edge: "location_type"}
+}
+
+// EquipmentPortTypeErr returns the EquipmentPortType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyTypeEdges) EquipmentPortTypeErr() (*EquipmentPortType, error) {
+	if e.loadedTypes[2] {
+		if e.EquipmentPortType == nil {
+			// The edge equipment_port_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentporttype.Label}
+		}
+		return e.EquipmentPortType, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment_port_type"}
+}
+
+// LinkEquipmentPortTypeErr returns the LinkEquipmentPortType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyTypeEdges) LinkEquipmentPortTypeErr() (*EquipmentPortType, error) {
+	if e.loadedTypes[3] {
+		if e.LinkEquipmentPortType == nil {
+			// The edge link_equipment_port_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentporttype.Label}
+		}
+		return e.LinkEquipmentPortType, nil
+	}
+	return nil, &NotLoadedError{edge: "link_equipment_port_type"}
+}
+
+// EquipmentTypeErr returns the EquipmentType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyTypeEdges) EquipmentTypeErr() (*EquipmentType, error) {
+	if e.loadedTypes[4] {
+		if e.EquipmentType == nil {
+			// The edge equipment_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmenttype.Label}
+		}
+		return e.EquipmentType, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment_type"}
+}
+
+// ServiceTypeErr returns the ServiceType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyTypeEdges) ServiceTypeErr() (*ServiceType, error) {
+	if e.loadedTypes[5] {
+		if e.ServiceType == nil {
+			// The edge service_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: servicetype.Label}
+		}
+		return e.ServiceType, nil
+	}
+	return nil, &NotLoadedError{edge: "service_type"}
+}
+
+// WorkOrderTypeErr returns the WorkOrderType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyTypeEdges) WorkOrderTypeErr() (*WorkOrderType, error) {
+	if e.loadedTypes[6] {
+		if e.WorkOrderType == nil {
+			// The edge work_order_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workordertype.Label}
+		}
+		return e.WorkOrderType, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order_type"}
+}
+
+// ProjectTypeErr returns the ProjectType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyTypeEdges) ProjectTypeErr() (*ProjectType, error) {
+	if e.loadedTypes[7] {
+		if e.ProjectType == nil {
+			// The edge project_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: projecttype.Label}
+		}
+		return e.ProjectType, nil
+	}
+	return nil, &NotLoadedError{edge: "project_type"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

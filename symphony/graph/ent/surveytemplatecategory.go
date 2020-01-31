@@ -39,6 +39,18 @@ type SurveyTemplateCategory struct {
 type SurveyTemplateCategoryEdges struct {
 	// SurveyTemplateQuestions holds the value of the survey_template_questions edge.
 	SurveyTemplateQuestions []*SurveyTemplateQuestion
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// SurveyTemplateQuestionsErr returns the SurveyTemplateQuestions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyTemplateCategoryEdges) SurveyTemplateQuestionsErr() ([]*SurveyTemplateQuestion, error) {
+	if e.loadedTypes[0] {
+		return e.SurveyTemplateQuestions, nil
+	}
+	return nil, &NotLoadedError{edge: "survey_template_questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

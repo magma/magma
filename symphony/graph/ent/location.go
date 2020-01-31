@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 )
 
 // Location is the model entity for the Location schema.
@@ -68,6 +69,127 @@ type LocationEdges struct {
 	WorkOrders []*WorkOrder `gqlgen:"workOrders"`
 	// FloorPlans holds the value of the floor_plans edge.
 	FloorPlans []*FloorPlan `gqlgen:"floorPlans"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [12]bool
+}
+
+// TypeErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LocationEdges) TypeErr() (*LocationType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: locationtype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// ParentErr returns the Parent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LocationEdges) ParentErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Parent == nil {
+			// The edge parent was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Parent, nil
+	}
+	return nil, &NotLoadedError{edge: "parent"}
+}
+
+// ChildrenErr returns the Children value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) ChildrenErr() ([]*Location, error) {
+	if e.loadedTypes[2] {
+		return e.Children, nil
+	}
+	return nil, &NotLoadedError{edge: "children"}
+}
+
+// FilesErr returns the Files value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) FilesErr() ([]*File, error) {
+	if e.loadedTypes[3] {
+		return e.Files, nil
+	}
+	return nil, &NotLoadedError{edge: "files"}
+}
+
+// HyperlinksErr returns the Hyperlinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) HyperlinksErr() ([]*Hyperlink, error) {
+	if e.loadedTypes[4] {
+		return e.Hyperlinks, nil
+	}
+	return nil, &NotLoadedError{edge: "hyperlinks"}
+}
+
+// EquipmentErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) EquipmentErr() ([]*Equipment, error) {
+	if e.loadedTypes[5] {
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
+}
+
+// PropertiesErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) PropertiesErr() ([]*Property, error) {
+	if e.loadedTypes[6] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// SurveyErr returns the Survey value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) SurveyErr() ([]*Survey, error) {
+	if e.loadedTypes[7] {
+		return e.Survey, nil
+	}
+	return nil, &NotLoadedError{edge: "survey"}
+}
+
+// WifiScanErr returns the WifiScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) WifiScanErr() ([]*SurveyWiFiScan, error) {
+	if e.loadedTypes[8] {
+		return e.WifiScan, nil
+	}
+	return nil, &NotLoadedError{edge: "wifi_scan"}
+}
+
+// CellScanErr returns the CellScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) CellScanErr() ([]*SurveyCellScan, error) {
+	if e.loadedTypes[9] {
+		return e.CellScan, nil
+	}
+	return nil, &NotLoadedError{edge: "cell_scan"}
+}
+
+// WorkOrdersErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) WorkOrdersErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[10] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
+}
+
+// FloorPlansErr returns the FloorPlans value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) FloorPlansErr() ([]*FloorPlan, error) {
+	if e.loadedTypes[11] {
+		return e.FloorPlans, nil
+	}
+	return nil, &NotLoadedError{edge: "floor_plans"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

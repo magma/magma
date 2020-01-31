@@ -295,8 +295,11 @@ func (cq *CustomerQuery) Select(field string, fields ...string) *CustomerSelect 
 
 func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
 	var (
-		nodes []*Customer = []*Customer{}
-		_spec             = cq.querySpec()
+		nodes       = []*Customer{}
+		_spec       = cq.querySpec()
+		loadedTypes = [1]bool{
+			cq.withServices != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &Customer{config: cq.config}
@@ -309,6 +312,7 @@ func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, cq.driver, _spec); err != nil {

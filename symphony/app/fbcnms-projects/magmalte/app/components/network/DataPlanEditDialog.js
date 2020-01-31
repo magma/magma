@@ -181,6 +181,13 @@ class DataPlanEditDialog extends React.Component<Props, State> {
     const epcConfig = this.props.epcConfig;
     const dataPlanId = this._getDataPlanIdField();
     const dataPlan = this._getDataPlan();
+    if (!this.props.dataPlanId && (epcConfig.sub_profiles || {})[dataPlanId]) {
+      this.props.alert(
+        'Data plan name is already used. Please use a different name',
+      );
+      return;
+    }
+
     const newConfig = {
       ...epcConfig,
       sub_profiles: {
