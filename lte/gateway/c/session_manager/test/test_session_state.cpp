@@ -35,8 +35,8 @@ class SessionStateTest : public ::testing::Test {
 
   void insert_rule(
     uint32_t rating_group,
-    const std::string &m_key,
-    const std::string &rule_id,
+    const std::string& m_key,
+    const std::string& rule_id,
     bool is_static)
   {
     PolicyRule rule;
@@ -67,7 +67,7 @@ class SessionStateTest : public ::testing::Test {
   }
 
   void receive_credit_from_pcrf(
-    const std::string &mkey,
+    const std::string& mkey,
     uint64_t volume,
     MonitoringLevel level)
   {
@@ -217,7 +217,7 @@ TEST_F(SessionStateTest, test_session_level_key)
   session_state->get_updates(update, &actions);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.usage_monitors_size(), 1);
-  auto &single_update = update.usage_monitors(0).update();
+  auto& single_update = update.usage_monitors(0).update();
   EXPECT_EQ(single_update.level(), MonitoringLevel::SESSION_LEVEL);
   EXPECT_EQ(single_update.bytes_rx(), 3000);
   EXPECT_EQ(single_update.bytes_tx(), 5000);
@@ -252,7 +252,7 @@ TEST_F(SessionStateTest, test_reauth_key)
   UpdateSessionRequest reauth_update;
   session_state->get_updates(reauth_update, &actions);
   EXPECT_EQ(reauth_update.updates_size(), 1);
-  auto &usage = reauth_update.updates(0).usage();
+  auto& usage = reauth_update.updates(0).usage();
   EXPECT_EQ(usage.bytes_tx(), 2);
   EXPECT_EQ(usage.bytes_rx(), 1);
 }
@@ -267,7 +267,7 @@ TEST_F(SessionStateTest, test_reauth_new_key)
   std::vector<std::unique_ptr<ServiceAction>> actions;
   session_state->get_updates(reauth_update, &actions);
   EXPECT_EQ(reauth_update.updates_size(), 1);
-  auto &usage = reauth_update.updates(0).usage();
+  auto& usage = reauth_update.updates(0).usage();
   EXPECT_EQ(usage.charging_key(), 1);
   EXPECT_EQ(usage.bytes_tx(), 0);
   EXPECT_EQ(usage.bytes_rx(), 0);
