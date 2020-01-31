@@ -82,6 +82,7 @@ def main():
         manager.applications.get('DPIController', None),
         manager.applications.get('UEMacAddressController', None),
         manager.applications.get('CheckQuotaController', None),
+        manager.applications.get('IPFIXController', None),
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)
 
