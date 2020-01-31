@@ -61,6 +61,10 @@ typedef struct spgw_state_s {
   pgw_state_t pgw_state;
 } spgw_state_t;
 
+typedef struct spgw_imsi_map_s {
+  hash_table_uint64_ts_t* imsi_teid5_htbl; // imsi => teid5
+} spgw_imsi_map_t;
+
 // Initializes SGW state struct when task process starts.
 int spgw_state_init(bool persist_state, const spgw_config_t* spgw_config_p);
 // Function that frees spgw_state.
@@ -69,6 +73,9 @@ void spgw_state_exit(void);
 spgw_state_t *get_spgw_state(bool read_from_db);
 // Function that writes the spgw_state struct into db.
 void put_spgw_state(void);
+
+void put_spgw_imsi_map(void);
+spgw_imsi_map_t* get_spgw_imsi_map(void);
 
 /**
  * Callback function for s11_bearer_context_information hashtable freefunc

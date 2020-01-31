@@ -216,6 +216,7 @@ static void* sgw_intertask_interface(void* args_p)
     }
 
     put_spgw_state();
+    put_spgw_imsi_map();
 
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);

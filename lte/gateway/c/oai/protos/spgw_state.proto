@@ -237,3 +237,7 @@ message SpgwState {
     SgwState sgw_state = 1;
     PgwState pgw_state = 2;
 }
+
+message SpgwImsiMap {
+    map<uint64, uint64> imsi_teid5_map = 1;
+}
