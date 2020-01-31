@@ -51,7 +51,6 @@ class CreditTrackingTest(unittest.TestCase):
                     rule_id="simple_match"
                 )],
                 dynamic_rules=[],
-                rule_base_names=[],
                 usage_monitors=[],
             ),
         )
@@ -209,7 +208,6 @@ class CreditTrackingTest(unittest.TestCase):
                     rule_id="simple_match"
                 )],
                 dynamic_rules=[],
-                rule_base_names=[],
                 usage_monitors=[],
             ),
         )

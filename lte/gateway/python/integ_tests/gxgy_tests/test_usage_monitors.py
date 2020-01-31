@@ -55,7 +55,6 @@ class UsageMonitorTest(unittest.TestCase):
                     rule_id="monitor_rule"
                 )],
                 dynamic_rules=[],
-                rule_base_names=[],
                 usage_monitors=[create_monitor_response(
                     sub1.imsi, "mkey1", quota, session_manager_pb2.PCC_RULE_LEVEL)],
             ),
