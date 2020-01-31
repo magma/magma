@@ -69,7 +69,8 @@ extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 
 int pgw_handle_create_bearer_request(
   spgw_state_t *spgw_state,
-  const itti_s5_create_bearer_request_t *const bearer_req_p)
+  const itti_s5_create_bearer_request_t *const bearer_req_p,
+  imsi64_t imsi64)
 {
   // assign the IP here and just send back a S5_CREATE_BEARER_RESPONSE
   s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p = NULL;
@@ -266,6 +267,9 @@ int pgw_handle_create_bearer_request(
   s5_response->eps_bearer_id = bearer_req_p->eps_bearer_id;
   s5_response->sgi_create_endpoint_resp = sgi_create_endpoint_resp;
   s5_response->failure_cause = S5_OK;
+
+  message_p->ittiMsgHeader.imsi = imsi64;
+
   OAILOG_DEBUG(
     LOG_PGW_APP,
     "Sending S5 Create Bearer Response to SPGW APP: Context teid %u, S1U-teid "
@@ -437,7 +441,8 @@ static void get_session_req_data(
 
 uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p)
+  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p,
+  imsi64_t imsi64)
 {
   OAILOG_FUNC_IN(LOG_PGW_APP);
   MessageDef *message_p = NULL;
@@ -453,8 +458,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
 
   OAILOG_INFO(
     LOG_PGW_APP,
-    "Received Create Bearer Req from PCRF with IMSI %s\n",
-    bearer_req_p->imsi);
+    "Received Create Bearer Req from PCRF with IMSI " IMSI_64_FMT, imsi64);
 
   message_p =
     itti_alloc_new_message(TASK_SPGW_APP, S5_NW_INITIATED_ACTIVATE_BEARER_REQ);
@@ -492,6 +496,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
 
+  // TODO: Get S11 MME TEID from SPGW UE ID map
   // Fetch S11 MME TEID using IMSI and LBI
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
@@ -552,6 +557,9 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     LOG_PGW_APP,
     "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",
     itti_s5_actv_bearer_req->mme_teid_S11);
+
+  message_p->ittiMsgHeader.imsi = imsi64;
+
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
@@ -560,7 +568,8 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
 
 uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p)
+  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p,
+  imsi64_t imsi64)
 {
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
@@ -584,7 +593,6 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   OAILOG_INFO(LOG_PGW_APP, "Received nw_initiated_deactv_bearer_req from NW\n");
   print_bearer_ids_helper(bearer_req_p->ebi, bearer_req_p->no_of_bearers);
 
-
   hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
   if (hashtblP == NULL) {
     OAILOG_ERROR(
@@ -592,6 +600,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
 
+  // TODO: Get S11 MME TEID from SPGW UE ID map
   // Check if valid LBI and EBI recvd
   /* For multi PDN, same IMSI can have multiple sessions, which means there
    * will be multiple entries for different sessions with the same IMSI. Hence
@@ -690,6 +699,8 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
       &itti_s5_deactv_ded_bearer_req->ebi,
       ebi_to_be_deactivated,
       (sizeof(ebi_t) * no_of_bearers_to_be_deact));
+
+    message_p->ittiMsgHeader.imsi = imsi64;
 
     OAILOG_INFO(
       LOG_PGW_APP,
