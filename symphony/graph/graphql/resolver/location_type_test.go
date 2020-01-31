@@ -8,8 +8,10 @@ package resolver
 import (
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
@@ -261,12 +263,20 @@ func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 		QuestionTitle:       "What is the power rating?",
 		QuestionDescription: "Tell me more about this question",
 		QuestionType:        models.SurveyQuestionTypeText,
+		Index:               0,
+	}
+
+	question2 := models.SurveyTemplateQuestionInput{
+		QuestionTitle:       "What is the voltage?",
+		QuestionDescription: "Tell me about the voltage",
+		QuestionType:        models.SurveyQuestionTypeText,
+		Index:               1,
 	}
 
 	category := models.SurveyTemplateCategoryInput{
 		CategoryTitle:           "Power",
 		CategoryDescription:     "Description",
-		SurveyTemplateQuestions: []*models.SurveyTemplateQuestionInput{&question},
+		SurveyTemplateQuestions: []*models.SurveyTemplateQuestionInput{&question, &question2},
 	}
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -285,13 +295,21 @@ func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 		QuestionTitle:       "New Title",
 		QuestionDescription: "New Description",
 		QuestionType:        models.SurveyQuestionTypeText,
+		Index:               1,
+	}
+	updatedQuestion2 := models.SurveyTemplateQuestionInput{
+		ID:                  &questions[1].ID,
+		QuestionTitle:       "New Title Q2",
+		QuestionDescription: "New Description Q2",
+		QuestionType:        models.SurveyQuestionTypeText,
+		Index:               0,
 	}
 
 	updatedCategory := models.SurveyTemplateCategoryInput{
 		ID:                      &categories[0].ID,
 		CategoryTitle:           "New Power",
 		CategoryDescription:     "Updated Description",
-		SurveyTemplateQuestions: []*models.SurveyTemplateQuestionInput{&updatedQuestion},
+		SurveyTemplateQuestions: []*models.SurveyTemplateQuestionInput{&updatedQuestion, &updatedQuestion2},
 	}
 
 	_, err = mr.EditLocationTypeSurveyTemplateCategories(ctx, locType.ID, []*models.SurveyTemplateCategoryInput{&updatedCategory})
@@ -302,10 +320,16 @@ func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 	require.Equal(t, categories[0].CategoryTitle, updatedCategory.CategoryTitle)
 	require.Equal(t, categories[0].CategoryDescription, updatedCategory.CategoryDescription)
 
-	questions, _ = categories[0].QuerySurveyTemplateQuestions().All(ctx)
-	require.Equal(t, len(questions), 1)
-	require.Equal(t, questions[0].QuestionTitle, updatedQuestion.QuestionTitle)
-	require.Equal(t, questions[0].QuestionDescription, updatedQuestion.QuestionDescription)
+	questions, _ = categories[0].QuerySurveyTemplateQuestions().Order(ent.Asc(surveytemplatequestion.FieldIndex)).All(ctx)
+	require.Equal(t, len(questions), 2)
+
+	require.Equal(t, questions[0].QuestionTitle, updatedQuestion2.QuestionTitle)
+	require.Equal(t, questions[0].QuestionDescription, updatedQuestion2.QuestionDescription)
+	require.Equal(t, questions[0].Index, updatedQuestion2.Index)
+
+	require.Equal(t, questions[1].QuestionTitle, updatedQuestion.QuestionTitle)
+	require.Equal(t, questions[1].QuestionDescription, updatedQuestion.QuestionDescription)
+	require.Equal(t, questions[1].Index, updatedQuestion.Index)
 
 	updatedCategory = models.SurveyTemplateCategoryInput{
 		ID:                      &categories[0].ID,

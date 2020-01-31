@@ -2643,6 +2643,7 @@ func (r mutationResolver) updateSurveyTemplateQuestion(ctx context.Context, inpu
 		SetQuestionTitle(input.QuestionTitle).
 		SetQuestionDescription(input.QuestionDescription).
 		SetQuestionType(input.QuestionType.String()).
+		SetIndex(input.Index).
 		Exec(ctx); err != nil {
 		return errors.Wrap(err, "failed to update survey template question")
 	}

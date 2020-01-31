@@ -38,7 +38,7 @@ func (SurveyTemplateQuestion) Edges() []ent.Edge {
 // Indexes of the SurveyTemplateQuestion.
 func (SurveyTemplateQuestion) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("index").
+		index.
 			Edges("category").
 			Unique(),
 	}

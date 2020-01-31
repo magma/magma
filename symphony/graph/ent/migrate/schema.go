@@ -1174,9 +1174,9 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "surveytemplatequestion_index_category_id",
+				Name:    "surveytemplatequestion_category_id",
 				Unique:  true,
-				Columns: []*schema.Column{SurveyTemplateQuestionsColumns[6], SurveyTemplateQuestionsColumns[7]},
+				Columns: []*schema.Column{SurveyTemplateQuestionsColumns[7]},
 			},
 		},
 	}
