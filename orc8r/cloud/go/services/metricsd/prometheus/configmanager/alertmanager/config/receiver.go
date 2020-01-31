@@ -6,17 +6,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package receivers
+package config
 
 import (
-	"fmt"
 	"strings"
-	"time"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/common"
 
 	"github.com/prometheus/alertmanager/config"
-	"github.com/prometheus/common/model"
 )
 
 // Receiver uses custom notifier configs to allow for marshaling of secrets.
@@ -114,123 +111,6 @@ type WebhookConfig struct {
 	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
 
 	URL *config.URL `yaml:"url" json:"url"`
-}
-
-// RouteJSONWrapper Provides a struct to marshal/unmarshal into a rulefmt.Rule
-// since rulefmt does not support json encoding
-type RouteJSONWrapper struct {
-	Receiver string `yaml:"receiver,omitempty" json:"receiver,omitempty"`
-
-	GroupByStr []string          `yaml:"group_by,omitempty" json:"group_by,omitempty"`
-	GroupBy    []model.LabelName `yaml:"-" json:"-"`
-	GroupByAll bool              `yaml:"-" json:"-"`
-
-	Match    map[string]string        `yaml:"match,omitempty" json:"match,omitempty"`
-	MatchRE  map[string]config.Regexp `yaml:"match_re,omitempty" json:"match_re,omitempty"`
-	Continue bool                     `yaml:"continue,omitempty" json:"continue,omitempty"`
-	Routes   []*RouteJSONWrapper      `yaml:"routes,omitempty" json:"routes,omitempty"`
-
-	GroupWait      string `yaml:"group_wait,omitempty" json:"group_wait,omitempty"`
-	GroupInterval  string `yaml:"group_interval,omitempty" json:"group_interval,omitempty"`
-	RepeatInterval string `yaml:"repeat_interval,omitempty" json:"repeat_interval,omitempty"`
-}
-
-// NewRouteJSONWrapper converts a config.Route to a json-compatible route
-func NewRouteJSONWrapper(r config.Route) *RouteJSONWrapper {
-	var childRoutes []*RouteJSONWrapper
-	for _, child := range r.Routes {
-		if child != nil {
-			childRoutes = append(childRoutes, NewRouteJSONWrapper(*child))
-		}
-	}
-	var groupWaitStr, groupIntervalStr, repeatIntervalStr string
-	if r.GroupWait != nil {
-		groupWaitStr = r.GroupWait.String()
-	}
-	if r.GroupInterval != nil {
-		groupIntervalStr = r.GroupInterval.String()
-	}
-	if r.RepeatInterval != nil {
-		repeatIntervalStr = r.RepeatInterval.String()
-	}
-
-	return &RouteJSONWrapper{
-		Receiver:       r.Receiver,
-		GroupByStr:     r.GroupByStr,
-		GroupBy:        r.GroupBy,
-		GroupByAll:     r.GroupByAll,
-		Match:          r.Match,
-		MatchRE:        r.MatchRE,
-		Continue:       r.Continue,
-		Routes:         childRoutes,
-		GroupWait:      groupWaitStr,
-		GroupInterval:  groupIntervalStr,
-		RepeatInterval: repeatIntervalStr,
-	}
-}
-
-// ToPrometheusConfig converts a json-compatible route specification to a
-// prometheus route config
-func (r *RouteJSONWrapper) ToPrometheusConfig() (config.Route, error) {
-	var groupWait, groupInterval, repeatInterval model.Duration
-	var groupWaitP, groupIntervalP, repeatIntervalP *model.Duration
-	var err error
-
-	if r.GroupWait != "" {
-		groupWait, err = model.ParseDuration(r.GroupWait)
-		if err != nil {
-			return config.Route{}, fmt.Errorf("Invalid GroupWait '%s': %v", r.GroupWait, err)
-		}
-	}
-	if r.GroupInterval != "" {
-		groupInterval, err = model.ParseDuration(r.GroupInterval)
-		if err != nil {
-			return config.Route{}, fmt.Errorf("Invalid GroupInterval '%s': %v", r.GroupInterval, err)
-		}
-		if time.Duration(groupInterval) == time.Duration(0) {
-			return config.Route{}, fmt.Errorf("GroupInterval cannot be 0")
-		}
-	}
-	if r.RepeatInterval != "" {
-		repeatInterval, err = model.ParseDuration(r.RepeatInterval)
-		if err != nil {
-			return config.Route{}, fmt.Errorf("Invalid RepeatInterval '%s': %v", r.RepeatInterval, err)
-		}
-		if time.Duration(repeatInterval) == time.Duration(0) {
-			return config.Route{}, fmt.Errorf("RepeatInterval cannot be 0")
-		}
-	}
-	groupWaitP = &groupWait
-	if time.Duration(groupInterval) != time.Duration(0) {
-		groupIntervalP = &groupInterval
-	}
-	if time.Duration(repeatInterval) != time.Duration(0) {
-		repeatIntervalP = &repeatInterval
-	}
-
-	var configRoutes []*config.Route
-	for _, childRoute := range r.Routes {
-		route, err := childRoute.ToPrometheusConfig()
-		if err != nil {
-			return config.Route{}, fmt.Errorf("error converting child route: %v", err)
-		}
-		configRoutes = append(configRoutes, &route)
-	}
-
-	route := config.Route{
-		Receiver:       r.Receiver,
-		GroupByStr:     r.GroupByStr,
-		GroupBy:        r.GroupBy,
-		GroupByAll:     r.GroupByAll,
-		Match:          r.Match,
-		MatchRE:        r.MatchRE,
-		Continue:       r.Continue,
-		Routes:         configRoutes,
-		GroupWait:      groupWaitP,
-		GroupInterval:  groupIntervalP,
-		RepeatInterval: repeatIntervalP,
-	}
-	return route, nil
 }
 
 func ReceiverTenantPrefix(tenantID string) string {

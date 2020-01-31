@@ -12,12 +12,11 @@ import (
 	"regexp"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 	tc "magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/test_common"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient/mocks"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
-	"github.com/prometheus/alertmanager/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -94,7 +93,7 @@ func TestClient_CreateReceiver(t *testing.T) {
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
 	// create duplicate receiver
-	err = client.CreateReceiver(testNID, receivers.Receiver{Name: "receiver"})
+	err = client.CreateReceiver(testNID, config.Receiver{Name: "receiver"})
 	assert.Regexp(t, regexp.MustCompile("notification config name \".*receiver\" is not unique"), err.Error())
 }
 
@@ -119,11 +118,11 @@ func TestClient_GetReceivers(t *testing.T) {
 
 func TestClient_UpdateReceiver(t *testing.T) {
 	client, fsClient := newTestClient()
-	err := client.UpdateReceiver(testNID, "slack", &receivers.Receiver{Name: "slack"})
+	err := client.UpdateReceiver(testNID, "slack", &config.Receiver{Name: "slack"})
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 	assert.NoError(t, err)
 
-	err = client.UpdateReceiver(testNID, "nonexistent", &receivers.Receiver{Name: "nonexistent"})
+	err = client.UpdateReceiver(testNID, "nonexistent", &config.Receiver{Name: "nonexistent"})
 	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
 	assert.Error(t, err)
 }

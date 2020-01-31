@@ -16,10 +16,8 @@ import (
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/client"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 
 	"github.com/labstack/echo"
-	amconfig "github.com/prometheus/alertmanager/config"
 )
 
 const (
@@ -205,7 +203,7 @@ func GetGetRouteHandler(client client.AlertmanagerClient) func(c echo.Context) e
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		return c.JSON(http.StatusOK, receivers.NewRouteJSONWrapper(*route))
+		return c.JSON(http.StatusOK, *route)
 	}
 }
 
@@ -272,38 +270,28 @@ func decodeGlobalConfigPostRequest(c echo.Context) (config.GlobalConfig, error) 
 	return globalConfig, nil
 }
 
-func decodeReceiverPostRequest(c echo.Context) (receivers.Receiver, error) {
+func decodeReceiverPostRequest(c echo.Context) (config.Receiver, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return receivers.Receiver{}, fmt.Errorf("error reading request body: %v", err)
+		return config.Receiver{}, fmt.Errorf("error reading request body: %v", err)
 	}
-	receiver := receivers.Receiver{}
+	receiver := config.Receiver{}
 	err = json.Unmarshal(body, &receiver)
 	if err != nil {
-		return receivers.Receiver{}, fmt.Errorf("error unmarshalling payload: %v", err)
+		return config.Receiver{}, fmt.Errorf("error unmarshalling payload: %v", err)
 	}
 	return receiver, nil
 }
 
-func decodeRoutePostRequest(c echo.Context) (amconfig.Route, error) {
+func decodeRoutePostRequest(c echo.Context) (config.Route, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return amconfig.Route{}, fmt.Errorf("error reading request body: %v", err)
+		return config.Route{}, fmt.Errorf("error reading request body: %v", err)
 	}
-	route := amconfig.Route{}
+	route := config.Route{}
 	err = json.Unmarshal(body, &route)
 	if err != nil {
-		// Try decoding into a JSON-compatible struct
-		wrappedRoute := receivers.RouteJSONWrapper{}
-		err = json.Unmarshal(body, &wrappedRoute)
-		if err != nil {
-			return amconfig.Route{}, fmt.Errorf("error unmarshalling route: %v", err)
-		}
-		unwrappedRoute, err := wrappedRoute.ToPrometheusConfig()
-		if err != nil {
-			return amconfig.Route{}, fmt.Errorf("error handling route: %v", err)
-		}
-		return unwrappedRoute, nil
+		return config.Route{}, fmt.Errorf("error unmarshalling route: %v", err)
 	}
 	return route, nil
 }

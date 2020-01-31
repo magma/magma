@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/common"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 
 	amconfig "github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"
@@ -28,14 +27,14 @@ const (
 // marshaling
 type Config struct {
 	Global       *GlobalConfig           `yaml:"global,omitempty" json:"global,omitempty"`
-	Route        *amconfig.Route         `yaml:"route,omitempty" json:"route,omitempty"`
+	Route        *Route                  `yaml:"route,omitempty" json:"route,omitempty"`
 	InhibitRules []*amconfig.InhibitRule `yaml:"inhibit_rules,omitempty" json:"inhibit_rules,omitempty"`
-	Receivers    []*receivers.Receiver   `yaml:"receivers,omitempty" json:"receivers,omitempty"`
+	Receivers    []*Receiver             `yaml:"receivers,omitempty" json:"receivers,omitempty"`
 	Templates    []string                `yaml:"templates" json:"templates"`
 }
 
 // GetReceiver returns the receiver config with the given name
-func (c *Config) GetReceiver(name string) *receivers.Receiver {
+func (c *Config) GetReceiver(name string) *Receiver {
 	for _, rec := range c.Receivers {
 		if rec.Name == name {
 			return rec
@@ -53,13 +52,13 @@ func (c *Config) GetRouteIdx(name string) int {
 	return -1
 }
 
-func (c *Config) InitializeNetworkBaseRoute(route *amconfig.Route, matcherLabel, tenantID string) error {
+func (c *Config) InitializeNetworkBaseRoute(route *Route, matcherLabel, tenantID string) error {
 	baseRouteName := MakeBaseRouteName(tenantID)
 	if c.GetReceiver(baseRouteName) != nil {
 		return fmt.Errorf("Base route for tenant %s already exists", tenantID)
 	}
 
-	c.Receivers = append(c.Receivers, &receivers.Receiver{Name: baseRouteName})
+	c.Receivers = append(c.Receivers, &Receiver{Name: baseRouteName})
 	route.Receiver = baseRouteName
 
 	if matcherLabel != "" {
