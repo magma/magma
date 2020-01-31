@@ -38,8 +38,6 @@
 
 *****************************************************************************/
 
-#include <assert.h>
-
 #include "common_defs.h"
 #include "log.h"
 #include "mme_app_sgs_fsm.h"
@@ -69,12 +67,19 @@
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int sgs_null_handler(const sgs_fsm_t *evt)
+int sgs_null_handler(const sgs_fsm_t* evt)
 {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  assert(sgs_fsm_get_status(evt->ue_id, evt->ctx) == SGS_NULL);
+  if (sgs_fsm_get_status(evt->ue_id, evt->ctx) != SGS_NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "SGS is not in the SGS_NULL state for UE Id: " MME_UE_S1AP_ID_FMT "\n",
+      evt->ue_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
   switch (evt->primitive) {
     case _SGS_LOCATION_UPDATE_ACCEPT: {
       rc = sgs_fsm_null_loc_updt_acc(evt);
