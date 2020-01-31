@@ -408,7 +408,7 @@ func getQosAVP(qos *lteprotos.FlowQos) *diam.AVP {
 
 func getRuleDefinitionAVP(rule *protos.RuleDefinition) *diam.AVP {
 	installAVPs := []*diam.AVP{
-		diam.NewAVP(avp.ChargingRuleName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(rule.ChargineRuleName)),
+		diam.NewAVP(avp.ChargingRuleName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(rule.RuleName)),
 		diam.NewAVP(avp.Precedence, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(rule.Precedence)),
 	}
 	if rule.RatingGroup != 0 {

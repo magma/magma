@@ -318,11 +318,11 @@ func startServer(
 				RuleBaseNames: imsi1BaseRules,
 				RuleDefinitions: []*fegprotos.RuleDefinition{
 					{
-						ChargineRuleName: "dynrule1",
-						RatingGroup:      rg1,
-						Precedence:       100,
-						MonitoringKey:    monitoringKey,
-						QosInformation:   qos,
+						RuleName:       "dynrule1",
+						RatingGroup:    rg1,
+						Precedence:     100,
+						MonitoringKey:  monitoringKey,
+						QosInformation: qos,
 					},
 				},
 			},
@@ -342,7 +342,7 @@ func startServer(
 				RuleBaseNames: imsi3BaseRules,
 				RuleDefinitions: []*fegprotos.RuleDefinition{
 					{
-						ChargineRuleName:    "dynrule3",
+						RuleName:            "dynrule3",
 						RatingGroup:         rg3,
 						Precedence:          300,
 						MonitoringKey:       monitoringKey3,
@@ -357,14 +357,14 @@ func startServer(
 				Imsi: testIMSI4,
 				RuleDefinitions: []*fegprotos.RuleDefinition{
 					{
-						ChargineRuleName: "dynrule4",
-						Precedence:       300,
-						MonitoringKey:    monitoringKey,
+						RuleName:      "dynrule4",
+						Precedence:    300,
+						MonitoringKey: monitoringKey,
 					},
 					{
-						ChargineRuleName: "dynrule5",
-						RatingGroup:      rg5,
-						Precedence:       100,
+						RuleName:    "dynrule5",
+						RatingGroup: rg5,
+						Precedence:  100,
 					},
 				},
 			},
