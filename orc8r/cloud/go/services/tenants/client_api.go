@@ -1,0 +1,90 @@
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+package tenants
+
+import (
+	"context"
+
+	merrors "magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/protos"
+	srvRegistry "magma/orc8r/cloud/go/registry"
+
+	"github.com/golang/glog"
+)
+
+// getTenantsClient is a utility function to get a RPC connection to the
+// tenants service
+func getTenantsClient() (protos.TenantsServiceClient, error) {
+	conn, err := srvRegistry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := merrors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, initErr
+	}
+	return protos.NewTenantsServiceClient(conn), nil
+}
+
+func GetAllTenants() (*protos.TenantList, error) {
+	oc, err := getTenantsClient()
+	if err != nil {
+		return nil, err
+	}
+	tenants, err := oc.GetAllTenants(context.Background(), &protos.Void{})
+	if err != nil {
+		return nil, err
+	}
+	return tenants, nil
+}
+
+func CreateTenant(tenantID uint64, tenant *protos.Tenant) (*protos.Tenant, error) {
+	oc, err := getTenantsClient()
+	if err != nil {
+		return nil, err
+	}
+	_, err = oc.CreateTenant(context.Background(), &protos.IDAndTenant{
+		Id:     tenantID,
+		Tenant: tenant,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return tenant, err
+}
+
+func GetTenant(tenantID uint64) (*protos.Tenant, error) {
+	oc, err := getTenantsClient()
+	if err != nil {
+		return nil, err
+	}
+
+	return oc.GetTenant(context.Background(), &protos.GetTenantRequest{Id: tenantID})
+}
+
+func SetTenant(tenantID uint64, tenant protos.Tenant) error {
+	oc, err := getTenantsClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = oc.SetTenant(context.Background(), &protos.IDAndTenant{
+		Id:     tenantID,
+		Tenant: &tenant,
+	})
+	return err
+}
+
+func DeleteTenant(tenantID uint64) error {
+	oc, err := getTenantsClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = oc.DeleteTenant(context.Background(), &protos.GetTenantRequest{Id: tenantID})
+	return err
+}

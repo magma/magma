@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"magma/orc8r/cloud/go/util"
 
@@ -212,6 +213,53 @@ func GetNetworkId(c echo.Context) (string, *echo.HTTPError) {
 	return nid, CheckNetworkAccess(c, nid)
 }
 
+func GetTenantID(c echo.Context) (uint64, *echo.HTTPError) {
+	oid := c.Param("tenant_id")
+	if oid == "" {
+		return 0, TenantIdHttpErr()
+	}
+	intTenantID, err := strconv.ParseUint(oid, 10, 64)
+	if err != nil {
+		return 0, TenantIdHttpErr()
+	}
+	return intTenantID, CheckTenantAccess(c)
+}
+
+// CheckTenantAccess checks that the context has network wildcard access
+// i.e. is admin
+func CheckTenantAccess(c echo.Context) *echo.HTTPError {
+	if !TLS {
+		return nil
+	}
+	if c != nil {
+		if r := c.Request(); r != nil {
+			if len(r.TLS.PeerCertificates) > 0 {
+				var cert = r.TLS.PeerCertificates[0]
+				if cert != nil {
+					if cert.Subject.CommonName == wildcard ||
+						cert.Subject.CommonName == networkWildcard {
+						return nil
+					}
+					for _, san := range cert.DNSNames {
+						if san == wildcard ||
+							san == networkWildcard {
+							return nil
+						}
+					}
+					log.Printf(
+						"Client Cert %s does not have wildcard access",
+						util.FormatPkixSubject(&cert.Subject))
+					return echo.NewHTTPError(http.StatusForbidden,
+						"Client Certificate is not authorized")
+				}
+			}
+		}
+	}
+	log.Printf("Client Certificate With valid SANs is required for tenant access")
+	return echo.NewHTTPError(http.StatusForbidden,
+		"Client Certificate With valid SANs is required")
+}
+
 // DEPRECATED - use GetGatewayID, and use :gateway_id as path param
 func GetLogicalGwId(c echo.Context) (string, *echo.HTTPError) {
 	logicalGwId := c.Param("logical_ag_id")
@@ -271,4 +319,8 @@ func GetOperatorId(c echo.Context) (string, *echo.HTTPError) {
 
 func NetworkIdHttpErr() *echo.HTTPError {
 	return HttpError(fmt.Errorf("Missing Network ID"), http.StatusBadRequest)
+}
+
+func TenantIdHttpErr() *echo.HTTPError {
+	return HttpError(fmt.Errorf("Missing Tenant ID"), http.StatusBadRequest)
 }
