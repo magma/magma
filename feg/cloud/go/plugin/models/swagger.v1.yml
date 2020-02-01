@@ -235,6 +235,32 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /feg/{network_id}/subscriber_config/rule_names/{rule_id}:
+    post:
+      summary: Add a network-wide rule name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide rule name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /feg/{network_id}/subscriber_config/base_names:
     get:
       summary: Get network-wide base names
@@ -261,6 +287,32 @@ paths:
           required: true
           schema:
             $ref: './lte-swagger.yml#/definitions/base_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/subscriber_config/base_names/{base_name}:
+    post:
+      summary: Add a network-wide base name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide base name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
       responses:
         '204':
           description: Success
@@ -626,6 +678,32 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /feg_lte/{network_id}/subscriber_config/rule_names/{rule_id}:
+    post:
+      summary: Add a network-wide rule name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide rule name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /feg_lte/{network_id}/subscriber_config/base_names:
     get:
       summary: Get network-wide base names
@@ -658,7 +736,31 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-
+  /feg_lte/{network_id}/subscriber_config/base_names/{base_name}:
+    post:
+      summary: Add a network-wide base name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide base name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 definitions:
   feg_network:
     type: object
