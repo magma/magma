@@ -86,7 +86,7 @@ func (manager *RuleManager) GetInstalledRulesByIMSI() map[string][]string {
 			rules = append(rules, ruleID)
 		}
 		for _, dynamicRule := range dynamicRules.RuleDefinitions {
-			rules = append(rules, dynamicRule.ChargineRuleName)
+			rules = append(rules, dynamicRule.RuleName)
 		}
 		installedRulesByIMSI[dynamicRules.Imsi] = rules
 	}
@@ -137,7 +137,7 @@ func getDynamicPassAll(imsi, ruleID, monitoringKey string) *fegProtos.AccountRul
 		RuleBaseNames: []string{},
 		RuleDefinitions: []*fegProtos.RuleDefinition{
 			{
-				ChargineRuleName: ruleID,
+				RuleName:         ruleID,
 				Precedence:       100,
 				FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
 				MonitoringKey:    monitoringKey,
