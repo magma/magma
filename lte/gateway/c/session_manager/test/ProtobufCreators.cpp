@@ -156,4 +156,13 @@ void create_policy_reauth_request(
   }
 }
 
+void create_tgpp_context(
+  const std::string& gx_dest_host,
+  const std::string& gy_dest_host,
+  TgppContext* context)
+{
+  context->set_gx_dest_host(gx_dest_host);
+  context->set_gy_dest_host(gy_dest_host);
+}
+
 } // namespace magma
