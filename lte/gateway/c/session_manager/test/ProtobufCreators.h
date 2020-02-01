@@ -76,4 +76,8 @@ void create_policy_reauth_request(
   const std::vector<UsageMonitoringCredit> &usage_monitoring_credits,
   PolicyReAuthRequest *request);
 
+void create_tgpp_context(
+  const std::string& gx_dest_host,
+  const std::string& gy_dest_host,
+  TgppContext* context);
 } // namespace magma

@@ -27,9 +27,11 @@ class SessionStateTest : public ::testing::Test {
  protected:
   virtual void SetUp()
   {
+    auto tgpp_ctx = TgppContext();
+    create_tgpp_context("gx.dest.com", "gy.dest.com", &tgpp_ctx);
     rule_store = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
-      "imsi", "session", "", test_sstate_cfg, *rule_store);
+      "imsi", "session", "", test_sstate_cfg, *rule_store, tgpp_ctx);
   }
 
   void insert_rule(
@@ -298,6 +300,30 @@ TEST_F(SessionStateTest, test_reauth_all)
   // All charging keys are reporting, no update needed
   reauth_res = session_state->get_charging_pool().reauth_all();
   EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_NOT_NEEDED);
+}
+
+TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update)
+{
+  receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
+  receive_credit_from_ocs(1, 1024);
+  insert_rule(1, "m1", "rule1", true);
+  session_state->add_used_credit("rule1", 1024, 0);
+
+  EXPECT_EQ(
+    session_state->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL), 1024);
+  EXPECT_EQ(
+    session_state->get_charging_pool().get_credit(1, ALLOWED_TOTAL), 1024);
+
+  UpdateSessionRequest update;
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  session_state->get_updates(update,& actions);
+  EXPECT_EQ(actions.size(), 0);
+  EXPECT_EQ(update.updates_size(), 1);
+  EXPECT_EQ(update.updates().Get(0).tgpp_ctx().gx_dest_host(), "gx.dest.com");
+  EXPECT_EQ(update.updates().Get(0).tgpp_ctx().gy_dest_host(), "gy.dest.com");
+  EXPECT_EQ(update.usage_monitors_size(), 1);
+  EXPECT_EQ(update.usage_monitors().Get(0).tgpp_ctx().gx_dest_host(), "gx.dest.com");
+  EXPECT_EQ(update.usage_monitors().Get(0).tgpp_ctx().gy_dest_host(), "gy.dest.com");
 }
 
 int main(int argc, char **argv)
