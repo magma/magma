@@ -62,30 +62,31 @@ void SessionReporterImpl::report_updates(
   const UpdateSessionRequest& request,
   ReporterCallbackFn<UpdateSessionResponse> callback)
 {
-  auto cloud_response = new AsyncEvbResponse<UpdateSessionResponse>(
+  auto controller_response = new AsyncEvbResponse<UpdateSessionResponse>(
     base_, callback, RESPONSE_TIMEOUT);
-  cloud_response->set_response_reader(std::move(stub_->AsyncUpdateSession(
-    cloud_response->get_context(), request, &queue_)));
+  controller_response->set_response_reader(std::move(stub_->AsyncUpdateSession(
+    controller_response->get_context(), request, &queue_)));
 }
 
 void SessionReporterImpl::report_create_session(
   const CreateSessionRequest& request,
   ReporterCallbackFn<CreateSessionResponse> callback)
 {
-  auto cloud_response = new AsyncEvbResponse<CreateSessionResponse>(
+  auto controller_response = new AsyncEvbResponse<CreateSessionResponse>(
     base_, callback, RESPONSE_TIMEOUT);
-  cloud_response->set_response_reader(std::move(stub_->AsyncCreateSession(
-    cloud_response->get_context(), request, &queue_)));
+  controller_response->set_response_reader(std::move(stub_->AsyncCreateSession(
+    controller_response->get_context(), request, &queue_)));
 }
 
 void SessionReporterImpl::report_terminate_session(
   const SessionTerminateRequest& request,
   ReporterCallbackFn<SessionTerminateResponse> callback)
 {
-  auto cloud_response = new AsyncEvbResponse<SessionTerminateResponse>(
+  auto controller_response = new AsyncEvbResponse<SessionTerminateResponse>(
     base_, callback, RESPONSE_TIMEOUT);
-  cloud_response->set_response_reader(std::move(stub_->AsyncTerminateSession(
-    cloud_response->get_context(), request, &queue_)));
+  controller_response->set_response_reader(
+    std::move(stub_->AsyncTerminateSession(controller_response->get_context(),
+      request, &queue_)));
 }
 
 } // namespace magma
