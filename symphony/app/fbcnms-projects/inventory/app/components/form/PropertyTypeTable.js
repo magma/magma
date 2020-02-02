@@ -157,7 +157,7 @@ class PropertyTypeTable extends React.Component<Props> {
                         variant="outlined"
                         className={classes.input}
                         value={property.name}
-                        onChange={this._handleChange('name', i)}
+                        onChange={this._handleNameChange(i)}
                         onBlur={() => this._handleNameBlur(i)}
                       />
                     </FormField>
@@ -182,7 +182,7 @@ class PropertyTypeTable extends React.Component<Props> {
                             label: propertyTypeLabels[type].label,
                           }))}
                         selectedValue={property.type}
-                        onChange={this._handleChange('type', i)}
+                        onChange={this._handleTypeChange(i)}
                       />
                     </FormField>
                   </TableCell>
@@ -263,14 +263,26 @@ class PropertyTypeTable extends React.Component<Props> {
     );
   };
 
-  _handleChange = (changedProp: 'name' | 'type', index) => event => {
+  _handleNameChange = index => event => {
     this.props.onPropertiesChanged(
-      updateItem<PropertyType, typeof changedProp>(
+      updateItem<PropertyType, 'name'>(
         this.props.propertyTypes,
         index,
-        changedProp,
+        'name',
         // $FlowFixMe: need to figure out how to cast string to PropertyKind
         event.target.value,
+      ),
+    );
+  };
+
+  _handleTypeChange = index => value => {
+    this.props.onPropertiesChanged(
+      updateItem<PropertyType, 'type'>(
+        this.props.propertyTypes,
+        index,
+        'type',
+        // $FlowFixMe: need to figure out how to cast string to PropertyKind
+        value,
       ),
     );
   };
