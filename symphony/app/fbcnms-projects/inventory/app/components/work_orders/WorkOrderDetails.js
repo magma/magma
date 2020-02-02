@@ -47,14 +47,14 @@ import InsertLinkIcon from '@material-ui/icons/InsertLink';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
-import MenuItem from '@material-ui/core/MenuItem';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import ProjectTypeahead from '../typeahead/ProjectTypeahead';
 import PropertyValueInput from '../form/PropertyValueInput';
 import React from 'react';
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextField from '@material-ui/core/TextField';
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import WorkOrderDetailsPane from './WorkOrderDetailsPane';
 import WorkOrderHeader from './WorkOrderHeader';
@@ -99,7 +99,6 @@ const styles = (theme: Theme) => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
-    flexGrow: 1,
     height: '100%',
   },
   input: {
@@ -112,6 +111,7 @@ const styles = (theme: Theme) => ({
     overflowY: 'auto',
     overflowX: 'hidden',
     flexGrow: 1,
+    flexBasis: 0,
   },
   card: {
     display: 'flex',
@@ -132,10 +132,8 @@ const styles = (theme: Theme) => ({
     cursor: 'pointer',
     fill: theme.palette.primary.main,
   },
-  hyperlinkButton: {
-    padding: 0,
+  minimizedButton: {
     minWidth: 'unset',
-    marginRight: '16px',
   },
   dense: {
     paddingTop: '9px',
@@ -304,65 +302,29 @@ class WorkOrderDetails extends React.Component<Props, State> {
                           </Grid>
                           <Grid item xs={12} sm={6} lg={4} xl={4}>
                             <FormField label="Priority">
-                              <TextField
-                                select
-                                className={classes.gridInput}
-                                disabled={validationContext.editLock.detected}
-                                variant="outlined"
-                                value={workOrder.priority}
-                                InputProps={{
-                                  classes: {
-                                    input: classes.dense,
-                                  },
-                                }}
-                                onChange={event => {
-                                  this._setWorkOrderDetail(
-                                    'priority',
-                                    event.target.value,
-                                  );
-                                }}>
-                                {priorityValues.map(option => (
-                                  <MenuItem
-                                    key={option.value}
-                                    value={option.value}>
-                                    {option.label}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
+                              <Select
+                                options={priorityValues}
+                                selectedValue={workOrder.priority}
+                                onChange={value =>
+                                  this._setWorkOrderDetail('priority', value)
+                                }
+                              />
                             </FormField>
                           </Grid>
                           <Grid item xs={12} sm={6} lg={4} xl={4}>
                             <FormField label="Status">
-                              <TextField
-                                select
-                                disabled={validationContext.editLock.detected}
-                                className={classes.gridInput}
-                                variant="outlined"
-                                value={workOrder.status}
-                                InputProps={{
-                                  classes: {
-                                    input: classes.dense,
-                                  },
-                                }}
-                                onChange={event => {
-                                  this.setWorkOrderStatus(event.target.value);
-                                }}>
-                                {statusValues.map(option => (
-                                  <MenuItem
-                                    key={option.value}
-                                    value={option.value}>
-                                    {option.label}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
+                              <Select
+                                options={statusValues}
+                                selectedValue={workOrder.status}
+                                onChange={value =>
+                                  this.setWorkOrderStatus(value)
+                                }
+                              />
                             </FormField>
                           </Grid>
                           <Grid item xs={12} sm={6} lg={4} xl={4}>
                             <FormField label="Created On">
-                              <TextField
-                                disabled
-                                variant="outlined"
-                                margin="dense"
+                              <TextInput
                                 type="date"
                                 className={classes.gridInput}
                                 value={formatDateForTextInput(
@@ -373,11 +335,8 @@ class WorkOrderDetails extends React.Component<Props, State> {
                           </Grid>
                           <Grid item xs={12} sm={6} lg={4} xl={4}>
                             <FormField label="Due Date">
-                              <TextField
+                              <TextInput
                                 type="date"
-                                variant="outlined"
-                                margin="dense"
-                                disabled={validationContext.editLock.detected}
                                 className={classes.gridInput}
                                 value={formatDateForTextInput(
                                   workOrder.installDate,
@@ -484,33 +443,32 @@ class WorkOrderDetails extends React.Component<Props, State> {
                       <ExpandingPanel
                         title="Attachments"
                         rightContent={
-                          !validationContext.editLock.detected && (
-                            <div className={classes.uploadButtonContainer}>
-                              <AddHyperlinkButton
-                                className={classes.hyperlinkButton}
-                                skin="regular"
-                                entityType="WORK_ORDER"
-                                allowCategories={false}
-                                entityId={workOrder.id}>
-                                <InsertLinkIcon color="primary" />
-                              </AddHyperlinkButton>
-                              {this.state.isLoadingDocument ? (
-                                <CircularProgress size={24} />
-                              ) : (
-                                <FileUpload
-                                  button={
-                                    <CloudUploadOutlinedIcon
-                                      className={classes.uploadButton}
-                                    />
-                                  }
-                                  onFileUploaded={this.onDocumentUploaded}
-                                  onProgress={() =>
-                                    this.setState({isLoadingDocument: true})
-                                  }
-                                />
-                              )}
-                            </div>
-                          )
+                          <div className={classes.uploadButtonContainer}>
+                            <AddHyperlinkButton
+                              className={classes.minimizedButton}
+                              skin="regular"
+                              entityType="WORK_ORDER"
+                              allowCategories={false}
+                              entityId={workOrder.id}>
+                              <InsertLinkIcon color="primary" />
+                            </AddHyperlinkButton>
+                            {this.state.isLoadingDocument ? (
+                              <CircularProgress size={24} />
+                            ) : (
+                              <FileUpload
+                                className={classes.minimizedButton}
+                                button={
+                                  <CloudUploadOutlinedIcon
+                                    className={classes.uploadButton}
+                                  />
+                                }
+                                onFileUploaded={this.onDocumentUploaded}
+                                onProgress={() =>
+                                  this.setState({isLoadingDocument: true})
+                                }
+                              />
+                            )}
+                          </div>
                         }>
                         <EntityDocumentsTable
                           entityType="WORK_ORDER"
@@ -525,16 +483,14 @@ class WorkOrderDetails extends React.Component<Props, State> {
                       <ExpandingPanel
                         title={fbt('Checklist', 'Checklist section header')}
                         rightContent={
-                          !validationContext.editLock.detected && (
-                            <EditToggleButton
-                              isOnEdit={showChecklistDesignMode}
-                              onChange={newToggleValue =>
-                                this.setState({
-                                  showChecklistDesignMode: newToggleValue,
-                                })
-                              }
-                            />
-                          )
+                          <EditToggleButton
+                            isOnEdit={showChecklistDesignMode}
+                            onChange={newToggleValue =>
+                              this.setState({
+                                showChecklistDesignMode: newToggleValue,
+                              })
+                            }
+                          />
                         }>
                         <CheckListTable
                           list={checklist}
@@ -545,24 +501,26 @@ class WorkOrderDetails extends React.Component<Props, State> {
                     </Grid>
                     <Grid item xs={4} sm={4} lg={4} xl={4}>
                       <ExpandingPanel title="Team" className={classes.card}>
-                        <UserTypeahead
-                          className={classes.input}
-                          selectedUser={workOrder.ownerName}
-                          headline="Owner"
-                          onUserSelection={user =>
-                            this._setWorkOrderDetail('ownerName', user)
-                          }
-                          margin="dense"
-                        />
-                        <UserTypeahead
-                          className={classes.input}
-                          selectedUser={workOrder.assignee}
-                          headline="Assignee"
-                          onUserSelection={user =>
-                            this._setWorkOrderDetail('assignee', user)
-                          }
-                          margin="dense"
-                        />
+                        <FormField label="Owner">
+                          <UserTypeahead
+                            className={classes.input}
+                            selectedUser={workOrder.ownerName}
+                            onUserSelection={user =>
+                              this._setWorkOrderDetail('ownerName', user)
+                            }
+                            margin="dense"
+                          />
+                        </FormField>
+                        <FormField label="Assignee">
+                          <UserTypeahead
+                            className={classes.input}
+                            selectedUser={workOrder.assignee}
+                            onUserSelection={user =>
+                              this._setWorkOrderDetail('assignee', user)
+                            }
+                            margin="dense"
+                          />
+                        </FormField>
                       </ExpandingPanel>
                       <ExpandingPanel
                         title="Comments"

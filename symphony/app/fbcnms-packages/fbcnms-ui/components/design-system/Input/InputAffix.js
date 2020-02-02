@@ -43,18 +43,19 @@ type Props = {
   className?: string,
   children: React.Node,
   onClick?: () => void,
+  inheritsDisability?: boolean,
 };
 
 const InputAffix = (props: Props) => {
-  const {children, className, onClick} = props;
+  const {children, className, onClick, inheritsDisability = false} = props;
   const classes = useStyles();
-  const {disabled: disabledProp, value} = useInput();
+  const {disabled: parentInputDisabled, value} = useInput();
 
   const {disabled: contextDisabled} = useContext(FormElementContext);
 
   const disabled = useMemo(
-    () => (disabledProp ? disabledProp : contextDisabled),
-    [disabledProp, contextDisabled],
+    () => (parentInputDisabled && inheritsDisability) || contextDisabled,
+    [parentInputDisabled, inheritsDisability, contextDisabled],
   );
 
   return (
