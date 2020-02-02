@@ -344,7 +344,9 @@ class WorkOrderDetails extends React.Component<Props, State> {
                                 </FormField>
                               </Grid>
                               <Grid item xs={12} sm={6} lg={4} xl={4}>
-                                <FormField label="Status">
+                                <FormField
+                                  label="Status"
+                                  disabled={validationContext.error.detected}>
                                   <Select
                                     options={statusValues}
                                     selectedValue={workOrder.status}
