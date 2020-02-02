@@ -11,8 +11,9 @@
 import Autosuggest from 'react-autosuggest';
 import CancelIcon from '@material-ui/icons/Cancel';
 import FormAction from './design-system/Form/FormAction';
+import FormElementContext from '@fbcnms/ui/components/design-system/Form/FormElementContext';
 import InputAffix from './design-system/Input/InputAffix';
-import React, {useRef, useState} from 'react';
+import React, {useContext, useMemo, useRef, useState} from 'react';
 import Text from './design-system/Text';
 import TextInput from './design-system/Input/TextInput';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -124,7 +125,7 @@ const Typeahead = (props: Props) => {
     required,
     value,
     margin,
-    disabled = false,
+    disabled: propDisabled = false,
   } = props;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSuggestion, setSelectedSuggestion] = useState(value);
@@ -134,6 +135,12 @@ const Typeahead = (props: Props) => {
   const inputContainer = useRef(null);
   const dropdownContainer = useRef(null);
   useFollowElement(dropdownContainer, inputContainer);
+
+  const {disabled: contextDisabled} = useContext(FormElementContext);
+  const disabled = useMemo(() => propDisabled || contextDisabled, [
+    propDisabled,
+    contextDisabled,
+  ]);
 
   return (
     <div className={classes.container}>
@@ -154,7 +161,7 @@ const Typeahead = (props: Props) => {
               variant="outlined"
               placeholder={placeholder ?? ''}
               fullWidth={true}
-              disabled={selectedSuggestion != null}
+              disabled={disabled || selectedSuggestion != null}
               value={selectedSuggestion ? selectedSuggestion.name : ''}
               onChange={emptyFunction}
               suffix={

@@ -30,6 +30,7 @@ export type FormInputValueValidation = {
   range?: Range,
   // eslint-disable-next-line flowtype/no-weak-types
   checkCallback?: (value?: ?any) => string,
+  notAggregated?: boolean,
 };
 
 type FormIssuesContainer = {
@@ -176,7 +177,9 @@ const FormValidationMaintainer = function() {
         errorMessage = errorChecks[checksCount](validationInfo);
         checksCount++;
       }
-      return setError(validationInfo.fieldId, errorMessage);
+      return !!validationInfo.notAggregated
+        ? errorMessage
+        : setError(validationInfo.fieldId, errorMessage);
     },
     [errorChecks, setError],
   );
