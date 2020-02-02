@@ -362,18 +362,6 @@ func (m *importer) getOrCreatePropTypeForEquipment(ctx context.Context, eTypeID 
 	return ptype, err
 }
 
-// nolint: unparam
-func (m *importer) updateMapTypeForLocationType(ctx context.Context, lTypeID string, mapType string, zoomLvl int) error {
-	lt, err := m.ClientFrom(ctx).LocationType.Query().
-		Where(locationtype.ID(lTypeID)).
-		Only(ctx)
-	if !ent.IsNotFound(err) {
-		_, err = m.ClientFrom(ctx).LocationType.UpdateOne(lt).SetMapType(mapType).SetMapZoomLevel(zoomLvl).
-			Save(ctx)
-	}
-	return err
-}
-
 func (m *importer) trimLine(line []string) []string {
 	for i, value := range line {
 		line[i] = strings.Trim(value, " ")
