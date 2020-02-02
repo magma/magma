@@ -51,45 +51,45 @@ type EquipmentTypeEdges struct {
 	loadedTypes [5]bool
 }
 
-// PortDefinitionsErr returns the PortDefinitions value or an error if the edge
+// PortDefinitionsOrErr returns the PortDefinitions value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentTypeEdges) PortDefinitionsErr() ([]*EquipmentPortDefinition, error) {
+func (e EquipmentTypeEdges) PortDefinitionsOrErr() ([]*EquipmentPortDefinition, error) {
 	if e.loadedTypes[0] {
 		return e.PortDefinitions, nil
 	}
 	return nil, &NotLoadedError{edge: "port_definitions"}
 }
 
-// PositionDefinitionsErr returns the PositionDefinitions value or an error if the edge
+// PositionDefinitionsOrErr returns the PositionDefinitions value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentTypeEdges) PositionDefinitionsErr() ([]*EquipmentPositionDefinition, error) {
+func (e EquipmentTypeEdges) PositionDefinitionsOrErr() ([]*EquipmentPositionDefinition, error) {
 	if e.loadedTypes[1] {
 		return e.PositionDefinitions, nil
 	}
 	return nil, &NotLoadedError{edge: "position_definitions"}
 }
 
-// PropertyTypesErr returns the PropertyTypes value or an error if the edge
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentTypeEdges) PropertyTypesErr() ([]*PropertyType, error) {
+func (e EquipmentTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
 	if e.loadedTypes[2] {
 		return e.PropertyTypes, nil
 	}
 	return nil, &NotLoadedError{edge: "property_types"}
 }
 
-// EquipmentErr returns the Equipment value or an error if the edge
+// EquipmentOrErr returns the Equipment value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentTypeEdges) EquipmentErr() ([]*Equipment, error) {
+func (e EquipmentTypeEdges) EquipmentOrErr() ([]*Equipment, error) {
 	if e.loadedTypes[3] {
 		return e.Equipment, nil
 	}
 	return nil, &NotLoadedError{edge: "equipment"}
 }
 
-// CategoryErr returns the Category value or an error if the edge
+// CategoryOrErr returns the Category value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentTypeEdges) CategoryErr() (*EquipmentCategory, error) {
+func (e EquipmentTypeEdges) CategoryOrErr() (*EquipmentCategory, error) {
 	if e.loadedTypes[4] {
 		if e.Category == nil {
 			// The edge category was loaded in eager-loading,

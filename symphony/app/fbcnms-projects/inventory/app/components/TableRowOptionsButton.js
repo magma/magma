@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
+
 import * as React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
@@ -18,6 +20,7 @@ import {useCallback, useMemo} from 'react';
 export type MenuOption = {
   onClick: () => void,
   caption: React.Node,
+  ...PermissionHandlingProps,
 };
 
 const useStyles = makeStyles({
@@ -58,6 +61,8 @@ const TableRowOptionsButton = (props: {options: Array<MenuOption>}) => {
       options={options.map((opt, optIndex) => ({
         label: opt.caption,
         value: optIndex,
+        ignorePermissions: opt.ignorePermissions,
+        hideWhenDisabled: opt.hideWhenDisabled,
       }))}
       onChange={handleOptionClick}
       menuClassName={classes.menu}

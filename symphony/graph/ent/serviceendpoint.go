@@ -47,9 +47,9 @@ type ServiceEndpointEdges struct {
 	loadedTypes [2]bool
 }
 
-// PortErr returns the Port value or an error if the edge
+// PortOrErr returns the Port value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ServiceEndpointEdges) PortErr() (*EquipmentPort, error) {
+func (e ServiceEndpointEdges) PortOrErr() (*EquipmentPort, error) {
 	if e.loadedTypes[0] {
 		if e.Port == nil {
 			// The edge port was loaded in eager-loading,
@@ -61,9 +61,9 @@ func (e ServiceEndpointEdges) PortErr() (*EquipmentPort, error) {
 	return nil, &NotLoadedError{edge: "port"}
 }
 
-// ServiceErr returns the Service value or an error if the edge
+// ServiceOrErr returns the Service value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ServiceEndpointEdges) ServiceErr() (*Service, error) {
+func (e ServiceEndpointEdges) ServiceOrErr() (*Service, error) {
 	if e.loadedTypes[1] {
 		if e.Service == nil {
 			// The edge service was loaded in eager-loading,

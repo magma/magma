@@ -8,9 +8,14 @@
  * @format
  */
 
+import type {PermissionHandlingProps} from '../Form/FormAction';
+
 import * as React from 'react';
 import CheckIcon from '@material-ui/icons/Check';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormElementContext from '@fbcnms/ui/components/design-system/Form/FormElementContext';
 import Text from '../Text';
+import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
@@ -20,9 +25,13 @@ const useStyles = makeStyles({
     alignItems: 'center',
     padding: '6px 16px',
     cursor: 'pointer',
-    '&:hover': {
+    whiteSpace: 'nowrap',
+    '&:not($disabled)&:hover': {
       backgroundColor: symphony.palette.B50,
     },
+  },
+  disabled: {
+    opacity: 0.5,
   },
   label: {
     flexGrow: 1,
@@ -33,33 +42,51 @@ const useStyles = makeStyles({
   },
 });
 
-type Props<TValue> = {
+type Props<TValue> = {|
   label: React.Node,
   value: TValue,
   onClick: (value: TValue) => void,
   isSelected?: boolean,
-};
+  ...PermissionHandlingProps,
+|};
 
 const SelectMenuItem = <TValue>({
   label,
   value,
   onClick,
   isSelected = false,
+  hideWhenDisabled = false,
+  ...permissionHandlingProps
 }: Props<TValue>) => {
   const classes = useStyles();
   return (
-    <div className={classes.option} onClick={() => onClick(value)}>
-      {typeof label === 'string' ? (
-        <Text className={classes.label} variant="body2">
-          {label}
-        </Text>
-      ) : (
-        label
-      )}
-      {isSelected && (
-        <CheckIcon className={classes.checkIcon} fontSize="small" />
-      )}
-    </div>
+    <FormAction
+      {...permissionHandlingProps}
+      hideWhenDisabled={hideWhenDisabled}>
+      <FormElementContext.Consumer>
+        {context => {
+          const disabled = context.disabled;
+          return (
+            <div
+              className={classNames(classes.option, {
+                [classes.disabled]: disabled,
+              })}
+              onClick={disabled ? null : () => onClick(value)}>
+              {typeof label === 'string' ? (
+                <Text className={classes.label} variant="body2">
+                  {label}
+                </Text>
+              ) : (
+                label
+              )}
+              {isSelected && (
+                <CheckIcon className={classes.checkIcon} fontSize="small" />
+              )}
+            </div>
+          );
+        }}
+      </FormElementContext.Consumer>
+    </FormAction>
   );
 };
 

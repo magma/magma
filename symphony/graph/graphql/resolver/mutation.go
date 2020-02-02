@@ -838,10 +838,21 @@ func (r mutationResolver) EditLocation(
 		return nil, errors.Wrapf(err, "updating location: id=%q", input.ID)
 	}
 	var added, edited []*models.PropertyInput
+	directPropertiesTypes, err := l.QueryProperties().QueryType().IDs(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for _, input := range input.Properties {
-		if input.ID == nil {
+		if r.isNewProp(directPropertiesTypes, input.ID, input.PropertyTypeID) {
 			added = append(added, input)
 		} else {
+			if input.ID == nil {
+				propID, err := l.QueryProperties().Where(property.HasTypeWith(propertytype.ID(input.PropertyTypeID))).OnlyID(ctx)
+				if err != nil {
+					return nil, err
+				}
+				input.ID = &propID
+			}
 			edited = append(edited, input)
 		}
 	}

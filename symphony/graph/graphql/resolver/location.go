@@ -24,8 +24,11 @@ import (
 
 type locationTypeResolver struct{}
 
-func (locationTypeResolver) PropertyTypes(ctx context.Context, obj *ent.LocationType) ([]*ent.PropertyType, error) {
-	return obj.QueryPropertyTypes().All(ctx)
+func (locationTypeResolver) PropertyTypes(ctx context.Context, typ *ent.LocationType) ([]*ent.PropertyType, error) {
+	if types, err := typ.Edges.PropertyTypesOrErr(); !ent.IsNotLoaded(err) {
+		return types, err
+	}
+	return typ.QueryPropertyTypes().All(ctx)
 }
 
 func (locationTypeResolver) NumberOfLocations(ctx context.Context, obj *ent.LocationType) (int, error) {
@@ -40,63 +43,115 @@ func (locationTypeResolver) Locations(ctx context.Context, typ *ent.LocationType
 	return query.Paginate(ctx, nil, nil, nil, nil)
 }
 
-func (locationTypeResolver) SurveyTemplateCategories(ctx context.Context, obj *ent.LocationType) ([]*ent.SurveyTemplateCategory, error) {
-	return obj.QuerySurveyTemplateCategories().All(ctx)
+func (locationTypeResolver) SurveyTemplateCategories(ctx context.Context, typ *ent.LocationType) ([]*ent.SurveyTemplateCategory, error) {
+	if stc, err := typ.Edges.SurveyTemplateCategoriesOrErr(); !ent.IsNotLoaded(err) {
+		return stc, err
+	}
+	return typ.QuerySurveyTemplateCategories().All(ctx)
 }
 
 type locationResolver struct{}
 
-func (r locationResolver) Surveys(ctx context.Context, obj *ent.Location) ([]*ent.Survey, error) {
-	return obj.QuerySurvey().All(ctx)
+func (r locationResolver) Surveys(ctx context.Context, location *ent.Location) ([]*ent.Survey, error) {
+	if surveys, err := location.Edges.SurveyOrErr(); !ent.IsNotLoaded(err) {
+		return surveys, err
+	}
+	return location.QuerySurvey().All(ctx)
 }
 
-func (r locationResolver) WifiData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyWiFiScan, error) {
-	return obj.QueryWifiScan().All(ctx)
+func (r locationResolver) WifiData(ctx context.Context, location *ent.Location) ([]*ent.SurveyWiFiScan, error) {
+	if scans, err := location.Edges.WifiScanOrErr(); !ent.IsNotLoaded(err) {
+		return scans, err
+	}
+	return location.QueryWifiScan().All(ctx)
 }
 
-func (r locationResolver) CellData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyCellScan, error) {
-	return obj.QueryCellScan().All(ctx)
+func (r locationResolver) CellData(ctx context.Context, location *ent.Location) ([]*ent.SurveyCellScan, error) {
+	if scans, err := location.Edges.CellScanOrErr(); !ent.IsNotLoaded(err) {
+		return scans, err
+	}
+	return location.QueryCellScan().All(ctx)
 }
 
-func (locationResolver) LocationType(ctx context.Context, obj *ent.Location) (*ent.LocationType, error) {
-	return obj.QueryType().Only(ctx)
+func (locationResolver) LocationType(ctx context.Context, location *ent.Location) (*ent.LocationType, error) {
+	if typ, err := location.Edges.TypeOrErr(); !ent.IsNotLoaded(err) {
+		return typ, err
+	}
+	return location.QueryType().Only(ctx)
 }
 
-func (r locationResolver) FloorPlans(ctx context.Context, obj *ent.Location) ([]*ent.FloorPlan, error) {
-	return obj.QueryFloorPlans().All(ctx)
+func (locationResolver) FloorPlans(ctx context.Context, location *ent.Location) ([]*ent.FloorPlan, error) {
+	if plans, err := location.Edges.FloorPlansOrErr(); !ent.IsNotLoaded(err) {
+		return plans, err
+	}
+	return location.QueryFloorPlans().All(ctx)
 }
 
-func (locationResolver) ParentLocation(ctx context.Context, obj *ent.Location) (*ent.Location, error) {
-	parent, err := obj.QueryParent().Only(ctx)
+func (locationResolver) ParentLocation(ctx context.Context, location *ent.Location) (*ent.Location, error) {
+	parent, err := location.Edges.ParentOrErr()
+	if ent.IsNotLoaded(err) {
+		parent, err = location.QueryParent().Only(ctx)
+	}
 	return parent, ent.MaskNotFound(err)
 }
 
-func (locationResolver) Children(ctx context.Context, obj *ent.Location) ([]*ent.Location, error) {
-	return obj.QueryChildren().All(ctx)
+func (locationResolver) Children(ctx context.Context, location *ent.Location) ([]*ent.Location, error) {
+	if children, err := location.Edges.ChildrenOrErr(); !ent.IsNotLoaded(err) {
+		return children, err
+	}
+	return location.QueryChildren().All(ctx)
 }
 
-func (locationResolver) NumChildren(ctx context.Context, obj *ent.Location) (int, error) {
-	return obj.QueryChildren().Count(ctx)
+func (locationResolver) NumChildren(ctx context.Context, location *ent.Location) (int, error) {
+	if children, err := location.Edges.ChildrenOrErr(); !ent.IsNotLoaded(err) {
+		return len(children), err
+	}
+	return location.QueryChildren().Count(ctx)
 }
 
-func (locationResolver) Equipments(ctx context.Context, obj *ent.Location) ([]*ent.Equipment, error) {
-	return obj.QueryEquipment().All(ctx)
+func (locationResolver) Equipments(ctx context.Context, location *ent.Location) ([]*ent.Equipment, error) {
+	if eqs, err := location.Edges.EquipmentOrErr(); !ent.IsNotLoaded(err) {
+		return eqs, err
+	}
+	return location.QueryEquipment().All(ctx)
 }
 
-func (locationResolver) Properties(ctx context.Context, obj *ent.Location) ([]*ent.Property, error) {
-	return obj.QueryProperties().All(ctx)
+func (locationResolver) Properties(ctx context.Context, location *ent.Location) ([]*ent.Property, error) {
+	if properties, err := location.Edges.PropertiesOrErr(); !ent.IsNotLoaded(err) {
+		return properties, err
+	}
+	return location.QueryProperties().All(ctx)
 }
 
-func (locationResolver) Images(ctx context.Context, obj *ent.Location) ([]*ent.File, error) {
-	return obj.QueryFiles().Where(file.Type(models.FileTypeImage.String())).All(ctx)
+func (locationResolver) filesOfType(ctx context.Context, location *ent.Location, typ string) ([]*ent.File, error) {
+	fds, err := location.Edges.FilesOrErr()
+	if ent.IsNotLoaded(err) {
+		return location.QueryFiles().
+			Where(file.Type(typ)).
+			All(ctx)
+	}
+	files := make([]*ent.File, 0, len(fds))
+	for _, f := range fds {
+		if f.Type == typ {
+			files = append(files, f)
+		}
+	}
+	return files, nil
 }
 
-func (locationResolver) Files(ctx context.Context, obj *ent.Location) ([]*ent.File, error) {
-	return obj.QueryFiles().Where(file.Type(models.FileTypeFile.String())).All(ctx)
+func (r locationResolver) Images(ctx context.Context, location *ent.Location) ([]*ent.File, error) {
+	return r.filesOfType(ctx, location, models.FileTypeImage.String())
 }
 
-func (locationResolver) Hyperlinks(ctx context.Context, obj *ent.Location) ([]*ent.Hyperlink, error) {
-	return obj.QueryHyperlinks().All(ctx)
+func (r locationResolver) Files(ctx context.Context, location *ent.Location) ([]*ent.File, error) {
+	return r.filesOfType(ctx, location, models.FileTypeFile.String())
+}
+
+func (locationResolver) Hyperlinks(ctx context.Context, location *ent.Location) ([]*ent.Hyperlink, error) {
+	if hls, err := location.Edges.HyperlinksOrErr(); !ent.IsNotLoaded(err) {
+		return hls, err
+	}
+	return location.QueryHyperlinks().All(ctx)
 }
 
 type topologist struct {

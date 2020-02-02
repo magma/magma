@@ -47,27 +47,27 @@ type ProjectTypeEdges struct {
 	loadedTypes [3]bool
 }
 
-// ProjectsErr returns the Projects value or an error if the edge
+// ProjectsOrErr returns the Projects value or an error if the edge
 // was not loaded in eager-loading.
-func (e ProjectTypeEdges) ProjectsErr() ([]*Project, error) {
+func (e ProjectTypeEdges) ProjectsOrErr() ([]*Project, error) {
 	if e.loadedTypes[0] {
 		return e.Projects, nil
 	}
 	return nil, &NotLoadedError{edge: "projects"}
 }
 
-// PropertiesErr returns the Properties value or an error if the edge
+// PropertiesOrErr returns the Properties value or an error if the edge
 // was not loaded in eager-loading.
-func (e ProjectTypeEdges) PropertiesErr() ([]*PropertyType, error) {
+func (e ProjectTypeEdges) PropertiesOrErr() ([]*PropertyType, error) {
 	if e.loadedTypes[1] {
 		return e.Properties, nil
 	}
 	return nil, &NotLoadedError{edge: "properties"}
 }
 
-// WorkOrdersErr returns the WorkOrders value or an error if the edge
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
 // was not loaded in eager-loading.
-func (e ProjectTypeEdges) WorkOrdersErr() ([]*WorkOrderDefinition, error) {
+func (e ProjectTypeEdges) WorkOrdersOrErr() ([]*WorkOrderDefinition, error) {
 	if e.loadedTypes[2] {
 		return e.WorkOrders, nil
 	}

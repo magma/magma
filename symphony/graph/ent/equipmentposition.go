@@ -47,9 +47,9 @@ type EquipmentPositionEdges struct {
 	loadedTypes [3]bool
 }
 
-// DefinitionErr returns the Definition value or an error if the edge
+// DefinitionOrErr returns the Definition value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentPositionEdges) DefinitionErr() (*EquipmentPositionDefinition, error) {
+func (e EquipmentPositionEdges) DefinitionOrErr() (*EquipmentPositionDefinition, error) {
 	if e.loadedTypes[0] {
 		if e.Definition == nil {
 			// The edge definition was loaded in eager-loading,
@@ -61,9 +61,9 @@ func (e EquipmentPositionEdges) DefinitionErr() (*EquipmentPositionDefinition, e
 	return nil, &NotLoadedError{edge: "definition"}
 }
 
-// ParentErr returns the Parent value or an error if the edge
+// ParentOrErr returns the Parent value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentPositionEdges) ParentErr() (*Equipment, error) {
+func (e EquipmentPositionEdges) ParentOrErr() (*Equipment, error) {
 	if e.loadedTypes[1] {
 		if e.Parent == nil {
 			// The edge parent was loaded in eager-loading,
@@ -75,9 +75,9 @@ func (e EquipmentPositionEdges) ParentErr() (*Equipment, error) {
 	return nil, &NotLoadedError{edge: "parent"}
 }
 
-// AttachmentErr returns the Attachment value or an error if the edge
+// AttachmentOrErr returns the Attachment value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentPositionEdges) AttachmentErr() (*Equipment, error) {
+func (e EquipmentPositionEdges) AttachmentOrErr() (*Equipment, error) {
 	if e.loadedTypes[2] {
 		if e.Attachment == nil {
 			// The edge attachment was loaded in eager-loading,

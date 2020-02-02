@@ -197,16 +197,25 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating existing service: id %v", id)})
 						continue
 					}
-					for _, propInput := range propInputs {
+
+					propertiesValid := false
+					for i, propInput := range propInputs {
 						propID, err := service.QueryProperties().Where(property.HasTypeWith(propertytype.ID(propInput.PropertyTypeID))).OnlyID(ctx)
 						if err != nil {
 							if !ent.IsNotFound(err) {
 								errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("property fetching error: property type id %v", propInput.PropertyTypeID)})
-								continue
+								break
 							}
 						} else {
 							propInput.ID = &propID
 						}
+
+						if i == len(propInputs)-1 {
+							propertiesValid = true
+						}
+					}
+					if !propertiesValid {
+						continue
 					}
 					if commit {
 						_, err = m.r.Mutation().EditService(ctx, models.ServiceEditData{

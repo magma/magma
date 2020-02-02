@@ -1,0 +1,46 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "collection" }}
+{{ template "header" $ }}
+
+{{ range $node := $.Nodes -}}
+
+{{- $taggedEdges := dict }}
+{{- range $edge := $node.Edges }}
+	{{- with $tags := tagLookup $edge.StructTag "gqlgen" }}
+		{{- $taggedEdges = set $taggedEdges $edge.Name (list $edge.Type.Name $tags) }}
+	{{- end }}
+{{- end }}
+
+{{ $receiver := $node.Receiver -}}
+{{ $query := print $node.QueryName -}}
+// WithFieldCollection tells the query-builder to eagerly load connected nodes by resolver context.
+func ({{ $receiver }} *{{ $query }}) WithFieldCollection(ctx context.Context, satisfies ...string) *{{ $query }} {
+	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
+		{{ $receiver }} = {{ $receiver }}.withField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)
+	}
+	return {{ $receiver }}
+}
+
+func ({{ $receiver }} *{{ $query }}) withField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *{{ $query }} {
+	{{- with $taggedEdges }}
+		for _, field := range graphql.CollectFields(reqctx, field.Selections, satisfies) {
+			switch field.Name {
+				{{- range $name, $values := . }}
+					case {{ range $i, $tag := split (index $values 1) "," }}{{ if gt $i 0 }}, {{ end }}"{{ $tag }}"{{ end }}:
+						{{ $receiver }} = {{ $receiver }}.With{{ pascal $name }}(func(query *{{ pascal (index $values 0) }}Query) {
+							query.withField(reqctx, field)
+						})
+				{{- end }}
+			}
+		}
+	{{- end }}
+	return {{ $receiver }}
+}
+
+{{ end }}
+{{ end }}

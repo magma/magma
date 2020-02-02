@@ -97,7 +97,6 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 			errorReturn(w, "data fetching error", log, err)
 			return
 		}
-		ic := getImportContext(ctx)
 
 		for _, commit := range commitRuns {
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
@@ -201,26 +200,10 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error validating equipment line"})
 						continue
 					}
-					typ := equipment.QueryType().OnlyX(ctx)
-					props := ic.equipmentTypeIDToProperties[typ.ID]
-					var inputs []*models.PropertyInput
-					for _, propName := range props {
-						inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
-						propType := typ.QueryPropertyTypes().Where(propertytype.Name(propName)).OnlyX(ctx)
-						if err != nil {
-							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("getting property input: prop %v", propName)})
-							continue
-						}
-						propID, err := equipment.QueryProperties().Where(property.HasTypeWith(propertytype.ID(propType.ID))).OnlyID(ctx)
-						if err != nil {
-							if !ent.IsNotFound(err) {
-								errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("property fetching error: property name %v", propName)})
-								continue
-							}
-						} else {
-							inp.ID = &propID
-						}
-						inputs = append(inputs, inp)
+					inputs, msg, err := m.getEquipmentPropertyInputs(ctx, importLine, equipment)
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: msg})
+						continue
 					}
 					if commit {
 						modifiedCount++
@@ -242,6 +225,30 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	log.Debug("Exported Equipment - Done", zap.Any("errors list", errs), zap.Int("all_lines", numRows), zap.Int("edited_added_rows", modifiedCount))
+}
+
+func (m *importer) getEquipmentPropertyInputs(ctx context.Context, importLine ImportRecord, equipment *ent.Equipment) ([]*models.PropertyInput, string, error) {
+	typ := equipment.QueryType().OnlyX(ctx)
+	ic := getImportContext(ctx)
+	props := ic.equipmentTypeIDToProperties[typ.ID]
+	var inputs []*models.PropertyInput
+	for _, propName := range props {
+		inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
+		propType := typ.QueryPropertyTypes().Where(propertytype.Name(propName)).OnlyX(ctx)
+		if err != nil {
+			return nil, fmt.Sprintf("getting property input: prop %v", propName), err
+		}
+		propID, err := equipment.QueryProperties().Where(property.HasTypeWith(propertytype.ID(propType.ID))).OnlyID(ctx)
+		if err != nil {
+			if !ent.IsNotFound(err) {
+				return nil, fmt.Sprintf("property fetching error: property name %v", propName), err
+			}
+		} else {
+			inp.ID = &propID
+		}
+		inputs = append(inputs, inp)
+	}
+	return inputs, "", nil
 }
 
 func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID string, importLine ImportRecord) (*ent.Equipment, error) {

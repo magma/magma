@@ -8,7 +8,11 @@
  * @format
  */
 
-import Button from '@fbcnms/ui/components/Button';
+import type {CheckListItemType} from '../../configure/__generated__/AddEditWorkOrderTypeCard_editingWorkOrderType.graphql.js';
+import type {CheckListTableDefinition_list} from './__generated__/CheckListTableDefinition_list.graphql';
+import type {ChecklistItemInput} from '../../../mutations/__generated__/AddWorkOrderMutation.graphql';
+
+import Button from '@fbcnms/ui/components/design-system/Button';
 import CheckListItem, {
   CHECKLIST_ITEM_TYPES,
   GetValidChecklistItemType,
@@ -16,21 +20,19 @@ import CheckListItem, {
 import DeleteIcon from '@material-ui/icons/Delete';
 import DraggableTableRow from '../../draggable/DraggableTableRow';
 import DroppableTableBody from '../../draggable/DroppableTableBody';
-import IconButton from '@material-ui/core/IconButton';
-import MenuItem from '@material-ui/core/MenuItem';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import React, {useMemo, useState} from 'react';
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import TextField from '@material-ui/core/TextField';
 import fbt from 'fbt';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
 import {reorder} from '../../draggable/DraggableUtils';
-import type {CheckListItemType} from '../../configure/__generated__/AddEditWorkOrderTypeCard_editingWorkOrderType.graphql.js';
-import type {CheckListTableDefinition_list} from './__generated__/CheckListTableDefinition_list.graphql';
-import type {ChecklistItemInput} from '../../../mutations/__generated__/AddWorkOrderMutation.graphql';
 
 type Props = {
   list: CheckListTableDefinition_list,
@@ -56,14 +58,21 @@ const useStyles = makeStyles({
     width: '100%',
   },
   selectMenu: {
-    height: '14px',
+    width: '100%',
   },
   iconCell: {
     width: '20px',
     paddingRight: '0px',
   },
   addButton: {
-    marginBottom: '12px',
+    padding: '4px 18px',
+    borderRadius: '4px',
+    border: '1px solid',
+    borderColor: symphony.palette.primary,
+    '&:hover': {
+      borderColor: symphony.palette.B800,
+      backgroundColor: symphony.palette.B50,
+    },
   },
 });
 
@@ -167,28 +176,25 @@ const CheckListTableDefinition = (props: Props) => {
     [classes.cell],
   );
 
+  const checklistTypes = useMemo(
+    () =>
+      Object.keys(CHECKLIST_ITEM_TYPES).map(type => ({
+        label: CHECKLIST_ITEM_TYPES[type].description,
+        value: type,
+      })),
+    [],
+  );
   const checklistItems = list.map((checkListItem, i) => (
     <DraggableTableRow id={checkListItem.id} index={i} key={i}>
       <TableCell className={classes.cell} size="small" component="div">
-        <TextField
-          select
-          variant="outlined"
-          className={classes.input}
-          value={checkListItem.type}
-          SelectProps={{
-            classes: {selectMenu: classes.selectMenu},
-            MenuProps: {
-              className: classes.menu,
-            },
-          }}
-          onChange={event => _changeItemType(i, event.target.value)}
-          margin="dense">
-          {Object.keys(CHECKLIST_ITEM_TYPES).map(type => (
-            <MenuItem key={type} value={type}>
-              {CHECKLIST_ITEM_TYPES[type].description}
-            </MenuItem>
-          ))}
-        </TextField>
+        <FormField>
+          <Select
+            className={classes.selectMenu}
+            options={checklistTypes}
+            selectedValue={checkListItem.type}
+            onChange={value => _changeItemType(i, value)}
+          />
+        </FormField>
       </TableCell>
       <TableCell component="div">
         <CheckListItem
@@ -198,9 +204,14 @@ const CheckListTableDefinition = (props: Props) => {
         />
       </TableCell>
       <TableCell className={classes.iconCell} align="right" component="div">
-        <IconButton onClick={() => _removeItem(checkListItem, i)}>
-          <DeleteIcon />
-        </IconButton>
+        <FormAction>
+          <Button
+            skin="primary"
+            variant="text"
+            onClick={() => _removeItem(checkListItem, i)}>
+            <DeleteIcon />
+          </Button>
+        </FormAction>
       </TableCell>
     </DraggableTableRow>
   ));
@@ -213,16 +224,18 @@ const CheckListTableDefinition = (props: Props) => {
           {checklistItems}
         </DroppableTableBody>
       </Table>
-      <Button
-        className={classes.addButton}
-        color="primary"
-        variant="outlined"
-        onClick={_addItem}>
-        {fbt(
-          'Add Item',
-          'Caption of the Add Checklist Item button (under the checklist table)',
-        )}
-      </Button>
+      <FormAction>
+        <Button
+          className={classes.addButton}
+          color="primary"
+          variant="text"
+          onClick={_addItem}>
+          {fbt(
+            'Add Item',
+            'Caption of the Add Checklist Item button (under the checklist table)',
+          )}
+        </Button>
+      </FormAction>
     </div>
   );
 };
