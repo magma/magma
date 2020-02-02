@@ -11,7 +11,7 @@
 import type {TRefFor} from '../types/TRefFor.flow';
 
 import * as React from 'react';
-import FormFieldContext from '../FormField/FormFieldContext';
+import FormElementContext from '../Form/FormElementContext';
 import InputContext from './InputContext';
 import Text from '../Text';
 import classNames from 'classnames';
@@ -138,7 +138,7 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
   } = props;
   const classes = useStyles();
   const {hasError: contextHasError, disabled: contextDisabled} = useContext(
-    FormFieldContext,
+    FormElementContext,
   );
   const disabled = useMemo(
     () => (disabledProp ? disabledProp : contextDisabled),

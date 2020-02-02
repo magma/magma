@@ -10,18 +10,18 @@
 
 import React from 'react';
 
-export type FormFieldContextValue = {
+export type FormElementContextValue = {
   disabled: boolean,
-  hasError: boolean,
+  hasError?: boolean,
 };
 
-const FormFieldContext = React.createContext<FormFieldContextValue>({
+const FormElementContext = React.createContext<FormElementContextValue>({
   disabled: false,
   hasError: false,
 });
 
 export function useFormField() {
-  return React.useContext(FormFieldContext);
+  return React.useContext(FormElementContext);
 }
 
-export default FormFieldContext;
+export default FormElementContext;

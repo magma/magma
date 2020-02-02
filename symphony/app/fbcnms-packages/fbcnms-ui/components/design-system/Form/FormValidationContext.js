@@ -10,9 +10,10 @@
 
 import * as React from 'react';
 import * as imm from 'immutable';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useContext, useMemo, useState} from 'react';
 
 type Range = {
   from: number,
@@ -190,6 +191,8 @@ const FormValidationMaintainer = function() {
 };
 
 export function FormValidationContextProvider(props: Props) {
+  const {user} = useContext(AppContext);
+
   const errorsContext = FormValidationMaintainer();
   const editLocksContext = FormValidationMaintainer();
 
@@ -197,6 +200,13 @@ export function FormValidationContextProvider(props: Props) {
     error: errorsContext,
     editLock: editLocksContext,
   };
+
+  editLocksContext.check({
+    fieldId: 'System Rules',
+    fieldDisplayName: 'Read Only User',
+    value: user?.isReadOnlyUser,
+    checkCallback: isReadOnlyUser => (isReadOnlyUser ? 'Read Only User' : ''),
+  });
 
   return (
     <FormValidationContext.Provider value={providerValue}>
