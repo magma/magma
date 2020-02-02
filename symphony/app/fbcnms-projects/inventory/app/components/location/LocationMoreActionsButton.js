@@ -17,7 +17,9 @@ import type {
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
-import MoreActionsButton from '@fbcnms/ui/components/MoreActionsButton';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React from 'react';
 import RemoveLocationMutation from '../../mutations/RemoveLocationMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -38,15 +40,11 @@ type Props = {
 class LocationMoreActionsButton extends React.Component<Props> {
   render() {
     return (
-      <MoreActionsButton
-        variant="primary"
-        items={[
-          {
-            name: 'Delete location',
-            onClick: this.removeLocation,
-          },
-        ]}
-      />
+      <FormAction>
+        <Button variant="text" skin="gray" onClick={this.removeLocation}>
+          <DeleteOutlineIcon />
+        </Button>
+      </FormAction>
     );
   }
 
