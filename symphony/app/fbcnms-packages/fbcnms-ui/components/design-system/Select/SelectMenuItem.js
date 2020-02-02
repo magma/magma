@@ -25,6 +25,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     padding: '6px 16px',
     cursor: 'pointer',
+    whiteSpace: 'nowrap',
     '&:not($disabled)&:hover': {
       backgroundColor: symphony.palette.B50,
     },

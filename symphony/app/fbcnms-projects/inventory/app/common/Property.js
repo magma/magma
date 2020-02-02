@@ -40,6 +40,7 @@ export const getNonInstancePropertyTypes = (
   properties: Array<Property>,
   propertyTypes: Array<PropertyType>,
 ): Array<PropertyType> => {
+  properties = properties || [];
   const propIds = properties.map(x => x.propertyType.id);
   return propertyTypes.filter(type => !propIds.includes(type.id));
 };
