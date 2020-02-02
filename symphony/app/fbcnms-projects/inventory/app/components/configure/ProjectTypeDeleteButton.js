@@ -15,49 +15,35 @@ import type {
 } from '../../mutations/__generated__/RemoveProjectMutation.graphql';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
-import type {WithStyles} from '@material-ui/core';
 
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React from 'react';
 import RemoveProjectTypeMutation from '../../mutations/RemoveProjectTypeMutation';
-import SymphonyTheme from '@fbcnms/ui/theme/symphony';
-import classNames from 'classnames';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {withSnackbar} from 'notistack';
-import {withStyles} from '@material-ui/core/styles';
-
-const styles = theme => ({
-  deleteButton: {
-    cursor: 'pointer',
-    color: theme.palette.primary.main,
-    width: '32px',
-    height: '32px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    '&:hover': {
-      color: SymphonyTheme.palette.B700,
-    },
-  },
-});
 
 type Props = {
   className?: string,
   projectType: {id: string, name: string},
-} & WithStyles<typeof styles> &
-  WithAlert &
+} & WithAlert &
   WithSnackbarProps;
 
 class ProjectTypeDeleteButton extends React.Component<Props> {
   render() {
-    const {classes, className} = this.props;
     return (
-      <div className={classNames(classes.deleteButton, className)}>
-        <DeleteOutlineIcon onClick={this.removeProject} />
-      </div>
+      <FormAction>
+        <Button
+          className={this.props.className}
+          variant="text"
+          skin="primary"
+          onClick={this.removeProject}>
+          <DeleteOutlineIcon />
+        </Button>
+      </FormAction>
     );
   }
 
@@ -101,6 +87,4 @@ class ProjectTypeDeleteButton extends React.Component<Props> {
   };
 }
 
-export default withStyles(styles)(
-  withAlert(withSnackbar(ProjectTypeDeleteButton)),
-);
+export default withAlert(withSnackbar(ProjectTypeDeleteButton));

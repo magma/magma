@@ -7,43 +7,56 @@
  * @flow
  * @format
  */
-import type {ProjectMoreActionsButton_project} from './__generated__/ProjectMoreActionsButton_project.graphql.js';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithSnackbarProps} from 'notistack';
-
-import MoreActionsButton from '@fbcnms/ui/components/MoreActionsButton';
-import React from 'react';
-import RemoveProjectMutation from '../../mutations/RemoveProjectMutation';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {createFragmentContainer, graphql} from 'react-relay';
-import {withSnackbar} from 'notistack';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {ProjectMoreActionsButton_project} from './__generated__/ProjectMoreActionsButton_project.graphql.js';
 import type {
   RemoveProjectMutationResponse,
   RemoveProjectMutationVariables,
 } from '../../mutations/__generated__/RemoveProjectMutation.graphql';
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithSnackbarProps} from 'notistack';
+import type {WithStyles} from '@material-ui/core';
+
+import Button from '@fbcnms/ui/components/design-system/Button';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import React from 'react';
+import RemoveProjectMutation from '../../mutations/RemoveProjectMutation';
+import classNames from 'classnames';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {createFragmentContainer, graphql} from 'react-relay';
+import {withSnackbar} from 'notistack';
+import {withStyles} from '@material-ui/core/styles';
+
+const styles = () => ({
+  deleteButton: {
+    minWidth: 'unset',
+    paddingTop: '2px',
+  },
+});
 
 type Props = {
   className?: string,
   project: ProjectMoreActionsButton_project,
   onProjectRemoved: () => void,
-} & WithAlert &
+} & WithStyles<typeof styles> &
+  WithAlert &
   WithSnackbarProps;
 
 class ProjectMoreActionsButton extends React.Component<Props> {
   render() {
+    const {className, classes} = this.props;
     return (
-      <MoreActionsButton
-        iconClassName={this.props.className}
-        variant="primary"
-        items={[
-          {
-            name: 'Delete project',
-            onClick: this.removeProject,
-          },
-        ]}
-      />
+      <FormAction>
+        <Button
+          className={classNames(className, classes.deleteButton)}
+          variant="text"
+          skin="gray"
+          onClick={this.removeProject}>
+          <DeleteOutlineIcon />
+        </Button>
+      </FormAction>
     );
   }
 
@@ -91,16 +104,18 @@ class ProjectMoreActionsButton extends React.Component<Props> {
   };
 }
 
-export default withAlert(
-  withSnackbar(
-    createFragmentContainer(ProjectMoreActionsButton, {
-      project: graphql`
-        fragment ProjectMoreActionsButton_project on Project {
-          id
-          name
-          numberOfWorkOrders
-        }
-      `,
-    }),
+export default withStyles(styles)(
+  withAlert(
+    withSnackbar(
+      createFragmentContainer(ProjectMoreActionsButton, {
+        project: graphql`
+          fragment ProjectMoreActionsButton_project on Project {
+            id
+            name
+            numberOfWorkOrders
+          }
+        `,
+      }),
+    ),
   ),
 );
