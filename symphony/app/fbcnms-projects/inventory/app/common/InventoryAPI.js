@@ -12,6 +12,7 @@ const INVENTORY_PATH = '/inventory/inventory';
 const LOCATION_SEARCH_PARAM = 'location';
 const EQUIPMENT_SEARCH_PARAM = 'equipment';
 const SERVICE_SEARCH_PARAM = 'service';
+const POWER_SEARCH = '/search';
 
 export const InventoryAPIUrls = {
   location: (locationId: string) =>
@@ -24,4 +25,5 @@ export const InventoryAPIUrls = {
     `/workorders/projects/search?project=${projectId}`,
   workorder: (workorderId: ?string) =>
     `/workorders/search${!!workorderId ? `?workorder=${workorderId}` : ''}`,
+  search: POWER_SEARCH,
 };

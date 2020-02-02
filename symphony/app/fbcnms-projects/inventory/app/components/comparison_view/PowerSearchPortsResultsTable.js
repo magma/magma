@@ -21,6 +21,7 @@ import classNames from 'classnames';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {AutoSizer, Column, Table} from 'react-virtualized';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getPropertyValue} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
@@ -107,14 +108,10 @@ class PowerSearchPortsResultsTable extends React.Component<Props> {
           equipment={cellData}
           showSelfEquipment={true}
           onParentLocationClicked={locationId =>
-            history.push(
-              `inventory/` + (locationId ? `?location=${locationId}` : ''),
-            )
+            history.replace(InventoryAPIUrls.location(locationId))
           }
           onEquipmentClicked={equipmentId =>
-            history.push(
-              `inventory/` + (equipmentId ? `?equipment=${equipmentId}` : ''),
-            )
+            history.replace(InventoryAPIUrls.equipment(equipmentId))
           }
           size="small"
         />

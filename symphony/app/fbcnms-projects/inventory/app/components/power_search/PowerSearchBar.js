@@ -20,8 +20,7 @@ import CSVFileExport from '../CSVFileExport';
 import FiltersTypeahead from '../comparison_view/FiltersTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
-import nullthrows from '@fbcnms/util/nullthrows';
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import update from 'immutability-helper';
 import {doesFilterHasValue} from '../comparison_view/FilterUtils';
@@ -108,7 +107,12 @@ const PowerSearchBar = (props: Props) => {
     footer,
     exportPath,
   } = props;
-  const [filterValues, setFilterValues] = useState(props.filterValues ?? []);
+  const [filterValues, setFilterValues] = useState([]);
+
+  useEffect(() => {
+    setFilterValues(props.filterValues ?? []);
+  }, [props.filterValues, filterConfigs]);
+
   const [editingFilterIndex, setEditingFilterIndex] = useState((null: ?number));
   const [isInputFocused, setIsInputFocused] = useState(false);
 
@@ -146,7 +150,6 @@ const PowerSearchBar = (props: Props) => {
     setFilterValues(newFilterValues);
     onFiltersChanged(newFilterValues);
   };
-
   return (
     <div className={classNames(classes.root, props.className)}>
       <div className={classes.headerContainer}>{header != null && header}</div>
@@ -158,9 +161,12 @@ const PowerSearchBar = (props: Props) => {
             </Text>
           )}
           {filterValues.map((filterValue, i) => {
-            const filterConfig = nullthrows(
-              filterConfigs.find(filter => filter.key === filterValue.key),
+            const filterConfig = filterConfigs.find(
+              filter => filter.key === filterValue.key,
             );
+            if (filterConfig == null) {
+              return null;
+            }
             const FilterComponent = filterConfig.component;
             return (
               <div className={classes.filter} key={filterValue.id}>
@@ -186,9 +192,12 @@ const PowerSearchBar = (props: Props) => {
             searchConfig={searchConfig}
             selectedFilters={filterValues.map(filter => filter.name)}
             onFilterSelected={filterOption => {
-              const filterConfig = nullthrows(
-                filterConfigs.find(filter => filter.key === filterOption.key),
+              const filterConfig = filterConfigs.find(
+                filter => filter.key === filterOption.key,
               );
+              if (filterConfig == null) {
+                return null;
+              }
               setIsInputFocused(false);
               setEditingFilterIndex(filterValues.length);
               setFilterValues([
