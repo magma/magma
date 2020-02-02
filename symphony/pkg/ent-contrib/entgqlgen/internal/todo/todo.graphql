@@ -5,10 +5,13 @@ interface Node {
 type Todo implements Node {
   id: ID!
   text: String!
+  parent: Todo
+  children: [Todo!]
 }
 
 input TodoInput {
   text: String!
+  parent: ID
 }
 
 scalar Cursor

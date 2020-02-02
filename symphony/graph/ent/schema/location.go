@@ -84,7 +84,7 @@ func (Location) Edges() []ent.Edge {
 			StructTag(`gqlgen:"children"`).
 			From("parent").
 			Unique().
-			StructTag(`gqlgen:"parent"`),
+			StructTag(`gqlgen:"parentLocation"`),
 		edge.To("files", File.Type).
 			StructTag(`gqlgen:"files,images"`),
 		edge.To("hyperlinks", Hyperlink.Type).

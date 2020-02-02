@@ -55,9 +55,9 @@ type SurveyEdges struct {
 	loadedTypes [3]bool
 }
 
-// LocationErr returns the Location value or an error if the edge
+// LocationOrErr returns the Location value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SurveyEdges) LocationErr() (*Location, error) {
+func (e SurveyEdges) LocationOrErr() (*Location, error) {
 	if e.loadedTypes[0] {
 		if e.Location == nil {
 			// The edge location was loaded in eager-loading,
@@ -69,9 +69,9 @@ func (e SurveyEdges) LocationErr() (*Location, error) {
 	return nil, &NotLoadedError{edge: "location"}
 }
 
-// SourceFileErr returns the SourceFile value or an error if the edge
+// SourceFileOrErr returns the SourceFile value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SurveyEdges) SourceFileErr() (*File, error) {
+func (e SurveyEdges) SourceFileOrErr() (*File, error) {
 	if e.loadedTypes[1] {
 		if e.SourceFile == nil {
 			// The edge source_file was loaded in eager-loading,
@@ -83,9 +83,9 @@ func (e SurveyEdges) SourceFileErr() (*File, error) {
 	return nil, &NotLoadedError{edge: "source_file"}
 }
 
-// QuestionsErr returns the Questions value or an error if the edge
+// QuestionsOrErr returns the Questions value or an error if the edge
 // was not loaded in eager-loading.
-func (e SurveyEdges) QuestionsErr() ([]*SurveyQuestion, error) {
+func (e SurveyEdges) QuestionsOrErr() ([]*SurveyQuestion, error) {
 	if e.loadedTypes[2] {
 		return e.Questions, nil
 	}

@@ -17,6 +17,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -160,4 +161,32 @@ func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
 		panic(err)
 	}
 	return t
+}
+
+// QueryParent queries the parent edge of a Todo.
+func (c *TodoClient) QueryParent(t *Todo) *TodoQuery {
+	query := &TodoQuery{config: c.config}
+	id := t.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(todo.Table, todo.FieldID, id),
+		sqlgraph.To(todo.Table, todo.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, todo.ParentTable, todo.ParentColumn),
+	)
+	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryChildren queries the children edge of a Todo.
+func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
+	query := &TodoQuery{config: c.config}
+	id := t.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(todo.Table, todo.FieldID, id),
+		sqlgraph.To(todo.Table, todo.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, todo.ChildrenTable, todo.ChildrenColumn),
+	)
+	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
+
+	return query
 }

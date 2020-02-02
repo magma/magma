@@ -49,18 +49,18 @@ type EquipmentPositionDefinitionEdges struct {
 	loadedTypes [2]bool
 }
 
-// PositionsErr returns the Positions value or an error if the edge
+// PositionsOrErr returns the Positions value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentPositionDefinitionEdges) PositionsErr() ([]*EquipmentPosition, error) {
+func (e EquipmentPositionDefinitionEdges) PositionsOrErr() ([]*EquipmentPosition, error) {
 	if e.loadedTypes[0] {
 		return e.Positions, nil
 	}
 	return nil, &NotLoadedError{edge: "positions"}
 }
 
-// EquipmentTypeErr returns the EquipmentType value or an error if the edge
+// EquipmentTypeOrErr returns the EquipmentType value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentPositionDefinitionEdges) EquipmentTypeErr() (*EquipmentType, error) {
+func (e EquipmentPositionDefinitionEdges) EquipmentTypeOrErr() (*EquipmentType, error) {
 	if e.loadedTypes[1] {
 		if e.EquipmentType == nil {
 			// The edge equipment_type was loaded in eager-loading,

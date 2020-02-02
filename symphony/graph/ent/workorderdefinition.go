@@ -47,9 +47,9 @@ type WorkOrderDefinitionEdges struct {
 	loadedTypes [2]bool
 }
 
-// TypeErr returns the Type value or an error if the edge
+// TypeOrErr returns the Type value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e WorkOrderDefinitionEdges) TypeErr() (*WorkOrderType, error) {
+func (e WorkOrderDefinitionEdges) TypeOrErr() (*WorkOrderType, error) {
 	if e.loadedTypes[0] {
 		if e.Type == nil {
 			// The edge type was loaded in eager-loading,
@@ -61,9 +61,9 @@ func (e WorkOrderDefinitionEdges) TypeErr() (*WorkOrderType, error) {
 	return nil, &NotLoadedError{edge: "type"}
 }
 
-// ProjectTypeErr returns the ProjectType value or an error if the edge
+// ProjectTypeOrErr returns the ProjectType value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e WorkOrderDefinitionEdges) ProjectTypeErr() (*ProjectType, error) {
+func (e WorkOrderDefinitionEdges) ProjectTypeOrErr() (*ProjectType, error) {
 	if e.loadedTypes[1] {
 		if e.ProjectType == nil {
 			// The edge project_type was loaded in eager-loading,

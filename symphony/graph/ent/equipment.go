@@ -71,9 +71,9 @@ type EquipmentEdges struct {
 	loadedTypes [9]bool
 }
 
-// TypeErr returns the Type value or an error if the edge
+// TypeOrErr returns the Type value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentEdges) TypeErr() (*EquipmentType, error) {
+func (e EquipmentEdges) TypeOrErr() (*EquipmentType, error) {
 	if e.loadedTypes[0] {
 		if e.Type == nil {
 			// The edge type was loaded in eager-loading,
@@ -85,9 +85,9 @@ func (e EquipmentEdges) TypeErr() (*EquipmentType, error) {
 	return nil, &NotLoadedError{edge: "type"}
 }
 
-// LocationErr returns the Location value or an error if the edge
+// LocationOrErr returns the Location value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentEdges) LocationErr() (*Location, error) {
+func (e EquipmentEdges) LocationOrErr() (*Location, error) {
 	if e.loadedTypes[1] {
 		if e.Location == nil {
 			// The edge location was loaded in eager-loading,
@@ -99,9 +99,9 @@ func (e EquipmentEdges) LocationErr() (*Location, error) {
 	return nil, &NotLoadedError{edge: "location"}
 }
 
-// ParentPositionErr returns the ParentPosition value or an error if the edge
+// ParentPositionOrErr returns the ParentPosition value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentEdges) ParentPositionErr() (*EquipmentPosition, error) {
+func (e EquipmentEdges) ParentPositionOrErr() (*EquipmentPosition, error) {
 	if e.loadedTypes[2] {
 		if e.ParentPosition == nil {
 			// The edge parent_position was loaded in eager-loading,
@@ -113,27 +113,27 @@ func (e EquipmentEdges) ParentPositionErr() (*EquipmentPosition, error) {
 	return nil, &NotLoadedError{edge: "parent_position"}
 }
 
-// PositionsErr returns the Positions value or an error if the edge
+// PositionsOrErr returns the Positions value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentEdges) PositionsErr() ([]*EquipmentPosition, error) {
+func (e EquipmentEdges) PositionsOrErr() ([]*EquipmentPosition, error) {
 	if e.loadedTypes[3] {
 		return e.Positions, nil
 	}
 	return nil, &NotLoadedError{edge: "positions"}
 }
 
-// PortsErr returns the Ports value or an error if the edge
+// PortsOrErr returns the Ports value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentEdges) PortsErr() ([]*EquipmentPort, error) {
+func (e EquipmentEdges) PortsOrErr() ([]*EquipmentPort, error) {
 	if e.loadedTypes[4] {
 		return e.Ports, nil
 	}
 	return nil, &NotLoadedError{edge: "ports"}
 }
 
-// WorkOrderErr returns the WorkOrder value or an error if the edge
+// WorkOrderOrErr returns the WorkOrder value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentEdges) WorkOrderErr() (*WorkOrder, error) {
+func (e EquipmentEdges) WorkOrderOrErr() (*WorkOrder, error) {
 	if e.loadedTypes[5] {
 		if e.WorkOrder == nil {
 			// The edge work_order was loaded in eager-loading,
@@ -145,27 +145,27 @@ func (e EquipmentEdges) WorkOrderErr() (*WorkOrder, error) {
 	return nil, &NotLoadedError{edge: "work_order"}
 }
 
-// PropertiesErr returns the Properties value or an error if the edge
+// PropertiesOrErr returns the Properties value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentEdges) PropertiesErr() ([]*Property, error) {
+func (e EquipmentEdges) PropertiesOrErr() ([]*Property, error) {
 	if e.loadedTypes[6] {
 		return e.Properties, nil
 	}
 	return nil, &NotLoadedError{edge: "properties"}
 }
 
-// FilesErr returns the Files value or an error if the edge
+// FilesOrErr returns the Files value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentEdges) FilesErr() ([]*File, error) {
+func (e EquipmentEdges) FilesOrErr() ([]*File, error) {
 	if e.loadedTypes[7] {
 		return e.Files, nil
 	}
 	return nil, &NotLoadedError{edge: "files"}
 }
 
-// HyperlinksErr returns the Hyperlinks value or an error if the edge
+// HyperlinksOrErr returns the Hyperlinks value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentEdges) HyperlinksErr() ([]*Hyperlink, error) {
+func (e EquipmentEdges) HyperlinksOrErr() ([]*Hyperlink, error) {
 	if e.loadedTypes[8] {
 		return e.Hyperlinks, nil
 	}

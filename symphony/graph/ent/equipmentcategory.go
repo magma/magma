@@ -41,9 +41,9 @@ type EquipmentCategoryEdges struct {
 	loadedTypes [1]bool
 }
 
-// TypesErr returns the Types value or an error if the edge
+// TypesOrErr returns the Types value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentCategoryEdges) TypesErr() ([]*EquipmentType, error) {
+func (e EquipmentCategoryEdges) TypesOrErr() ([]*EquipmentType, error) {
 	if e.loadedTypes[0] {
 		return e.Types, nil
 	}
