@@ -147,6 +147,7 @@ const arrayConfigs = [
     id: 'services',
     title: 'Services',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'coverage_maps',
