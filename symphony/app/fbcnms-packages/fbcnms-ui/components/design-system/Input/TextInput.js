@@ -54,12 +54,17 @@ const useStyles = makeStyles({
       borderColor: symphony.palette.R600,
     },
   },
+  multilineInputContainer: {
+    height: 'unset',
+    paddingRight: 0,
+  },
   hasFocus: {},
   disabled: {
     '& $input': {
       '&::placeholder': {
         color: symphony.palette.disabled,
       },
+      color: symphony.palette.disabled,
     },
   },
   hasError: {},
@@ -75,6 +80,9 @@ const useStyles = makeStyles({
     '&::placeholder': {
       color: symphony.palette.D400,
     },
+  },
+  multilineInput: {
+    resize: 'none',
   },
   prefix: {
     display: 'flex',
@@ -109,6 +117,7 @@ type Props = {
   value?: string | number,
   className?: string,
   placeholder?: string,
+  rows?: number,
   autoFocus?: boolean,
   disabled?: boolean,
   hasError?: boolean,
@@ -134,6 +143,8 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
     onBlur,
     onChange,
     onEnterPressed,
+    type,
+    rows = 2,
     ...rest
   } = props;
   const classes = useStyles();
@@ -183,27 +194,44 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
     [onEnterPressed],
   );
 
+  const isMultiline = useMemo(() => type === 'multiline', [type]);
+
   return (
     <div className={classNames(classes.root, className)}>
       <div
         className={classNames(classes.inputContainer, {
+          [classes.multilineInputContainer]: isMultiline,
           [classes.hasFocus]: hasFocus,
           [classes.disabled]: disabled,
           [classes.hasError]: hasError,
         })}>
         <InputContext.Provider value={{disabled, value: value ?? ''}}>
           {prefix && <div className={classes.prefix}>{prefix}</div>}
-          <input
-            {...rest}
-            className={classes.input}
-            disabled={disabled}
-            onFocus={onInputFocused}
-            onBlur={onInputBlurred}
-            onChange={onInputChanged}
-            onKeyDown={onKeyDown}
-            value={value}
-            ref={forwardedRef}
-          />
+          {isMultiline ? (
+            <textarea
+              rows={rows}
+              disabled={disabled}
+              className={classNames(classes.input, classes.multilineInput)}
+              onFocus={onInputFocused}
+              onBlur={onInputBlurred}
+              onChange={onInputChanged}
+              onKeyDown={onKeyDown}
+              value={value}
+            />
+          ) : (
+            <input
+              {...rest}
+              type={type}
+              className={classes.input}
+              disabled={disabled}
+              onFocus={onInputFocused}
+              onBlur={onInputBlurred}
+              onChange={onInputChanged}
+              onKeyDown={onKeyDown}
+              value={value}
+              ref={forwardedRef}
+            />
+          )}
           {suffix && <div className={classes.suffix}>{suffix}</div>}
         </InputContext.Provider>
       </div>

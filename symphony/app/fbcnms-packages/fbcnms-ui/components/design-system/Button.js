@@ -11,10 +11,12 @@
 import type {TRefFor} from './types/TRefFor.flow';
 
 import * as React from 'react';
+import FormElementContext from './Form/FormElementContext';
 import Text from './Text';
 import classNames from 'classnames';
 import symphony from '../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useMemo} from 'react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -215,7 +217,7 @@ const useStyles = makeStyles(_theme => ({
     '&$graySkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.secondary,
+          color: symphony.palette.D400,
         },
       },
       '&:hover:not($disabled)': {
@@ -259,7 +261,9 @@ export type Props = {
   children: React.Node,
   onClick?: void | (() => void | Promise<void>),
   leftIcon?: SvgIcon,
+  leftIconClass?: string,
   rightIcon?: SvgIcon,
+  rightIconClass?: string,
   tooltip?: string,
   ...ButtonProps,
 };
@@ -269,14 +273,23 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     className,
     children,
     skin = 'primary',
-    disabled = false,
+    disabled: disabledProp = false,
     variant = 'contained',
     onClick,
     leftIcon: LeftIcon = null,
+    leftIconClass = null,
     rightIcon: RightIcon = null,
+    rightIconClass = null,
     tooltip,
   } = props;
   const classes = useStyles();
+
+  const {disabled: contextDisabled} = useContext(FormElementContext);
+
+  const disabled = useMemo(() => disabledProp || contextDisabled, [
+    disabledProp,
+    contextDisabled,
+  ]);
 
   return (
     <button
@@ -299,9 +312,8 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
       ref={forwardedRef}>
       {LeftIcon ? (
         <LeftIcon
-          className={classNames(classes.icon, classes.leftIcon)}
+          className={classNames(classes.icon, classes.leftIcon, leftIconClass)}
           size="small"
-          color="inherit"
         />
       ) : null}
       <Text variant="body2" weight="medium" className={classes.buttonText}>
@@ -309,9 +321,12 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
       </Text>
       {RightIcon ? (
         <RightIcon
-          className={classNames(classes.icon, classes.rightIcon)}
+          className={classNames(
+            classes.icon,
+            classes.rightIcon,
+            rightIconClass,
+          )}
           size="small"
-          color="inherit"
         />
       ) : null}
     </button>

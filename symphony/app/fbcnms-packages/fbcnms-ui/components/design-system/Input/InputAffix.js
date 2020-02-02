@@ -9,10 +9,12 @@
  */
 
 import * as React from 'react';
+import FormElementContext from '../Form/FormElementContext';
 import SymphonyTheme from '../../../theme/symphony';
 import Text from '../Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useMemo} from 'react';
 import {useInput} from './InputContext';
 
 const useStyles = makeStyles(_theme => ({
@@ -26,6 +28,8 @@ const useStyles = makeStyles(_theme => ({
     '&:not($hasValue) $text': {
       color: SymphonyTheme.palette.disabled,
     },
+    pointerEvents: 'none',
+    opacity: 0.5,
   },
   text: {
     color: SymphonyTheme.palette.D400,
@@ -44,7 +48,15 @@ type Props = {
 const InputAffix = (props: Props) => {
   const {children, className, onClick} = props;
   const classes = useStyles();
-  const {disabled, value} = useInput();
+  const {disabled: disabledProp, value} = useInput();
+
+  const {disabled: contextDisabled} = useContext(FormElementContext);
+
+  const disabled = useMemo(
+    () => (disabledProp ? disabledProp : contextDisabled),
+    [disabledProp, contextDisabled],
+  );
+
   return (
     <div
       className={classNames(
@@ -52,11 +64,11 @@ const InputAffix = (props: Props) => {
         {
           [classes.disabled]: disabled,
           [classes.hasValue]: Boolean(value),
-          [classes.clickable]: onClick !== undefined,
+          [classes.clickable]: onClick !== undefined && !disabled,
         },
         className,
       )}
-      onClick={onClick}>
+      onClick={disabled ? null : onClick}>
       {typeof children === 'string' ? (
         <Text className={classes.text} variant="body2">
           {children}

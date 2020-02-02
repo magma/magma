@@ -10,9 +10,9 @@
 
 import Autosuggest from 'react-autosuggest';
 import CancelIcon from '@material-ui/icons/Cancel';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import FormAction from './design-system/Form/FormAction';
 import InputAffix from './design-system/Input/InputAffix';
-import React, {useContext, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import Text from './design-system/Text';
 import TextInput from './design-system/Input/TextInput';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -124,6 +124,7 @@ const Typeahead = (props: Props) => {
     required,
     value,
     margin,
+    disabled = false,
   } = props;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSuggestion, setSelectedSuggestion] = useState(value);
@@ -134,8 +135,6 @@ const Typeahead = (props: Props) => {
   const dropdownContainer = useRef(null);
   useFollowElement(dropdownContainer, inputContainer);
 
-  const validationContext = useContext(FormValidationContext);
-  const disabled = props.disabled || validationContext.editLock.detected;
   return (
     <div className={classes.container}>
       {selectedSuggestion && onSuggestionsClearRequested ? (
@@ -159,16 +158,18 @@ const Typeahead = (props: Props) => {
               value={selectedSuggestion ? selectedSuggestion.name : ''}
               onChange={emptyFunction}
               suffix={
-                searchTerm === '' && !disabled ? (
-                  <InputAffix
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedSuggestion(null);
-                      onSuggestionsClearRequested &&
-                        onSuggestionsClearRequested();
-                    }}>
-                    <CancelIcon className={classes.cancelIcon} />
-                  </InputAffix>
+                searchTerm === '' ? (
+                  <FormAction disabled={disabled}>
+                    <InputAffix
+                      onClick={() => {
+                        setSearchTerm('');
+                        setSelectedSuggestion(null);
+                        onSuggestionsClearRequested &&
+                          onSuggestionsClearRequested();
+                      }}>
+                      <CancelIcon className={classes.cancelIcon} />
+                    </InputAffix>
+                  </FormAction>
                 ) : null
               }
             />
@@ -220,7 +221,6 @@ const Typeahead = (props: Props) => {
             value: searchTerm,
             margin,
             onChange: (_e, {newValue}) => setSearchTerm(newValue),
-            disabled,
           }}
           highlightFirstSuggestion={true}
         />

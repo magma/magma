@@ -8,11 +8,11 @@
  * @format
  */
 
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import FormField from './design-system/FormField/FormField';
 import NameInput from '@fbcnms/ui/components/design-system/Form/NameInput';
-import React, {useContext} from 'react';
+import React from 'react';
 import Text from './design-system/Text';
-import TextField from '@material-ui/core/TextField';
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
@@ -70,7 +70,6 @@ const NameDescriptionSection = ({
   onDescriptionChange,
 }: Props) => {
   const classes = useStyles();
-  const validationContext = useContext(FormValidationContext);
   return (
     <>
       <NameInput
@@ -79,30 +78,21 @@ const NameDescriptionSection = ({
         inputClass={classes.nameField}
         title={title}
         placeholder={namePlaceholder || ''}
-        disabled={validationContext.editLock.detected}
       />
       <Text className={classNames(classes.fieldName, classes.descriptionTitle)}>
         Description
       </Text>
-      <TextField
-        name="Description"
-        InputProps={{
-          classes: {
-            root: classes.descriptionField,
-            inputMultiline: classes.inputMultiline,
-          },
-        }}
-        disabled={validationContext.editLock.detected}
-        placeholder={descriptionPlaceholder}
-        variant="outlined"
-        multiline
-        fullWidth
-        rows="4"
-        value={description ?? ''}
-        onChange={event =>
-          onDescriptionChange && onDescriptionChange(event.target.value)
-        }
-      />
+      <FormField>
+        <TextInput
+          type="multiline"
+          placeholder={descriptionPlaceholder}
+          rows={4}
+          value={description ?? ''}
+          onChange={event =>
+            onDescriptionChange && onDescriptionChange(event.target.value)
+          }
+        />
+      </FormField>
     </>
   );
 };
