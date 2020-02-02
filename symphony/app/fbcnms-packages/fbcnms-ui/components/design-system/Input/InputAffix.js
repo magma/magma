@@ -9,13 +9,13 @@
  */
 
 import * as React from 'react';
-import FormElementContext from '../Form/FormElementContext';
 import SymphonyTheme from '../../../theme/symphony';
 import Text from '../Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useMemo} from 'react';
+import {useFormElementContext} from '../Form/FormElementContext';
 import {useInput} from './InputContext';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -51,7 +51,7 @@ const InputAffix = (props: Props) => {
   const classes = useStyles();
   const {disabled: parentInputDisabled, value} = useInput();
 
-  const {disabled: contextDisabled} = useContext(FormElementContext);
+  const {disabled: contextDisabled} = useFormElementContext();
 
   const disabled = useMemo(
     () => (parentInputDisabled && inheritsDisability) || contextDisabled,

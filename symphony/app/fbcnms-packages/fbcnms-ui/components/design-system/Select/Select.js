@@ -15,12 +15,12 @@ import * as React from 'react';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import BasePopoverTrigger from '../ContexualLayer/BasePopoverTrigger';
 import Button from '../Button';
-import FormElementContext from '../Form/FormElementContext';
 import SelectMenu from './SelectMenu';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useMemo} from 'react';
+import {useFormElementContext} from '../Form/FormElementContext';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles({
   root: {
@@ -71,7 +71,7 @@ const Select = <TValue>({
     variant,
     disabled: disabledProp,
   } = selectMenuProps;
-  const {disabled: contextDisabled} = useContext(FormElementContext);
+  const {disabled: contextDisabled} = useFormElementContext();
   const disabled = useMemo(
     () => (disabledProp ? disabledProp : contextDisabled),
     [disabledProp, contextDisabled],

@@ -10,13 +10,13 @@
 
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
-import FormElementContext from '../Form/FormElementContext';
 import IndeterminateCheckBoxIcon from '@material-ui/icons/IndeterminateCheckBox';
 import React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useMemo} from 'react';
+import {useFormElementContext} from '../Form/FormElementContext';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -71,7 +71,7 @@ const Checkbox = (props: Props) => {
     ? CheckBoxIcon
     : CheckBoxOutlineBlankIcon;
 
-  const {disabled: contextDisabled} = useContext(FormElementContext);
+  const {disabled: contextDisabled} = useFormElementContext();
   const disabled = useMemo(
     () => (propDisabled ? propDisabled : contextDisabled),
     [contextDisabled, propDisabled],

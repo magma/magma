@@ -11,9 +11,8 @@
 import Autosuggest from 'react-autosuggest';
 import CancelIcon from '@material-ui/icons/Cancel';
 import FormAction from './design-system/Form/FormAction';
-import FormElementContext from '@fbcnms/ui/components/design-system/Form/FormElementContext';
 import InputAffix from './design-system/Input/InputAffix';
-import React, {useContext, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import Text from './design-system/Text';
 import TextInput from './design-system/Input/TextInput';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -22,6 +21,7 @@ import symphony from '../theme/symphony';
 import useFollowElement from './useFollowElement';
 import {blue05} from '../theme/colors';
 import {makeStyles, useTheme} from '@material-ui/styles';
+import {useFormElementContext} from '@fbcnms/ui/components/design-system/Form/FormElementContext';
 
 const autoSuggestStyles = theme => ({
   container: {
@@ -136,7 +136,7 @@ const Typeahead = (props: Props) => {
   const dropdownContainer = useRef(null);
   useFollowElement(dropdownContainer, inputContainer);
 
-  const {disabled: contextDisabled} = useContext(FormElementContext);
+  const {disabled: contextDisabled} = useFormElementContext();
   const disabled = useMemo(() => propDisabled || contextDisabled, [
     propDisabled,
     contextDisabled,

@@ -11,12 +11,12 @@
 import type {TRefFor} from './types/TRefFor.flow';
 
 import * as React from 'react';
-import FormElementContext from './Form/FormElementContext';
 import Text from './Text';
 import classNames from 'classnames';
 import symphony from '../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useMemo} from 'react';
+import {useFormElementContext} from './Form/FormElementContext';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -284,7 +284,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
   } = props;
   const classes = useStyles();
 
-  const {disabled: contextDisabled} = useContext(FormElementContext);
+  const {disabled: contextDisabled} = useFormElementContext();
 
   const disabled = useMemo(() => disabledProp || contextDisabled, [
     disabledProp,
