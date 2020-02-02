@@ -68,13 +68,13 @@ type Property struct {
 // PropertyEdges holds the relations/edges for other nodes in the graph.
 type PropertyEdges struct {
 	// Type holds the value of the type edge.
-	Type *PropertyType
+	Type *PropertyType `gqlgen:"propertyType"`
 	// Location holds the value of the location edge.
-	Location *Location
+	Location *Location `gqlgen:"locationValue"`
 	// Equipment holds the value of the equipment edge.
-	Equipment *Equipment
+	Equipment *Equipment `gqlgen:"equipmentValue"`
 	// Service holds the value of the service edge.
-	Service *Service
+	Service *Service `gqlgen:"serviceValue"`
 	// EquipmentPort holds the value of the equipment_port edge.
 	EquipmentPort *EquipmentPort
 	// Link holds the value of the link edge.

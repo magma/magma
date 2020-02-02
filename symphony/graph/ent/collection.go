@@ -365,6 +365,26 @@ func (pr *PropertyQuery) WithFieldCollection(ctx context.Context, satisfies ...s
 }
 
 func (pr *PropertyQuery) withField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *PropertyQuery {
+	for _, field := range graphql.CollectFields(reqctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "equipmentValue":
+			pr = pr.WithEquipment(func(query *EquipmentQuery) {
+				query.withField(reqctx, field)
+			})
+		case "locationValue":
+			pr = pr.WithLocation(func(query *LocationQuery) {
+				query.withField(reqctx, field)
+			})
+		case "serviceValue":
+			pr = pr.WithService(func(query *ServiceQuery) {
+				query.withField(reqctx, field)
+			})
+		case "propertyType":
+			pr = pr.WithType(func(query *PropertyTypeQuery) {
+				query.withField(reqctx, field)
+			})
+		}
+	}
 	return pr
 }
 
