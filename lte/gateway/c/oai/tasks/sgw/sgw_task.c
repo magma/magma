@@ -66,6 +66,12 @@ static void* sgw_intertask_interface(void* args_p)
     MessageDef* received_message_p = NULL;
     itti_receive_msg(TASK_SPGW_APP, &received_message_p);
 
+    imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+    OAILOG_DEBUG(
+      LOG_SPGW_APP,
+      "Received message with imsi: " IMSI_64_FMT,
+      imsi64);
+
     spgw_state_p = get_spgw_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
@@ -78,7 +84,7 @@ static void* sgw_intertask_interface(void* args_p)
             "Success" :
             "Failure");
         sgw_handle_gtpv1uCreateTunnelResp(
-          spgw_state_p, &received_message_p->ittiMsg.gtpv1uCreateTunnelResp);
+          spgw_state_p, &received_message_p->ittiMsg.gtpv1uCreateTunnelResp, imsi64);
       } break;
 
       case MESSAGE_TEST:
@@ -100,51 +106,56 @@ static void* sgw_intertask_interface(void* args_p)
          */
         sgw_handle_create_session_request(
           spgw_state_p,
-          &received_message_p->ittiMsg.s11_create_session_request);
+          &received_message_p->ittiMsg.s11_create_session_request,
+          imsi64);
       } break;
 
       case S11_DELETE_SESSION_REQUEST: {
         sgw_handle_delete_session_request(
           spgw_state_p,
-          &received_message_p->ittiMsg.s11_delete_session_request);
+          &received_message_p->ittiMsg.s11_delete_session_request,
+          imsi64);
       } break;
 
       case S11_MODIFY_BEARER_REQUEST: {
         sgw_handle_modify_bearer_request(
-          spgw_state_p, &received_message_p->ittiMsg.s11_modify_bearer_request);
+          spgw_state_p, &received_message_p->ittiMsg.s11_modify_bearer_request,
+          imsi64);
       } break;
 
       case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
         sgw_handle_release_access_bearers_request(
           spgw_state_p,
-          &received_message_p->ittiMsg.s11_release_access_bearers_request);
+          &received_message_p->ittiMsg.s11_release_access_bearers_request,
+          imsi64);
       } break;
 
       case S11_SUSPEND_NOTIFICATION: {
         sgw_handle_suspend_notification(
-          spgw_state_p, &received_message_p->ittiMsg.s11_suspend_notification);
+          spgw_state_p, &received_message_p->ittiMsg.s11_suspend_notification, imsi64);
       } break;
 
       case GTPV1U_UPDATE_TUNNEL_RESP: {
         sgw_handle_gtpv1uUpdateTunnelResp(
-          spgw_state_p, &received_message_p->ittiMsg.gtpv1uUpdateTunnelResp);
+          spgw_state_p, &received_message_p->ittiMsg.gtpv1uUpdateTunnelResp, imsi64);
       } break;
 
       case SGI_CREATE_ENDPOINT_RESPONSE: {
         sgw_handle_sgi_endpoint_created(
           spgw_state_p,
-          &received_message_p->ittiMsg.sgi_create_end_point_response);
+          &received_message_p->ittiMsg.sgi_create_end_point_response, imsi64);
       } break;
 
       case SGI_UPDATE_ENDPOINT_RESPONSE: {
         sgw_handle_sgi_endpoint_updated(
           spgw_state_p,
-          &received_message_p->ittiMsg.sgi_update_end_point_response);
+          &received_message_p->ittiMsg.sgi_update_end_point_response, imsi64);
       } break;
 
       case S5_CREATE_BEARER_RESPONSE: {
         sgw_handle_s5_create_bearer_response(
-          spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_response);
+          spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_response,
+          imsi64);
       } break;
 
       case S5_NW_INITIATED_ACTIVATE_BEARER_REQ: {
@@ -152,8 +163,8 @@ static void* sgw_intertask_interface(void* args_p)
         if (
           sgw_handle_nw_initiated_actv_bearer_req(
             spgw_state_p,
-            &received_message_p->ittiMsg.s5_nw_init_actv_bearer_request) !=
-          RETURNok) {
+            &received_message_p->ittiMsg.s5_nw_init_actv_bearer_request,
+            imsi64) != RETURNok) {
           // If request handling fails send reject to PGW
           send_activate_dedicated_bearer_rsp_to_pgw(
             spgw_state_p,
@@ -162,7 +173,8 @@ static void* sgw_intertask_interface(void* args_p)
               .s_gw_teid_S11_S4, /*SGW C-plane teid to fetch spgw context*/
             0 /*EBI*/,
             0 /*enb teid*/,
-            0 /*sgw teid*/);
+            0 /*sgw teid*/,
+            imsi64);
         }
       } break;
 
@@ -170,20 +182,23 @@ static void* sgw_intertask_interface(void* args_p)
         //Handle Dedicated bearer Activation Rsp from MME
         sgw_handle_nw_initiated_actv_bearer_rsp(
           spgw_state_p,
-          &received_message_p->ittiMsg.s11_nw_init_actv_bearer_rsp);
+          &received_message_p->ittiMsg.s11_nw_init_actv_bearer_rsp,
+          imsi64);
       } break;
 
       case S5_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
         //Handle Dedicated bearer Deactivation Req from PGW
         sgw_handle_nw_initiated_deactv_bearer_req(
-          &received_message_p->ittiMsg.s5_nw_init_deactv_bearer_request);
+          &received_message_p->ittiMsg.s5_nw_init_deactv_bearer_request,
+          imsi64);
       } break;
 
       case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
         //Handle Dedicated bearer deactivation Rsp from MME
         sgw_handle_nw_initiated_deactv_bearer_rsp(
           spgw_state_p,
-          &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp);
+          &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp,
+          imsi64);
       } break;
 
       case TERMINATE_MESSAGE: {
