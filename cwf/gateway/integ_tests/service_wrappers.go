@@ -53,9 +53,10 @@ type pipelinedClient struct {
 
 // Wrapper for PolicyDB objects
 type policyDBWrapper struct {
-	redisClient object_store.RedisClient
-	policyMap   object_store.ObjectMap
-	baseNameMap object_store.ObjectMap
+	redisClient      object_store.RedisClient
+	policyMap        object_store.ObjectMap
+	baseNameMap      object_store.ObjectMap
+	omniPresentRules object_store.ObjectMap
 }
 
 /**  ========== HSS Helpers ========== **/
@@ -260,9 +261,16 @@ func initializePolicyDBWrapper() (*policyDBWrapper, error) {
 		policydb.GetBaseNameSerializer(),
 		policydb.GetBaseNameDeserializer(),
 	)
+	omniPresentRules := object_store.NewRedisMap(
+		redisClientImpl,
+		"policydb:omnipresent_rules",
+		policydb.GetRuleMappingSerializer(),
+		policydb.GetRuleMappingDeserializer(),
+	)
 	return &policyDBWrapper{
-		redisClient: redisClientImpl,
-		policyMap:   policyMap,
-		baseNameMap: baseNameMap,
+		redisClient:      redisClientImpl,
+		policyMap:        policyMap,
+		baseNameMap:      baseNameMap,
+		omniPresentRules: omniPresentRules,
 	}, nil
 }
