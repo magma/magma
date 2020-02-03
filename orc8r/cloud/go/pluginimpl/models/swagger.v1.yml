@@ -1315,6 +1315,21 @@ definitions:
         example:
           mme: '/var/log/mme.log'
           otherlog: '/var/log/otherlog.log'
+      throttle_rate:
+        type: integer
+        format: uint32
+        example: 1000
+        x-nullable: true
+      throttle_window:
+        type: integer
+        format: uint32
+        example: 5
+        x-nullable: true
+      throttle_interval:
+        type: string
+        pattern: '^\d+(.\d+)?(s|m|h)$'
+        example: 1m
+        x-nullable: true
 
   tier_id:
     type: string

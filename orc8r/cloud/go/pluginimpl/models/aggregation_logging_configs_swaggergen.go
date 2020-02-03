@@ -8,7 +8,9 @@ package models
 import (
 	strfmt "github.com/go-openapi/strfmt"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // AggregationLoggingConfigs Configuration for log aggregation
@@ -17,10 +19,42 @@ type AggregationLoggingConfigs struct {
 
 	// target files by tag
 	TargetFilesByTag map[string]string `json:"target_files_by_tag,omitempty"`
+
+	// throttle interval
+	// Pattern: ^\d+(.\d+)?(s|m|h)$
+	ThrottleInterval *string `json:"throttle_interval,omitempty"`
+
+	// throttle rate
+	ThrottleRate *uint32 `json:"throttle_rate,omitempty"`
+
+	// throttle window
+	ThrottleWindow *uint32 `json:"throttle_window,omitempty"`
 }
 
 // Validate validates this aggregation logging configs
 func (m *AggregationLoggingConfigs) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateThrottleInterval(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *AggregationLoggingConfigs) validateThrottleInterval(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ThrottleInterval) { // not required
+		return nil
+	}
+
+	if err := validate.Pattern("throttle_interval", "body", string(*m.ThrottleInterval), `^\d+(.\d+)?(s|m|h)$`); err != nil {
+		return err
+	}
+
 	return nil
 }
 
