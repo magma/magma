@@ -31,8 +31,9 @@ const useStyles = makeStyles({
 export const FileUploadButton = (props: {
   button: React.Node,
   onFileChanged: (SyntheticEvent<HTMLInputElement>) => void | Promise<void>,
+  className?: ?string,
 }) => {
-  const {button, onFileChanged} = props;
+  const {button, onFileChanged, className} = props;
   const classes = useStyles();
   const inputRef = useRef();
   const buttonClick = useCallback(() => inputRef?.current?.click(), [inputRef]);
@@ -45,7 +46,9 @@ export const FileUploadButton = (props: {
         ref={inputRef}
         multiple
       />
-      <span onClick={buttonClick}>{button}</span>
+      <span className={className} onClick={buttonClick}>
+        {button}
+      </span>
     </FormAction>
   );
 };

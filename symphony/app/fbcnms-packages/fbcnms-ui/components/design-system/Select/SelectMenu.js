@@ -38,6 +38,7 @@ export type OptionProps<TValue> = {|
   label: React.Node,
   searchTerm?: string,
   value: TValue,
+  className?: ?string,
   ...PermissionHandlingProps,
 |};
 
@@ -84,11 +85,18 @@ const SelectMenu = <TValue>({
       )}
       {options
         .map(option => {
-          const {label, value, ignorePermissions, hideWhenDisabled} = option;
+          const {
+            label,
+            value,
+            ignorePermissions,
+            hideWhenDisabled,
+            className,
+          } = option;
           return (
             <SelectMenuItem
               label={label}
               value={value}
+              className={className}
               ignorePermissions={ignorePermissions}
               hideWhenDisabled={hideWhenDisabled}
               onClick={value => {

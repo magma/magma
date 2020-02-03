@@ -47,6 +47,7 @@ type Props<TValue> = {|
   value: TValue,
   onClick: (value: TValue) => void,
   isSelected?: boolean,
+  className?: ?string,
   ...PermissionHandlingProps,
 |};
 
@@ -56,6 +57,7 @@ const SelectMenuItem = <TValue>({
   onClick,
   isSelected = false,
   hideWhenDisabled = false,
+  className,
   ...permissionHandlingProps
 }: Props<TValue>) => {
   const classes = useStyles();
@@ -68,7 +70,7 @@ const SelectMenuItem = <TValue>({
           const disabled = context.disabled;
           return (
             <div
-              className={classNames(classes.option, {
+              className={classNames(classes.option, className, {
                 [classes.disabled]: disabled,
               })}
               onClick={disabled ? null : () => onClick(value)}>
