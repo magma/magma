@@ -402,6 +402,27 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return resp
 
     # --------------------------
+    # APN App
+    # --------------------------
+
+    def AddAPNFlowForUser(self, request, context):
+        # if app is not enabled
+        #     return None
+        # self._loop.call_soon_threadsafe(
+        #     self._apn_app.add_apn_flow_for_ue, request.ap_ip_addr, request.ap_name)
+        # )
+        pass
+
+    def DeleteAPNFlowForUser(self, request, context):
+        # if app is not enabled
+        #     return None
+        # self._loop.call_soon_threadsafe(
+        #     self._apn_app.delete_apn_flow_for_ue, request.ap_ip_addr, request.ap_name)
+        # )
+        pass
+
+
+    # --------------------------
     # Debugging
     # --------------------------
 
@@ -415,6 +436,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             TableAssignment(app_name=app_name, main_table=tables.main_table,
                             scratch_tables=tables.scratch_tables) for
             app_name, tables in table_assignments.items()])
+
 
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult

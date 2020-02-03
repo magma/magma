@@ -273,6 +273,10 @@ void LocalSessionManagerHandlerImpl::send_create_session(
             Status(
               grpc::FAILED_PRECONDITION, "Failed to initialize session");
         } else {
+          
+          // Let's try to add apn tagging after main session rules are installed
+          // bool success = enforcer_->init_apn_tagging(imsi, sid, cfg, response);
+          
           MLOG(MINFO) << "Successfully initialized new session " << sid
                       << " in sessiond for subscriber " << imsi
                       << " with default bearer id " << cfg.bearer_id;

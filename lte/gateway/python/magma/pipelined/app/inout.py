@@ -138,6 +138,17 @@ class InOutController(MagmaController):
                               uplink_match, [],
                               output_port=self._uplink_port)
 
+        # Add default flows for APN
+        # for apn, routing_config in self.config.apn_routing:
+            # add flow with priority higher then default
+            # For all packets with:
+            #   registers.APN_TAG_REG == encode_apn(apn)
+            # set :
+            #   VLAN to routing_config.get("vlan")
+            #   outport to routing_config.get("outport", "LOCAL")
+
+
+
     def _install_default_ingress_flows(self, dp):
         """
         Sets up the ingress table, the first step in the packet processing
