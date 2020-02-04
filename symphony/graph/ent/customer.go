@@ -43,9 +43,9 @@ type CustomerEdges struct {
 	loadedTypes [1]bool
 }
 
-// ServicesErr returns the Services value or an error if the edge
+// ServicesOrErr returns the Services value or an error if the edge
 // was not loaded in eager-loading.
-func (e CustomerEdges) ServicesErr() ([]*Service, error) {
+func (e CustomerEdges) ServicesOrErr() ([]*Service, error) {
 	if e.loadedTypes[0] {
 		return e.Services, nil
 	}

@@ -218,6 +218,7 @@ mme_sgw_tunnel_t *sgw_cm_create_s11_tunnel(
    * * * * If collision_p is not NULL (0), it means tunnel is already present.
    */
   hashtable_ts_insert(state->sgw_state.s11teid2mme, local_teid, new_tunnel);
+
   return new_tunnel;
 }
 

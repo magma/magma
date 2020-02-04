@@ -59,9 +59,9 @@ type ServiceEdges struct {
 	loadedTypes [7]bool
 }
 
-// TypeErr returns the Type value or an error if the edge
+// TypeOrErr returns the Type value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ServiceEdges) TypeErr() (*ServiceType, error) {
+func (e ServiceEdges) TypeOrErr() (*ServiceType, error) {
 	if e.loadedTypes[0] {
 		if e.Type == nil {
 			// The edge type was loaded in eager-loading,
@@ -73,54 +73,54 @@ func (e ServiceEdges) TypeErr() (*ServiceType, error) {
 	return nil, &NotLoadedError{edge: "type"}
 }
 
-// DownstreamErr returns the Downstream value or an error if the edge
+// DownstreamOrErr returns the Downstream value or an error if the edge
 // was not loaded in eager-loading.
-func (e ServiceEdges) DownstreamErr() ([]*Service, error) {
+func (e ServiceEdges) DownstreamOrErr() ([]*Service, error) {
 	if e.loadedTypes[1] {
 		return e.Downstream, nil
 	}
 	return nil, &NotLoadedError{edge: "downstream"}
 }
 
-// UpstreamErr returns the Upstream value or an error if the edge
+// UpstreamOrErr returns the Upstream value or an error if the edge
 // was not loaded in eager-loading.
-func (e ServiceEdges) UpstreamErr() ([]*Service, error) {
+func (e ServiceEdges) UpstreamOrErr() ([]*Service, error) {
 	if e.loadedTypes[2] {
 		return e.Upstream, nil
 	}
 	return nil, &NotLoadedError{edge: "upstream"}
 }
 
-// PropertiesErr returns the Properties value or an error if the edge
+// PropertiesOrErr returns the Properties value or an error if the edge
 // was not loaded in eager-loading.
-func (e ServiceEdges) PropertiesErr() ([]*Property, error) {
+func (e ServiceEdges) PropertiesOrErr() ([]*Property, error) {
 	if e.loadedTypes[3] {
 		return e.Properties, nil
 	}
 	return nil, &NotLoadedError{edge: "properties"}
 }
 
-// LinksErr returns the Links value or an error if the edge
+// LinksOrErr returns the Links value or an error if the edge
 // was not loaded in eager-loading.
-func (e ServiceEdges) LinksErr() ([]*Link, error) {
+func (e ServiceEdges) LinksOrErr() ([]*Link, error) {
 	if e.loadedTypes[4] {
 		return e.Links, nil
 	}
 	return nil, &NotLoadedError{edge: "links"}
 }
 
-// CustomerErr returns the Customer value or an error if the edge
+// CustomerOrErr returns the Customer value or an error if the edge
 // was not loaded in eager-loading.
-func (e ServiceEdges) CustomerErr() ([]*Customer, error) {
+func (e ServiceEdges) CustomerOrErr() ([]*Customer, error) {
 	if e.loadedTypes[5] {
 		return e.Customer, nil
 	}
 	return nil, &NotLoadedError{edge: "customer"}
 }
 
-// EndpointsErr returns the Endpoints value or an error if the edge
+// EndpointsOrErr returns the Endpoints value or an error if the edge
 // was not loaded in eager-loading.
-func (e ServiceEdges) EndpointsErr() ([]*ServiceEndpoint, error) {
+func (e ServiceEdges) EndpointsOrErr() ([]*ServiceEndpoint, error) {
 	if e.loadedTypes[6] {
 		return e.Endpoints, nil
 	}

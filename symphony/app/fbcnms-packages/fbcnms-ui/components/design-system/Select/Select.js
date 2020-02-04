@@ -17,27 +17,41 @@ import BasePopoverTrigger from '../ContexualLayer/BasePopoverTrigger';
 import Button from '../Button';
 import SelectMenu from './SelectMenu';
 import classNames from 'classnames';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useFormElementContext} from '../Form/FormElementContext';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles({
   root: {
     justifyContent: 'flex-start',
     padding: '4px',
+    border: `1px solid ${symphony.palette.D100}`,
+    '&$disabled': {
+      backgroundColor: symphony.palette.D50,
+    },
   },
-  value: {
-    fontWeight: 500,
+  disabled: {
+    '&&': {
+      '&&': {
+        color: symphony.palette.disabled,
+      },
+    },
+  },
+  formValue: {
+    ...symphony.typography.body2,
   },
   menu: {
     margin: '8px 0px',
   },
   label: {
-    fontWeight: 400,
+    fontWeight: symphony.typography.body2.fontWeight,
   },
 });
 
 type Props<TValue> = {
   className?: string,
-  label: React.Node,
+  label?: React.Node,
   options: Array<OptionProps<TValue>>,
   onChange: (value: TValue) => void | (() => void),
   selectedValue: ?TValue,
@@ -50,23 +64,43 @@ const Select = <TValue>({
   ...selectMenuProps
 }: Props<TValue>) => {
   const classes = useStyles();
-  const {options, selectedValue, skin, variant, disabled} = selectMenuProps;
+  const {
+    options,
+    selectedValue,
+    skin,
+    variant,
+    disabled: disabledProp,
+  } = selectMenuProps;
+  const {disabled: contextDisabled} = useFormElementContext();
+  const disabled = useMemo(
+    () => (disabledProp ? disabledProp : contextDisabled),
+    [disabledProp, contextDisabled],
+  );
   return (
     <BasePopoverTrigger
       popover={<SelectMenu {...selectMenuProps} className={classes.menu} />}>
       {(onShow, _onHide, contextRef) => (
         <Button
-          className={classNames(classes.root, className)}
+          className={classNames(classes.root, className, {
+            [classes.disabled]: disabled,
+          })}
           ref={contextRef}
           onClick={onShow}
           skin={skin ?? 'regular'}
           variant={variant}
           disabled={disabled}
-          rightIcon={ArrowDropDownIcon}>
+          rightIcon={ArrowDropDownIcon}
+          rightIconClass={classNames({[classes.disabled]: disabled})}>
           <span className={classes.label}>{label}</span>
-          {selectedValue != null ? ': ' : null}
+          {selectedValue != null && !!label ? ': ' : null}
           {selectedValue != null ? (
-            <span className={classes.value}>
+            <span
+              className={
+                classNames({
+                  [classes.formValue]: !label,
+                  [classes.disabled]: !label && disabled,
+                }) || null
+              }>
               {options.find(option => option.value === selectedValue)?.label ??
                 ''}
             </span>

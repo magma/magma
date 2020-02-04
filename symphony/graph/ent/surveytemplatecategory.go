@@ -44,9 +44,9 @@ type SurveyTemplateCategoryEdges struct {
 	loadedTypes [1]bool
 }
 
-// SurveyTemplateQuestionsErr returns the SurveyTemplateQuestions value or an error if the edge
+// SurveyTemplateQuestionsOrErr returns the SurveyTemplateQuestions value or an error if the edge
 // was not loaded in eager-loading.
-func (e SurveyTemplateCategoryEdges) SurveyTemplateQuestionsErr() ([]*SurveyTemplateQuestion, error) {
+func (e SurveyTemplateCategoryEdges) SurveyTemplateQuestionsOrErr() ([]*SurveyTemplateQuestion, error) {
 	if e.loadedTypes[0] {
 		return e.SurveyTemplateQuestions, nil
 	}

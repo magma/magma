@@ -141,6 +141,8 @@ void mme_app_s11_procedure_create_bearer_send_response(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+
   itti_s11_create_bearer_response_t *s11_create_bearer_response =
     &message_p->ittiMsg.s11_create_bearer_response;
   s11_create_bearer_response->local_teid = ue_context_p->mme_teid_s11;

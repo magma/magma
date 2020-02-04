@@ -25,6 +25,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import WorkIcon from '@material-ui/icons/Work';
 
 import {makeStyles} from '@material-ui/styles';
+import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -117,31 +118,34 @@ const ProjectTypeSelectWorkOrdersDialog = ({
       </DialogTitle>
       <DialogContent className={classes.dialogContent}>
         <List className={classes.list}>
-          {workOrderTypes.map(workOrder => (
-            <ListItem
-              className={classes.listItem}
-              button
-              onClick={() =>
-                setSelectedWorkOrderTypeIds(
-                  selectedWorkOrderTypeIds.includes(workOrder.id)
-                    ? selectedWorkOrderTypeIds.filter(
-                        existingId => existingId !== workOrder.id,
-                      )
-                    : [...selectedWorkOrderTypeIds, workOrder.id],
-                )
-              }
-              key={workOrder.id}>
-              <ListItemAvatar className={classes.listAvatar}>
-                <Avatar className={classes.avatar}>
-                  <WorkIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <Text className={classes.workOrderName}>{workOrder.name}</Text>
-              {selectedWorkOrderTypeIds.includes(workOrder.id) && (
-                <CheckIcon className={classes.checkIcon} />
-              )}
-            </ListItem>
-          ))}
+          {workOrderTypes
+            .filter(Boolean)
+            .sort((wotA, wotB) => sortLexicographically(wotA.name, wotB.name))
+            .map(workOrder => (
+              <ListItem
+                className={classes.listItem}
+                button
+                onClick={() =>
+                  setSelectedWorkOrderTypeIds(
+                    selectedWorkOrderTypeIds.includes(workOrder.id)
+                      ? selectedWorkOrderTypeIds.filter(
+                          existingId => existingId !== workOrder.id,
+                        )
+                      : [...selectedWorkOrderTypeIds, workOrder.id],
+                  )
+                }
+                key={workOrder.id}>
+                <ListItemAvatar className={classes.listAvatar}>
+                  <Avatar className={classes.avatar}>
+                    <WorkIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <Text className={classes.workOrderName}>{workOrder.name}</Text>
+                {selectedWorkOrderTypeIds.includes(workOrder.id) && (
+                  <CheckIcon className={classes.checkIcon} />
+                )}
+              </ListItem>
+            ))}
         </List>
         <div className={classes.spacer} />
       </DialogContent>

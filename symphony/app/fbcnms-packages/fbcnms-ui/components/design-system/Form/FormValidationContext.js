@@ -10,9 +10,10 @@
 
 import * as React from 'react';
 import * as imm from 'immutable';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useContext, useMemo, useState} from 'react';
 
 type Range = {
   from: number,
@@ -29,6 +30,7 @@ export type FormInputValueValidation = {
   range?: Range,
   // eslint-disable-next-line flowtype/no-weak-types
   checkCallback?: (value?: ?any) => string,
+  notAggregated?: boolean,
 };
 
 type FormIssuesContainer = {
@@ -175,7 +177,9 @@ const FormValidationMaintainer = function() {
         errorMessage = errorChecks[checksCount](validationInfo);
         checksCount++;
       }
-      return setError(validationInfo.fieldId, errorMessage);
+      return !!validationInfo.notAggregated
+        ? errorMessage
+        : setError(validationInfo.fieldId, errorMessage);
     },
     [errorChecks, setError],
   );
@@ -190,6 +194,8 @@ const FormValidationMaintainer = function() {
 };
 
 export function FormValidationContextProvider(props: Props) {
+  const {user} = useContext(AppContext);
+
   const errorsContext = FormValidationMaintainer();
   const editLocksContext = FormValidationMaintainer();
 
@@ -197,6 +203,13 @@ export function FormValidationContextProvider(props: Props) {
     error: errorsContext,
     editLock: editLocksContext,
   };
+
+  editLocksContext.check({
+    fieldId: 'System Rules',
+    fieldDisplayName: 'Read Only User',
+    value: user?.isReadOnlyUser,
+    checkCallback: isReadOnlyUser => (isReadOnlyUser ? 'Read Only User' : ''),
+  });
 
   return (
     <FormValidationContext.Provider value={providerValue}>

@@ -257,8 +257,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
       if (status.ok()) {
         bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
         if (!success) {
-          MLOG(MERROR) << "Failed to init session in Usage Monitor "
-                       << "for IMSI " << imsi;
+          MLOG(MERROR) << "Failed to init session in for IMSI " << imsi;
           status =
             Status(
               grpc::FAILED_PRECONDITION, "Failed to initialize session");

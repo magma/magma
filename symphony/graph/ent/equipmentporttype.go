@@ -45,27 +45,27 @@ type EquipmentPortTypeEdges struct {
 	loadedTypes [3]bool
 }
 
-// PropertyTypesErr returns the PropertyTypes value or an error if the edge
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentPortTypeEdges) PropertyTypesErr() ([]*PropertyType, error) {
+func (e EquipmentPortTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
 	if e.loadedTypes[0] {
 		return e.PropertyTypes, nil
 	}
 	return nil, &NotLoadedError{edge: "property_types"}
 }
 
-// LinkPropertyTypesErr returns the LinkPropertyTypes value or an error if the edge
+// LinkPropertyTypesOrErr returns the LinkPropertyTypes value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentPortTypeEdges) LinkPropertyTypesErr() ([]*PropertyType, error) {
+func (e EquipmentPortTypeEdges) LinkPropertyTypesOrErr() ([]*PropertyType, error) {
 	if e.loadedTypes[1] {
 		return e.LinkPropertyTypes, nil
 	}
 	return nil, &NotLoadedError{edge: "link_property_types"}
 }
 
-// PortDefinitionsErr returns the PortDefinitions value or an error if the edge
+// PortDefinitionsOrErr returns the PortDefinitions value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentPortTypeEdges) PortDefinitionsErr() ([]*EquipmentPortDefinition, error) {
+func (e EquipmentPortTypeEdges) PortDefinitionsOrErr() ([]*EquipmentPortDefinition, error) {
 	if e.loadedTypes[2] {
 		return e.PortDefinitions, nil
 	}

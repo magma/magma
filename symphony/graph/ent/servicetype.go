@@ -45,18 +45,18 @@ type ServiceTypeEdges struct {
 	loadedTypes [2]bool
 }
 
-// ServicesErr returns the Services value or an error if the edge
+// ServicesOrErr returns the Services value or an error if the edge
 // was not loaded in eager-loading.
-func (e ServiceTypeEdges) ServicesErr() ([]*Service, error) {
+func (e ServiceTypeEdges) ServicesOrErr() ([]*Service, error) {
 	if e.loadedTypes[0] {
 		return e.Services, nil
 	}
 	return nil, &NotLoadedError{edge: "services"}
 }
 
-// PropertyTypesErr returns the PropertyTypes value or an error if the edge
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
 // was not loaded in eager-loading.
-func (e ServiceTypeEdges) PropertyTypesErr() ([]*PropertyType, error) {
+func (e ServiceTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
 	if e.loadedTypes[1] {
 		return e.PropertyTypes, nil
 	}

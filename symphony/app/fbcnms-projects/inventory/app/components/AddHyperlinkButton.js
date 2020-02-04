@@ -23,6 +23,7 @@ import AddHyperlinkDialog from './AddHyperlinkDialog';
 import AddHyperlinkMutation from '../mutations/AddHyperlinkMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Strings from '../common/CommonStrings';
@@ -115,7 +116,7 @@ const AddHyperlinkButton = (props: Props) => {
   );
 
   return (
-    <>
+    <FormAction>
       {categoriesEnabled && Strings.documents.categories.length ? (
         <PopoverMenu
           skin={skin}
@@ -144,7 +145,7 @@ const AddHyperlinkButton = (props: Props) => {
         onClose={() => setAddHyperlinkDialogOpened(false)}
         targetCategory={selectedCategory}
       />
-    </>
+    </FormAction>
   );
 };
 
