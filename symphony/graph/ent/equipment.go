@@ -49,23 +49,23 @@ type Equipment struct {
 // EquipmentEdges holds the relations/edges for other nodes in the graph.
 type EquipmentEdges struct {
 	// Type holds the value of the type edge.
-	Type *EquipmentType
+	Type *EquipmentType `gqlgen:"equipmentType"`
 	// Location holds the value of the location edge.
-	Location *Location
+	Location *Location `gqlgen:"parentLocation"`
 	// ParentPosition holds the value of the parent_position edge.
-	ParentPosition *EquipmentPosition
+	ParentPosition *EquipmentPosition `gqlgen:"parentPosition"`
 	// Positions holds the value of the positions edge.
-	Positions []*EquipmentPosition
+	Positions []*EquipmentPosition `gqlgen:"positions"`
 	// Ports holds the value of the ports edge.
-	Ports []*EquipmentPort
+	Ports []*EquipmentPort `gqlgen:"ports"`
 	// WorkOrder holds the value of the work_order edge.
-	WorkOrder *WorkOrder
+	WorkOrder *WorkOrder `gqlgen:"workOrder"`
 	// Properties holds the value of the properties edge.
-	Properties []*Property
+	Properties []*Property `gqlgen:"properties"`
 	// Files holds the value of the files edge.
-	Files []*File
+	Files []*File `gqlgen:"files"`
 	// Hyperlinks holds the value of the hyperlinks edge.
-	Hyperlinks []*Hyperlink
+	Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [9]bool

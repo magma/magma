@@ -27,10 +27,13 @@ func (EquipmentPortType) Fields() []ent.Field {
 // Edges returns equipment type edges.
 func (EquipmentPortType) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("property_types", PropertyType.Type),
-		edge.To("link_property_types", PropertyType.Type),
+		edge.To("property_types", PropertyType.Type).
+			StructTag(`gqlgen:"propertyTypes"`),
+		edge.To("link_property_types", PropertyType.Type).
+			StructTag(`gqlgen:"linkPropertyTypes"`),
 		edge.From("port_definitions", EquipmentPortDefinition.Type).
-			Ref("equipment_port_type"),
+			Ref("equipment_port_type").
+			StructTag(`gqlgen:"numberOfPortDefinitions"`),
 	}
 }
 
@@ -57,7 +60,8 @@ func (EquipmentPortDefinition) Fields() []ent.Field {
 func (EquipmentPortDefinition) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("equipment_port_type", EquipmentPortType.Type).
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"portType"`),
 		edge.From("ports", EquipmentPort.Type).
 			Ref("definition"),
 		edge.From("equipment_type", EquipmentType.Type).
@@ -76,15 +80,20 @@ func (EquipmentPort) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("definition", EquipmentPortDefinition.Type).
 			Required().
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"definition"`),
 		edge.From("parent", Equipment.Type).
 			Ref("ports").
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"parentEquipment"`),
 		edge.To("link", Link.Type).
-			Unique(),
-		edge.To("properties", Property.Type),
+			Unique().
+			StructTag(`gqlgen:"link"`),
+		edge.To("properties", Property.Type).
+			StructTag(`gqlgen:"properties"`),
 		edge.From("endpoints", ServiceEndpoint.Type).
-			Ref("port"),
+			Ref("port").
+			StructTag(`gqlgen:"serviceEndpoints"`),
 	}
 }
 
@@ -134,12 +143,15 @@ func (EquipmentPosition) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("definition", EquipmentPositionDefinition.Type).
 			Required().
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"definition"`),
 		edge.From("parent", Equipment.Type).
 			Ref("positions").
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"parentEquipment"`),
 		edge.To("attachment", Equipment.Type).
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"attachedEquipment"`),
 	}
 }
 
@@ -188,13 +200,18 @@ func (EquipmentType) Fields() []ent.Field {
 // Edges returns equipment type edges.
 func (EquipmentType) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("port_definitions", EquipmentPortDefinition.Type),
-		edge.To("position_definitions", EquipmentPositionDefinition.Type),
-		edge.To("property_types", PropertyType.Type),
+		edge.To("port_definitions", EquipmentPortDefinition.Type).
+			StructTag(`gqlgen:"portDefinitions"`),
+		edge.To("position_definitions", EquipmentPositionDefinition.Type).
+			StructTag(`gqlgen:"positionDefinitions"`),
+		edge.To("property_types", PropertyType.Type).
+			StructTag(`gqlgen:"propertyTypes"`),
 		edge.From("equipment", Equipment.Type).
-			Ref("type"),
+			Ref("type").
+			StructTag(`gqlgen:"equipments"`),
 		edge.To("category", EquipmentCategory.Type).
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"category"`),
 	}
 }
 
@@ -223,19 +240,28 @@ func (Equipment) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("type", EquipmentType.Type).
 			Unique().
-			Required(),
+			Required().
+			StructTag(`gqlgen:"equipmentType"`),
 		edge.From("location", Location.Type).
 			Ref("equipment").
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"parentLocation"`),
 		edge.From("parent_position", EquipmentPosition.Type).
 			Ref("attachment").
-			Unique(),
-		edge.To("positions", EquipmentPosition.Type),
-		edge.To("ports", EquipmentPort.Type),
+			Unique().
+			StructTag(`gqlgen:"parentPosition"`),
+		edge.To("positions", EquipmentPosition.Type).
+			StructTag(`gqlgen:"positions"`),
+		edge.To("ports", EquipmentPort.Type).
+			StructTag(`gqlgen:"ports"`),
 		edge.To("work_order", WorkOrder.Type).
-			Unique(),
-		edge.To("properties", Property.Type),
-		edge.To("files", File.Type),
-		edge.To("hyperlinks", Hyperlink.Type),
+			Unique().
+			StructTag(`gqlgen:"workOrder"`),
+		edge.To("properties", Property.Type).
+			StructTag(`gqlgen:"properties"`),
+		edge.To("files", File.Type).
+			StructTag(`gqlgen:"files"`),
+		edge.To("hyperlinks", Hyperlink.Type).
+			StructTag(`gqlgen:"hyperlinks"`),
 	}
 }

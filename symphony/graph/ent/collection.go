@@ -81,6 +81,46 @@ func (e *EquipmentQuery) CollectFields(ctx context.Context, satisfies ...string)
 }
 
 func (e *EquipmentQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *EquipmentQuery {
+	for _, field := range graphql.CollectFields(reqctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "files":
+			e = e.WithFiles(func(query *FileQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "hyperlinks":
+			e = e.WithHyperlinks(func(query *HyperlinkQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "parentLocation":
+			e = e.WithLocation(func(query *LocationQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "parentPosition":
+			e = e.WithParentPosition(func(query *EquipmentPositionQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "ports":
+			e = e.WithPorts(func(query *EquipmentPortQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "positions":
+			e = e.WithPositions(func(query *EquipmentPositionQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "properties":
+			e = e.WithProperties(func(query *PropertyQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "equipmentType":
+			e = e.WithType(func(query *EquipmentTypeQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "workOrder":
+			e = e.WithWorkOrder(func(query *WorkOrderQuery) {
+				query.collectField(reqctx, field)
+			})
+		}
+	}
 	return e
 }
 
@@ -105,6 +145,30 @@ func (ep *EquipmentPortQuery) CollectFields(ctx context.Context, satisfies ...st
 }
 
 func (ep *EquipmentPortQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *EquipmentPortQuery {
+	for _, field := range graphql.CollectFields(reqctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "definition":
+			ep = ep.WithDefinition(func(query *EquipmentPortDefinitionQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "serviceEndpoints":
+			ep = ep.WithEndpoints(func(query *ServiceEndpointQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "link":
+			ep = ep.WithLink(func(query *LinkQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "parentEquipment":
+			ep = ep.WithParent(func(query *EquipmentQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "properties":
+			ep = ep.WithProperties(func(query *PropertyQuery) {
+				query.collectField(reqctx, field)
+			})
+		}
+	}
 	return ep
 }
 
@@ -117,6 +181,14 @@ func (epd *EquipmentPortDefinitionQuery) CollectFields(ctx context.Context, sati
 }
 
 func (epd *EquipmentPortDefinitionQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *EquipmentPortDefinitionQuery {
+	for _, field := range graphql.CollectFields(reqctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "portType":
+			epd = epd.WithEquipmentPortType(func(query *EquipmentPortTypeQuery) {
+				query.collectField(reqctx, field)
+			})
+		}
+	}
 	return epd
 }
 
@@ -129,6 +201,22 @@ func (ept *EquipmentPortTypeQuery) CollectFields(ctx context.Context, satisfies 
 }
 
 func (ept *EquipmentPortTypeQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *EquipmentPortTypeQuery {
+	for _, field := range graphql.CollectFields(reqctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "linkPropertyTypes":
+			ept = ept.WithLinkPropertyTypes(func(query *PropertyTypeQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "numberOfPortDefinitions":
+			ept = ept.WithPortDefinitions(func(query *EquipmentPortDefinitionQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "propertyTypes":
+			ept = ept.WithPropertyTypes(func(query *PropertyTypeQuery) {
+				query.collectField(reqctx, field)
+			})
+		}
+	}
 	return ept
 }
 
@@ -141,6 +229,22 @@ func (ep *EquipmentPositionQuery) CollectFields(ctx context.Context, satisfies .
 }
 
 func (ep *EquipmentPositionQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *EquipmentPositionQuery {
+	for _, field := range graphql.CollectFields(reqctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "attachedEquipment":
+			ep = ep.WithAttachment(func(query *EquipmentQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "definition":
+			ep = ep.WithDefinition(func(query *EquipmentPositionDefinitionQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "parentEquipment":
+			ep = ep.WithParent(func(query *EquipmentQuery) {
+				query.collectField(reqctx, field)
+			})
+		}
+	}
 	return ep
 }
 
@@ -165,6 +269,30 @@ func (et *EquipmentTypeQuery) CollectFields(ctx context.Context, satisfies ...st
 }
 
 func (et *EquipmentTypeQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *EquipmentTypeQuery {
+	for _, field := range graphql.CollectFields(reqctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "category":
+			et = et.WithCategory(func(query *EquipmentCategoryQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "equipments":
+			et = et.WithEquipment(func(query *EquipmentQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "portDefinitions":
+			et = et.WithPortDefinitions(func(query *EquipmentPortDefinitionQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "positionDefinitions":
+			et = et.WithPositionDefinitions(func(query *EquipmentPositionDefinitionQuery) {
+				query.collectField(reqctx, field)
+			})
+		case "propertyTypes":
+			et = et.WithPropertyTypes(func(query *PropertyTypeQuery) {
+				query.collectField(reqctx, field)
+			})
+		}
+	}
 	return et
 }
 

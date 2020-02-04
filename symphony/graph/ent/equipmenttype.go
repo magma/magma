@@ -37,15 +37,15 @@ type EquipmentType struct {
 // EquipmentTypeEdges holds the relations/edges for other nodes in the graph.
 type EquipmentTypeEdges struct {
 	// PortDefinitions holds the value of the port_definitions edge.
-	PortDefinitions []*EquipmentPortDefinition
+	PortDefinitions []*EquipmentPortDefinition `gqlgen:"portDefinitions"`
 	// PositionDefinitions holds the value of the position_definitions edge.
-	PositionDefinitions []*EquipmentPositionDefinition
+	PositionDefinitions []*EquipmentPositionDefinition `gqlgen:"positionDefinitions"`
 	// PropertyTypes holds the value of the property_types edge.
-	PropertyTypes []*PropertyType
+	PropertyTypes []*PropertyType `gqlgen:"propertyTypes"`
 	// Equipment holds the value of the equipment edge.
-	Equipment []*Equipment
+	Equipment []*Equipment `gqlgen:"equipments"`
 	// Category holds the value of the category edge.
-	Category *EquipmentCategory
+	Category *EquipmentCategory `gqlgen:"category"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [5]bool

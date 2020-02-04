@@ -37,11 +37,11 @@ type EquipmentPosition struct {
 // EquipmentPositionEdges holds the relations/edges for other nodes in the graph.
 type EquipmentPositionEdges struct {
 	// Definition holds the value of the definition edge.
-	Definition *EquipmentPositionDefinition
+	Definition *EquipmentPositionDefinition `gqlgen:"definition"`
 	// Parent holds the value of the parent edge.
-	Parent *Equipment
+	Parent *Equipment `gqlgen:"parentEquipment"`
 	// Attachment holds the value of the attachment edge.
-	Attachment *Equipment
+	Attachment *Equipment `gqlgen:"attachedEquipment"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool

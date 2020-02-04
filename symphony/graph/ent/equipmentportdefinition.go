@@ -45,7 +45,7 @@ type EquipmentPortDefinition struct {
 // EquipmentPortDefinitionEdges holds the relations/edges for other nodes in the graph.
 type EquipmentPortDefinitionEdges struct {
 	// EquipmentPortType holds the value of the equipment_port_type edge.
-	EquipmentPortType *EquipmentPortType
+	EquipmentPortType *EquipmentPortType `gqlgen:"portType"`
 	// Ports holds the value of the ports edge.
 	Ports []*EquipmentPort
 	// EquipmentType holds the value of the equipment_type edge.
