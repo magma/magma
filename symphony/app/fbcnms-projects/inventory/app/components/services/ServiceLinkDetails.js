@@ -12,11 +12,8 @@ import type {Link} from '../../common/Equipment';
 
 import ActiveEquipmentIcon from '@fbcnms/ui/icons/ActiveEquipmentIcon';
 import EquipmentIcon from '@fbcnms/ui/icons/EquipmentIcon';
-import IconButton from '@material-ui/core/IconButton';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import React, {useState} from 'react';
+import React from 'react';
+import TableRowOptionsButton from '../TableRowOptionsButton';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
@@ -30,6 +27,7 @@ type Props = {
 
 const useStyles = makeStyles(theme => ({
   root: {
+    display: 'flex',
     '&:hover': {
       backgroundColor: symphony.palette.B50,
       '& $moreButton': {
@@ -42,6 +40,9 @@ const useStyles = makeStyles(theme => ({
         display: 'block',
       },
     },
+  },
+  linkRow: {
+    flexGrow: 1,
     padding: '6px 32px',
     position: 'relative',
   },
@@ -98,68 +99,51 @@ const useStyles = makeStyles(theme => ({
 
 const ServiceLinkDetails = (props: Props) => {
   const classes = useStyles();
-  const [openMenu, setOpenMenu] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<?HTMLElement>(null);
   const {link, onDeleteLink} = props;
   return (
     <div className={classes.root}>
-      <div className={classes.line}>
-        <EquipmentIcon className={classes.icon} />
-        <ActiveEquipmentIcon className={classes.activeIcon} />
-        <Text variant="subtitle2" className={classes.componentName}>
-          {link.ports[0].parentEquipment.name}
-        </Text>
-        <div className={classes.separator} />
-        <EquipmentIcon className={classes.icon} />
-        <ActiveEquipmentIcon className={classes.activeIcon} />
-        <Text variant="subtitle2" className={classes.componentName}>
-          {link.ports[1].parentEquipment.name}
-        </Text>
+      <div className={classes.linkRow}>
+        <div className={classes.line}>
+          <EquipmentIcon className={classes.icon} />
+          <ActiveEquipmentIcon className={classes.activeIcon} />
+          <Text variant="subtitle2" className={classes.componentName}>
+            {link.ports[0].parentEquipment.name}
+          </Text>
+          <div className={classes.separator} />
+          <EquipmentIcon className={classes.icon} />
+          <ActiveEquipmentIcon className={classes.activeIcon} />
+          <Text variant="subtitle2" className={classes.componentName}>
+            {link.ports[1].parentEquipment.name}
+          </Text>
+        </div>
+        <div className={classes.line}>
+          <div className={classes.emptyIcon} />
+          <Text
+            variant="body2"
+            className={classNames(classes.componentName, classes.portName)}>
+            {link.ports[0].definition.name}
+          </Text>
+          <div className={classes.emptySeparator} />
+          <div className={classes.emptyIcon} />
+          <Text
+            variant="body2"
+            className={classNames(classes.componentName, classes.portName)}>
+            {link.ports[1].definition.name}
+          </Text>
+        </div>
       </div>
-      <div className={classes.line}>
-        <div className={classes.emptyIcon} />
-        <Text
-          variant="body2"
-          className={classNames(classes.componentName, classes.portName)}>
-          {link.ports[0].definition.name}
-        </Text>
-        <div className={classes.emptySeparator} />
-        <div className={classes.emptyIcon} />
-        <Text
-          variant="body2"
-          className={classNames(classes.componentName, classes.portName)}>
-          {link.ports[1].definition.name}
-        </Text>
-      </div>
-      <IconButton
-        className={classes.moreButton}
-        onClick={event => {
-          setAnchorEl(event.currentTarget);
-          setOpenMenu(true);
-        }}
-        color="secondary">
-        <MoreVertIcon />
-      </IconButton>
-      {openMenu && (
-        <Menu
-          anchorEl={anchorEl}
-          keepMounted
-          open={!!anchorEl}
-          onClose={() => {
-            setAnchorEl(null);
-            setOpenMenu(false);
-          }}>
-          <MenuItem
-            onClick={() => {
+
+      <TableRowOptionsButton
+        options={[
+          {
+            caption: 'Remove Link',
+            onClick: () => {
               ServerLogger.info(LogEvents.DELETE_SERVICE_LINK_BUTTON_CLICKED);
               onDeleteLink();
-              setAnchorEl(null);
-              setOpenMenu(false);
-            }}>
-            Remove Link
-          </MenuItem>
-        </Menu>
-      )}
+            },
+          },
+        ]}
+      />
     </div>
   );
 };
