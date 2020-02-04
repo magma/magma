@@ -65,14 +65,14 @@ type PropertyType struct {
 	Deleted bool `json:"deleted,omitempty" gqlgen:"isDeleted"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PropertyTypeQuery when eager-loading is set.
-	Edges                       PropertyTypeEdges `json:"edges"`
-	equipment_port_type_id      *string
-	link_equipment_port_type_id *string
-	equipment_type_id           *string
-	location_type_id            *string
-	project_type_id             *string
-	service_type_id             *string
-	work_order_type_id          *string
+	Edges                                   PropertyTypeEdges `json:"edges"`
+	equipment_port_type_property_types      *string
+	equipment_port_type_link_property_types *string
+	equipment_type_property_types           *string
+	location_type_property_types            *string
+	project_type_properties                 *string
+	service_type_property_types             *string
+	work_order_type_property_types          *string
 }
 
 // PropertyTypeEdges holds the relations/edges for other nodes in the graph.
@@ -233,13 +233,13 @@ func (*PropertyType) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*PropertyType) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // equipment_port_type_id
-		&sql.NullInt64{}, // link_equipment_port_type_id
-		&sql.NullInt64{}, // equipment_type_id
-		&sql.NullInt64{}, // location_type_id
-		&sql.NullInt64{}, // project_type_id
-		&sql.NullInt64{}, // service_type_id
-		&sql.NullInt64{}, // work_order_type_id
+		&sql.NullInt64{}, // equipment_port_type_property_types
+		&sql.NullInt64{}, // equipment_port_type_link_property_types
+		&sql.NullInt64{}, // equipment_type_property_types
+		&sql.NullInt64{}, // location_type_property_types
+		&sql.NullInt64{}, // project_type_properties
+		&sql.NullInt64{}, // service_type_property_types
+		&sql.NullInt64{}, // work_order_type_property_types
 	}
 }
 
@@ -348,46 +348,46 @@ func (pt *PropertyType) assignValues(values ...interface{}) error {
 	values = values[18:]
 	if len(values) == len(propertytype.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_property_types", value)
 		} else if value.Valid {
-			pt.equipment_port_type_id = new(string)
-			*pt.equipment_port_type_id = strconv.FormatInt(value.Int64, 10)
+			pt.equipment_port_type_property_types = new(string)
+			*pt.equipment_port_type_property_types = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field link_equipment_port_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_link_property_types", value)
 		} else if value.Valid {
-			pt.link_equipment_port_type_id = new(string)
-			*pt.link_equipment_port_type_id = strconv.FormatInt(value.Int64, 10)
+			pt.equipment_port_type_link_property_types = new(string)
+			*pt.equipment_port_type_link_property_types = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type_property_types", value)
 		} else if value.Valid {
-			pt.equipment_type_id = new(string)
-			*pt.equipment_type_id = strconv.FormatInt(value.Int64, 10)
+			pt.equipment_type_property_types = new(string)
+			*pt.equipment_type_property_types = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_type_property_types", value)
 		} else if value.Valid {
-			pt.location_type_id = new(string)
-			*pt.location_type_id = strconv.FormatInt(value.Int64, 10)
+			pt.location_type_property_types = new(string)
+			*pt.location_type_property_types = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[4].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field project_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field project_type_properties", value)
 		} else if value.Valid {
-			pt.project_type_id = new(string)
-			*pt.project_type_id = strconv.FormatInt(value.Int64, 10)
+			pt.project_type_properties = new(string)
+			*pt.project_type_properties = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[5].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field service_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field service_type_property_types", value)
 		} else if value.Valid {
-			pt.service_type_id = new(string)
-			*pt.service_type_id = strconv.FormatInt(value.Int64, 10)
+			pt.service_type_property_types = new(string)
+			*pt.service_type_property_types = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[6].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_type_property_types", value)
 		} else if value.Valid {
-			pt.work_order_type_id = new(string)
-			*pt.work_order_type_id = strconv.FormatInt(value.Int64, 10)
+			pt.work_order_type_property_types = new(string)
+			*pt.work_order_type_property_types = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

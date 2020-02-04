@@ -35,14 +35,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "service" package.
 	ServicesInverseTable = "services"
 	// ServicesColumn is the table column denoting the services relation/edge.
-	ServicesColumn = "type_id"
+	ServicesColumn = "service_type"
 	// PropertyTypesTable is the table the holds the property_types relation/edge.
 	PropertyTypesTable = "property_types"
 	// PropertyTypesInverseTable is the table name for the PropertyType entity.
 	// It exists in this package in order to avoid circular dependency with the "propertytype" package.
 	PropertyTypesInverseTable = "property_types"
 	// PropertyTypesColumn is the table column denoting the property_types relation/edge.
-	PropertyTypesColumn = "service_type_id"
+	PropertyTypesColumn = "service_type_property_types"
 )
 
 // Columns holds all SQL columns for servicetype fields.

@@ -39,11 +39,11 @@ type Equipment struct {
 	ExternalID string `json:"external_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
-	Edges              EquipmentEdges `json:"edges"`
-	type_id            *string
-	work_order_id      *string
-	parent_position_id *string
-	location_id        *string
+	Edges                         EquipmentEdges `json:"edges"`
+	equipment_type                *string
+	equipment_work_order          *string
+	equipment_position_attachment *string
+	location_equipment            *string
 }
 
 // EquipmentEdges holds the relations/edges for other nodes in the graph.
@@ -188,10 +188,10 @@ func (*Equipment) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Equipment) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // type_id
-		&sql.NullInt64{}, // work_order_id
-		&sql.NullInt64{}, // parent_position_id
-		&sql.NullInt64{}, // location_id
+		&sql.NullInt64{}, // equipment_type
+		&sql.NullInt64{}, // equipment_work_order
+		&sql.NullInt64{}, // equipment_position_attachment
+		&sql.NullInt64{}, // location_equipment
 	}
 }
 
@@ -240,28 +240,28 @@ func (e *Equipment) assignValues(values ...interface{}) error {
 	values = values[6:]
 	if len(values) == len(equipment.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type", value)
 		} else if value.Valid {
-			e.type_id = new(string)
-			*e.type_id = strconv.FormatInt(value.Int64, 10)
+			e.equipment_type = new(string)
+			*e.equipment_type = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_work_order", value)
 		} else if value.Valid {
-			e.work_order_id = new(string)
-			*e.work_order_id = strconv.FormatInt(value.Int64, 10)
+			e.equipment_work_order = new(string)
+			*e.equipment_work_order = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field parent_position_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_position_attachment", value)
 		} else if value.Valid {
-			e.parent_position_id = new(string)
-			*e.parent_position_id = strconv.FormatInt(value.Int64, 10)
+			e.equipment_position_attachment = new(string)
+			*e.equipment_position_attachment = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_equipment", value)
 		} else if value.Valid {
-			e.location_id = new(string)
-			*e.location_id = strconv.FormatInt(value.Int64, 10)
+			e.location_equipment = new(string)
+			*e.location_equipment = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

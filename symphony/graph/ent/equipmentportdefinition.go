@@ -37,9 +37,9 @@ type EquipmentPortDefinition struct {
 	VisibilityLabel string `json:"visibility_label,omitempty" gqlgen:"visibleLabel"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPortDefinitionQuery when eager-loading is set.
-	Edges                  EquipmentPortDefinitionEdges `json:"edges"`
-	equipment_port_type_id *string
-	equipment_type_id      *string
+	Edges                                         EquipmentPortDefinitionEdges `json:"edges"`
+	equipment_port_definition_equipment_port_type *string
+	equipment_type_port_definitions               *string
 }
 
 // EquipmentPortDefinitionEdges holds the relations/edges for other nodes in the graph.
@@ -108,8 +108,8 @@ func (*EquipmentPortDefinition) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*EquipmentPortDefinition) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // equipment_port_type_id
-		&sql.NullInt64{}, // equipment_type_id
+		&sql.NullInt64{}, // equipment_port_definition_equipment_port_type
+		&sql.NullInt64{}, // equipment_type_port_definitions
 	}
 }
 
@@ -158,16 +158,16 @@ func (epd *EquipmentPortDefinition) assignValues(values ...interface{}) error {
 	values = values[6:]
 	if len(values) == len(equipmentportdefinition.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_definition_equipment_port_type", value)
 		} else if value.Valid {
-			epd.equipment_port_type_id = new(string)
-			*epd.equipment_port_type_id = strconv.FormatInt(value.Int64, 10)
+			epd.equipment_port_definition_equipment_port_type = new(string)
+			*epd.equipment_port_definition_equipment_port_type = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type_port_definitions", value)
 		} else if value.Valid {
-			epd.equipment_type_id = new(string)
-			*epd.equipment_type_id = strconv.FormatInt(value.Int64, 10)
+			epd.equipment_type_port_definitions = new(string)
+			*epd.equipment_type_port_definitions = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

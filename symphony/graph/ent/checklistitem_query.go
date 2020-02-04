@@ -335,7 +335,7 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*CheckListItem)
 		for i := range nodes {
-			if fk := nodes[i].work_order_id; fk != nil {
+			if fk := nodes[i].work_order_check_list_items; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -348,7 +348,7 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_check_list_items" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.WorkOrder = n

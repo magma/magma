@@ -30,7 +30,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "workordertype" package.
 	WorkOrderTypeInverseTable = "work_order_types"
 	// WorkOrderTypeColumn is the table column denoting the work_order_type relation/edge.
-	WorkOrderTypeColumn = "work_order_type_id"
+	WorkOrderTypeColumn = "work_order_type_check_list_definitions"
 )
 
 // Columns holds all SQL columns for checklistitemdefinition fields.
@@ -45,5 +45,5 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the CheckListItemDefinition type.
 var ForeignKeys = []string{
-	"work_order_type_id",
+	"work_order_type_check_list_definitions",
 }

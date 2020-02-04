@@ -342,13 +342,13 @@ func (ecq *EquipmentCategoryQuery) sqlAll(ctx context.Context) ([]*EquipmentCate
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.category_id
+			fk := n.equipment_type_category
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "category_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_type_category" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_category" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Types = append(node.Edges.Types, n)
 		}

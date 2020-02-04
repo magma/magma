@@ -34,8 +34,8 @@ type Service struct {
 	Status string `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceQuery when eager-loading is set.
-	Edges   ServiceEdges `json:"edges"`
-	type_id *string
+	Edges        ServiceEdges `json:"edges"`
+	service_type *string
 }
 
 // ServiceEdges holds the relations/edges for other nodes in the graph.
@@ -142,7 +142,7 @@ func (*Service) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Service) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // type_id
+		&sql.NullInt64{}, // service_type
 	}
 }
 
@@ -187,10 +187,10 @@ func (s *Service) assignValues(values ...interface{}) error {
 	values = values[5:]
 	if len(values) == len(service.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field service_type", value)
 		} else if value.Valid {
-			s.type_id = new(string)
-			*s.type_id = strconv.FormatInt(value.Int64, 10)
+			s.service_type = new(string)
+			*s.service_type = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

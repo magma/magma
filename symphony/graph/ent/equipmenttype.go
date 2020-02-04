@@ -30,8 +30,8 @@ type EquipmentType struct {
 	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentTypeQuery when eager-loading is set.
-	Edges       EquipmentTypeEdges `json:"edges"`
-	category_id *string
+	Edges                   EquipmentTypeEdges `json:"edges"`
+	equipment_type_category *string
 }
 
 // EquipmentTypeEdges holds the relations/edges for other nodes in the graph.
@@ -114,7 +114,7 @@ func (*EquipmentType) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*EquipmentType) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // category_id
+		&sql.NullInt64{}, // equipment_type_category
 	}
 }
 
@@ -148,10 +148,10 @@ func (et *EquipmentType) assignValues(values ...interface{}) error {
 	values = values[3:]
 	if len(values) == len(equipmenttype.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field category_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type_category", value)
 		} else if value.Valid {
-			et.category_id = new(string)
-			*et.category_id = strconv.FormatInt(value.Int64, 10)
+			et.equipment_type_category = new(string)
+			*et.equipment_type_category = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

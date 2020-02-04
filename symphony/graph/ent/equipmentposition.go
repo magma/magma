@@ -29,9 +29,9 @@ type EquipmentPosition struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPositionQuery when eager-loading is set.
-	Edges         EquipmentPositionEdges `json:"edges"`
-	parent_id     *string
-	definition_id *string
+	Edges                         EquipmentPositionEdges `json:"edges"`
+	equipment_positions           *string
+	equipment_position_definition *string
 }
 
 // EquipmentPositionEdges holds the relations/edges for other nodes in the graph.
@@ -101,8 +101,8 @@ func (*EquipmentPosition) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*EquipmentPosition) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // parent_id
-		&sql.NullInt64{}, // definition_id
+		&sql.NullInt64{}, // equipment_positions
+		&sql.NullInt64{}, // equipment_position_definition
 	}
 }
 
@@ -131,16 +131,16 @@ func (ep *EquipmentPosition) assignValues(values ...interface{}) error {
 	values = values[2:]
 	if len(values) == len(equipmentposition.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field parent_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_positions", value)
 		} else if value.Valid {
-			ep.parent_id = new(string)
-			*ep.parent_id = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_positions = new(string)
+			*ep.equipment_positions = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field definition_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_position_definition", value)
 		} else if value.Valid {
-			ep.definition_id = new(string)
-			*ep.definition_id = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_position_definition = new(string)
+			*ep.equipment_position_definition = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil
