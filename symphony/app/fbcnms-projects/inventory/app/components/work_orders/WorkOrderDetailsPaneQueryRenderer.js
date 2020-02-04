@@ -19,8 +19,10 @@ type Props = {
 
 const workOrderDetailsQuery = graphql`
   query WorkOrderDetailsPaneQueryRendererQuery($workOrderId: ID!) {
-    workOrder(id: $workOrderId) {
-      ...WorkOrderDetailsPane_workOrder
+    workOrder: node(id: $workOrderId) {
+      ... on WorkOrder {
+        ...WorkOrderDetailsPane_workOrder
+      }
     }
   }
 `;
