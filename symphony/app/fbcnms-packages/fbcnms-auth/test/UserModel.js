@@ -18,6 +18,7 @@ export const USERS = [
     organization: 'validorg',
     role: AccessRoles.USER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
+    networkIDs: ['network1'],
   },
   {
     id: '2',
@@ -44,7 +45,7 @@ export const USERS = [
 
 export const USERS_EXPECTED = [
   {
-    networkIDs: [],
+    networkIDs: ['network1'],
     id: 1,
     email: 'valid@123.com',
     organization: 'validorg',
