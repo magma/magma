@@ -152,12 +152,6 @@ static void* sgw_intertask_interface(void* args_p)
           &received_message_p->ittiMsg.sgi_update_end_point_response, imsi64);
       } break;
 
-      case S5_CREATE_BEARER_RESPONSE: {
-        sgw_handle_s5_create_bearer_response(
-          spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_response,
-          imsi64);
-      } break;
-
       case S5_NW_INITIATED_ACTIVATE_BEARER_REQ: {
         //Handle Dedicated bearer activation from PCRF
         if (

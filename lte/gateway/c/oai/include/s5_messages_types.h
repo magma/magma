@@ -31,10 +31,6 @@
 
 #include "sgw_ie_defs.h"
 
-#define S5_CREATE_BEARER_REQUEST(mSGpTR)                                       \
-  (mSGpTR)->ittiMsg.s5_create_bearer_request
-#define S5_CREATE_BEARER_RESPONSE(mSGpTR)                                      \
-  (mSGpTR)->ittiMsg.s5_create_bearer_response
 #define S5_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                            \
   (mSGpTR)->ittiMsg.s5_nw_init_actv_bearer_request
 #define S5_NW_INITIATED_ACTIVATE_BEARER_RESP(mSGpTR)                           \
@@ -43,22 +39,6 @@
   (mSGpTR)->ittiMsg.s5_nw_init_deactv_bearer_request
 #define S5_NW_INITIATED_DEACTIVATE_BEARER_RESP(mSGpTR)                         \
   (mSGpTR)->ittiMsg.s5_nw_init_deactv_bearer_response
-
-typedef struct itti_s5_create_bearer_request_s {
-  teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
-  teid_t S1u_teid;     ///< Tunnel Endpoint Identifier
-  ebi_t eps_bearer_id;
-} itti_s5_create_bearer_request_t;
-
-enum s5_failure_cause { S5_OK = 0, PCEF_FAILURE };
-
-typedef struct itti_s5_create_bearer_response_s {
-  teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
-  teid_t S1u_teid;     ///< Tunnel Endpoint Identifier
-  ebi_t eps_bearer_id;
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp;
-  enum s5_failure_cause failure_cause;
-} itti_s5_create_bearer_response_t;
 
 typedef struct itti_s5_nw_init_actv_bearer_request_s {
   ebi_t lbi;///< linked Bearer ID

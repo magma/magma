@@ -33,5 +33,6 @@ target_include_directories(LIB_PCEF PUBLIC
   ${MAGMA_LIB_DIR}/async_grpc
   ${MAGMA_LIB_DIR}/config
   ${MAGMA_LIB_DIR}/service_registry
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../tasks/sgw/
   ${CMAKE_CURRENT_SOURCE_DIR}
 )

@@ -67,12 +67,12 @@ extern uint32_t sgw_get_new_s1u_teid(void);
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 //--------------------------------------------------------------------------------
 
-int pgw_handle_create_bearer_request(
-  spgw_state_t *spgw_state,
-  const itti_s5_create_bearer_request_t *const bearer_req_p,
-  imsi64_t imsi64)
+void pgw_handle_create_bearer_request(
+  spgw_state_t* spgw_state,
+  teid_t context_teid,
+  ebi_t eps_bearer_id)
 {
-  // assign the IP here and just send back a S5_CREATE_BEARER_RESPONSE
+  // assign the IP here
   s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p = NULL;
   MessageDef *message_p = NULL;
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
@@ -84,13 +84,14 @@ int pgw_handle_create_bearer_request(
 
   OAILOG_DEBUG(
     LOG_PGW_APP,
-    "Rx S5_CREATE_BEARER_REQUEST, Context S-GW S11 teid %u, EPS bearer id %u\n",
-    bearer_req_p->context_teid,
-    bearer_req_p->eps_bearer_id);
+    "Rx S5_CREATE_BEARER_REQUEST, Context S-GW S11 teid" TEID_FMT
+    " , EPS bearer id %u\n",
+    context_teid,
+    eps_bearer_id);
   hash_rc = hashtable_ts_get(
     spgw_state->sgw_state.s11_bearer_context_information,
-    bearer_req_p->context_teid,
-    (void **) &new_bearer_ctxt_info_p);
+    context_teid,
+    (void**) &new_bearer_ctxt_info_p);
 
   if (HASH_TABLE_OK == hash_rc) {
     memset(
@@ -108,19 +109,21 @@ int pgw_handle_create_bearer_request(
     protocol_configuration_options_ids_t pco_ids;
     memset(&pco_ids, 0, sizeof pco_ids);
 
-    // TODO: perhaps change to a nonfatal assert?
-    AssertFatal(
-      0 == pgw_process_pco_request(pco_req, &pco_resp, &pco_ids),
-      "Error in processing PCO in request");
+    if (pgw_process_pco_request(pco_req, &pco_resp, &pco_ids) != RETURNok) {
+      OAILOG_DEBUG(
+        LOG_PGW_APP,
+        "Error in processing PCO in create bearer request for "
+        "context_id: " TEID_FMT "\n");
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
     copy_protocol_configuration_options(
       &sgi_create_endpoint_resp.pco, &pco_resp);
     clear_protocol_configuration_options(&pco_resp);
 
     //--------------------------------------------------------------------------
     // IP forward will forward packets to this teid
-    sgi_create_endpoint_resp.context_teid = bearer_req_p->context_teid;
-    sgi_create_endpoint_resp.sgw_S1u_teid = bearer_req_p->S1u_teid;
-    sgi_create_endpoint_resp.eps_bearer_id = bearer_req_p->eps_bearer_id;
+    sgi_create_endpoint_resp.context_teid = context_teid;
+    sgi_create_endpoint_resp.eps_bearer_id = eps_bearer_id;
     // TO DO NOW
     sgi_create_endpoint_resp.paa.pdn_type =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
@@ -242,11 +245,14 @@ int pgw_handle_create_bearer_request(
     OAILOG_DEBUG(
       LOG_PGW_APP,
       "Rx S11_S1U_ENDPOINT_CREATED, Context: teid %u NOT FOUND\n",
-      bearer_req_p->context_teid);
+      context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
   }
   if (sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
     // create session in PCEF and return
+    s5_create_bearer_request_t bearer_req = {0};
+    bearer_req.context_teid = context_teid;
+    bearer_req.eps_bearer_id = eps_bearer_id;
     char ip_str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(inaddr.s_addr), ip_str, INET_ADDRSTRLEN);
     struct pcef_create_session_data session_data;
@@ -255,9 +261,10 @@ int pgw_handle_create_bearer_request(
       &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
       &session_data);
     pcef_create_session(
-      imsi, ip_str, &session_data, sgi_create_endpoint_resp, *bearer_req_p);
-    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNok);
+      imsi, ip_str, &session_data, sgi_create_endpoint_resp, bearer_req);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+<<<<<<< Updated upstream
   message_p = itti_alloc_new_message(TASK_SPGW_APP, S5_CREATE_BEARER_RESPONSE);
   itti_s5_create_bearer_response_t *s5_response =
     &message_p->ittiMsg.s5_create_bearer_response;
@@ -280,6 +287,15 @@ int pgw_handle_create_bearer_request(
     s5_response->eps_bearer_id);
   itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNok);
+=======
+  s5_create_bearer_response_t s5_response = {0};
+  s5_response.context_teid = context_teid;
+  s5_response.eps_bearer_id = eps_bearer_id;
+  s5_response.sgi_create_endpoint_resp = sgi_create_endpoint_resp;
+  s5_response.failure_cause = S5_OK;
+  sgw_handle_s5_create_bearer_response(s5_response);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+>>>>>>> Stashed changes
 }
 
 static int get_imeisv_from_session_req(

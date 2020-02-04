@@ -294,42 +294,15 @@ int sgw_handle_create_session_request(
       session_req_pP,
       sizeof(itti_s11_create_session_request_t));
 
-    {
-      /*
+    /*
        * The original implementation called sgw_handle_gtpv1uCreateTunnelResp() here.
        * Instead, we now send a create bearer request to PGW and handle respond
        * asynchronously through sgw_handle_s5_create_bearer_response()
        */
-      MessageDef *message_p = NULL;
-      message_p =
-        itti_alloc_new_message(TASK_PGW_APP, S5_CREATE_BEARER_REQUEST);
-      message_p->ittiMsg.s5_create_bearer_request.context_teid =
-        new_endpoint_p->local_teid;
-      message_p->ittiMsg.s5_create_bearer_request.S1u_teid =
-        sgw_get_new_s1u_teid(state);
-      message_p->ittiMsg.s5_create_bearer_request.eps_bearer_id =
-        session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
-          .eps_bearer_id;
+    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up = sgw_get_new_s1u_teid(state);
 
-      message_p->ittiMsgHeader.imsi = imsi64;
-
-      OAILOG_DEBUG(
-        LOG_SPGW_APP,
-        "Updated eps_bearer_entry_p eps_b_id %u with SGW S1U teid %u\n",
-        message_p->ittiMsg.s5_create_bearer_request.eps_bearer_id,
-        message_p->ittiMsg.s5_create_bearer_request.S1u_teid);
-      eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up =
-        message_p->ittiMsg.s5_create_bearer_request.S1u_teid;
-
-      OAILOG_DEBUG(
-        LOG_SPGW_APP,
-        "Sending S5 Create Bearer Request to PGW_APP, local_teid = %u,"
-        "S1U_teid = %u,ebi = %u \n",
-        message_p->ittiMsg.s5_create_bearer_request.context_teid,
-        message_p->ittiMsg.s5_create_bearer_request.S1u_teid,
-        message_p->ittiMsg.s5_create_bearer_request.eps_bearer_id);
-      itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
-    }
+    pgw_handle_create_bearer_request(
+      state, new_endpoint_p->local_teid, eps_bearer_ctxt_p->eps_bearer_id);
   } else {
     OAILOG_ERROR(
       LOG_SPGW_APP,
@@ -364,10 +337,9 @@ int sgw_handle_sgi_endpoint_created(
 
   OAILOG_DEBUG(
     LOG_SPGW_APP,
-    "Rx SGI_CREATE_ENDPOINT_RESPONSE,Context: S11 teid " TEID_FMT
-    ", SGW S1U teid " TEID_FMT " EPS bearer id %u\n",
+    "Rx SGI_CREATE_ENDPOINT_RESPONSE,Context: S11 teid, " TEID_FMT
+    "EPS bearer id %u\n",
     resp_pP->context_teid,
-    resp_pP->sgw_S1u_teid,
     resp_pP->eps_bearer_id);
 
   hash_rc = hashtable_ts_get(
@@ -395,15 +367,6 @@ int sgw_handle_sgi_endpoint_created(
      * * * *  we set the cause value regarding the S1-U bearer establishment result status.
      */
     if (resp_pP->status == SGI_STATUS_OK) {
-      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-        .s1u_sgw_fteid.teid = resp_pP->sgw_S1u_teid;
-      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-        .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
-      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-        .s1u_sgw_fteid.ipv4 = 1;
-      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-        .s1u_sgw_fteid.ipv4_address.s_addr =
-        state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
       create_session_response_p->ambr.br_dl = 100000000;
       create_session_response_p->ambr.br_ul = 40000000;
 
@@ -420,6 +383,17 @@ int sgw_handle_sgi_endpoint_created(
       copy_protocol_configuration_options(
         &create_session_response_p->pco, &resp_pP->pco);
       clear_protocol_configuration_options(&resp_pP->pco);
+      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.teid = eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
+      eps_bearer_ctxt_p->create_session_response_p->bearer_contexts_created
+        .bearer_contexts[0]
+        .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
+      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.ipv4 = 1;
+      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
+        .s1u_sgw_fteid.ipv4_address.s_addr =
+        state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
+
       /*
        * Set the Cause information from bearer context created.
        * "Request accepted" is returned when the GTPv2 entity has accepted a control plane request.
@@ -1629,11 +1603,10 @@ int sgw_handle_release_access_bearers_request(
 
 //-------------------------------------------------------------------------
 int sgw_handle_s5_create_bearer_response(
-  spgw_state_t *state,
-  const itti_s5_create_bearer_response_t *const bearer_resp_p,
-  imsi64_t imsi64)
+  s5_create_bearer_response_t bearer_resp)
 {
-  itti_s11_create_session_response_t *create_session_response_p = NULL;
+  spgw_state_t* spgw_state_p = NULL;
+  itti_s11_create_session_response_t* create_session_response_p = NULL;
   s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p = NULL;
   MessageDef *message_p = NULL;
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
@@ -1641,15 +1614,15 @@ int sgw_handle_s5_create_bearer_response(
   gtpv2c_cause_value_t cause = REQUEST_ACCEPTED;
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
+  spgw_state_p = get_spgw_state(false);
   OAILOG_DEBUG(
     LOG_SPGW_APP,
-    "Rx S5_CREATE_BEARER_RESPONSE, Context S-GW S11 teid %u, S-GW S1U teid %u "
+    "Rx S5_CREATE_BEARER_RESPONSE, Context S-GW S11 teid, " TEID_FMT
     "EPS bearer id %u\n",
-    bearer_resp_p->context_teid,
-    bearer_resp_p->S1u_teid,
-    bearer_resp_p->eps_bearer_id);
+    bearer_resp->context_teid,
+    bearer_resp->eps_bearer_id);
 
-  sgi_create_endpoint_resp = bearer_resp_p->sgi_create_endpoint_resp;
+  sgi_create_endpoint_resp = bearer_resp->sgi_create_endpoint_resp;
 
   OAILOG_DEBUG(
     LOG_SPGW_APP,
@@ -1658,16 +1631,16 @@ int sgw_handle_s5_create_bearer_response(
     sgi_create_endpoint_resp.status);
 
   hashtable_ts_get(
-    state->sgw_state.s11_bearer_context_information,
-    bearer_resp_p->context_teid,
-    (void **) &new_bearer_ctxt_info_p);
+    spgw_state_p->sgw_state.s11_bearer_context_information,
+    bearer_resp->context_teid,
+    (void**) &new_bearer_ctxt_info_p);
 
-  if (bearer_resp_p->failure_cause == S5_OK) {
+  if (bearer_resp->failure_cause == S5_OK) {
     switch (sgi_create_endpoint_resp.status) {
       case SGI_STATUS_OK:
         // Send Create Session Response with ack
-        sgw_handle_sgi_endpoint_created(state, &sgi_create_endpoint_resp,
-          imsi64);
+        sgw_handle_sgi_endpoint_created(
+          spgw_state_p, &sgi_create_endpoint_resp);
         increment_counter("spgw_create_session", 1, 1, "result", "success");
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 
@@ -1717,7 +1690,7 @@ int sgw_handle_s5_create_bearer_response(
 
         break;
     }
-  } else if (bearer_resp_p->failure_cause == PCEF_FAILURE) {
+  } else if (bearer_resp->failure_cause == PCEF_FAILURE) {
     cause = SERVICE_DENIED;
   }
 
@@ -1757,8 +1730,8 @@ int sgw_handle_s5_create_bearer_response(
     sgw_cm_remove_eps_bearer_entry(
       &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.
       pdn_connection, sgi_create_endpoint_resp.eps_bearer_id);
-    sgw_cm_remove_bearer_context_information(state,
-      bearer_resp_p->context_teid);
+    sgw_cm_remove_bearer_context_information(
+      spgw_state_p, bearer_resp->context_teid);
     OAILOG_INFO(
       LOG_SPGW_APP,
       "Deleted default bearer context with SGW C-plane TEID = %u "

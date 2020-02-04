@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -70,9 +70,7 @@ int sgw_handle_release_access_bearers_request(
     *const release_access_bearers_req_pP,
     imsi64_t imsi64);
 int sgw_handle_s5_create_bearer_response(
-  spgw_state_t *state,
-  const itti_s5_create_bearer_response_t *const bearer_resp_p,
-  imsi64_t imsi64);
+  s5_create_bearer_response_t bearer_resp);
 int sgw_handle_suspend_notification(
   spgw_state_t *state,
   const itti_s11_suspend_notification_t *const suspend_notification_pP,
