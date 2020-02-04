@@ -136,6 +136,7 @@ typedef struct MessageHeader_s {
   task_id_t originTaskId;      /**< ID of the sender task */
   task_id_t destinationTaskId; /**< ID of the destination task */
   instance_t instance;         /**< Task instance for virtualization */
+  imsi64_t imsi;               /** IMSI associated to sender task */
 
   MessageHeaderSize
     ittiMsgSize; /**< Message size (not including header size) */

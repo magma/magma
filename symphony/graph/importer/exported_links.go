@@ -124,87 +124,29 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					continue
 				}
 				id := importLine.ID()
-
 				if id == "" {
 					client := m.ClientFrom(ctx)
 					var linkPropertyInputs []*models.PropertyInput
 					linkInput := make(map[int]*models.LinkSide, 2)
 
 					for i, portRecord := range []ImportRecord{*portARecord, *portBRecord} {
-						etn := portRecord.PortEquipmentTypeName()
-						defName := portRecord.Name()
-						en := portRecord.PortEquipmentName()
-
-						equipmentType, err := client.EquipmentType.Query().Where(equipmenttype.Name(etn)).Only(ctx)
+						side, msg, propertyInputs, err := m.getLinkSide(ctx, client, portRecord, importLine, importHeader, commit)
 						if err != nil {
-							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("getting equipment type: %v", etn)})
-							continue
+							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: msg})
+							break
 						}
-						portDef, err := equipmentType.QueryPortDefinitions().Where(equipmentportdefinition.Name(defName)).Only(ctx)
-						if err != nil {
-							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("getting port definition %v under equipment type %v", defName, etn)})
-							continue
-						}
-
-						parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, portRecord, commit)
-
-						if err != nil {
-							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/verifying location hierarchy"})
-							continue
-						} else if parentLoc == nil && !commit {
-							continue
-						}
-
-						parentEquipmentID, positionDefinitionID, err := m.getPositionDetailsIfExists(ctx, parentLoc, portRecord, false)
-						if err != nil {
-							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "fetching equipment and positions hierarchy"})
-							continue
-						}
-						var pos *ent.EquipmentPosition
-
-						if parentEquipmentID != nil && positionDefinitionID != nil {
-							parentLoc = nil
-							if commit {
-								pos, err = resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID, false)
-							} else {
-								pos, err = resolverutil.ValidateAndGetPositionIfExists(ctx, client, parentEquipmentID, positionDefinitionID, false)
+						if side == nil {
+							if !commit {
+								break
 							}
-							if err != nil {
-								errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "creating equipment position"})
-								continue
-							}
+							errs = append(errs, ErrorLine{Line: numRows, Error: "failed to create link side", Message: fmt.Sprintf("port: %v", portRecord.Name())})
+							break
 						}
-						var equipment *ent.Equipment
-						if commit {
-							equipment, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
-
-						} else {
-							equipment, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
-							if equipment == nil && err == nil {
-								continue
-							}
-						}
-						if err != nil {
-							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "creating/fetching equipment"})
-							continue
-						}
-						var propInputs []*models.PropertyInput
-						if importLine.Len() > importHeader.PropertyStartIdx() {
-							portType, err := portDef.QueryEquipmentPortType().Only(ctx)
-							if ent.MaskNotFound(err) != nil {
-								errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("can't fetch port type %v", portDef.Name)})
-								continue
-							}
-							if portType != nil {
-								propInputs, err = m.validatePropertiesForPortType(ctx, importLine, portType, ImportEntityLink)
-								if err != nil {
-									errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating property for type %v", portType.Name)})
-									continue
-								}
-								linkPropertyInputs = append(linkPropertyInputs, propInputs...)
-							}
-						}
-						linkInput[i] = &models.LinkSide{Equipment: equipment.ID, Port: portDef.ID}
+						linkPropertyInputs = append(linkPropertyInputs, propertyInputs...)
+						linkInput[i] = side
+					}
+					if linkInput[0] == nil || linkInput[1] == nil {
+						continue
 					}
 					serviceIds, err := m.validateServicesForLinks(ctx, importLine)
 					if err != nil {
@@ -239,24 +181,11 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating services where the link is a part of them: id %v"})
 						continue
 					}
-					var allPropInputs []*models.PropertyInput
-					ports, err := l.QueryPorts().All(ctx)
-					if err != nil {
-						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("querying link ports: id %v", id)})
-						continue
-					}
 
-					for _, port := range ports {
-						definition := port.QueryDefinition().OnlyX(ctx)
-						portType, _ := definition.QueryEquipmentPortType().Only(ctx)
-						if portType != nil && importLine.Len() > importHeader.PropertyStartIdx() {
-							portProps, err := m.validatePropertiesForPortType(ctx, importLine, portType, ImportEntityLink)
-							if err != nil {
-								errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating property for type %v.", portType.Name)})
-								continue
-							}
-							allPropInputs = append(allPropInputs, portProps...)
-						}
+					allPropInputs, msg, err := m.getLinkPropertyInputs(ctx, importLine, importHeader, l)
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: msg})
+						continue
 					}
 					if len(allPropInputs) == 0 {
 						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port types or link properties", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
@@ -287,6 +216,96 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
+}
+
+func (m *importer) getLinkPropertyInputs(ctx context.Context, importLine ImportRecord, importHeader ImportHeader, l *ent.Link) ([]*models.PropertyInput, string, error) {
+	var allPropInputs []*models.PropertyInput
+	ports, err := l.QueryPorts().All(ctx)
+	if err != nil {
+		return nil, fmt.Sprintf("querying link ports: id %v", l.ID), err
+	}
+
+	for _, port := range ports {
+		definition := port.QueryDefinition().OnlyX(ctx)
+		portType, _ := definition.QueryEquipmentPortType().Only(ctx)
+
+		if portType != nil && importLine.Len() > importHeader.PropertyStartIdx() {
+			portProps, err := m.validatePropertiesForPortType(ctx, importLine, portType, ImportEntityLink)
+			if err != nil {
+				return nil, fmt.Sprintf("validating property for type %v.", portType.Name), err
+			}
+			allPropInputs = append(allPropInputs, portProps...)
+		}
+	}
+	return allPropInputs, "", nil
+}
+
+func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portRecord, linkRecord ImportRecord, linkHeader ImportHeader, commit bool) (*models.LinkSide, string, []*models.PropertyInput, error) {
+	etn := portRecord.PortEquipmentTypeName()
+	defName := portRecord.Name()
+	en := portRecord.PortEquipmentName()
+
+	equipmentType, err := client.EquipmentType.Query().Where(equipmenttype.Name(etn)).Only(ctx)
+	if err != nil {
+		return nil, fmt.Sprintf("getting equipment type: %v", etn), nil, err
+	}
+	portDef, err := equipmentType.QueryPortDefinitions().Where(equipmentportdefinition.Name(defName)).Only(ctx)
+	if err != nil {
+		return nil, fmt.Sprintf("getting port definition %v under equipment type %v", defName, etn), nil, err
+	}
+
+	parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, portRecord, commit)
+
+	if err != nil {
+		return nil, "error while creating/verifying location hierarchy", nil, err
+	} else if parentLoc == nil && !commit {
+		return nil, "", nil, nil
+	}
+
+	parentEquipmentID, positionDefinitionID, err := m.getPositionDetailsIfExists(ctx, parentLoc, portRecord, false)
+	if err != nil {
+		return nil, "fetching equipment and positions hierarchy", nil, err
+	}
+	var pos *ent.EquipmentPosition
+
+	if parentEquipmentID != nil && positionDefinitionID != nil {
+		parentLoc = nil
+		if commit {
+			pos, err = resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID, false)
+		} else {
+			pos, err = resolverutil.ValidateAndGetPositionIfExists(ctx, client, parentEquipmentID, positionDefinitionID, false)
+		}
+		if err != nil {
+			return nil, "creating equipment position", nil, err
+		}
+	}
+	var equipment *ent.Equipment
+	if commit {
+		equipment, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
+
+	} else {
+		equipment, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
+		if equipment == nil && err == nil {
+			return nil, "", nil, nil
+		}
+	}
+	if err != nil {
+		return nil, "creating/fetching equipment", nil, err
+	}
+	var propInputs []*models.PropertyInput
+	if linkRecord.Len() > linkHeader.PropertyStartIdx() {
+		portType, err := portDef.QueryEquipmentPortType().Only(ctx)
+		if ent.MaskNotFound(err) != nil {
+			return nil, fmt.Sprintf("can't fetch port type %v", portDef.Name), nil, err
+		}
+		if portType != nil {
+			propInputs, err = m.validatePropertiesForPortType(ctx, linkRecord, portType, ImportEntityLink)
+			if err != nil {
+				return nil, fmt.Sprintf("validating property for type %v", portType.Name), nil, err
+			}
+		}
+	}
+	return &models.LinkSide{Equipment: equipment.ID, Port: portDef.ID}, "", propInputs, nil
 }
 
 func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *ImportRecord, error) {

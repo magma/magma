@@ -46,9 +46,9 @@ type CheckListItemDefinitionEdges struct {
 	loadedTypes [1]bool
 }
 
-// WorkOrderTypeErr returns the WorkOrderType value or an error if the edge
+// WorkOrderTypeOrErr returns the WorkOrderType value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e CheckListItemDefinitionEdges) WorkOrderTypeErr() (*WorkOrderType, error) {
+func (e CheckListItemDefinitionEdges) WorkOrderTypeOrErr() (*WorkOrderType, error) {
 	if e.loadedTypes[0] {
 		if e.WorkOrderType == nil {
 			// The edge work_order_type was loaded in eager-loading,

@@ -11,7 +11,7 @@
 import type {FilterProps} from './ComparisonViewTypes';
 
 import PowerSearchFilter from './PowerSearchFilter';
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
 import Tokenizer from '@fbcnms/ui/components/Tokenizer';
 import WizardContext from '@fbcnms/ui/components/design-system/Wizard/WizardContext';
@@ -27,6 +27,17 @@ const locationTokenizerQuery = graphql`
           id
           name
         }
+      }
+    }
+  }
+`;
+
+const locationQuery = graphql`
+  query PowerSearchLocationFilterIDsQuery($id: ID!) {
+    node(id: $id) {
+      ... on Location {
+        id
+        name
       }
     }
   }
@@ -54,9 +65,23 @@ const PowerSearchLocationFilter = (props: FilterProps) => {
       setSearchEntries(
         (data.locations.edges ?? [])
           .map(edge => edge.node)
+          .filter(node => !selectedLocations.find(loc => loc.id == node.id))
           .map(location => ({id: location.id, label: location.name})),
       );
     });
+
+  useEffect(() => {
+    value.idSet
+      ?.filter(id => !selectedLocations.find(l => l.id == id))
+      .map(id =>
+        fetchQuery(RelayEnvironment, locationQuery, {id: id}).then(location =>
+          setSelectedLocations(locations => [
+            ...locations,
+            {id: location.node.id, label: location.node.name},
+          ]),
+        ),
+      );
+  }, [selectedLocations, value.idSet]);
 
   return (
     <PowerSearchFilter

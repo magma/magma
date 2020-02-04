@@ -68,13 +68,13 @@ type Property struct {
 // PropertyEdges holds the relations/edges for other nodes in the graph.
 type PropertyEdges struct {
 	// Type holds the value of the type edge.
-	Type *PropertyType
+	Type *PropertyType `gqlgen:"propertyType"`
 	// Location holds the value of the location edge.
-	Location *Location
+	Location *Location `gqlgen:"locationValue"`
 	// Equipment holds the value of the equipment edge.
-	Equipment *Equipment
+	Equipment *Equipment `gqlgen:"equipmentValue"`
 	// Service holds the value of the service edge.
-	Service *Service
+	Service *Service `gqlgen:"serviceValue"`
 	// EquipmentPort holds the value of the equipment_port edge.
 	EquipmentPort *EquipmentPort
 	// Link holds the value of the link edge.
@@ -94,9 +94,9 @@ type PropertyEdges struct {
 	loadedTypes [11]bool
 }
 
-// TypeErr returns the Type value or an error if the edge
+// TypeOrErr returns the Type value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) TypeErr() (*PropertyType, error) {
+func (e PropertyEdges) TypeOrErr() (*PropertyType, error) {
 	if e.loadedTypes[0] {
 		if e.Type == nil {
 			// The edge type was loaded in eager-loading,
@@ -108,9 +108,9 @@ func (e PropertyEdges) TypeErr() (*PropertyType, error) {
 	return nil, &NotLoadedError{edge: "type"}
 }
 
-// LocationErr returns the Location value or an error if the edge
+// LocationOrErr returns the Location value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) LocationErr() (*Location, error) {
+func (e PropertyEdges) LocationOrErr() (*Location, error) {
 	if e.loadedTypes[1] {
 		if e.Location == nil {
 			// The edge location was loaded in eager-loading,
@@ -122,9 +122,9 @@ func (e PropertyEdges) LocationErr() (*Location, error) {
 	return nil, &NotLoadedError{edge: "location"}
 }
 
-// EquipmentErr returns the Equipment value or an error if the edge
+// EquipmentOrErr returns the Equipment value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) EquipmentErr() (*Equipment, error) {
+func (e PropertyEdges) EquipmentOrErr() (*Equipment, error) {
 	if e.loadedTypes[2] {
 		if e.Equipment == nil {
 			// The edge equipment was loaded in eager-loading,
@@ -136,9 +136,9 @@ func (e PropertyEdges) EquipmentErr() (*Equipment, error) {
 	return nil, &NotLoadedError{edge: "equipment"}
 }
 
-// ServiceErr returns the Service value or an error if the edge
+// ServiceOrErr returns the Service value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) ServiceErr() (*Service, error) {
+func (e PropertyEdges) ServiceOrErr() (*Service, error) {
 	if e.loadedTypes[3] {
 		if e.Service == nil {
 			// The edge service was loaded in eager-loading,
@@ -150,9 +150,9 @@ func (e PropertyEdges) ServiceErr() (*Service, error) {
 	return nil, &NotLoadedError{edge: "service"}
 }
 
-// EquipmentPortErr returns the EquipmentPort value or an error if the edge
+// EquipmentPortOrErr returns the EquipmentPort value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) EquipmentPortErr() (*EquipmentPort, error) {
+func (e PropertyEdges) EquipmentPortOrErr() (*EquipmentPort, error) {
 	if e.loadedTypes[4] {
 		if e.EquipmentPort == nil {
 			// The edge equipment_port was loaded in eager-loading,
@@ -164,9 +164,9 @@ func (e PropertyEdges) EquipmentPortErr() (*EquipmentPort, error) {
 	return nil, &NotLoadedError{edge: "equipment_port"}
 }
 
-// LinkErr returns the Link value or an error if the edge
+// LinkOrErr returns the Link value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) LinkErr() (*Link, error) {
+func (e PropertyEdges) LinkOrErr() (*Link, error) {
 	if e.loadedTypes[5] {
 		if e.Link == nil {
 			// The edge link was loaded in eager-loading,
@@ -178,9 +178,9 @@ func (e PropertyEdges) LinkErr() (*Link, error) {
 	return nil, &NotLoadedError{edge: "link"}
 }
 
-// WorkOrderErr returns the WorkOrder value or an error if the edge
+// WorkOrderOrErr returns the WorkOrder value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) WorkOrderErr() (*WorkOrder, error) {
+func (e PropertyEdges) WorkOrderOrErr() (*WorkOrder, error) {
 	if e.loadedTypes[6] {
 		if e.WorkOrder == nil {
 			// The edge work_order was loaded in eager-loading,
@@ -192,9 +192,9 @@ func (e PropertyEdges) WorkOrderErr() (*WorkOrder, error) {
 	return nil, &NotLoadedError{edge: "work_order"}
 }
 
-// ProjectErr returns the Project value or an error if the edge
+// ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) ProjectErr() (*Project, error) {
+func (e PropertyEdges) ProjectOrErr() (*Project, error) {
 	if e.loadedTypes[7] {
 		if e.Project == nil {
 			// The edge project was loaded in eager-loading,
@@ -206,9 +206,9 @@ func (e PropertyEdges) ProjectErr() (*Project, error) {
 	return nil, &NotLoadedError{edge: "project"}
 }
 
-// EquipmentValueErr returns the EquipmentValue value or an error if the edge
+// EquipmentValueOrErr returns the EquipmentValue value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) EquipmentValueErr() (*Equipment, error) {
+func (e PropertyEdges) EquipmentValueOrErr() (*Equipment, error) {
 	if e.loadedTypes[8] {
 		if e.EquipmentValue == nil {
 			// The edge equipment_value was loaded in eager-loading,
@@ -220,9 +220,9 @@ func (e PropertyEdges) EquipmentValueErr() (*Equipment, error) {
 	return nil, &NotLoadedError{edge: "equipment_value"}
 }
 
-// LocationValueErr returns the LocationValue value or an error if the edge
+// LocationValueOrErr returns the LocationValue value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) LocationValueErr() (*Location, error) {
+func (e PropertyEdges) LocationValueOrErr() (*Location, error) {
 	if e.loadedTypes[9] {
 		if e.LocationValue == nil {
 			// The edge location_value was loaded in eager-loading,
@@ -234,9 +234,9 @@ func (e PropertyEdges) LocationValueErr() (*Location, error) {
 	return nil, &NotLoadedError{edge: "location_value"}
 }
 
-// ServiceValueErr returns the ServiceValue value or an error if the edge
+// ServiceValueOrErr returns the ServiceValue value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) ServiceValueErr() (*Service, error) {
+func (e PropertyEdges) ServiceValueOrErr() (*Service, error) {
 	if e.loadedTypes[10] {
 		if e.ServiceValue == nil {
 			// The edge service_value was loaded in eager-loading,

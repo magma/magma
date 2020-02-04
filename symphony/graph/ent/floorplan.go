@@ -55,9 +55,9 @@ type FloorPlanEdges struct {
 	loadedTypes [4]bool
 }
 
-// LocationErr returns the Location value or an error if the edge
+// LocationOrErr returns the Location value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e FloorPlanEdges) LocationErr() (*Location, error) {
+func (e FloorPlanEdges) LocationOrErr() (*Location, error) {
 	if e.loadedTypes[0] {
 		if e.Location == nil {
 			// The edge location was loaded in eager-loading,
@@ -69,9 +69,9 @@ func (e FloorPlanEdges) LocationErr() (*Location, error) {
 	return nil, &NotLoadedError{edge: "location"}
 }
 
-// ReferencePointErr returns the ReferencePoint value or an error if the edge
+// ReferencePointOrErr returns the ReferencePoint value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e FloorPlanEdges) ReferencePointErr() (*FloorPlanReferencePoint, error) {
+func (e FloorPlanEdges) ReferencePointOrErr() (*FloorPlanReferencePoint, error) {
 	if e.loadedTypes[1] {
 		if e.ReferencePoint == nil {
 			// The edge reference_point was loaded in eager-loading,
@@ -83,9 +83,9 @@ func (e FloorPlanEdges) ReferencePointErr() (*FloorPlanReferencePoint, error) {
 	return nil, &NotLoadedError{edge: "reference_point"}
 }
 
-// ScaleErr returns the Scale value or an error if the edge
+// ScaleOrErr returns the Scale value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e FloorPlanEdges) ScaleErr() (*FloorPlanScale, error) {
+func (e FloorPlanEdges) ScaleOrErr() (*FloorPlanScale, error) {
 	if e.loadedTypes[2] {
 		if e.Scale == nil {
 			// The edge scale was loaded in eager-loading,
@@ -97,9 +97,9 @@ func (e FloorPlanEdges) ScaleErr() (*FloorPlanScale, error) {
 	return nil, &NotLoadedError{edge: "scale"}
 }
 
-// ImageErr returns the Image value or an error if the edge
+// ImageOrErr returns the Image value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e FloorPlanEdges) ImageErr() (*File, error) {
+func (e FloorPlanEdges) ImageOrErr() (*File, error) {
 	if e.loadedTypes[3] {
 		if e.Image == nil {
 			// The edge image was loaded in eager-loading,

@@ -154,16 +154,20 @@ func (Property) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("type", PropertyType.Type).
 			Unique().
-			Required(),
+			Required().
+			StructTag(`gqlgen:"propertyType"`),
 		edge.From("location", Location.Type).
 			Unique().
-			Ref("properties"),
+			Ref("properties").
+			StructTag(`gqlgen:"locationValue"`),
 		edge.From("equipment", Equipment.Type).
 			Unique().
-			Ref("properties"),
+			Ref("properties").
+			StructTag(`gqlgen:"equipmentValue"`),
 		edge.From("service", Service.Type).
 			Unique().
-			Ref("properties"),
+			Ref("properties").
+			StructTag(`gqlgen:"serviceValue"`),
 		edge.From("equipment_port", EquipmentPort.Type).
 			Unique().
 			Ref("properties"),

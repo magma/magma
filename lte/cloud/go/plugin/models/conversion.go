@@ -159,7 +159,8 @@ func (m *RuleNames) GetFromNetwork(network configurator.Network) interface{} {
 func (m *RuleNames) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
 	if iNetworkSubscriberConfig == nil {
-		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No Subscriber Config registered for this network")
+		// allow update even not previously defined
+		iNetworkSubscriberConfig = &NetworkSubscriberConfig{}
 	}
 	iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideRuleNames = *m
 	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, iNetworkSubscriberConfig), nil
@@ -176,7 +177,8 @@ func (m *BaseNames) GetFromNetwork(network configurator.Network) interface{} {
 func (m *BaseNames) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
 	if iNetworkSubscriberConfig == nil {
-		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No Subscriber Config registered for this network")
+		// allow update even not previously defined
+		iNetworkSubscriberConfig = &NetworkSubscriberConfig{}
 	}
 	iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideBaseNames = *m
 	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, iNetworkSubscriberConfig), nil

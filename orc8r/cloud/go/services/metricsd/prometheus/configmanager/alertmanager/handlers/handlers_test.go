@@ -18,13 +18,12 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/client/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/labstack/echo"
-	"github.com/prometheus/alertmanager/config"
-	"github.com/prometheus/common/model"
+	amconfig "github.com/prometheus/alertmanager/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,24 +33,22 @@ const (
 
 var (
 	testWebhookURL, _ = url.Parse("http://test.com")
-	sampleReceiver    = receivers.Receiver{
+	sampleReceiver    = config.Receiver{
 		Name: "testSlackReceiver",
-		SlackConfigs: []*receivers.SlackConfig{{
+		SlackConfigs: []*config.SlackConfig{{
 			APIURL:   "http://slack.com/12345",
 			Channel:  "test_channel",
 			Username: "test_username",
 		}},
 		WebhookConfigs: []*config.WebhookConfig{{
-			NotifierConfig: config.NotifierConfig{
+			NotifierConfig: amconfig.NotifierConfig{
 				VSendResolved: true,
 			},
-			URL: &config.URL{
+			URL: &amconfig.URL{
 				URL: testWebhookURL,
 			},
 		}},
 	}
-
-	fiveSeconds, _ = model.ParseDuration("5s")
 
 	sampleRoute = config.Route{
 		Receiver: "testSlackReceiver",
@@ -60,18 +57,9 @@ var (
 			Receiver: "childReceiver",
 			Match:    map[string]string{"severity": "critical"},
 		}},
-		GroupWait:      &fiveSeconds,
-		GroupInterval:  &fiveSeconds,
-		RepeatInterval: &fiveSeconds,
-	}
-
-	sampleJSONRoute = receivers.RouteJSONWrapper{
-		Receiver:  "testSlackReceiver",
-		GroupWait: "5s",
-	}
-	convertedSampleJSONRoute = config.Route{
-		Receiver:  "testSlackReceiver",
-		GroupWait: &fiveSeconds,
+		GroupWait:      "5s",
+		GroupInterval:  "5s",
+		RepeatInterval: "5s",
 	}
 )
 
@@ -89,7 +77,7 @@ func TestGetReceiverPostHandler(t *testing.T) {
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
-	client.On("CreateReceiver", testNID, receivers.Receiver{}).Return(errors.New("error"))
+	client.On("CreateReceiver", testNID, config.Receiver{}).Return(errors.New("error"))
 	c, _ = buildContext(nil, http.MethodPost, "/", v1receiverPath, testNID)
 
 	err = GetReceiverPostHandler(client)(c)
@@ -100,7 +88,7 @@ func TestGetReceiverPostHandler(t *testing.T) {
 	// Alertmanager Error
 	client = &mocks.AlertmanagerClient{}
 	client.On("ReloadAlertmanager").Return(errors.New("error"))
-	client.On("CreateReceiver", testNID, receivers.Receiver{}).Return(nil)
+	client.On("CreateReceiver", testNID, config.Receiver{}).Return(nil)
 	c, _ = buildContext(nil, http.MethodPut, "/", v1receiverPath, testNID)
 
 	err = GetReceiverPostHandler(client)(c)
@@ -112,7 +100,7 @@ func TestGetReceiverPostHandler(t *testing.T) {
 func TestGetGetReceiversHandler(t *testing.T) {
 	// Successful Get
 	client := &mocks.AlertmanagerClient{}
-	client.On("GetReceivers", testNID).Return([]receivers.Receiver{sampleReceiver}, nil)
+	client.On("GetReceivers", testNID).Return([]config.Receiver{sampleReceiver}, nil)
 	c, rec := buildContext(nil, http.MethodGet, "/", v1receiverPath, testNID)
 
 	err := GetGetReceiversHandler(client)(c)
@@ -120,14 +108,14 @@ func TestGetGetReceiversHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 	client.AssertExpectations(t)
 
-	var receiver []receivers.Receiver
+	var receiver []config.Receiver
 	err = json.Unmarshal(rec.Body.Bytes(), &receiver)
 	assert.Equal(t, 1, len(receiver))
 	assert.Equal(t, sampleReceiver, receiver[0])
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
-	client.On("GetReceivers", testNID).Return([]receivers.Receiver{}, errors.New("error"))
+	client.On("GetReceivers", testNID).Return([]config.Receiver{}, errors.New("error"))
 	c, _ = buildContext(nil, http.MethodGet, "/", v1receiverPath, testNID)
 
 	err = GetGetReceiversHandler(client)(c)
@@ -137,21 +125,21 @@ func TestGetGetReceiversHandler(t *testing.T) {
 
 	//Get specific alert
 	client = &mocks.AlertmanagerClient{}
-	client.On("GetReceivers", testNID).Return([]receivers.Receiver{sampleReceiver}, nil)
+	client.On("GetReceivers", testNID).Return([]config.Receiver{sampleReceiver}, nil)
 	c, rec = buildContext(nil, http.MethodGet, "/", v1receiverNamePath, testNID)
 	c.SetParamNames(receiverNameParam)
 	c.SetParamValues("testSlackReceiver")
 
 	err = GetGetReceiversHandler(client)(c)
 	assert.NoError(t, err)
-	var r receivers.Receiver
+	var r config.Receiver
 	err = json.Unmarshal(rec.Body.Bytes(), &r)
 	assert.NoError(t, err)
 	assert.Equal(t, sampleReceiver, r)
 
 	//Get nonexistent alert
 	client = &mocks.AlertmanagerClient{}
-	client.On("GetReceivers", testNID).Return([]receivers.Receiver{sampleReceiver}, nil)
+	client.On("GetReceivers", testNID).Return([]config.Receiver{sampleReceiver}, nil)
 	c, rec = buildContext(nil, http.MethodGet, "/", v1receiverNamePath, testNID)
 	c.SetParamNames(receiverNameParam)
 	c.SetParamValues("testNewReceiver")
@@ -178,7 +166,7 @@ func TestGetUpdateReceiverHandler(t *testing.T) {
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
-	client.On("UpdateReceiver", testNID, sampleReceiver.Name, &receivers.Receiver{}).Return(errors.New("error"))
+	client.On("UpdateReceiver", testNID, sampleReceiver.Name, &config.Receiver{}).Return(errors.New("error"))
 	c, _ = buildContext(nil, http.MethodPut, "/", v1receiverPath, testNID)
 	c.SetParamNames(receiverNameParam)
 	c.SetParamValues(sampleReceiver.Name)
@@ -190,7 +178,7 @@ func TestGetUpdateReceiverHandler(t *testing.T) {
 
 	// Alertmanager Error
 	client = &mocks.AlertmanagerClient{}
-	client.On("UpdateReceiver", testNID, sampleReceiver.Name, &receivers.Receiver{}).Return(nil)
+	client.On("UpdateReceiver", testNID, sampleReceiver.Name, &config.Receiver{}).Return(nil)
 	client.On("ReloadAlertmanager").Return(errors.New("error"))
 	c, _ = buildContext(nil, http.MethodPut, "/", v1receiverPath, testNID)
 	c.SetParamNames(receiverNameParam)
@@ -252,11 +240,11 @@ func TestGetGetRouteHandler(t *testing.T) {
 	err := GetGetRouteHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	var retrievedRoute receivers.RouteJSONWrapper
+	var retrievedRoute config.Route
 	body, _ := ioutil.ReadAll(rec.Body)
 	err = json.Unmarshal(body, &retrievedRoute)
 	assert.NoError(t, err)
-	assert.Equal(t, *receivers.NewRouteJSONWrapper(sampleRoute), retrievedRoute)
+	assert.Equal(t, sampleRoute, retrievedRoute)
 	client.AssertExpectations(t)
 
 	// Client Error
@@ -304,6 +292,68 @@ func TestGetUpdateRouteHandler(t *testing.T) {
 	client.AssertExpectations(t)
 }
 
+func TestGetGetGlobalConfigHandler(t *testing.T) {
+	defaultConfig := config.DefaultGlobalConfig()
+	// Successful Get
+	client := &mocks.AlertmanagerClient{}
+	client.On("GetGlobalConfig").Return(&defaultConfig, nil)
+	c, rec := buildContext(nil, http.MethodGet, "/", v1routePath, testNID)
+
+	err := GetGetGlobalConfigHandler(client)(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var retrievedGlobalConfig config.GlobalConfig
+	body, _ := ioutil.ReadAll(rec.Body)
+	err = json.Unmarshal(body, &retrievedGlobalConfig)
+	assert.NoError(t, err)
+	assert.Equal(t, config.DefaultGlobalConfig(), retrievedGlobalConfig)
+	client.AssertExpectations(t)
+
+	// Client Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("GetGlobalConfig").Return(nil, errors.New("error"))
+	c, _ = buildContext(nil, http.MethodGet, "/", v1routePath, testNID)
+
+	err = GetGetGlobalConfigHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
+}
+
+func TestGetUpdateGlobalConfigHandler(t *testing.T) {
+	// Successful Update
+	client := &mocks.AlertmanagerClient{}
+	client.On("SetGlobalConfig", config.DefaultGlobalConfig()).Return(nil)
+	client.On("ReloadAlertmanager").Return(nil)
+	c, rec := buildContext(config.DefaultGlobalConfig(), http.MethodPost, "/", v1receiverPath, testNID)
+
+	err := GetUpdateGlobalConfigHandler(client)(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	client.AssertExpectations(t)
+
+	// Client Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("SetGlobalConfig", config.DefaultGlobalConfig()).Return(errors.New("error"))
+	c, _ = buildContext(config.DefaultGlobalConfig(), http.MethodPost, "/", v1receiverPath, testNID)
+
+	err = GetUpdateGlobalConfigHandler(client)(c)
+	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=400, message=error`)
+	client.AssertExpectations(t)
+
+	// Alertmanager Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("SetGlobalConfig", config.DefaultGlobalConfig()).Return(nil)
+	client.On("ReloadAlertmanager").Return(errors.New("error"))
+	c, _ = buildContext(config.DefaultGlobalConfig(), http.MethodPost, "/", v1receiverPath, testNID)
+
+	err = GetUpdateGlobalConfigHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
+}
+
 func TestDecodeReceiverPostRequest(t *testing.T) {
 	// Successful Decode
 	c, _ := buildContext(sampleReceiver, http.MethodPost, "/", v1receiverPath, testNID)
@@ -326,18 +376,12 @@ func TestDecodeRoutePostRequest(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, sampleRoute, conf)
 
-	// Decode JSONWrapped Route
-	c, _ = buildContext(sampleJSONRoute, http.MethodPost, "/", v1receiverPath, testNID)
-	conf, err = decodeRoutePostRequest(c)
-	assert.NoError(t, err)
-	assert.Equal(t, convertedSampleJSONRoute, conf)
-
 	// error decoding route
 	c, _ = buildContext(struct {
 		Receiver bool `json:"receiver"`
 	}{false}, http.MethodPost, "/", v1receiverPath, testNID)
 	conf, err = decodeRoutePostRequest(c)
-	assert.EqualError(t, err, `error unmarshalling route: json: cannot unmarshal bool into Go struct field RouteJSONWrapper.receiver of type string`)
+	assert.EqualError(t, err, `error unmarshalling route: json: cannot unmarshal bool into Go struct field Route.receiver of type string`)
 }
 
 type tenancyTestCase struct {

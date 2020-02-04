@@ -53,9 +53,9 @@ type EquipmentPortEdges struct {
 	loadedTypes [5]bool
 }
 
-// DefinitionErr returns the Definition value or an error if the edge
+// DefinitionOrErr returns the Definition value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentPortEdges) DefinitionErr() (*EquipmentPortDefinition, error) {
+func (e EquipmentPortEdges) DefinitionOrErr() (*EquipmentPortDefinition, error) {
 	if e.loadedTypes[0] {
 		if e.Definition == nil {
 			// The edge definition was loaded in eager-loading,
@@ -67,9 +67,9 @@ func (e EquipmentPortEdges) DefinitionErr() (*EquipmentPortDefinition, error) {
 	return nil, &NotLoadedError{edge: "definition"}
 }
 
-// ParentErr returns the Parent value or an error if the edge
+// ParentOrErr returns the Parent value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentPortEdges) ParentErr() (*Equipment, error) {
+func (e EquipmentPortEdges) ParentOrErr() (*Equipment, error) {
 	if e.loadedTypes[1] {
 		if e.Parent == nil {
 			// The edge parent was loaded in eager-loading,
@@ -81,9 +81,9 @@ func (e EquipmentPortEdges) ParentErr() (*Equipment, error) {
 	return nil, &NotLoadedError{edge: "parent"}
 }
 
-// LinkErr returns the Link value or an error if the edge
+// LinkOrErr returns the Link value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentPortEdges) LinkErr() (*Link, error) {
+func (e EquipmentPortEdges) LinkOrErr() (*Link, error) {
 	if e.loadedTypes[2] {
 		if e.Link == nil {
 			// The edge link was loaded in eager-loading,
@@ -95,18 +95,18 @@ func (e EquipmentPortEdges) LinkErr() (*Link, error) {
 	return nil, &NotLoadedError{edge: "link"}
 }
 
-// PropertiesErr returns the Properties value or an error if the edge
+// PropertiesOrErr returns the Properties value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentPortEdges) PropertiesErr() ([]*Property, error) {
+func (e EquipmentPortEdges) PropertiesOrErr() ([]*Property, error) {
 	if e.loadedTypes[3] {
 		return e.Properties, nil
 	}
 	return nil, &NotLoadedError{edge: "properties"}
 }
 
-// EndpointsErr returns the Endpoints value or an error if the edge
+// EndpointsOrErr returns the Endpoints value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentPortEdges) EndpointsErr() ([]*ServiceEndpoint, error) {
+func (e EquipmentPortEdges) EndpointsOrErr() ([]*ServiceEndpoint, error) {
 	if e.loadedTypes[4] {
 		return e.Endpoints, nil
 	}

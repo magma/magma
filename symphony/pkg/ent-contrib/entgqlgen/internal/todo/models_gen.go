@@ -7,5 +7,6 @@
 package todo
 
 type TodoInput struct {
-	Text string `json:"text"`
+	Text   string `json:"text"`
+	Parent *int   `json:"parent"`
 }

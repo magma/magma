@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {PermissionHandlingProps} from '../Form/FormAction';
+
 import * as React from 'react';
 import SelectMenuItem from './SelectMenuItem';
 import SelectSearchInput from './SelectSearchInput';
@@ -32,11 +34,13 @@ const useStyles = makeStyles({
   },
 });
 
-export type OptionProps<TValue> = {
+export type OptionProps<TValue> = {|
   label: React.Node,
   searchTerm?: string,
   value: TValue,
-};
+  className?: ?string,
+  ...PermissionHandlingProps,
+|};
 
 type Props<TValue> = {
   className?: string,
@@ -79,17 +83,31 @@ const SelectMenu = <TValue>({
           onChange={updateSearchTerm}
         />
       )}
-      {options.map(option => (
-        <SelectMenuItem
-          label={option.label}
-          value={option.value}
-          onClick={value => {
-            onChange(value);
-            onClose();
-          }}
-          isSelected={selectedValue === option.value}
-        />
-      ))}
+      {options
+        .map(option => {
+          const {
+            label,
+            value,
+            ignorePermissions,
+            hideWhenDisabled,
+            className,
+          } = option;
+          return (
+            <SelectMenuItem
+              label={label}
+              value={value}
+              className={className}
+              ignorePermissions={ignorePermissions}
+              hideWhenDisabled={hideWhenDisabled}
+              onClick={value => {
+                onChange(value);
+                onClose();
+              }}
+              isSelected={selectedValue === option.value}
+            />
+          );
+        })
+        .filter(Boolean)}
     </div>
   );
 };

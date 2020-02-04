@@ -85,9 +85,9 @@ type SurveyCellScanEdges struct {
 	loadedTypes [2]bool
 }
 
-// SurveyQuestionErr returns the SurveyQuestion value or an error if the edge
+// SurveyQuestionOrErr returns the SurveyQuestion value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SurveyCellScanEdges) SurveyQuestionErr() (*SurveyQuestion, error) {
+func (e SurveyCellScanEdges) SurveyQuestionOrErr() (*SurveyQuestion, error) {
 	if e.loadedTypes[0] {
 		if e.SurveyQuestion == nil {
 			// The edge survey_question was loaded in eager-loading,
@@ -99,9 +99,9 @@ func (e SurveyCellScanEdges) SurveyQuestionErr() (*SurveyQuestion, error) {
 	return nil, &NotLoadedError{edge: "survey_question"}
 }
 
-// LocationErr returns the Location value or an error if the edge
+// LocationOrErr returns the Location value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SurveyCellScanEdges) LocationErr() (*Location, error) {
+func (e SurveyCellScanEdges) LocationOrErr() (*Location, error) {
 	if e.loadedTypes[1] {
 		if e.Location == nil {
 			// The edge location was loaded in eager-loading,

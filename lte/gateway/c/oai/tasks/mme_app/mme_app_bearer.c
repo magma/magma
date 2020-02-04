@@ -184,6 +184,8 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
     sizeof(s11_modify_bearer_request->indication_flags));
   s11_modify_bearer_request->rat_type = RAT_EUTRAN;
 
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+
   OAILOG_INFO(
     LOG_MME_APP,
     "Sending S11_MODIFY_BEARER_REQUEST to SGW for ue" MME_UE_S1AP_ID_FMT "\n",
@@ -249,6 +251,8 @@ int _send_pcrf_bearer_actv_rsp(
   s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
     .s1u_sgw_fteid = bc->s_gw_fteid_s1u;
   s11_nw_init_actv_bearer_rsp->bearer_contexts.num_bearer_context++;
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
   OAILOG_INFO(
     LOG_MME_APP,
@@ -1349,6 +1353,9 @@ void mme_app_handle_initial_context_setup_rsp(mme_app_desc_t *mme_app_desc_p,
    * S11 stack specific parameter. Not used in standalone epc mode
    */
   s11_modify_bearer_request->trxn = NULL;
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+
   OAILOG_INFO(
     TASK_MME_APP, "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
     initial_ctxt_setup_rsp_pP->ue_id, s11_modify_bearer_request->teid);
@@ -2185,6 +2192,8 @@ int mme_app_send_s11_suspend_notification(
   */
   suspend_notification_p->lbi = ue_context_pP->pdn_contexts[pdn_index]->default_ebi;
 
+  message_p->ittiMsgHeader.imsi = ue_context_pP->emm_context._imsi64;
+
   OAILOG_INFO(
     LOG_MME_APP,
     "Send Suspend Notification for IMSI = " IMSI_64_FMT "\n",
@@ -2865,6 +2874,8 @@ void send_delete_dedicated_bearer_rsp(
   s11_deact_ded_bearer_rsp->imsi = ue_context_p->emm_context._imsi64;
   s11_deact_ded_bearer_rsp->s_gw_teid_s11_s4 = s_gw_teid_s11_s4;
 
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+
   OAILOG_INFO(
     LOG_MME_APP,
     " Sending nw_initiated_deactv_bearer_rsp to SGW with %d bearers\n",
@@ -3181,6 +3192,9 @@ void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
    * S11 stack specific parameter. Not used in standalone epc mode
    */
   s11_modify_bearer_request->trxn = NULL;
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+
   OAILOG_DEBUG(
     LOG_MME_APP,
     "MME_APP send S11_MODIFY_BEARER_REQUEST to teid %u \n",

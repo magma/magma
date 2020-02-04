@@ -42,9 +42,9 @@ type TokenEdges struct {
 	loadedTypes [1]bool
 }
 
-// UserErr returns the User value or an error if the edge
+// UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e TokenEdges) UserErr() (*User, error) {
+func (e TokenEdges) UserOrErr() (*User, error) {
 	if e.loadedTypes[0] {
 		if e.User == nil {
 			// The edge user was loaded in eager-loading,

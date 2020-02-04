@@ -15,7 +15,14 @@ import Autosuggest from 'react-autosuggest';
 import ClearIcon from '@material-ui/icons/Clear';
 import Text from './design-system/Text';
 import classNames from 'classnames';
-import {blue05, gray10, gray11, gray12, gray9} from '@fbcnms/ui/theme/colors';
+import {
+  blue05,
+  gray10,
+  gray11,
+  gray12,
+  gray7,
+  gray9,
+} from '@fbcnms/ui/theme/colors';
 import {withStyles, withTheme} from '@material-ui/core/styles';
 
 const styles = {
@@ -31,13 +38,17 @@ const styles = {
   enumRoot: {
     border: `1.43px solid ${gray9}`,
     width: '280px',
-    '&:hover': {
-      border: `1.43px solid ${gray10}`,
-    },
     flexWrap: 'wrap',
     flexGrow: 1,
     flexDirection: 'row',
     minHeight: '32px',
+    backgroundColor: gray7,
+  },
+  editable: {
+    backgroundColor: 'transparent',
+    '&:hover': {
+      border: `1.43px solid ${gray10}`,
+    },
   },
   chip: {
     display: 'flex',
@@ -141,6 +152,7 @@ type Props = {
   onChange: (entries: Array<Entry>) => void,
   onBlur?: () => void,
   theme: Theme,
+  disabled?: ?boolean,
 } & WithStyles<typeof styles>;
 
 type State = {
@@ -153,6 +165,7 @@ const ENTER_KEY_CODE = 13;
 class Tokenizer extends React.Component<Props, State> {
   static defaultProps = {
     placeholder: '',
+    disabled: false,
   };
 
   state = {
@@ -170,6 +183,7 @@ class Tokenizer extends React.Component<Props, State> {
       onChange,
       onBlur,
       placeholder,
+      disabled,
     } = this.props;
     const {searchTerm} = this.state;
     const entries =
@@ -184,6 +198,7 @@ class Tokenizer extends React.Component<Props, State> {
         className={classNames({
           [classes.root]: true,
           [classes.enumRoot]: searchSource === 'UserInput',
+          [classes.editable]: !disabled,
           [classes.searchRoot]: searchSource === 'Options',
         })}>
         {tokens.map(token => (
@@ -194,16 +209,18 @@ class Tokenizer extends React.Component<Props, State> {
               [classes.enumChip]: searchSource === 'UserInput',
             })}>
             <Text className={classes.chipLabel}>{token.label}</Text>
-            <ClearIcon
-              className={classNames({
-                [classes.chipDeleteIcon]: true,
-                [classes.enumChipDeleteIcon]: searchSource === 'UserInput',
-              })}
-              onMouseDown={e => {
-                onChange(tokens.filter(t => t.id !== token.id));
-                e.preventDefault();
-              }}
-            />
+            {disabled ? null : (
+              <ClearIcon
+                className={classNames({
+                  [classes.chipDeleteIcon]: true,
+                  [classes.enumChipDeleteIcon]: searchSource === 'UserInput',
+                })}
+                onMouseDown={e => {
+                  onChange(tokens.filter(t => t.id !== token.id));
+                  e.preventDefault();
+                }}
+              />
+            )}
           </div>
         ))}
         <Autosuggest
@@ -211,6 +228,7 @@ class Tokenizer extends React.Component<Props, State> {
           getSuggestionValue={entry => entry.label}
           onSuggestionsFetchRequested={({value}) => onEntriesRequested(value)}
           renderSuggestion={entry => <div>{entry.label}</div>}
+          renderInputComponent={disabled ? () => null : undefined}
           onSuggestionSelected={(e, {suggestion}) => {
             this.setState({
               searchTerm: '',

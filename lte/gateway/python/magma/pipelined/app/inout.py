@@ -94,8 +94,8 @@ class InOutController(MagmaController):
 
         match = MagmaMatch()
         flows.add_resubmit_next_service_flow(dp,
-            self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL),
-            match, [], priority=flows.DEFAULT_PRIORITY,
+            self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL), match,
+            actions=[], priority=flows.DEFAULT_PRIORITY,
             resubmit_table=logical_table)
 
     def _install_default_egress_flows(self, dp):

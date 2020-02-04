@@ -18,6 +18,7 @@ export type User = {
   tenant: string,
   email: string,
   isSuperUser: boolean,
+  isReadOnlyUser: boolean,
 };
 
 export type AppContextType = {
@@ -37,7 +38,7 @@ const AppContext = React.createContext<AppContextType>({
   version: null,
   networkIds: [],
   tabs: [],
-  user: {tenant: '', email: '', isSuperUser: false},
+  user: {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
   showExpandButton: emptyFunction,
   hideExpandButton: emptyFunction,
   isFeatureEnabled: () => false,
