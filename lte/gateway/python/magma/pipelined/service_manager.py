@@ -46,6 +46,7 @@ from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
+from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL, \
     InOutController
@@ -243,6 +244,7 @@ class ServiceManager:
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
     TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
     VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
+    IPFIX_SERVICE_NAME = 'ipfix'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
     CHECK_QUOTA_SERVICE_NAME = 'check_quota'
@@ -308,6 +310,11 @@ class ServiceManager:
             App(name=VlanLearnController.APP_NAME,
                 module=VlanLearnController.__module__,
                 type=VlanLearnController.APP_TYPE),
+        ],
+        IPFIX_SERVICE_NAME: [
+            App(name=IPFIXController.APP_NAME,
+                module=IPFIXController.__module__,
+                type=IPFIXController.APP_TYPE),
         ],
         RYU_REST_SERVICE_NAME: [
             App(name='ryu_rest_app', module='ryu.app.ofctl_rest', type=None),

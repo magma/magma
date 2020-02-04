@@ -119,6 +119,9 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	assert.Equal(t, expected, actual)
 
 	// Set list of files for log aggregation
+	testThrottleInterval := "30h"
+	testThrottleWindow := uint32(808)
+	testThrottleRate := uint32(305)
 	gw.Config = &models.MagmadGatewayConfigs{
 		AutoupgradeEnabled:      swag.Bool(true),
 		AutoupgradePollInterval: 300,
@@ -132,6 +135,66 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 					"thing": "/var/log/thing.log",
 					"blah":  "/some/directory/blah.log",
 				},
+				ThrottleRate:     &testThrottleRate,
+				ThrottleWindow:   &testThrottleWindow,
+				ThrottleInterval: &testThrottleInterval,
+			},
+		},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{gw, tier},
+		Edges: []configurator.GraphEdge{
+			{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+		},
+	}
+	actual = map[string]proto.Message{}
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+	expected = map[string]proto.Message{
+		"control_proxy": &mconfig.ControlProxy{LogLevel: protos.LogLevel_INFO},
+		"magmad": &mconfig.MagmaD{
+			LogLevel:                protos.LogLevel_INFO,
+			CheckinInterval:         60,
+			CheckinTimeout:          10,
+			AutoupgradeEnabled:      true,
+			AutoupgradePollInterval: 300,
+			PackageVersion:          "1.0.0-0",
+			Images: []*mconfig.ImageSpec{
+				{Name: "Image1", Order: 42},
+				{Name: "Image2", Order: 1},
+			},
+			DynamicServices: []string{},
+			FeatureFlags:    map[string]bool{},
+		},
+		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw1"},
+			ThrottleRate:     305,
+			ThrottleWindow:   808,
+			ThrottleInterval: "30h",
+			FilesByTag: map[string]string{
+				"thing": "/var/log/thing.log",
+				"blah":  "/some/directory/blah.log",
+			},
+		},
+	}
+	assert.Equal(t, expected, actual)
+
+	// Check default values for log throttling
+	gw.Config = &models.MagmadGatewayConfigs{
+		AutoupgradeEnabled:      swag.Bool(true),
+		AutoupgradePollInterval: 300,
+		CheckinInterval:         60,
+		CheckinTimeout:          10,
+		DynamicServices:         []string{},
+		FeatureFlags:            map[string]bool{},
+		Logging: &models.GatewayLoggingConfigs{
+			Aggregation: &models.AggregationLoggingConfigs{
+				TargetFilesByTag: map[string]string{
+					"thing": "/var/log/thing.log",
+					"blah":  "/some/directory/blah.log",
+				},
+				// No throttle values
 			},
 		},
 	}

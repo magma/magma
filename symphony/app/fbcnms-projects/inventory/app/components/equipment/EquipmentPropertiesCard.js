@@ -12,6 +12,7 @@ import type {EquipmentPosition} from '../../common/Equipment';
 import type {EquipmentType} from '../../common/EquipmentType';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import EditIcon from '@material-ui/icons/Edit';
 import EquipmentBreadcrumbs from './EquipmentBreadcrumbs';
@@ -20,12 +21,13 @@ import EquipmentDocumentsCard from './EquipmentDocumentsCard';
 import EquipmentPortsTable from './EquipmentPortsTable';
 import EquipmentServicesTable from './EquipmentServicesTable';
 import ErrorMessage from '@fbcnms/ui/components/ErrorMessage';
-import IconButton from '@material-ui/core/IconButton';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import React, {useContext, useState} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
@@ -226,99 +228,105 @@ const EquipmentPropertiesCard = (props: Props) => {
 
             return (
               <div className={classes.root}>
-                <div className={classes.cardHeader}>
-                  <div>
-                    <div className={classes.equipmentBreadcrumbs}>
-                      <EquipmentBreadcrumbs
-                        onEquipmentClicked={onEquipmentClicked}
-                        onParentLocationClicked={onParentLocationClicked}
-                        equipment={equipment}
-                      />
-                      <IconButton
-                        onClick={props.onEdit}
-                        color="primary"
-                        className={classes.iconButton}>
-                        <EditIcon />
-                      </IconButton>
-                    </div>
-                    {equipment.equipmentType.portDefinitions.length > 0 ||
-                    equipment.positions.length > 0 ||
-                    equipment.services.length > 0 ? (
-                      <div className={classes.tabsContainer}>
-                        <Tabs
-                          className={classes.tabs}
-                          value={selectedTab}
-                          onChange={(_e, selectedTab) => {
-                            ServerLogger.info(
-                              LogEvents.EQUIPMENT_CARD_TAB_CLICKED,
-                              {tab: selectedTab},
-                            );
-                            setSelectedTab(selectedTab);
-                          }}
-                          indicatorColor="primary"
-                          textColor="primary">
-                          <Tab
-                            classes={{root: classes.tabContainer}}
-                            label="Details"
-                            value="details"
-                          />
-                          <Tab
-                            classes={{root: classes.tabContainer}}
-                            label="Documents"
-                            value="documents"
-                          />
-                          <Tab
-                            classes={{root: classes.tabContainer}}
-                            label="Ports"
-                            value="ports"
-                          />
-                          {servicesEnabled && (
+                <FormValidationContextProvider>
+                  <div className={classes.cardHeader}>
+                    <div>
+                      <div className={classes.equipmentBreadcrumbs}>
+                        <EquipmentBreadcrumbs
+                          onEquipmentClicked={onEquipmentClicked}
+                          onParentLocationClicked={onParentLocationClicked}
+                          equipment={equipment}
+                        />
+                        <FormAction>
+                          <Button
+                            variant="text"
+                            skin="primary"
+                            onClick={props.onEdit}>
+                            <EditIcon />
+                          </Button>
+                        </FormAction>
+                      </div>
+                      {equipment.equipmentType.portDefinitions.length > 0 ||
+                      equipment.positions.length > 0 ||
+                      equipment.services.length > 0 ? (
+                        <div className={classes.tabsContainer}>
+                          <Tabs
+                            className={classes.tabs}
+                            value={selectedTab}
+                            onChange={(_e, selectedTab) => {
+                              ServerLogger.info(
+                                LogEvents.EQUIPMENT_CARD_TAB_CLICKED,
+                                {tab: selectedTab},
+                              );
+                              setSelectedTab(selectedTab);
+                            }}
+                            indicatorColor="primary"
+                            textColor="primary">
                             <Tab
                               classes={{root: classes.tabContainer}}
-                              label="Services"
-                              value="services"
+                              label="Details"
+                              value="details"
                             />
-                          )}
-                        </Tabs>
-                      </div>
-                    ) : null}
+                            <Tab
+                              classes={{root: classes.tabContainer}}
+                              label="Documents"
+                              value="documents"
+                            />
+                            <Tab
+                              classes={{root: classes.tabContainer}}
+                              label="Ports"
+                              value="ports"
+                            />
+                            {servicesEnabled && (
+                              <Tab
+                                classes={{root: classes.tabContainer}}
+                                label="Services"
+                                value="services"
+                              />
+                            )}
+                          </Tabs>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-                <div className={classes.cardContent}>
-                  <PerfectScrollbar>
-                    {selectedTab === 'details' ? (
-                      <div className={classes.equipmentDetails}>
-                        <EquipmentDetails
+                  <div className={classes.cardContent}>
+                    <PerfectScrollbar>
+                      {selectedTab === 'details' ? (
+                        <div className={classes.equipmentDetails}>
+                          <EquipmentDetails
+                            equipment={equipment}
+                            workOrderId={workOrderId}
+                            onAttachingEquipmentToPosition={
+                              props.onAttachingEquipmentToPosition
+                            }
+                            onEquipmentClicked={props.onEquipmentClicked}
+                            onWorkOrderSelected={props.onWorkOrderSelected}
+                          />
+                        </div>
+                      ) : null}
+                      {selectedTab === 'ports' ? (
+                        <EquipmentPortsTable
                           equipment={equipment}
                           workOrderId={workOrderId}
-                          onAttachingEquipmentToPosition={
-                            props.onAttachingEquipmentToPosition
+                          onPortEquipmentClicked={props.onEquipmentClicked}
+                          onParentLocationClicked={
+                            props.onParentLocationClicked
                           }
-                          onEquipmentClicked={props.onEquipmentClicked}
                           onWorkOrderSelected={props.onWorkOrderSelected}
                         />
-                      </div>
-                    ) : null}
-                    {selectedTab === 'ports' ? (
-                      <EquipmentPortsTable
-                        equipment={equipment}
-                        workOrderId={workOrderId}
-                        onPortEquipmentClicked={props.onEquipmentClicked}
-                        onParentLocationClicked={props.onParentLocationClicked}
-                        onWorkOrderSelected={props.onWorkOrderSelected}
-                      />
-                    ) : null}
-                    {selectedTab === 'services' ? (
-                      <EquipmentServicesTable services={equipment.services} />
-                    ) : null}
-                    {selectedTab === 'documents' ? (
-                      <EquipmentDocumentsCard
-                        className={classes.documentsTable}
-                        equipment={equipment}
-                      />
-                    ) : null}
-                  </PerfectScrollbar>
-                </div>
+                      ) : null}
+                      {selectedTab === 'services' ? (
+                        <EquipmentServicesTable services={equipment.services} />
+                      ) : null}
+                      {selectedTab === 'documents' ? (
+                        <EquipmentDocumentsCard
+                          className={classes.documentsTable}
+                          equipment={equipment}
+                        />
+                      ) : null}
+                    </PerfectScrollbar>
+                  </div>
+                </FormValidationContextProvider>
               </div>
             );
           }}

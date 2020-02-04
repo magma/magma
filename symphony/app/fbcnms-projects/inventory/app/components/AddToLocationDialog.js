@@ -89,10 +89,6 @@ class AddToLocationDialog extends React.Component<Props, State> {
   render() {
     const {classes, show} = this.props;
     const {value, mode} = this.state;
-    const ruralUploadEnabled = this.context.isFeatureEnabled('upload_rural');
-    const xwfUploadEnabled = this.context.isFeatureEnabled('upload_xwf');
-    const ftthUploadEnabled = this.context.isFeatureEnabled('upload_ftth');
-    const pythonApiEnabled = this.context.isFeatureEnabled('python_api');
     const equipmentExportImportEnabled = this.context.isFeatureEnabled(
       'import_exported_equipemnt',
     );
@@ -113,10 +109,7 @@ class AddToLocationDialog extends React.Component<Props, State> {
             textColor="primary">
             <Tab className={classes.tab} label="Locations" />
             <Tab className={classes.tab} label="Bulk Upload" />
-            {pythonApiEnabled && (
-              <Tab className={classes.tab} label="Python API" />
-            )}
-            }
+            <Tab className={classes.tab} label="Python API" />
           </Tabs>
         ) : null}
         <DialogTitle>{this.getDialogTitle()}</DialogTitle>
@@ -148,87 +141,6 @@ class AddToLocationDialog extends React.Component<Props, State> {
                 )}
                 {this.documentsLink('csv-upload.html')}
                 <div className={classes.uploadContent}>
-                  {ruralUploadEnabled && (
-                    <>
-                      <CSVFileUpload
-                        button={<Button variant="text">Rural RAN</Button>}
-                        onProgress={() =>
-                          this.setState({isLoading: true, errorMessage: null})
-                        }
-                        onFileUploaded={msg => this.onFileUploaded(msg)}
-                        uploadPath={UploadAPIUrls.rural_ran()}
-                        onUploadFailed={msg => this.onUploadFailed(msg)}
-                      />
-                      <CSVFileUpload
-                        button={<Button variant="text">Rural Transport</Button>}
-                        onProgress={() =>
-                          this.setState({isLoading: true, errorMessage: null})
-                        }
-                        onFileUploaded={msg => this.onFileUploaded(msg)}
-                        uploadPath={UploadAPIUrls.rural_transport()}
-                        onUploadFailed={msg => this.onUploadFailed(msg)}
-                      />
-                      <CSVFileUpload
-                        button={<Button variant="text">Rural Locations</Button>}
-                        onProgress={() =>
-                          this.setState({isLoading: true, errorMessage: null})
-                        }
-                        onFileUploaded={msg => this.onFileUploaded(msg)}
-                        uploadPath={UploadAPIUrls.rural_locations()}
-                        onUploadFailed={msg => this.onUploadFailed(msg)}
-                      />
-                      <CSVFileUpload
-                        button={
-                          <Button variant="text">Rural Legacy Locations</Button>
-                        }
-                        onProgress={() =>
-                          this.setState({isLoading: true, errorMessage: null})
-                        }
-                        onFileUploaded={msg => this.onFileUploaded(msg)}
-                        uploadPath={UploadAPIUrls.rural_legacy_locations()}
-                        onUploadFailed={msg => this.onUploadFailed(msg)}
-                      />
-                    </>
-                  )}
-                  {ftthUploadEnabled && (
-                    <CSVFileUpload
-                      button={<Button variant="text">Upload FTTH</Button>}
-                      onProgress={() =>
-                        this.setState({isLoading: true, errorMessage: null})
-                      }
-                      onFileUploaded={msg => this.onFileUploaded(msg)}
-                      uploadPath={UploadAPIUrls.ftth()}
-                      onUploadFailed={msg => this.onUploadFailed(msg)}
-                    />
-                  )}
-                  {xwfUploadEnabled && (
-                    <>
-                      <CSVFileUpload
-                        button={
-                          <Button variant="text">Express Wi-Fi Rural</Button>
-                        }
-                        onProgress={() =>
-                          this.setState({isLoading: true, errorMessage: null})
-                        }
-                        onFileUploaded={msg => this.onFileUploaded(msg)}
-                        uploadPath={UploadAPIUrls.xwf1()}
-                        onUploadFailed={msg => this.onUploadFailed(msg)}
-                      />
-                      <CSVFileUpload
-                        button={
-                          <Button variant="text">
-                            Express Wi-Fi XPP Access Points
-                          </Button>
-                        }
-                        onProgress={() =>
-                          this.setState({isLoading: true, errorMessage: null})
-                        }
-                        onFileUploaded={msg => this.onFileUploaded(msg)}
-                        uploadPath={UploadAPIUrls.xwfAps()}
-                        onUploadFailed={msg => this.onUploadFailed(msg)}
-                      />
-                    </>
-                  )}
                   <CSVFileUpload
                     button={<Button variant="text">Upload Position Def</Button>}
                     onProgress={() =>

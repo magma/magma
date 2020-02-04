@@ -55,9 +55,9 @@ type EquipmentPortDefinitionEdges struct {
 	loadedTypes [3]bool
 }
 
-// EquipmentPortTypeErr returns the EquipmentPortType value or an error if the edge
+// EquipmentPortTypeOrErr returns the EquipmentPortType value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentPortDefinitionEdges) EquipmentPortTypeErr() (*EquipmentPortType, error) {
+func (e EquipmentPortDefinitionEdges) EquipmentPortTypeOrErr() (*EquipmentPortType, error) {
 	if e.loadedTypes[0] {
 		if e.EquipmentPortType == nil {
 			// The edge equipment_port_type was loaded in eager-loading,
@@ -69,18 +69,18 @@ func (e EquipmentPortDefinitionEdges) EquipmentPortTypeErr() (*EquipmentPortType
 	return nil, &NotLoadedError{edge: "equipment_port_type"}
 }
 
-// PortsErr returns the Ports value or an error if the edge
+// PortsOrErr returns the Ports value or an error if the edge
 // was not loaded in eager-loading.
-func (e EquipmentPortDefinitionEdges) PortsErr() ([]*EquipmentPort, error) {
+func (e EquipmentPortDefinitionEdges) PortsOrErr() ([]*EquipmentPort, error) {
 	if e.loadedTypes[1] {
 		return e.Ports, nil
 	}
 	return nil, &NotLoadedError{edge: "ports"}
 }
 
-// EquipmentTypeErr returns the EquipmentType value or an error if the edge
+// EquipmentTypeOrErr returns the EquipmentType value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e EquipmentPortDefinitionEdges) EquipmentTypeErr() (*EquipmentType, error) {
+func (e EquipmentPortDefinitionEdges) EquipmentTypeOrErr() (*EquipmentType, error) {
 	if e.loadedTypes[2] {
 		if e.EquipmentType == nil {
 			// The edge equipment_type was loaded in eager-loading,

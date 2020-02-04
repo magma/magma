@@ -16,6 +16,7 @@ import type {
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {MutationCallbacks} from '../mutations/MutationCallbacks.js';
 import type {WithSnackbarProps} from 'notistack';
+import type {WithStyles} from '@material-ui/core';
 
 import AddImageMutation from '../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -27,11 +28,23 @@ import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Strings from '../common/CommonStrings';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {withSnackbar} from 'notistack';
+import {withStyles} from '@material-ui/core/styles';
+
+const styles = {
+  uploadCategory: {
+    padding: '0px',
+  },
+  uploadCategoryButton: {
+    padding: '6px 16px',
+    width: '100%',
+  },
+};
 
 type Props = {
   entityId: ?string,
   entityType: ImageEntity,
-} & WithSnackbarProps;
+} & WithSnackbarProps &
+  WithStyles<typeof styles>;
 
 type State = {
   isMenuOpened: boolean,
@@ -45,14 +58,13 @@ const FileTypeEnum = {
 class DocumentsAddButton extends React.Component<Props, State> {
   static contextType = AppContext;
   context: AppContextType;
-  menuButtonRef = React.createRef();
 
   state = {
     isMenuOpened: false,
   };
 
   render() {
-    const {entityId} = this.props;
+    const {entityId, classes} = this.props;
     const categoriesEnabled = this.context.isFeatureEnabled('file_categories');
 
     if (!entityId) {
@@ -68,12 +80,14 @@ class DocumentsAddButton extends React.Component<Props, State> {
             options={Strings.documents.categories.map(category => ({
               label: (
                 <FileUpload
+                  className={classes.uploadCategoryButton}
                   key={category}
                   button={category}
                   onFileUploaded={this.onDocumentUploaded(category)}
                 />
               ),
               value: category,
+              className: classes.uploadCategory,
             }))}>
             {Strings.documents.uploadButton}
           </PopoverMenu>
@@ -141,4 +155,4 @@ class DocumentsAddButton extends React.Component<Props, State> {
   };
 }
 
-export default withSnackbar(DocumentsAddButton);
+export default withStyles(styles)(withSnackbar(DocumentsAddButton));

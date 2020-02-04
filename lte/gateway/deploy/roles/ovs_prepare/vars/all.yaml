@@ -12,3 +12,4 @@ patches:
   - "0002-userspace-Add-L3-tunnel-type-GTP.patch"
   - "0003-Build-symbols-for-gtp-vport-linux-4.9-module-require.patch"
   - "0004-Linux-compat-fixes.patch"
+  - "0005-Add-custom-ipfix-fields.patch"

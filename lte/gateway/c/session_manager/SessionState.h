@@ -58,7 +58,8 @@ class SessionState {
     const std::string& session_id,
     const std::string& core_session_id,
     const SessionState::Config& cfg,
-    StaticRuleStore& rule_store);
+    StaticRuleStore& rule_store,
+    const magma::lte::TgppContext& tgpp_context);
 
   /**
    * new_report sets the state of terminating session to aggregating, to tell if
@@ -160,6 +161,10 @@ class SessionState {
 
   bool qos_enabled();
 
+  void set_tgpp_context(const magma::lte::TgppContext& tgpp_context);
+
+  void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context);
+
  private:
   /**
    * State transitions of a session:
@@ -198,6 +203,7 @@ class SessionState {
   SessionRules session_rules_;
   SessionState::State curr_state_;
   SessionState::Config config_;
+  magma::lte::TgppContext tgpp_context_;
   std::function<void(SessionTerminateRequest)> on_termination_callback_;
 
  private:

@@ -432,7 +432,6 @@ message CreateSessionRequest {
 
 message CreateSessionResponse {
   repeated CreditUpdateResponse credits = 1; // these will only have updates
-  repeated string rule_base_names = 5; // static rule base names
   repeated UsageMonitoringUpdateResponse usage_monitors = 6;
   repeated StaticRuleInstall static_rules = 7; // static rules
   repeated DynamicRuleInstall dynamic_rules = 8; // dynamic rules

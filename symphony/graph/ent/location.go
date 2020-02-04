@@ -48,7 +48,7 @@ type LocationEdges struct {
 	// Type holds the value of the type edge.
 	Type *LocationType `gqlgen:"locationType"`
 	// Parent holds the value of the parent edge.
-	Parent *Location `gqlgen:"parent"`
+	Parent *Location `gqlgen:"parentLocation"`
 	// Children holds the value of the children edge.
 	Children []*Location `gqlgen:"children"`
 	// Files holds the value of the files edge.
@@ -74,9 +74,9 @@ type LocationEdges struct {
 	loadedTypes [12]bool
 }
 
-// TypeErr returns the Type value or an error if the edge
+// TypeOrErr returns the Type value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e LocationEdges) TypeErr() (*LocationType, error) {
+func (e LocationEdges) TypeOrErr() (*LocationType, error) {
 	if e.loadedTypes[0] {
 		if e.Type == nil {
 			// The edge type was loaded in eager-loading,
@@ -88,9 +88,9 @@ func (e LocationEdges) TypeErr() (*LocationType, error) {
 	return nil, &NotLoadedError{edge: "type"}
 }
 
-// ParentErr returns the Parent value or an error if the edge
+// ParentOrErr returns the Parent value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e LocationEdges) ParentErr() (*Location, error) {
+func (e LocationEdges) ParentOrErr() (*Location, error) {
 	if e.loadedTypes[1] {
 		if e.Parent == nil {
 			// The edge parent was loaded in eager-loading,
@@ -102,90 +102,90 @@ func (e LocationEdges) ParentErr() (*Location, error) {
 	return nil, &NotLoadedError{edge: "parent"}
 }
 
-// ChildrenErr returns the Children value or an error if the edge
+// ChildrenOrErr returns the Children value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) ChildrenErr() ([]*Location, error) {
+func (e LocationEdges) ChildrenOrErr() ([]*Location, error) {
 	if e.loadedTypes[2] {
 		return e.Children, nil
 	}
 	return nil, &NotLoadedError{edge: "children"}
 }
 
-// FilesErr returns the Files value or an error if the edge
+// FilesOrErr returns the Files value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) FilesErr() ([]*File, error) {
+func (e LocationEdges) FilesOrErr() ([]*File, error) {
 	if e.loadedTypes[3] {
 		return e.Files, nil
 	}
 	return nil, &NotLoadedError{edge: "files"}
 }
 
-// HyperlinksErr returns the Hyperlinks value or an error if the edge
+// HyperlinksOrErr returns the Hyperlinks value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) HyperlinksErr() ([]*Hyperlink, error) {
+func (e LocationEdges) HyperlinksOrErr() ([]*Hyperlink, error) {
 	if e.loadedTypes[4] {
 		return e.Hyperlinks, nil
 	}
 	return nil, &NotLoadedError{edge: "hyperlinks"}
 }
 
-// EquipmentErr returns the Equipment value or an error if the edge
+// EquipmentOrErr returns the Equipment value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) EquipmentErr() ([]*Equipment, error) {
+func (e LocationEdges) EquipmentOrErr() ([]*Equipment, error) {
 	if e.loadedTypes[5] {
 		return e.Equipment, nil
 	}
 	return nil, &NotLoadedError{edge: "equipment"}
 }
 
-// PropertiesErr returns the Properties value or an error if the edge
+// PropertiesOrErr returns the Properties value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) PropertiesErr() ([]*Property, error) {
+func (e LocationEdges) PropertiesOrErr() ([]*Property, error) {
 	if e.loadedTypes[6] {
 		return e.Properties, nil
 	}
 	return nil, &NotLoadedError{edge: "properties"}
 }
 
-// SurveyErr returns the Survey value or an error if the edge
+// SurveyOrErr returns the Survey value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) SurveyErr() ([]*Survey, error) {
+func (e LocationEdges) SurveyOrErr() ([]*Survey, error) {
 	if e.loadedTypes[7] {
 		return e.Survey, nil
 	}
 	return nil, &NotLoadedError{edge: "survey"}
 }
 
-// WifiScanErr returns the WifiScan value or an error if the edge
+// WifiScanOrErr returns the WifiScan value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) WifiScanErr() ([]*SurveyWiFiScan, error) {
+func (e LocationEdges) WifiScanOrErr() ([]*SurveyWiFiScan, error) {
 	if e.loadedTypes[8] {
 		return e.WifiScan, nil
 	}
 	return nil, &NotLoadedError{edge: "wifi_scan"}
 }
 
-// CellScanErr returns the CellScan value or an error if the edge
+// CellScanOrErr returns the CellScan value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) CellScanErr() ([]*SurveyCellScan, error) {
+func (e LocationEdges) CellScanOrErr() ([]*SurveyCellScan, error) {
 	if e.loadedTypes[9] {
 		return e.CellScan, nil
 	}
 	return nil, &NotLoadedError{edge: "cell_scan"}
 }
 
-// WorkOrdersErr returns the WorkOrders value or an error if the edge
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) WorkOrdersErr() ([]*WorkOrder, error) {
+func (e LocationEdges) WorkOrdersOrErr() ([]*WorkOrder, error) {
 	if e.loadedTypes[10] {
 		return e.WorkOrders, nil
 	}
 	return nil, &NotLoadedError{edge: "work_orders"}
 }
 
-// FloorPlansErr returns the FloorPlans value or an error if the edge
+// FloorPlansOrErr returns the FloorPlans value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationEdges) FloorPlansErr() ([]*FloorPlan, error) {
+func (e LocationEdges) FloorPlansOrErr() ([]*FloorPlan, error) {
 	if e.loadedTypes[11] {
 		return e.FloorPlans, nil
 	}

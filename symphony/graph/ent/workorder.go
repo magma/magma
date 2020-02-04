@@ -85,9 +85,9 @@ type WorkOrderEdges struct {
 	loadedTypes [11]bool
 }
 
-// TypeErr returns the Type value or an error if the edge
+// TypeOrErr returns the Type value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e WorkOrderEdges) TypeErr() (*WorkOrderType, error) {
+func (e WorkOrderEdges) TypeOrErr() (*WorkOrderType, error) {
 	if e.loadedTypes[0] {
 		if e.Type == nil {
 			// The edge type was loaded in eager-loading,
@@ -99,45 +99,45 @@ func (e WorkOrderEdges) TypeErr() (*WorkOrderType, error) {
 	return nil, &NotLoadedError{edge: "type"}
 }
 
-// EquipmentErr returns the Equipment value or an error if the edge
+// EquipmentOrErr returns the Equipment value or an error if the edge
 // was not loaded in eager-loading.
-func (e WorkOrderEdges) EquipmentErr() ([]*Equipment, error) {
+func (e WorkOrderEdges) EquipmentOrErr() ([]*Equipment, error) {
 	if e.loadedTypes[1] {
 		return e.Equipment, nil
 	}
 	return nil, &NotLoadedError{edge: "equipment"}
 }
 
-// LinksErr returns the Links value or an error if the edge
+// LinksOrErr returns the Links value or an error if the edge
 // was not loaded in eager-loading.
-func (e WorkOrderEdges) LinksErr() ([]*Link, error) {
+func (e WorkOrderEdges) LinksOrErr() ([]*Link, error) {
 	if e.loadedTypes[2] {
 		return e.Links, nil
 	}
 	return nil, &NotLoadedError{edge: "links"}
 }
 
-// FilesErr returns the Files value or an error if the edge
+// FilesOrErr returns the Files value or an error if the edge
 // was not loaded in eager-loading.
-func (e WorkOrderEdges) FilesErr() ([]*File, error) {
+func (e WorkOrderEdges) FilesOrErr() ([]*File, error) {
 	if e.loadedTypes[3] {
 		return e.Files, nil
 	}
 	return nil, &NotLoadedError{edge: "files"}
 }
 
-// HyperlinksErr returns the Hyperlinks value or an error if the edge
+// HyperlinksOrErr returns the Hyperlinks value or an error if the edge
 // was not loaded in eager-loading.
-func (e WorkOrderEdges) HyperlinksErr() ([]*Hyperlink, error) {
+func (e WorkOrderEdges) HyperlinksOrErr() ([]*Hyperlink, error) {
 	if e.loadedTypes[4] {
 		return e.Hyperlinks, nil
 	}
 	return nil, &NotLoadedError{edge: "hyperlinks"}
 }
 
-// LocationErr returns the Location value or an error if the edge
+// LocationOrErr returns the Location value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e WorkOrderEdges) LocationErr() (*Location, error) {
+func (e WorkOrderEdges) LocationOrErr() (*Location, error) {
 	if e.loadedTypes[5] {
 		if e.Location == nil {
 			// The edge location was loaded in eager-loading,
@@ -149,36 +149,36 @@ func (e WorkOrderEdges) LocationErr() (*Location, error) {
 	return nil, &NotLoadedError{edge: "location"}
 }
 
-// CommentsErr returns the Comments value or an error if the edge
+// CommentsOrErr returns the Comments value or an error if the edge
 // was not loaded in eager-loading.
-func (e WorkOrderEdges) CommentsErr() ([]*Comment, error) {
+func (e WorkOrderEdges) CommentsOrErr() ([]*Comment, error) {
 	if e.loadedTypes[6] {
 		return e.Comments, nil
 	}
 	return nil, &NotLoadedError{edge: "comments"}
 }
 
-// PropertiesErr returns the Properties value or an error if the edge
+// PropertiesOrErr returns the Properties value or an error if the edge
 // was not loaded in eager-loading.
-func (e WorkOrderEdges) PropertiesErr() ([]*Property, error) {
+func (e WorkOrderEdges) PropertiesOrErr() ([]*Property, error) {
 	if e.loadedTypes[7] {
 		return e.Properties, nil
 	}
 	return nil, &NotLoadedError{edge: "properties"}
 }
 
-// CheckListItemsErr returns the CheckListItems value or an error if the edge
+// CheckListItemsOrErr returns the CheckListItems value or an error if the edge
 // was not loaded in eager-loading.
-func (e WorkOrderEdges) CheckListItemsErr() ([]*CheckListItem, error) {
+func (e WorkOrderEdges) CheckListItemsOrErr() ([]*CheckListItem, error) {
 	if e.loadedTypes[8] {
 		return e.CheckListItems, nil
 	}
 	return nil, &NotLoadedError{edge: "check_list_items"}
 }
 
-// TechnicianErr returns the Technician value or an error if the edge
+// TechnicianOrErr returns the Technician value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e WorkOrderEdges) TechnicianErr() (*Technician, error) {
+func (e WorkOrderEdges) TechnicianOrErr() (*Technician, error) {
 	if e.loadedTypes[9] {
 		if e.Technician == nil {
 			// The edge technician was loaded in eager-loading,
@@ -190,9 +190,9 @@ func (e WorkOrderEdges) TechnicianErr() (*Technician, error) {
 	return nil, &NotLoadedError{edge: "technician"}
 }
 
-// ProjectErr returns the Project value or an error if the edge
+// ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e WorkOrderEdges) ProjectErr() (*Project, error) {
+func (e WorkOrderEdges) ProjectOrErr() (*Project, error) {
 	if e.loadedTypes[10] {
 		if e.Project == nil {
 			// The edge project was loaded in eager-loading,

@@ -46,6 +46,7 @@ const handleReact = tab =>
                 tenant: organization?.name,
                 email: req.user.email,
                 isSuperUser: req.user.isSuperUser,
+                isReadOnlyUser: req.user.isReadOnlyUser,
               }
             : null,
           enabledFeatures: await getEnabledFeatures(req, organization?.name),

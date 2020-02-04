@@ -23,7 +23,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
-import IconButton from '@material-ui/core/IconButton';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React from 'react';
 import RemoveEquipmentMutation from '../../mutations/RemoveEquipmentMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -142,13 +142,15 @@ class EquipmentTable extends React.Component<Props> {
                       </Button>
                     </TableCell>
                   )}
-                  <TableCell>
-                    <IconButton
-                      onClick={() => this.onDelete(row)}
-                      color="primary"
-                      className={classes.icon}>
-                      <DeleteIcon />
-                    </IconButton>
+                  <TableCell align="right">
+                    <FormAction>
+                      <Button
+                        variant="text"
+                        skin="primary"
+                        onClick={() => this.onDelete(row)}>
+                        <DeleteIcon />
+                      </Button>
+                    </FormAction>
                   </TableCell>
                 </TableRow>
               );

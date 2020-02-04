@@ -53,27 +53,27 @@ type LocationTypeEdges struct {
 	loadedTypes [3]bool
 }
 
-// LocationsErr returns the Locations value or an error if the edge
+// LocationsOrErr returns the Locations value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationTypeEdges) LocationsErr() ([]*Location, error) {
+func (e LocationTypeEdges) LocationsOrErr() ([]*Location, error) {
 	if e.loadedTypes[0] {
 		return e.Locations, nil
 	}
 	return nil, &NotLoadedError{edge: "locations"}
 }
 
-// PropertyTypesErr returns the PropertyTypes value or an error if the edge
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationTypeEdges) PropertyTypesErr() ([]*PropertyType, error) {
+func (e LocationTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
 	if e.loadedTypes[1] {
 		return e.PropertyTypes, nil
 	}
 	return nil, &NotLoadedError{edge: "property_types"}
 }
 
-// SurveyTemplateCategoriesErr returns the SurveyTemplateCategories value or an error if the edge
+// SurveyTemplateCategoriesOrErr returns the SurveyTemplateCategories value or an error if the edge
 // was not loaded in eager-loading.
-func (e LocationTypeEdges) SurveyTemplateCategoriesErr() ([]*SurveyTemplateCategory, error) {
+func (e LocationTypeEdges) SurveyTemplateCategoriesOrErr() ([]*SurveyTemplateCategory, error) {
 	if e.loadedTypes[2] {
 		return e.SurveyTemplateCategories, nil
 	}

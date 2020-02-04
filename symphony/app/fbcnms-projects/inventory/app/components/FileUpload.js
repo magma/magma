@@ -9,12 +9,13 @@
  */
 
 import * as React from 'react';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import axios from 'axios';
 import fbt from 'fbt';
 import shortid from 'shortid';
 import {FilesUploadContext} from './context/FilesUploadContextProvider';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useRef} from 'react';
+import {useCallback, useContext, useRef} from 'react';
 
 const useStyles = makeStyles({
   hiddenInput: {
@@ -30,32 +31,36 @@ const useStyles = makeStyles({
 export const FileUploadButton = (props: {
   button: React.Node,
   onFileChanged: (SyntheticEvent<HTMLInputElement>) => void | Promise<void>,
+  className?: ?string,
 }) => {
+  const {button, onFileChanged, className} = props;
   const classes = useStyles();
   const inputRef = useRef();
+  const buttonClick = useCallback(() => inputRef?.current?.click(), [inputRef]);
   return (
-    <>
+    <FormAction>
       <input
         className={classes.hiddenInput}
         type="file"
-        onChange={props.onFileChanged}
+        onChange={onFileChanged}
         ref={inputRef}
         multiple
       />
-      <span onClick={() => inputRef.current && inputRef.current.click()}>
-        {props.button}
+      <span className={className} onClick={buttonClick}>
+        {button}
       </span>
-    </>
+    </FormAction>
   );
 };
 
 type Props = {
   button: React.Node,
+  className?: ?string,
   onProgress?: (fileId: string, progress: number) => void,
   onFileUploaded: (file: File, key: string) => void,
 };
 
-const FileUpload = ({button, onProgress, onFileUploaded}: Props) => {
+const FileUpload = ({button, onProgress, onFileUploaded, className}: Props) => {
   const uploadContext = useContext(FilesUploadContext);
 
   const onFileProgress = (fileId, progress) => {
@@ -90,6 +95,7 @@ const FileUpload = ({button, onProgress, onFileUploaded}: Props) => {
   return (
     <FileUploadButton
       button={button}
+      className={className}
       onFileChanged={async e => await onFilesChanged(e)}
     />
   );

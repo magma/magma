@@ -49,18 +49,18 @@ type LinkEdges struct {
 	loadedTypes [4]bool
 }
 
-// PortsErr returns the Ports value or an error if the edge
+// PortsOrErr returns the Ports value or an error if the edge
 // was not loaded in eager-loading.
-func (e LinkEdges) PortsErr() ([]*EquipmentPort, error) {
+func (e LinkEdges) PortsOrErr() ([]*EquipmentPort, error) {
 	if e.loadedTypes[0] {
 		return e.Ports, nil
 	}
 	return nil, &NotLoadedError{edge: "ports"}
 }
 
-// WorkOrderErr returns the WorkOrder value or an error if the edge
+// WorkOrderOrErr returns the WorkOrder value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e LinkEdges) WorkOrderErr() (*WorkOrder, error) {
+func (e LinkEdges) WorkOrderOrErr() (*WorkOrder, error) {
 	if e.loadedTypes[1] {
 		if e.WorkOrder == nil {
 			// The edge work_order was loaded in eager-loading,
@@ -72,18 +72,18 @@ func (e LinkEdges) WorkOrderErr() (*WorkOrder, error) {
 	return nil, &NotLoadedError{edge: "work_order"}
 }
 
-// PropertiesErr returns the Properties value or an error if the edge
+// PropertiesOrErr returns the Properties value or an error if the edge
 // was not loaded in eager-loading.
-func (e LinkEdges) PropertiesErr() ([]*Property, error) {
+func (e LinkEdges) PropertiesOrErr() ([]*Property, error) {
 	if e.loadedTypes[2] {
 		return e.Properties, nil
 	}
 	return nil, &NotLoadedError{edge: "properties"}
 }
 
-// ServiceErr returns the Service value or an error if the edge
+// ServiceOrErr returns the Service value or an error if the edge
 // was not loaded in eager-loading.
-func (e LinkEdges) ServiceErr() ([]*Service, error) {
+func (e LinkEdges) ServiceOrErr() ([]*Service, error) {
 	if e.loadedTypes[3] {
 		return e.Service, nil
 	}

@@ -52,6 +52,7 @@ class DocumentMenu extends React.Component<Props> {
           'Preview',
           'Caption for menu option for showing image in preview mode',
         ),
+        ignorePermissions: true,
       },
       {
         onClick: this.handleDelete.bind(this),
@@ -66,6 +67,7 @@ class DocumentMenu extends React.Component<Props> {
           'Download',
           'Caption for menu option for downloading a file from files table',
         ),
+        ignorePermissions: true,
       },
     ];
     return (

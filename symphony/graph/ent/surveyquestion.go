@@ -83,9 +83,9 @@ type SurveyQuestionEdges struct {
 	loadedTypes [4]bool
 }
 
-// SurveyErr returns the Survey value or an error if the edge
+// SurveyOrErr returns the Survey value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SurveyQuestionEdges) SurveyErr() (*Survey, error) {
+func (e SurveyQuestionEdges) SurveyOrErr() (*Survey, error) {
 	if e.loadedTypes[0] {
 		if e.Survey == nil {
 			// The edge survey was loaded in eager-loading,
@@ -97,27 +97,27 @@ func (e SurveyQuestionEdges) SurveyErr() (*Survey, error) {
 	return nil, &NotLoadedError{edge: "survey"}
 }
 
-// WifiScanErr returns the WifiScan value or an error if the edge
+// WifiScanOrErr returns the WifiScan value or an error if the edge
 // was not loaded in eager-loading.
-func (e SurveyQuestionEdges) WifiScanErr() ([]*SurveyWiFiScan, error) {
+func (e SurveyQuestionEdges) WifiScanOrErr() ([]*SurveyWiFiScan, error) {
 	if e.loadedTypes[1] {
 		return e.WifiScan, nil
 	}
 	return nil, &NotLoadedError{edge: "wifi_scan"}
 }
 
-// CellScanErr returns the CellScan value or an error if the edge
+// CellScanOrErr returns the CellScan value or an error if the edge
 // was not loaded in eager-loading.
-func (e SurveyQuestionEdges) CellScanErr() ([]*SurveyCellScan, error) {
+func (e SurveyQuestionEdges) CellScanOrErr() ([]*SurveyCellScan, error) {
 	if e.loadedTypes[2] {
 		return e.CellScan, nil
 	}
 	return nil, &NotLoadedError{edge: "cell_scan"}
 }
 
-// PhotoDataErr returns the PhotoData value or an error if the edge
+// PhotoDataOrErr returns the PhotoData value or an error if the edge
 // was not loaded in eager-loading.
-func (e SurveyQuestionEdges) PhotoDataErr() ([]*File, error) {
+func (e SurveyQuestionEdges) PhotoDataOrErr() ([]*File, error) {
 	if e.loadedTypes[3] {
 		return e.PhotoData, nil
 	}

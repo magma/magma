@@ -16,13 +16,22 @@ var (
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
 	}
 	// TodosTable holds the schema information for the "todos" table.
 	TodosTable = &schema.Table{
-		Name:        "todos",
-		Columns:     TodosColumns,
-		PrimaryKey:  []*schema.Column{TodosColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "todos",
+		Columns:    TodosColumns,
+		PrimaryKey: []*schema.Column{TodosColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "todos_todos_children",
+				Columns: []*schema.Column{TodosColumns[2]},
+
+				RefColumns: []*schema.Column{TodosColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
@@ -31,4 +40,5 @@ var (
 )
 
 func init() {
+	TodosTable.ForeignKeys[0].RefTable = TodosTable
 }

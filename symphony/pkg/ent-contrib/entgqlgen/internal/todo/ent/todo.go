@@ -21,6 +21,44 @@ type Todo struct {
 	ID int `json:"id,omitempty"`
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the TodoQuery when eager-loading is set.
+	Edges     TodoEdges `json:"edges"`
+	parent_id *int
+}
+
+// TodoEdges holds the relations/edges for other nodes in the graph.
+type TodoEdges struct {
+	// Parent holds the value of the parent edge.
+	Parent *Todo `gqlgen:"parent"`
+	// Children holds the value of the children edge.
+	Children []*Todo `gqlgen:"children"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// ParentOrErr returns the Parent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TodoEdges) ParentOrErr() (*Todo, error) {
+	if e.loadedTypes[0] {
+		if e.Parent == nil {
+			// The edge parent was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: todo.Label}
+		}
+		return e.Parent, nil
+	}
+	return nil, &NotLoadedError{edge: "parent"}
+}
+
+// ChildrenOrErr returns the Children value or an error if the edge
+// was not loaded in eager-loading.
+func (e TodoEdges) ChildrenOrErr() ([]*Todo, error) {
+	if e.loadedTypes[1] {
+		return e.Children, nil
+	}
+	return nil, &NotLoadedError{edge: "children"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -28,6 +66,13 @@ func (*Todo) scanValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{},  // id
 		&sql.NullString{}, // text
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Todo) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // parent_id
 	}
 }
 
@@ -48,7 +93,26 @@ func (t *Todo) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		t.Text = value.String
 	}
+	values = values[1:]
+	if len(values) == len(todo.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field parent_id", value)
+		} else if value.Valid {
+			t.parent_id = new(int)
+			*t.parent_id = int(value.Int64)
+		}
+	}
 	return nil
+}
+
+// QueryParent queries the parent edge of the Todo.
+func (t *Todo) QueryParent() *TodoQuery {
+	return (&TodoClient{t.config}).QueryParent(t)
+}
+
+// QueryChildren queries the children edge of the Todo.
+func (t *Todo) QueryChildren() *TodoQuery {
+	return (&TodoClient{t.config}).QueryChildren(t)
 }
 
 // Update returns a builder for updating this Todo.

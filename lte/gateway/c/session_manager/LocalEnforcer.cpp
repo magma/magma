@@ -583,8 +583,8 @@ bool LocalEnforcer::init_session_credit(
   const CreateSessionResponse& response)
 {
   std::unordered_set<uint32_t> successful_credits;
-  auto session_state = new SessionState(
-    imsi, session_id, response.session_id(), cfg, *rule_store_);
+  auto session_state = new SessionState(imsi, session_id,
+    response.session_id(), cfg, *rule_store_, response.tgpp_ctx());
   for (const auto &credit : response.credits()) {
     session_state->get_charging_pool().receive_credit(credit);
     if (credit.success() && contains_credit(credit.credit().granted_units())) {
@@ -756,6 +756,7 @@ void LocalEnforcer::update_charging_credits(
     }
     for (const auto &session : it->second) {
       session->get_charging_pool().receive_credit(credit_update_resp);
+      session->set_tgpp_context(credit_update_resp.tgpp_ctx());
     }
   }
 }
@@ -787,6 +788,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 
     for (const auto &session : it->second) {
       session->get_monitor_pool().receive_credit(usage_monitor_resp);
+      session->set_tgpp_context(usage_monitor_resp.tgpp_ctx());
 
       RulesToProcess rules_to_activate;
       RulesToProcess rules_to_deactivate;
