@@ -62,9 +62,9 @@ static uint CPU_CORES = std::max(uint(4), std::thread::hardware_concurrency());
  * starvation - connection failures should always be detected.
  * SSH cli (SshSessionAsync) - separate executor for ssh layer.
  * All other layers share common threadpool executor.
- * All executors are cpu threadpool executors, to mitigate possible deadlocks, such
- * as when cli destructor calls destroy.get() - this would block forever
- * on IO threadpool executor.
+ * All executors are cpu threadpool executors, to mitigate possible deadlocks,
+ * such as when cli destructor calls destroy.get() - this would block forever on
+ * IO threadpool executor.
  */
 Engine::Engine()
     : channels::Engine("Cli"),
