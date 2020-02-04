@@ -143,6 +143,18 @@ int sgw_handle_create_session_request(
     session_req_pP->sender_fteid_for_cp.teid,
     sgw_get_new_S11_tunnel_id(state));
 
+  spgw_imsi_map_t* imsi_map = get_spgw_imsi_map();
+  hashtable_uint64_ts_insert(
+    imsi_map->imsi_teid5_htbl,
+    (uint64_t) imsi64,
+    (const hash_key_t) new_endpoint_p->local_teid);
+
+  OAILOG_INFO(
+    LOG_SPGW_APP,
+    "Putting imsi" IMSI_64_FMT " with teid5 %u",
+    imsi64,
+    new_endpoint_p->local_teid);
+
   if (new_endpoint_p == NULL) {
     OAILOG_ERROR(
       LOG_SPGW_APP,
