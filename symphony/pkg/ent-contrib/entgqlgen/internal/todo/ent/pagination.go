@@ -112,7 +112,7 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	if last != nil {
 		t = t.Order(Desc(todo.FieldID)).Limit(*last + 1)
 	}
-	t = t.withConnectionFields(ctx)
+	t = t.collectConnectionFields(ctx)
 
 	nodes, err := t.All(ctx)
 	if err != nil || len(nodes) == 0 {
@@ -149,9 +149,9 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	return &conn, nil
 }
 
-func (t *TodoQuery) withConnectionFields(ctx context.Context) *TodoQuery {
+func (t *TodoQuery) collectConnectionFields(ctx context.Context) *TodoQuery {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		t = t.withField(graphql.GetRequestContext(ctx), *field)
+		t = t.collectField(graphql.GetRequestContext(ctx), *field)
 	}
 	return t
 }

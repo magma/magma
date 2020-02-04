@@ -114,7 +114,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 	case todo.Table:
 		n, err := c.Todo.Query().
 			Where(todo.ID(id)).
-			WithFieldCollection(ctx, "Todo").
+			CollectFields(ctx, "Todo").
 			Only(ctx)
 		if err != nil {
 			return nil, err
