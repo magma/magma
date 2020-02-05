@@ -1930,7 +1930,6 @@ type Query {
     before: Cursor
     last: Int
   ): ProjectTypeConnection
-  customer(id: ID!): Customer
   customers(
     after: Cursor
     first: Int

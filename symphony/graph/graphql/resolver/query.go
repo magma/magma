@@ -314,14 +314,6 @@ func (r queryResolver) ServiceTypes(
 		Paginate(ctx, after, first, before, last)
 }
 
-func (r queryResolver) Customer(ctx context.Context, id string) (*ent.Customer, error) {
-	st, err := r.ClientFrom(ctx).Customer.Get(ctx, id)
-	if err != nil {
-		return nil, errors.Wrapf(err, "querying customer: id=%q", id)
-	}
-	return st, nil
-}
-
 func (r queryResolver) Customers(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
