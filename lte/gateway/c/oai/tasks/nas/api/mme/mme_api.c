@@ -464,12 +464,11 @@ int mme_api_new_guti(
         break;
       }
     }
-    if (is_plmn_equal) {
-      is_plmn_equal = false;
-    } else {
+    if (!is_plmn_equal) {
       OAILOG_ERROR(LOG_NAS, "Serving PLMN not matching with GUMMEI List!\n");
       OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
     }
+    is_plmn_equal = false;
     // TODO Find another way to generate m_tmsi
     guti->m_tmsi = (tmsi_t)(uintptr_t) ue_context;
     if (guti->m_tmsi == INVALID_M_TMSI) {
@@ -525,7 +524,6 @@ int mme_api_new_guti(
               _emm_data.conf.tai_list.partial_tai_list[i]
                 .u.tai_one_plmn_consecutive_tacs,
               guti->gummei.plmn)) {
-          is_plmn_equal = false;
           tai_list->partial_tai_list[j].numberofelements =
             _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
           tai_list->partial_tai_list[j].typeoflist =

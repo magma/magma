@@ -796,26 +796,16 @@ int mme_config_parse_file(mme_config_t *config_pP)
     if (setting != NULL) {
       num = config_setting_length(setting);
       OAILOG_INFO(LOG_MME_APP, "Number of GUMMEIs configured =%d\n", num);
-      if (!num) {
-        OAILOG_CRITICAL(
-          LOG_MME_APP,
-          "Not even one GUMMEI is configured, "
-          "configure minimum one GUMMEI \n");
-        DevMessage(
-          "Not even one GUMMEI is configured, configure minimum one GUMMEI "
-          "\n");
-      }
-      if (num > MAX_GUMMEI) {
-        OAILOG_CRITICAL(
-          LOG_MME_APP,
-          "Number of GUMMEIs configured:%d exceeds"
-          "number of GUMMEIs supported :%d \n",
-          num,
-          MAX_GUMMEI);
-        DevMessage(
-          "Number of GUMMEIs configured exceeds number of GUMMEIs "
-          "supported \n");
-      }
+      AssertFatal(
+        num == 1,
+        "Not even one GUMMEI is configured, configure minimum one GUMMEI \n");
+      AssertFatal(
+        num < MAX_GUMMEI,
+        "Number of GUMMEIs configured:%d exceeds number of GUMMEIs supported "
+        ":%d \n",
+        num,
+        MAX_GUMMEI);
+
       for (i = 0; i < num; i++) {
         sub2setting = config_setting_get_elem(setting, i);
 
