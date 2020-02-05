@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Adding TR-069 support for an eNodeB · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Add eNB TR-069 Support"/><meta name="docsearch:version" content="1.0.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Adding TR-069 support for an eNodeB · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="# Add eNB TR-069 Support"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.0.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/magma/docs/1.0.0/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>Access Gateway</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Basics<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Orchestrator<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Deploying Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/orc8r/deploy_build">Building Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/orc8r/deploy_terraform">Terraforming Orchestrator on AWS</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/orc8r/deploy_install">Installing Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/orc8r/deploy_dns">DNS Resolution</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Access Gateway<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/lte/setup_deb">Setup (Bare Metal)</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/lte/config_agw">AGW Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/lte/enodebd">eNodeB Configuration</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/1.0.0/lte/tr069">Adding TR-069 support for an eNodeB</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Federation Gateway<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Deploying FeG</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/feg/deploy_build">Building Federation Gateway</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/feg/deploy_install">Installing Federation Gateway</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Symphony<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/symphony/quick_start">Symphony Agent Quick Start</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/symphony/symphony_download_requirements">Download Requirements</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/1.0.0/symphony/building_the_symphony_agent">Building the Symphony Agent</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="add-enb-tr-069-support"></a><a href="#add-enb-tr-069-support" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Add eNB TR-069 Support</h1>
+<h2><a class="anchor" aria-hidden="true" id="enodebd-overview"></a><a href="#enodebd-overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>enodebd Overview</h2>
+<p>The enodebd service is responsible for any TR-069 management of eNodeB devices.
+As such, you’ll only need to modify enodebd to add support for a new eNB.</p>
+<p>At a high level, enodebd brings up a server, the tr069_server, and when the
+tr069_server receives an HTTP request, it translates the contained SOAP message
+into the corresponding model representing the message, eg. Inform,
+GetParameterRequest, etc. It takes the message, and passes it on to the
+StateMachineManager.</p>
+<p>The StateMachineManager, as the name implies, manages different state machines.
+One state machine is used for each eNB that the Magma AGW is managing. Using
+the IP of the HTTP request, the StateMachineManager routes the request to the
+correct state machine (also called ‘Handler’).</p>
+<p>Each EnodebAcsStateMachine contains a representation of the configuration that
+we believe the eNB has. It also contains the configuration that we desire to
+set on it. These are labeled as the ‘device configuration’ and ‘desired
+configuration’. Each state machine will attempt to configure its corresponding
+eNB to the desired configuration.</p>
+<p>Configuration through TR-069 is done in the ‘Provisioning Session’. The state
+machine has a state for each step of the provisioning session, each with its
+own logic for how to process the incoming TR-069 message, and how to construct
+the TR-069 response. Most of these states are in
+enodebd/state_machines/enb_acs_states.py, since the provisioning session
+happens nearly the same way for most devices. There are differences though,
+and so there is a different state machine for each supported eNB device model,
+which can be found under enodebd/devices.</p>
+<h2><a class="anchor" aria-hidden="true" id="adding-an-enb"></a><a href="#adding-an-enb" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Adding an eNB</h2>
+<p>To add TR-069 support, the TR-069 data model is needed for the device, as well
+as the hardware model, and software version. A new state machine should be
+created under enodebd/devices.</p>
+<p>For the data model, the same parameter will have different paths for different
+devices, and may even have its value formatted differently. For these
+formatting differences, the ‘transform’ functions should be added to transform
+the parameter value from the formatting that the eNB uses, to the common
+formatting that Magma enodebd understands, and vice-versa.</p>
+<p>For constructing the desired-configuration of the eNB, there will be
+differences between devices. Attach a EnodebConfigurationPostProcessor to the
+eNB state machine, and add any logic for modifying the desired-configuration
+beyond the defaults that enodebd already does.</p>
+<p>The provisioning session can occur a little different for each eNB. The state
+map attached to each state machine lets you customize the state machine for
+differences between devices. Some devices require rebooting for parameter
+changes to take effect, for example. You can add/remove behavior through this
+map, and also add custom states.</p>
+<p><a href="https://github.com/facebookincubator/magma/commit/e1d4564f7daa7a4c1be135e8dbffe7a10bfa4e34">An example pull request for adding an eNB</a></p>
+<h2><a class="anchor" aria-hidden="true" id="testing"></a><a href="#testing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing</h2>
+<p>Make sure that the eNB is configured to reach out to
+baiomc.cloudapp.net:48080, so that Magma’s DNS hijacking works, and routes
+TR-069 messages through iptables to enodebd’s TR-069 server. Debugging can most
+easily be done with tcpdump, and then viewing the SOAP messages through
+Wireshark.</p>
+<p>Magma's dnsd service configures dnsmasq for DNS hijacking. See: dnsd.yml. You
+can modify dnsd.yml and restart the service for further configuration.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/1.0.0/lte/enodebd"><span class="arrow-prev">← </span><span class="function-name-prevnext">eNodeB Configuration</span></a><a class="docs-next button" href="/magma/docs/1.0.0/feg/deploy_intro"><span>Introduction</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#enodebd-overview">enodebd Overview</a></li><li><a href="#adding-an-enb">Adding an eNB</a></li><li><a href="#testing">Testing</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>

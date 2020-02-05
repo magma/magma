@@ -1,0 +1,164 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Pipelined · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Pipelined"/><meta name="docsearch:version" content="1.0.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Pipelined · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="# Pipelined"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><a href="/magma/versions"><h3>1.0.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/magma/docs/1.0.0/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="pipelined"></a><a href="#pipelined" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Pipelined</h1>
+<h2><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h2>
+<p>Pipelined is the control application that programs rules in the Open vSwitch (OVS). In implementation, Pipelined is a set of network services that are chained together. These services can be chained and enabled/disabled through the REST API in orchestrator.</p>
+<h3><a class="anchor" aria-hidden="true" id="open-vswitch--openflow"></a><a href="#open-vswitch--openflow" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Open vSwitch &amp; OpenFlow</h3>
+<p><a href="http://docs.openvswitch.org/en/latest/intro/what-is-ovs/">Open vSwitch (OVS)</a> is a virtual switch that implements the <a href="https://en.wikipedia.org/wiki/OpenFlow">OpenFlow</a> protocol. Pipelined services program rules in OVS to implement basic PCEF functionality for user plane traffic.</p>
+<p>The OpenFlow pipeline of OVS contains 255 flow tables. Pipelined splits the tables into two categories:</p>
+<ul>
+<li>Main table (Table 1 - 20)</li>
+<li>Scratch table (Table 21 - 254)</li>
+</ul>
+<p><img src="https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/openflow-pipeline.png?raw=true" alt="OpenFlow Pipeline"></p>
+<p><a href="https://www.opennetworking.org/wp-content/uploads/2014/10/openflow-spec-v1.4.0.pdf"><em>Source: OpenFlow Specification</em></a></p>
+<p>Each service is associated with a main table, which is used to forward traffic between different services. Services can claim scratch tables optionally, which are used for complex flow matching and processing within the same service. See <a href="#services">Services</a> for a detailed breakdown of each Pipelined services.</p>
+<p>Each flow table is programmed by a single service through OpenFlow and it can contain multiple flow entries. When a packet is forwarded to a table, it is matched against the flow entries installed in the table and the highest-priority matching flow entry is selected. The actions defined in the selected flow entry will be applied to the packet.</p>
+<h3><a class="anchor" aria-hidden="true" id="ryu"></a><a href="#ryu" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Ryu</h3>
+<p><a href="https://ryu.readthedocs.io/en/latest/getting_started.html">Ryu</a> is a Python library that provides an API wrapper for programming OVS.</p>
+<p>Pipelined services are implemented as Ryu applications (controllers) under the hood. Ryu apps are single-threaded entities that communicate using an event model. Generally, each controller is assigned a table and manages the its flows.</p>
+<h2><a class="anchor" aria-hidden="true" id="services"></a><a href="#services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Services</h2>
+<h3><a class="anchor" aria-hidden="true" id="static-services"></a><a href="#static-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Static Services</h3>
+<p>Static services include mandatory services (such as OAI and inout) which are always enabled, and services with a set table number. Static services can be configured in the YAML config.</p>
+<pre><code class="hljs">    GTP<span class="hljs-built_in"> port </span>           Local<span class="hljs-built_in"> Port
+</span>     Uplink              Downlink
+        |                   |
+        |                   |
+        V                   V
+    -------------------------------
+    |            Table 0          |
+    |         GTP APP (OAI)       |
+    |- sets IMSI metadata         |
+    |- sets tunnel id on downlink |
+    |- sets eth src/dst on uplink |
+    -------------------------------
+                  |
+                  V
+    -------------------------------
+    |          Table 1            |
+    |           inout             |
+    |- sets direction bit         |
+    -------------------------------
+                  |
+                  V
+    -------------------------------
+    |          Table 2            |
+    |            ARP              |
+    |- Forwards non-ARP traffic   |
+    |- Responds <span class="hljs-keyword">to</span> ARP requests w/| ---&gt; Arp traffic - LOCAL
+    |  ovs<span class="hljs-built_in"> bridge </span>MAC             |
+    -------------------------------
+                  |
+                  V
+    -------------------------------
+    |          Table 3            |
+    |       access control        |
+    |- Forwards normal traffic    |
+    |- Drops traffic with<span class="hljs-built_in"> ip </span>     |
+    | <span class="hljs-built_in"> address </span>that matches the   |
+    | <span class="hljs-built_in"> ip </span>blacklist               |
+    -------------------------------
+                  |
+                  V
+   Configurable apps managed by cloud &lt;---&gt; Scratch tables
+            (Tables 4-19)                  (Tables 21 - 254)
+                  |
+                  V
+    -------------------------------
+    |          Table 20           |
+    |           inout             |
+    |- Forwards uplink traffic <span class="hljs-keyword">to</span> |
+    |  LOCAL<span class="hljs-built_in"> port </span>                |
+    |- Forwards downlink traffic  |
+    |  <span class="hljs-keyword">to</span> GTP<span class="hljs-built_in"> port </span>               |
+    -------------------------------
+        |                   |
+        |                   |
+        V                   V
+    GTP<span class="hljs-built_in"> port </span>           Local<span class="hljs-built_in"> Port
+</span>    downlink              uplink
+
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="configurable-services"></a><a href="#configurable-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configurable Services</h3>
+<p>These services can be enabled and ordered from orchestrator cloud. <code>mconfig</code> is used to stream the list of enabled service to gateway.</p>
+<p>Table numbers are dynamically assigned to these services and depenedent on the order.</p>
+<pre><code class="hljs">    -------------------------------
+    |<span class="hljs-string">          Table X            </span>|
+    |<span class="hljs-string">          metering           </span>|
+    |<span class="hljs-string">- Assigns unique flow id to  </span>|
+    |<span class="hljs-string">  IP traffic                 </span>|
+    |<span class="hljs-string">- Receives flow stats from   </span>|
+    |<span class="hljs-string">  OVS and forwards to cloud  </span>|
+    -------------------------------
+
+    -------------------------------
+    |<span class="hljs-string">          Table X            </span>|
+    |<span class="hljs-string">            DPI              </span>|
+    |<span class="hljs-string">- Assigns App ID to each new </span>|
+    |<span class="hljs-string">  IP tuple encountered       </span>|
+    |<span class="hljs-string">- Optional, requires separate</span>|
+    |<span class="hljs-string">  DPI engine                 </span>|
+    -------------------------------
+
+    -------------------------------     -------------------------------
+    |<span class="hljs-string">          Table X            </span>|<span class="hljs-string">     </span>|<span class="hljs-string">       Scratch Table 1       </span>|
+    |<span class="hljs-string">        enforcement          </span>|<span class="hljs-string"> ---&gt;</span>|<span class="hljs-string">           redirect          </span>|
+    |<span class="hljs-string">- Activates/deactivates rules</span>|<span class="hljs-string">     </span>|<span class="hljs-string">- Drop all non-HTTP traffic  </span>|
+    |<span class="hljs-string">  for a subscriber           </span>|<span class="hljs-string">     </span>|<span class="hljs-string">  for redirected subscribers </span>|
+    |<span class="hljs-string">                             </span>|<span class="hljs-string">&lt;--- </span>|<span class="hljs-string">                             </span>|
+    |<span class="hljs-string">                             </span>|<span class="hljs-string">     </span>|<span class="hljs-string">                             </span>|
+    -------------------------------     -------------------------------
+                  |<span class="hljs-string">
+                  </span>|<span class="hljs-string"> In relay mode only  -------------------------------
+                  ---------------------&gt;</span>|<span class="hljs-string">       Scratch Table 2       </span>|
+                                        |<span class="hljs-string">      enforcement stats      </span>|
+                                        |<span class="hljs-string">- Keeps track of flow stats  </span>|
+                                        |<span class="hljs-string">  and sends to sessiond      </span>|
+                                        |<span class="hljs-string">                             </span>|
+                                        |<span class="hljs-string">                             </span>|
+                                        -------------------------------
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="reserved-registers"></a><a href="#reserved-registers" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Reserved registers</h3>
+<p><a href="https://ryu.readthedocs.io/en/latest/nicira_ext_ref.html#module-ryu.ofproto.nicira_ext">Nicira extension</a> for OpenFlow provides additional registers (0 - 15) that can be set and matched. The table below lists the registers used in Pipelined.</p>
+<table>
+<thead>
+<tr><th>Register</th><th>Type</th><th>Use</th><th>Set by</th></tr>
+</thead>
+<tbody>
+<tr><td>metadata</td><td>Write-once</td><td>Stores IMSI</td><td>Table 0 (GTP application)</td></tr>
+<tr><td>reg0</td><td>Scratch</td><td>Temporary Arithmetic</td><td>Any</td></tr>
+<tr><td>reg1</td><td>Global</td><td>Direction bit</td><td>Table 1 (inout application)</td></tr>
+<tr><td>reg2</td><td>Local</td><td>Policy number</td><td>Enforcement app</td></tr>
+<tr><td>reg3</td><td>Local</td><td>App ID</td><td>DPI app</td></tr>
+<tr><td>reg4</td><td>Local</td><td>Policy version number</td><td>Enforcement app</td></tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="testing"></a><a href="#testing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing</h2>
+<h3><a class="anchor" aria-hidden="true" id="scripts"></a><a href="#scripts" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Scripts</h3>
+<p>Some scripts in <code>/lte/gateway/python/scripts</code> may come in handy for testing. These scripts should be ran in virtualenv so <code>magtivate</code> needs to be ran first to enter the virtualenv .</p>
+<ul>
+<li><code>pipelined_cli.py</code> can be used to to make calls to the rpc API
+<ul>
+<li>Some commands require sudo privilege. To run the script as sudo in virtualenv, use <code>venvsudo pipelined_cli.py</code></li>
+<li>Example:</li>
+</ul></li>
+</ul>
+<pre><code class="hljs css language-bash">$ ./pipelined_cli.py enforcement activate_dynamic_rule --imsi IMSI12345 --rule_id rule1 --priority 110 --hard_timeout 60
+</code></pre>
+<pre><code class="hljs css language-bash">$ venvsudo ./pipelined_cli.py enforcement display_flows
+</code></pre>
+<ul>
+<li><code>fake_user.py</code> can be used to debug Pipelined without an eNodeB. It creates a fake_user OVS port and an interface with the same name and IP (10.10.10.10). Any traffic sent through the interface would traverse the pipeline, as if its sent from a user ip (192.168.128.200 by default).
+<ul>
+<li>Example:</li>
+</ul></li>
+</ul>
+<pre><code class="hljs css language-bash">$ ./fake_user.py create --imsi IMSI12345
+$ sudo curl --interface fake_user -vvv --ipv4 http://www.google.com &gt; /dev/null
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="unit-tests"></a><a href="#unit-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Unit Tests</h3>
+<p>See the <a href="/magma/docs/1.0.0/lte/pipelined_tests">Unit Test README</a> for more details.</p>
+<h3><a class="anchor" aria-hidden="true" id="integration-tests"></a><a href="#integration-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Integration Tests</h3>
+<p>Traffic integration tests cover the end to end flow of Pipelined. See the <a href="/magma/docs/1.0.0/lte/s1ap_tests">Integration Test README</a> for more details.</p>
+<h2><a class="anchor" aria-hidden="true" id="additional-readings"></a><a href="#additional-readings" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Additional Readings</h2>
+<p><a href="https://www.opennetworking.org/wp-content/uploads/2014/10/openflow-spec-v1.4.0.pdf">OpenFlow Specification</a></p>
+<p><a href="https://ryu.readthedocs.io/en/latest/api_ref.html">Ryu API Doc</a></p>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a><ul class="toc-headings"><li><a href="#open-vswitch--openflow">Open vSwitch &amp; OpenFlow</a></li><li><a href="#ryu">Ryu</a></li></ul></li><li><a href="#services">Services</a><ul class="toc-headings"><li><a href="#static-services">Static Services</a></li><li><a href="#configurable-services">Configurable Services</a></li><li><a href="#reserved-registers">Reserved registers</a></li></ul></li><li><a href="#testing">Testing</a><ul class="toc-headings"><li><a href="#scripts">Scripts</a></li><li><a href="#unit-tests">Unit Tests</a></li><li><a href="#integration-tests">Integration Tests</a></li></ul></li><li><a href="#additional-readings">Additional Readings</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>
