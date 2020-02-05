@@ -11,7 +11,7 @@
 import * as React from 'react';
 import FormElementContext from './FormElementContext';
 import FormValidationContext from '../Form/FormValidationContext';
-import {useContext, useMemo} from 'react';
+import {useContext} from 'react';
 
 export type PermissionHandlingProps = {|
   ignorePermissions?: boolean,
@@ -33,16 +33,10 @@ const FormAction = (props: Props) => {
   } = props;
 
   const validationContext = useContext(FormValidationContext);
-  const disabled = useMemo(
-    () =>
-      disabledProp ||
-      (validationContext.editLock.detected && !ignorePermissions),
-    [disabledProp, ignorePermissions, validationContext.editLock.detected],
-  );
-  const shouldHide = useMemo(() => disabled && hideWhenDisabled, [
-    disabled,
-    hideWhenDisabled,
-  ]);
+  const validationDisabling =
+    validationContext.editLock.detected && !ignorePermissions;
+  const disabled = disabledProp || validationDisabling;
+  const shouldHide = validationDisabling && hideWhenDisabled;
   return (
     <FormElementContext.Provider value={{disabled}}>
       {(!shouldHide && children) || null}
