@@ -21,6 +21,8 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
+	"magma/orc8r/cloud/go/services/tenants"
+	tenantH "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 
 	"github.com/labstack/echo"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -43,11 +45,24 @@ const (
 	QueryRangeV1URL = PrometheusV1Root + obsidian.UrlSep + queryRangePart
 	SeriesV1URL     = PrometheusV1Root + obsidian.UrlSep + seriesPart
 
+	tenantQueryRoot = tenantH.TenantInfoURL + obsidian.UrlSep + "metrics"
+
+	TenantV1QueryURL      = tenantQueryRoot + obsidian.UrlSep + queryPart
+	TenantV1QueryRangeURL = tenantQueryRoot + obsidian.UrlSep + queryRangePart
+	TenantV1SeriesURL     = tenantQueryRoot + obsidian.UrlSep + seriesPart
+
 	defaultStepWidth = "15s"
 )
 
 func networkQueryRestrictorProvider(networkID string) restrictor.QueryRestrictor {
 	return *restrictor.NewQueryRestrictor(restrictor.DefaultOpts).AddMatcher(metrics.NetworkLabelName, networkID)
+}
+func tenantQueryRestrictorProvider(tenantID int64) (restrictor.QueryRestrictor, error) {
+	tenant, err := tenants.GetTenant(tenantID)
+	if err != nil {
+		return restrictor.QueryRestrictor{}, err
+	}
+	return *restrictor.NewQueryRestrictor(restrictor.Opts{ReplaceExistingLabel: false}).AddMatcher(metrics.NetworkLabelName, tenant.Networks...), nil
 }
 
 func GetPrometheusQueryHandler(api v1.API) func(c echo.Context) error {
@@ -58,7 +73,7 @@ func GetPrometheusQueryHandler(api v1.API) func(c echo.Context) error {
 		}
 		restrictedQuery, err := preparePrometheusQuery(c, networkQueryRestrictorProvider(nID))
 		if err != nil {
-			return obsidian.HttpError(err, 500)
+			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 		return prometheusQuery(c, restrictedQuery, api)
 	}
@@ -86,7 +101,7 @@ func GetPrometheusQueryRangeHandler(api v1.API) func(c echo.Context) error {
 		}
 		restrictedQuery, err := preparePrometheusQuery(c, networkQueryRestrictorProvider(nID))
 		if err != nil {
-			return obsidian.HttpError(err, 500)
+			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 		return prometheusQueryRange(c, restrictedQuery, api)
 	}
@@ -115,6 +130,39 @@ func prometheusQueryRange(c echo.Context, query string, apiClient v1.API) error 
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, wrapPrometheusResult(res))
+}
+
+func GetTenantQueryHandler(api v1.API) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		tID, terr := obsidian.GetTenantID(c)
+		if terr != nil {
+			return terr
+		}
+		tenantRestrictor, err := tenantQueryRestrictorProvider(tID)
+		if err != nil {
+			return err
+		}
+		restrictedQuery, err := preparePrometheusQuery(c, tenantRestrictor)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		return prometheusQuery(c, restrictedQuery, api)
+	}
+}
+
+func GetTenantQueryRangeHandler(api v1.API) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		tID, terr := obsidian.GetTenantID(c)
+		if terr != nil {
+			return terr
+		}
+		orgRestrictor, err := tenantQueryRestrictorProvider(tID)
+		restrictedQuery, err := preparePrometheusQuery(c, orgRestrictor)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		return prometheusQueryRange(c, restrictedQuery, api)
+	}
 }
 
 func wrapPrometheusResult(res model.Value) PromQLResultStruct {
@@ -154,28 +202,48 @@ func GetPrometheusSeriesHandler(api v1.API) func(c echo.Context) error {
 		if nerr != nil {
 			return obsidian.HttpError(nerr, http.StatusBadRequest)
 		}
-
-		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &minTime)
-		if err != nil {
-			return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
-		}
-
-		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
-		if err != nil {
-			return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
-		}
-
 		seriesMatches, err := getSeriesMatches(c, networkQueryRestrictorProvider(nID))
 		if err != nil {
 			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
 		}
+		return prometheusSeries(c, seriesMatches, api)
+	}
+}
 
-		res, err := api.Series(context.Background(), seriesMatches, startTime, endTime)
+func TenantSeriesHandlerProvider(api v1.API) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		oID, oerr := obsidian.GetTenantID(c)
+		if oerr != nil {
+			return obsidian.HttpError(oerr, http.StatusBadRequest)
+		}
+		queryRestrictor, err := tenantQueryRestrictorProvider(oID)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		return c.JSON(http.StatusOK, res)
+		seriesMatches, err := getSeriesMatches(c, queryRestrictor)
+		if err != nil {
+			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
+		}
+		return prometheusSeries(c, seriesMatches, api)
 	}
+}
+
+func prometheusSeries(c echo.Context, seriesMatches []string, apiClient v1.API) error {
+	startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &minTime)
+	if err != nil {
+		return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
+	}
+
+	endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
+	if err != nil {
+		return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
+	}
+
+	res, err := apiClient.Series(context.Background(), seriesMatches, startTime, endTime)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, res)
 }
 
 func getSeriesMatches(c echo.Context, queryRestrictor restrictor.QueryRestrictor) ([]string, error) {
