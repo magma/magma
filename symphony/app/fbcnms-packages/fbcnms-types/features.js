@@ -21,9 +21,6 @@ export type FeatureID =
   | 'alert_routes'
   | 'alert_suppressions'
   | 'equipment_export'
-  | 'import_exported_equipemnt'
-  | 'import_exported_ports'
-  | 'import_exported_links'
   | 'file_categories'
   | 'floor_plans'
   | 'work_order_map'
@@ -35,4 +32,5 @@ export type FeatureID =
   | 'multi_subject_reports'
   | 'equipment_live_status'
   | 'logged_out_alert'
+  | 'deprecated_imports'
   | 'external_id';

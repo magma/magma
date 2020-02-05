@@ -56,11 +56,11 @@ describe('<AddToLocationDialog />', () => {
       expect(getByText('Add')).toBeInTheDocument();
       expect(getByText('Select a location type')).toBeInTheDocument();
 
-      expect(queryByText('Upload Position Def')).not.toBeInTheDocument();
+      expect(queryByText('Upload Exported Service')).not.toBeInTheDocument();
       act(() => {
         fireEvent.click(getByText('Bulk Upload'));
       });
-      expect(getByText('Upload Position Def')).toBeInTheDocument();
+      expect(getByText('Upload Exported Service')).toBeInTheDocument();
     });
 
     it('saves and cancels', async () => {
@@ -204,11 +204,11 @@ describe('<AddToLocationDialog />', () => {
         </Wrapper>,
       );
 
-      expect(getByText('Upload Position Def')).toBeInTheDocument();
-      expect(getByText('Upload Port Def')).toBeInTheDocument();
-      expect(getByText('Upload Port Connections')).toBeInTheDocument();
+      expect(getByText('Upload Exported Equipment')).toBeInTheDocument();
+      expect(getByText('Upload Exported Ports')).toBeInTheDocument();
+      expect(getByText('Upload Exported Links')).toBeInTheDocument();
       expect(getByText('Upload Locations')).toBeInTheDocument();
-      expect(getByText('Upload Equipment')).toBeInTheDocument();
+      expect(getByText('Upload Exported Service')).toBeInTheDocument();
     });
   });
 });

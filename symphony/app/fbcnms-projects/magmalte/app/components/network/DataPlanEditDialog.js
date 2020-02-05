@@ -8,8 +8,6 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {network_epc_configs} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -26,8 +24,9 @@ import {
 } from '@material-ui/core';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {withRouter} from 'react-router-dom';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 import {BITRATE_MULTIPLIER, DATA_PLAN_UNLIMITED_RATES} from './DataPlanConst';
 
@@ -90,130 +89,106 @@ const MegabyteTextField = (props: {
   );
 };
 
-type Props = ContextRouter &
-  WithAlert & {
-    onSave: (dataPlanId: string, newEPCConfig: network_epc_configs) => void,
-    onCancel: () => void,
-    epcConfig: network_epc_configs,
-    dataPlanId: ?string,
-  };
-
-type State = {
-  editedName: ?string,
-  editedMaxUlBitRate: ?string,
-  editedMaxDlBitRate: ?string,
+type Props = {
+  onSave: (dataPlanId: string, newEPCConfig: network_epc_configs) => void,
+  onCancel: () => void,
+  epcConfig: network_epc_configs,
+  dataPlanId: ?string,
 };
 
-class DataPlanEditDialog extends React.Component<Props, State> {
-  state = {
-    editedName: null,
-    editedMaxUlBitRate: null,
-    editedMaxDlBitRate: null,
-  };
+export default function DataPlanEditDialog(props: Props) {
+  const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [editedName, setEditedName] = useState(props.dataPlanId || '');
+  const [editedMaxDlBitRate, setEditedMaxDlBitRate] = useState(null);
+  const [editedMaxUlBitRate, setEditedMaxUlBitRate] = useState(null);
 
-  handleDownloadLimitChanged = evt =>
-    this.setState({editedMaxDlBitRate: evt.target.value});
-  handleNameChanged = evt => this.setState({editedName: evt.target.value});
-  handleUploadLimitChanged = evt =>
-    this.setState({editedMaxUlBitRate: evt.target.value});
+  const {epcConfig} = props;
+  const dataPlan =
+    (props.dataPlanId && epcConfig.sub_profiles?.[props.dataPlanId]) || null;
 
-  render() {
-    const {dataPlanId} = this.props;
-    const dataPlan = this._getDataPlan();
-    return (
-      <Dialog open={true} onClose={this.props.onCancel} scroll="body">
-        <DialogTitle>{dataPlanId ? 'Edit' : 'Add'} Data Plan</DialogTitle>
-        <DialogContent>
-          <FormGroup row>
-            <TextField
-              required
-              label="Name"
-              margin="normal"
-              disabled={!!dataPlanId}
-              value={this._getDataPlanIdField()}
-              onChange={this.handleNameChanged}
-            />
-          </FormGroup>
-          <FormGroup row>
-            <MegabyteTextField
-              label="Download Limit"
-              dataPlan={dataPlan}
-              field="max_dl_bit_rate"
-              value={this.state.editedMaxDlBitRate}
-              onChange={this.handleDownloadLimitChanged}
-            />
-          </FormGroup>
-          <FormGroup row>
-            <MegabyteTextField
-              label="Upload Limit"
-              dataPlan={dataPlan}
-              field="max_ul_bit_rate"
-              value={this.state.editedMaxUlBitRate}
-              onChange={this.handleUploadLimitChanged}
-            />
-          </FormGroup>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onCancel} skin="regular">
-            Cancel
-          </Button>
-          <Button onClick={this.onSave}>Save</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
-
-  _getDataPlan(): ?CellularNetworkProfile {
-    const {dataPlanId, epcConfig} = this.props;
-    return (dataPlanId && epcConfig.sub_profiles?.[dataPlanId]) || null;
-  }
-
-  _getDataPlanIdField(): string {
-    const dataPlanId =
-      this.state.editedName !== null
-        ? this.state.editedName
-        : this.props.dataPlanId;
-    return dataPlanId || '';
-  }
-
-  onSave = () => {
-    const {match} = this.props;
-    const epcConfig = this.props.epcConfig;
-    const dataPlanId = this._getDataPlanIdField();
-    const dataPlan = this._getDataPlan();
-    if (!this.props.dataPlanId && (epcConfig.sub_profiles || {})[dataPlanId]) {
-      this.props.alert(
+  const onSave = () => {
+    if (!props.dataPlanId && (epcConfig.sub_profiles || {})[editedName]) {
+      enqueueSnackbar(
         'Data plan name is already used. Please use a different name',
+        {variant: 'error'},
       );
       return;
     }
 
+    const subProfiles = epcConfig.sub_profiles
+      ? {...epcConfig.sub_profiles}
+      : {};
+
+    subProfiles[editedName] = {
+      max_dl_bit_rate: _getBitRateValue({
+        dataPlan,
+        field: 'max_dl_bit_rate',
+        editedValue: editedMaxDlBitRate,
+      }),
+      max_ul_bit_rate: _getBitRateValue({
+        dataPlan,
+        field: 'max_ul_bit_rate',
+        editedValue: editedMaxUlBitRate,
+      }),
+    };
+
     const newConfig = {
       ...epcConfig,
-      sub_profiles: {
-        ...(epcConfig.sub_profiles || {}),
-        [dataPlanId]: {
-          max_dl_bit_rate: _getBitRateValue({
-            dataPlan,
-            field: 'max_dl_bit_rate',
-            editedValue: this.state.editedMaxDlBitRate,
-          }),
-          max_ul_bit_rate: _getBitRateValue({
-            dataPlan,
-            field: 'max_ul_bit_rate',
-            editedValue: this.state.editedMaxUlBitRate,
-          }),
-        },
-      },
+      sub_profiles: subProfiles,
     };
 
     MagmaV1API.putLteByNetworkIdCellularEpc({
       networkId: nullthrows(match.params.networkId),
       config: newConfig,
     })
-      .then(_resp => this.props.onSave(dataPlanId, newConfig))
-      .catch(error => this.props.alert(error.response?.data?.message || error));
+      .then(_resp => props.onSave(editedName, newConfig))
+      .catch(error =>
+        enqueueSnackbar(error.response?.data?.message || error, {
+          variant: 'error',
+        }),
+      );
   };
-}
 
-export default withAlert(withRouter(DataPlanEditDialog));
+  return (
+    <Dialog open={true} onClose={props.onCancel} scroll="body">
+      <DialogTitle>{props.dataPlanId ? 'Edit' : 'Add'} Data Plan</DialogTitle>
+      <DialogContent>
+        <FormGroup row>
+          <TextField
+            required
+            label="Name"
+            margin="normal"
+            disabled={!!props.dataPlanId}
+            value={editedName}
+            onChange={({target}) => setEditedName(target.value)}
+          />
+        </FormGroup>
+        <FormGroup row>
+          <MegabyteTextField
+            label="Download Limit"
+            dataPlan={dataPlan}
+            field="max_dl_bit_rate"
+            value={editedMaxDlBitRate}
+            onChange={({target}) => setEditedMaxDlBitRate(target.value)}
+          />
+        </FormGroup>
+        <FormGroup row>
+          <MegabyteTextField
+            label="Upload Limit"
+            dataPlan={dataPlan}
+            field="max_ul_bit_rate"
+            value={editedMaxUlBitRate}
+            onChange={({target}) => setEditedMaxUlBitRate(target.value)}
+          />
+        </FormGroup>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onCancel} skin="regular">
+          Cancel
+        </Button>
+        <Button onClick={onSave}>Save</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
