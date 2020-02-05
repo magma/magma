@@ -16,10 +16,6 @@ import type {
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 import type {ContextRouter} from 'react-router-dom';
-import type {
-  ExecuteWorkOrderMutationResponse,
-  ExecuteWorkOrderMutationVariables,
-} from '../../mutations/__generated__/ExecuteWorkOrderMutation.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {Property} from '../../common/Property';
 import type {Theme, WithStyles} from '@material-ui/core';
@@ -35,7 +31,6 @@ import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import CommentsBox from '../comments/CommentsBox';
 import EditToggleButton from '@fbcnms/ui/components/design-system/toggles/EditToggleButton/EditToggleButton';
 import EntityDocumentsTable from '../EntityDocumentsTable';
-import ExecuteWorkOrderMutation from '../../mutations/ExecuteWorkOrderMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FileUpload from '../FileUpload';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
@@ -53,6 +48,7 @@ import PropertyValueInput from '../form/PropertyValueInput';
 import React from 'react';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import Strings from '../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import UserTypeahead from '../typeahead/UserTypeahead';
@@ -61,10 +57,9 @@ import WorkOrderHeader from './WorkOrderHeader';
 import fbt from 'fbt';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {doneStatus, priorityValues, statusValues} from '../../common/WorkOrder';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
-import {priorityValues, statusValues} from '../../common/WorkOrder';
 import {sortPropertiesByIndex} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
 import {withSnackbar} from 'notistack';
@@ -178,55 +173,6 @@ class WorkOrderDetails extends React.Component<Props, State> {
     );
   }
 
-  handleExecuteWorkOrder = () => {
-    const {workOrder} = this.state;
-    const variables: ExecuteWorkOrderMutationVariables = {
-      id: workOrder.id,
-    };
-    const callbacks: MutationCallbacks<ExecuteWorkOrderMutationResponse> = {
-      onCompleted: (response, errors) => {
-        if (errors && errors[0]) {
-          this._enqueueError(errors[0].message);
-        } else {
-          this.setState({
-            workOrder: update(this.state.workOrder, {status: {$set: 'DONE'}}),
-          });
-          this.props.onWorkOrderExecuted();
-        }
-      },
-      onError: () => {
-        this._enqueueError('Error executing work order');
-      },
-    };
-
-    ServerLogger.info(LogEvents.EXECUTE_WORK_ORDER_BUTTON_CLICKED, {
-      source: 'work_order_details',
-    });
-
-    ExecuteWorkOrderMutation(variables, callbacks, store => {
-      const rootField = store.getRootField('executeWorkOrder');
-      const equipmentRemoved =
-        rootField && rootField.getValue('equipmentRemoved');
-      const linkRemoved = rootField && rootField.getValue('linkRemoved');
-      const workOrderProxy = store.get(this.props.workOrder.id);
-      const currEquipmentNodes = workOrderProxy.getLinkedRecords(
-        'equipmentToRemove',
-      );
-      const newEquipmentNodes = currEquipmentNodes.filter(equipment => {
-        return !equipmentRemoved.includes(equipment.getValue('id'));
-      });
-      const currLinkNodes = workOrderProxy.getLinkedRecords('linksToRemove');
-      const newLinkNodes = currLinkNodes.filter(link => {
-        return !linkRemoved.includes(link.getValue('id'));
-      });
-      workOrderProxy.setLinkedRecords(newEquipmentNodes, 'equipmentToRemove');
-      workOrderProxy.setLinkedRecords(newLinkNodes, 'linksToRemove');
-      equipmentRemoved.forEach(equipmentId => store.delete(equipmentId));
-      linkRemoved.forEach(linkId => store.delete(linkId));
-      workOrderProxy.setValue('DONE', 'status');
-    });
-  };
-
   static contextType = AppContext;
   context: AppContextType;
 
@@ -260,9 +206,11 @@ class WorkOrderDetails extends React.Component<Props, State> {
                   validationContext.editLock.check({
                     fieldId: 'status',
                     fieldDisplayName: 'Status',
-                    value: workOrder.status,
+                    value: this.props.workOrder.status,
                     checkCallback: value =>
-                      value === 'DONE' ? 'Work order is on DONE state' : '',
+                      value === doneStatus.value
+                        ? `Work order is on '${doneStatus.label}' state`
+                        : '',
                   });
                   validationContext.editLock.check({
                     fieldId: 'OwnerRule',
@@ -629,25 +577,42 @@ class WorkOrderDetails extends React.Component<Props, State> {
   };
 
   setWorkOrderStatus = value => {
-    if (!value) {
+    if (!value || value == this.state.workOrder.status) {
       return;
     }
-    if (value == 'DONE') {
-      this.props
-        .confirm({
-          message: 'Are you sure you want to mark this work order as done?',
-          confirmLabel: 'Mark as done',
-        })
-        .then(confirmed => {
-          if (!confirmed) {
-            return;
-          }
-          this.handleExecuteWorkOrder();
-        });
-      return;
-    }
-    this.setState({
-      workOrder: update(this.state.workOrder, {status: {$set: value}}),
+
+    const verification = new Promise((resolve, reject) => {
+      if (value != doneStatus.value) {
+        resolve();
+      } else {
+        this.props
+          .confirm({
+            title: fbt(
+              // eslint-disable-next-line prettier/prettier
+              "Are you sure you want to mark this work order as 'Done'?",
+              'Verification message title',
+            ),
+            message: fbt(
+              // eslint-disable-next-line prettier/prettier
+              "Once saved with 'Done' status, the work order will be locked for editing.",
+              'Verification message details',
+            ),
+            confirmLabel: Strings.common.okButton,
+          })
+          .then(confirmed => {
+            if (confirmed) {
+              resolve();
+            } else {
+              reject();
+            }
+          });
+      }
+    });
+
+    verification.then(() => {
+      this.setState({
+        workOrder: update(this.state.workOrder, {status: {$set: value}}),
+      });
     });
   };
 

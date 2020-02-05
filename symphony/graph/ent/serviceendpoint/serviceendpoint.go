@@ -33,14 +33,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "equipmentport" package.
 	PortInverseTable = "equipment_ports"
 	// PortColumn is the table column denoting the port relation/edge.
-	PortColumn = "port_id"
+	PortColumn = "service_endpoint_port"
 	// ServiceTable is the table the holds the service relation/edge.
 	ServiceTable = "service_endpoints"
 	// ServiceInverseTable is the table name for the Service entity.
 	// It exists in this package in order to avoid circular dependency with the "service" package.
 	ServiceInverseTable = "services"
 	// ServiceColumn is the table column denoting the service relation/edge.
-	ServiceColumn = "service_id"
+	ServiceColumn = "service_endpoints"
 )
 
 // Columns holds all SQL columns for serviceendpoint fields.
@@ -53,8 +53,8 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the ServiceEndpoint type.
 var ForeignKeys = []string{
-	"service_id",
-	"port_id",
+	"service_endpoints",
+	"service_endpoint_port",
 }
 
 var (

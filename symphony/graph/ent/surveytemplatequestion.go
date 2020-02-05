@@ -36,8 +36,8 @@ type SurveyTemplateQuestion struct {
 	Index int `json:"index,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyTemplateQuestionQuery when eager-loading is set.
-	Edges       SurveyTemplateQuestionEdges `json:"edges"`
-	category_id *string
+	Edges                                              SurveyTemplateQuestionEdges `json:"edges"`
+	survey_template_category_survey_template_questions *string
 }
 
 // SurveyTemplateQuestionEdges holds the relations/edges for other nodes in the graph.
@@ -79,7 +79,7 @@ func (*SurveyTemplateQuestion) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*SurveyTemplateQuestion) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // category_id
+		&sql.NullInt64{}, // survey_template_category_survey_template_questions
 	}
 }
 
@@ -128,10 +128,10 @@ func (stq *SurveyTemplateQuestion) assignValues(values ...interface{}) error {
 	values = values[6:]
 	if len(values) == len(surveytemplatequestion.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field category_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field survey_template_category_survey_template_questions", value)
 		} else if value.Valid {
-			stq.category_id = new(string)
-			*stq.category_id = strconv.FormatInt(value.Int64, 10)
+			stq.survey_template_category_survey_template_questions = new(string)
+			*stq.survey_template_category_survey_template_questions = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

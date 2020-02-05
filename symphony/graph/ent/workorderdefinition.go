@@ -31,9 +31,9 @@ type WorkOrderDefinition struct {
 	Index int `json:"index,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderDefinitionQuery when eager-loading is set.
-	Edges           WorkOrderDefinitionEdges `json:"edges"`
-	project_type_id *string
-	type_id         *string
+	Edges                      WorkOrderDefinitionEdges `json:"edges"`
+	project_type_work_orders   *string
+	work_order_definition_type *string
 }
 
 // WorkOrderDefinitionEdges holds the relations/edges for other nodes in the graph.
@@ -88,8 +88,8 @@ func (*WorkOrderDefinition) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*WorkOrderDefinition) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // project_type_id
-		&sql.NullInt64{}, // type_id
+		&sql.NullInt64{}, // project_type_work_orders
+		&sql.NullInt64{}, // work_order_definition_type
 	}
 }
 
@@ -123,16 +123,16 @@ func (wod *WorkOrderDefinition) assignValues(values ...interface{}) error {
 	values = values[3:]
 	if len(values) == len(workorderdefinition.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field project_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field project_type_work_orders", value)
 		} else if value.Valid {
-			wod.project_type_id = new(string)
-			*wod.project_type_id = strconv.FormatInt(value.Int64, 10)
+			wod.project_type_work_orders = new(string)
+			*wod.project_type_work_orders = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_definition_type", value)
 		} else if value.Valid {
-			wod.type_id = new(string)
-			*wod.type_id = strconv.FormatInt(value.Int64, 10)
+			wod.work_order_definition_type = new(string)
+			*wod.work_order_definition_type = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

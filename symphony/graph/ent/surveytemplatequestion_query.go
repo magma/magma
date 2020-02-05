@@ -335,7 +335,7 @@ func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyT
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyTemplateQuestion)
 		for i := range nodes {
-			if fk := nodes[i].category_id; fk != nil {
+			if fk := nodes[i].survey_template_category_survey_template_questions; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -348,7 +348,7 @@ func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyT
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_template_category_survey_template_questions" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Category = n

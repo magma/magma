@@ -122,7 +122,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id {{ $.IDType }}) (Node
 		n, err := c.{{ $n.Name }}.Query().
 			Where({{ $n.Package }}.ID(id)).
 			{{- if hasTemplate "collection" }}
-			WithFieldCollection(ctx, "{{ $n.Name }}").
+			CollectFields(ctx, "{{ $n.Name }}").
 			{{- end }}
 			Only(ctx)
 		if err != nil {

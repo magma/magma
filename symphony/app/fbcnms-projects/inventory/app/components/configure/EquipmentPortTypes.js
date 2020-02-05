@@ -16,9 +16,11 @@ import AddEditEquipmentPortTypeCard from './AddEditEquipmentPortTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
 import EquipmentPortTypeItem from './EquipmentPortTypeItem';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
@@ -138,24 +140,30 @@ class EquipmentPortTypes extends React.Component<Props, State> {
               </div>
             ));
           return (
-            <div className={classes.typesList}>
-              <div className={classes.firstRow}>
-                <ConfigueTitle
-                  className={classes.title}
-                  title={'Port Types'}
-                  subtitle={'Manage the types of ports in your inventory'}
-                />
-                <div className={classes.addButtonContainer}>
-                  <Button
-                    onClick={() => this.showAddEditEquipmentPortTypeCard(null)}>
-                    Add Port Type
-                  </Button>
+            <FormValidationContextProvider>
+              <div className={classes.typesList}>
+                <div className={classes.firstRow}>
+                  <ConfigueTitle
+                    className={classes.title}
+                    title={'Port Types'}
+                    subtitle={'Manage the types of ports in your inventory'}
+                  />
+                  <div className={classes.addButtonContainer}>
+                    <FormAction>
+                      <Button
+                        onClick={() =>
+                          this.showAddEditEquipmentPortTypeCard(null)
+                        }>
+                        Add Port Type
+                      </Button>
+                    </FormAction>
+                  </div>
+                </div>
+                <div className={classes.root}>
+                  <div>{listItems}</div>
                 </div>
               </div>
-              <div className={classes.root}>
-                <div>{listItems}</div>
-              </div>
-            </div>
+            </FormValidationContextProvider>
           );
         }}
       />

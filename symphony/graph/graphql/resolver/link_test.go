@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/AlekSi/pointer"
+	"github.com/facebookincubator/symphony/graph/ent"
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -424,8 +425,10 @@ func TestAddLinkWithWorkOrder(t *testing.T) {
 	assert.Equal(t, linkA.ID, createdLink.ID)
 	assert.Equal(t, linkB.ID, createdLink.ID)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	linksToRemove, err := wor.LinksToRemove(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -494,8 +497,10 @@ func TestRemoveLinkWithWorkOrder(t *testing.T) {
 	assert.NotNil(t, linkA)
 	assert.NotNil(t, linkB)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	linksToRemove, err := wor.LinksToRemove(ctx, fetchedWorkOrder)
 	require.NoError(t, err)

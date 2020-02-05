@@ -49,11 +49,11 @@ type WorkOrder struct {
 	Index int `json:"index,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderQuery when eager-loading is set.
-	Edges         WorkOrderEdges `json:"edges"`
-	project_id    *string
-	type_id       *string
-	location_id   *string
-	technician_id *string
+	Edges                 WorkOrderEdges `json:"edges"`
+	project_work_orders   *string
+	work_order_type       *string
+	work_order_location   *string
+	work_order_technician *string
 }
 
 // WorkOrderEdges holds the relations/edges for other nodes in the graph.
@@ -225,10 +225,10 @@ func (*WorkOrder) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*WorkOrder) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // project_id
-		&sql.NullInt64{}, // type_id
-		&sql.NullInt64{}, // location_id
-		&sql.NullInt64{}, // technician_id
+		&sql.NullInt64{}, // project_work_orders
+		&sql.NullInt64{}, // work_order_type
+		&sql.NullInt64{}, // work_order_location
+		&sql.NullInt64{}, // work_order_technician
 	}
 }
 
@@ -302,28 +302,28 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 	values = values[11:]
 	if len(values) == len(workorder.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field project_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field project_work_orders", value)
 		} else if value.Valid {
-			wo.project_id = new(string)
-			*wo.project_id = strconv.FormatInt(value.Int64, 10)
+			wo.project_work_orders = new(string)
+			*wo.project_work_orders = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_type", value)
 		} else if value.Valid {
-			wo.type_id = new(string)
-			*wo.type_id = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_type = new(string)
+			*wo.work_order_type = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_location", value)
 		} else if value.Valid {
-			wo.location_id = new(string)
-			*wo.location_id = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_location = new(string)
+			*wo.work_order_location = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field technician_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_technician", value)
 		} else if value.Valid {
-			wo.technician_id = new(string)
-			*wo.technician_id = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_technician = new(string)
+			*wo.work_order_technician = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

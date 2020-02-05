@@ -394,13 +394,13 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.location_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Locations = append(node.Edges.Locations, n)
 		}
@@ -426,13 +426,13 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_type_id
+			fk := n.location_type_property_types
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_type_property_types" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
 		}
@@ -458,13 +458,13 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_type_survey_template_category_id
+			fk := n.location_type_survey_template_categories
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_type_survey_template_category_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_type_survey_template_categories" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_type_survey_template_category_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_survey_template_categories" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.SurveyTemplateCategories = append(node.Edges.SurveyTemplateCategories, n)
 		}

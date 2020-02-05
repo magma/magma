@@ -100,7 +100,11 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev
   alias python=python3
   pip3 install ansible
+
   git clone https://github.com/facebookincubator/magma.git /home/$MAGMA_USER/magma
+  cd /home/$MAGMA_USER/magma
+  git checkout v1.0.1
+
   echo "Generating localhost hostfile for Ansible"
   echo "[ovs_build]
   127.0.0.1 ansible_connection=local

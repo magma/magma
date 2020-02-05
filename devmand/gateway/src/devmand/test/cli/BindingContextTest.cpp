@@ -13,6 +13,7 @@
 #include <devmand/test/cli/utils/Log.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/futures/Future.h>
+#include <folly/json.h>
 #include <gtest/gtest.h>
 #include <ydk_ietf/iana_if_type.hpp>
 #include <ydk_openconfig/openconfig_interfaces.hpp>
@@ -101,29 +102,31 @@ static const string interfaceJson =
 
 static const string singleInterfaceJson =
     "{\n"
-    "  \"openconfig-interfaces:interface\": {\n"
-    "    \"config\": {\n"
-    "      \"mtu\": 1500,\n"
-    "      \"name\": \"loopback1\",\n"
-    "      \"type\": \"iana-if-type:softwareLoopback\"\n"
-    "    },\n"
-    "    \"name\": \"loopback1\",\n"
-    "    \"openconfig-if-ethernet:ethernet\": {\n"
-    "      \"openconfig-vlan:switched-vlan\": {\n"
-    "        \"config\": {\n"
-    "          \"access-vlan\": 77,\n"
-    "          \"interface-mode\": \"TRUNK\",\n"
-    "          \"trunk-vlans\": [\n"
-    "            1,\n"
-    "            100\n"
-    "          ]\n"
+    "  \"openconfig-interfaces:interface\": [\n"
+    "    {\n"
+    "      \"state\": {\n"
+    "        \"ifindex\": 1\n"
+    "      },\n"
+    "      \"openconfig-if-ethernet:ethernet\": {\n"
+    "        \"openconfig-vlan:switched-vlan\": {\n"
+    "          \"config\": {\n"
+    "            \"trunk-vlans\": [\n"
+    "              1,\n"
+    "              100\n"
+    "            ],\n"
+    "            \"access-vlan\": 77,\n"
+    "            \"interface-mode\": \"TRUNK\"\n"
+    "          }\n"
     "        }\n"
-    "      }\n"
-    "    },\n"
-    "    \"state\": {\n"
-    "      \"ifindex\": 1\n"
+    "      },\n"
+    "      \"config\": {\n"
+    "        \"name\": \"loopback1\",\n"
+    "        \"mtu\": 1500,\n"
+    "        \"type\": \"iana-if-type:softwareLoopback\"\n"
+    "      },\n"
+    "      \"name\": \"loopback1\"\n"
     "    }\n"
-    "  }\n"
+    "  ]\n"
     "}";
 
 TEST_F(BindingContextTest, jsonSerializationTopLevel) {
@@ -140,6 +143,53 @@ TEST_F(BindingContextTest, jsonSerializationTopLevel) {
       bundleOpenconfig.getCodec().decode(
           interfaceEncoded, make_shared<OpenconfigInterfaces>());
   ASSERT_TRUE(*decodedIfcEntity == *originalIfc);
+}
+
+TEST_F(BindingContextTest, domSerializationTopLevel) {
+  BindingContext& bundleOpenconfig =
+      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+
+  shared_ptr<OpenconfigInterfaces> originalIfc = interfacesCpp();
+
+  const dynamic& interfaceEncoded = bundleOpenconfig.getCodec().toDom(
+      "/openconfig-interfaces:interfaces", *originalIfc);
+  ASSERT_EQ(sortJson(interfaceJson), sortJson(toPrettyJson(interfaceEncoded)));
+
+  const shared_ptr<Entity> decodedIfcEntity =
+      bundleOpenconfig.getCodec().fromDom(
+          interfaceEncoded, make_shared<OpenconfigInterfaces>());
+  ASSERT_TRUE(*decodedIfcEntity == *originalIfc);
+}
+
+TEST_F(BindingContextTest, domSerializationNested) {
+  BindingContext& bundleOpenconfig =
+      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+
+  shared_ptr<OpenconfigInterface> originalIfc = interfaceCpp();
+
+  const dynamic& interfaceEncoded = bundleOpenconfig.getCodec().toDom(
+      "/openconfig-interfaces:interfaces/interface[name='loopback1']",
+      *originalIfc);
+  ASSERT_EQ(
+      sortJson(singleInterfaceJson), sortJson(toPrettyJson(interfaceEncoded)));
+
+  const shared_ptr<Entity> decodedIfcEntity =
+      bundleOpenconfig.getCodec().fromDom(
+          interfaceEncoded, make_shared<OpenconfigInterface>());
+  ASSERT_TRUE(*decodedIfcEntity == *originalIfc);
+}
+
+TEST_F(BindingContextTest, toDomFail) {
+  BindingContext& bundleOpenconfig =
+      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+
+  shared_ptr<OpenconfigInterfaces> originalIfc = interfacesCpp();
+
+  ASSERT_THROW(
+      bundleOpenconfig.getCodec().toDom(
+          "/openconfig-interfaces:interfaces/interface[name='0/1']",
+          *originalIfc),
+      BindingSerializationException);
 }
 
 TEST_F(BindingContextTest, jsonSerializationFail) {
@@ -168,34 +218,6 @@ TEST_F(BindingContextTest, jsonDeserializationFail) {
           bundleOpenconfig.getCodec().decode(
               "not a json", make_shared<OpenconfigInterface>()),
       BindingSerializationException);
-}
-
-TEST_F(BindingContextTest, jsonSerializationNestedMultiThread) {
-  folly::CPUThreadPoolExecutor executor(8);
-
-  for (int i = 0; i < 100; i++) {
-    folly::Future<folly::Unit> f = folly::via(&executor, [&, i]() {
-      BindingContext& bundleOpenconfig =
-          mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
-
-      //      DLOG(INFO) << "Executing: " << i << " on thread "
-      //                 << std::this_thread::get_id()
-      //                 << " with bundle: " << &bundleOpenconfig << endl;
-
-      shared_ptr<OpenconfigInterface> originalIfc = interfaceCpp();
-
-      const string& interfaceEncoded =
-          bundleOpenconfig.getCodec().encode(*originalIfc);
-      ASSERT_EQ(sortJson(singleInterfaceJson), sortJson(interfaceEncoded));
-
-      const shared_ptr<Entity> decodedIfcEntity =
-          bundleOpenconfig.getCodec().decode(
-              interfaceEncoded, make_shared<OpenconfigInterface>());
-      ASSERT_TRUE(*decodedIfcEntity == *originalIfc);
-    });
-  }
-  executor.join();
-  ASSERT_EQ(1, mreg.bindingCacheSize());
 }
 
 } // namespace cli

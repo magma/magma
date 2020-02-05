@@ -51,9 +51,9 @@ type SurveyWiFiScan struct {
 	Longitude float64 `json:"longitude,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyWiFiScanQuery when eager-loading is set.
-	Edges              SurveyWiFiScanEdges `json:"edges"`
-	survey_question_id *string
-	location_id        *string
+	Edges                             SurveyWiFiScanEdges `json:"edges"`
+	survey_wi_fi_scan_survey_question *string
+	survey_wi_fi_scan_location        *string
 }
 
 // SurveyWiFiScanEdges holds the relations/edges for other nodes in the graph.
@@ -118,8 +118,8 @@ func (*SurveyWiFiScan) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*SurveyWiFiScan) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // survey_question_id
-		&sql.NullInt64{}, // location_id
+		&sql.NullInt64{}, // survey_wi_fi_scan_survey_question
+		&sql.NullInt64{}, // survey_wi_fi_scan_location
 	}
 }
 
@@ -203,16 +203,16 @@ func (swfs *SurveyWiFiScan) assignValues(values ...interface{}) error {
 	values = values[13:]
 	if len(values) == len(surveywifiscan.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field survey_question_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field survey_wi_fi_scan_survey_question", value)
 		} else if value.Valid {
-			swfs.survey_question_id = new(string)
-			*swfs.survey_question_id = strconv.FormatInt(value.Int64, 10)
+			swfs.survey_wi_fi_scan_survey_question = new(string)
+			*swfs.survey_wi_fi_scan_survey_question = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field survey_wi_fi_scan_location", value)
 		} else if value.Valid {
-			swfs.location_id = new(string)
-			*swfs.location_id = strconv.FormatInt(value.Int64, 10)
+			swfs.survey_wi_fi_scan_location = new(string)
+			*swfs.survey_wi_fi_scan_location = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

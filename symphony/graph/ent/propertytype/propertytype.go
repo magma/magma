@@ -63,56 +63,56 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "property" package.
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
-	PropertiesColumn = "type_id"
+	PropertiesColumn = "property_type"
 	// LocationTypeTable is the table the holds the location_type relation/edge.
 	LocationTypeTable = "property_types"
 	// LocationTypeInverseTable is the table name for the LocationType entity.
 	// It exists in this package in order to avoid circular dependency with the "locationtype" package.
 	LocationTypeInverseTable = "location_types"
 	// LocationTypeColumn is the table column denoting the location_type relation/edge.
-	LocationTypeColumn = "location_type_id"
+	LocationTypeColumn = "location_type_property_types"
 	// EquipmentPortTypeTable is the table the holds the equipment_port_type relation/edge.
 	EquipmentPortTypeTable = "property_types"
 	// EquipmentPortTypeInverseTable is the table name for the EquipmentPortType entity.
 	// It exists in this package in order to avoid circular dependency with the "equipmentporttype" package.
 	EquipmentPortTypeInverseTable = "equipment_port_types"
 	// EquipmentPortTypeColumn is the table column denoting the equipment_port_type relation/edge.
-	EquipmentPortTypeColumn = "equipment_port_type_id"
+	EquipmentPortTypeColumn = "equipment_port_type_property_types"
 	// LinkEquipmentPortTypeTable is the table the holds the link_equipment_port_type relation/edge.
 	LinkEquipmentPortTypeTable = "property_types"
 	// LinkEquipmentPortTypeInverseTable is the table name for the EquipmentPortType entity.
 	// It exists in this package in order to avoid circular dependency with the "equipmentporttype" package.
 	LinkEquipmentPortTypeInverseTable = "equipment_port_types"
 	// LinkEquipmentPortTypeColumn is the table column denoting the link_equipment_port_type relation/edge.
-	LinkEquipmentPortTypeColumn = "link_equipment_port_type_id"
+	LinkEquipmentPortTypeColumn = "equipment_port_type_link_property_types"
 	// EquipmentTypeTable is the table the holds the equipment_type relation/edge.
 	EquipmentTypeTable = "property_types"
 	// EquipmentTypeInverseTable is the table name for the EquipmentType entity.
 	// It exists in this package in order to avoid circular dependency with the "equipmenttype" package.
 	EquipmentTypeInverseTable = "equipment_types"
 	// EquipmentTypeColumn is the table column denoting the equipment_type relation/edge.
-	EquipmentTypeColumn = "equipment_type_id"
+	EquipmentTypeColumn = "equipment_type_property_types"
 	// ServiceTypeTable is the table the holds the service_type relation/edge.
 	ServiceTypeTable = "property_types"
 	// ServiceTypeInverseTable is the table name for the ServiceType entity.
 	// It exists in this package in order to avoid circular dependency with the "servicetype" package.
 	ServiceTypeInverseTable = "service_types"
 	// ServiceTypeColumn is the table column denoting the service_type relation/edge.
-	ServiceTypeColumn = "service_type_id"
+	ServiceTypeColumn = "service_type_property_types"
 	// WorkOrderTypeTable is the table the holds the work_order_type relation/edge.
 	WorkOrderTypeTable = "property_types"
 	// WorkOrderTypeInverseTable is the table name for the WorkOrderType entity.
 	// It exists in this package in order to avoid circular dependency with the "workordertype" package.
 	WorkOrderTypeInverseTable = "work_order_types"
 	// WorkOrderTypeColumn is the table column denoting the work_order_type relation/edge.
-	WorkOrderTypeColumn = "work_order_type_id"
+	WorkOrderTypeColumn = "work_order_type_property_types"
 	// ProjectTypeTable is the table the holds the project_type relation/edge.
 	ProjectTypeTable = "property_types"
 	// ProjectTypeInverseTable is the table name for the ProjectType entity.
 	// It exists in this package in order to avoid circular dependency with the "projecttype" package.
 	ProjectTypeInverseTable = "project_types"
 	// ProjectTypeColumn is the table column denoting the project_type relation/edge.
-	ProjectTypeColumn = "project_type_id"
+	ProjectTypeColumn = "project_type_properties"
 )
 
 // Columns holds all SQL columns for propertytype fields.
@@ -140,13 +140,13 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the PropertyType type.
 var ForeignKeys = []string{
-	"equipment_port_type_id",
-	"link_equipment_port_type_id",
-	"equipment_type_id",
-	"location_type_id",
-	"project_type_id",
-	"service_type_id",
-	"work_order_type_id",
+	"equipment_port_type_property_types",
+	"equipment_port_type_link_property_types",
+	"equipment_type_property_types",
+	"location_type_property_types",
+	"project_type_properties",
+	"service_type_property_types",
+	"work_order_type_property_types",
 }
 
 var (

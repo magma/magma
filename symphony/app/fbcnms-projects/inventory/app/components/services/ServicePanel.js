@@ -36,6 +36,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React, {useState} from 'react';
 import RemoveServiceEndpointMutation from '../../mutations/RemoveServiceEndpointMutation';
 import RemoveServiceLinkMutation from '../../mutations/RemoveServiceLinkMutation';
@@ -260,7 +261,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
         <div className={classes.edit}>
           <Button variant="text" onClick={onOpenDetailsPanel}>
             <Text variant="body2" className={classes.editText}>
-              View & Edit Details
+              View<FormAction> & Edit</FormAction> Details
             </Text>
           </Button>
         </div>

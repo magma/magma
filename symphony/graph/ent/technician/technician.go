@@ -35,7 +35,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "workorder" package.
 	WorkOrdersInverseTable = "work_orders"
 	// WorkOrdersColumn is the table column denoting the work_orders relation/edge.
-	WorkOrdersColumn = "technician_id"
+	WorkOrdersColumn = "work_order_technician"
 )
 
 // Columns holds all SQL columns for technician fields.

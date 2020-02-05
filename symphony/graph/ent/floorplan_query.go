@@ -413,7 +413,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*FloorPlan)
 		for i := range nodes {
-			if fk := nodes[i].location_id; fk != nil {
+			if fk := nodes[i].floor_plan_location; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -426,7 +426,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_location" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Location = n
@@ -438,7 +438,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*FloorPlan)
 		for i := range nodes {
-			if fk := nodes[i].floor_plan_reference_point_id; fk != nil {
+			if fk := nodes[i].floor_plan_reference_point; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -451,7 +451,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_reference_point_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_reference_point" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.ReferencePoint = n
@@ -463,7 +463,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*FloorPlan)
 		for i := range nodes {
-			if fk := nodes[i].floor_plan_scale_id; fk != nil {
+			if fk := nodes[i].floor_plan_scale; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -476,7 +476,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_scale_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_scale" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Scale = n
@@ -488,7 +488,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*FloorPlan)
 		for i := range nodes {
-			if fk := nodes[i].floor_plan_image_id; fk != nil {
+			if fk := nodes[i].floor_plan_image; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -501,7 +501,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_image_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_image" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Image = n

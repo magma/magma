@@ -45,24 +45,30 @@ class EnodebdLogger:
 
     @staticmethod
     def info(msg, *args, **kwargs):
-        if EnodebdLogger._LOGGER.propagate is False:
+        if not EnodebdLogger._LOGGER.propagate:
             logging.info(msg, *args, **kwargs)
         EnodebdLogger._LOGGER.info(msg, *args, **kwargs)
 
     @staticmethod
     def warning(msg, *args, **kwargs):
-        if EnodebdLogger._LOGGER.propagate is False:
+        if not EnodebdLogger._LOGGER.propagate:
             logging.warning(msg, *args, **kwargs)
         EnodebdLogger._LOGGER.warning(msg, *args, **kwargs)
 
     @staticmethod
     def error(msg, *args, **kwargs):
-        if EnodebdLogger._LOGGER.propagate is False:
+        if not EnodebdLogger._LOGGER.propagate:
             logging.error(msg, *args, **kwargs)
         EnodebdLogger._LOGGER.error(msg, *args, **kwargs)
 
     @staticmethod
+    def exception(msg, *args, **kwargs):
+        if not EnodebdLogger._LOGGER.propagate:
+            logging.exception(msg, *args, **kwargs)
+        EnodebdLogger._LOGGER.exception(msg, *args, **kwargs)
+
+    @staticmethod
     def critical(msg, *args, **kwargs):
-        if EnodebdLogger._LOGGER.propagate is False:
+        if not EnodebdLogger._LOGGER.propagate:
             logging.critical(msg, *args, **kwargs)
         EnodebdLogger._LOGGER.critical(msg, *args, **kwargs)
