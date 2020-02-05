@@ -343,7 +343,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
         bdata(config_pP->config_file));
     }
   } else {
-    OAILOG_CRITICAL(LOG_CONFIG, "No MME configuration file provided!\n");
     config_destroy(&cfg);
     AssertFatal(0, "No MME configuration file provided!\n");
   }
@@ -618,16 +617,11 @@ int mme_config_parse_file(mme_config_t *config_pP)
           } else {
             config_pP->s6a_config.hss_host_name = bfromcstr(astring);
           }
-        } else {
-          OAILOG_CRITICAL(
-            LOG_CONFIG,
-            "You have to provide a valid HSS hostname %s=...\n",
-            MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
+        } else
           AssertFatal(
             1 == 0,
             "You have to provide a valid HSS hostname %s=...\n",
             MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
-        }
       }
     }
 
@@ -691,13 +685,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
       }
 
       config_pP->served_tai.nb_tai = num;
-      if (num > MAX_TAI_SUPPORTED) {
-        OAILOG_CRITICAL(
-          LOG_CONFIG,
-          "Too many TAIs configured: %d (Maximum supported: %d)\n",
-          num,
-          MAX_TAI_SUPPORTED);
-      }
       AssertFatal(
         num <= MAX_TAI_SUPPORTED,
         "Too many TAIs configured: %d (Maximum supported: %d)",
@@ -718,16 +705,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
             config_pP->served_tai.plmn_mnc[i] = (uint16_t) atoi(mnc);
             config_pP->served_tai.plmn_mnc_len[i] = strlen(mnc);
 
-            if (
-              (config_pP->served_tai.plmn_mnc_len[i] != MIN_MNC_LENGTH) &&
-              (config_pP->served_tai.plmn_mnc_len[i] != MAX_MNC_LENGTH)) {
-              OAILOG_CRITICAL(
-                LOG_CONFIG,
-                "Bad MNC length %u, must be %d or %d\n",
-                config_pP->served_tai.plmn_mnc_len[i],
-                MIN_MNC_LENGTH,
-                MAX_MNC_LENGTH);
-            }
             AssertFatal(
               (config_pP->served_tai.plmn_mnc_len[i] == MIN_MNC_LENGTH) ||
                 (config_pP->served_tai.plmn_mnc_len[i] == MAX_MNC_LENGTH),
@@ -740,12 +717,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
           if ((config_setting_lookup_string(
                 sub2setting, MME_CONFIG_STRING_TAC, &tac))) {
             config_pP->served_tai.tac[i] = (uint16_t) atoi(tac);
-            if (!TAC_IS_VALID(config_pP->served_tai.tac[i])) {
-              OAILOG_CRITICAL(
-                LOG_CONFIG,
-                "Invalid TAC value " TAC_FMT "\n",
-                 config_pP->served_tai.tac[i]);
-            }
+
             AssertFatal(
               TAC_IS_VALID(config_pP->served_tai.tac[i]),
               "Invalid TAC value " TAC_FMT,
@@ -837,17 +809,9 @@ int mme_config_parse_file(mme_config_t *config_pP)
     config_pP->gummei.nb = 0;
     if (setting != NULL) {
       num = config_setting_length(setting);
-      if (num != MAX_GUMMEI) {
-        OAILOG_CRITICAL(
-          LOG_CONFIG,
-          "Only %u GUMMEI supported for this version of MME (Configured: %u)\n",
-          MAX_GUMMEI,
-          num);
-      }
       AssertFatal(
         num == MAX_GUMMEI,
-        "Only %u GUMMEI supported for this version of MME "
-        "(Configured: %u)",
+        "Only %u GUMMEI supported for this version of MME (Configured: %u)",
         MAX_GUMMEI,
         num);
       for (i = 0; i < num; i++) {
@@ -856,13 +820,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
         if (sub2setting != NULL) {
           if ((config_setting_lookup_string(
                 sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
-            if (strlen(mcc) != MAX_MCC_LENGTH) {
-              OAILOG_CRITICAL(
-                LOG_CONFIG,
-                "Bad MCC length (%ld), it must be %u digit ex: 001\n",
-                strlen(mcc),
-                MAX_MCC_LENGTH);
-            }
             AssertFatal(
               strlen(mcc) == MAX_MCC_LENGTH,
               "Bad MCC length (%ld), it must be %u digit ex: 001",
@@ -878,16 +835,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
 
           if ((config_setting_lookup_string(
                 sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
-            if (
-              strlen(mnc) != MIN_MNC_LENGTH && strlen(mnc) != MAX_MNC_LENGTH) {
-              OAILOG_CRITICAL(
-                LOG_CONFIG,
-                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123"
-                "\n",
-                strlen(mnc),
-                MIN_MNC_LENGTH,
-                MAX_MNC_LENGTH);
-            }
             AssertFatal(
               (strlen(mnc) == MIN_MNC_LENGTH) ||
                 (strlen(mnc) == MAX_MNC_LENGTH),
@@ -947,9 +894,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->ipv4.if_name_s1_mme = bfromcstr(if_name_s1_mme);
         cidr = bfromcstr(s1_mme);
         struct bstrList *list = bsplit(cidr, '/');
-        if (list->qty != CIDR_SPLIT_LIST_COUNT) {
-          OAILOG_CRITICAL(LOG_CONFIG, "Bad CIDR address %s", bdata(cidr));
-        }
         AssertFatal(
           list->qty == CIDR_SPLIT_LIST_COUNT,
           "Bad CIDR address %s",
@@ -975,9 +919,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->ipv4.if_name_s11 = bfromcstr(if_name_s11);
         cidr = bfromcstr(s11);
         list = bsplit(cidr, '/');
-        if (list->qty != CIDR_SPLIT_LIST_COUNT) {
-          OAILOG_CRITICAL(LOG_CONFIG, "Bad CIDR address %s", bdata(cidr));
-        }
         AssertFatal(
           list->qty == CIDR_SPLIT_LIST_COUNT,
           "Bad CIDR address %s",
@@ -1021,13 +962,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
         // Check CSFB MCC. MNC and LAC only if NON-EPS feature is enabled.
         if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_CSFB_MCC, &csfb_mcc))) {
-          if (strlen(csfb_mcc) != MAX_MCC_LENGTH) {
-            OAILOG_CRITICAL(
-              LOG_CONFIG,
-              "Bad MCC length(%ld), it must be %u digit ex: 001\n",
-              strlen(csfb_mcc),
-              MAX_MCC_LENGTH);
-          }
           AssertFatal(
             strlen(csfb_mcc) == MAX_MCC_LENGTH,
             "Bad MCC length(%ld), it must be %u digit ex: 001",
@@ -1042,17 +976,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
         }
         if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_CSFB_MNC, &csfb_mnc))) {
-          if (
-            strlen(csfb_mnc) != MIN_MNC_LENGTH &&
-            strlen(csfb_mnc) != MAX_MNC_LENGTH) {
-            OAILOG_CRITICAL(
-              LOG_CONFIG,
-              "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123"
-              "\n",
-              strlen(csfb_mnc),
-              MIN_MNC_LENGTH,
-              MAX_MNC_LENGTH);
-          }
           AssertFatal(
             (strlen(csfb_mnc) == MIN_MNC_LENGTH) ||
               (strlen(csfb_mnc) == MAX_MNC_LENGTH),
@@ -1236,13 +1159,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
   if (setting != NULL) {
     num = config_setting_length(setting);
 
-    if (num > MME_CONFIG_MAX_SGW) {
-      OAILOG_CRITICAL(
-        LOG_CONFIG,
-        "Too many SGW entries (%d) defined (Maximum supported: %d)\n",
-        num,
-        MME_CONFIG_MAX_SGW);
-    }
     AssertFatal(
       num <= MME_CONFIG_MAX_SGW,
       "Too many SGW entries (%d) defined (Maximum supported: %d)\n",
@@ -1271,9 +1187,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
               (const char **) &sgw_ip_address_for_s11))) {
           cidr = bfromcstr(sgw_ip_address_for_s11);
           struct bstrList *list = bsplit(cidr, '/');
-          if (list->qty != CIDR_SPLIT_LIST_COUNT) {
-            OAILOG_CRITICAL(LOG_CONFIG, "Bad CIDR address %s\n", bdata(cidr));
-          }
           AssertFatal(
             list->qty == CIDR_SPLIT_LIST_COUNT,
             "Bad CIDR address %s",
@@ -1480,10 +1393,6 @@ void mme_config_display(mme_config_t *config_pP)
       OAILOG_INFO(LOG_CONFIG, "- TAI list type multiple PLMNs\n");
       break;
     default:
-      OAILOG_CRITICAL(
-        LOG_CONFIG,
-        "Invalid served TAI list type (%u) configured\n",
-        config_pP->served_tai.list_type);
       AssertFatal(
         0,
         "Invalid served TAI list type (%u) configured\n",
@@ -1733,9 +1642,5 @@ static bool parse_bool(const char *str)
   if (strcasecmp(str, "false") == 0) return false;
   if (strcasecmp(str, "") == 0) return false;
 
-  OAILOG_CRITICAL(
-    LOG_CONFIG,
-    "Error in config file: got \"%s\" but expected bool\n",
-    str);
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
 }

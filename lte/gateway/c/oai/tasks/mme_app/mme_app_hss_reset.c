@@ -53,7 +53,7 @@ int mme_app_handle_s6a_reset_req(
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  OAILOG_DEBUG(LOG_MME_APP, "S6a Reset Request recieved\n");
+  OAILOG_DEBUG(LOG_MME_APP, "S6a Reset Request received\n");
 
   if (rsr_pP == NULL) {
     OAILOG_ERROR(

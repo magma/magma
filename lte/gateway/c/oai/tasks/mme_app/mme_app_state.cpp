@@ -19,11 +19,6 @@
  *      contact@openairinterface.org
  */
 
-extern "C" {
-
-#include "assertions.h"
-}
-
 #include "mme_app_state.h"
 #include "mme_app_state_manager.h"
 
@@ -80,4 +75,3 @@ void clear_mme_nas_state()
 {
   magma::lte::MmeNasStateManager::getInstance().free_state();
 }
-

@@ -221,8 +221,7 @@ int mme_app_handle_s6a_update_location_ans(
   if (ula_pP == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Invalid S6a Update Location Answer ITTI message "
-      "received\n");
+      "Invalid S6a Update Location Answer ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -373,8 +372,7 @@ int mme_app_handle_s6a_cancel_location_req(
   if (clr_pP == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Invalid S6a Cancel Location Request ITTI message "
-      "received\n");
+      "Invalid S6a Cancel Location Request ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
