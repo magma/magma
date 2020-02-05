@@ -350,13 +350,13 @@ func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyT
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.category_id
+			fk := n.survey_template_category_survey_template_questions
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "category_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_template_category_survey_template_questions" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_template_category_survey_template_questions" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.SurveyTemplateQuestions = append(node.Edges.SurveyTemplateQuestions, n)
 		}

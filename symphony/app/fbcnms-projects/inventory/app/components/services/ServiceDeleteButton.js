@@ -16,46 +16,34 @@ import type {
 import type {Service} from '../../common/Service';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
-import type {WithStyles} from '@material-ui/core';
 
+import Button from '@fbcnms/ui//components/design-system/Button';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import React from 'react';
 import RemoveServiceMutation from '../../mutations/RemoveServiceMutation';
-import SymphonyTheme from '@fbcnms/ui/theme/symphony';
-import classNames from 'classnames';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {withSnackbar} from 'notistack';
-import {withStyles} from '@material-ui/core/styles';
-
-const styles = _theme => ({
-  deleteButton: {
-    cursor: 'pointer',
-    color: SymphonyTheme.palette.D400,
-    width: '32px',
-    height: '32px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 type Props = {
   className?: string,
   service: Service,
   onServiceRemoved: () => void,
-} & WithStyles<typeof styles> &
-  WithAlert &
+} & WithAlert &
   WithSnackbarProps;
 
 class ServiceDeleteButton extends React.Component<Props> {
   render() {
-    const {classes, className} = this.props;
+    const {className} = this.props;
     return (
-      <div className={classNames(classes.deleteButton, className)}>
-        <DeleteOutlineIcon onClick={this.removeService} />
-      </div>
+      <Button
+        variant="text"
+        skin="gray"
+        className={className}
+        onClick={this.removeService}>
+        <DeleteOutlineIcon />
+      </Button>
     );
   }
 
@@ -100,4 +88,4 @@ class ServiceDeleteButton extends React.Component<Props> {
   };
 }
 
-export default withStyles(styles)(withAlert(withSnackbar(ServiceDeleteButton)));
+export default withAlert(withSnackbar(ServiceDeleteButton));

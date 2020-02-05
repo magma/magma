@@ -28,9 +28,9 @@ type Comment struct {
 	// AuthorName holds the value of the "author_name" field.
 	AuthorName string `json:"author_name,omitempty"`
 	// Text holds the value of the "text" field.
-	Text                  string `json:"text,omitempty"`
-	project_comment_id    *string
-	work_order_comment_id *string
+	Text                string `json:"text,omitempty"`
+	project_comments    *string
+	work_order_comments *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -47,8 +47,8 @@ func (*Comment) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Comment) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // project_comment_id
-		&sql.NullInt64{}, // work_order_comment_id
+		&sql.NullInt64{}, // project_comments
+		&sql.NullInt64{}, // work_order_comments
 	}
 }
 
@@ -87,16 +87,16 @@ func (c *Comment) assignValues(values ...interface{}) error {
 	values = values[4:]
 	if len(values) == len(comment.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field project_comment_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field project_comments", value)
 		} else if value.Valid {
-			c.project_comment_id = new(string)
-			*c.project_comment_id = strconv.FormatInt(value.Int64, 10)
+			c.project_comments = new(string)
+			*c.project_comments = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_comment_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_comments", value)
 		} else if value.Valid {
-			c.work_order_comment_id = new(string)
-			*c.work_order_comment_id = strconv.FormatInt(value.Int64, 10)
+			c.work_order_comments = new(string)
+			*c.work_order_comments = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

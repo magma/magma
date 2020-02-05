@@ -35,28 +35,28 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "workorder" package.
 	WorkOrdersInverseTable = "work_orders"
 	// WorkOrdersColumn is the table column denoting the work_orders relation/edge.
-	WorkOrdersColumn = "type_id"
+	WorkOrdersColumn = "work_order_type"
 	// PropertyTypesTable is the table the holds the property_types relation/edge.
 	PropertyTypesTable = "property_types"
 	// PropertyTypesInverseTable is the table name for the PropertyType entity.
 	// It exists in this package in order to avoid circular dependency with the "propertytype" package.
 	PropertyTypesInverseTable = "property_types"
 	// PropertyTypesColumn is the table column denoting the property_types relation/edge.
-	PropertyTypesColumn = "work_order_type_id"
+	PropertyTypesColumn = "work_order_type_property_types"
 	// DefinitionsTable is the table the holds the definitions relation/edge.
 	DefinitionsTable = "work_order_definitions"
 	// DefinitionsInverseTable is the table name for the WorkOrderDefinition entity.
 	// It exists in this package in order to avoid circular dependency with the "workorderdefinition" package.
 	DefinitionsInverseTable = "work_order_definitions"
 	// DefinitionsColumn is the table column denoting the definitions relation/edge.
-	DefinitionsColumn = "type_id"
+	DefinitionsColumn = "work_order_definition_type"
 	// CheckListDefinitionsTable is the table the holds the check_list_definitions relation/edge.
 	CheckListDefinitionsTable = "check_list_item_definitions"
 	// CheckListDefinitionsInverseTable is the table name for the CheckListItemDefinition entity.
 	// It exists in this package in order to avoid circular dependency with the "checklistitemdefinition" package.
 	CheckListDefinitionsInverseTable = "check_list_item_definitions"
 	// CheckListDefinitionsColumn is the table column denoting the check_list_definitions relation/edge.
-	CheckListDefinitionsColumn = "work_order_type_id"
+	CheckListDefinitionsColumn = "work_order_type_check_list_definitions"
 )
 
 // Columns holds all SQL columns for workordertype fields.

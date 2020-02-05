@@ -388,7 +388,7 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*EquipmentPosition)
 		for i := range nodes {
-			if fk := nodes[i].definition_id; fk != nil {
+			if fk := nodes[i].equipment_position_definition; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -401,7 +401,7 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "definition_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_position_definition" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Definition = n
@@ -413,7 +413,7 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*EquipmentPosition)
 		for i := range nodes {
-			if fk := nodes[i].parent_id; fk != nil {
+			if fk := nodes[i].equipment_positions; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -426,7 +426,7 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_positions" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Parent = n
@@ -454,13 +454,13 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.parent_position_id
+			fk := n.equipment_position_attachment
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "parent_position_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_position_attachment" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "parent_position_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_position_attachment" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Attachment = n
 		}

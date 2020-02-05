@@ -128,6 +128,10 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/Path.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/SchemaContext.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/BindingContext.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/ReaderRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/BindingReaderRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/DeviceAccess.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/PluginRegistry.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/Spd2Glog.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/IoConfigurationBuilder.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReadCachingCli.cpp
@@ -245,6 +249,8 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/CommandTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PathTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/SchemaContextTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ReaderRegistryTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PluginRegistryTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/BindingContextTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PlaintextCliDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/StructuredUbntDeviceTest.cpp

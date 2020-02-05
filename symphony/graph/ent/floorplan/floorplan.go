@@ -33,28 +33,28 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "location" package.
 	LocationInverseTable = "locations"
 	// LocationColumn is the table column denoting the location relation/edge.
-	LocationColumn = "location_id"
+	LocationColumn = "floor_plan_location"
 	// ReferencePointTable is the table the holds the reference_point relation/edge.
 	ReferencePointTable = "floor_plans"
 	// ReferencePointInverseTable is the table name for the FloorPlanReferencePoint entity.
 	// It exists in this package in order to avoid circular dependency with the "floorplanreferencepoint" package.
 	ReferencePointInverseTable = "floor_plan_reference_points"
 	// ReferencePointColumn is the table column denoting the reference_point relation/edge.
-	ReferencePointColumn = "floor_plan_reference_point_id"
+	ReferencePointColumn = "floor_plan_reference_point"
 	// ScaleTable is the table the holds the scale relation/edge.
 	ScaleTable = "floor_plans"
 	// ScaleInverseTable is the table name for the FloorPlanScale entity.
 	// It exists in this package in order to avoid circular dependency with the "floorplanscale" package.
 	ScaleInverseTable = "floor_plan_scales"
 	// ScaleColumn is the table column denoting the scale relation/edge.
-	ScaleColumn = "floor_plan_scale_id"
+	ScaleColumn = "floor_plan_scale"
 	// ImageTable is the table the holds the image relation/edge.
 	ImageTable = "floor_plans"
 	// ImageInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	ImageInverseTable = "files"
 	// ImageColumn is the table column denoting the image relation/edge.
-	ImageColumn = "floor_plan_image_id"
+	ImageColumn = "floor_plan_image"
 )
 
 // Columns holds all SQL columns for floorplan fields.
@@ -67,10 +67,10 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the FloorPlan type.
 var ForeignKeys = []string{
-	"location_id",
-	"floor_plan_reference_point_id",
-	"floor_plan_scale_id",
-	"floor_plan_image_id",
+	"floor_plan_location",
+	"floor_plan_reference_point",
+	"floor_plan_scale",
+	"floor_plan_image",
 }
 
 var (

@@ -31,13 +31,17 @@ ulong ModelRegistry::bindingCacheSize() {
 }
 
 BindingContext& ModelRegistry::getBindingContext(const Model& model) {
+  const SchemaContext& schemaCtx = getSchemaContext(model);
   lock_guard<std::mutex> lg(lock);
 
   auto it = bindingCache.find(model.getDir());
   if (it != bindingCache.end()) {
     return it->second;
   } else {
-    auto pair = bindingCache.emplace(model.getDir(), model);
+    auto pair = bindingCache.emplace(
+        piecewise_construct,
+        forward_as_tuple(model.getDir()),
+        forward_as_tuple(model, schemaCtx));
     return pair.first->second;
   }
 }

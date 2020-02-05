@@ -40,11 +40,11 @@ type File struct {
 	// StoreKey holds the value of the "store_key" field.
 	StoreKey string `json:"store_key,omitempty"`
 	// Category holds the value of the "category" field.
-	Category                       string `json:"category,omitempty"`
-	equipment_file_id              *string
-	location_file_id               *string
-	survey_question_photo_datum_id *string
-	work_order_file_id             *string
+	Category                   string `json:"category,omitempty"`
+	equipment_files            *string
+	location_files             *string
+	survey_question_photo_data *string
+	work_order_files           *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -67,10 +67,10 @@ func (*File) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*File) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // equipment_file_id
-		&sql.NullInt64{}, // location_file_id
-		&sql.NullInt64{}, // survey_question_photo_datum_id
-		&sql.NullInt64{}, // work_order_file_id
+		&sql.NullInt64{}, // equipment_files
+		&sql.NullInt64{}, // location_files
+		&sql.NullInt64{}, // survey_question_photo_data
+		&sql.NullInt64{}, // work_order_files
 	}
 }
 
@@ -139,28 +139,28 @@ func (f *File) assignValues(values ...interface{}) error {
 	values = values[10:]
 	if len(values) == len(file.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_file_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_files", value)
 		} else if value.Valid {
-			f.equipment_file_id = new(string)
-			*f.equipment_file_id = strconv.FormatInt(value.Int64, 10)
+			f.equipment_files = new(string)
+			*f.equipment_files = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_file_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_files", value)
 		} else if value.Valid {
-			f.location_file_id = new(string)
-			*f.location_file_id = strconv.FormatInt(value.Int64, 10)
+			f.location_files = new(string)
+			*f.location_files = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field survey_question_photo_datum_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_photo_data", value)
 		} else if value.Valid {
-			f.survey_question_photo_datum_id = new(string)
-			*f.survey_question_photo_datum_id = strconv.FormatInt(value.Int64, 10)
+			f.survey_question_photo_data = new(string)
+			*f.survey_question_photo_data = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_file_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_files", value)
 		} else if value.Valid {
-			f.work_order_file_id = new(string)
-			*f.work_order_file_id = strconv.FormatInt(value.Int64, 10)
+			f.work_order_files = new(string)
+			*f.work_order_files = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

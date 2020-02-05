@@ -14,11 +14,8 @@ import ActiveConsumerEndpointIcon from '@fbcnms/ui/icons/ActiveConsumerEndpointI
 import ActiveProviderEndpointIcon from '@fbcnms/ui/icons/ActiveProviderEndpointIcon';
 import EndpointIcon from '@fbcnms/ui/icons/EndpointIcon';
 import EquipmentBreadcrumbs from '../equipment/EquipmentBreadcrumbs';
-import IconButton from '@material-ui/core/IconButton';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import React, {useRef, useState} from 'react';
+import React from 'react';
+import TableRowOptionsButton from '../TableRowOptionsButton';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import camelCase from 'lodash/camelCase';
 import classNames from 'classnames';
@@ -34,6 +31,7 @@ type Props = {
 
 const useStyles = makeStyles(_ => ({
   root: {
+    display: 'flex',
     '&:hover': {
       backgroundColor: symphony.palette.B50,
       '& $moreButton': {
@@ -46,6 +44,9 @@ const useStyles = makeStyles(_ => ({
         display: 'block',
       },
     },
+  },
+  linkRow: {
+    flexGrow: 1,
     padding: '6px 32px',
     position: 'relative',
   },
@@ -92,67 +93,61 @@ const useStyles = makeStyles(_ => ({
 
 const ServiceEndpointDetails = (props: Props) => {
   const classes = useStyles();
-  const [openMenu, setOpenMenu] = useState(false);
-  const anchorElRef = useRef<?HTMLElement>(null);
   const {endpoint, onDeleteEndpoint} = props;
   return (
     <div className={classes.root}>
-      <div className={classes.detail}>
-        <EndpointIcon className={classes.icon} />
-        {endpoint.role == 'CONSUMER' ? (
-          <ActiveConsumerEndpointIcon
-            variant="small"
-            className={classes.activeIcon}
-          />
-        ) : (
-          <ActiveProviderEndpointIcon
-            variant="small"
-            className={classes.activeIcon}
-          />
-        )}
-        <div>
-          <Text variant="subtitle2" className={classes.componentName}>
-            {`${endpoint.port.parentEquipment.name} (${camelCase(
-              endpoint.role,
-            )})`}
-          </Text>
-          <Text
-            variant="body2"
-            className={classNames(classes.componentName, classes.portName)}>
-            {endpoint.port.definition.name}
-          </Text>
-          <EquipmentBreadcrumbs
-            equipment={endpoint.port.parentEquipment}
-            showSelfEquipment={false}
-            variant="body2"
-            className={classes.componentName}
-            textClassName={classes.locationName}
-          />
+      <div className={classes.linkRow}>
+        <div className={classes.detail}>
+          <EndpointIcon className={classes.icon} />
+          {endpoint.role == 'CONSUMER' ? (
+            <ActiveConsumerEndpointIcon
+              variant="small"
+              className={classes.activeIcon}
+            />
+          ) : (
+            <ActiveProviderEndpointIcon
+              variant="small"
+              className={classes.activeIcon}
+            />
+          )}
+          <div>
+            <Text variant="subtitle2" className={classes.componentName}>
+              {`${endpoint.port.parentEquipment.name} (${camelCase(
+                endpoint.role,
+              )})`}
+            </Text>
+            <Text
+              variant="body2"
+              className={classNames(classes.componentName, classes.portName)}>
+              {endpoint.port.definition.name}
+            </Text>
+            <EquipmentBreadcrumbs
+              equipment={endpoint.port.parentEquipment}
+              showSelfEquipment={false}
+              variant="body2"
+              className={classes.componentName}
+              textClassName={classes.locationName}
+            />
+          </div>
         </div>
       </div>
-      <IconButton
-        buttonRef={anchorElRef}
-        className={classes.moreButton}
-        onClick={() => {
-          setOpenMenu(true);
-        }}
-        color="secondary">
-        <MoreVertIcon />
-      </IconButton>
-      <Menu
-        anchorEl={anchorElRef.current}
-        keepMounted
-        open={openMenu}
-        onClose={() => setOpenMenu(false)}>
-        <MenuItem
-          onClick={() => {
-            ServerLogger.info(LogEvents.DELETE_SERVICE_ENDPOINT_BUTTON_CLICKED);
-            onDeleteEndpoint();
-            setOpenMenu(false);
-          }}>
-          {fbt('Remove Endpoint', 'Menu option to delete endpoint pressed')}
-        </MenuItem>
-      </Menu>
+
+      <TableRowOptionsButton
+        options={[
+          {
+            caption: fbt(
+              'Remove Endpoint',
+              'Menu option to delete endpoint pressed',
+            ),
+            onClick: () => {
+              ServerLogger.info(
+                LogEvents.DELETE_SERVICE_ENDPOINT_BUTTON_CLICKED,
+              );
+              onDeleteEndpoint();
+            },
+          },
+        ]}
+      />
     </div>
   );
 };

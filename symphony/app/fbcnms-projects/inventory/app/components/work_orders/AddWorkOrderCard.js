@@ -127,35 +127,37 @@ type State = {
 
 const addWorkOrderCard__workOrderTypeQuery = graphql`
   query AddWorkOrderCard__workOrderTypeQuery($workOrderTypeId: ID!) {
-    workOrderType(id: $workOrderTypeId) {
-      id
-      name
-      description
-      propertyTypes {
+    workOrderType: node(id: $workOrderTypeId) {
+      ... on WorkOrderType {
         id
         name
-        type
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        isEditable
-        isMandatory
-        isInstanceProperty
-        isDeleted
-      }
-      checkListDefinitions {
-        id
-        title
-        type
-        index
-        helpText
-        enumValues
+        description
+        propertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+          isEditable
+          isMandatory
+          isInstanceProperty
+          isDeleted
+        }
+        checkListDefinitions {
+          id
+          title
+          type
+          index
+          helpText
+          enumValues
+        }
       }
     }
   }

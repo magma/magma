@@ -135,7 +135,7 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 						ltyp := client.LocationType.Query().Where(locationtype.ID(locationTypeID)).OnlyX(ctx)
 						l, _ := m.getOrCreateLocation(ctx, name, lat, long, ltyp, parentID, propertyInput, &externalID)
 						id = l.ID
-					} else if index == lastPopulatedLocationIdx && (lat != 0 || long != 0 || len(propertyInput) > 0) {
+					} else if index == lastPopulatedLocationIdx && (lat != 0 || long != 0 || len(propertyInput) > 0 || externalID != "") {
 						for _, inp := range propertyInput {
 							ptype := m.ClientFrom(ctx).PropertyType.Query().Where(propertytype.ID(inp.PropertyTypeID)).OnlyX(ctx)
 							propertyID, err := ptype.QueryProperties().Where(property.HasLocationWith(location.ID(id))).FirstID(ctx)

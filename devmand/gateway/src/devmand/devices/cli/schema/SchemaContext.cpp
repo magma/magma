@@ -46,6 +46,54 @@ bool SchemaContext::isList(Path path) const {
   return result;
 }
 
+static vector<LLLY_DATA_TYPE> resolveType(lllys_type type) {
+  if (-1 == type.base) {
+    MLOG(MDEBUG) << "We have a problem";
+  }
+  if (LLLY_TYPE_DER == type.base) {
+    MLOG(MDEBUG) << "We have a problem";
+  }
+  if (LLLY_TYPE_UNION == type.base) {
+    vector<LLLY_DATA_TYPE> unionTypes;
+    for (lllys_type* subtype = type.info.uni.types;
+         subtype < type.info.uni.types + type.info.uni.count;
+         ++subtype) {
+      unionTypes.push_back(subtype->base);
+    }
+    return unionTypes;
+  }
+
+  // follow leafref to actual type
+  if (LLLY_TYPE_LEAFREF == type.base) {
+    while (type.info.lref.target) {
+      type = type.info.lref.target->type;
+    }
+    return vector<LLLY_DATA_TYPE>{type.base};
+  }
+  return vector<LLLY_DATA_TYPE>{type.base};
+}
+
+vector<LLLY_DATA_TYPE> SchemaContext::leafType(Path path) const {
+  llly_set* pSet = getNodes(path);
+  lllys_node* node = pSet->set.s[0];
+  vector<string> result;
+
+  vector<LLLY_DATA_TYPE> resolvedTypes;
+  if (node->nodetype == LLLYS_LEAF) {
+    resolvedTypes = resolveType(((lllys_node_leaf*)node)->type);
+  } else if (node->nodetype == LLLYS_LEAFLIST) {
+    resolvedTypes = resolveType(((lllys_node_leaflist*)node)->type);
+  } else {
+    llly_set_free(pSet);
+    throw InvalidPathException(
+        path.str(),
+        "Unable to lookup leaf type, path is not pointing to a leaf");
+  }
+
+  llly_set_free(pSet);
+  return resolvedTypes;
+}
+
 bool SchemaContext::isConfig(Path path) const {
   if (path == Path::ROOT) {
     return true;
@@ -75,8 +123,12 @@ SchemaContext::~SchemaContext() {
 
 SchemaContext::SchemaContext(const Model& _model) : model(_model.getDir()) {
   // set extensions and user_types for non-YDK libyang
-  setenv("LLLIBYANG_EXTENSIONS_PLUGINS_DIR", LLLIBYANG_EXTENSIONS_PLUGINS_DIR, false);
-  setenv("LIBYANG_USER_TYPES_PLUGINS_DIR", LIBYANG_USER_TYPES_PLUGINS_DIR, false);
+  setenv(
+      "LLLIBYANG_EXTENSIONS_PLUGINS_DIR",
+      LLLIBYANG_EXTENSIONS_PLUGINS_DIR,
+      false);
+  setenv(
+      "LIBYANG_USER_TYPES_PLUGINS_DIR", LIBYANG_USER_TYPES_PLUGINS_DIR, false);
   ctx = llly_ctx_new(_model.getDir().c_str(), LLLY_CTX_ALLIMPLEMENTED);
 
   int modelCount = 0;

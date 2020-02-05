@@ -37,7 +37,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "servicetype" package.
 	TypeInverseTable = "service_types"
 	// TypeColumn is the table column denoting the type relation/edge.
-	TypeColumn = "type_id"
+	TypeColumn = "service_type"
 	// DownstreamTable is the table the holds the downstream relation/edge. The primary key declared below.
 	DownstreamTable = "service_upstream"
 	// UpstreamTable is the table the holds the upstream relation/edge. The primary key declared below.
@@ -48,7 +48,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "property" package.
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
-	PropertiesColumn = "service_id"
+	PropertiesColumn = "service_properties"
 	// LinksTable is the table the holds the links relation/edge. The primary key declared below.
 	LinksTable = "service_links"
 	// LinksInverseTable is the table name for the Link entity.
@@ -65,7 +65,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "serviceendpoint" package.
 	EndpointsInverseTable = "service_endpoints"
 	// EndpointsColumn is the table column denoting the endpoints relation/edge.
-	EndpointsColumn = "service_id"
+	EndpointsColumn = "service_endpoints"
 )
 
 // Columns holds all SQL columns for service fields.
@@ -80,7 +80,7 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Service type.
 var ForeignKeys = []string{
-	"type_id",
+	"service_type",
 }
 
 var (

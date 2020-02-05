@@ -7,30 +7,27 @@
  * @flow
  * @format
  */
+import type {MenuOption} from '../TableRowOptionsButton';
 
 import * as React from 'react';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import Dialog from '@material-ui/core/Dialog';
-import IconButton from '@material-ui/core/IconButton';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import TableRowOptionsButton from '../TableRowOptionsButton';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
-import {useRef} from 'react';
-import {useState} from 'react';
-
-export type ServiceMenuItem = {
-  label: string,
-  onClick: () => void,
-};
 
 type Props = {
-  items: Array<ServiceMenuItem>,
+  items: Array<MenuOption>,
   isOpen: boolean,
   onClose: () => void,
   children: React.Node,
 };
 
 const useStyles = makeStyles({
+  addIcon: {
+    fill: symphony.palette.primary,
+    marginRight: '8px',
+  },
   dialog: {
     width: '80%',
     maxWidth: '1280px',
@@ -42,32 +39,13 @@ const useStyles = makeStyles({
 const ServiceMenu = (props: Props) => {
   const classes = useStyles();
   const {items, isOpen, onClose, children} = props;
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const anchorElRef = useRef<?HTMLElement>(null);
 
   return (
     <>
-      <IconButton
-        buttonRef={anchorElRef}
-        className={classes.addButton}
-        onClick={() => setIsMenuOpen(true)}>
-        <AddCircleOutlineIcon />
-      </IconButton>
-      <Menu
-        anchorEl={anchorElRef?.current}
-        keepMounted
-        open={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}>
-        {items.map(item => (
-          <MenuItem
-            onClick={() => {
-              item.onClick();
-              setIsMenuOpen(false);
-            }}>
-            {item.label}
-          </MenuItem>
-        ))}
-      </Menu>
+      <TableRowOptionsButton
+        options={items}
+        menuIcon={<AddCircleOutlineIcon className={classes.addIcon} />}
+      />
       <Dialog
         open={isOpen}
         onClose={onClose}
