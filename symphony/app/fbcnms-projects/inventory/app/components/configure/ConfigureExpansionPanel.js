@@ -11,10 +11,11 @@ import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
 import Avatar from '@material-ui/core/Avatar';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
@@ -46,8 +47,7 @@ const styles = theme => ({
     marginRight: 15,
   },
   iconButton: {
-    display: 'block',
-    marginLeft: 'auto',
+    marginLeft: '16px',
   },
   boldText: {
     fontWeight: 'bold',
@@ -113,9 +113,15 @@ class ConfigureExpansionPanel extends React.Component<Props> {
           <div className={classes.actionButtons}>
             {this.deleteButton()}
             {onEdit && (
-              <IconButton onClick={onEdit} color="primary">
-                <EditIcon />
-              </IconButton>
+              <FormAction>
+                <Button
+                  skin="primary"
+                  variant="text"
+                  className={classes.iconButton}
+                  onClick={onEdit}>
+                  <EditIcon />
+                </Button>
+              </FormAction>
             )}
           </div>
         </Grid>
@@ -130,25 +136,23 @@ class ConfigureExpansionPanel extends React.Component<Props> {
         ? !allowDelete
         : instanceCount > 0;
     const deleteButton = (
-      <IconButton
-        disabled={disabled}
-        onClick={this.props.onDelete}
-        color="primary"
-        className={classes.iconButton}>
-        <DeleteIcon />
-      </IconButton>
+      <FormAction>
+        <Button
+          className={classes.iconButton}
+          skin="primary"
+          variant="text"
+          disabled={disabled}
+          onClick={this.props.onDelete}>
+          <DeleteIcon />
+        </Button>
+      </FormAction>
     );
     const tooltip = `Cannot delete a type that is in use`;
-    return (
-      <div>
-        {disabled ? (
-          <Tooltip title={tooltip}>
-            <div>{deleteButton}</div>
-          </Tooltip>
-        ) : (
-          deleteButton
-        )}
-      </div>
+
+    return disabled ? (
+      <Tooltip title={tooltip}>{deleteButton}</Tooltip>
+    ) : (
+      deleteButton
     );
   };
 }

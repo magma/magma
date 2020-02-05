@@ -12,6 +12,7 @@ import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
 import CardActions from '@material-ui/core/CardActions';
+import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = {
@@ -30,12 +31,13 @@ export type FooterAlign = 'left' | 'right';
 type Props = {
   alignItems: FooterAlign,
   children: React.Node,
+  className?: ?string,
 } & WithStyles<typeof styles>;
 
 const CardFooter = (props: Props) => {
-  const {alignItems, children, classes} = props;
+  const {alignItems, children, classes, className} = props;
   return (
-    <CardActions classes={{root: classes.cardRoot}}>
+    <CardActions classes={{root: classNames(className, classes.cardRoot)}}>
       {alignItems === 'right' ? <div className={classes.placeholder} /> : null}
       {children}
     </CardActions>

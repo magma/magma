@@ -368,13 +368,13 @@ func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error)
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.service_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "service_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Services = append(node.Edges.Services, n)
 		}
@@ -400,13 +400,13 @@ func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error)
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.service_type_id
+			fk := n.service_type_property_types
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "service_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "service_type_property_types" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "service_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
 		}

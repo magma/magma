@@ -24,12 +24,12 @@ import PropertyValueInput from '../form/PropertyValueInput';
 import React, {useRef, useState} from 'react';
 import SideBar from '@fbcnms/ui/components/layout/SideBar';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import TextField from '@material-ui/core/TextField';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import useStateWithCallback from 'use-state-with-callback';
 import useVerticalScrollingEffect from '../../common/useVerticalScrollingEffect';
 
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
@@ -226,10 +226,8 @@ const ServiceDetailsPanel = (props: Props) => {
           </div>
           <div className={classes.input}>
             <FormField label="Service ID">
-              <TextField
-                name="serviceId"
-                variant="outlined"
-                margin="dense"
+              <TextInput
+                id="serviceId"
                 onChange={event =>
                   onChangeDetail('externalId', event.target.value)
                 }
@@ -240,11 +238,9 @@ const ServiceDetailsPanel = (props: Props) => {
           </div>
           <div className={classes.input}>
             <FormField label="Service Type">
-              <TextField
-                disabled
-                name="type"
-                variant="outlined"
-                margin="dense"
+              <TextInput
+                id="serviceType"
+                disabled={true}
                 value={service.serviceType.name}
               />
             </FormField>

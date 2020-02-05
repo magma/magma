@@ -157,14 +157,6 @@ func (r queryResolver) EquipmentPortDefinitions(
 		Paginate(ctx, after, first, before, last)
 }
 
-func (r queryResolver) WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error) {
-	wo, err := r.ClientFrom(ctx).WorkOrder.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying equipment position definition: id=%q", id)
-	}
-	return wo, nil
-}
-
 func (r queryResolver) WorkOrders(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
@@ -179,14 +171,6 @@ func (r queryResolver) WorkOrders(
 		))
 	}
 	return query.Paginate(ctx, after, first, before, last)
-}
-
-func (r queryResolver) WorkOrderType(ctx context.Context, id string) (*ent.WorkOrderType, error) {
-	lt, err := r.ClientFrom(ctx).WorkOrderType.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying work order type: id=%q", id)
-	}
-	return lt, nil
 }
 
 func (r queryResolver) WorkOrderTypes(

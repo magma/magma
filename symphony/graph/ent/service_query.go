@@ -491,7 +491,7 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*Service)
 		for i := range nodes {
-			if fk := nodes[i].type_id; fk != nil {
+			if fk := nodes[i].service_type; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -504,7 +504,7 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Type = n
@@ -658,13 +658,13 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.service_id
+			fk := n.service_properties
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "service_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "service_properties" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "service_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_properties" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Properties = append(node.Edges.Properties, n)
 		}
@@ -816,13 +816,13 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.service_id
+			fk := n.service_endpoints
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "service_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "service_endpoints" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "service_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoints" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Endpoints = append(node.Edges.Endpoints, n)
 		}

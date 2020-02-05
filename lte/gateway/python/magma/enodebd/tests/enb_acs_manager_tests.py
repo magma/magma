@@ -9,14 +9,15 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 # pylint: disable=protected-access
 from unittest import TestCase
+
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
-from magma.enodebd.tr069 import models
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
-from magma.enodebd.tests.test_utils.tr069_msg_builder import \
-    Tr069MessageBuilder
 from magma.enodebd.tests.test_utils.spyne_builder import \
     get_spyne_context_with_ip
+from magma.enodebd.tests.test_utils.tr069_msg_builder import \
+    Tr069MessageBuilder
+from magma.enodebd.tr069 import models
 
 
 class StateMachineManagerTests(TestCase):
@@ -30,6 +31,45 @@ class StateMachineManagerTests(TestCase):
         self.assertTrue(isinstance(req, models.InformResponse),
                         'State machine handler should reply with an '
                         'InformResponse')
+
+    def test_serial_not_found(self):
+        """
+        Test that the SM manager doesn't crash if serial number is not found
+        in an Inform message under any expected param path.
+        """
+        manager = self._get_manager()
+        ctx = get_spyne_context_with_ip("192.168.60.145")
+        inform_msg = models.Inform(
+            DeviceId=models.DeviceIdStruct(
+                Manufacturer='Unused',
+                OUI='48BF74',
+                ProductClass='Unused',
+            ),
+            Event=models.EventList(EventStruct=[]),
+            ParameterList=models.ParameterValueList(
+                ParameterValueStruct=[
+                    Tr069MessageBuilder.get_parameter_value_struct(
+                        name='Device.DeviceInfo.HardwareVersion',
+                        val_type='string',
+                        data='VER.C',
+                    ),
+                    Tr069MessageBuilder.get_parameter_value_struct(
+                        name='Device.DeviceInfo.ManufacturerOUI',
+                        val_type='string',
+                        data='48BF74',
+                    ),
+                    Tr069MessageBuilder.get_parameter_value_struct(
+                        name='Device.DeviceInfo.SoftwareVersion',
+                        val_type='string',
+                        data='BaiBS_RTS_3.1.6',
+                    ),
+                ]
+            )
+        )
+
+        # No exception should be thrown, and we should return an empty response
+        resp = manager.handle_tr069_message(ctx, inform_msg)
+        self.assertTrue(isinstance(resp, models.DummyInput))
 
     def test_handle_two_ips(self):
         manager = self._get_manager()

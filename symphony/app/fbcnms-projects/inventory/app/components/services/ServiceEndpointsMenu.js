@@ -34,7 +34,7 @@ const ServiceEndpointsMenu = (props: Props) => {
       onClose={() => setAddingEndpoint(null)}
       items={[
         {
-          label: fbt(
+          caption: fbt(
             'Add Consumer Endpoint',
             'Menu option to open a dialog to add customer endpoint to a service',
           ),
@@ -44,7 +44,7 @@ const ServiceEndpointsMenu = (props: Props) => {
           },
         },
         {
-          label: fbt(
+          caption: fbt(
             'Add Provider Endpoint',
             'Menu option to open a dialog to add provider endpoint to a service',
           ),

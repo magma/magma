@@ -112,7 +112,7 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
 	}
 
 	{{- if hasTemplate "collection" }}
-		{{ $receiver }} = {{ $receiver }}.withConnectionFields(ctx)
+		{{ $receiver }} = {{ $receiver }}.collectConnectionFields(ctx)
 	{{- end }}
 
 	nodes, err := {{ $receiver }}.All(ctx)
@@ -151,9 +151,9 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
 }
 
 {{ if hasTemplate "collection" -}}
-func ({{ $receiver }} *{{ $query }}) withConnectionFields(ctx context.Context) *{{ $query }} {
+func ({{ $receiver }} *{{ $query }}) collectConnectionFields(ctx context.Context) *{{ $query }} {
 	if field := fieldForPath(ctx, "edges", "node"); field != nil {
-		{{ $receiver }} = {{ $receiver }}.withField(graphql.GetRequestContext(ctx), *field)
+		{{ $receiver }} = {{ $receiver }}.collectField(graphql.GetRequestContext(ctx), *field)
 	}
 	return {{ $receiver }}
 }

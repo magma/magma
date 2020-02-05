@@ -105,7 +105,10 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
               }
             }}
             onChange={newValue => {
-              if (propertyValue.type === 'enum') {
+              if (
+                propertyValue.type === 'enum' ||
+                propertyValue.type === 'bool'
+              ) {
                 onNewInputBlurred(onChange(newValue));
               } else {
                 onChange(newValue);

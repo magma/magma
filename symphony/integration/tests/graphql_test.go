@@ -216,6 +216,9 @@ type queryLocationsResponse struct {
 			Children []struct {
 				Name graphql.String
 			}
+			ExternalID graphql.String
+			Longitude  graphql.Float
+			Latitude   graphql.Float
 		}
 	}
 }

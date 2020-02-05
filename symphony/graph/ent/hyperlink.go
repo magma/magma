@@ -30,10 +30,10 @@ type Hyperlink struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" gqlgen:"displayName"`
 	// Category holds the value of the "category" field.
-	Category                string `json:"category,omitempty"`
-	equipment_hyperlink_id  *string
-	location_hyperlink_id   *string
-	work_order_hyperlink_id *string
+	Category              string `json:"category,omitempty"`
+	equipment_hyperlinks  *string
+	location_hyperlinks   *string
+	work_order_hyperlinks *string
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -51,9 +51,9 @@ func (*Hyperlink) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Hyperlink) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // equipment_hyperlink_id
-		&sql.NullInt64{}, // location_hyperlink_id
-		&sql.NullInt64{}, // work_order_hyperlink_id
+		&sql.NullInt64{}, // equipment_hyperlinks
+		&sql.NullInt64{}, // location_hyperlinks
+		&sql.NullInt64{}, // work_order_hyperlinks
 	}
 }
 
@@ -97,22 +97,22 @@ func (h *Hyperlink) assignValues(values ...interface{}) error {
 	values = values[5:]
 	if len(values) == len(hyperlink.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_hyperlink_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_hyperlinks", value)
 		} else if value.Valid {
-			h.equipment_hyperlink_id = new(string)
-			*h.equipment_hyperlink_id = strconv.FormatInt(value.Int64, 10)
+			h.equipment_hyperlinks = new(string)
+			*h.equipment_hyperlinks = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_hyperlink_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_hyperlinks", value)
 		} else if value.Valid {
-			h.location_hyperlink_id = new(string)
-			*h.location_hyperlink_id = strconv.FormatInt(value.Int64, 10)
+			h.location_hyperlinks = new(string)
+			*h.location_hyperlinks = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_hyperlink_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_hyperlinks", value)
 		} else if value.Valid {
-			h.work_order_hyperlink_id = new(string)
-			*h.work_order_hyperlink_id = strconv.FormatInt(value.Int64, 10)
+			h.work_order_hyperlinks = new(string)
+			*h.work_order_hyperlinks = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

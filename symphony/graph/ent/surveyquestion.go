@@ -64,8 +64,8 @@ type SurveyQuestion struct {
 	DateData time.Time `json:"date_data,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuestionQuery when eager-loading is set.
-	Edges     SurveyQuestionEdges `json:"edges"`
-	survey_id *string
+	Edges                  SurveyQuestionEdges `json:"edges"`
+	survey_question_survey *string
 }
 
 // SurveyQuestionEdges holds the relations/edges for other nodes in the graph.
@@ -154,7 +154,7 @@ func (*SurveyQuestion) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*SurveyQuestion) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // survey_id
+		&sql.NullInt64{}, // survey_question_survey
 	}
 }
 
@@ -273,10 +273,10 @@ func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
 	values = values[20:]
 	if len(values) == len(surveyquestion.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field survey_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_survey", value)
 		} else if value.Valid {
-			sq.survey_id = new(string)
-			*sq.survey_id = strconv.FormatInt(value.Int64, 10)
+			sq.survey_question_survey = new(string)
+			*sq.survey_question_survey = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil
