@@ -637,6 +637,7 @@ type ComplexityRoot struct {
 		ServiceTypes                        func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Surveys                             func(childComplexity int) int
 		Vertex                              func(childComplexity int, id string) int
+		WorkOrder                           func(childComplexity int, id string) int
 		WorkOrderSearch                     func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
 		WorkOrderTypes                      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		WorkOrders                          func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
@@ -1104,6 +1105,7 @@ type QueryResolver interface {
 	Service(ctx context.Context, id string) (*ent.Service, error)
 	ServiceType(ctx context.Context, id string) (*ent.ServiceType, error)
 	ServiceTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ServiceTypeConnection, error)
+	WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error)
 	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) (*ent.WorkOrderConnection, error)
 	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
 	SearchForEntity(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchEntriesConnection, error)
@@ -4307,6 +4309,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Vertex(childComplexity, args["id"].(string)), true
 
+	case "Query.workOrder":
+		if e.complexity.Query.WorkOrder == nil {
+			break
+		}
+
+		args, err := ec.field_Query_workOrder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.WorkOrder(childComplexity, args["id"].(string)), true
+
 	case "Query.workOrderSearch":
 		if e.complexity.Query.WorkOrderSearch == nil {
 			break
@@ -7427,6 +7441,7 @@ type Query {
     before: Cursor
     last: Int
   ): ServiceTypeConnection
+  workOrder(id: ID!): WorkOrder @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   workOrders(
     after: Cursor
     first: Int
@@ -9629,6 +9644,20 @@ func (ec *executionContext) field_Query_workOrderTypes_args(ctx context.Context,
 		}
 	}
 	args["last"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_workOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -23013,6 +23042,47 @@ func (ec *executionContext) _Query_serviceTypes(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOServiceTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_workOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_workOrder_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().WorkOrder(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.WorkOrder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_workOrders(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -38142,6 +38212,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_serviceTypes(ctx, field)
+				return res
+			})
+		case "workOrder":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_workOrder(ctx, field)
 				return res
 			})
 		case "workOrders":

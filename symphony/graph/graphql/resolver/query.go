@@ -157,6 +157,15 @@ func (r queryResolver) EquipmentPortDefinitions(
 		Paginate(ctx, after, first, before, last)
 }
 
+func (r queryResolver) WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error) {
+	noder, err := r.Node(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	wo, _ := noder.(*ent.WorkOrder)
+	return wo, nil
+}
+
 func (r queryResolver) WorkOrders(
 	ctx context.Context,
 	after *ent.Cursor, first *int,

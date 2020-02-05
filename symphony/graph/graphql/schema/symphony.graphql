@@ -1865,6 +1865,7 @@ type Query {
     before: Cursor
     last: Int
   ): ServiceTypeConnection
+  workOrder(id: ID!): WorkOrder @deprecated(reason: "Use `node` instead")
   workOrders(
     after: Cursor
     first: Int
