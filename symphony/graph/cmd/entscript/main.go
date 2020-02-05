@@ -96,7 +96,7 @@ func main() {
 	}
 }
 
-func utilityFunc(ctx context.Context, r generated.ResolverRoot, logger log.Logger) error {
+func utilityFunc(_ context.Context, _ generated.ResolverRoot, _ log.Logger) error {
 	/**
 	Add your Go code in this function
 	You need to run this code from the same version production is at to avoid schema mismatches
@@ -107,12 +107,12 @@ func utilityFunc(ctx context.Context, r generated.ResolverRoot, logger log.Logge
 		client := ent.FromContext(ctx)
 		eqt, err := r.Mutation().AddEquipmentType(ctx, models.AddEquipmentTypeInput{Name: "My new type"})
 		if err != nil {
-			return errors.Wrap(err, "failed to create equipment type")
+			return fmt.Errorf("cannot create equipment type: %w", err)
 		}
 		logger.For(ctx).Info("equipment created", zap.String("ID", eqt.ID))
 		client.EquipmentType.UpdateOneID(eqt.ID).SetName("My new type 2").ExecX(ctx)
 		if err != nil {
-			return errors.Wrapf(err, "failed to update equipment type id=%q", eqt.ID)
+			return fmt.Errorf("cannot update equipment type: id=%q, %w", eqt.ID, err)
 		}
 	*/
 	return nil
