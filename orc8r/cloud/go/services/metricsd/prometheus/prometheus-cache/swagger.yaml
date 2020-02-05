@@ -1,5 +1,5 @@
 ---
-swagger: '2.0'
+swagger: '3.0'
 info:
   title: Prometheus-Cache Paths
   description: Prometheus-Cache REST APIs
