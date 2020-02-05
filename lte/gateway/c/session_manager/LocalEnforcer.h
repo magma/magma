@@ -93,6 +93,16 @@ class LocalEnforcer {
   UpdateSessionRequest collect_updates();
 
   /**
+   * Perform any rule installs/removals that need to be executed given a
+   * CreateSessionResponse.
+   */
+  bool handle_session_init_rule_updates(
+    const std::string& imsi,
+    SessionState& session_state,
+    const CreateSessionResponse& response,
+    std::unordered_set<uint32_t>& charging_credits_received);
+
+  /**
    * Initialize credit received from the cloud in the system. This adds all the
    * charging keys to the credit manager for tracking
    * @param credit_response - message from cloud containing initial credits
@@ -194,7 +204,7 @@ class LocalEnforcer {
   /**
    * Process the create session response to get rules to activate/deactivate
    * instantly and schedule rules with activation/deactivation time info
-   * to activate/deactivate later.
+   * to activate/deactivate later. No state change is made.
    */
   void process_create_session_response(
     const CreateSessionResponse& response,
@@ -223,7 +233,8 @@ class LocalEnforcer {
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by
-   * determining whether each one is dynamic or static.
+   * determining whether each one is dynamic or static. Modifies session state.
+   * TODO separate out logic that modifies state vs logic that does not.
    */
   void process_rules_to_remove(
     const std::string& imsi,
@@ -245,7 +256,8 @@ class LocalEnforcer {
 
   /**
    * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
-   * rules_to_activate and rules_to_deactivate.
+   * rules_to_activate and rules_to_deactivate. Modifies session state.
+   * TODO separate out logic that modifies state vs logic that does not.
    */
   void process_rules_to_install(
     const std::string& imsi,
@@ -254,20 +266,6 @@ class LocalEnforcer {
       static_rules_to_install,
     const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
       dynamic_rules_to_install,
-    RulesToProcess& rules_to_activate,
-    RulesToProcess& rules_to_deactivate);
-
-  /**
-   * Process the policy reauth request to get rules to activate/deactivate
-   * instantly and schedule rules with activation/deactivation time info
-   * to activate/deactivate later.
-   * Policy reauth request also specifies a flat list of rule IDs to remove.
-   * Rules need to be deactivated are categorized as either staic or dynamic
-   * rule and put in the vector.
-   */
-  void get_rules_from_policy_reauth_request(
-    const PolicyReAuthRequest& request,
-    const std::unique_ptr<SessionState>& session,
     RulesToProcess& rules_to_activate,
     RulesToProcess& rules_to_deactivate);
 
