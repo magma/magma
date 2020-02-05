@@ -294,9 +294,12 @@ func (clidq *CheckListItemDefinitionQuery) Select(field string, fields ...string
 
 func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*CheckListItemDefinition, error) {
 	var (
-		nodes   []*CheckListItemDefinition = []*CheckListItemDefinition{}
-		withFKs                            = clidq.withFKs
-		_spec                              = clidq.querySpec()
+		nodes       = []*CheckListItemDefinition{}
+		withFKs     = clidq.withFKs
+		_spec       = clidq.querySpec()
+		loadedTypes = [1]bool{
+			clidq.withWorkOrderType != nil,
+		}
 	)
 	if clidq.withWorkOrderType != nil {
 		withFKs = true
@@ -318,6 +321,7 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, clidq.driver, _spec); err != nil {
@@ -331,7 +335,7 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*CheckListItemDefinition)
 		for i := range nodes {
-			if fk := nodes[i].work_order_type_id; fk != nil {
+			if fk := nodes[i].work_order_type_check_list_definitions; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -344,7 +348,7 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_check_list_definitions" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.WorkOrderType = n

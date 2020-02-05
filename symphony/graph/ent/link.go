@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/link"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // Link is the model entity for the Link schema.
@@ -29,8 +30,8 @@ type Link struct {
 	FutureState string `json:"future_state,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LinkQuery when eager-loading is set.
-	Edges         LinkEdges `json:"edges"`
-	work_order_id *string
+	Edges           LinkEdges `json:"edges"`
+	link_work_order *string
 }
 
 // LinkEdges holds the relations/edges for other nodes in the graph.
@@ -43,6 +44,50 @@ type LinkEdges struct {
 	Properties []*Property
 	// Service holds the value of the service edge.
 	Service []*Service
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// PortsOrErr returns the Ports value or an error if the edge
+// was not loaded in eager-loading.
+func (e LinkEdges) PortsOrErr() ([]*EquipmentPort, error) {
+	if e.loadedTypes[0] {
+		return e.Ports, nil
+	}
+	return nil, &NotLoadedError{edge: "ports"}
+}
+
+// WorkOrderOrErr returns the WorkOrder value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LinkEdges) WorkOrderOrErr() (*WorkOrder, error) {
+	if e.loadedTypes[1] {
+		if e.WorkOrder == nil {
+			// The edge work_order was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workorder.Label}
+		}
+		return e.WorkOrder, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e LinkEdges) PropertiesOrErr() ([]*Property, error) {
+	if e.loadedTypes[2] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// ServiceOrErr returns the Service value or an error if the edge
+// was not loaded in eager-loading.
+func (e LinkEdges) ServiceOrErr() ([]*Service, error) {
+	if e.loadedTypes[3] {
+		return e.Service, nil
+	}
+	return nil, &NotLoadedError{edge: "service"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -58,7 +103,7 @@ func (*Link) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Link) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // work_order_id
+		&sql.NullInt64{}, // link_work_order
 	}
 }
 
@@ -92,10 +137,10 @@ func (l *Link) assignValues(values ...interface{}) error {
 	values = values[3:]
 	if len(values) == len(link.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field link_work_order", value)
 		} else if value.Valid {
-			l.work_order_id = new(string)
-			*l.work_order_id = strconv.FormatInt(value.Int64, 10)
+			l.link_work_order = new(string)
+			*l.link_work_order = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

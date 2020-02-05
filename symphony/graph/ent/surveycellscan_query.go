@@ -319,9 +319,13 @@ func (scsq *SurveyCellScanQuery) Select(field string, fields ...string) *SurveyC
 
 func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan, error) {
 	var (
-		nodes   []*SurveyCellScan = []*SurveyCellScan{}
-		withFKs                   = scsq.withFKs
-		_spec                     = scsq.querySpec()
+		nodes       = []*SurveyCellScan{}
+		withFKs     = scsq.withFKs
+		_spec       = scsq.querySpec()
+		loadedTypes = [2]bool{
+			scsq.withSurveyQuestion != nil,
+			scsq.withLocation != nil,
+		}
 	)
 	if scsq.withSurveyQuestion != nil || scsq.withLocation != nil {
 		withFKs = true
@@ -343,6 +347,7 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, scsq.driver, _spec); err != nil {
@@ -356,7 +361,7 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyCellScan)
 		for i := range nodes {
-			if fk := nodes[i].survey_question_id; fk != nil {
+			if fk := nodes[i].survey_cell_scan_survey_question; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -369,7 +374,7 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_cell_scan_survey_question" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.SurveyQuestion = n
@@ -381,7 +386,7 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyCellScan)
 		for i := range nodes {
-			if fk := nodes[i].location_id; fk != nil {
+			if fk := nodes[i].survey_cell_scan_location; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -394,7 +399,7 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_cell_scan_location" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Location = n

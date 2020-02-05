@@ -63,30 +63,6 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'upload_rural',
-    title: 'Bulk Upload: Rural',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'upload_xwf',
-    title: 'Bulk Upload: XWF',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'upload_ftth',
-    title: 'Bulk Upload: FTTH',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'python_api',
-    title: 'Download Puthon API',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
     id: 'lte_network_metrics',
     title: 'LTE Network Metrics',
     enabledByDefault: true,
@@ -171,6 +147,7 @@ const arrayConfigs = [
     id: 'services',
     title: 'Services',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'coverage_maps',
@@ -203,11 +180,6 @@ const arrayConfigs = [
     id: 'external_id',
     title: 'External ID',
     enabledByDefault: true,
-  },
-  {
-    id: 'service_endpoints',
-    title: 'Service Endpoints',
-    enabledByDefault: false,
   },
 ];
 

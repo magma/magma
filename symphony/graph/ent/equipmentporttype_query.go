@@ -344,8 +344,13 @@ func (eptq *EquipmentPortTypeQuery) Select(field string, fields ...string) *Equi
 
 func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPortType, error) {
 	var (
-		nodes []*EquipmentPortType = []*EquipmentPortType{}
-		_spec                      = eptq.querySpec()
+		nodes       = []*EquipmentPortType{}
+		_spec       = eptq.querySpec()
+		loadedTypes = [3]bool{
+			eptq.withPropertyTypes != nil,
+			eptq.withLinkPropertyTypes != nil,
+			eptq.withPortDefinitions != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &EquipmentPortType{config: eptq.config}
@@ -358,6 +363,7 @@ func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPor
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, eptq.driver, _spec); err != nil {
@@ -387,13 +393,13 @@ func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPor
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.equipment_port_type_id
+			fk := n.equipment_port_type_property_types
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "equipment_port_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_port_type_property_types" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
 		}
@@ -419,13 +425,13 @@ func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPor
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.link_equipment_port_type_id
+			fk := n.equipment_port_type_link_property_types
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "link_equipment_port_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_port_type_link_property_types" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "link_equipment_port_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_link_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.LinkPropertyTypes = append(node.Edges.LinkPropertyTypes, n)
 		}
@@ -451,13 +457,13 @@ func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPor
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.equipment_port_type_id
+			fk := n.equipment_port_definition_equipment_port_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "equipment_port_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_port_definition_equipment_port_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_definition_equipment_port_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PortDefinitions = append(node.Edges.PortDefinitions, n)
 		}

@@ -19,12 +19,14 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CreateProjectTypeMutation from './mutations/CreateProjectTypeMutation';
 import EditProjectTypeMutation from './mutations/EditProjectTypeMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import ProjectTypeWorkOrderTemplatesPanel from './ProjectTypeWorkOrderTemplatesPanel';
 import PropertyTypeTable from '../form/PropertyTypeTable';
 import React, {useCallback, useMemo, useState} from 'react';
 import update from 'immutability-helper';
 import {ConnectionHandler} from 'relay-runtime';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
 import {sortByIndex} from '../draggable/DraggableUtils';
@@ -185,81 +187,88 @@ const AddEditProjectTypeCard = (props: Props) => {
   }, [editingProjectType, onAdd, onEdit]);
 
   return (
-    <div className={classes.root}>
-      <Breadcrumbs
-        className={classes.title}
-        breadcrumbs={[
-          {
-            id: 'project_templates',
-            name: 'Project Templates',
-            onClick: onCancelClicked,
-          },
-          editingProjectType
-            ? {
-                id: editingProjectType.id,
-                name: editingProjectType.name,
-              }
-            : {
-                id: 'new_project_type',
-                name: 'New Project Template',
-              },
-        ]}
-        size="large"
-      />
-      <div className={classes.buttons}>
-        <Button
-          className={classes.cancelButton}
-          onClick={onCancelClicked}
-          skin="regular">
-          Cancel
-        </Button>
-        <Button onClick={onSave} disabled={!projectTypeInput.name}>
-          Save
-        </Button>
-      </div>
-      <ExpandingPanel title="Details">
-        <NameDescriptionSection
-          title="Project Name"
-          name={projectTypeInput.name}
-          description={projectTypeInput.description}
-          descriptionPlaceholder="Describe the project"
-          onNameChange={value =>
-            setProjectTypeInput(update(projectTypeInput, {name: {$set: value}}))
-          }
-          onDescriptionChange={value =>
-            setProjectTypeInput(
-              update(projectTypeInput, {description: {$set: value}}),
-            )
-          }
+    <FormValidationContextProvider>
+      <div className={classes.root}>
+        <Breadcrumbs
+          className={classes.title}
+          breadcrumbs={[
+            {
+              id: 'project_templates',
+              name: 'Project Templates',
+              onClick: onCancelClicked,
+            },
+            editingProjectType
+              ? {
+                  id: editingProjectType.id,
+                  name: editingProjectType.name,
+                }
+              : {
+                  id: 'new_project_type',
+                  name: 'New Project Template',
+                },
+          ]}
+          size="large"
         />
-      </ExpandingPanel>
-      <ProjectTypeWorkOrderTemplatesPanel
-        selectedWorkOrderTypeIds={(projectTypeInput.workOrders ?? []).map(
-          wo => wo.type,
-        )}
-        workOrderTypes={workOrderTypes}
-        onWorkOrderTypesSelected={ids => {
-          setProjectTypeInput(
-            update(projectTypeInput, {
-              workOrders: {$set: ids.map(id => ({type: id}))},
-            }),
-          );
-        }}
-      />
-      <ExpandingPanel title="Properties" className={classes.panel}>
-        <PropertyTypeTable
-          supportDelete={true}
-          propertyTypes={(projectTypeInput.properties ?? []: any)}
-          onPropertiesChanged={properties => {
+        <div className={classes.buttons}>
+          <Button
+            className={classes.cancelButton}
+            onClick={onCancelClicked}
+            skin="regular">
+            Cancel
+          </Button>
+          <FormAction>
+            <Button onClick={onSave} disabled={!projectTypeInput.name}>
+              Save
+            </Button>
+          </FormAction>
+        </div>
+        <ExpandingPanel title="Details">
+          <NameDescriptionSection
+            title="Project Name"
+            name={projectTypeInput.name}
+            description={projectTypeInput.description}
+            descriptionPlaceholder="Describe the project"
+            onNameChange={value =>
+              setProjectTypeInput(
+                update(projectTypeInput, {name: {$set: value}}),
+              )
+            }
+            onDescriptionChange={value =>
+              setProjectTypeInput(
+                update(projectTypeInput, {description: {$set: value}}),
+              )
+            }
+          />
+        </ExpandingPanel>
+        <ProjectTypeWorkOrderTemplatesPanel
+          selectedWorkOrderTypeIds={(projectTypeInput.workOrders ?? []).map(
+            wo => wo.type,
+          )}
+          workOrderTypes={workOrderTypes}
+          onWorkOrderTypesSelected={ids => {
             setProjectTypeInput(
               update(projectTypeInput, {
-                properties: {$set: properties},
+                workOrders: {$set: ids.map(id => ({type: id}))},
               }),
             );
           }}
         />
-      </ExpandingPanel>
-    </div>
+        <ExpandingPanel title="Properties" className={classes.panel}>
+          <PropertyTypeTable
+            supportDelete={true}
+            // eslint-disable-next-line flowtype/no-weak-types
+            propertyTypes={(projectTypeInput.properties ?? []: any)}
+            onPropertiesChanged={properties => {
+              setProjectTypeInput(
+                update(projectTypeInput, {
+                  properties: {$set: properties},
+                }),
+              );
+            }}
+          />
+        </ExpandingPanel>
+      </div>
+    </FormValidationContextProvider>
   );
 };
 

@@ -470,9 +470,19 @@ func (ptq *PropertyTypeQuery) Select(field string, fields ...string) *PropertyTy
 
 func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, error) {
 	var (
-		nodes   []*PropertyType = []*PropertyType{}
-		withFKs                 = ptq.withFKs
-		_spec                   = ptq.querySpec()
+		nodes       = []*PropertyType{}
+		withFKs     = ptq.withFKs
+		_spec       = ptq.querySpec()
+		loadedTypes = [8]bool{
+			ptq.withProperties != nil,
+			ptq.withLocationType != nil,
+			ptq.withEquipmentPortType != nil,
+			ptq.withLinkEquipmentPortType != nil,
+			ptq.withEquipmentType != nil,
+			ptq.withServiceType != nil,
+			ptq.withWorkOrderType != nil,
+			ptq.withProjectType != nil,
+		}
 	)
 	if ptq.withLocationType != nil || ptq.withEquipmentPortType != nil || ptq.withLinkEquipmentPortType != nil || ptq.withEquipmentType != nil || ptq.withServiceType != nil || ptq.withWorkOrderType != nil || ptq.withProjectType != nil {
 		withFKs = true
@@ -494,6 +504,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, ptq.driver, _spec); err != nil {
@@ -523,13 +534,13 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.property_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "property_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "property_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Properties = append(node.Edges.Properties, n)
 		}
@@ -539,7 +550,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*PropertyType)
 		for i := range nodes {
-			if fk := nodes[i].location_type_id; fk != nil {
+			if fk := nodes[i].location_type_property_types; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -552,7 +563,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_property_types" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.LocationType = n
@@ -564,7 +575,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*PropertyType)
 		for i := range nodes {
-			if fk := nodes[i].equipment_port_type_id; fk != nil {
+			if fk := nodes[i].equipment_port_type_property_types; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -577,7 +588,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_property_types" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.EquipmentPortType = n
@@ -589,7 +600,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*PropertyType)
 		for i := range nodes {
-			if fk := nodes[i].link_equipment_port_type_id; fk != nil {
+			if fk := nodes[i].equipment_port_type_link_property_types; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -602,7 +613,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "link_equipment_port_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_link_property_types" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.LinkEquipmentPortType = n
@@ -614,7 +625,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*PropertyType)
 		for i := range nodes {
-			if fk := nodes[i].equipment_type_id; fk != nil {
+			if fk := nodes[i].equipment_type_property_types; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -627,7 +638,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_property_types" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.EquipmentType = n
@@ -639,7 +650,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*PropertyType)
 		for i := range nodes {
-			if fk := nodes[i].service_type_id; fk != nil {
+			if fk := nodes[i].service_type_property_types; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -652,7 +663,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "service_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type_property_types" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.ServiceType = n
@@ -664,7 +675,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*PropertyType)
 		for i := range nodes {
-			if fk := nodes[i].work_order_type_id; fk != nil {
+			if fk := nodes[i].work_order_type_property_types; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -677,7 +688,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_property_types" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.WorkOrderType = n
@@ -689,7 +700,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*PropertyType)
 		for i := range nodes {
-			if fk := nodes[i].project_type_id; fk != nil {
+			if fk := nodes[i].project_type_properties; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -702,7 +713,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "project_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "project_type_properties" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.ProjectType = n

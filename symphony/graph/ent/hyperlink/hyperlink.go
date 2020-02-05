@@ -45,9 +45,9 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Hyperlink type.
 var ForeignKeys = []string{
-	"equipment_hyperlink_id",
-	"location_hyperlink_id",
-	"work_order_hyperlink_id",
+	"equipment_hyperlinks",
+	"location_hyperlinks",
+	"work_order_hyperlinks",
 }
 
 var (

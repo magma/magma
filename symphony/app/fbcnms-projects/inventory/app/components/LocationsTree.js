@@ -11,6 +11,7 @@ import type {Location} from '../common/Location';
 
 import ActionButton from '@fbcnms/ui/components/ActionButton';
 import ExpandButtonContext from './context/ExpandButtonContext';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import InventoryQueryRenderer from '../components/InventoryQueryRenderer';
 import InventoryTreeView from './InventoryTreeView';
 import React, {useContext} from 'react';
@@ -123,10 +124,12 @@ const LocationsTree = ({
                   )
               }
               getHoverRightContent={(location: ?Location) => (
-                <ActionButton
-                  action="add"
-                  onClick={() => onAddLocation(location)}
-                />
+                <FormAction>
+                  <ActionButton
+                    action="add"
+                    onClick={() => onAddLocation(location)}
+                  />
+                </FormAction>
               )}
               onClick={(locationId: string) => {
                 if (onSelect) {

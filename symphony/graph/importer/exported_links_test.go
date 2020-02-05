@@ -143,7 +143,7 @@ func TestGeneralLinksAddImport(t *testing.T) {
 	require.NoError(t, err)
 	// port1 test
 	require.Equal(t, row1[1:13], pr1.line)
-	parentLoc, err := importer.verifyOrCreateLocationHierarchy(ctx, *pr1)
+	parentLoc, err := importer.verifyOrCreateLocationHierarchy(ctx, *pr1, true)
 	require.NoError(t, err)
 	require.Equal(t, locationS, parentLoc.Name)
 	eqID, defID, err := importer.getPositionDetailsIfExists(ctx, parentLoc, *pr1, false)
@@ -163,7 +163,7 @@ func TestGeneralLinksAddImport(t *testing.T) {
 	require.Equal(t, *propertyInputs[0].IntValue, 44)
 	// port2 test
 	require.Equal(t, row1[13:25], pr2.line)
-	parentLoc, err = importer.verifyOrCreateLocationHierarchy(ctx, *pr2)
+	parentLoc, err = importer.verifyOrCreateLocationHierarchy(ctx, *pr2, true)
 	require.NoError(t, err)
 	require.Equal(t, locationS, parentLoc.Name)
 	eqID, defID, err = importer.getPositionDetailsIfExists(ctx, parentLoc, *pr2, false)

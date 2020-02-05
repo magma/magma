@@ -396,9 +396,16 @@ func (epq *EquipmentPortQuery) Select(field string, fields ...string) *Equipment
 
 func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, error) {
 	var (
-		nodes   []*EquipmentPort = []*EquipmentPort{}
-		withFKs                  = epq.withFKs
-		_spec                    = epq.querySpec()
+		nodes       = []*EquipmentPort{}
+		withFKs     = epq.withFKs
+		_spec       = epq.querySpec()
+		loadedTypes = [5]bool{
+			epq.withDefinition != nil,
+			epq.withParent != nil,
+			epq.withLink != nil,
+			epq.withProperties != nil,
+			epq.withEndpoints != nil,
+		}
 	)
 	if epq.withDefinition != nil || epq.withParent != nil || epq.withLink != nil {
 		withFKs = true
@@ -420,6 +427,7 @@ func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, er
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, epq.driver, _spec); err != nil {
@@ -433,7 +441,7 @@ func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, er
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*EquipmentPort)
 		for i := range nodes {
-			if fk := nodes[i].definition_id; fk != nil {
+			if fk := nodes[i].equipment_port_definition; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -446,7 +454,7 @@ func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, er
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "definition_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_definition" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Definition = n
@@ -458,7 +466,7 @@ func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, er
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*EquipmentPort)
 		for i := range nodes {
-			if fk := nodes[i].parent_id; fk != nil {
+			if fk := nodes[i].equipment_ports; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -471,7 +479,7 @@ func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, er
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_ports" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Parent = n
@@ -483,7 +491,7 @@ func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, er
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*EquipmentPort)
 		for i := range nodes {
-			if fk := nodes[i].link_id; fk != nil {
+			if fk := nodes[i].equipment_port_link; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -496,7 +504,7 @@ func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, er
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "link_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_link" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Link = n
@@ -524,13 +532,13 @@ func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, er
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.equipment_port_id
+			fk := n.equipment_port_properties
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "equipment_port_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_port_properties" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_properties" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Properties = append(node.Edges.Properties, n)
 		}
@@ -556,13 +564,13 @@ func (epq *EquipmentPortQuery) sqlAll(ctx context.Context) ([]*EquipmentPort, er
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.port_id
+			fk := n.service_endpoint_port
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "port_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "service_endpoint_port" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "port_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoint_port" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Endpoints = append(node.Edges.Endpoints, n)
 		}

@@ -83,7 +83,7 @@ class LocationDepsQuery:
         location: Optional[Node] = None
 
     data: Optional[LocationDepsQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

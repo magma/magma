@@ -371,9 +371,15 @@ func (lq *LinkQuery) Select(field string, fields ...string) *LinkSelect {
 
 func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 	var (
-		nodes   []*Link = []*Link{}
-		withFKs         = lq.withFKs
-		_spec           = lq.querySpec()
+		nodes       = []*Link{}
+		withFKs     = lq.withFKs
+		_spec       = lq.querySpec()
+		loadedTypes = [4]bool{
+			lq.withPorts != nil,
+			lq.withWorkOrder != nil,
+			lq.withProperties != nil,
+			lq.withService != nil,
+		}
 	)
 	if lq.withWorkOrder != nil {
 		withFKs = true
@@ -395,6 +401,7 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, lq.driver, _spec); err != nil {
@@ -424,13 +431,13 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.link_id
+			fk := n.equipment_port_link
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "link_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_port_link" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "link_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_link" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Ports = append(node.Edges.Ports, n)
 		}
@@ -440,7 +447,7 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*Link)
 		for i := range nodes {
-			if fk := nodes[i].work_order_id; fk != nil {
+			if fk := nodes[i].link_work_order; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -453,7 +460,7 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "link_work_order" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.WorkOrder = n
@@ -481,13 +488,13 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.link_id
+			fk := n.link_properties
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "link_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "link_properties" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "link_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "link_properties" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Properties = append(node.Edges.Properties, n)
 		}

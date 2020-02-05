@@ -3916,229 +3916,343 @@ func (c *Client) Noder(ctx context.Context, id string) (Noder, error) {
 func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error) {
 	switch tbl {
 	case actionsrule.Table:
-		n, err := c.ActionsRule.Get(ctx, id)
+		n, err := c.ActionsRule.Query().
+			Where(actionsrule.ID(id)).
+			CollectFields(ctx, "ActionsRule").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case checklistitem.Table:
-		n, err := c.CheckListItem.Get(ctx, id)
+		n, err := c.CheckListItem.Query().
+			Where(checklistitem.ID(id)).
+			CollectFields(ctx, "CheckListItem").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case checklistitemdefinition.Table:
-		n, err := c.CheckListItemDefinition.Get(ctx, id)
+		n, err := c.CheckListItemDefinition.Query().
+			Where(checklistitemdefinition.ID(id)).
+			CollectFields(ctx, "CheckListItemDefinition").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case comment.Table:
-		n, err := c.Comment.Get(ctx, id)
+		n, err := c.Comment.Query().
+			Where(comment.ID(id)).
+			CollectFields(ctx, "Comment").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case customer.Table:
-		n, err := c.Customer.Get(ctx, id)
+		n, err := c.Customer.Query().
+			Where(customer.ID(id)).
+			CollectFields(ctx, "Customer").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case equipment.Table:
-		n, err := c.Equipment.Get(ctx, id)
+		n, err := c.Equipment.Query().
+			Where(equipment.ID(id)).
+			CollectFields(ctx, "Equipment").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case equipmentcategory.Table:
-		n, err := c.EquipmentCategory.Get(ctx, id)
+		n, err := c.EquipmentCategory.Query().
+			Where(equipmentcategory.ID(id)).
+			CollectFields(ctx, "EquipmentCategory").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case equipmentport.Table:
-		n, err := c.EquipmentPort.Get(ctx, id)
+		n, err := c.EquipmentPort.Query().
+			Where(equipmentport.ID(id)).
+			CollectFields(ctx, "EquipmentPort").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case equipmentportdefinition.Table:
-		n, err := c.EquipmentPortDefinition.Get(ctx, id)
+		n, err := c.EquipmentPortDefinition.Query().
+			Where(equipmentportdefinition.ID(id)).
+			CollectFields(ctx, "EquipmentPortDefinition").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case equipmentporttype.Table:
-		n, err := c.EquipmentPortType.Get(ctx, id)
+		n, err := c.EquipmentPortType.Query().
+			Where(equipmentporttype.ID(id)).
+			CollectFields(ctx, "EquipmentPortType").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case equipmentposition.Table:
-		n, err := c.EquipmentPosition.Get(ctx, id)
+		n, err := c.EquipmentPosition.Query().
+			Where(equipmentposition.ID(id)).
+			CollectFields(ctx, "EquipmentPosition").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case equipmentpositiondefinition.Table:
-		n, err := c.EquipmentPositionDefinition.Get(ctx, id)
+		n, err := c.EquipmentPositionDefinition.Query().
+			Where(equipmentpositiondefinition.ID(id)).
+			CollectFields(ctx, "EquipmentPositionDefinition").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case equipmenttype.Table:
-		n, err := c.EquipmentType.Get(ctx, id)
+		n, err := c.EquipmentType.Query().
+			Where(equipmenttype.ID(id)).
+			CollectFields(ctx, "EquipmentType").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case file.Table:
-		n, err := c.File.Get(ctx, id)
+		n, err := c.File.Query().
+			Where(file.ID(id)).
+			CollectFields(ctx, "File").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case floorplan.Table:
-		n, err := c.FloorPlan.Get(ctx, id)
+		n, err := c.FloorPlan.Query().
+			Where(floorplan.ID(id)).
+			CollectFields(ctx, "FloorPlan").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case floorplanreferencepoint.Table:
-		n, err := c.FloorPlanReferencePoint.Get(ctx, id)
+		n, err := c.FloorPlanReferencePoint.Query().
+			Where(floorplanreferencepoint.ID(id)).
+			CollectFields(ctx, "FloorPlanReferencePoint").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case floorplanscale.Table:
-		n, err := c.FloorPlanScale.Get(ctx, id)
+		n, err := c.FloorPlanScale.Query().
+			Where(floorplanscale.ID(id)).
+			CollectFields(ctx, "FloorPlanScale").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case hyperlink.Table:
-		n, err := c.Hyperlink.Get(ctx, id)
+		n, err := c.Hyperlink.Query().
+			Where(hyperlink.ID(id)).
+			CollectFields(ctx, "Hyperlink").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case link.Table:
-		n, err := c.Link.Get(ctx, id)
+		n, err := c.Link.Query().
+			Where(link.ID(id)).
+			CollectFields(ctx, "Link").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case location.Table:
-		n, err := c.Location.Get(ctx, id)
+		n, err := c.Location.Query().
+			Where(location.ID(id)).
+			CollectFields(ctx, "Location").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case locationtype.Table:
-		n, err := c.LocationType.Get(ctx, id)
+		n, err := c.LocationType.Query().
+			Where(locationtype.ID(id)).
+			CollectFields(ctx, "LocationType").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case project.Table:
-		n, err := c.Project.Get(ctx, id)
+		n, err := c.Project.Query().
+			Where(project.ID(id)).
+			CollectFields(ctx, "Project").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case projecttype.Table:
-		n, err := c.ProjectType.Get(ctx, id)
+		n, err := c.ProjectType.Query().
+			Where(projecttype.ID(id)).
+			CollectFields(ctx, "ProjectType").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case property.Table:
-		n, err := c.Property.Get(ctx, id)
+		n, err := c.Property.Query().
+			Where(property.ID(id)).
+			CollectFields(ctx, "Property").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case propertytype.Table:
-		n, err := c.PropertyType.Get(ctx, id)
+		n, err := c.PropertyType.Query().
+			Where(propertytype.ID(id)).
+			CollectFields(ctx, "PropertyType").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case service.Table:
-		n, err := c.Service.Get(ctx, id)
+		n, err := c.Service.Query().
+			Where(service.ID(id)).
+			CollectFields(ctx, "Service").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case serviceendpoint.Table:
-		n, err := c.ServiceEndpoint.Get(ctx, id)
+		n, err := c.ServiceEndpoint.Query().
+			Where(serviceendpoint.ID(id)).
+			CollectFields(ctx, "ServiceEndpoint").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case servicetype.Table:
-		n, err := c.ServiceType.Get(ctx, id)
+		n, err := c.ServiceType.Query().
+			Where(servicetype.ID(id)).
+			CollectFields(ctx, "ServiceType").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case survey.Table:
-		n, err := c.Survey.Get(ctx, id)
+		n, err := c.Survey.Query().
+			Where(survey.ID(id)).
+			CollectFields(ctx, "Survey").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case surveycellscan.Table:
-		n, err := c.SurveyCellScan.Get(ctx, id)
+		n, err := c.SurveyCellScan.Query().
+			Where(surveycellscan.ID(id)).
+			CollectFields(ctx, "SurveyCellScan").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case surveyquestion.Table:
-		n, err := c.SurveyQuestion.Get(ctx, id)
+		n, err := c.SurveyQuestion.Query().
+			Where(surveyquestion.ID(id)).
+			CollectFields(ctx, "SurveyQuestion").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case surveytemplatecategory.Table:
-		n, err := c.SurveyTemplateCategory.Get(ctx, id)
+		n, err := c.SurveyTemplateCategory.Query().
+			Where(surveytemplatecategory.ID(id)).
+			CollectFields(ctx, "SurveyTemplateCategory").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case surveytemplatequestion.Table:
-		n, err := c.SurveyTemplateQuestion.Get(ctx, id)
+		n, err := c.SurveyTemplateQuestion.Query().
+			Where(surveytemplatequestion.ID(id)).
+			CollectFields(ctx, "SurveyTemplateQuestion").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case surveywifiscan.Table:
-		n, err := c.SurveyWiFiScan.Get(ctx, id)
+		n, err := c.SurveyWiFiScan.Query().
+			Where(surveywifiscan.ID(id)).
+			CollectFields(ctx, "SurveyWiFiScan").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case technician.Table:
-		n, err := c.Technician.Get(ctx, id)
+		n, err := c.Technician.Query().
+			Where(technician.ID(id)).
+			CollectFields(ctx, "Technician").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case workorder.Table:
-		n, err := c.WorkOrder.Get(ctx, id)
+		n, err := c.WorkOrder.Query().
+			Where(workorder.ID(id)).
+			CollectFields(ctx, "WorkOrder").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case workorderdefinition.Table:
-		n, err := c.WorkOrderDefinition.Get(ctx, id)
+		n, err := c.WorkOrderDefinition.Query().
+			Where(workorderdefinition.ID(id)).
+			CollectFields(ctx, "WorkOrderDefinition").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case workordertype.Table:
-		n, err := c.WorkOrderType.Get(ctx, id)
+		n, err := c.WorkOrderType.Query().
+			Where(workordertype.ID(id)).
+			CollectFields(ctx, "WorkOrderType").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}

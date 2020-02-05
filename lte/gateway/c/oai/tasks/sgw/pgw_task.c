@@ -59,6 +59,12 @@ static void *pgw_intertask_interface(void *args_p)
 
     itti_receive_msg(TASK_PGW_APP, &received_message_p);
 
+    imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+    OAILOG_DEBUG(
+      LOG_PGW_APP,
+      "Received message with imsi: " IMSI_64_FMT,
+      imsi64);
+
     if (ITTI_MSG_ID(received_message_p) != TERMINATE_MESSAGE) {
       spgw_state_p = get_spgw_state(false);
       AssertFatal(
@@ -69,18 +75,21 @@ static void *pgw_intertask_interface(void *args_p)
       case PGW_NW_INITIATED_ACTIVATE_BEARER_REQ: {
         pgw_handle_nw_initiated_bearer_actv_req(
           spgw_state_p,
-          &received_message_p->ittiMsg.pgw_nw_init_actv_bearer_request);
+          &received_message_p->ittiMsg.pgw_nw_init_actv_bearer_request,
+          imsi64);
       } break;
 
       case PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
         pgw_handle_nw_initiated_bearer_deactv_req(
           spgw_state_p,
-          &received_message_p->ittiMsg.pgw_nw_init_deactv_bearer_request);
+          &received_message_p->ittiMsg.pgw_nw_init_deactv_bearer_request,
+          imsi64);
       } break;
 
       case S5_CREATE_BEARER_REQUEST: {
         pgw_handle_create_bearer_request(
-          spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_request);
+          spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_request,
+          imsi64);
       } break;
 
       case S5_NW_INITIATED_ACTIVATE_BEARER_RESP: {

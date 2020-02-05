@@ -14,10 +14,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/client"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 
 	"github.com/labstack/echo"
-	"github.com/prometheus/alertmanager/config"
 )
 
 const (
@@ -30,6 +30,7 @@ const (
 	v1receiverPath     = "/receiver"
 	v1receiverNamePath = v1receiverPath + "/:" + receiverNameParam
 	v1routePath        = "/route"
+	v1GlobalPath       = "/global"
 
 	receiverNameParam = "receiver_name"
 	tenantIDParam     = "tenant_id"
@@ -39,7 +40,7 @@ func RegisterBaseHandlers(e *echo.Echo) {
 	e.GET("/", statusHandler)
 }
 
-func RegisterV0Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
+func RegisterV0Handlers(e *echo.Echo, client client.AlertmanagerClient) {
 	v0 := e.Group(v0rootPath)
 	v0.Use(tenancyMiddlewareProvider(client, pathTenantProvider))
 
@@ -52,8 +53,13 @@ func RegisterV0Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
 	v0.GET(v0RoutePath, GetGetRouteHandler(client))
 }
 
-func RegisterV1Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
+func RegisterV1Handlers(e *echo.Echo, client client.AlertmanagerClient) {
 	v1 := e.Group(v1rootPath)
+
+	// these don't require tenancy so register before middleware
+	v1.POST(v1GlobalPath, GetUpdateGlobalConfigHandler(client))
+	v1.GET(v1GlobalPath, GetGetGlobalConfigHandler(client))
+
 	v1.Use(tenancyMiddlewareProvider(client, pathTenantProvider))
 
 	v1.POST(v1receiverPath, GetReceiverPostHandler(client))
@@ -65,6 +71,7 @@ func RegisterV1Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
 
 	v1.POST(v1routePath, GetUpdateRouteHandler(client))
 	v1.GET(v1routePath, GetGetRouteHandler(client))
+
 }
 
 func statusHandler(c echo.Context) error {
@@ -87,7 +94,7 @@ var receiverNamePathProvider = func(c echo.Context) string {
 }
 
 // Returns middleware func to check for tenant_id dependent on tenancy of the client
-func tenancyMiddlewareProvider(client receivers.AlertmanagerClient, getTenantID paramProvider) echo.MiddlewareFunc {
+func tenancyMiddlewareProvider(client client.AlertmanagerClient, getTenantID paramProvider) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			providedTenantID := getTenantID(c)
@@ -102,7 +109,7 @@ func tenancyMiddlewareProvider(client receivers.AlertmanagerClient, getTenantID 
 
 // GetReceiverPostHandler returns a handler function that creates a new
 // receiver and then reloads alertmanager
-func GetReceiverPostHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
+func GetReceiverPostHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		receiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
@@ -125,7 +132,7 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient) func(c echo.Con
 
 // GetGetReceiversHandler returns a handler function to retrieve receivers for
 // a filePrefix
-func GetGetReceiversHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
+func GetGetReceiversHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenantID := c.Get(tenantIDParam).(string)
 		receiverName := c.Param(receiverNameParam)
@@ -148,7 +155,7 @@ func GetGetReceiversHandler(client receivers.AlertmanagerClient) func(c echo.Con
 }
 
 // GetUpdateReceiverHandler returns a handler function to update a receivers
-func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, getReceiverName paramProvider) func(c echo.Context) error {
+func GetUpdateReceiverHandler(client client.AlertmanagerClient, getReceiverName paramProvider) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenantID := c.Get(tenantIDParam).(string)
 		receiverName := getReceiverName(c)
@@ -171,7 +178,7 @@ func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, getReceiverNa
 	}
 }
 
-func GetDeleteReceiverHandler(client receivers.AlertmanagerClient, getReceiverName paramProvider) func(c echo.Context) error {
+func GetDeleteReceiverHandler(client client.AlertmanagerClient, getReceiverName paramProvider) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenantID := c.Get(tenantIDParam).(string)
 
@@ -188,7 +195,7 @@ func GetDeleteReceiverHandler(client receivers.AlertmanagerClient, getReceiverNa
 	}
 }
 
-func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
+func GetGetRouteHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenantID := c.Get(tenantIDParam).(string)
 
@@ -196,11 +203,11 @@ func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		return c.JSON(http.StatusOK, receivers.NewRouteJSONWrapper(*route))
+		return c.JSON(http.StatusOK, *route)
 	}
 }
 
-func GetUpdateRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
+func GetUpdateRouteHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		tenantID := c.Get(tenantIDParam).(string)
 
@@ -221,15 +228,57 @@ func GetUpdateRouteHandler(client receivers.AlertmanagerClient) func(c echo.Cont
 	}
 }
 
-func decodeReceiverPostRequest(c echo.Context) (receivers.Receiver, error) {
+func GetUpdateGlobalConfigHandler(client client.AlertmanagerClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		newGlobalConfig, err := decodeGlobalConfigPostRequest(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		err = client.SetGlobalConfig(newGlobalConfig)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		err = client.ReloadAlertmanager()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+func GetGetGlobalConfigHandler(client client.AlertmanagerClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		globalConf, err := client.GetGlobalConfig()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, globalConf)
+	}
+}
+
+func decodeGlobalConfigPostRequest(c echo.Context) (config.GlobalConfig, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return receivers.Receiver{}, fmt.Errorf("error reading request body: %v", err)
+		return config.GlobalConfig{}, fmt.Errorf("error reading request body: %v", err)
 	}
-	receiver := receivers.Receiver{}
+	globalConfig := config.GlobalConfig{}
+	err = json.Unmarshal(body, &globalConfig)
+	if err != nil {
+		return config.GlobalConfig{}, fmt.Errorf("error unmarshalling payload: %v", err)
+	}
+	return globalConfig, nil
+}
+
+func decodeReceiverPostRequest(c echo.Context) (config.Receiver, error) {
+	body, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return config.Receiver{}, fmt.Errorf("error reading request body: %v", err)
+	}
+	receiver := config.Receiver{}
 	err = json.Unmarshal(body, &receiver)
 	if err != nil {
-		return receivers.Receiver{}, fmt.Errorf("error unmarshalling payload: %v", err)
+		return config.Receiver{}, fmt.Errorf("error unmarshalling payload: %v", err)
 	}
 	return receiver, nil
 }
@@ -242,17 +291,7 @@ func decodeRoutePostRequest(c echo.Context) (config.Route, error) {
 	route := config.Route{}
 	err = json.Unmarshal(body, &route)
 	if err != nil {
-		// Try decoding into a JSON-compatible struct
-		wrappedRoute := receivers.RouteJSONWrapper{}
-		err = json.Unmarshal(body, &wrappedRoute)
-		if err != nil {
-			return config.Route{}, fmt.Errorf("error unmarshalling route: %v", err)
-		}
-		unwrappedRoute, err := wrappedRoute.ToPrometheusConfig()
-		if err != nil {
-			return config.Route{}, fmt.Errorf("error handling route: %v", err)
-		}
-		return unwrappedRoute, nil
+		return config.Route{}, fmt.Errorf("error unmarshalling route: %v", err)
 	}
 	return route, nil
 }

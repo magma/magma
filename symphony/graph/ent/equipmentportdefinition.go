@@ -14,6 +14,8 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
+	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 )
 
 // EquipmentPortDefinition is the model entity for the EquipmentPortDefinition schema.
@@ -35,19 +37,59 @@ type EquipmentPortDefinition struct {
 	VisibilityLabel string `json:"visibility_label,omitempty" gqlgen:"visibleLabel"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPortDefinitionQuery when eager-loading is set.
-	Edges                  EquipmentPortDefinitionEdges `json:"edges"`
-	equipment_port_type_id *string
-	equipment_type_id      *string
+	Edges                                         EquipmentPortDefinitionEdges `json:"edges"`
+	equipment_port_definition_equipment_port_type *string
+	equipment_type_port_definitions               *string
 }
 
 // EquipmentPortDefinitionEdges holds the relations/edges for other nodes in the graph.
 type EquipmentPortDefinitionEdges struct {
 	// EquipmentPortType holds the value of the equipment_port_type edge.
-	EquipmentPortType *EquipmentPortType
+	EquipmentPortType *EquipmentPortType `gqlgen:"portType"`
 	// Ports holds the value of the ports edge.
 	Ports []*EquipmentPort
 	// EquipmentType holds the value of the equipment_type edge.
 	EquipmentType *EquipmentType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// EquipmentPortTypeOrErr returns the EquipmentPortType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortDefinitionEdges) EquipmentPortTypeOrErr() (*EquipmentPortType, error) {
+	if e.loadedTypes[0] {
+		if e.EquipmentPortType == nil {
+			// The edge equipment_port_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentporttype.Label}
+		}
+		return e.EquipmentPortType, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment_port_type"}
+}
+
+// PortsOrErr returns the Ports value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortDefinitionEdges) PortsOrErr() ([]*EquipmentPort, error) {
+	if e.loadedTypes[1] {
+		return e.Ports, nil
+	}
+	return nil, &NotLoadedError{edge: "ports"}
+}
+
+// EquipmentTypeOrErr returns the EquipmentType value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortDefinitionEdges) EquipmentTypeOrErr() (*EquipmentType, error) {
+	if e.loadedTypes[2] {
+		if e.EquipmentType == nil {
+			// The edge equipment_type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmenttype.Label}
+		}
+		return e.EquipmentType, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment_type"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -66,8 +108,8 @@ func (*EquipmentPortDefinition) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*EquipmentPortDefinition) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // equipment_port_type_id
-		&sql.NullInt64{}, // equipment_type_id
+		&sql.NullInt64{}, // equipment_port_definition_equipment_port_type
+		&sql.NullInt64{}, // equipment_type_port_definitions
 	}
 }
 
@@ -116,16 +158,16 @@ func (epd *EquipmentPortDefinition) assignValues(values ...interface{}) error {
 	values = values[6:]
 	if len(values) == len(equipmentportdefinition.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_definition_equipment_port_type", value)
 		} else if value.Valid {
-			epd.equipment_port_type_id = new(string)
-			*epd.equipment_port_type_id = strconv.FormatInt(value.Int64, 10)
+			epd.equipment_port_definition_equipment_port_type = new(string)
+			*epd.equipment_port_definition_equipment_port_type = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type_port_definitions", value)
 		} else if value.Valid {
-			epd.equipment_type_id = new(string)
-			*epd.equipment_type_id = strconv.FormatInt(value.Int64, 10)
+			epd.equipment_type_port_definitions = new(string)
+			*epd.equipment_type_port_definitions = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

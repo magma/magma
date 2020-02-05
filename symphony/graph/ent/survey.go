@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 )
 
@@ -35,9 +37,9 @@ type Survey struct {
 	CompletionTimestamp time.Time `json:"completion_timestamp,omitempty" gqlgen:"completionTimestamp"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuery when eager-loading is set.
-	Edges                 SurveyEdges `json:"edges"`
-	location_id           *string
-	survey_source_file_id *string
+	Edges              SurveyEdges `json:"edges"`
+	survey_location    *string
+	survey_source_file *string
 }
 
 // SurveyEdges holds the relations/edges for other nodes in the graph.
@@ -48,6 +50,46 @@ type SurveyEdges struct {
 	SourceFile *File
 	// Questions holds the value of the questions edge.
 	Questions []*SurveyQuestion
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[0] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// SourceFileOrErr returns the SourceFile value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyEdges) SourceFileOrErr() (*File, error) {
+	if e.loadedTypes[1] {
+		if e.SourceFile == nil {
+			// The edge source_file was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: file.Label}
+		}
+		return e.SourceFile, nil
+	}
+	return nil, &NotLoadedError{edge: "source_file"}
+}
+
+// QuestionsOrErr returns the Questions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyEdges) QuestionsOrErr() ([]*SurveyQuestion, error) {
+	if e.loadedTypes[2] {
+		return e.Questions, nil
+	}
+	return nil, &NotLoadedError{edge: "questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -66,8 +108,8 @@ func (*Survey) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Survey) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // location_id
-		&sql.NullInt64{}, // survey_source_file_id
+		&sql.NullInt64{}, // survey_location
+		&sql.NullInt64{}, // survey_source_file
 	}
 }
 
@@ -116,16 +158,16 @@ func (s *Survey) assignValues(values ...interface{}) error {
 	values = values[6:]
 	if len(values) == len(survey.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field survey_location", value)
 		} else if value.Valid {
-			s.location_id = new(string)
-			*s.location_id = strconv.FormatInt(value.Int64, 10)
+			s.survey_location = new(string)
+			*s.survey_location = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field survey_source_file_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field survey_source_file", value)
 		} else if value.Valid {
-			s.survey_source_file_id = new(string)
-			*s.survey_source_file_id = strconv.FormatInt(value.Int64, 10)
+			s.survey_source_file = new(string)
+			*s.survey_source_file = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

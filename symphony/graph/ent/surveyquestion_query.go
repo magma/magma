@@ -371,9 +371,15 @@ func (sqq *SurveyQuestionQuery) Select(field string, fields ...string) *SurveyQu
 
 func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, error) {
 	var (
-		nodes   []*SurveyQuestion = []*SurveyQuestion{}
-		withFKs                   = sqq.withFKs
-		_spec                     = sqq.querySpec()
+		nodes       = []*SurveyQuestion{}
+		withFKs     = sqq.withFKs
+		_spec       = sqq.querySpec()
+		loadedTypes = [4]bool{
+			sqq.withSurvey != nil,
+			sqq.withWifiScan != nil,
+			sqq.withCellScan != nil,
+			sqq.withPhotoData != nil,
+		}
 	)
 	if sqq.withSurvey != nil {
 		withFKs = true
@@ -395,6 +401,7 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, sqq.driver, _spec); err != nil {
@@ -408,7 +415,7 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyQuestion)
 		for i := range nodes {
-			if fk := nodes[i].survey_id; fk != nil {
+			if fk := nodes[i].survey_question_survey; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -421,7 +428,7 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_survey" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Survey = n
@@ -449,13 +456,13 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.survey_question_id
+			fk := n.survey_wi_fi_scan_survey_question
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "survey_question_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_wi_fi_scan_survey_question" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_wi_fi_scan_survey_question" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.WifiScan = append(node.Edges.WifiScan, n)
 		}
@@ -481,13 +488,13 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.survey_question_id
+			fk := n.survey_cell_scan_survey_question
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "survey_question_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_cell_scan_survey_question" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_cell_scan_survey_question" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CellScan = append(node.Edges.CellScan, n)
 		}
@@ -513,13 +520,13 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.survey_question_photo_datum_id
+			fk := n.survey_question_photo_data
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "survey_question_photo_datum_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_question_photo_data" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_photo_datum_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_photo_data" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PhotoData = append(node.Edges.PhotoData, n)
 		}

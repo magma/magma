@@ -9,6 +9,7 @@
  */
 
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from './FormAction';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import React, {useContext} from 'react';
 import classNames from 'classnames';
@@ -50,13 +51,15 @@ const FormSaveCancelPanel = (props: Props) => {
         skin="regular">
         {props.captions?.cancelButton || 'Cancel'}
       </Button>
-      <Button
-        className={props.classes?.saveButton}
-        onClick={props.onSave}
-        tooltip={validationContext.error.message}
-        disabled={props.isDisabled || validationContext.error.detected}>
-        {props.captions?.saveButton || 'Save'}
-      </Button>
+      <FormAction>
+        <Button
+          className={props.classes?.saveButton}
+          onClick={props.onSave}
+          tooltip={validationContext.error.message}
+          disabled={props.isDisabled || validationContext.error.detected}>
+          {props.captions?.saveButton || 'Save'}
+        </Button>
+      </FormAction>
     </div>
   );
 };

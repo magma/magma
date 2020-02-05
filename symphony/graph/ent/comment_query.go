@@ -268,9 +268,9 @@ func (cq *CommentQuery) Select(field string, fields ...string) *CommentSelect {
 
 func (cq *CommentQuery) sqlAll(ctx context.Context) ([]*Comment, error) {
 	var (
-		nodes   []*Comment = []*Comment{}
-		withFKs            = cq.withFKs
-		_spec              = cq.querySpec()
+		nodes   = []*Comment{}
+		withFKs = cq.withFKs
+		_spec   = cq.querySpec()
 	)
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, comment.ForeignKeys...)

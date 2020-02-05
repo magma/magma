@@ -74,7 +74,7 @@ class LocationTypeLocationsQuery:
         locationType: Optional[Node] = None
 
     data: Optional[LocationTypeLocationsQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

@@ -422,7 +422,7 @@ static const string EXPECTED_OUTPUT =
     "  }"
     "}";
 
-TEST_F(StructuredUbntDeviceTest, DISABLED_getOperationalDatastore) {
+TEST_F(StructuredUbntDeviceTest, getOperationalDatastore) {
   devmand::Application app;
   // app.init(); <-- without this app is not properly initialized
 

@@ -20,7 +20,8 @@ SessionState::SessionState(
   const std::string& session_id,
   const std::string& core_session_id,
   const SessionState::Config& cfg,
-  StaticRuleStore& rule_store):
+  StaticRuleStore& rule_store,
+  const magma::lte::TgppContext& tgpp_context):
   imsi_(imsi),
   session_id_(session_id),
   core_session_id_(core_session_id),
@@ -30,7 +31,8 @@ SessionState::SessionState(
   curr_state_(SESSION_ACTIVE),
   session_rules_(rule_store),
   charging_pool_(imsi),
-  monitor_pool_(imsi)
+  monitor_pool_(imsi),
+  tgpp_context_(tgpp_context)
 {
 }
 
@@ -101,6 +103,7 @@ void SessionState::get_updates_from_charging_pool(
     new_req->set_user_location(config_.user_location);
     new_req->set_hardware_addr(config_.hardware_addr);
     new_req->set_rat_type(config_.rat_type);
+    fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
     new_req->mutable_usage()->CopyFrom(update);
     request_number_++;
   }
@@ -122,6 +125,7 @@ void SessionState::get_updates_from_monitor_pool(
     new_req->set_ue_ipv4(config_.ue_ipv4);
     new_req->set_hardware_addr(config_.hardware_addr);
     new_req->set_rat_type(config_.rat_type);
+    fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
     new_req->mutable_update()->CopyFrom(update);
     request_number_++;
   }
@@ -177,6 +181,7 @@ void SessionState::complete_termination()
   termination.set_user_location(config_.user_location);
   termination.set_hardware_addr(config_.hardware_addr);
   termination.set_rat_type(config_.rat_type);
+  fill_protos_tgpp_context(termination.mutable_tgpp_ctx());
   monitor_pool_.get_termination_updates(&termination);
   charging_pool_.get_termination_updates(&termination);
   try {
@@ -291,6 +296,16 @@ uint32_t SessionState::get_bearer_id()
 bool SessionState::qos_enabled()
 {
   return config_.qos_info.enabled;
+}
+
+void SessionState::set_tgpp_context(const magma::lte::TgppContext& tgpp_context)
+{
+  tgpp_context_ = tgpp_context;
+}
+
+void SessionState::fill_protos_tgpp_context(
+  magma::lte::TgppContext* tgpp_context) {
+  *tgpp_context = tgpp_context_;
 }
 
 } // namespace magma

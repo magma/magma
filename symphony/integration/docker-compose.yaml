@@ -152,7 +152,8 @@ services:
     restart: on-failure
 
   mysql:
-    image: mysql:5.7
+    image: mysql:8.0.18
+    command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: auth
@@ -162,7 +163,7 @@ services:
       test: mysqladmin ping -proot
     networks:
       - private
-    restart: on-failure
+    restart: always
 
   minio:
     image: minio/minio

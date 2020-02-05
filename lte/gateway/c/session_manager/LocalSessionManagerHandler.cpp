@@ -75,7 +75,7 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
                      << " to OCS failed entirely: " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        enforcer_->update_session_credit(response);
+        enforcer_->update_session_credits_and_rules(response);
         // Check if we need to report more updates
         check_usage_for_reporting();
       }
@@ -257,8 +257,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
       if (status.ok()) {
         bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
         if (!success) {
-          MLOG(MERROR) << "Failed to init session in Usage Monitor "
-                       << "for IMSI " << imsi;
+          MLOG(MERROR) << "Failed to init session in for IMSI " << imsi;
           status =
             Status(
               grpc::FAILED_PRECONDITION, "Failed to initialize session");

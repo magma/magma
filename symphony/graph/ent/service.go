@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
 // Service is the model entity for the Service schema.
@@ -33,8 +34,8 @@ type Service struct {
 	Status string `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceQuery when eager-loading is set.
-	Edges   ServiceEdges `json:"edges"`
-	type_id *string
+	Edges        ServiceEdges `json:"edges"`
+	service_type *string
 }
 
 // ServiceEdges holds the relations/edges for other nodes in the graph.
@@ -53,6 +54,77 @@ type ServiceEdges struct {
 	Customer []*Customer
 	// Endpoints holds the value of the endpoints edge.
 	Endpoints []*ServiceEndpoint
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [7]bool
+}
+
+// TypeOrErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEdges) TypeOrErr() (*ServiceType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: servicetype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// DownstreamOrErr returns the Downstream value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) DownstreamOrErr() ([]*Service, error) {
+	if e.loadedTypes[1] {
+		return e.Downstream, nil
+	}
+	return nil, &NotLoadedError{edge: "downstream"}
+}
+
+// UpstreamOrErr returns the Upstream value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) UpstreamOrErr() ([]*Service, error) {
+	if e.loadedTypes[2] {
+		return e.Upstream, nil
+	}
+	return nil, &NotLoadedError{edge: "upstream"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) PropertiesOrErr() ([]*Property, error) {
+	if e.loadedTypes[3] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// LinksOrErr returns the Links value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) LinksOrErr() ([]*Link, error) {
+	if e.loadedTypes[4] {
+		return e.Links, nil
+	}
+	return nil, &NotLoadedError{edge: "links"}
+}
+
+// CustomerOrErr returns the Customer value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) CustomerOrErr() ([]*Customer, error) {
+	if e.loadedTypes[5] {
+		return e.Customer, nil
+	}
+	return nil, &NotLoadedError{edge: "customer"}
+}
+
+// EndpointsOrErr returns the Endpoints value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) EndpointsOrErr() ([]*ServiceEndpoint, error) {
+	if e.loadedTypes[6] {
+		return e.Endpoints, nil
+	}
+	return nil, &NotLoadedError{edge: "endpoints"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -70,7 +142,7 @@ func (*Service) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Service) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // type_id
+		&sql.NullInt64{}, // service_type
 	}
 }
 
@@ -115,10 +187,10 @@ func (s *Service) assignValues(values ...interface{}) error {
 	values = values[5:]
 	if len(values) == len(service.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field service_type", value)
 		} else if value.Valid {
-			s.type_id = new(string)
-			*s.type_id = strconv.FormatInt(value.Int64, 10)
+			s.service_type = new(string)
+			*s.service_type = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

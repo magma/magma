@@ -92,6 +92,9 @@ class PipelinedController(Enum):
     CheckQuotaController = Controller(
         'magma.pipelined.app.check_quota', 'check_quota'
     )
+    IPFIX = Controller(
+        'magma.pipelined.app.ipfix', 'ipfix'
+    )
     PacketTracer = Controller(
         'magma.pipelined.app.packet_tracer', 'packet_tracer'
     )

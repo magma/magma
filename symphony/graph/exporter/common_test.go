@@ -371,15 +371,15 @@ func prepareLinksPortsAndExport(t *testing.T, r *TestExporterResolver, e http.Ha
 	return ctx, res
 }
 
-func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity importer.ImportEntity, method method, skipLines bool) {
+func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity importer.ImportEntity, method method, skipLines, withVerify bool) {
 	readr := csv.NewReader(r)
 	var buf *bytes.Buffer
 	var contentType, url string
 	switch entity {
 	case importer.ImportEntityLink:
-		buf, contentType = writeModifiedLinksCSV(t, readr, method, skipLines)
+		buf, contentType = writeModifiedLinksCSV(t, readr, method, skipLines, withVerify)
 	case importer.ImportEntityPort:
-		buf, contentType = writeModifiedPortsCSV(t, readr, skipLines)
+		buf, contentType = writeModifiedPortsCSV(t, readr, skipLines, withVerify)
 	}
 
 	h, _ := importer.NewHandler(logtest.NewTestLogger(t))

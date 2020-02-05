@@ -64,7 +64,6 @@ class GxReauthTest(unittest.TestCase):
                 dynamic_rules=[session_manager_pb2.DynamicRuleInstall(
                     policy_rule=dynamic_rule1
                 )],
-                rule_base_names=[],
                 usage_monitors=[],
             ),
         )

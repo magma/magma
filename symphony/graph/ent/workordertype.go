@@ -44,6 +44,45 @@ type WorkOrderTypeEdges struct {
 	Definitions []*WorkOrderDefinition
 	// CheckListDefinitions holds the value of the check_list_definitions edge.
 	CheckListDefinitions []*CheckListItemDefinition
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderTypeEdges) WorkOrdersOrErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[0] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
+}
+
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.PropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "property_types"}
+}
+
+// DefinitionsOrErr returns the Definitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderTypeEdges) DefinitionsOrErr() ([]*WorkOrderDefinition, error) {
+	if e.loadedTypes[2] {
+		return e.Definitions, nil
+	}
+	return nil, &NotLoadedError{edge: "definitions"}
+}
+
+// CheckListDefinitionsOrErr returns the CheckListDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderTypeEdges) CheckListDefinitionsOrErr() ([]*CheckListItemDefinition, error) {
+	if e.loadedTypes[3] {
+		return e.CheckListDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "check_list_definitions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

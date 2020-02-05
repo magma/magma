@@ -81,7 +81,7 @@ class AddEquipmentMutation:
         addEquipment: Optional[Equipment] = None
 
     data: Optional[AddEquipmentMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

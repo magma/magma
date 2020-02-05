@@ -69,7 +69,7 @@ class LocationChildrenQuery:
         location: Optional[Node] = None
 
     data: Optional[LocationChildrenQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

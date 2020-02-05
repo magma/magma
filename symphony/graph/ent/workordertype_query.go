@@ -370,8 +370,14 @@ func (wotq *WorkOrderTypeQuery) Select(field string, fields ...string) *WorkOrde
 
 func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, error) {
 	var (
-		nodes []*WorkOrderType = []*WorkOrderType{}
-		_spec                  = wotq.querySpec()
+		nodes       = []*WorkOrderType{}
+		_spec       = wotq.querySpec()
+		loadedTypes = [4]bool{
+			wotq.withWorkOrders != nil,
+			wotq.withPropertyTypes != nil,
+			wotq.withDefinitions != nil,
+			wotq.withCheckListDefinitions != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &WorkOrderType{config: wotq.config}
@@ -384,6 +390,7 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, wotq.driver, _spec); err != nil {
@@ -413,13 +420,13 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.work_order_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
 		}
@@ -445,13 +452,13 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_type_id
+			fk := n.work_order_type_property_types
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_type_property_types" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
 		}
@@ -477,13 +484,13 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.work_order_definition_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_definition_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_definition_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Definitions = append(node.Edges.Definitions, n)
 		}
@@ -509,13 +516,13 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_type_id
+			fk := n.work_order_type_check_list_definitions
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_type_check_list_definitions" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_check_list_definitions" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CheckListDefinitions = append(node.Edges.CheckListDefinitions, n)
 		}

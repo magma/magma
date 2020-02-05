@@ -65,7 +65,7 @@ class CustomersQuery:
         customers: Optional[CustomerConnection] = None
 
     data: Optional[CustomersQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

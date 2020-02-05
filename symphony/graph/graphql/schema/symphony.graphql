@@ -1023,6 +1023,7 @@ input AddProjectTypeInput {
   name: String! @length(min: 1)
   description: String
   properties: [PropertyTypeInput!]
+    @uniqueField(typ: "property type", field: "Name")
   workOrders: [WorkOrderDefinitionInput!]
 }
 
@@ -1031,6 +1032,7 @@ input EditProjectTypeInput {
   name: String! @length(min: 1)
   description: String
   properties: [PropertyTypeInput!]
+    @uniqueField(typ: "property type", field: "Name")
   workOrders: [WorkOrderDefinitionInput!]
 }
 
@@ -1863,7 +1865,6 @@ type Query {
     before: Cursor
     last: Int
   ): ServiceTypeConnection
-  workOrder(id: ID!): WorkOrder
   workOrders(
     after: Cursor
     first: Int
@@ -1871,7 +1872,6 @@ type Query {
     last: Int
     showCompleted: Boolean
   ): WorkOrderConnection!
-  workOrderType(id: ID!): WorkOrderType
   workOrderTypes(
     after: Cursor
     first: Int

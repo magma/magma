@@ -40,7 +40,7 @@ class RemoveLocationTypeMutation:
         removeLocationType: str
 
     data: Optional[RemoveLocationTypeMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

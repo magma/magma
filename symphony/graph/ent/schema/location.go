@@ -58,6 +58,7 @@ func (Location) Fields() []ent.Field {
 		field.String("name").
 			NotEmpty(),
 		field.String("external_id").
+			Unique().
 			Optional(),
 		field.Float("latitude").
 			Default(0).
@@ -83,7 +84,7 @@ func (Location) Edges() []ent.Edge {
 			StructTag(`gqlgen:"children"`).
 			From("parent").
 			Unique().
-			StructTag(`gqlgen:"parent"`),
+			StructTag(`gqlgen:"parentLocation"`),
 		edge.To("files", File.Type).
 			StructTag(`gqlgen:"files,images"`),
 		edge.To("hyperlinks", Hyperlink.Type).

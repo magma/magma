@@ -439,6 +439,10 @@ func (r mutationResolver) AddLocation(
 			return nil, err
 		}
 	}
+	var ei *string
+	if input.ExternalID != nil && *input.ExternalID != "" {
+		ei = input.ExternalID
+	}
 	l, err := r.ClientFrom(ctx).
 		Location.Create().
 		SetName(input.Name).
@@ -446,7 +450,7 @@ func (r mutationResolver) AddLocation(
 		SetNillableLongitude(input.Longitude).
 		SetTypeID(input.Type).
 		SetNillableParentID(input.Parent).
-		SetNillableExternalID(input.ExternalID).
+		SetNillableExternalID(ei).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating location")
@@ -586,11 +590,15 @@ func (r mutationResolver) addEquipment(
 		return nil, err
 	}
 
+	var ei *string
+	if input.ExternalID != nil && *input.ExternalID != "" {
+		ei = input.ExternalID
+	}
 	e, err := r.ClientFrom(ctx).
 		Equipment.Create().
 		SetName(input.Name).
 		SetType(typ).
-		SetNillableExternalID(input.ExternalID).
+		SetNillableExternalID(ei).
 		SetNillableParentPositionID(positionID).
 		SetNillableLocationID(input.Location).
 		SetNillableWorkOrderID(input.WorkOrder).
@@ -816,20 +824,35 @@ func (r mutationResolver) EditLocation(
 		}
 	}
 
-	if l, err = client.Location.
+	upd := client.Location.
 		UpdateOne(l).
 		SetName(input.Name).
 		SetLatitude(input.Latitude).
-		SetLongitude(input.Longitude).
-		SetNillableExternalID(input.ExternalID).
-		Save(ctx); err != nil {
+		SetLongitude(input.Longitude)
+	if input.ExternalID != nil && *input.ExternalID != "" {
+		upd.SetNillableExternalID(input.ExternalID)
+	} else {
+		upd.ClearExternalID()
+	}
+	if l, err = upd.Save(ctx); err != nil {
 		return nil, errors.Wrapf(err, "updating location: id=%q", input.ID)
 	}
 	var added, edited []*models.PropertyInput
+	directPropertiesTypes, err := l.QueryProperties().QueryType().IDs(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for _, input := range input.Properties {
-		if input.ID == nil {
+		if r.isNewProp(directPropertiesTypes, input.ID, input.PropertyTypeID) {
 			added = append(added, input)
 		} else {
+			if input.ID == nil {
+				propID, err := l.QueryProperties().Where(property.HasTypeWith(propertytype.ID(input.PropertyTypeID))).OnlyID(ctx)
+				if err != nil {
+					return nil, err
+				}
+				input.ID = &propID
+			}
 			edited = append(edited, input)
 		}
 	}
@@ -2027,12 +2050,16 @@ func (r mutationResolver) EditEquipment(
 	}
 
 	if e.Name != input.Name || input.DeviceID != nil && e.DeviceID != *input.DeviceID {
-		if e, err = client.Equipment.
+		upd := client.Equipment.
 			UpdateOne(e).
 			SetName(input.Name).
-			SetNillableDeviceID(input.DeviceID).
-			SetNillableExternalID(input.ExternalID).
-			Save(ctx); err != nil {
+			SetNillableDeviceID(input.DeviceID)
+		if input.ExternalID != nil && *input.ExternalID != "" {
+			upd.SetNillableExternalID(input.ExternalID)
+		} else {
+			upd.ClearExternalID()
+		}
+		if e, err = upd.Save(ctx); err != nil {
 			return nil, errors.Wrapf(err, "updating equipment: id=%q", input.ID)
 		}
 	}

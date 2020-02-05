@@ -319,9 +319,13 @@ func (wodq *WorkOrderDefinitionQuery) Select(field string, fields ...string) *Wo
 
 func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderDefinition, error) {
 	var (
-		nodes   []*WorkOrderDefinition = []*WorkOrderDefinition{}
-		withFKs                        = wodq.withFKs
-		_spec                          = wodq.querySpec()
+		nodes       = []*WorkOrderDefinition{}
+		withFKs     = wodq.withFKs
+		_spec       = wodq.querySpec()
+		loadedTypes = [2]bool{
+			wodq.withType != nil,
+			wodq.withProjectType != nil,
+		}
 	)
 	if wodq.withType != nil || wodq.withProjectType != nil {
 		withFKs = true
@@ -343,6 +347,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, wodq.driver, _spec); err != nil {
@@ -356,7 +361,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*WorkOrderDefinition)
 		for i := range nodes {
-			if fk := nodes[i].type_id; fk != nil {
+			if fk := nodes[i].work_order_definition_type; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -369,7 +374,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_definition_type" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Type = n
@@ -381,7 +386,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*WorkOrderDefinition)
 		for i := range nodes {
-			if fk := nodes[i].project_type_id; fk != nil {
+			if fk := nodes[i].project_type_work_orders; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -394,7 +399,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "project_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "project_type_work_orders" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.ProjectType = n

@@ -9,6 +9,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
@@ -25,25 +26,28 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 const (
-	LteNetworks                        = "lte"
-	ListNetworksPath                   = obsidian.V1Root + LteNetworks
-	ManageNetworkPath                  = ListNetworksPath + "/:network_id"
-	ManageNetworkNamePath              = ManageNetworkPath + obsidian.UrlSep + "name"
-	ManageNetworkDescriptionPath       = ManageNetworkPath + obsidian.UrlSep + "description"
-	ManageNetworkFeaturesPath          = ManageNetworkPath + obsidian.UrlSep + "features"
-	ManageNetworkDNSPath               = ManageNetworkPath + obsidian.UrlSep + "dns"
-	ManageNetworkDNSRecordsPath        = ManageNetworkDNSPath + obsidian.UrlSep + "records"
-	ManageNetworkDNSRecordByDomainPath = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
-	ManageNetworkCellularPath          = ManageNetworkPath + obsidian.UrlSep + "cellular"
-	ManageNetworkCellularEpcPath       = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
-	ManageNetworkCellularRanPath       = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
-	ManageNetworkCellularFegNetworkID  = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
-	ManageNetworkSubscriberPath        = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
-	ManageNetworkBaseNamesPath         = ManageNetworkSubscriberPath + obsidian.UrlSep + "base_names"
-	ManageNetworkRuleNamesPath         = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
+	LteNetworks                         = "lte"
+	ListNetworksPath                    = obsidian.V1Root + LteNetworks
+	ManageNetworkPath                   = ListNetworksPath + "/:network_id"
+	ManageNetworkNamePath               = ManageNetworkPath + obsidian.UrlSep + "name"
+	ManageNetworkDescriptionPath        = ManageNetworkPath + obsidian.UrlSep + "description"
+	ManageNetworkFeaturesPath           = ManageNetworkPath + obsidian.UrlSep + "features"
+	ManageNetworkDNSPath                = ManageNetworkPath + obsidian.UrlSep + "dns"
+	ManageNetworkDNSRecordsPath         = ManageNetworkDNSPath + obsidian.UrlSep + "records"
+	ManageNetworkDNSRecordByDomainPath  = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
+	ManageNetworkCellularPath           = ManageNetworkPath + obsidian.UrlSep + "cellular"
+	ManageNetworkCellularEpcPath        = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
+	ManageNetworkCellularRanPath        = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
+	ManageNetworkCellularFegNetworkID   = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
+	ManageNetworkSubscriberPath         = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
+	ManageNetworkBaseNamesPath          = ManageNetworkSubscriberPath + obsidian.UrlSep + "base_names"
+	ManageNetworkRuleNamesPath          = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
+	ManageNetworkSubscriberRuleNamePath = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
+	ManageNetworkSubscriberBaseNamePath = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
 
 	Gateways                          = "gateways"
 	ListGatewaysPath                  = ManageNetworkPath + obsidian.UrlSep + Gateways
@@ -113,6 +117,10 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ActivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateACTIVE)},
 		{Path: DeactivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateINACTIVE)},
 		{Path: SubscriberProfilePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberProfile},
+		{Path: ManageNetworkSubscriberBaseNamePath, Methods: obsidian.POST, HandlerFunc: AddNetworkWideSubscriberBaseName},
+		{Path: ManageNetworkSubscriberRuleNamePath, Methods: obsidian.POST, HandlerFunc: AddNetworkWideSubscriberRuleName},
+		{Path: ManageNetworkSubscriberBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: RemoveNetworkWideSubscriberBaseName},
+		{Path: ManageNetworkSubscriberRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: RemoveNetworkWideSubscriberRuleName},
 
 		{Path: policyBaseNameRootPath, Methods: obsidian.GET, HandlerFunc: ListBaseNames},
 		{Path: policyBaseNameRootPath, Methods: obsidian.POST, HandlerFunc: CreateBaseName},
@@ -602,6 +610,116 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 		}
 		return c.NoContent(http.StatusOK)
 	}
+}
+
+func AddNetworkWideSubscriberRuleName(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	params, nerr := obsidian.GetParamValues(c, "rule_id")
+	if nerr != nil {
+		return nerr
+	}
+	err := addToNetworkSubscriberConfig(networkID, params[0], "")
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusCreated)
+}
+
+func AddNetworkWideSubscriberBaseName(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	params, nerr := obsidian.GetParamValues(c, "base_name")
+	if nerr != nil {
+		return nerr
+	}
+	err := addToNetworkSubscriberConfig(networkID, "", params[0])
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusCreated)
+}
+
+func RemoveNetworkWideSubscriberRuleName(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	params, nerr := obsidian.GetParamValues(c, "rule_id")
+	if nerr != nil {
+		return nerr
+	}
+	err := removeFromNetworkSubscriberConfig(networkID, params[0], "")
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func RemoveNetworkWideSubscriberBaseName(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	params, nerr := obsidian.GetParamValues(c, "base_name")
+	if nerr != nil {
+		return nerr
+	}
+	err := removeFromNetworkSubscriberConfig(networkID, "", params[0])
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
+	network, err := configurator.LoadNetwork(networkID, false, true)
+	if err != nil {
+		return err
+	}
+	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
+	if !exists {
+		network.Configs[lte.NetworkSubscriberConfigType] = &ltemodels.NetworkSubscriberConfig{}
+	}
+	subscriberConfig, ok := iSubscriberConfig.(*ltemodels.NetworkSubscriberConfig)
+	if !ok {
+		return fmt.Errorf("Unable to convert config")
+	}
+	if len(ruleName) != 0 {
+		subscriberConfig.NetworkWideRuleNames = append(subscriberConfig.NetworkWideRuleNames, ruleName)
+	}
+	if len(baseName) != 0 {
+		subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, ltemodels.BaseName(baseName))
+	}
+	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
+}
+
+func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
+	network, err := configurator.LoadNetwork(networkID, false, true)
+	if err != nil {
+		return err
+	}
+	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
+	if !exists {
+		network.Configs[lte.NetworkSubscriberConfigType] = &ltemodels.NetworkSubscriberConfig{}
+	}
+	subscriberConfig, ok := iSubscriberConfig.(*ltemodels.NetworkSubscriberConfig)
+	if !ok {
+		return fmt.Errorf("Unable to convert config")
+	}
+	if len(ruleName) != 0 {
+		subscriberConfig.NetworkWideRuleNames = funk.FilterString(subscriberConfig.NetworkWideRuleNames,
+			func(s string) bool { return s != ruleName })
+	}
+	if len(baseName) != 0 {
+		subscriberConfig.NetworkWideBaseNames = funk.Filter(subscriberConfig.NetworkWideBaseNames,
+			func(b ltemodels.BaseName) bool { return string(b) != baseName }).([]ltemodels.BaseName)
+	}
+	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
 }
 
 func getNetworkAndSubIDs(c echo.Context) (string, string, *echo.HTTPError) {

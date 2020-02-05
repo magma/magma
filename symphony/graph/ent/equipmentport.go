@@ -13,7 +13,10 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/link"
 )
 
 // EquipmentPort is the model entity for the EquipmentPort schema.
@@ -27,24 +30,87 @@ type EquipmentPort struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPortQuery when eager-loading is set.
-	Edges         EquipmentPortEdges `json:"edges"`
-	parent_id     *string
-	definition_id *string
-	link_id       *string
+	Edges                     EquipmentPortEdges `json:"edges"`
+	equipment_ports           *string
+	equipment_port_definition *string
+	equipment_port_link       *string
 }
 
 // EquipmentPortEdges holds the relations/edges for other nodes in the graph.
 type EquipmentPortEdges struct {
 	// Definition holds the value of the definition edge.
-	Definition *EquipmentPortDefinition
+	Definition *EquipmentPortDefinition `gqlgen:"definition"`
 	// Parent holds the value of the parent edge.
-	Parent *Equipment
+	Parent *Equipment `gqlgen:"parentEquipment"`
 	// Link holds the value of the link edge.
-	Link *Link
+	Link *Link `gqlgen:"link"`
 	// Properties holds the value of the properties edge.
-	Properties []*Property
+	Properties []*Property `gqlgen:"properties"`
 	// Endpoints holds the value of the endpoints edge.
-	Endpoints []*ServiceEndpoint
+	Endpoints []*ServiceEndpoint `gqlgen:"serviceEndpoints"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [5]bool
+}
+
+// DefinitionOrErr returns the Definition value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortEdges) DefinitionOrErr() (*EquipmentPortDefinition, error) {
+	if e.loadedTypes[0] {
+		if e.Definition == nil {
+			// The edge definition was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentportdefinition.Label}
+		}
+		return e.Definition, nil
+	}
+	return nil, &NotLoadedError{edge: "definition"}
+}
+
+// ParentOrErr returns the Parent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortEdges) ParentOrErr() (*Equipment, error) {
+	if e.loadedTypes[1] {
+		if e.Parent == nil {
+			// The edge parent was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipment.Label}
+		}
+		return e.Parent, nil
+	}
+	return nil, &NotLoadedError{edge: "parent"}
+}
+
+// LinkOrErr returns the Link value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentPortEdges) LinkOrErr() (*Link, error) {
+	if e.loadedTypes[2] {
+		if e.Link == nil {
+			// The edge link was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: link.Label}
+		}
+		return e.Link, nil
+	}
+	return nil, &NotLoadedError{edge: "link"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortEdges) PropertiesOrErr() ([]*Property, error) {
+	if e.loadedTypes[3] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// EndpointsOrErr returns the Endpoints value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortEdges) EndpointsOrErr() ([]*ServiceEndpoint, error) {
+	if e.loadedTypes[4] {
+		return e.Endpoints, nil
+	}
+	return nil, &NotLoadedError{edge: "endpoints"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -59,9 +125,9 @@ func (*EquipmentPort) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*EquipmentPort) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // parent_id
-		&sql.NullInt64{}, // definition_id
-		&sql.NullInt64{}, // link_id
+		&sql.NullInt64{}, // equipment_ports
+		&sql.NullInt64{}, // equipment_port_definition
+		&sql.NullInt64{}, // equipment_port_link
 	}
 }
 
@@ -90,22 +156,22 @@ func (ep *EquipmentPort) assignValues(values ...interface{}) error {
 	values = values[2:]
 	if len(values) == len(equipmentport.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field parent_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_ports", value)
 		} else if value.Valid {
-			ep.parent_id = new(string)
-			*ep.parent_id = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_ports = new(string)
+			*ep.equipment_ports = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field definition_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_definition", value)
 		} else if value.Valid {
-			ep.definition_id = new(string)
-			*ep.definition_id = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_port_definition = new(string)
+			*ep.equipment_port_definition = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field link_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_link", value)
 		} else if value.Valid {
-			ep.link_id = new(string)
-			*ep.link_id = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_port_link = new(string)
+			*ep.equipment_port_link = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

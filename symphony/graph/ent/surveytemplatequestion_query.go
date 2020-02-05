@@ -294,9 +294,12 @@ func (stqq *SurveyTemplateQuestionQuery) Select(field string, fields ...string) 
 
 func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyTemplateQuestion, error) {
 	var (
-		nodes   []*SurveyTemplateQuestion = []*SurveyTemplateQuestion{}
-		withFKs                           = stqq.withFKs
-		_spec                             = stqq.querySpec()
+		nodes       = []*SurveyTemplateQuestion{}
+		withFKs     = stqq.withFKs
+		_spec       = stqq.querySpec()
+		loadedTypes = [1]bool{
+			stqq.withCategory != nil,
+		}
 	)
 	if stqq.withCategory != nil {
 		withFKs = true
@@ -318,6 +321,7 @@ func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyT
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, stqq.driver, _spec); err != nil {
@@ -331,7 +335,7 @@ func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyT
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyTemplateQuestion)
 		for i := range nodes {
-			if fk := nodes[i].category_id; fk != nil {
+			if fk := nodes[i].survey_template_category_survey_template_questions; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -344,7 +348,7 @@ func (stqq *SurveyTemplateQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyT
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_template_category_survey_template_questions" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Category = n

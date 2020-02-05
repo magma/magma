@@ -319,9 +319,13 @@ func (seq *ServiceEndpointQuery) Select(field string, fields ...string) *Service
 
 func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint, error) {
 	var (
-		nodes   []*ServiceEndpoint = []*ServiceEndpoint{}
-		withFKs                    = seq.withFKs
-		_spec                      = seq.querySpec()
+		nodes       = []*ServiceEndpoint{}
+		withFKs     = seq.withFKs
+		_spec       = seq.querySpec()
+		loadedTypes = [2]bool{
+			seq.withPort != nil,
+			seq.withService != nil,
+		}
 	)
 	if seq.withPort != nil || seq.withService != nil {
 		withFKs = true
@@ -343,6 +347,7 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, seq.driver, _spec); err != nil {
@@ -356,7 +361,7 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*ServiceEndpoint)
 		for i := range nodes {
-			if fk := nodes[i].port_id; fk != nil {
+			if fk := nodes[i].service_endpoint_port; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -369,7 +374,7 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "port_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoint_port" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Port = n
@@ -381,7 +386,7 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*ServiceEndpoint)
 		for i := range nodes {
-			if fk := nodes[i].service_id; fk != nil {
+			if fk := nodes[i].service_endpoints; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -394,7 +399,7 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "service_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoints" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Service = n

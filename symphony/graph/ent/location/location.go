@@ -41,78 +41,78 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "locationtype" package.
 	TypeInverseTable = "location_types"
 	// TypeColumn is the table column denoting the type relation/edge.
-	TypeColumn = "type_id"
+	TypeColumn = "location_type"
 	// ParentTable is the table the holds the parent relation/edge.
 	ParentTable = "locations"
 	// ParentColumn is the table column denoting the parent relation/edge.
-	ParentColumn = "parent_id"
+	ParentColumn = "location_children"
 	// ChildrenTable is the table the holds the children relation/edge.
 	ChildrenTable = "locations"
 	// ChildrenColumn is the table column denoting the children relation/edge.
-	ChildrenColumn = "parent_id"
+	ChildrenColumn = "location_children"
 	// FilesTable is the table the holds the files relation/edge.
 	FilesTable = "files"
 	// FilesInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	FilesInverseTable = "files"
 	// FilesColumn is the table column denoting the files relation/edge.
-	FilesColumn = "location_file_id"
+	FilesColumn = "location_files"
 	// HyperlinksTable is the table the holds the hyperlinks relation/edge.
 	HyperlinksTable = "hyperlinks"
 	// HyperlinksInverseTable is the table name for the Hyperlink entity.
 	// It exists in this package in order to avoid circular dependency with the "hyperlink" package.
 	HyperlinksInverseTable = "hyperlinks"
 	// HyperlinksColumn is the table column denoting the hyperlinks relation/edge.
-	HyperlinksColumn = "location_hyperlink_id"
+	HyperlinksColumn = "location_hyperlinks"
 	// EquipmentTable is the table the holds the equipment relation/edge.
 	EquipmentTable = "equipment"
 	// EquipmentInverseTable is the table name for the Equipment entity.
 	// It exists in this package in order to avoid circular dependency with the "equipment" package.
 	EquipmentInverseTable = "equipment"
 	// EquipmentColumn is the table column denoting the equipment relation/edge.
-	EquipmentColumn = "location_id"
+	EquipmentColumn = "location_equipment"
 	// PropertiesTable is the table the holds the properties relation/edge.
 	PropertiesTable = "properties"
 	// PropertiesInverseTable is the table name for the Property entity.
 	// It exists in this package in order to avoid circular dependency with the "property" package.
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
-	PropertiesColumn = "location_id"
+	PropertiesColumn = "location_properties"
 	// SurveyTable is the table the holds the survey relation/edge.
 	SurveyTable = "surveys"
 	// SurveyInverseTable is the table name for the Survey entity.
 	// It exists in this package in order to avoid circular dependency with the "survey" package.
 	SurveyInverseTable = "surveys"
 	// SurveyColumn is the table column denoting the survey relation/edge.
-	SurveyColumn = "location_id"
+	SurveyColumn = "survey_location"
 	// WifiScanTable is the table the holds the wifi_scan relation/edge.
 	WifiScanTable = "survey_wi_fi_scans"
 	// WifiScanInverseTable is the table name for the SurveyWiFiScan entity.
 	// It exists in this package in order to avoid circular dependency with the "surveywifiscan" package.
 	WifiScanInverseTable = "survey_wi_fi_scans"
 	// WifiScanColumn is the table column denoting the wifi_scan relation/edge.
-	WifiScanColumn = "location_id"
+	WifiScanColumn = "survey_wi_fi_scan_location"
 	// CellScanTable is the table the holds the cell_scan relation/edge.
 	CellScanTable = "survey_cell_scans"
 	// CellScanInverseTable is the table name for the SurveyCellScan entity.
 	// It exists in this package in order to avoid circular dependency with the "surveycellscan" package.
 	CellScanInverseTable = "survey_cell_scans"
 	// CellScanColumn is the table column denoting the cell_scan relation/edge.
-	CellScanColumn = "location_id"
+	CellScanColumn = "survey_cell_scan_location"
 	// WorkOrdersTable is the table the holds the work_orders relation/edge.
 	WorkOrdersTable = "work_orders"
 	// WorkOrdersInverseTable is the table name for the WorkOrder entity.
 	// It exists in this package in order to avoid circular dependency with the "workorder" package.
 	WorkOrdersInverseTable = "work_orders"
 	// WorkOrdersColumn is the table column denoting the work_orders relation/edge.
-	WorkOrdersColumn = "location_id"
+	WorkOrdersColumn = "work_order_location"
 	// FloorPlansTable is the table the holds the floor_plans relation/edge.
 	FloorPlansTable = "floor_plans"
 	// FloorPlansInverseTable is the table name for the FloorPlan entity.
 	// It exists in this package in order to avoid circular dependency with the "floorplan" package.
 	FloorPlansInverseTable = "floor_plans"
 	// FloorPlansColumn is the table column denoting the floor_plans relation/edge.
-	FloorPlansColumn = "location_id"
+	FloorPlansColumn = "floor_plan_location"
 )
 
 // Columns holds all SQL columns for location fields.
@@ -129,8 +129,8 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Location type.
 var ForeignKeys = []string{
-	"type_id",
-	"parent_id",
+	"location_type",
+	"location_children",
 }
 
 var (

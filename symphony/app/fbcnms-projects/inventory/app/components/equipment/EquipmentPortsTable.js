@@ -17,9 +17,7 @@ import Box from '@material-ui/core/Box';
 import EquipmentBreadcrumbs from './EquipmentBreadcrumbs';
 import EquipmentPortBreadcrumbs from './EquipmentPortBreadcrumbs';
 import EquipmentPortsTableMenu from './EquipmentPortsTableMenu';
-import IconButton from '@material-ui/core/IconButton';
 import Link from '@fbcnms/ui/components/Link';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Paper from '@material-ui/core/Paper';
 import React, {useContext, useState} from 'react';
 import Table from '@material-ui/core/Table';
@@ -159,8 +157,6 @@ const sortRows = (orderBy: SortableColumn, sortDirection: 'asc' | 'desc') => (
 };
 
 const EquipmentPortsTable = (props: Props) => {
-  const [anchorEl, setAnchorEl] = useState<?HTMLElement>(null);
-  const [selectedPort, setSelectedPort] = useState<?EquipmentPort>(null);
   const {isFeatureEnabled} = useContext(AppContext);
   const [orderBy, setOrderBy] = useState<SortableColumn>('parent_eq');
   const [sortDirection, setSortDirection] = useState('asc');
@@ -342,14 +338,11 @@ const EquipmentPortsTable = (props: Props) => {
                       </TableCell>
                     )}
                     <TableCell>
-                      <IconButton
-                        onClick={event => {
-                          setAnchorEl(event.currentTarget);
-                          setSelectedPort(port);
-                        }}
-                        color="secondary">
-                        <MoreVertIcon />
-                      </IconButton>
+                      <EquipmentPortsTableMenu
+                        key={`${port.id}-menu`}
+                        port={port}
+                        workOrderId={workOrderId}
+                      />
                     </TableCell>
                   </TableRow>
                 );
@@ -357,15 +350,6 @@ const EquipmentPortsTable = (props: Props) => {
           </TableBody>
         </Table>
       </Paper>
-      {selectedPort && (
-        <EquipmentPortsTableMenu
-          key={`${selectedPort.id}-menu`}
-          port={selectedPort}
-          workOrderId={workOrderId}
-          anchorEl={anchorEl}
-          onClose={() => setAnchorEl(null)}
-        />
-      )}
     </>
   );
 };

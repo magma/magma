@@ -33,14 +33,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "workordertype" package.
 	TypeInverseTable = "work_order_types"
 	// TypeColumn is the table column denoting the type relation/edge.
-	TypeColumn = "type_id"
+	TypeColumn = "work_order_definition_type"
 	// ProjectTypeTable is the table the holds the project_type relation/edge.
 	ProjectTypeTable = "work_order_definitions"
 	// ProjectTypeInverseTable is the table name for the ProjectType entity.
 	// It exists in this package in order to avoid circular dependency with the "projecttype" package.
 	ProjectTypeInverseTable = "project_types"
 	// ProjectTypeColumn is the table column denoting the project_type relation/edge.
-	ProjectTypeColumn = "project_type_id"
+	ProjectTypeColumn = "project_type_work_orders"
 )
 
 // Columns holds all SQL columns for workorderdefinition fields.
@@ -53,8 +53,8 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the WorkOrderDefinition type.
 var ForeignKeys = []string{
-	"project_type_id",
-	"type_id",
+	"project_type_work_orders",
+	"work_order_definition_type",
 }
 
 var (

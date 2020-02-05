@@ -396,9 +396,16 @@ func (etq *EquipmentTypeQuery) Select(field string, fields ...string) *Equipment
 
 func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, error) {
 	var (
-		nodes   []*EquipmentType = []*EquipmentType{}
-		withFKs                  = etq.withFKs
-		_spec                    = etq.querySpec()
+		nodes       = []*EquipmentType{}
+		withFKs     = etq.withFKs
+		_spec       = etq.querySpec()
+		loadedTypes = [5]bool{
+			etq.withPortDefinitions != nil,
+			etq.withPositionDefinitions != nil,
+			etq.withPropertyTypes != nil,
+			etq.withEquipment != nil,
+			etq.withCategory != nil,
+		}
 	)
 	if etq.withCategory != nil {
 		withFKs = true
@@ -420,6 +427,7 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, etq.driver, _spec); err != nil {
@@ -449,13 +457,13 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.equipment_type_id
+			fk := n.equipment_type_port_definitions
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "equipment_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_type_port_definitions" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_port_definitions" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PortDefinitions = append(node.Edges.PortDefinitions, n)
 		}
@@ -481,13 +489,13 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.equipment_type_id
+			fk := n.equipment_type_position_definitions
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "equipment_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_type_position_definitions" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_position_definitions" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PositionDefinitions = append(node.Edges.PositionDefinitions, n)
 		}
@@ -513,13 +521,13 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.equipment_type_id
+			fk := n.equipment_type_property_types
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "equipment_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_type_property_types" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
 		}
@@ -545,13 +553,13 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.equipment_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Equipment = append(node.Edges.Equipment, n)
 		}
@@ -561,7 +569,7 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*EquipmentType)
 		for i := range nodes {
-			if fk := nodes[i].category_id; fk != nil {
+			if fk := nodes[i].equipment_type_category; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -574,7 +582,7 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_category" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Category = n

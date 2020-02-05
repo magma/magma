@@ -119,7 +119,12 @@ func (c *Client) noder(ctx context.Context, tbl string, id {{ $.IDType }}) (Node
 	switch tbl {
 	{{- range $_, $n := $.Nodes }}
 	case {{ $n.Package }}.Table:
-		n, err := c.{{ $n.Name }}.Get(ctx, id)
+		n, err := c.{{ $n.Name }}.Query().
+			Where({{ $n.Package }}.ID(id)).
+			{{- if hasTemplate "collection" }}
+			CollectFields(ctx, "{{ $n.Name }}").
+			{{- end }}
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
