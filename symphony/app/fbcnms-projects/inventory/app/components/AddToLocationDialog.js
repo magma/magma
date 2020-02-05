@@ -15,13 +15,10 @@ import type {WithStyles} from '@material-ui/core';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import CSVFileUpload from './CSVFileUpload';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import CSVUploadDialog from './CSVUploadDialog';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
-import DialogConfirm from '@fbcnms/ui/components/DialogConfirm';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogError from '@fbcnms/ui/components/DialogError';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DownloadPythonPackage from './DownloadPythonPackage';
 import EquipmentTypesList from './EquipmentTypesList';
@@ -31,7 +28,6 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
-import {UploadAPIUrls} from '../common/UploadAPI';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
@@ -47,9 +43,6 @@ type State = {
   mode: 'location' | 'equipment' | 'upload' | 'python',
   selectedEquipmentType: ?EquipmentType,
   selectedLocationType: ?LocationType,
-  isLoading: boolean,
-  errorMessage: ?string,
-  successMessage: ?string,
 };
 
 const styles = _ => ({
@@ -59,12 +52,6 @@ const styles = _ => ({
   },
   dialogContent: {
     padding: 0,
-  },
-  uploadContent: {
-    padding: '20px',
-  },
-  link: {
-    paddingLeft: '28px',
   },
 });
 
@@ -77,9 +64,6 @@ class AddToLocationDialog extends React.Component<Props, State> {
       mode: props.show,
       selectedEquipmentType: null,
       selectedLocationType: null,
-      isLoading: false,
-      errorMessage: null,
-      successMessage: null,
     };
   }
 
@@ -89,16 +73,7 @@ class AddToLocationDialog extends React.Component<Props, State> {
   render() {
     const {classes, show} = this.props;
     const {value, mode} = this.state;
-    const equipmentExportImportEnabled = this.context.isFeatureEnabled(
-      'import_exported_equipemnt',
-    );
-    const portsExportImportEnabled = this.context.isFeatureEnabled(
-      'import_exported_ports',
-    );
-    const linksExportImportEnabled = this.context.isFeatureEnabled(
-      'import_exported_links',
-    );
-    const servicesEnabled = this.context.isFeatureEnabled('services');
+
     return (
       <Dialog maxWidth="sm" open={this.props.open} onClose={this.props.onClose}>
         {show === 'location' ? (
@@ -128,127 +103,7 @@ class AddToLocationDialog extends React.Component<Props, State> {
               }
             />
           )}
-          {mode === 'upload' &&
-            (this.state.isLoading ? (
-              <CircularProgress />
-            ) : (
-              <>
-                {this.state.errorMessage && (
-                  <DialogError message={this.state.errorMessage} />
-                )}
-                {this.state.successMessage && (
-                  <DialogConfirm message={this.state.successMessage} />
-                )}
-                {this.documentsLink('csv-upload.html')}
-                <div className={classes.uploadContent}>
-                  <CSVFileUpload
-                    button={<Button variant="text">Upload Position Def</Button>}
-                    onProgress={() =>
-                      this.setState({isLoading: true, errorMessage: null})
-                    }
-                    onFileUploaded={msg => this.onFileUploaded(msg)}
-                    uploadPath={UploadAPIUrls.position_definition()}
-                    onUploadFailed={msg => this.onUploadFailed(msg)}
-                  />
-                  <CSVFileUpload
-                    button={<Button variant="text">Upload Port Def</Button>}
-                    onProgress={() =>
-                      this.setState({isLoading: true, errorMessage: null})
-                    }
-                    onFileUploaded={msg => this.onFileUploaded(msg)}
-                    uploadPath={UploadAPIUrls.port_definition()}
-                    onUploadFailed={msg => this.onUploadFailed(msg)}
-                  />
-                  <CSVFileUpload
-                    button={
-                      <Button variant="text">Upload Port Connections</Button>
-                    }
-                    onProgress={() =>
-                      this.setState({isLoading: true, errorMessage: null})
-                    }
-                    onFileUploaded={msg => this.onFileUploaded(msg)}
-                    uploadPath={UploadAPIUrls.port_connect()}
-                    onUploadFailed={msg => this.onUploadFailed(msg)}
-                  />
-                  <CSVFileUpload
-                    button={<Button variant="text">Upload Locations</Button>}
-                    onProgress={() =>
-                      this.setState({isLoading: true, errorMessage: null})
-                    }
-                    onFileUploaded={msg => this.onFileUploaded(msg)}
-                    uploadPath={UploadAPIUrls.locations()}
-                    onUploadFailed={msg => this.onUploadFailed(msg)}
-                  />
-                  <CSVFileUpload
-                    button={<Button variant="text">Upload Equipment</Button>}
-                    onProgress={() =>
-                      this.setState({isLoading: true, errorMessage: null})
-                    }
-                    onFileUploaded={msg => this.onFileUploaded(msg)}
-                    uploadPath={UploadAPIUrls.equipment()}
-                    onUploadFailed={msg => this.onUploadFailed(msg)}
-                  />
-                  {equipmentExportImportEnabled && (
-                    <CSVFileUpload
-                      button={
-                        <Button variant="text">
-                          Upload Exported Equipment
-                        </Button>
-                      }
-                      onProgress={() =>
-                        this.setState({isLoading: true, errorMessage: null})
-                      }
-                      entity={'equipment'}
-                      onFileUploaded={msg => this.onFileUploaded(msg)}
-                      uploadPath={UploadAPIUrls.exported_equipment()}
-                      onUploadFailed={msg => this.onUploadFailed(msg)}
-                    />
-                  )}
-                  {portsExportImportEnabled && (
-                    <CSVFileUpload
-                      button={
-                        <Button variant="text">Upload Exported Ports</Button>
-                      }
-                      onProgress={() =>
-                        this.setState({isLoading: true, errorMessage: null})
-                      }
-                      entity={'port'}
-                      onFileUploaded={msg => this.onFileUploaded(msg)}
-                      uploadPath={UploadAPIUrls.exported_ports()}
-                      onUploadFailed={msg => this.onUploadFailed(msg)}
-                    />
-                  )}
-                  {linksExportImportEnabled && (
-                    <CSVFileUpload
-                      button={
-                        <Button variant="text">Upload Exported Links</Button>
-                      }
-                      onProgress={() =>
-                        this.setState({isLoading: true, errorMessage: null})
-                      }
-                      entity={'link'}
-                      onFileUploaded={msg => this.onFileUploaded(msg)}
-                      uploadPath={UploadAPIUrls.exported_links()}
-                      onUploadFailed={msg => this.onUploadFailed(msg)}
-                    />
-                  )}
-                  {servicesEnabled && (
-                    <CSVFileUpload
-                      button={
-                        <Button variant="text">Upload Exported Service</Button>
-                      }
-                      onProgress={() =>
-                        this.setState({isLoading: true, errorMessage: null})
-                      }
-                      entity={'service'}
-                      onFileUploaded={msg => this.onFileUploaded(msg)}
-                      uploadPath={UploadAPIUrls.exported_service()}
-                      onUploadFailed={msg => this.onUploadFailed(msg)}
-                    />
-                  )}
-                </div>
-              </>
-            ))}
+          {mode === 'upload' && <CSVUploadDialog />}
           {mode === 'python' && (
             <>
               {this.documentsLink('py-inventory.html')}
@@ -279,14 +134,6 @@ class AddToLocationDialog extends React.Component<Props, State> {
     }
 
     return '';
-  }
-
-  onFileUploaded(msg: string) {
-    this.setState({isLoading: false, errorMessage: null, successMessage: msg});
-  }
-
-  onUploadFailed(msg: string) {
-    this.setState({errorMessage: msg, isLoading: false, successMessage: null});
   }
 
   handleTabChange = (event: SyntheticEvent<*>, value: number) => {
