@@ -43,14 +43,14 @@ function Versions(props) {
                   </a>
                 </td>
                 <td>
-                  <a href={`${repoUrl}/releases/tag/v1.0.0`}>Release Notes</a>
+                  <a href={`${repoUrl}/releases/tag/v1.0.1`}>Release Notes</a>
                 </td>
               </tr>
             </tbody>
           </table>
           <p>
-            This is the first stable release for fixed wireless and private LTE
-            use cases for Magma.
+            1.0.1 is a hotfix release for the 1.0.0 stable release. See the
+            linked release notes for the issues addressed in this release.
           </p>
           <h3 id="rc">Pre-release versions</h3>
           <table className="versions">
