@@ -18,11 +18,11 @@ metadata:
     {{- with .Values.proxy.service.labels }}
 {{ toYaml . | indent 4 }}
     {{- end }}
-    {{- if or .Values.proxy.service.annotations .Values.proxy.service.extraAnnotations.proxy }}
-    annotations:
+  {{- if or .Values.proxy.service.annotations .Values.proxy.service.extraAnnotations.proxy }}
+  annotations:
 {{ with .Values.proxy.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
 {{ with .Values.proxy.service.extraAnnotations.proxy }}{{ toYaml . | indent 4 }}{{ end }}
-    {{- end}}
+  {{- end}}
 spec:
   selector:
     app.kubernetes.io/component: proxy
