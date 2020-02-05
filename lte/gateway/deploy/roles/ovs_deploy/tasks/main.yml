@@ -69,7 +69,7 @@
     name: "{{ packages }}"
   vars:
     packages:
-      - "magma={{ magma_version }}"
+      - "magma={{ all_vars.magma_version }}"
 
 - name: Configuring magma apt preferences.
   shell: "{{ item }}"
