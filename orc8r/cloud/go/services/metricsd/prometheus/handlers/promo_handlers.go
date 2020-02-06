@@ -23,7 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 
 	"github.com/labstack/echo"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 )
 
@@ -46,9 +46,17 @@ const (
 	defaultStepWidth = "15s"
 )
 
+func networkQueryRestrictorProvider(networkID string) restrictor.QueryRestrictor {
+	return *restrictor.NewQueryRestrictor(restrictor.DefaultOpts).AddMatcher(metrics.NetworkLabelName, networkID)
+}
+
 func GetPrometheusQueryHandler(api v1.API) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		restrictedQuery, err := preparePrometheusQuery(c)
+		nID, nerr := obsidian.GetNetworkId(c)
+		if nerr != nil {
+			return nerr
+		}
+		restrictedQuery, err := preparePrometheusQuery(c, networkQueryRestrictorProvider(nID))
 		if err != nil {
 			return obsidian.HttpError(err, 500)
 		}
@@ -72,7 +80,11 @@ func prometheusQuery(c echo.Context, query string, apiClient v1.API) error {
 
 func GetPrometheusQueryRangeHandler(api v1.API) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		restrictedQuery, err := preparePrometheusQuery(c)
+		nID, nerr := obsidian.GetNetworkId(c)
+		if nerr != nil {
+			return nerr
+		}
+		restrictedQuery, err := preparePrometheusQuery(c, networkQueryRestrictorProvider(nID))
 		if err != nil {
 			return obsidian.HttpError(err, 500)
 		}
@@ -110,24 +122,13 @@ func wrapPrometheusResult(res model.Value) PromQLResultStruct {
 	return PromQLResultStruct{Status: utils.StatusSuccess, Data: dataStruct}
 }
 
-func preparePrometheusQuery(c echo.Context) (string, error) {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return "", nerr
-	}
-
-	restrictedQuery, err := preprocessQuery(c.QueryParam(utils.ParamQuery), networkID)
+func preparePrometheusQuery(c echo.Context, queryRestrictor restrictor.QueryRestrictor) (string, error) {
+	restrictedQuery, err := queryRestrictor.RestrictQuery(c.QueryParam(utils.ParamQuery))
 	if err != nil {
 		return "", err
 	}
 
 	return restrictedQuery, nil
-}
-
-func preprocessQuery(query, networkID string) (string, error) {
-	restrictedLabels := map[string]string{metrics.NetworkLabelName: networkID}
-	queryRestrictor := restrictor.NewQueryRestrictor(restrictedLabels)
-	return queryRestrictor.RestrictQuery(query)
 }
 
 // PromQLResultStruct carries all of the data of the full prometheus API result
@@ -164,7 +165,7 @@ func GetPrometheusSeriesHandler(api v1.API) func(c echo.Context) error {
 			return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 		}
 
-		seriesMatches, err := getSeriesMatches(c, nID)
+		seriesMatches, err := getSeriesMatches(c, networkQueryRestrictorProvider(nID))
 		if err != nil {
 			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
 		}
@@ -177,8 +178,7 @@ func GetPrometheusSeriesHandler(api v1.API) func(c echo.Context) error {
 	}
 }
 
-func getSeriesMatches(c echo.Context, networkID string) ([]string, error) {
-	queryRestrictor := restrictor.NewQueryRestrictor(map[string]string{metrics.NetworkLabelName: networkID})
+func getSeriesMatches(c echo.Context, queryRestrictor restrictor.QueryRestrictor) ([]string, error) {
 	// Split array of matches by space delimiter
 	matches := strings.Split(c.QueryParam(paramMatch), " ")
 	seriesMatchers := make([]string, 0, len(matches))
@@ -192,11 +192,12 @@ func getSeriesMatches(c echo.Context, networkID string) ([]string, error) {
 		}
 		seriesMatchers = append(seriesMatchers, restricted)
 	}
-	// Add networkMatch if none provided since prometheus performs an OR of
+	// Add restrictors matchers if none provided since prometheus performs an OR of
 	// all matches provided, and requires at least one
 	if len(seriesMatchers) == 0 {
-		networkMatch := fmt.Sprintf(`{%s="%s"}`, metrics.NetworkLabelName, networkID)
-		seriesMatchers = append(seriesMatchers, networkMatch)
+		for _, matcher := range queryRestrictor.Matchers() {
+			seriesMatchers = append(seriesMatchers, fmt.Sprintf("{%s}", matcher.String()))
+		}
 	}
 	return seriesMatchers, nil
 }
