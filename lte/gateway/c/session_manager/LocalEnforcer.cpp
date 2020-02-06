@@ -300,16 +300,15 @@ void LocalEnforcer::install_redirect_flow(
 );
 }
 
-UpdateSessionRequest LocalEnforcer::collect_updates()
+UpdateSessionRequest LocalEnforcer::collect_updates(
+  std::vector<std::unique_ptr<ServiceAction>>& actions) const
 {
   UpdateSessionRequest request;
-  std::vector<std::unique_ptr<ServiceAction>> actions;
   for (const auto &session_pair : session_map_) {
     for (const auto &session : session_pair.second) {
       session->get_updates(request, &actions);
     }
   }
-  execute_actions(actions);
   return request;
 }
 
@@ -1243,7 +1242,9 @@ void LocalEnforcer::create_bearer(
 
 void LocalEnforcer::check_usage_for_reporting()
 {
-  auto request = collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto request = collect_updates(actions);
+  execute_actions(actions);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return; // nothing to report
   }

@@ -90,7 +90,7 @@ class LocalEnforcer {
    * and apply actions to the services if need be
    * @param updates_out (out) - vector to add usage updates to, if they exist
    */
-  UpdateSessionRequest collect_updates();
+  UpdateSessionRequest collect_updates(std::vector<std::unique_ptr<ServiceAction>>& actions) const;
 
   /**
    * Perform any rule installs/removals that need to be executed given a
@@ -168,6 +168,13 @@ class LocalEnforcer {
 
   std::string *duplicate_session_id(
     const std::string& imsi, const magma::SessionState::Config& config);
+
+  /**
+   * Execute actions on subscriber's service, eg. terminate, redirect data, or
+   * just continue
+   */
+  void execute_actions(
+    const std::vector<std::unique_ptr<ServiceAction>>& actions);
 
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
@@ -341,9 +348,6 @@ class LocalEnforcer {
     const google::protobuf::Timestamp& revalidation_time);
 
   void check_usage_for_reporting();
-
-  void execute_actions(
-    const std::vector<std::unique_ptr<ServiceAction>>& actions);
 
   /**
     * Deactivate rules for certain IMSI.
