@@ -266,6 +266,57 @@ grafana:
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
+userGrafana:
+  # Enable/Disable chart
+  create: true
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: grafana
+        port: 3000
+        targetPort: 3000
+
+  volumes:
+    # Default volume configurations for grafana data.
+    dashboards:
+      volumeSpec:
+        emptyDir: {}
+    datasources:
+      volumeSpec:
+        emptyDir: {}
+    dashboardproviders:
+      volumeSpec:
+        emptyDir: {}
+    grafanaData:
+      volumeSpec:
+        emptyDir: {}
+
+  image:
+    repository: docker.io/grafana/grafana
+    tag: 6.5.3
+    pullPolicy: IfNotPresent
+
+  # Number of metrics replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign grafana to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
 configFiles:
   useDefaults:
     alertmanagerConf: true
