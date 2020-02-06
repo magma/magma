@@ -99,14 +99,18 @@ app.use(configureAccess({loginUrl: '/user/login'}));
 
 // All /graph and /webhooks endpoints don't use CORS and are JSON (no form),
 // so no CSRF is needed
-app.use('/graph', access(USER), require('./graph/routes'));
+app.use(
+  '/graph',
+  passport.authenticate(['basic_local', 'session'], {session: false}),
+  access(USER),
+  require('./graph/routes'),
+);
 app.use(
   '/webhooks',
   passport.authenticate('basic_local', {session: false}),
   access(USER),
   require('./webhooks/routes').default,
 );
-
 app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
 
 // Catch All
