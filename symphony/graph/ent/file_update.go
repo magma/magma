@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -199,93 +201,124 @@ func (fu *FileUpdate) ExecX(ctx context.Context) {
 }
 
 func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(fu.driver.Dialect())
-		selector = builder.Select(file.FieldID).From(builder.Table(file.Table))
-	)
-	for _, p := range fu.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   file.Table,
+			Columns: file.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: file.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = fu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := fu.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := fu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(file.Table)
-	)
-	updater = updater.Where(sql.InInts(file.FieldID, ids...))
 	if value := fu.update_time; value != nil {
-		updater.Set(file.FieldUpdateTime, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldUpdateTime,
+		})
 	}
 	if value := fu._type; value != nil {
-		updater.Set(file.FieldType, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldType,
+		})
 	}
 	if value := fu.name; value != nil {
-		updater.Set(file.FieldName, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldName,
+		})
 	}
 	if value := fu.size; value != nil {
-		updater.Set(file.FieldSize, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: file.FieldSize,
+		})
 	}
 	if value := fu.addsize; value != nil {
-		updater.Add(file.FieldSize, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: file.FieldSize,
+		})
 	}
 	if fu.clearsize {
-		updater.SetNull(file.FieldSize)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: file.FieldSize,
+		})
 	}
 	if value := fu.modified_at; value != nil {
-		updater.Set(file.FieldModifiedAt, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldModifiedAt,
+		})
 	}
 	if fu.clearmodified_at {
-		updater.SetNull(file.FieldModifiedAt)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: file.FieldModifiedAt,
+		})
 	}
 	if value := fu.uploaded_at; value != nil {
-		updater.Set(file.FieldUploadedAt, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldUploadedAt,
+		})
 	}
 	if fu.clearuploaded_at {
-		updater.SetNull(file.FieldUploadedAt)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: file.FieldUploadedAt,
+		})
 	}
 	if value := fu.content_type; value != nil {
-		updater.Set(file.FieldContentType, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldContentType,
+		})
 	}
 	if value := fu.store_key; value != nil {
-		updater.Set(file.FieldStoreKey, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldStoreKey,
+		})
 	}
 	if value := fu.category; value != nil {
-		updater.Set(file.FieldCategory, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldCategory,
+		})
 	}
 	if fu.clearcategory {
-		updater.SetNull(file.FieldCategory)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: file.FieldCategory,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // FileUpdateOne is the builder for updating a single File entity.
@@ -465,111 +498,118 @@ func (fuo *FileUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
-	var (
-		builder  = sql.Dialect(fuo.driver.Dialect())
-		selector = builder.Select(file.Columns...).From(builder.Table(file.Table))
-	)
-	file.ID(fuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = fuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   file.Table,
+			Columns: file.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  fuo.id,
+				Type:   field.TypeString,
+				Column: file.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		f = &File{config: fuo.config}
-		if err := f.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into File: %v", err)
-		}
-		id = f.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("File with id: %v", fuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one File with the same id: %v", fuo.id)
-	}
-
-	tx, err := fuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(file.Table)
-	)
-	updater = updater.Where(sql.InInts(file.FieldID, ids...))
 	if value := fuo.update_time; value != nil {
-		updater.Set(file.FieldUpdateTime, *value)
-		f.UpdateTime = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldUpdateTime,
+		})
 	}
 	if value := fuo._type; value != nil {
-		updater.Set(file.FieldType, *value)
-		f.Type = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldType,
+		})
 	}
 	if value := fuo.name; value != nil {
-		updater.Set(file.FieldName, *value)
-		f.Name = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldName,
+		})
 	}
 	if value := fuo.size; value != nil {
-		updater.Set(file.FieldSize, *value)
-		f.Size = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: file.FieldSize,
+		})
 	}
 	if value := fuo.addsize; value != nil {
-		updater.Add(file.FieldSize, *value)
-		f.Size += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: file.FieldSize,
+		})
 	}
 	if fuo.clearsize {
-		var value int
-		f.Size = value
-		updater.SetNull(file.FieldSize)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: file.FieldSize,
+		})
 	}
 	if value := fuo.modified_at; value != nil {
-		updater.Set(file.FieldModifiedAt, *value)
-		f.ModifiedAt = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldModifiedAt,
+		})
 	}
 	if fuo.clearmodified_at {
-		var value time.Time
-		f.ModifiedAt = value
-		updater.SetNull(file.FieldModifiedAt)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: file.FieldModifiedAt,
+		})
 	}
 	if value := fuo.uploaded_at; value != nil {
-		updater.Set(file.FieldUploadedAt, *value)
-		f.UploadedAt = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: file.FieldUploadedAt,
+		})
 	}
 	if fuo.clearuploaded_at {
-		var value time.Time
-		f.UploadedAt = value
-		updater.SetNull(file.FieldUploadedAt)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: file.FieldUploadedAt,
+		})
 	}
 	if value := fuo.content_type; value != nil {
-		updater.Set(file.FieldContentType, *value)
-		f.ContentType = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldContentType,
+		})
 	}
 	if value := fuo.store_key; value != nil {
-		updater.Set(file.FieldStoreKey, *value)
-		f.StoreKey = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldStoreKey,
+		})
 	}
 	if value := fuo.category; value != nil {
-		updater.Set(file.FieldCategory, *value)
-		f.Category = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: file.FieldCategory,
+		})
 	}
 	if fuo.clearcategory {
-		var value string
-		f.Category = value
-		updater.SetNull(file.FieldCategory)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: file.FieldCategory,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	f = &File{config: fuo.config}
+	_spec.Assign = f.assignValues
+	_spec.ScanValues = f.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, fuo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return f, nil

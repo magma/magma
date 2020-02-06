@@ -10,6 +10,7 @@
 #include <devmand/cartography/DeviceConfig.h>
 #include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/cli/CliFlavour.h>
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
 #include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
@@ -35,6 +36,25 @@ static constexpr auto configMaxCommandTimeoutSeconds =
 static constexpr auto reconnectingQuietPeriodConfig = "reconnectingQuietPeriod";
 static constexpr auto sshConnectionTimeoutConfig = "sshConnectionTimeout";
 
+/*
+ * Responsible for creation of cli stack for single ssh connection.
+ * CLIs can be separated to two groups:
+ * - persistent CLIs, which provide high level functions like TCP connection
+ * error detection.
+ *   - KeepaliveCli - sends keepalive commands periodically
+ *   - ReconnectingCli - reestablishes inner layers upon connection error
+ * - inner CLIs. They are destroyed and recreated whenever TCP connection is
+ * reestablished.
+ *   - QueuedCli - orders commands so that only one command can be executed at a
+ * time
+ *   - LoggingCli - logs aggregated view of device and caching layers
+ *   - TimeoutTrackingCli - errors on exceeded timeout
+ *   - TreeCacheCli - maintain high level cache
+ *   - ReadCachingCli - maintains low level cache
+ *   - LoggingCli - logs communication with device
+ *   - PromptAwareCli + SshSessionAsync - lowest level, deals with ssh, prompt
+ * resolution
+ */
 class IoConfigurationBuilder {
  public:
   struct ConnectionParameters {
@@ -48,11 +68,13 @@ class IoConfigurationBuilder {
     chrono::seconds cmdTimeout;
     chrono::seconds reconnectingQuietPeriod;
     long sshConnectionTimeout; /* in seconds */
-    shared_ptr<Timekeeper> timekeeper;
+    shared_ptr<CliThreadWheelTimekeeper> timekeeper;
     shared_ptr<Executor> sshExecutor;
     shared_ptr<Executor> paExecutor;
     shared_ptr<Executor> rcExecutor;
+    shared_ptr<Executor> tcExecutor;
     shared_ptr<Executor> ttExecutor;
+    shared_ptr<Executor> lExecutor;
     shared_ptr<Executor> qExecutor;
     shared_ptr<Executor> rExecutor;
     shared_ptr<Executor> kaExecutor;
@@ -81,14 +103,7 @@ class IoConfigurationBuilder {
       chrono::seconds cmdTimeout,
       chrono::seconds reconnectingQuietPeriod,
       long sshConnectionTimeout,
-      shared_ptr<Timekeeper> timekeeper,
-      shared_ptr<Executor> sshExecutor,
-      shared_ptr<Executor> paExecutor,
-      shared_ptr<Executor> rcExecutor,
-      shared_ptr<Executor> ttExecutor,
-      shared_ptr<Executor> qExecutor,
-      shared_ptr<Executor> rExecutor,
-      shared_ptr<Executor> kaExecutor);
+      channels::cli::Engine& engine);
 
  private:
   shared_ptr<ConnectionParameters> connectionParameters;

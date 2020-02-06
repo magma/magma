@@ -17,10 +17,10 @@ import SimpleTable from '../../SimpleTable';
 import TableActionDialog from '../../TableActionDialog';
 import TableAddButton from '../../common/TableAddButton';
 import {makeStyles} from '@material-ui/styles';
+import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import type {AlertReceiver} from '../../AlarmAPIType';
-import type {ApiUtil} from '../../AlarmsApi';
 
 const useStyles = makeStyles({
   loading: {
@@ -31,12 +31,8 @@ const useStyles = makeStyles({
   },
 });
 
-type Props = {
-  apiUtil: ApiUtil,
-};
-
-export default function Receivers(props: Props) {
-  const {apiUtil} = props;
+export default function Receivers() {
+  const {apiUtil} = useAlarmContext();
   const [isAddEditReceiver, setIsAddEditReceiver] = React.useState(false);
   const [isNewReceiver, setIsNewReceiver] = React.useState(false);
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -129,7 +125,6 @@ export default function Receivers(props: Props) {
     return (
       <AddEditReceiver
         receiver={selectedRow || newReceiver()}
-        apiUtil={apiUtil}
         isNew={isNewReceiver}
         onExit={() => {
           setIsAddEditReceiver(false);

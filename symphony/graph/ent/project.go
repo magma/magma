@@ -13,6 +13,9 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/project"
+	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 )
 
 // Project is the model entity for the Project schema.
@@ -30,40 +33,158 @@ type Project struct {
 	Description *string `json:"description,omitempty"`
 	// Creator holds the value of the "creator" field.
 	Creator *string `json:"creator,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProjectQuery when eager-loading is set.
+	Edges                 ProjectEdges `json:"edges"`
+	project_location      *string
+	project_type_projects *string
 }
 
-// FromRows scans the sql response data into Project.
-func (pr *Project) FromRows(rows *sql.Rows) error {
-	var scanpr struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		Description sql.NullString
-		Creator     sql.NullString
+// ProjectEdges holds the relations/edges for other nodes in the graph.
+type ProjectEdges struct {
+	// Type holds the value of the type edge.
+	Type *ProjectType
+	// Location holds the value of the location edge.
+	Location *Location
+	// Comments holds the value of the comments edge.
+	Comments []*Comment
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [5]bool
+}
+
+// TypeOrErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProjectEdges) TypeOrErr() (*ProjectType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: projecttype.Label}
+		}
+		return e.Type, nil
 	}
-	// the order here should be the same as in the `project.Columns`.
-	if err := rows.Scan(
-		&scanpr.ID,
-		&scanpr.CreateTime,
-		&scanpr.UpdateTime,
-		&scanpr.Name,
-		&scanpr.Description,
-		&scanpr.Creator,
-	); err != nil {
-		return err
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProjectEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
 	}
-	pr.ID = strconv.Itoa(scanpr.ID)
-	pr.CreateTime = scanpr.CreateTime.Time
-	pr.UpdateTime = scanpr.UpdateTime.Time
-	pr.Name = scanpr.Name.String
-	if scanpr.Description.Valid {
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// CommentsOrErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) CommentsOrErr() ([]*Comment, error) {
+	if e.loadedTypes[2] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
+}
+
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) WorkOrdersOrErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[3] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) PropertiesOrErr() ([]*Property, error) {
+	if e.loadedTypes[4] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Project) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // description
+		&sql.NullString{}, // creator
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Project) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // project_location
+		&sql.NullInt64{}, // project_type_projects
+	}
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Project fields.
+func (pr *Project) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(project.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	pr.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		pr.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		pr.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		pr.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field description", values[3])
+	} else if value.Valid {
 		pr.Description = new(string)
-		*pr.Description = scanpr.Description.String
+		*pr.Description = value.String
 	}
-	if scanpr.Creator.Valid {
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field creator", values[4])
+	} else if value.Valid {
 		pr.Creator = new(string)
-		*pr.Creator = scanpr.Creator.String
+		*pr.Creator = value.String
+	}
+	values = values[5:]
+	if len(values) == len(project.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_location", value)
+		} else if value.Valid {
+			pr.project_location = new(string)
+			*pr.project_location = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_type_projects", value)
+		} else if value.Valid {
+			pr.project_type_projects = new(string)
+			*pr.project_type_projects = strconv.FormatInt(value.Int64, 10)
+		}
 	}
 	return nil
 }
@@ -142,18 +263,6 @@ func (pr *Project) id() int {
 
 // Projects is a parsable slice of Project.
 type Projects []*Project
-
-// FromRows scans the sql response data into Projects.
-func (pr *Projects) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanpr := &Project{}
-		if err := scanpr.FromRows(rows); err != nil {
-			return err
-		}
-		*pr = append(*pr, scanpr)
-	}
-	return nil
-}
 
 func (pr Projects) config(cfg config) {
 	for _i := range pr {

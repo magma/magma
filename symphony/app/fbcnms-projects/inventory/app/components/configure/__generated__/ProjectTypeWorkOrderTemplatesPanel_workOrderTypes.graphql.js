@@ -26,6 +26,7 @@ export type ProjectTypeWorkOrderTemplatesPanel_workOrderTypes$data = ProjectType
 export type ProjectTypeWorkOrderTemplatesPanel_workOrderTypes$key = $ReadOnlyArray<{
   +$data?: ProjectTypeWorkOrderTemplatesPanel_workOrderTypes$data,
   +$fragmentRefs: ProjectTypeWorkOrderTemplatesPanel_workOrderTypes$ref,
+  ...
 }>;
 */
 

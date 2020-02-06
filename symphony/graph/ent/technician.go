@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/technician"
 )
 
 // Technician is the model entity for the Technician schema.
@@ -28,32 +29,72 @@ type Technician struct {
 	Name string `json:"name,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the TechnicianQuery when eager-loading is set.
+	Edges TechnicianEdges `json:"edges"`
 }
 
-// FromRows scans the sql response data into Technician.
-func (t *Technician) FromRows(rows *sql.Rows) error {
-	var scant struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		Name       sql.NullString
-		Email      sql.NullString
+// TechnicianEdges holds the relations/edges for other nodes in the graph.
+type TechnicianEdges struct {
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e TechnicianEdges) WorkOrdersOrErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[0] {
+		return e.WorkOrders, nil
 	}
-	// the order here should be the same as in the `technician.Columns`.
-	if err := rows.Scan(
-		&scant.ID,
-		&scant.CreateTime,
-		&scant.UpdateTime,
-		&scant.Name,
-		&scant.Email,
-	); err != nil {
-		return err
+	return nil, &NotLoadedError{edge: "work_orders"}
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Technician) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // email
 	}
-	t.ID = strconv.Itoa(scant.ID)
-	t.CreateTime = scant.CreateTime.Time
-	t.UpdateTime = scant.UpdateTime.Time
-	t.Name = scant.Name.String
-	t.Email = scant.Email.String
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Technician fields.
+func (t *Technician) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(technician.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	t.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		t.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		t.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		t.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field email", values[3])
+	} else if value.Valid {
+		t.Email = value.String
+	}
 	return nil
 }
 
@@ -105,18 +146,6 @@ func (t *Technician) id() int {
 
 // Technicians is a parsable slice of Technician.
 type Technicians []*Technician
-
-// FromRows scans the sql response data into Technicians.
-func (t *Technicians) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scant := &Technician{}
-		if err := scant.FromRows(rows); err != nil {
-			return err
-		}
-		*t = append(*t, scant)
-	}
-	return nil
-}
 
 func (t Technicians) config(cfg config) {
 	for _i := range t {

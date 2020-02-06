@@ -43,7 +43,7 @@ func (sed *ServiceEndpointDelete) ExecX(ctx context.Context) int {
 }
 
 func (sed *ServiceEndpointDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: serviceendpoint.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (sed *ServiceEndpointDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := sed.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, sed.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, sed.driver, _spec)
 }
 
 // ServiceEndpointDeleteOne is the builder for deleting a single ServiceEndpoint entity.
@@ -74,7 +74,7 @@ func (sedo *ServiceEndpointDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{serviceendpoint.Label}
+		return &NotFoundError{serviceendpoint.Label}
 	default:
 		return nil
 	}

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
 )
 
 // FloorPlanScale is the model entity for the FloorPlanScale schema.
@@ -36,39 +37,67 @@ type FloorPlanScale struct {
 	ScaleInMeters float64 `json:"scale_in_meters,omitempty"`
 }
 
-// FromRows scans the sql response data into FloorPlanScale.
-func (fps *FloorPlanScale) FromRows(rows *sql.Rows) error {
-	var scanfps struct {
-		ID               int
-		CreateTime       sql.NullTime
-		UpdateTime       sql.NullTime
-		ReferencePoint1X sql.NullInt64
-		ReferencePoint1Y sql.NullInt64
-		ReferencePoint2X sql.NullInt64
-		ReferencePoint2Y sql.NullInt64
-		ScaleInMeters    sql.NullFloat64
+// scanValues returns the types for scanning values from sql.Rows.
+func (*FloorPlanScale) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullInt64{},   // reference_point1_x
+		&sql.NullInt64{},   // reference_point1_y
+		&sql.NullInt64{},   // reference_point2_x
+		&sql.NullInt64{},   // reference_point2_y
+		&sql.NullFloat64{}, // scale_in_meters
 	}
-	// the order here should be the same as in the `floorplanscale.Columns`.
-	if err := rows.Scan(
-		&scanfps.ID,
-		&scanfps.CreateTime,
-		&scanfps.UpdateTime,
-		&scanfps.ReferencePoint1X,
-		&scanfps.ReferencePoint1Y,
-		&scanfps.ReferencePoint2X,
-		&scanfps.ReferencePoint2Y,
-		&scanfps.ScaleInMeters,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the FloorPlanScale fields.
+func (fps *FloorPlanScale) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(floorplanscale.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	fps.ID = strconv.Itoa(scanfps.ID)
-	fps.CreateTime = scanfps.CreateTime.Time
-	fps.UpdateTime = scanfps.UpdateTime.Time
-	fps.ReferencePoint1X = int(scanfps.ReferencePoint1X.Int64)
-	fps.ReferencePoint1Y = int(scanfps.ReferencePoint1Y.Int64)
-	fps.ReferencePoint2X = int(scanfps.ReferencePoint2X.Int64)
-	fps.ReferencePoint2Y = int(scanfps.ReferencePoint2Y.Int64)
-	fps.ScaleInMeters = scanfps.ScaleInMeters.Float64
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	fps.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		fps.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		fps.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field reference_point1_x", values[2])
+	} else if value.Valid {
+		fps.ReferencePoint1X = int(value.Int64)
+	}
+	if value, ok := values[3].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field reference_point1_y", values[3])
+	} else if value.Valid {
+		fps.ReferencePoint1Y = int(value.Int64)
+	}
+	if value, ok := values[4].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field reference_point2_x", values[4])
+	} else if value.Valid {
+		fps.ReferencePoint2X = int(value.Int64)
+	}
+	if value, ok := values[5].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field reference_point2_y", values[5])
+	} else if value.Valid {
+		fps.ReferencePoint2Y = int(value.Int64)
+	}
+	if value, ok := values[6].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field scale_in_meters", values[6])
+	} else if value.Valid {
+		fps.ScaleInMeters = value.Float64
+	}
 	return nil
 }
 
@@ -121,18 +150,6 @@ func (fps *FloorPlanScale) id() int {
 
 // FloorPlanScales is a parsable slice of FloorPlanScale.
 type FloorPlanScales []*FloorPlanScale
-
-// FromRows scans the sql response data into FloorPlanScales.
-func (fps *FloorPlanScales) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanfps := &FloorPlanScale{}
-		if err := scanfps.FromRows(rows); err != nil {
-			return err
-		}
-		*fps = append(*fps, scanfps)
-	}
-	return nil
-}
 
 func (fps FloorPlanScales) config(cfg config) {
 	for _i := range fps {

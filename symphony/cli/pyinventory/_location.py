@@ -430,6 +430,7 @@ def get_location_documents(client: GraphqlClient, location: Location) -> List[Do
             id=file.id,
             parentId=location.id,
             parentEntity=ImageEntity.LOCATION,
+            category=file.category,
         )
         for file in files
     ]

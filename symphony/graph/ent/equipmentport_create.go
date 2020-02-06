@@ -196,8 +196,8 @@ func (epc *EquipmentPortCreate) SaveX(ctx context.Context) *EquipmentPort {
 
 func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, error) {
 	var (
-		ep   = &EquipmentPort{config: epc.config}
-		spec = &sqlgraph.CreateSpec{
+		ep    = &EquipmentPort{config: epc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipmentport.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -206,7 +206,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 		}
 	)
 	if value := epc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentport.FieldCreateTime,
@@ -214,7 +214,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 		ep.CreateTime = *value
 	}
 	if value := epc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentport.FieldUpdateTime,
@@ -242,7 +242,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epc.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -265,7 +265,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epc.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -288,7 +288,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -311,7 +311,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epc.endpoints; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -334,15 +334,15 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, epc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, epc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	ep.ID = strconv.FormatInt(id, 10)
 	return ep, nil
 }

@@ -18,7 +18,7 @@ export const USERS = [
     organization: 'validorg',
     role: AccessRoles.USER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
-    readOnly: false,
+    networkIDs: ['network1'],
   },
   {
     id: '2',
@@ -26,7 +26,6 @@ export const USERS = [
     organization: 'nottakenintoconsideration',
     role: AccessRoles.USER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
-    readOnly: false,
   },
   {
     id: '3',
@@ -34,36 +33,47 @@ export const USERS = [
     organization: 'validorg',
     role: AccessRoles.SUPERUSER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
-    readOnly: false,
+  },
+  {
+    id: '4',
+    email: 'readonlyuser@123.com',
+    organization: 'readonlyorg',
+    role: AccessRoles.READ_ONLY_USER,
+    password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
   },
 ];
 
 export const USERS_EXPECTED = [
   {
-    networkIDs: [],
+    networkIDs: ['network1'],
     id: 1,
     email: 'valid@123.com',
     organization: 'validorg',
-    role: 0,
+    role: AccessRoles.USER,
     tabs: [],
-    readOnly: false,
   },
   {
     networkIDs: [],
     id: 2,
     email: 'noorg@123.com',
     organization: 'nottakenintoconsideration',
-    role: 0,
+    role: AccessRoles.USER,
     tabs: [],
-    readOnly: false,
   },
   {
     networkIDs: [],
     id: 3,
     email: 'superuser@123.com',
     organization: 'validorg',
-    role: 3,
+    role: AccessRoles.SUPERUSER,
     tabs: [],
-    readOnly: false,
+  },
+  {
+    networkIDs: [],
+    id: 4,
+    email: 'readonlyuser@123.com',
+    organization: 'readonlyorg',
+    role: AccessRoles.READ_ONLY_USER,
+    tabs: [],
   },
 ];

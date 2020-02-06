@@ -53,6 +53,7 @@ export type EquipmentBreadcrumbs_equipment$data = EquipmentBreadcrumbs_equipment
 export type EquipmentBreadcrumbs_equipment$key = {
   +$data?: EquipmentBreadcrumbs_equipment$data,
   +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
+  ...
 };
 */
 

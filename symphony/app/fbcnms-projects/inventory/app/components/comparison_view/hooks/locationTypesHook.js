@@ -12,6 +12,7 @@ import RelayEnvironment from '../../../common/RelayEnvironment';
 import {buildLocationTypeFilterConfigs, getLocationTypes} from '../FilterUtils';
 import {graphql} from 'relay-runtime';
 import {useGraphQL} from '@fbcnms/ui/hooks';
+import {useMemo} from 'react';
 
 const locationTypesQuery = graphql`
   query locationTypesHookLocationTypesQuery {
@@ -32,9 +33,15 @@ const useLocationTypes = () => {
     locationTypesQuery,
     {},
   );
-  return buildLocationTypeFilterConfigs(
-    getLocationTypes(locationTypesResponse.response),
-  );
+
+  return useMemo(() => {
+    if (locationTypesResponse.response === null) {
+      return null;
+    }
+    return buildLocationTypeFilterConfigs(
+      getLocationTypes(locationTypesResponse.response),
+    );
+  }, [locationTypesResponse.response]);
 };
 
 export default useLocationTypes;

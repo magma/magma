@@ -208,6 +208,48 @@ equipment,
 <dd>
 <section class="desc"></section>
 </dd>
+<dt id="pyinventory.InventoryClient.add_file"><code class="name flex">
+<span>def <span class="ident">add_file</span></span>(<span>client, local_file_path, entity_type, entity_id, category=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function adds file to an entity of a given type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>client (object):</dt>
+<dt>Client object</dt>
+<dt>local_file_path (str):</dt>
+<dt>local system path to the file</dt>
+<dt>entity_type (str):</dt>
+<dt>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dt>
+<dt>entity_id (string):</dt>
+<dt>valid entity ID</dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>client.add_file(client, './document.pdf', 'LOCATION', location.id)</p></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_files"><code class="name flex">
+<span>def <span class="ident">add_files</span></span>(<span>client, local_directory_path, entity_type, entity_id, category=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function adds all files located in folder to an entity of a given type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>client (object):</dt>
+<dt>Client object</dt>
+<dt>local_file_path (str):</dt>
+<dt>local system path to the file</dt>
+<dt>entity_type (str):</dt>
+<dt>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dt>
+<dt>entity_id (string):</dt>
+<dt>valid entity ID</dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>client.add_files(client, './documents_folder/', 'LOCATION', location.id)</p></section>
+</dd>
 <dt id="pyinventory.InventoryClient.add_link"><code class="name flex">
 <span>def <span class="ident">add_link</span></span>(<span>client, equipment_a, port_name_a, equipment_b, port_name_b)</span>
 </code></dt>
@@ -729,6 +771,8 @@ with the paremeter jsonFilePath (the next parameter of this function)</dd>
 <li><code><a title="pyinventory.InventoryClient.add_equipment" href="#pyinventory.InventoryClient.add_equipment">add_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_equipment_to_position" href="#pyinventory.InventoryClient.add_equipment_to_position">add_equipment_to_position</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_equipment_type" href="#pyinventory.InventoryClient.add_equipment_type">add_equipment_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_file" href="#pyinventory.InventoryClient.add_file">add_file</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_files" href="#pyinventory.InventoryClient.add_files">add_files</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_link" href="#pyinventory.InventoryClient.add_link">add_link</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_location" href="#pyinventory.InventoryClient.add_location">add_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_location_image" href="#pyinventory.InventoryClient.add_location_image">add_location_image</a></code></li>

@@ -8,7 +8,7 @@ from typing import Any, Dict, List, NamedTuple, Optional
 from .reporter import DummyReporter
 
 
-__version__ = "2.3.4"
+__version__ = "2.3.6"
 
 DUMMY_REPORTER = DummyReporter()
 
@@ -125,3 +125,4 @@ class Document(NamedTuple):
     name: str
     parentId: str
     parentEntity: ImageEntity
+    category: Optional[str]

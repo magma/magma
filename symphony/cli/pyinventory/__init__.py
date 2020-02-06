@@ -33,6 +33,8 @@ class InventoryClient(GraphqlClient):
         add_site_survey_image,
         delete_document,
         delete_site_survey_image,
+        add_file,
+        add_files,
     )
     from ._locationtype import (
         add_location_type,

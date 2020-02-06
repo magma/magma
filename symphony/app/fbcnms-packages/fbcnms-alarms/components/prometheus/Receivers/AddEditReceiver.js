@@ -18,6 +18,7 @@ import SlackConfigEditor from './SlackConfigEditor';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import WebhookConfigEditor from './WebhookConfigEditor';
+import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useForm} from '../../hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -29,11 +30,9 @@ import type {
   ReceiverSlackConfig,
   ReceiverWebhookConfig,
 } from '../../AlarmAPIType';
-import type {ApiUtil} from '../../AlarmsApi';
 
 type Props = {
   receiver: AlertReceiver,
-  apiUtil: ApiUtil,
   isNew: boolean,
   onExit: () => void,
 };
@@ -67,7 +66,9 @@ const CONFIG_TYPES: {
 };
 
 export default function AddEditReceiver(props: Props) {
-  const {apiUtil, isNew, receiver, onExit} = props;
+  const {apiUtil} = useAlarmContext();
+
+  const {isNew, receiver, onExit} = props;
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -136,7 +137,9 @@ export default function AddEditReceiver(props: Props) {
       isNew={isNew}
       onSave={handleSave}
       onExit={onExit}
-      data-testid="add-edit-receiver">
+      data-testid="add-edit-receiver"
+      title={receiver?.name || 'New Receiver'}
+      description="Configure channels to notify when an alert fires">
       <Grid item>
         <TextField
           required

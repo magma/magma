@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 6056bc1401326d2c84378ec1938412da
+ * @relayHash 3bca0a33295020ff7587d39b593251ae
  */
 
 /* eslint-disable */
@@ -21,7 +21,7 @@ export type PowerSearchLocationFilterQueryVariables = {|
 |};
 export type PowerSearchLocationFilterQueryResponse = {|
   +locations: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

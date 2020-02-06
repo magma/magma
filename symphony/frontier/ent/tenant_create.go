@@ -173,8 +173,8 @@ func (tc *TenantCreate) SaveX(ctx context.Context) *Tenant {
 
 func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 	var (
-		t    = &Tenant{config: tc.config}
-		spec = &sqlgraph.CreateSpec{
+		t     = &Tenant{config: tc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: tenant.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
@@ -183,7 +183,7 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		}
 	)
 	if value := tc.created_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: tenant.FieldCreatedAt,
@@ -191,7 +191,7 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		t.CreatedAt = *value
 	}
 	if value := tc.updated_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: tenant.FieldUpdatedAt,
@@ -199,7 +199,7 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		t.UpdatedAt = *value
 	}
 	if value := tc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: tenant.FieldName,
@@ -207,7 +207,7 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		t.Name = *value
 	}
 	if value := tc.domains; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
 			Column: tenant.FieldDomains,
@@ -215,7 +215,7 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		t.Domains = *value
 	}
 	if value := tc.networks; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
 			Column: tenant.FieldNetworks,
@@ -223,7 +223,7 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		t.Networks = *value
 	}
 	if value := tc.tabs; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
 			Column: tenant.FieldTabs,
@@ -231,7 +231,7 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		t.Tabs = *value
 	}
 	if value := tc.SSOCert; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: tenant.FieldSSOCert,
@@ -239,7 +239,7 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		t.SSOCert = *value
 	}
 	if value := tc.SSOEntryPoint; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: tenant.FieldSSOEntryPoint,
@@ -247,20 +247,20 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		t.SSOEntryPoint = *value
 	}
 	if value := tc.SSOIssuer; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: tenant.FieldSSOIssuer,
 		})
 		t.SSOIssuer = *value
 	}
-	if err := sqlgraph.CreateNode(ctx, tc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	t.ID = int(id)
 	return t, nil
 }

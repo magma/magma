@@ -33,24 +33,24 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "propertytype" package.
 	PropertyTypesInverseTable = "property_types"
 	// PropertyTypesColumn is the table column denoting the property_types relation/edge.
-	PropertyTypesColumn = "equipment_port_type_id"
+	PropertyTypesColumn = "equipment_port_type_property_types"
 	// LinkPropertyTypesTable is the table the holds the link_property_types relation/edge.
 	LinkPropertyTypesTable = "property_types"
 	// LinkPropertyTypesInverseTable is the table name for the PropertyType entity.
 	// It exists in this package in order to avoid circular dependency with the "propertytype" package.
 	LinkPropertyTypesInverseTable = "property_types"
 	// LinkPropertyTypesColumn is the table column denoting the link_property_types relation/edge.
-	LinkPropertyTypesColumn = "link_equipment_port_type_id"
+	LinkPropertyTypesColumn = "equipment_port_type_link_property_types"
 	// PortDefinitionsTable is the table the holds the port_definitions relation/edge.
 	PortDefinitionsTable = "equipment_port_definitions"
 	// PortDefinitionsInverseTable is the table name for the EquipmentPortDefinition entity.
 	// It exists in this package in order to avoid circular dependency with the "equipmentportdefinition" package.
 	PortDefinitionsInverseTable = "equipment_port_definitions"
 	// PortDefinitionsColumn is the table column denoting the port_definitions relation/edge.
-	PortDefinitionsColumn = "equipment_port_type_id"
+	PortDefinitionsColumn = "equipment_port_definition_equipment_port_type"
 )
 
-// Columns holds all SQL columns are equipmentporttype fields.
+// Columns holds all SQL columns for equipmentporttype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

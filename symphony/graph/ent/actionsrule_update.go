@@ -8,11 +8,11 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
@@ -92,74 +92,65 @@ func (aru *ActionsRuleUpdate) ExecX(ctx context.Context) {
 }
 
 func (aru *ActionsRuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(aru.driver.Dialect())
-		selector = builder.Select(actionsrule.FieldID).From(builder.Table(actionsrule.Table))
-	)
-	for _, p := range aru.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   actionsrule.Table,
+			Columns: actionsrule.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: actionsrule.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = aru.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := aru.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := aru.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(actionsrule.Table)
-	)
-	updater = updater.Where(sql.InInts(actionsrule.FieldID, ids...))
 	if value := aru.update_time; value != nil {
-		updater.Set(actionsrule.FieldUpdateTime, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: actionsrule.FieldUpdateTime,
+		})
 	}
 	if value := aru.name; value != nil {
-		updater.Set(actionsrule.FieldName, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: actionsrule.FieldName,
+		})
 	}
 	if value := aru.triggerID; value != nil {
-		updater.Set(actionsrule.FieldTriggerID, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: actionsrule.FieldTriggerID,
+		})
 	}
 	if value := aru.ruleFilters; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return 0, err
-		}
-		updater.Set(actionsrule.FieldRuleFilters, buf)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: actionsrule.FieldRuleFilters,
+		})
 	}
 	if value := aru.ruleActions; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return 0, err
-		}
-		updater.Set(actionsrule.FieldRuleActions, buf)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: actionsrule.FieldRuleActions,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if n, err = sqlgraph.UpdateNodes(ctx, aru.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // ActionsRuleUpdateOne is the builder for updating a single ActionsRule entity.
@@ -230,79 +221,59 @@ func (aruo *ActionsRuleUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (aruo *ActionsRuleUpdateOne) sqlSave(ctx context.Context) (ar *ActionsRule, err error) {
-	var (
-		builder  = sql.Dialect(aruo.driver.Dialect())
-		selector = builder.Select(actionsrule.Columns...).From(builder.Table(actionsrule.Table))
-	)
-	actionsrule.ID(aruo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = aruo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   actionsrule.Table,
+			Columns: actionsrule.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  aruo.id,
+				Type:   field.TypeString,
+				Column: actionsrule.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		ar = &ActionsRule{config: aruo.config}
-		if err := ar.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into ActionsRule: %v", err)
-		}
-		id = ar.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("ActionsRule with id: %v", aruo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one ActionsRule with the same id: %v", aruo.id)
-	}
-
-	tx, err := aruo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(actionsrule.Table)
-	)
-	updater = updater.Where(sql.InInts(actionsrule.FieldID, ids...))
 	if value := aruo.update_time; value != nil {
-		updater.Set(actionsrule.FieldUpdateTime, *value)
-		ar.UpdateTime = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: actionsrule.FieldUpdateTime,
+		})
 	}
 	if value := aruo.name; value != nil {
-		updater.Set(actionsrule.FieldName, *value)
-		ar.Name = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: actionsrule.FieldName,
+		})
 	}
 	if value := aruo.triggerID; value != nil {
-		updater.Set(actionsrule.FieldTriggerID, *value)
-		ar.TriggerID = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: actionsrule.FieldTriggerID,
+		})
 	}
 	if value := aruo.ruleFilters; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		updater.Set(actionsrule.FieldRuleFilters, buf)
-		ar.RuleFilters = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: actionsrule.FieldRuleFilters,
+		})
 	}
 	if value := aruo.ruleActions; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		updater.Set(actionsrule.FieldRuleActions, buf)
-		ar.RuleActions = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: actionsrule.FieldRuleActions,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	ar = &ActionsRule{config: aruo.config}
+	_spec.Assign = ar.assignValues
+	_spec.ScanValues = ar.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, aruo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return ar, nil

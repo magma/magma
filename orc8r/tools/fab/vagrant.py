@@ -22,7 +22,7 @@ def __ensure_in_vagrant_dir():
     return
 
 
-def setup_env_vagrant(machine='magma', apply_to_env=True):
+def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False):
     """ Host config for local Vagrant VM.
 
     Sets the environment to point at the local vagrant machine. Used
@@ -49,6 +49,8 @@ def setup_env_vagrant(machine='magma', apply_to_env=True):
                   " Failed to bring up %s'"
                   % (machine, machine))
             exit(1)
+    elif force_provision:
+        local('vagrant provision %s' % machine)
 
     ssh_config = local('vagrant ssh-config %s' % machine, capture=True)
 

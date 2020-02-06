@@ -8,12 +8,15 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
@@ -29,6 +32,10 @@ type ProjectTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.ProjectType
+	// eager-loading edges.
+	withProjects   *ProjectQuery
+	withProperties *PropertyTypeQuery
+	withWorkOrders *WorkOrderDefinitionQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -93,14 +100,14 @@ func (ptq *ProjectTypeQuery) QueryWorkOrders() *WorkOrderDefinitionQuery {
 	return query
 }
 
-// First returns the first ProjectType entity in the query. Returns *ErrNotFound when no projecttype was found.
+// First returns the first ProjectType entity in the query. Returns *NotFoundError when no projecttype was found.
 func (ptq *ProjectTypeQuery) First(ctx context.Context) (*ProjectType, error) {
 	pts, err := ptq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(pts) == 0 {
-		return nil, &ErrNotFound{projecttype.Label}
+		return nil, &NotFoundError{projecttype.Label}
 	}
 	return pts[0], nil
 }
@@ -114,14 +121,14 @@ func (ptq *ProjectTypeQuery) FirstX(ctx context.Context) *ProjectType {
 	return pt
 }
 
-// FirstID returns the first ProjectType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first ProjectType id in the query. Returns *NotFoundError when no id was found.
 func (ptq *ProjectTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = ptq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{projecttype.Label}
+		err = &NotFoundError{projecttype.Label}
 		return
 	}
 	return ids[0], nil
@@ -146,9 +153,9 @@ func (ptq *ProjectTypeQuery) Only(ctx context.Context) (*ProjectType, error) {
 	case 1:
 		return pts[0], nil
 	case 0:
-		return nil, &ErrNotFound{projecttype.Label}
+		return nil, &NotFoundError{projecttype.Label}
 	default:
-		return nil, &ErrNotSingular{projecttype.Label}
+		return nil, &NotSingularError{projecttype.Label}
 	}
 }
 
@@ -171,9 +178,9 @@ func (ptq *ProjectTypeQuery) OnlyID(ctx context.Context) (id string, err error) 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{projecttype.Label}
+		err = &NotFoundError{projecttype.Label}
 	default:
-		err = &ErrNotSingular{projecttype.Label}
+		err = &NotSingularError{projecttype.Label}
 	}
 	return
 }
@@ -262,6 +269,39 @@ func (ptq *ProjectTypeQuery) Clone() *ProjectTypeQuery {
 	}
 }
 
+//  WithProjects tells the query-builder to eager-loads the nodes that are connected to
+// the "projects" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *ProjectTypeQuery) WithProjects(opts ...func(*ProjectQuery)) *ProjectTypeQuery {
+	query := &ProjectQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withProjects = query
+	return ptq
+}
+
+//  WithProperties tells the query-builder to eager-loads the nodes that are connected to
+// the "properties" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *ProjectTypeQuery) WithProperties(opts ...func(*PropertyTypeQuery)) *ProjectTypeQuery {
+	query := &PropertyTypeQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withProperties = query
+	return ptq
+}
+
+//  WithWorkOrders tells the query-builder to eager-loads the nodes that are connected to
+// the "work_orders" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *ProjectTypeQuery) WithWorkOrders(opts ...func(*WorkOrderDefinitionQuery)) *ProjectTypeQuery {
+	query := &WorkOrderDefinitionQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withWorkOrders = query
+	return ptq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -304,45 +344,138 @@ func (ptq *ProjectTypeQuery) Select(field string, fields ...string) *ProjectType
 }
 
 func (ptq *ProjectTypeQuery) sqlAll(ctx context.Context) ([]*ProjectType, error) {
-	rows := &sql.Rows{}
-	selector := ptq.sqlQuery()
-	if unique := ptq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes       = []*ProjectType{}
+		_spec       = ptq.querySpec()
+		loadedTypes = [3]bool{
+			ptq.withProjects != nil,
+			ptq.withProperties != nil,
+			ptq.withWorkOrders != nil,
+		}
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &ProjectType{config: ptq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := ptq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, ptq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var pts ProjectTypes
-	if err := pts.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	pts.config(ptq.config)
-	return pts, nil
+
+	if query := ptq.withProjects; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*ProjectType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Project(func(s *sql.Selector) {
+			s.Where(sql.InValues(projecttype.ProjectsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_type_projects
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_type_projects" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_type_projects" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Projects = append(node.Edges.Projects, n)
+		}
+	}
+
+	if query := ptq.withProperties; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*ProjectType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.PropertyType(func(s *sql.Selector) {
+			s.Where(sql.InValues(projecttype.PropertiesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_type_properties
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_type_properties" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_type_properties" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Properties = append(node.Edges.Properties, n)
+		}
+	}
+
+	if query := ptq.withWorkOrders; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*ProjectType)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrderDefinition(func(s *sql.Selector) {
+			s.Where(sql.InValues(projecttype.WorkOrdersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.project_type_work_orders
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "project_type_work_orders" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_type_work_orders" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
+		}
+	}
+
+	return nodes, nil
 }
 
 func (ptq *ProjectTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := ptq.sqlQuery()
-	unique := []string{projecttype.FieldID}
-	if len(ptq.unique) > 0 {
-		unique = ptq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := ptq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := ptq.querySpec()
+	return sqlgraph.CountNodes(ctx, ptq.driver, _spec)
 }
 
 func (ptq *ProjectTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -351,6 +484,42 @@ func (ptq *ProjectTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (ptq *ProjectTypeQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   projecttype.Table,
+			Columns: projecttype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: projecttype.FieldID,
+			},
+		},
+		From:   ptq.sql,
+		Unique: true,
+	}
+	if ps := ptq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := ptq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := ptq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := ptq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (ptq *ProjectTypeQuery) sqlQuery() *sql.Selector {
@@ -624,7 +793,7 @@ func (pts *ProjectTypeSelect) sqlScan(ctx context.Context, v interface{}) error 
 }
 
 func (pts *ProjectTypeSelect) sqlQuery() sql.Querier {
-	view := "projecttype_view"
-	return sql.Dialect(pts.driver.Dialect()).
-		Select(pts.fields...).From(pts.sql.As(view))
+	selector := pts.sql
+	selector.Select(selector.Columns(pts.fields...)...)
+	return selector
 }

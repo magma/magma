@@ -86,7 +86,7 @@ development stack.
 To start Orchestrator (without metrics) is as simple as:
 
 ```bash
-HOST [magma/orc8r/cloud/docker]$ ./run.sh 
+HOST [magma/orc8r/cloud/docker]$ ./run.sh
 
 Creating orc8r_postgres_1 ... done
 Creating orc8r_test_1     ... done
@@ -181,6 +181,7 @@ the NMS to talk to your local Orchestrator:
 
 ```bash
 HOST [magma]$ cd symphony/app/fbcnms-projects/magmalte
+HOST [magma/symphony/app/fbcnms-projects/magmalte] $ docker-compose build magmalte
 HOST [magma/symphony/app/fbcnms-projects/magmalte] $ docker-compose up -d
 HOST [magma/symphony/app/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
 ```

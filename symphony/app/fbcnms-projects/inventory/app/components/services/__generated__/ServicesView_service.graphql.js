@@ -47,6 +47,7 @@ export type ServicesView_service$data = ServicesView_service;
 export type ServicesView_service$key = $ReadOnlyArray<{
   +$data?: ServicesView_service$data,
   +$fragmentRefs: ServicesView_service$ref,
+  ...
 }>;
 */
 

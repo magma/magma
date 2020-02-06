@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash f96b1774dbdcaf150948ef827771bb20
+ * @relayHash 83908f55e73a568dadcf6679c8edf8ff
  */
 
 /* eslint-disable */
@@ -93,13 +93,13 @@ fragment AvailablePortsTable_ports on EquipmentPort {
     ...EquipmentBreadcrumbs_equipment
   }
   definition {
+    id
     name
     portType {
       name
       id
     }
     visibleLabel
-    id
   }
 }
 
@@ -381,7 +381,7 @@ return {
     "operationKind": "query",
     "name": "AddEndpointToServiceDialogQuery",
     "id": null,
-    "text": "query AddEndpointToServiceDialogQuery(\n  $filters: [PortFilterInput!]!\n) {\n  portSearch(filters: $filters, limit: 50) {\n    ports {\n      id\n      definition {\n        id\n        name\n      }\n      ...AvailablePortsTable_ports\n    }\n  }\n}\n\nfragment AvailablePortsTable_ports on EquipmentPort {\n  id\n  parentEquipment {\n    id\n    name\n    ...EquipmentBreadcrumbs_equipment\n  }\n  definition {\n    name\n    portType {\n      name\n      id\n    }\n    visibleLabel\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query AddEndpointToServiceDialogQuery(\n  $filters: [PortFilterInput!]!\n) {\n  portSearch(filters: $filters, limit: 50) {\n    ports {\n      id\n      definition {\n        id\n        name\n      }\n      ...AvailablePortsTable_ports\n    }\n  }\n}\n\nfragment AvailablePortsTable_ports on EquipmentPort {\n  id\n  parentEquipment {\n    id\n    name\n    ...EquipmentBreadcrumbs_equipment\n  }\n  definition {\n    id\n    name\n    portType {\n      name\n      id\n    }\n    visibleLabel\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

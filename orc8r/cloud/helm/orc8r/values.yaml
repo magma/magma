@@ -40,7 +40,9 @@ metrics:
     create: false
   alertmanager:
     create: false
-  configmanager:
+  alertmanagerConfigurer:
+    create: false
+  prometheusConfigurer:
     create: false
 
 # secrets sub-chart configuration.
@@ -52,7 +54,6 @@ secret:
   certs: orc8r-secrets-certs
   configs:
     orc8r: orc8r-secrets-configs-orc8r
-    cwf: orc8r-secrets-configs-cwf
   envdir: orc8r-secrets-envdir
 
 proxy:
@@ -72,6 +73,7 @@ proxy:
     extraAnnotations:
       bootstrapLagacy: {}
       clientcertLegacy: {}
+      proxy: {}
     labels: {}
     type: ClusterIP
     port:
@@ -166,6 +168,8 @@ controller:
     new_handlers: 0
     new_mconfigs: 0
     mconfig_whitelist: ""
+
+  podAnnotations: {}
 
   # Number of controller replicas desired
   replicas: 1

@@ -285,10 +285,7 @@ func getSingleCreditResponsesFromCCA(
 	return res
 }
 
-func getInitialCreditResponsesFromCCA(
-	answer *gy.CreditControlAnswer,
-	request *gy.CreditControlRequest,
-) []*protos.CreditUpdateResponse {
+func getInitialCreditResponsesFromCCA(request *gy.CreditControlRequest, answer *gy.CreditControlAnswer) []*protos.CreditUpdateResponse {
 	responses := make([]*protos.CreditUpdateResponse, 0, len(answer.Credits))
 	for _, credit := range answer.Credits {
 		success := credit.ResultCode == diameter.SuccessCode || credit.ResultCode == 0
@@ -372,4 +369,30 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 		Type:          credit_control.CRTTerminate,
 		RatType:       gy.GetRATType(termination.GetRatType()),
 	}
+}
+
+func validateGyCCAIMSCC(gyCCAInit *gy.CreditControlAnswer) error {
+	/* Here we need to go through the result codes within MSCC received */
+
+	for _, credit := range gyCCAInit.Credits {
+		switch credit.ResultCode {
+		case diameter.SuccessCode:
+			{
+				glog.V(2).Infof("MSCC Avp Result code %v for Rating group %v",
+					credit.ResultCode, credit.RatingGroup)
+			}
+		case diameter.DiameterCreditLimitReached:
+			{
+				glog.V(2).Infof("MSCC Avp Result code %v for Rating group %v. Subscriber out of credit on OCS",
+					credit.ResultCode, credit.RatingGroup)
+			}
+		default:
+			{
+				return fmt.Errorf(
+					"Received unsuccessful result code from OCS, ResultCode: %d, Rating Group: %d",
+					credit.ResultCode, credit.RatingGroup)
+			}
+		}
+	}
+	return nil
 }

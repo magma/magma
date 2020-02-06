@@ -51,7 +51,7 @@ class MoveLocationMutation:
         moveLocation: Optional[Location] = None
 
     data: Optional[MoveLocationMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

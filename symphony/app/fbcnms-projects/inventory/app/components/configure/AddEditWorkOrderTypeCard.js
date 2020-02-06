@@ -8,27 +8,6 @@
  * @format
  */
 
-import AddWorkOrderTypeMutation from '../../mutations/AddWorkOrderTypeMutation';
-import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
-import Button from '@fbcnms/ui/components/design-system/Button';
-import CheckListTable from '../checklist/CheckListTable';
-import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
-import EditWorkOrderTypeMutation from '../../mutations/EditWorkOrderTypeMutation';
-import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
-import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
-import PropertyTypeTable from '../form/PropertyTypeTable';
-import React from 'react';
-import RemoveWorkOrderTypeMutation from '../../mutations/RemoveWorkOrderTypeMutation';
-import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import symphony from '@fbcnms/ui/theme/symphony';
-import update from 'immutability-helper';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {ConnectionHandler} from 'relay-runtime';
-import {createFragmentContainer, graphql} from 'react-relay';
-import {getPropertyDefaultValue} from '../../common/PropertyType';
-import {sortByIndex} from '../draggable/DraggableUtils';
-import {withSnackbar} from 'notistack';
-import {withStyles} from '@material-ui/core/styles';
 import type {AddEditWorkOrderTypeCard_editingWorkOrderType} from './__generated__/AddEditWorkOrderTypeCard_editingWorkOrderType.graphql';
 import type {
   AddWorkOrderTypeMutationResponse,
@@ -43,6 +22,30 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 import type {WorkOrderType} from '../../common/WorkOrder';
+
+import AddWorkOrderTypeMutation from '../../mutations/AddWorkOrderTypeMutation';
+import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import CheckListTable from '../checklist/CheckListTable';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import EditWorkOrderTypeMutation from '../../mutations/EditWorkOrderTypeMutation';
+import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
+import PropertyTypeTable from '../form/PropertyTypeTable';
+import React from 'react';
+import RemoveWorkOrderTypeMutation from '../../mutations/RemoveWorkOrderTypeMutation';
+import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import symphony from '@fbcnms/ui/theme/symphony';
+import update from 'immutability-helper';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {ConnectionHandler} from 'relay-runtime';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {createFragmentContainer, graphql} from 'react-relay';
+import {getPropertyDefaultValue} from '../../common/PropertyType';
+import {sortByIndex} from '../draggable/DraggableUtils';
+import {withSnackbar} from 'notistack';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   root: {
@@ -127,69 +130,79 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       .slice()
       .sort(sortByIndex);
     return (
-      <div className={classes.root}>
-        <Breadcrumbs
-          className={classes.title}
-          breadcrumbs={[
-            {
-              id: 'wo_templates',
-              name: 'Work Order Templates',
-            },
-            this.props.editingWorkOrderType
-              ? {
-                  id: this.props.editingWorkOrderType.id,
-                  name: this.props.editingWorkOrderType.name,
-                }
-              : {
-                  id: 'new_wo_type',
-                  name: 'New Work Order Template',
-                },
-          ]}
-          size="large"
-        />
-        <div className={classes.buttons}>
-          {!!this.props.editingWorkOrderType && (
-            <div className={classes.deleteButton}>
-              <DeleteOutlineIcon onClick={this.onDelete} />
-            </div>
-          )}
-          <Button
-            className={classes.cancelButton}
-            skin="regular"
-            onClick={onClose}>
-            Cancel
-          </Button>
-          <Button disabled={this.isSaveDisabled()} onClick={this.onSave}>
-            Save
-          </Button>
+      <FormValidationContextProvider>
+        <div className={classes.root}>
+          <Breadcrumbs
+            className={classes.title}
+            breadcrumbs={[
+              {
+                id: 'wo_templates',
+                name: 'Work Order Templates',
+              },
+              this.props.editingWorkOrderType
+                ? {
+                    id: this.props.editingWorkOrderType.id,
+                    name: this.props.editingWorkOrderType.name,
+                  }
+                : {
+                    id: 'new_wo_type',
+                    name: 'New Work Order Template',
+                  },
+            ]}
+            size="large"
+          />
+          <div className={classes.buttons}>
+            {!!this.props.editingWorkOrderType && (
+              <FormAction>
+                <Button
+                  className={classes.deleteButton}
+                  variant="text"
+                  skin="gray"
+                  onClick={this.onDelete}>
+                  <DeleteOutlineIcon />
+                </Button>
+              </FormAction>
+            )}
+            <Button
+              className={classes.cancelButton}
+              skin="regular"
+              onClick={onClose}>
+              Cancel
+            </Button>
+            <FormAction>
+              <Button disabled={this.isSaveDisabled()} onClick={this.onSave}>
+                Save
+              </Button>
+            </FormAction>
+          </div>
+          <div className={classes.body}>
+            <ExpandingPanel title="Details">
+              <NameDescriptionSection
+                title="Title"
+                name={editingWorkOrderType.name ?? ''}
+                description={editingWorkOrderType.description ?? ''}
+                descriptionPlaceholder="Describe the work order"
+                onNameChange={this.nameChanged}
+                onDescriptionChange={this.descriptionChanged}
+              />
+            </ExpandingPanel>
+            <ExpandingPanel title="Properties">
+              <PropertyTypeTable
+                supportDelete={true}
+                propertyTypes={propertyTypes}
+                onPropertiesChanged={this._propertyChangedHandler}
+              />
+            </ExpandingPanel>
+            <ExpandingPanel title="Checklist items">
+              <CheckListTable
+                list={editingWorkOrderType.checkListDefinitions}
+                onChecklistChanged={this._checklistChangedHandler}
+                onDesignMode={true}
+              />
+            </ExpandingPanel>
+          </div>
         </div>
-        <div className={classes.body}>
-          <ExpandingPanel title="Details">
-            <NameDescriptionSection
-              title="Title"
-              name={editingWorkOrderType.name ?? ''}
-              description={editingWorkOrderType.description ?? ''}
-              descriptionPlaceholder="Describe the work order"
-              onNameChange={this.nameChanged}
-              onDescriptionChange={this.descriptionChanged}
-            />
-          </ExpandingPanel>
-          <ExpandingPanel title="Properties">
-            <PropertyTypeTable
-              supportDelete={true}
-              propertyTypes={propertyTypes}
-              onPropertiesChanged={this._propertyChangedHandler}
-            />
-          </ExpandingPanel>
-          <ExpandingPanel title="Checklist items">
-            <CheckListTable
-              list={editingWorkOrderType.checkListDefinitions}
-              onChecklistChanged={this._checklistChangedHandler}
-              onDesignMode={true}
-            />
-          </ExpandingPanel>
-        </div>
-      </div>
+      </FormValidationContextProvider>
     );
   }
 
@@ -435,24 +448,27 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       name: editingWorkOrderType?.name ?? '',
       description: editingWorkOrderType?.description,
       numberOfWorkOrders: editingWorkOrderType?.numberOfWorkOrders ?? 0,
-      propertyTypes: propertyTypes || [
-        {
-          id: 'PropertyType@tmp',
-          name: '',
-          index: editingWorkOrderType?.propertyTypes?.length ?? 0,
-          type: 'string',
-          booleanValue: false,
-          stringValue: null,
-          intValue: null,
-          floatValue: null,
-          latitudeValue: null,
-          longitudeValue: null,
-          isEditable: true,
-          isMandatory: false,
-          isInstanceProperty: true,
-          isDeleted: false,
-        },
-      ],
+      propertyTypes:
+        propertyTypes.length > 0
+          ? propertyTypes
+          : [
+              {
+                id: 'PropertyType@tmp',
+                name: '',
+                index: editingWorkOrderType?.propertyTypes?.length ?? 0,
+                type: 'string',
+                booleanValue: false,
+                stringValue: null,
+                intValue: null,
+                floatValue: null,
+                latitudeValue: null,
+                longitudeValue: null,
+                isEditable: true,
+                isMandatory: false,
+                isInstanceProperty: true,
+                isDeleted: false,
+              },
+            ],
       checkListDefinitions: checkListDefinitions,
     };
   }

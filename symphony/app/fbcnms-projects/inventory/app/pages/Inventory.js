@@ -12,6 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {EquipmentPosition} from '../common/Equipment';
 import type {EquipmentType} from '../common/EquipmentType';
 import type {Location} from '../common/Location';
+import type {LocationMoreActionsButton_location} from '../components/location/__generated__/LocationMoreActionsButton_location.graphql';
 import type {LocationType} from '../common/LocationType';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
@@ -379,7 +380,7 @@ class Inventory extends React.Component<Props, State> {
     this.navigateToLocation(newLocationId);
   };
 
-  onDeleteLocation = (deletedLocation: Location) => {
+  onDeleteLocation = (deletedLocation: LocationMoreActionsButton_location) => {
     ServerLogger.info(LogEvents.DELETE_LOCATION_BUTTON_CLICKED);
     this.props.alert('Location removed successfuly');
     this.navigateToLocation(

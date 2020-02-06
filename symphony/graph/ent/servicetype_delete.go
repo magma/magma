@@ -43,7 +43,7 @@ func (std *ServiceTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (std *ServiceTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: servicetype.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (std *ServiceTypeDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := std.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, std.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, std.driver, _spec)
 }
 
 // ServiceTypeDeleteOne is the builder for deleting a single ServiceType entity.
@@ -74,7 +74,7 @@ func (stdo *ServiceTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{servicetype.Label}
+		return &NotFoundError{servicetype.Label}
 	default:
 		return nil
 	}

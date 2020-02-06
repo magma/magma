@@ -54,6 +54,7 @@ class AddLinkInput:
 
     sides: List[LinkSide]
     properties: List[PropertyInput]
+    serviceIds: List[str]
     workOrder: Optional[str] = None
 
 
@@ -80,7 +81,7 @@ class AddLinkMutation:
         addLink: Optional[Link] = None
 
     data: Optional[AddLinkMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

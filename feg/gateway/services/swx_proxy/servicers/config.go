@@ -22,15 +22,16 @@ import (
 const (
 	SwxProxyServiceName = "swx_proxy"
 
-	HSSAddrEnv         = "HSS_ADDR"
-	SwxNetworkEnv      = "SWX_NETWORK"
-	SwxDiamHostEnv     = "SWX_DIAM_HOST"
-	SwxDiamRealmEnv    = "SWX_DIAM_REALM"
-	SwxDiamProductEnv  = "SWX_DIAM_PRODUCT"
-	SwxLocalAddrEnv    = "SWX_LOCAL_ADDR"
-	HSSHostEnv         = "HSS_HOST"
-	HSSRealmEnv        = "HSS_REALM"
-	DisableDestHostEnv = "DISABLE_DEST_HOST"
+	HSSAddrEnv           = "HSS_ADDR"
+	SwxNetworkEnv        = "SWX_NETWORK"
+	SwxDiamHostEnv       = "SWX_DIAM_HOST"
+	SwxDiamRealmEnv      = "SWX_DIAM_REALM"
+	SwxDiamProductEnv    = "SWX_DIAM_PRODUCT"
+	SwxLocalAddrEnv      = "SWX_LOCAL_ADDR"
+	HSSHostEnv           = "HSS_HOST"
+	HSSRealmEnv          = "HSS_REALM"
+	DisableDestHostEnv   = "DISABLE_DEST_HOST"
+	OverwriteDestHostEnv = "OVERWRITE_DEST_HOST"
 
 	DefaultSwxDiamRealm          = "epc.mnc070.mcc722.3gppnetwork.org"
 	DefaultSwxDiamHost           = "feg-swx.epc.mnc070.mcc722.3gppnetwork.org"
@@ -59,9 +60,10 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
 				Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, "sctp"),
 				LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, "")},
-				DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, ""),
-				DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
-				DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
+				DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, ""),
+				DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
+				DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
+				OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, false),
 			},
 			VerifyAuthorization:   DefaultVerifyAuthorization,
 			RegisterOnAuth:        DefaultRegisterOnAuth,
@@ -106,9 +108,10 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, configsPtr.GetServer().GetAddress()),
 			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, configsPtr.GetServer().GetProtocol()),
 			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, configsPtr.GetServer().GetLocalAddress())},
-			DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, configsPtr.GetServer().GetDestHost()),
-			DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.GetServer().GetDestRealm()),
-			DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, configsPtr.GetServer().GetDisableDestHost()),
+			DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, configsPtr.GetServer().GetDestHost()),
+			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.GetServer().GetDestRealm()),
+			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, configsPtr.GetServer().GetDisableDestHost()),
+			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, configsPtr.GetServer().GetOverwriteDestHost()),
 		},
 		VerifyAuthorization:   configsPtr.GetVerifyAuthorization(),
 		RegisterOnAuth:        configsPtr.GetRegisterOnAuth(),

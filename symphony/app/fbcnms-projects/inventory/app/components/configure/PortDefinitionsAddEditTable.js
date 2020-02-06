@@ -68,7 +68,7 @@ graphql`
 
 const equipmentPortTypesQuery = graphql`
   query PortDefinitionsAddEditTable__equipmentPortTypesQuery {
-    equipmentPortTypes(first: 50)
+    equipmentPortTypes(first: 500)
       @connection(key: "PortDefinitionsTable_equipmentPortTypes") {
       edges {
         node {

@@ -41,7 +41,7 @@ import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
 import {useCallback, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useInterval, useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -81,11 +81,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const FIVE_MINS = 5 * 60 * 1000;
+const REFRESH_INTERVAL = 2 * 60 * 1000;
 
 function CWFGateways(props: WithAlert & {}) {
   const [gateways, setGateways] = useState<?(cwf_gateway[])>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const {match, history, relativePath, relativeUrl} = useRouter();
+  const [lastFetchTime, setLastFetchTime] = useState(Date.now());
   const networkId = nullthrows(match.params.networkId);
   const classes = useStyles();
 
@@ -93,7 +95,10 @@ function CWFGateways(props: WithAlert & {}) {
     MagmaV1API.getCwfByNetworkIdGateways,
     {networkId},
     useCallback(response => setGateways(map(response, g => g)), []),
+    lastFetchTime,
   );
+
+  useInterval(() => setLastFetchTime(Date.now()), REFRESH_INTERVAL);
 
   if (!gateways || isLoading) {
     return <LoadingFiller />;

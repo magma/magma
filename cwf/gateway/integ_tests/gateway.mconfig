@@ -111,7 +111,7 @@
       "ENFORCEMENT"
    ],
    "allowedGrePeers": [
-    {"ip": "192.168.70.102", "key":5001}
+    {"ip": "192.168.70.102"}
    ]
   },
   "state": {

@@ -72,6 +72,7 @@ export type EquipmentPortsTable_link_port$data = EquipmentPortsTable_link_port;
 export type EquipmentPortsTable_link_port$key = {
   +$data?: EquipmentPortsTable_link_port$data,
   +$fragmentRefs: EquipmentPortsTable_link_port$ref,
+  ...
 };
 */
 

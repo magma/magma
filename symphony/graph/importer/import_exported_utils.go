@@ -20,6 +20,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const maxEquipmentParents = 3
+
 // ImportEntity specifies an entity that can be imported
 type ImportEntity string
 
@@ -30,6 +32,8 @@ const (
 	ImportEntityPort ImportEntity = "PORT"
 	// ImportEntityLink specifies a link for import
 	ImportEntityLink ImportEntity = "LINK"
+	// ImportEntityPortInLink specifies a port sub-slice inside a link entity for import
+	ImportEntityPortInLink ImportEntity = "PORT_IN_LINK"
 	// ImportEntityService specifies a service for import
 	ImportEntityService ImportEntity = "SERVICE"
 )
@@ -41,18 +45,74 @@ type SuccessMessage struct {
 	AllLines     int `json:"allLines"`
 }
 
-func writeSuccessMessage(w http.ResponseWriter, success, all int) error {
+type ReturnMessage struct {
+	Summary SuccessMessage `json:"summary"`
+	Errors  Errors         `json:"errors"`
+}
+
+func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, isSuccess bool) error {
 	w.Header().Set("Content-Type", "application/json")
-	msg, err := json.Marshal(SuccessMessage{
-		MessageCode:  int(SuccessfullyUploaded),
-		SuccessLines: success,
-		AllLines:     all,
+	messageCode := int(SuccessfullyUploaded)
+	if !isSuccess {
+		messageCode = int(FailedToUpload)
+	}
+	msg, err := json.Marshal(ReturnMessage{
+		Summary: SuccessMessage{
+			MessageCode:  messageCode,
+			SuccessLines: success,
+			AllLines:     all,
+		},
+		Errors: errs,
 	})
 	if err != nil {
 		return err
 	}
 	w.Write(msg)
 	return nil
+}
+
+// ErrorLine represents a line which failed to validate
+type ErrorLine struct {
+	Line    int    `json:"line"`
+	Error   string `json:"error"`
+	Message string `json:"message"`
+}
+
+// ErrorLine represents a summary of the errors while uploading a CSV file
+type Errors []ErrorLine
+
+func getLinesToSkip(r *http.Request) ([]int, error) {
+	var skipLines []int
+	arg := r.FormValue("skip_lines")
+	if arg != "" {
+		err := json.Unmarshal([]byte(arg), &skipLines)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(skipLines) > 0 {
+		skipLines = sortSlice(skipLines, true)
+	}
+	return skipLines, nil
+}
+
+func shouldSkipLine(a []int, currRow, nextLineToSkipIndex int) bool {
+	if nextLineToSkipIndex >= 0 && nextLineToSkipIndex < len(a) {
+		return currRow == a[nextLineToSkipIndex]
+	}
+	return false
+}
+
+func getVerifyBeforeCommitParam(r *http.Request) (*bool, error) {
+	verifyBeforeCommit := false
+	commitParam := r.FormValue("verify_before_commit")
+	if commitParam != "" {
+		err := json.Unmarshal([]byte(commitParam), &verifyBeforeCommit)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &verifyBeforeCommit, nil
 }
 
 // nolint: unparam
@@ -79,7 +139,7 @@ func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int,
 }
 
 // nolint: unparam
-func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord) (*ent.Location, error) {
+func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord, commit bool) (*ent.Location, error) {
 	var currParentID *string
 	var loc *ent.Location
 	ic := getImportContext(ctx)
@@ -93,7 +153,15 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 		if err != nil {
 			return nil, errors.Wrapf(err, "missing location type: id=%q", typID)
 		}
-		loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+		if commit {
+			loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+		} else {
+			loc, err = m.queryLocationForTypeAndParent(ctx, locName, typ, currParentID)
+			if loc == nil && ent.MaskNotFound(err) == nil {
+				// no location but no error (dry run mode)
+				return nil, nil
+			}
+		}
 		currParentID = &loc.ID
 	}
 	if loc == nil {
@@ -146,7 +214,7 @@ func (m *importer) verifyPositionHierarchy(ctx context.Context, equipment *ent.E
 	return nil
 }
 
-func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord) (*string, *string, error) {
+func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord, mustBeEmpty bool) (*string, *string, error) {
 	l := importLine.line
 	title := importLine.title
 	if importLine.Position() == "" {
@@ -187,15 +255,18 @@ func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *en
 	if err != nil {
 		return nil, nil, err
 	}
-	hasAttachment, err := equip.QueryPositions().
-		Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.ID(def.ID))).
-		QueryAttachment().
-		Exist(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-	if hasAttachment {
-		return nil, nil, errors.Errorf("position %q already has attachment", importLine.Position())
+
+	if mustBeEmpty {
+		hasAttachment, err := equip.QueryPositions().
+			Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.ID(def.ID))).
+			QueryAttachment().
+			Exist(ctx)
+		if err != nil {
+			return nil, nil, err
+		}
+		if hasAttachment {
+			return nil, nil, errors.Errorf("position %q already has attachment", importLine.Position())
+		}
 	}
 	return &equip.ID, &def.ID, nil
 }
@@ -232,7 +303,7 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		return errors.Wrapf(err, "fetching equipment port definition")
 	}
 	if def.Name != portData.Name {
-		return errors.Wrapf(err, "wrong port type. should be %q, but %q", def.Name, portData.Name)
+		return errors.Errorf("wrong port type. should be %q, but %q", def.Name, portData.Name)
 	}
 	portType, err := def.QueryEquipmentPortType().Only(ctx)
 	if ent.MaskNotFound(err) != nil {
@@ -245,7 +316,7 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		tempPortType = portType.Name
 	}
 	if tempPortType != portData.TypeName {
-		return errors.Wrapf(err, "wrong port type. should be %q, but %q", tempPortType, portData.TypeName)
+		return errors.Errorf("wrong port type. should be %q, but %q", tempPortType, portData.TypeName)
 	}
 
 	equipment, err := port.QueryParent().Only(ctx)
@@ -253,14 +324,14 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		return errors.Wrapf(err, "fetching equipment for port")
 	}
 	if equipment.Name != portData.EquipmentName {
-		return errors.Wrapf(err, "wrong equipment. should be %q, but %q", equipment.Name, portData.EquipmentName)
+		return errors.Errorf("wrong equipment. should be %q, but %q", equipment.Name, portData.EquipmentName)
 	}
 	equipmentType, err := equipment.QueryType().Only(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "fetching equipment type for equipment")
 	}
 	if equipmentType.Name != portData.EquipmentTypeName {
-		return errors.Wrapf(err, "wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
+		return errors.Errorf("wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
 	}
 	return nil
 }

@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -53,14 +55,14 @@ func (fprpq *FloorPlanReferencePointQuery) Order(o ...Order) *FloorPlanReference
 	return fprpq
 }
 
-// First returns the first FloorPlanReferencePoint entity in the query. Returns *ErrNotFound when no floorplanreferencepoint was found.
+// First returns the first FloorPlanReferencePoint entity in the query. Returns *NotFoundError when no floorplanreferencepoint was found.
 func (fprpq *FloorPlanReferencePointQuery) First(ctx context.Context) (*FloorPlanReferencePoint, error) {
 	fprps, err := fprpq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(fprps) == 0 {
-		return nil, &ErrNotFound{floorplanreferencepoint.Label}
+		return nil, &NotFoundError{floorplanreferencepoint.Label}
 	}
 	return fprps[0], nil
 }
@@ -74,14 +76,14 @@ func (fprpq *FloorPlanReferencePointQuery) FirstX(ctx context.Context) *FloorPla
 	return fprp
 }
 
-// FirstID returns the first FloorPlanReferencePoint id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first FloorPlanReferencePoint id in the query. Returns *NotFoundError when no id was found.
 func (fprpq *FloorPlanReferencePointQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = fprpq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{floorplanreferencepoint.Label}
+		err = &NotFoundError{floorplanreferencepoint.Label}
 		return
 	}
 	return ids[0], nil
@@ -106,9 +108,9 @@ func (fprpq *FloorPlanReferencePointQuery) Only(ctx context.Context) (*FloorPlan
 	case 1:
 		return fprps[0], nil
 	case 0:
-		return nil, &ErrNotFound{floorplanreferencepoint.Label}
+		return nil, &NotFoundError{floorplanreferencepoint.Label}
 	default:
-		return nil, &ErrNotSingular{floorplanreferencepoint.Label}
+		return nil, &NotSingularError{floorplanreferencepoint.Label}
 	}
 }
 
@@ -131,9 +133,9 @@ func (fprpq *FloorPlanReferencePointQuery) OnlyID(ctx context.Context) (id strin
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{floorplanreferencepoint.Label}
+		err = &NotFoundError{floorplanreferencepoint.Label}
 	default:
-		err = &ErrNotSingular{floorplanreferencepoint.Label}
+		err = &NotSingularError{floorplanreferencepoint.Label}
 	}
 	return
 }
@@ -264,45 +266,35 @@ func (fprpq *FloorPlanReferencePointQuery) Select(field string, fields ...string
 }
 
 func (fprpq *FloorPlanReferencePointQuery) sqlAll(ctx context.Context) ([]*FloorPlanReferencePoint, error) {
-	rows := &sql.Rows{}
-	selector := fprpq.sqlQuery()
-	if unique := fprpq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes = []*FloorPlanReferencePoint{}
+		_spec = fprpq.querySpec()
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &FloorPlanReferencePoint{config: fprpq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := fprpq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, fprpq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var fprps FloorPlanReferencePoints
-	if err := fprps.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	fprps.config(fprpq.config)
-	return fprps, nil
+	return nodes, nil
 }
 
 func (fprpq *FloorPlanReferencePointQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := fprpq.sqlQuery()
-	unique := []string{floorplanreferencepoint.FieldID}
-	if len(fprpq.unique) > 0 {
-		unique = fprpq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := fprpq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := fprpq.querySpec()
+	return sqlgraph.CountNodes(ctx, fprpq.driver, _spec)
 }
 
 func (fprpq *FloorPlanReferencePointQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -311,6 +303,42 @@ func (fprpq *FloorPlanReferencePointQuery) sqlExist(ctx context.Context) (bool, 
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (fprpq *FloorPlanReferencePointQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   floorplanreferencepoint.Table,
+			Columns: floorplanreferencepoint.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplanreferencepoint.FieldID,
+			},
+		},
+		From:   fprpq.sql,
+		Unique: true,
+	}
+	if ps := fprpq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := fprpq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := fprpq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := fprpq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (fprpq *FloorPlanReferencePointQuery) sqlQuery() *sql.Selector {
@@ -584,7 +612,7 @@ func (fprps *FloorPlanReferencePointSelect) sqlScan(ctx context.Context, v inter
 }
 
 func (fprps *FloorPlanReferencePointSelect) sqlQuery() sql.Querier {
-	view := "floorplanreferencepoint_view"
-	return sql.Dialect(fprps.driver.Dialect()).
-		Select(fprps.fields...).From(fprps.sql.As(view))
+	selector := fprps.sql
+	selector.Select(selector.Columns(fprps.fields...)...)
+	return selector
 }

@@ -23,11 +23,15 @@ import (
 )
 
 const (
-	parentEquip = "parentEquipmentName"
+	parentEquip  = "parentEquipmentName"
+	parentEquip2 = "parentEquipmentName2"
+	parentEquip3 = "parentEquipmentName3"
+
 	currEquip   = "currEquipmentName"
 	portName1   = "port1"
 	portName2   = "port2"
 	propNameStr = "propNameStr"
+	posName     = "pos"
 
 	propNameDate = "propNameDate"
 	propNameBool = "propNameBool"
@@ -35,22 +39,21 @@ const (
 	locationL    = "locationL"
 	locationM    = "locationM"
 	locationS    = "locationS"
-
-	svcName  = "serviceName"
-	svc2Name = "serviceName2"
-	svc3Name = "serviceName3"
-	svc4Name = "serviceName4"
 )
 
 type portData struct {
 	equipParentID   string
 	equipParent2ID  string
+	equipParent3ID  string
 	equipChildID    string
+	equipChild2ID   string
 	portDef1        string
 	parentPortInst1 string
 	parentPortInst2 string
+	parentPortInst3 string
 	portDef2        string
 	childPortInst1  string
+	childPortInst2  string
 	linkID          string
 }
 
@@ -83,7 +86,7 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 		PortTypeID: &ptyp.ID,
 	}
 	pos1 := models.EquipmentPositionInput{
-		Name: "pos",
+		Name: posName,
 	}
 	etype, _ := r.client.EquipmentType.Get(ctx, ids.equipTypeID)
 	etype, _ = mr.EditEquipmentType(ctx, models.EditEquipmentTypeInput{
@@ -153,11 +156,17 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 	parentPortInst1 := parentEquipment.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef1.ID))).OnlyX(ctx)
 
 	parentEquip2, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
-		Name:     parentEquip + "2",
+		Name:     parentEquip2,
 		Type:     etype.ID,
 		Location: &sLocation.ID,
 	})
 	parentPortInst2 := parentEquip2.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef1.ID))).OnlyX(ctx)
+	parentEquip3, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     parentEquip3,
+		Type:     etype.ID,
+		Location: &sLocation.ID,
+	})
+	parentPortInst3 := parentEquip3.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef1.ID))).OnlyX(ctx)
 
 	childEquip, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:               currEquip,
@@ -175,44 +184,37 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 			{Equipment: parentEquip2.ID, Port: portDef1.ID},
 		},
 	})
+
+	childEquip2, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:               currEquip,
+		Type:               etype2.ID,
+		Parent:             &parentEquip2.ID,
+		PositionDefinition: &posDef1.ID,
+	})
+	childPortDef2 := etype2.QueryPortDefinitions().OnlyX(ctx)
+
+	childPortInst2 := childEquip.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(childPortDef2.ID))).OnlyX(ctx)
 	/* locL -> locM -> locS:
 	parent1 (port1) -> child (port2[linked])
-	parent2 (port1[linked])
+	parent2 (port1[linked]) -> child (port2)
+	parent3 (port1)
 	*/
 	return portData{
 		equipParentID:   parentEquipment.ID,
 		equipParent2ID:  parentEquip2.ID,
+		equipParent3ID:  parentEquip3.ID,
 		equipChildID:    childEquip.ID,
+		equipChild2ID:   childEquip2.ID,
 		portDef1:        portDef1.ID,
 		parentPortInst1: parentPortInst1.ID,
 		parentPortInst2: parentPortInst2.ID,
-		portDef2:        portDef2.ID,
-		childPortInst1:  childPortInst1.ID,
-		linkID:          l.ID,
-	}
-}
+		parentPortInst3: parentPortInst3.ID,
 
-func prepareSvcData(ctx context.Context, t *testing.T, r TestImporterResolver) {
-	mr := r.importer.r.Mutation()
-	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
-	_, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svcName,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svc2Name,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svc3Name,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
+		portDef2:       portDef2.ID,
+		childPortInst1: childPortInst1.ID,
+		childPortInst2: childPortInst2.ID,
+		linkID:         l.ID,
+	}
 }
 
 func TestPortTitleInputValidation(t *testing.T) {
@@ -274,7 +276,7 @@ func TestGeneralPortsImport(t *testing.T) {
 		row1           = []string{ids.parentPortInst1, def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", strings.Join([]string{svcName, svc2Name}, ";"), svc3Name, "updateVal", "54"}
 		row2           = []string{ids.parentPortInst2, def1.Name, typ1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", ids.childPortInst1, def2.Name, childEquip.ID, childEquip.Name,
 			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc3Name, svc4Name}, ";"), "updateVal2", "55", "", ""}
-		row3 = []string{ids.childPortInst1, def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, "pos", ids.parentPortInst2, def1.Name, equip2.ID, equip2.Name,
+		row3 = []string{ids.childPortInst1, def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, posName, ids.parentPortInst2, def1.Name, equip2.ID, equip2.Name,
 			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc2Name, svc3Name}, ";"), "", "", "1988-01-01", "true"}
 	)
 

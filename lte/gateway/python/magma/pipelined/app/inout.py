@@ -94,8 +94,8 @@ class InOutController(MagmaController):
 
         match = MagmaMatch()
         flows.add_resubmit_next_service_flow(dp,
-            self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL),
-            match, [], priority=flows.DEFAULT_PRIORITY,
+            self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL), match,
+            actions=[], priority=flows.DEFAULT_PRIORITY,
             resubmit_table=logical_table)
 
     def _install_default_egress_flows(self, dp):
@@ -142,6 +142,14 @@ class InOutController(MagmaController):
         # set a direction bit for outgoing (pn -> inet) traffic.
         match = MagmaMatch(in_port=self.config.gtp_port)
         actions = [load_direction(parser, Direction.OUT)]
+        flows.add_resubmit_next_service_flow(dp, tbl_num, match,
+                                             actions=actions,
+                                             priority=flows.DEFAULT_PRIORITY,
+                                             resubmit_table=next_table)
+
+        # set a direction bit for incoming (internet -> UE) traffic.
+        match = MagmaMatch(in_port=OFPP_LOCAL)
+        actions = [load_direction(parser, Direction.IN)]
         flows.add_resubmit_next_service_flow(dp, tbl_num, match,
                                              actions=actions,
                                              priority=flows.DEFAULT_PRIORITY,

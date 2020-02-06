@@ -46,7 +46,6 @@
 #include "mme_app_state.h"
 #include "emm_cnDef.h"
 #include "nas_proc.h"
-#include "nas_messages_types.h"
 #include "s11_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "service303.h"
@@ -96,6 +95,8 @@ void mme_app_send_delete_session_request(
   S11_DELETE_SESSION_REQUEST(message_p).peer_ip =
     ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   mme_config_unlock(&mme_config);
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   increment_counter("mme_spgw_delete_session_req", 1, NO_LABELS);
@@ -168,7 +169,6 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id)
         mme_remove_ue_context(&mme_app_desc_p->mme_ue_contexts, ue_context_p);
       } else {
         ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
-        unlock_ue_contexts(ue_context_p);
       }
     }
   } else {
@@ -179,7 +179,6 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id)
           ue_context_p, ue_context_p->pdn_contexts[i]->default_ebi, i);
       }
     }
-    unlock_ue_contexts(ue_context_p);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

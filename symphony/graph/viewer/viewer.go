@@ -28,16 +28,16 @@ const (
 
 // Viewer holds additional per request information.
 type Viewer struct {
-	Tenant   string
-	User     string
-	ReadOnly bool
+	Tenant string
+	User   string
+	Role   string
 }
 
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
 func (v *Viewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("tenant", v.Tenant)
 	enc.AddString("user", v.User)
-	enc.AddBool("readonly", v.ReadOnly)
+	enc.AddString("role", v.Role)
 	return nil
 }
 
@@ -45,7 +45,7 @@ func (v *Viewer) traceAttrs() []trace.Attribute {
 	return []trace.Attribute{
 		trace.StringAttribute("viewer.tenant", v.Tenant),
 		trace.StringAttribute("viewer.user", v.User),
-		trace.BoolAttribute("viewer.readonly", v.ReadOnly),
+		trace.StringAttribute("viewer.role", v.Role),
 	}
 }
 
@@ -59,8 +59,8 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 		}
 
 		v := &Viewer{Tenant: tenant, User: r.Header.Get(UserHeader)}
-		if ro, err := strconv.ParseBool(r.Header.Get(ReadOnlyHeader)); err == nil {
-			v.ReadOnly = ro
+		if ro, err := strconv.ParseBool(r.Header.Get(ReadOnlyHeader)); ro && err == nil {
+			v.Role = "readonly"
 		}
 
 		ctx := log.NewFieldsContext(r.Context(), zap.Object("viewer", v))
@@ -73,7 +73,7 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 				http.Error(w, "getting tenancy client", http.StatusServiceUnavailable)
 				return
 			}
-			if v.ReadOnly {
+			if v.Role == "readonly" {
 				client = client.ReadOnly()
 			}
 			ctx = ent.NewContext(ctx, client)

@@ -46,11 +46,21 @@ class ServiceStatus(Enum):
     IN_SERVICE = "IN_SERVICE"
     MAINTENANCE = "MAINTENANCE"
     DISCONNECTED = "DISCONNECTED"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 class ServiceEndpointRole(Enum):
     CONSUMER = "CONSUMER"
     PROVIDER = "PROVIDER"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -153,7 +163,7 @@ class AddServiceMutation:
         addService: Optional[Service] = None
 
     data: Optional[AddServiceMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

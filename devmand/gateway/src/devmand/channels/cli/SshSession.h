@@ -50,7 +50,6 @@ class SshSession {
   void close();
   bool isOpen();
   void write(const string& command);
-  string read(int timeoutMillis);
   string read();
 };
 

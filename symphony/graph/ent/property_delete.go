@@ -43,7 +43,7 @@ func (pd *PropertyDelete) ExecX(ctx context.Context) int {
 }
 
 func (pd *PropertyDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: property.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (pd *PropertyDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := pd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, pd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, pd.driver, _spec)
 }
 
 // PropertyDeleteOne is the builder for deleting a single Property entity.
@@ -74,7 +74,7 @@ func (pdo *PropertyDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{property.Label}
+		return &NotFoundError{property.Label}
 	default:
 		return nil
 	}

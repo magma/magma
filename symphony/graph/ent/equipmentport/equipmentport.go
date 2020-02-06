@@ -31,42 +31,49 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "equipmentportdefinition" package.
 	DefinitionInverseTable = "equipment_port_definitions"
 	// DefinitionColumn is the table column denoting the definition relation/edge.
-	DefinitionColumn = "definition_id"
+	DefinitionColumn = "equipment_port_definition"
 	// ParentTable is the table the holds the parent relation/edge.
 	ParentTable = "equipment_ports"
 	// ParentInverseTable is the table name for the Equipment entity.
 	// It exists in this package in order to avoid circular dependency with the "equipment" package.
 	ParentInverseTable = "equipment"
 	// ParentColumn is the table column denoting the parent relation/edge.
-	ParentColumn = "parent_id"
+	ParentColumn = "equipment_ports"
 	// LinkTable is the table the holds the link relation/edge.
 	LinkTable = "equipment_ports"
 	// LinkInverseTable is the table name for the Link entity.
 	// It exists in this package in order to avoid circular dependency with the "link" package.
 	LinkInverseTable = "links"
 	// LinkColumn is the table column denoting the link relation/edge.
-	LinkColumn = "link_id"
+	LinkColumn = "equipment_port_link"
 	// PropertiesTable is the table the holds the properties relation/edge.
 	PropertiesTable = "properties"
 	// PropertiesInverseTable is the table name for the Property entity.
 	// It exists in this package in order to avoid circular dependency with the "property" package.
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
-	PropertiesColumn = "equipment_port_id"
+	PropertiesColumn = "equipment_port_properties"
 	// EndpointsTable is the table the holds the endpoints relation/edge.
 	EndpointsTable = "service_endpoints"
 	// EndpointsInverseTable is the table name for the ServiceEndpoint entity.
 	// It exists in this package in order to avoid circular dependency with the "serviceendpoint" package.
 	EndpointsInverseTable = "service_endpoints"
 	// EndpointsColumn is the table column denoting the endpoints relation/edge.
-	EndpointsColumn = "port_id"
+	EndpointsColumn = "service_endpoint_port"
 )
 
-// Columns holds all SQL columns are equipmentport fields.
+// Columns holds all SQL columns for equipmentport fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentPort type.
+var ForeignKeys = []string{
+	"equipment_ports",
+	"equipment_port_definition",
+	"equipment_port_link",
 }
 
 var (

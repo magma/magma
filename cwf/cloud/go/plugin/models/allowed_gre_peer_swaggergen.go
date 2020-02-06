@@ -24,8 +24,7 @@ type AllowedGrePeer struct {
 	IP string `json:"ip"`
 
 	// key
-	// Required: true
-	Key *uint32 `json:"key"`
+	Key *uint32 `json:"key,omitempty"`
 }
 
 // Validate validates this allowed gre peer
@@ -33,10 +32,6 @@ func (m *AllowedGrePeer) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateIP(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateKey(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -57,15 +52,6 @@ func (m *AllowedGrePeer) validateIP(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MaxLength("ip", "body", string(m.IP), 49); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *AllowedGrePeer) validateKey(formats strfmt.Registry) error {
-
-	if err := validate.Required("key", "body", m.Key); err != nil {
 		return err
 	}
 

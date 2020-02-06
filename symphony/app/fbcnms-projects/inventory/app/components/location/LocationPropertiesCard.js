@@ -10,15 +10,16 @@
 
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {Equipment} from '../../common/Equipment';
-import type {Location} from '../../common/Location';
+import type {LocationMoreActionsButton_location} from './__generated__/LocationMoreActionsButton_location.graphql';
 import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import EditIcon from '@material-ui/icons/Edit';
 import ErrorMessage from '@fbcnms/ui/components/ErrorMessage';
-import IconButton from '@material-ui/core/IconButton';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import InventoryQueryRenderer from '../../components/InventoryQueryRenderer';
 import LocationBreadcrumbsTitle from './LocationBreadcrumbsTitle';
 import LocationCoverageMapTab from './LocationCoverageMapTab';
@@ -31,6 +32,7 @@ import LocationSiteSurveyTab from './LocationSiteSurveyTab';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'react-relay';
 import {withSnackbar} from 'notistack';
@@ -43,7 +45,9 @@ type Props = {
   onWorkOrderSelected: (workOrderId: string) => void,
   onEdit: () => void,
   onAddEquipment: () => void,
-  onLocationRemoved: (removedLocation: Location) => void,
+  onLocationRemoved: (
+    removedLocation: LocationMoreActionsButton_location,
+  ) => void,
 } & WithStyles<typeof styles> &
   WithSnackbarProps;
 
@@ -82,6 +86,9 @@ const styles = theme => ({
     alignItems: 'center',
     padding: '0px 24px',
     marginBottom: '16px',
+    '& :not(:last-child)': {
+      marginRight: '8px',
+    },
   },
   locationType: {
     fontSize: theme.typography.pxToRem(11),
@@ -95,10 +102,6 @@ const styles = theme => ({
     '&:last-child': {
       paddingBottom: '0px',
     },
-  },
-  iconButton: {
-    padding: '0px',
-    marginLeft: theme.spacing(),
   },
   breadcrumbs: {
     flexGrow: 1,
@@ -154,12 +157,16 @@ const locationsPropertiesCardQuery = graphql`
         files {
           id
         }
+        hyperlinks {
+          id
+        }
         surveys {
           id
         }
         ...LocationSiteSurveyTab_location
         ...LocationDocumentsCard_location
         ...LocationFloorPlansTab_location
+        ...LocationMoreActionsButton_location
       }
     }
   }
@@ -204,109 +211,113 @@ class LocationPropertiesCard extends React.Component<Props, State> {
           }
 
           return (
-            <div className={classes.root}>
-              <div className={classes.cardHeader}>
-                <div className={classes.locationNameHeader}>
-                  <div className={classes.breadcrumbs}>
-                    <LocationBreadcrumbsTitle
-                      locationDetails={location}
-                      hideTypes={false}
+            <FormValidationContextProvider>
+              <div className={classes.root}>
+                <div className={classes.cardHeader}>
+                  <div className={classes.locationNameHeader}>
+                    <div className={classes.breadcrumbs}>
+                      <LocationBreadcrumbsTitle
+                        locationDetails={location}
+                        hideTypes={false}
+                      />
+                    </div>
+                    <LocationMoreActionsButton
+                      location={location}
+                      onLocationRemoved={onLocationRemoved}
                     />
+                    <FormAction>
+                      <Button
+                        variant="text"
+                        skin="primary"
+                        onClick={this.props.onEdit}>
+                        <EditIcon />
+                      </Button>
+                    </FormAction>
                   </div>
-                  <LocationMoreActionsButton
-                    location={location}
-                    onLocationRemoved={onLocationRemoved}
-                  />
-                  <IconButton
-                    onClick={this.props.onEdit}
-                    color="primary"
-                    className={classes.iconButton}>
-                    <EditIcon />
-                  </IconButton>
+                  <div className={classes.tabsContainer}>
+                    <Tabs
+                      className={classes.tabs}
+                      value={this.state.selectedTab}
+                      onChange={(_e, selectedTab) => {
+                        ServerLogger.info(LogEvents.LOCATION_CARD_TAB_CLICKED, {
+                          tab: selectedTab,
+                        });
+                        this.setState({selectedTab});
+                      }}
+                      indicatorColor="primary"
+                      textColor="primary">
+                      <Tab
+                        classes={{root: classes.tabContainer}}
+                        label="Details"
+                        value="details"
+                      />
+                      <Tab
+                        classes={{root: classes.tabContainer}}
+                        label="Documents"
+                        value="documents"
+                      />
+                      {networkTopologyEnabled && (
+                        <Tab
+                          classes={{root: classes.tabContainer}}
+                          label="Network Map"
+                          value="network_map"
+                        />
+                      )}
+                      {siteSurveyEnabled && (
+                        <Tab
+                          classes={{root: classes.tabContainer}}
+                          label="Site Surveys"
+                          value="site_survey"
+                        />
+                      )}
+                      {coverageMapEnabled && (
+                        <Tab
+                          classes={{root: classes.tabContainer}}
+                          label="Coverage Maps"
+                          value="coverage_map"
+                        />
+                      )}
+                      {floorPlansEnabled && (
+                        <Tab
+                          classes={{root: classes.tabContainer}}
+                          label="Floor Plans"
+                          value="floor_plans"
+                        />
+                      )}
+                    </Tabs>
+                  </div>
                 </div>
-                <div className={classes.tabsContainer}>
-                  <Tabs
-                    className={classes.tabs}
-                    value={this.state.selectedTab}
-                    onChange={(_e, selectedTab) => {
-                      ServerLogger.info(LogEvents.LOCATION_CARD_TAB_CLICKED, {
-                        tab: selectedTab,
-                      });
-                      this.setState({selectedTab});
-                    }}
-                    indicatorColor="primary"
-                    textColor="primary">
-                    <Tab
-                      classes={{root: classes.tabContainer}}
-                      label="Details"
-                      value="details"
+                <div className={classes.contentRoot}>
+                  {this.state.selectedTab === 'details' ? (
+                    <LocationDetailsTab
+                      location={location}
+                      selectedWorkOrderId={this.props.selectedWorkOrderId}
+                      onEquipmentSelected={this.props.onEquipmentSelected}
+                      onWorkOrderSelected={this.props.onWorkOrderSelected}
+                      onAddEquipment={onAddEquipment}
                     />
-                    <Tab
-                      classes={{root: classes.tabContainer}}
-                      label="Documents"
-                      value="documents"
+                  ) : null}
+                  {this.state.selectedTab === 'documents' ? (
+                    <LocationDocumentsCard
+                      className={classes.documentsTable}
+                      location={location}
                     />
-                    {networkTopologyEnabled && (
-                      <Tab
-                        classes={{root: classes.tabContainer}}
-                        label="Network Map"
-                        value="network_map"
-                      />
-                    )}
-                    {siteSurveyEnabled && (
-                      <Tab
-                        classes={{root: classes.tabContainer}}
-                        label="Site Surveys"
-                        value="site_survey"
-                      />
-                    )}
-                    {coverageMapEnabled && (
-                      <Tab
-                        classes={{root: classes.tabContainer}}
-                        label="Coverage Maps"
-                        value="coverage_map"
-                      />
-                    )}
-                    {floorPlansEnabled && (
-                      <Tab
-                        classes={{root: classes.tabContainer}}
-                        label="Floor Plans"
-                        value="floor_plans"
-                      />
-                    )}
-                  </Tabs>
+                  ) : null}
+                  {this.state.selectedTab === 'network_map' ? (
+                    <LocationNetworkMapTab locationId={location.id} />
+                  ) : null}
+                  {this.state.selectedTab === 'site_survey' ? (
+                    <LocationSiteSurveyTab location={location} />
+                  ) : null}
+                  {this.state.selectedTab === 'coverage_map' ? (
+                    <LocationCoverageMapTab location={location} />
+                  ) : null}
+                  {this.state.selectedTab === 'floor_plans' && (
+                    <LocationFloorPlansTab location={location} />
+                  )}
                 </div>
               </div>
-              <div className={classes.contentRoot}>
-                {this.state.selectedTab === 'details' ? (
-                  <LocationDetailsTab
-                    location={location}
-                    selectedWorkOrderId={this.props.selectedWorkOrderId}
-                    onEquipmentSelected={this.props.onEquipmentSelected}
-                    onWorkOrderSelected={this.props.onWorkOrderSelected}
-                    onAddEquipment={onAddEquipment}
-                  />
-                ) : null}
-                {this.state.selectedTab === 'documents' ? (
-                  <LocationDocumentsCard
-                    className={classes.documentsTable}
-                    location={location}
-                  />
-                ) : null}
-                {this.state.selectedTab === 'network_map' ? (
-                  <LocationNetworkMapTab locationId={location.id} />
-                ) : null}
-                {this.state.selectedTab === 'site_survey' ? (
-                  <LocationSiteSurveyTab location={location} />
-                ) : null}
-                {this.state.selectedTab === 'coverage_map' ? (
-                  <LocationCoverageMapTab location={location} />
-                ) : null}
-                {this.state.selectedTab === 'floor_plans' && (
-                  <LocationFloorPlansTab location={location} />
-                )}
-              </div>
-            </div>
+            </FormValidationContextProvider>
           );
         }}
       />

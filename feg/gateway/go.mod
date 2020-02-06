@@ -7,6 +7,8 @@
 module magma/feg/gateway
 
 replace (
+	github.com/fiorix/go-diameter/v4 => github.com/emakeev/go-diameter/v4 v4.0.4
+
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
 
@@ -16,7 +18,7 @@ replace (
 )
 
 require (
-	github.com/fiorix/go-diameter/v4 v4.0.1-0.20200102140015-a6c006d17e34
+	github.com/fiorix/go-diameter/v4 v4.0.1-0.20200120193412-55a1c21738f9
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
@@ -27,6 +29,7 @@ require (
 	github.com/prometheus/common v0.2.0
 	github.com/shirou/gopsutil v2.18.10+incompatible
 	github.com/stretchr/testify v1.4.0
+	github.com/thoas/go-funk v0.4.0
 	golang.org/x/net v0.0.0-20191007182048-72f939374954
 	google.golang.org/grpc v1.25.0
 

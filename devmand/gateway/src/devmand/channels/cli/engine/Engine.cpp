@@ -5,6 +5,7 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
 #include <devmand/channels/cli/Spd2Glog.h>
 #include <devmand/channels/cli/engine/Engine.h>
 #include <event2/thread.h>
@@ -19,6 +20,8 @@
 namespace devmand {
 namespace channels {
 namespace cli {
+
+using devmand::channels::cli::CliThreadWheelTimekeeper;
 
 void Engine::closeSsh() {}
 
@@ -54,20 +57,30 @@ void Engine::initLogging(uint32_t verbosity, bool callInitMlog) {
 }
 
 static uint CPU_CORES = std::max(uint(4), std::thread::hardware_concurrency());
-
+/*
+ * Keep alive cli layer needs separate executor for protecting against resource
+ * starvation - connection failures should always be detected.
+ * SSH cli (SshSessionAsync) - separate executor for ssh layer.
+ * All other layers share common threadpool executor.
+ * All executors are cpu threadpool executors, to mitigate possible deadlocks,
+ * such as when cli destructor calls destroy.get() - this would block forever on
+ * IO threadpool executor.
+ */
 Engine::Engine()
     : channels::Engine("Cli"),
-      timekeeper(make_shared<folly::ThreadWheelTimekeeper>()),
-      sshCliExecutor(std::make_shared<folly::IOThreadPoolExecutor>(
+      timekeeper(make_shared<CliThreadWheelTimekeeper>()),
+      sshCliExecutor(std::make_shared<folly::CPUThreadPoolExecutor>(
           CPU_CORES,
           std::make_shared<folly::NamedThreadFactory>("sshCli"))),
-      commonExecutor(std::make_shared<folly::IOThreadPoolExecutor>(
+      commonExecutor(std::make_shared<folly::CPUThreadPoolExecutor>(
           CPU_CORES,
           std::make_shared<folly::NamedThreadFactory>("commonCli"))),
       kaCliExecutor(std::make_shared<folly::CPUThreadPoolExecutor>(
           CPU_CORES,
-          std::make_shared<folly::NamedThreadFactory>("kaCli"))) {
-  // TODO use singleton when folly is initialized
+          std::make_shared<folly::NamedThreadFactory>("kaCli"))),
+      mreg(make_shared<ModelRegistry>()) {
+  // TODO use singleton instead of new ThreadWheelTimekeeper when folly is
+  // initialized
   Engine::initSsh();
   Engine::initLogging();
   MLOG(MINFO) << "Cli engine started with concurrency set to " << CPU_CORES;
@@ -79,7 +92,7 @@ Engine::~Engine() {
   MLOG(MDEBUG) << "Cli engine closed";
 }
 
-shared_ptr<folly::ThreadWheelTimekeeper> Engine::getTimekeeper() {
+shared_ptr<CliThreadWheelTimekeeper> Engine::getTimekeeper() {
   return timekeeper;
 }
 
@@ -91,6 +104,10 @@ shared_ptr<folly::Executor> Engine::getExecutor(
     return sshCliExecutor;
   }
   return commonExecutor;
+}
+
+shared_ptr<ModelRegistry> Engine::getModelRegistry() const {
+  return mreg;
 }
 
 } // namespace cli

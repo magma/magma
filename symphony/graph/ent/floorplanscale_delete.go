@@ -43,7 +43,7 @@ func (fpsd *FloorPlanScaleDelete) ExecX(ctx context.Context) int {
 }
 
 func (fpsd *FloorPlanScaleDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: floorplanscale.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (fpsd *FloorPlanScaleDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := fpsd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, fpsd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, fpsd.driver, _spec)
 }
 
 // FloorPlanScaleDeleteOne is the builder for deleting a single FloorPlanScale entity.
@@ -74,7 +74,7 @@ func (fpsdo *FloorPlanScaleDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{floorplanscale.Label}
+		return &NotFoundError{floorplanscale.Label}
 	default:
 		return nil
 	}

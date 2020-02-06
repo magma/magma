@@ -8,6 +8,7 @@
  * @format
  */
 
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import React, {useCallback} from 'react';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
@@ -25,7 +26,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'row',
   },
-  expandindPart: {
+  expandingPart: {
     flexGrow: 1,
     flexBasis: 0,
   },
@@ -48,16 +49,17 @@ const BasicCheckListItemDefinition = (props: Props) => {
 
   return (
     <div className={classes.container}>
-      <TextInput
-        className={classes.expandindPart}
-        type="string"
-        placeholder={fbt(
-          'What needs to be done?',
-          'Placeholder for checkbox field title (user needs to type the title of the checkbox in this field).',
-        )}
-        value={item.title || ''}
-        onChange={event => _updateOnChange(event.target.value)}
-      />
+      <FormField className={classes.expandingPart}>
+        <TextInput
+          type="string"
+          placeholder={fbt(
+            'What needs to be done?',
+            'Placeholder for checkbox field title (user needs to type the title of the checkbox in this field).',
+          )}
+          value={item.title || ''}
+          onChange={event => _updateOnChange(event.target.value)}
+        />
+      </FormField>
     </div>
   );
 };

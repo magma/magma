@@ -126,8 +126,8 @@ func (fpsc *FloorPlanScaleCreate) SaveX(ctx context.Context) *FloorPlanScale {
 
 func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale, error) {
 	var (
-		fps  = &FloorPlanScale{config: fpsc.config}
-		spec = &sqlgraph.CreateSpec{
+		fps   = &FloorPlanScale{config: fpsc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: floorplanscale.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -136,7 +136,7 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		}
 	)
 	if value := fpsc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplanscale.FieldCreateTime,
@@ -144,7 +144,7 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		fps.CreateTime = *value
 	}
 	if value := fpsc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplanscale.FieldUpdateTime,
@@ -152,7 +152,7 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		fps.UpdateTime = *value
 	}
 	if value := fpsc.reference_point1_x; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1X,
@@ -160,7 +160,7 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		fps.ReferencePoint1X = *value
 	}
 	if value := fpsc.reference_point1_y; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1Y,
@@ -168,7 +168,7 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		fps.ReferencePoint1Y = *value
 	}
 	if value := fpsc.reference_point2_x; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2X,
@@ -176,7 +176,7 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		fps.ReferencePoint2X = *value
 	}
 	if value := fpsc.reference_point2_y; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2Y,
@@ -184,20 +184,20 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		fps.ReferencePoint2Y = *value
 	}
 	if value := fpsc.scale_in_meters; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
 		fps.ScaleInMeters = *value
 	}
-	if err := sqlgraph.CreateNode(ctx, fpsc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, fpsc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	fps.ID = strconv.FormatInt(id, 10)
 	return fps, nil
 }

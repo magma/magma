@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // WorkOrderType is the model entity for the WorkOrderType schema.
@@ -28,32 +29,105 @@ type WorkOrderType struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the WorkOrderTypeQuery when eager-loading is set.
+	Edges WorkOrderTypeEdges `json:"edges"`
 }
 
-// FromRows scans the sql response data into WorkOrderType.
-func (wot *WorkOrderType) FromRows(rows *sql.Rows) error {
-	var scanwot struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		Description sql.NullString
+// WorkOrderTypeEdges holds the relations/edges for other nodes in the graph.
+type WorkOrderTypeEdges struct {
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType
+	// Definitions holds the value of the definitions edge.
+	Definitions []*WorkOrderDefinition
+	// CheckListDefinitions holds the value of the check_list_definitions edge.
+	CheckListDefinitions []*CheckListItemDefinition
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderTypeEdges) WorkOrdersOrErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[0] {
+		return e.WorkOrders, nil
 	}
-	// the order here should be the same as in the `workordertype.Columns`.
-	if err := rows.Scan(
-		&scanwot.ID,
-		&scanwot.CreateTime,
-		&scanwot.UpdateTime,
-		&scanwot.Name,
-		&scanwot.Description,
-	); err != nil {
-		return err
+	return nil, &NotLoadedError{edge: "work_orders"}
+}
+
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.PropertyTypes, nil
 	}
-	wot.ID = strconv.Itoa(scanwot.ID)
-	wot.CreateTime = scanwot.CreateTime.Time
-	wot.UpdateTime = scanwot.UpdateTime.Time
-	wot.Name = scanwot.Name.String
-	wot.Description = scanwot.Description.String
+	return nil, &NotLoadedError{edge: "property_types"}
+}
+
+// DefinitionsOrErr returns the Definitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderTypeEdges) DefinitionsOrErr() ([]*WorkOrderDefinition, error) {
+	if e.loadedTypes[2] {
+		return e.Definitions, nil
+	}
+	return nil, &NotLoadedError{edge: "definitions"}
+}
+
+// CheckListDefinitionsOrErr returns the CheckListDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderTypeEdges) CheckListDefinitionsOrErr() ([]*CheckListItemDefinition, error) {
+	if e.loadedTypes[3] {
+		return e.CheckListDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "check_list_definitions"}
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*WorkOrderType) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // description
+	}
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the WorkOrderType fields.
+func (wot *WorkOrderType) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(workordertype.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	wot.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		wot.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		wot.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		wot.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field description", values[3])
+	} else if value.Valid {
+		wot.Description = value.String
+	}
 	return nil
 }
 
@@ -120,18 +194,6 @@ func (wot *WorkOrderType) id() int {
 
 // WorkOrderTypes is a parsable slice of WorkOrderType.
 type WorkOrderTypes []*WorkOrderType
-
-// FromRows scans the sql response data into WorkOrderTypes.
-func (wot *WorkOrderTypes) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanwot := &WorkOrderType{}
-		if err := scanwot.FromRows(rows); err != nil {
-			return err
-		}
-		*wot = append(*wot, scanwot)
-	}
-	return nil
-}
 
 func (wot WorkOrderTypes) config(cfg config) {
 	for _i := range wot {

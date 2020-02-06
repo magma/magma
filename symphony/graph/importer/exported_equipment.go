@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+
+	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
@@ -28,18 +31,48 @@ const minimalEquipmentLineLength = 9
 func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := m.log.For(ctx)
+	nextLineToSkipIndex := -1
 	client := m.ClientFrom(ctx)
 
 	log.Debug("Exported Equipment - started")
+	var (
+		err                    error
+		modifiedCount, numRows int
+		errs                   Errors
+		verifyBeforeCommit     *bool
+		commitRuns             []bool
+	)
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
 		log.Warn("parsing multipart form", zap.Error(err))
 		http.Error(w, "cannot parse form", http.StatusInternalServerError)
 		return
 	}
-	count, numRows := 0, 0
+	err = r.ParseForm()
+	if err != nil {
+		errorReturn(w, "can't parse form", log, err)
+		return
+	}
+
+	skipLines, err := getLinesToSkip(r)
+	if err != nil {
+		errorReturn(w, "can't parse skipped lines", log, err)
+		return
+	}
+
+	verifyBeforeCommit, err = getVerifyBeforeCommitParam(r)
+	if err != nil {
+		errorReturn(w, "can't parse verify_before_commit param", log, err)
+		return
+	}
+
+	if pointer.GetBool(verifyBeforeCommit) {
+		commitRuns = []bool{false, true}
+	} else {
+		commitRuns = []bool{true}
+	}
 
 	for fileName := range r.MultipartForm.File {
-		first, reader, err := m.newReader(fileName, r)
+		first, _, err := m.newReader(fileName, r)
 		importHeader := NewImportHeader(first, ImportEntityEquipment)
 		if err != nil {
 			errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
@@ -64,112 +97,158 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 			errorReturn(w, "data fetching error", log, err)
 			return
 		}
-		ic := getImportContext(ctx)
-		for {
-			untrimmedLine, err := reader.Read()
-			if err != nil {
-				if err == io.EOF {
-					break
-				}
-				log.Warn("cannot read row", zap.Error(err))
-				continue
+
+		for _, commit := range commitRuns {
+			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
+			if commit && pointer.GetBool(verifyBeforeCommit) && len(errs) != 0 {
+				break
 			}
-			numRows++
-			importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
-			name := importLine.Name()
-			equipTypName := importLine.TypeName()
-			equipType, err := client.EquipmentType.Query().Where(equipmenttype.Name(equipTypName)).Only(ctx)
-			if err != nil {
-				errorReturn(w, fmt.Sprintf("couldn't find equipment type %q (row #%d) ", equipTypName, numRows), log, err)
-				return
+			if len(skipLines) > 0 {
+				nextLineToSkipIndex = 0
 			}
 
-			externalID := importLine.ExternalID()
-			id := importLine.ID()
-			if id == "" {
-				// new equip
-				parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, importLine)
+			numRows, modifiedCount = 0, 0
+			_, reader, err := m.newReader(fileName, r)
+			if err != nil {
+				errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
+				return
+			}
+			for {
+				untrimmedLine, err := reader.Read()
 				if err != nil {
-					errorReturn(w, fmt.Sprintf("creating location hierarchy (row #%d).", numRows), log, err)
-					return
-				}
-				parentEquipmentID, positionDefinitionID, err := m.getPositionDetailsIfExists(ctx, parentLoc, importLine)
-				if err != nil {
-					errorReturn(w, fmt.Sprintf("creating equipment hierarchy (row #%d)", numRows), log, err)
-					return
-				}
-				if parentEquipmentID != nil && positionDefinitionID != nil {
-					parentLoc = nil
-				}
-				var propInputs []*models.PropertyInput
-				if importLine.Len() > importHeader.PropertyStartIdx() {
-					propInputs, err = m.validatePropertiesForEquipmentType(ctx, importLine, equipType)
-					if err != nil {
-						errorReturn(w, fmt.Sprintf("validating property for type %q (row #%d)", equipType.Name, numRows), log, err)
-						return
+					if err == io.EOF {
+						break
 					}
+					log.Warn("cannot read row", zap.Error(err))
+					continue
 				}
-				pos, err := resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID)
+				numRows++
+				if shouldSkipLine(skipLines, numRows, nextLineToSkipIndex) {
+					log.Warn("skipping line", zap.Error(err), zap.Int("line_number", numRows))
+					nextLineToSkipIndex++
+					continue
+				}
+
+				importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				name := importLine.Name()
+				equipTypName := importLine.TypeName()
+				equipType, err := client.EquipmentType.Query().Where(equipmenttype.Name(equipTypName)).Only(ctx)
 				if err != nil {
-					errorReturn(w, fmt.Sprintf("creating equipment position (row #%d)", numRows), log, err)
-					return
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("couldn't find equipment type %q", equipTypName)})
+					continue
 				}
-				equip, created, err := m.getOrCreateEquipment(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
-				if err != nil {
-					errorReturn(w, fmt.Sprintf("creating/fetching equipment (row #%d)", numRows), log, err)
-					return
-				}
-				if created {
-					count++
-					log.Warn(fmt.Sprintf("(row #%d) creating equipment", numRows), zap.String("name", equip.Name), zap.String("id", equip.ID))
-				} else {
-					errorReturn(w, "Equipment "+equip.Name+" already exists under location/position", log, nil)
-					return
-				}
-			} else {
-				// existingEquip
-				equipment, err := m.validateLineForExistingEquipment(ctx, id, importLine)
-				if err != nil {
-					errorReturn(w, fmt.Sprintf("validating existing equipment: id %q (row #%d)", id, numRows), log, nil)
-					return
-				}
-				typ := equipment.QueryType().OnlyX(ctx)
-				props := ic.equipmentTypeIDToProperties[typ.ID]
-				var inputs []*models.PropertyInput
-				for _, propName := range props {
-					inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
-					propType := typ.QueryPropertyTypes().Where(propertytype.Name(propName)).OnlyX(ctx)
+
+				externalID := importLine.ExternalID()
+				id := importLine.ID()
+				if id == "" {
+					// new equip
+					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, importLine, commit)
 					if err != nil {
-						errorReturn(w, fmt.Sprintf("getting property input: prop %q (row #%d)", propName, numRows), log, nil)
-						return
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/verifying equipment location hierarchy"})
+						continue
+					} else if parentLoc == nil && !commit {
+						continue
 					}
-					propID, err := equipment.QueryProperties().Where(property.HasTypeWith(propertytype.ID(propType.ID))).OnlyID(ctx)
+
+					parentEquipmentID, positionDefinitionID, err := m.getPositionDetailsIfExists(ctx, parentLoc, importLine, true)
 					if err != nil {
-						if !ent.IsNotFound(err) {
-							errorReturn(w, fmt.Sprintf("property fetching error: property name %q (row #%d)", propName, numRows), log, nil)
-							return
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/verifying equipment hierarchy"})
+						continue
+
+					}
+					if parentEquipmentID != nil && positionDefinitionID != nil {
+						parentLoc = nil
+					}
+					var propInputs []*models.PropertyInput
+					if importLine.Len() > importHeader.PropertyStartIdx() {
+						propInputs, err = m.validatePropertiesForEquipmentType(ctx, importLine, equipType)
+						if err != nil {
+							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating property for type %q", equipType.Name)})
+							continue
+						}
+					}
+
+					var pos *ent.EquipmentPosition
+					var created bool
+					if commit {
+						pos, err = resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID, true)
+					} else {
+						pos, err = resolverutil.ValidateAndGetPositionIfExists(ctx, client, parentEquipmentID, positionDefinitionID, true)
+					}
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/fetching equipment position"})
+						continue
+					}
+					if commit {
+						_, created, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
+						if created {
+							modifiedCount++
+						} else if err == nil {
+							log.Info("Row " + strconv.FormatInt(int64(numRows), 10) + ": Equipment already exists under location/position")
 						}
 					} else {
-						inp.ID = &propID
+						_, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
 					}
-					inputs = append(inputs, inp)
-				}
-				count++
-				_, err = m.r.Mutation().EditEquipment(ctx, models.EditEquipmentInput{ID: id, Name: name, Properties: inputs, ExternalID: &externalID})
-				if err != nil {
-					errorReturn(w, fmt.Sprintf("editing equipment: id %q (row #%d)", id, numRows), log, nil)
-					return
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/fetching equipment"})
+						continue
+					}
+				} else {
+					// existing equip
+					equipment, err := m.validateLineForExistingEquipment(ctx, id, importLine)
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error validating equipment line"})
+						continue
+					}
+					inputs, msg, err := m.getEquipmentPropertyInputs(ctx, importLine, equipment)
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: msg})
+						continue
+					}
+					if commit {
+						modifiedCount++
+						_, err = m.r.Mutation().EditEquipment(ctx, models.EditEquipmentInput{ID: id, Name: name, Properties: inputs, ExternalID: &externalID})
+						if err != nil {
+							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("editing equipment: id %v", id)})
+							continue
+						}
+					}
 				}
 			}
 		}
 	}
-	log.Debug("Exported Equipment - Done")
+
 	w.WriteHeader(http.StatusOK)
-	err := writeSuccessMessage(w, count, numRows)
+	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0)
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return
 	}
+	log.Debug("Exported Equipment - Done", zap.Any("errors list", errs), zap.Int("all_lines", numRows), zap.Int("edited_added_rows", modifiedCount))
+}
+
+func (m *importer) getEquipmentPropertyInputs(ctx context.Context, importLine ImportRecord, equipment *ent.Equipment) ([]*models.PropertyInput, string, error) {
+	typ := equipment.QueryType().OnlyX(ctx)
+	ic := getImportContext(ctx)
+	props := ic.equipmentTypeIDToProperties[typ.ID]
+	var inputs []*models.PropertyInput
+	for _, propName := range props {
+		inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
+		propType := typ.QueryPropertyTypes().Where(propertytype.Name(propName)).OnlyX(ctx)
+		if err != nil {
+			return nil, fmt.Sprintf("getting property input: prop %v", propName), err
+		}
+		propID, err := equipment.QueryProperties().Where(property.HasTypeWith(propertytype.ID(propType.ID))).OnlyID(ctx)
+		if err != nil {
+			if !ent.IsNotFound(err) {
+				return nil, fmt.Sprintf("property fetching error: property name %v", propName), err
+			}
+		} else {
+			inp.ID = &propID
+		}
+		inputs = append(inputs, inp)
+	}
+	return inputs, "", nil
 }
 
 func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID string, importLine ImportRecord) (*ent.Equipment, error) {
@@ -179,7 +258,7 @@ func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID
 	}
 	typ := equipment.QueryType().OnlyX(ctx)
 	if typ.Name != importLine.TypeName() {
-		return nil, errors.Errorf("wrong equipment type. should be %v, but %v", importLine.TypeName(), typ.Name)
+		return nil, errors.Errorf("wrong equipment type. should be %v, but %v", typ.Name, importLine.TypeName())
 	}
 	err = m.verifyPositionHierarchy(ctx, equipment, importLine)
 	if err != nil {

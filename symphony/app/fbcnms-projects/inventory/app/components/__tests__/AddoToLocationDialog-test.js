@@ -23,9 +23,7 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {act, cleanup, fireEvent, render, wait} from '@testing-library/react';
 
 global.CONFIG = {
-  appData: {
-    enabledFeatures: ['upload_rural', 'upload_ftth', 'upload_xwf'],
-  },
+  appData: {enabledFeatures: []},
 };
 
 const Wrapper = props => (
@@ -58,11 +56,11 @@ describe('<AddToLocationDialog />', () => {
       expect(getByText('Add')).toBeInTheDocument();
       expect(getByText('Select a location type')).toBeInTheDocument();
 
-      expect(queryByText('Upload Position Def')).not.toBeInTheDocument();
+      expect(queryByText('Upload Exported Service')).not.toBeInTheDocument();
       act(() => {
         fireEvent.click(getByText('Bulk Upload'));
       });
-      expect(getByText('Upload Position Def')).toBeInTheDocument();
+      expect(getByText('Upload Exported Service')).toBeInTheDocument();
     });
 
     it('saves and cancels', async () => {
@@ -206,18 +204,11 @@ describe('<AddToLocationDialog />', () => {
         </Wrapper>,
       );
 
-      expect(getByText('Rural RAN')).toBeInTheDocument();
-      expect(getByText('Rural Transport')).toBeInTheDocument();
-      expect(getByText('Rural Locations')).toBeInTheDocument();
-      expect(getByText('Rural Legacy Locations')).toBeInTheDocument();
-      expect(getByText('Upload FTTH')).toBeInTheDocument();
-      expect(getByText('Express Wi-Fi Rural')).toBeInTheDocument();
-      expect(getByText('Express Wi-Fi XPP Access Points')).toBeInTheDocument();
-      expect(getByText('Upload Position Def')).toBeInTheDocument();
-      expect(getByText('Upload Port Def')).toBeInTheDocument();
-      expect(getByText('Upload Port Connections')).toBeInTheDocument();
+      expect(getByText('Upload Exported Equipment')).toBeInTheDocument();
+      expect(getByText('Upload Exported Ports')).toBeInTheDocument();
+      expect(getByText('Upload Exported Links')).toBeInTheDocument();
       expect(getByText('Upload Locations')).toBeInTheDocument();
-      expect(getByText('Upload Equipment')).toBeInTheDocument();
+      expect(getByText('Upload Exported Service')).toBeInTheDocument();
     });
   });
 });

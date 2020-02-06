@@ -43,7 +43,7 @@ func (stqd *SurveyTemplateQuestionDelete) ExecX(ctx context.Context) int {
 }
 
 func (stqd *SurveyTemplateQuestionDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: surveytemplatequestion.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (stqd *SurveyTemplateQuestionDelete) sqlExec(ctx context.Context) (int, err
 		},
 	}
 	if ps := stqd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, stqd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, stqd.driver, _spec)
 }
 
 // SurveyTemplateQuestionDeleteOne is the builder for deleting a single SurveyTemplateQuestion entity.
@@ -74,7 +74,7 @@ func (stqdo *SurveyTemplateQuestionDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{surveytemplatequestion.Label}
+		return &NotFoundError{surveytemplatequestion.Label}
 	default:
 		return nil
 	}

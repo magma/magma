@@ -8,11 +8,12 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -299,219 +300,236 @@ func (ltu *LocationTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(ltu.driver.Dialect())
-		selector = builder.Select(locationtype.FieldID).From(builder.Table(locationtype.Table))
-	)
-	for _, p := range ltu.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   locationtype.Table,
+			Columns: locationtype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: locationtype.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = ltu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := ltu.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := ltu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(locationtype.Table)
-	)
-	updater = updater.Where(sql.InInts(locationtype.FieldID, ids...))
 	if value := ltu.update_time; value != nil {
-		updater.Set(locationtype.FieldUpdateTime, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: locationtype.FieldUpdateTime,
+		})
 	}
 	if value := ltu.site; value != nil {
-		updater.Set(locationtype.FieldSite, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: locationtype.FieldSite,
+		})
 	}
 	if value := ltu.name; value != nil {
-		updater.Set(locationtype.FieldName, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: locationtype.FieldName,
+		})
 	}
 	if value := ltu.map_type; value != nil {
-		updater.Set(locationtype.FieldMapType, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: locationtype.FieldMapType,
+		})
 	}
 	if ltu.clearmap_type {
-		updater.SetNull(locationtype.FieldMapType)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: locationtype.FieldMapType,
+		})
 	}
 	if value := ltu.map_zoom_level; value != nil {
-		updater.Set(locationtype.FieldMapZoomLevel, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldMapZoomLevel,
+		})
 	}
 	if value := ltu.addmap_zoom_level; value != nil {
-		updater.Add(locationtype.FieldMapZoomLevel, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldMapZoomLevel,
+		})
 	}
 	if ltu.clearmap_zoom_level {
-		updater.SetNull(locationtype.FieldMapZoomLevel)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: locationtype.FieldMapZoomLevel,
+		})
 	}
 	if value := ltu.index; value != nil {
-		updater.Set(locationtype.FieldIndex, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldIndex,
+		})
 	}
 	if value := ltu.addindex; value != nil {
-		updater.Add(locationtype.FieldIndex, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldIndex,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if nodes := ltu.removedLocations; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   locationtype.LocationsTable,
+			Columns: []string{locationtype.LocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
-	}
-	if len(ltu.removedLocations) > 0 {
-		eids := make([]int, len(ltu.removedLocations))
-		for eid := range ltu.removedLocations {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(locationtype.LocationsTable).
-			SetNull(locationtype.LocationsColumn).
-			Where(sql.InInts(locationtype.LocationsColumn, ids...)).
-			Where(sql.InInts(location.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(ltu.locations) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range ltu.locations {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(location.FieldID, eid)
-			}
-			query, args := builder.Update(locationtype.LocationsTable).
-				Set(locationtype.LocationsColumn, id).
-				Where(sql.And(p, sql.IsNull(locationtype.LocationsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(ltu.locations) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"locations\" %v already connected to a different \"LocationType\"", keys(ltu.locations))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(ltu.removedPropertyTypes) > 0 {
-		eids := make([]int, len(ltu.removedPropertyTypes))
-		for eid := range ltu.removedPropertyTypes {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := ltu.locations; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   locationtype.LocationsTable,
+			Columns: []string{locationtype.LocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(locationtype.PropertyTypesTable).
-			SetNull(locationtype.PropertyTypesColumn).
-			Where(sql.InInts(locationtype.PropertyTypesColumn, ids...)).
-			Where(sql.InInts(propertytype.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(ltu.property_types) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range ltu.property_types {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(propertytype.FieldID, eid)
-			}
-			query, args := builder.Update(locationtype.PropertyTypesTable).
-				Set(locationtype.PropertyTypesColumn, id).
-				Where(sql.And(p, sql.IsNull(locationtype.PropertyTypesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(ltu.property_types) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"LocationType\"", keys(ltu.property_types))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if len(ltu.removedSurveyTemplateCategories) > 0 {
-		eids := make([]int, len(ltu.removedSurveyTemplateCategories))
-		for eid := range ltu.removedSurveyTemplateCategories {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := ltu.removedPropertyTypes; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.PropertyTypesTable,
+			Columns: []string{locationtype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(locationtype.SurveyTemplateCategoriesTable).
-			SetNull(locationtype.SurveyTemplateCategoriesColumn).
-			Where(sql.InInts(locationtype.SurveyTemplateCategoriesColumn, ids...)).
-			Where(sql.InInts(surveytemplatecategory.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(ltu.survey_template_categories) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range ltu.survey_template_categories {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(surveytemplatecategory.FieldID, eid)
-			}
-			query, args := builder.Update(locationtype.SurveyTemplateCategoriesTable).
-				Set(locationtype.SurveyTemplateCategoriesColumn, id).
-				Where(sql.And(p, sql.IsNull(locationtype.SurveyTemplateCategoriesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(ltu.survey_template_categories) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey_template_categories\" %v already connected to a different \"LocationType\"", keys(ltu.survey_template_categories))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := ltu.property_types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.PropertyTypesTable,
+			Columns: []string{locationtype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := ltu.removedSurveyTemplateCategories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.SurveyTemplateCategoriesTable,
+			Columns: []string{locationtype.SurveyTemplateCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatecategory.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltu.survey_template_categories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.SurveyTemplateCategoriesTable,
+			Columns: []string{locationtype.SurveyTemplateCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatecategory.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if n, err = sqlgraph.UpdateNodes(ctx, ltu.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // LocationTypeUpdateOne is the builder for updating a single LocationType entity.
@@ -787,231 +805,230 @@ func (ltuo *LocationTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationType, err error) {
-	var (
-		builder  = sql.Dialect(ltuo.driver.Dialect())
-		selector = builder.Select(locationtype.Columns...).From(builder.Table(locationtype.Table))
-	)
-	locationtype.ID(ltuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = ltuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   locationtype.Table,
+			Columns: locationtype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  ltuo.id,
+				Type:   field.TypeString,
+				Column: locationtype.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		lt = &LocationType{config: ltuo.config}
-		if err := lt.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into LocationType: %v", err)
-		}
-		id = lt.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("LocationType with id: %v", ltuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one LocationType with the same id: %v", ltuo.id)
-	}
-
-	tx, err := ltuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(locationtype.Table)
-	)
-	updater = updater.Where(sql.InInts(locationtype.FieldID, ids...))
 	if value := ltuo.update_time; value != nil {
-		updater.Set(locationtype.FieldUpdateTime, *value)
-		lt.UpdateTime = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: locationtype.FieldUpdateTime,
+		})
 	}
 	if value := ltuo.site; value != nil {
-		updater.Set(locationtype.FieldSite, *value)
-		lt.Site = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: locationtype.FieldSite,
+		})
 	}
 	if value := ltuo.name; value != nil {
-		updater.Set(locationtype.FieldName, *value)
-		lt.Name = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: locationtype.FieldName,
+		})
 	}
 	if value := ltuo.map_type; value != nil {
-		updater.Set(locationtype.FieldMapType, *value)
-		lt.MapType = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: locationtype.FieldMapType,
+		})
 	}
 	if ltuo.clearmap_type {
-		var value string
-		lt.MapType = value
-		updater.SetNull(locationtype.FieldMapType)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: locationtype.FieldMapType,
+		})
 	}
 	if value := ltuo.map_zoom_level; value != nil {
-		updater.Set(locationtype.FieldMapZoomLevel, *value)
-		lt.MapZoomLevel = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldMapZoomLevel,
+		})
 	}
 	if value := ltuo.addmap_zoom_level; value != nil {
-		updater.Add(locationtype.FieldMapZoomLevel, *value)
-		lt.MapZoomLevel += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldMapZoomLevel,
+		})
 	}
 	if ltuo.clearmap_zoom_level {
-		var value int
-		lt.MapZoomLevel = value
-		updater.SetNull(locationtype.FieldMapZoomLevel)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: locationtype.FieldMapZoomLevel,
+		})
 	}
 	if value := ltuo.index; value != nil {
-		updater.Set(locationtype.FieldIndex, *value)
-		lt.Index = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldIndex,
+		})
 	}
 	if value := ltuo.addindex; value != nil {
-		updater.Add(locationtype.FieldIndex, *value)
-		lt.Index += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: locationtype.FieldIndex,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	if nodes := ltuo.removedLocations; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   locationtype.LocationsTable,
+			Columns: []string{locationtype.LocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
-	}
-	if len(ltuo.removedLocations) > 0 {
-		eids := make([]int, len(ltuo.removedLocations))
-		for eid := range ltuo.removedLocations {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(locationtype.LocationsTable).
-			SetNull(locationtype.LocationsColumn).
-			Where(sql.InInts(locationtype.LocationsColumn, ids...)).
-			Where(sql.InInts(location.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(ltuo.locations) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range ltuo.locations {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(location.FieldID, eid)
-			}
-			query, args := builder.Update(locationtype.LocationsTable).
-				Set(locationtype.LocationsColumn, id).
-				Where(sql.And(p, sql.IsNull(locationtype.LocationsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(ltuo.locations) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"locations\" %v already connected to a different \"LocationType\"", keys(ltuo.locations))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(ltuo.removedPropertyTypes) > 0 {
-		eids := make([]int, len(ltuo.removedPropertyTypes))
-		for eid := range ltuo.removedPropertyTypes {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := ltuo.locations; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   locationtype.LocationsTable,
+			Columns: []string{locationtype.LocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(locationtype.PropertyTypesTable).
-			SetNull(locationtype.PropertyTypesColumn).
-			Where(sql.InInts(locationtype.PropertyTypesColumn, ids...)).
-			Where(sql.InInts(propertytype.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(ltuo.property_types) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range ltuo.property_types {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(propertytype.FieldID, eid)
-			}
-			query, args := builder.Update(locationtype.PropertyTypesTable).
-				Set(locationtype.PropertyTypesColumn, id).
-				Where(sql.And(p, sql.IsNull(locationtype.PropertyTypesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(ltuo.property_types) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"LocationType\"", keys(ltuo.property_types))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if len(ltuo.removedSurveyTemplateCategories) > 0 {
-		eids := make([]int, len(ltuo.removedSurveyTemplateCategories))
-		for eid := range ltuo.removedSurveyTemplateCategories {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := ltuo.removedPropertyTypes; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.PropertyTypesTable,
+			Columns: []string{locationtype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(locationtype.SurveyTemplateCategoriesTable).
-			SetNull(locationtype.SurveyTemplateCategoriesColumn).
-			Where(sql.InInts(locationtype.SurveyTemplateCategoriesColumn, ids...)).
-			Where(sql.InInts(surveytemplatecategory.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(ltuo.survey_template_categories) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range ltuo.survey_template_categories {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(surveytemplatecategory.FieldID, eid)
-			}
-			query, args := builder.Update(locationtype.SurveyTemplateCategoriesTable).
-				Set(locationtype.SurveyTemplateCategoriesColumn, id).
-				Where(sql.And(p, sql.IsNull(locationtype.SurveyTemplateCategoriesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(ltuo.survey_template_categories) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey_template_categories\" %v already connected to a different \"LocationType\"", keys(ltuo.survey_template_categories))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := ltuo.property_types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.PropertyTypesTable,
+			Columns: []string{locationtype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := ltuo.removedSurveyTemplateCategories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.SurveyTemplateCategoriesTable,
+			Columns: []string{locationtype.SurveyTemplateCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatecategory.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltuo.survey_template_categories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locationtype.SurveyTemplateCategoriesTable,
+			Columns: []string{locationtype.SurveyTemplateCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatecategory.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	lt = &LocationType{config: ltuo.config}
+	_spec.Assign = lt.assignValues
+	_spec.ScanValues = lt.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, ltuo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return lt, nil

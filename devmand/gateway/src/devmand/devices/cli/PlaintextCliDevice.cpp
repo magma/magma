@@ -84,6 +84,8 @@ std::shared_ptr<Datastore> PlaintextCliDevice::getOperationalDatastore() {
                 [&v, &cmd](auto& lockedState) { lockedState[cmd.raw()] = v; });
           })
           .thenError(
+              // TODO unify with ReconnectingCli
+              // (DisconnectedException+CommandExecutionException)
               folly::tag_t<DisconnectedException>{},
               [state,
                id = this->id](DisconnectedException const& e) -> Future<Unit> {

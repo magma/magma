@@ -295,7 +295,6 @@ int emm_send_attach_accept(
         LOG_NAS_EMM,
         "EMMAS-SAP - EPS emergency attach, currently unsupported for (ue_id = %u)\n",
         ue_id);
-      emm_context_unlock(emm_ctx);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0); // TODO: fix once supported
       break;
   }
@@ -508,8 +507,6 @@ int emm_send_attach_accept(
     emm_msg->presencemask |= ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
     emm_msg->epsnetworkfeaturesupport = *msg->eps_network_feature_support;
   }
-
-  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, size);
 }
 /****************************************************************************
@@ -602,7 +599,6 @@ int emm_send_attach_accept_dl_nas(
       OAILOG_ERROR(
         LOG_NAS_EMM,
         "EMMAS-SAP - EPS emergency attach, currently unsupported\n");
-      emm_context_unlock(emm_ctx);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0); // TODO: fix once supported
       break;
   }
@@ -773,8 +769,6 @@ int emm_send_attach_accept_dl_nas(
     emm_msg->presencemask |= ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
     emm_msg->epsnetworkfeaturesupport = *msg->eps_network_feature_support;
   }
-
-  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, size);
 }
 

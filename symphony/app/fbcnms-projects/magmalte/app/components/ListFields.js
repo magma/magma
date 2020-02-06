@@ -8,17 +8,15 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
-
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import IconButton from '@material-ui/core/IconButton';
 import React from 'react';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
 import TextField from '@material-ui/core/TextField';
 
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
 
-const styles = {
+const useStyles = makeStyles({
   container: {
     display: 'block',
     margin: '5px 0',
@@ -34,61 +32,57 @@ const styles = {
     height: '30px',
     verticalAlign: 'bottom',
   },
-};
+});
 
-type Props = WithStyles<typeof styles> & {
+type Props = {
   itemList: Array<string>,
   onChange: (Array<string>) => void,
 };
 
-type State = {};
+export default function ListFields(props: Props) {
+  const classes = useStyles();
 
-class ListFields extends React.Component<Props, State> {
-  render() {
-    return this.props.itemList.map((item, index) => (
-      <div className={this.props.classes.container} key={index}>
-        <TextField
-          label="Item"
-          margin="none"
-          value={item}
-          onChange={({target}) => this.onChange(index, target.value)}
-          className={this.props.classes.input}
-        />
-        {this.props.itemList.length !== 1 && (
-          <IconButton
-            onClick={() => this.removeField(index)}
-            className={this.props.classes.icon}>
-            <RemoveCircleOutline />
-          </IconButton>
-        )}
-        {index === this.props.itemList.length - 1 && (
-          <IconButton
-            onClick={this.addField}
-            className={this.props.classes.icon}>
-            <AddCircleOutline />
-          </IconButton>
-        )}
-      </div>
-    ));
-  }
-
-  onChange = (index, value) => {
-    const itemList = this.props.itemList.slice(0);
+  const onChange = (index, value) => {
+    const itemList = [...props.itemList];
     itemList[index] = value;
-    this.props.onChange(itemList);
+    props.onChange(itemList);
   };
 
-  removeField = index => {
-    const itemList = this.props.itemList.slice(0);
+  const removeField = index => {
+    const itemList = [...props.itemList];
     itemList.splice(index, 1);
-    this.props.onChange(itemList);
+    props.onChange(itemList);
   };
 
-  addField = () => {
-    const itemList = this.props.itemList.slice(0);
-    itemList.push('');
-    this.props.onChange(itemList);
+  const addField = () => {
+    props.onChange([...props.itemList, '']);
   };
+
+  return (
+    <>
+      {props.itemList.map((item, index) => (
+        <div className={classes.container} key={index}>
+          <TextField
+            label="Item"
+            margin="none"
+            value={item}
+            onChange={({target}) => onChange(index, target.value)}
+            className={classes.input}
+          />
+          {props.itemList.length !== 1 && (
+            <IconButton
+              onClick={() => removeField(index)}
+              className={classes.icon}>
+              <RemoveCircleOutline />
+            </IconButton>
+          )}
+          {index === props.itemList.length - 1 && (
+            <IconButton onClick={addField} className={classes.icon}>
+              <AddCircleOutline />
+            </IconButton>
+          )}
+        </div>
+      ))}
+    </>
+  );
 }
-
-export default withStyles(styles)(ListFields);

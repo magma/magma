@@ -235,8 +235,8 @@ func (pc *ProjectCreate) SaveX(ctx context.Context) *Project {
 
 func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 	var (
-		pr   = &Project{config: pc.config}
-		spec = &sqlgraph.CreateSpec{
+		pr    = &Project{config: pc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: project.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -245,7 +245,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		}
 	)
 	if value := pc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: project.FieldCreateTime,
@@ -253,7 +253,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		pr.CreateTime = *value
 	}
 	if value := pc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: project.FieldUpdateTime,
@@ -261,7 +261,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		pr.UpdateTime = *value
 	}
 	if value := pc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: project.FieldName,
@@ -269,7 +269,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		pr.Name = *value
 	}
 	if value := pc.description; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: project.FieldDescription,
@@ -277,7 +277,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		pr.Description = value
 	}
 	if value := pc.creator; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: project.FieldCreator,
@@ -305,7 +305,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -328,7 +328,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.comments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -351,7 +351,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -374,7 +374,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -397,15 +397,15 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, pc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, pc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	pr.ID = strconv.FormatInt(id, 10)
 	return pr, nil
 }

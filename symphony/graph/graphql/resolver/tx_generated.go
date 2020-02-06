@@ -8,10 +8,10 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/pkg/errors"
 )
 
 // txResolver wraps a mutation resolver and executes every mutation under a transaction.
@@ -22,7 +22,7 @@ type txResolver struct {
 func (tr txResolver) WithTransaction(ctx context.Context, f func(context.Context, mutationResolver) error) error {
 	tx, err := tr.ClientFrom(ctx).Tx(ctx)
 	if err != nil {
-		return errors.Wrap(err, "creating transaction")
+		return fmt.Errorf("creating transaction: %w", err)
 	}
 	defer func() {
 		if r := recover(); r != nil {
@@ -33,12 +33,12 @@ func (tr txResolver) WithTransaction(ctx context.Context, f func(context.Context
 	ctx = ent.NewContext(ctx, tx.Client())
 	if err := f(ctx, tr.mutationResolver); err != nil {
 		if r := tx.Rollback(); r != nil {
-			err = errors.WithMessagef(err, "rolling back transaction: %v", r)
+			err = fmt.Errorf("rolling back transaction: %v", r)
 		}
 		return err
 	}
 	if err := tx.Commit(); err != nil {
-		return errors.Wrap(err, "committing transaction")
+		return fmt.Errorf("committing transaction: %w", err)
 	}
 	return nil
 }
@@ -449,6 +449,34 @@ func (tr txResolver) AddImage(ctx context.Context, input models.AddImageInput) (
 	var result, zero *ent.File
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
 		result, err = mr.AddImage(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error) {
+	var result, zero *ent.Hyperlink
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.AddHyperlink(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) DeleteHyperlink(ctx context.Context, id string) (*ent.Hyperlink, error) {
+	var result, zero *ent.Hyperlink
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.DeleteHyperlink(ctx, id)
 		return
 	}); err != nil {
 		return zero, err

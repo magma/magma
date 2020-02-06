@@ -1,0 +1,403 @@
+---
+swagger: '2.0'
+info:
+  title: Alertmanager Configurer Model Definitions and Paths
+  description: Alertmanager Configurer REST APIs
+  version: 1.0.1
+
+paths:
+  /{tenant_id}/receiver:
+    post:
+      summary: Create new alert receiver
+      tags:
+        - Receivers
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+        - in: body
+          name: receiver_config
+          description: Alert receiver that is to be added
+          required: true
+          schema:
+            $ref: '#/definitions/receiver_config'
+      responses:
+        '201':
+          description: Created
+        default:
+          $ref: '#/responses/UnexpectedError'
+    get:
+      summary: Retrieve alert receivers
+      tags:
+        - Receivers
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+      responses:
+        '200':
+          description: List of alert receivers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/receiver_config'
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+  /{tenant_id}/receiver/{receiver_name}:
+    get:
+      summary: Retrieve an alert receiver
+      tags:
+        - Receivers
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+        - in: path
+          name: receiver_name
+          description: Receiver name to be retrieved
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Alert receiver configuration
+          schema:
+            $ref: '#/definitions/receiver_config'
+        default:
+          $ref: '#/responses/UnexpectedError'
+    delete:
+      summary: Delete alert receiver
+      tags:
+        - Receivers
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+        - in: path
+          name: receiver_name
+          description: Receiver name to be deleted
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Deleted
+        default:
+          $ref: '#/responses/UnexpectedError'
+    put:
+      summary: Update existing alert receiver
+      tags:
+        - Receivers
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+        - in: path
+          name: receiver_name
+          description: Name of receiver to be updated
+          required: true
+          type: string
+        - in: body
+          name: receiver_config
+          description: Updated alert receiver
+          required: true
+          schema:
+            $ref: '#/definitions/receiver_config'
+      responses:
+        '204':
+          description: Updated
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+  /{tenant_id}/route:
+    get:
+      summary: Retrieve alert routing tree
+      tags:
+        - Routes
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+      responses:
+        '200':
+          description: Alerting tree
+          schema:
+            $ref: '#/definitions/routing_tree'
+    post:
+      summary: Modify alert routing tree
+      tags:
+        - Routes
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+        - in: body
+          name: route
+          description: Alert routing tree to be used
+          required: true
+          schema:
+            $ref: '#/definitions/routing_tree'
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+  /global:
+    get:
+      summary: Retrieve alertmanager global config
+      tags:
+        - Routes
+      responses:
+        '200':
+          description: Alerting tree
+          schema:
+            $ref: '#/definitions/global_config'
+      post:
+        summary: Modify alertmanager global config
+        tags:
+          - Routes
+        parameters:
+          - in: body
+            name: global_config
+            description: Global config to be set
+            required: true
+            schema:
+              $ref: '#/definitions/global_config'
+        responses:
+          '200':
+            description: OK
+          default:
+            $ref: '#/responses/UnexpectedError'
+
+parameters:
+  tenant_id:
+    description: Tenant ID
+    in: path
+    name: tenant_id
+    required: true
+    type: string
+
+definitions:
+  receiver_config:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+      slack_configs:
+        type: array
+        items:
+          $ref: '#/definitions/slack_receiver'
+
+  slack_receiver:
+    type: object
+    required:
+      - api_url
+    properties:
+      http_config:
+        $ref: '#/definitions/http_config'
+      api_url:
+        type: string
+      channel:
+        type: string
+      username:
+        type: string
+      color:
+        type: string
+      title:
+        type: string
+      pretext:
+        type: string
+      text:
+        type: string
+      fields:
+        type: array
+        items:
+          $ref: '#/definitions/slack_field'
+      short_fields:
+        type: boolean
+      footer:
+        type: string
+      fallback:
+        type: string
+      callback_id:
+        type: string
+      icon_emoji:
+        type: string
+      icon_url:
+        type: string
+      image_url:
+        type: string
+      thumb_url:
+        type: string
+      link_names:
+        type: boolean
+      actions:
+        type: array
+        items:
+          $ref: '#/definitions/slack_action'
+
+  slack_field:
+    type: object
+    required:
+      - title
+      - value
+    properties:
+      title:
+        type: string
+      value:
+        type: string
+      short:
+        type: boolean
+
+  slack_action:
+    type: object
+    required:
+      - type
+      - text
+      - url
+    properties:
+      type:
+        type: string
+      text:
+        type: string
+      url:
+        type: string
+      style:
+        type: string
+      name:
+        type: string
+      value:
+        type: string
+      confirm:
+        $ref: '#/definitions/slack_confirm_field'
+
+  slack_confirm_field:
+    type: object
+    required:
+      - text
+      - title
+      - ok_text
+      - dismiss_text
+    properties:
+      text:
+        type: string
+      title:
+        type: string
+      ok_text:
+        type: string
+      dismiss_text:
+        type: string
+
+  routing_tree:
+    type: object
+    required:
+      - receiver
+    properties:
+      receiver:
+        type: string
+      group_by:
+        type: array
+        items:
+          type: string
+      match:
+        type: object
+        properties:
+          label:
+            type: string
+          value:
+            type: string
+      match_re:
+        type: object
+        properties:
+          label:
+            type: string
+          value:
+            type: string
+      continue:
+        type: boolean
+      routes:
+        type: array
+        items:
+          $ref: '#/definitions/routing_tree'
+      group_wait:
+        type: string
+      group_interval:
+        type: string
+      repeat_interval:
+        type: string
+
+  global_config:
+    type: object
+    properties:
+      resolve_timeout:
+        type: string
+      http_config:
+        $ref: '#/definitions/http_config'
+      smtp_from:
+        type: string
+      smtp_hello:
+        type: string
+      smtp_smarthost:
+        type: string
+      smtp_auth_username:
+        type: string
+      smtp_auth_password:
+        type: string
+      smtp_auth_secret:
+        type: string
+      smtp_auth_identity:
+        type: string
+      smtp_require_tls:
+        type: string
+      slack_api_url:
+        type: string
+      pagerduty_url:
+        type: string
+      hipchat_api_url:
+        type: string
+      hipchat_auth_token:
+        type: string
+      opsgenie_api_url:
+        type: string
+      opsgenie_api_key:
+        type: string
+      wechat_api_url:
+        type: string
+      wechat_api_corp_id:
+        type: string
+      victorops_api_url:
+        type: string
+      victorops_api_key:
+        type: string
+
+  http_config:
+    type: object
+    properties:
+      basic_auth:
+        $ref: '#/definitions/basic_auth'
+      bearer_token:
+        type: string
+      proxy_url:
+        type: string
+      tls_config:
+        $ref: '#/definitions/tls_config'
+
+  basic_auth:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+
+  tls_config:
+    type: object
+    properties:
+      server_name:
+        type: string
+      insecure_skip_verify:
+        type: boolean
+
+
+  error:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        example: Error string
+        type: string
+
+responses:
+  UnexpectedError:
+    description: Unexpected Error
+    schema:
+      $ref: '#/definitions/error'

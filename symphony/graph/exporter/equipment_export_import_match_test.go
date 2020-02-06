@@ -30,12 +30,15 @@ import (
 )
 
 // TODO (T59270743): Move this file to importer folder and refactor similar code with exported_service_integration_test.go
-func writeModifiedCSV(t *testing.T, r *csv.Reader, method method) (*bytes.Buffer, string) {
+func writeModifiedCSV(t *testing.T, r *csv.Reader, method method, withVerify bool) (*bytes.Buffer, string) {
 	var newLine []string
 	var lines = make([][]string, 3)
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 
+	if withVerify {
+		bw.WriteField("verify_before_commit", "true")
+	}
 	fileWriter, err := bw.CreateFormFile("file_0", "name1")
 	require.Nil(t, err)
 	for i := 0; ; i++ {
@@ -71,6 +74,16 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method) (*bytes.Buffer
 			}
 		}
 	}
+
+	if withVerify {
+		failLine := make([]string, len(lines[1]))
+		copy(failLine, lines[1])
+		lines = append(lines, failLine)
+		lines[3][1] = "this"
+		lines[3][2] = "should"
+		lines[3][3] = "fail"
+	}
+
 	for _, l := range lines {
 		stringLine := strings.Join(l, ",")
 		fileWriter.Write([]byte(stringLine + "\n"))
@@ -80,9 +93,9 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method) (*bytes.Buffer
 	return &buf, ct
 }
 
-func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method method) {
+func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method method, withVerify bool) {
 	readr := csv.NewReader(r)
-	buf, contentType := writeModifiedCSV(t, readr, method)
+	buf, contentType := writeModifiedCSV(t, readr, method, withVerify)
 
 	h, _ := importer.NewHandler(logtest.NewTestLogger(t))
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
@@ -146,88 +159,106 @@ func prepareEquipmentAndExport(t *testing.T, r *TestExporterResolver) (context.C
 }
 
 func TestEquipmentExportAndImportMatch(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
-	ctx, res := prepareEquipmentAndExport(t, r)
-	defer res.Body.Close()
-	deleteEquipmentData(ctx, t, r)
+	for _, withVerify := range []bool{true, false} {
+		r, err := newExporterTestResolver(t)
+		require.NoError(t, err)
+		ctx, res := prepareEquipmentAndExport(t, r)
+		defer res.Body.Close()
+		deleteEquipmentData(ctx, t, r)
 
-	locs := r.client.Location.Query().AllX(ctx)
-	require.Len(t, locs, 0)
+		locs := r.client.Location.Query().AllX(ctx)
+		require.Len(t, locs, 0)
 
-	importEquipmentFile(t, r.client, res.Body, MethodAdd)
-	locs = r.client.Location.Query().AllX(ctx)
-	require.Len(t, locs, 3)
-	for _, loc := range locs {
-		switch loc.Name {
-		case grandParentLocation:
-			require.Equal(t, locTypeNameL, loc.QueryType().OnlyX(ctx).Name)
-			require.Equal(t, parentLocation, loc.QueryChildren().OnlyX(ctx).Name)
-		case parentLocation:
-			require.Equal(t, locTypeNameM, loc.QueryType().OnlyX(ctx).Name)
-			require.Equal(t, childLocation, loc.QueryChildren().OnlyX(ctx).Name)
-		case childLocation:
-			require.Equal(t, locTypeNameS, loc.QueryType().OnlyX(ctx).Name)
-			require.Equal(t, parentEquip, loc.QueryEquipment().OnlyX(ctx).Name)
+		importEquipmentFile(t, r.client, res.Body, MethodAdd, withVerify)
+		locs = r.client.Location.Query().AllX(ctx)
+		if withVerify {
+			require.Len(t, locs, 0)
+		} else {
+			require.Len(t, locs, 3)
 		}
-	}
-	equips, err := r.Query().EquipmentSearch(ctx, nil, nil)
-	require.NoError(t, err)
-	require.Equal(t, 2, equips.Count)
-	for _, equip := range equips.Equipment {
-		switch equip.Name {
-		case currEquip:
-			require.Equal(t, equipmentType2Name, equip.QueryType().OnlyX(ctx).Name)
-			pos := equip.QueryParentPosition().OnlyX(ctx)
-			require.Equal(t, positionName, pos.QueryDefinition().OnlyX(ctx).Name)
-			require.Equal(t, parentEquip, pos.QueryParent().OnlyX(ctx).Name)
-			prop := equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameStr))).OnlyX(ctx)
-			require.Equal(t, propInstanceValue, prop.StringVal)
+		for _, loc := range locs {
+			switch loc.Name {
+			case grandParentLocation:
+				require.Equal(t, locTypeNameL, loc.QueryType().OnlyX(ctx).Name)
+				require.Equal(t, parentLocation, loc.QueryChildren().OnlyX(ctx).Name)
+			case parentLocation:
+				require.Equal(t, locTypeNameM, loc.QueryType().OnlyX(ctx).Name)
+				require.Equal(t, childLocation, loc.QueryChildren().OnlyX(ctx).Name)
+			case childLocation:
+				require.Equal(t, locTypeNameS, loc.QueryType().OnlyX(ctx).Name)
+				require.Equal(t, parentEquip, loc.QueryEquipment().OnlyX(ctx).Name)
+			}
+		}
+		equips, err := r.Query().EquipmentSearch(ctx, nil, nil)
+		require.NoError(t, err)
+		if withVerify {
+			require.Equal(t, 0, equips.Count)
+		} else {
+			require.Equal(t, 2, equips.Count)
+		}
+		for _, equip := range equips.Equipment {
+			switch equip.Name {
+			case currEquip:
+				require.Equal(t, equipmentType2Name, equip.QueryType().OnlyX(ctx).Name)
+				pos := equip.QueryParentPosition().OnlyX(ctx)
+				require.Equal(t, positionName, pos.QueryDefinition().OnlyX(ctx).Name)
+				require.Equal(t, parentEquip, pos.QueryParent().OnlyX(ctx).Name)
+				prop := equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameStr))).OnlyX(ctx)
+				require.Equal(t, propInstanceValue, prop.StringVal)
 
-			prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameInt))).OnlyX(ctx)
-			require.Equal(t, propDevValInt, prop.IntVal)
+				prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameInt))).OnlyX(ctx)
+				require.Equal(t, propDevValInt, prop.IntVal)
 
-			prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(newPropNameStr))).OnlyX(ctx)
-			require.Equal(t, propDefValue2, prop.StringVal)
+				prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(newPropNameStr))).OnlyX(ctx)
+				require.Equal(t, propDefValue2, prop.StringVal)
 
-		case parentEquip:
-			require.Equal(t, childLocation, equip.QueryLocation().OnlyX(ctx).Name)
-			require.Equal(t, equipmentTypeName, equip.QueryType().OnlyX(ctx).Name)
+			case parentEquip:
+				require.Equal(t, childLocation, equip.QueryLocation().OnlyX(ctx).Name)
+				require.Equal(t, equipmentTypeName, equip.QueryType().OnlyX(ctx).Name)
+			}
 		}
 	}
 }
 
 func TestEquipmentImportAndEdit(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
-	ctx, res := prepareEquipmentAndExport(t, r)
-	defer res.Body.Close()
+	for _, withVerify := range []bool{true, false} {
+		r, err := newExporterTestResolver(t)
+		require.NoError(t, err)
+		ctx, res := prepareEquipmentAndExport(t, r)
+		defer res.Body.Close()
 
-	importEquipmentFile(t, r.client, res.Body, MethodEdit)
-	locs := r.client.Location.Query().AllX(ctx)
-	require.Len(t, locs, 3)
-	equips, err := r.Query().EquipmentSearch(ctx, nil, nil)
-	require.NoError(t, err)
-	require.Equal(t, 2, equips.Count)
-	for _, equip := range equips.Equipment {
-		switch equip.Name {
-		case parentEquip:
-			require.Equal(t, equipmentTypeName, equip.QueryType().OnlyX(ctx).Name)
-			pos := equip.QueryPositions().OnlyX(ctx)
-			require.Equal(t, positionName, pos.QueryDefinition().OnlyX(ctx).Name)
-		case "newName2":
-			require.Equal(t, equipmentType2Name, equip.QueryType().OnlyX(ctx).Name)
-			pos := equip.QueryParentPosition().OnlyX(ctx)
-			require.Equal(t, positionName, pos.QueryDefinition().OnlyX(ctx).Name)
-			require.Equal(t, parentEquip, pos.QueryParent().OnlyX(ctx).Name)
-			prop := equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameStr))).OnlyX(ctx)
-			require.Equal(t, "str-prop-value2", prop.StringVal)
+		importEquipmentFile(t, r.client, res.Body, MethodEdit, withVerify)
+		locs := r.client.Location.Query().AllX(ctx)
+		require.Len(t, locs, 3)
+		equips, err := r.Query().EquipmentSearch(ctx, nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, 2, equips.Count)
+		for _, equip := range equips.Equipment {
+			switch equip.Name {
+			case parentEquip:
+				require.Equal(t, equipmentTypeName, equip.QueryType().OnlyX(ctx).Name)
+				pos := equip.QueryPositions().OnlyX(ctx)
+				require.Equal(t, positionName, pos.QueryDefinition().OnlyX(ctx).Name)
+			case "newName2":
+				require.Equal(t, equipmentType2Name, equip.QueryType().OnlyX(ctx).Name)
+				pos := equip.QueryParentPosition().OnlyX(ctx)
+				require.Equal(t, positionName, pos.QueryDefinition().OnlyX(ctx).Name)
+				require.Equal(t, parentEquip, pos.QueryParent().OnlyX(ctx).Name)
+				prop := equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameStr))).OnlyX(ctx)
+				require.Equal(t, "str-prop-value2", prop.StringVal)
 
-			prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameInt))).OnlyX(ctx)
-			require.Equal(t, 102, prop.IntVal)
+				prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameInt))).OnlyX(ctx)
+				require.Equal(t, 102, prop.IntVal)
 
-			prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(newPropNameStr))).OnlyX(ctx)
-			require.Equal(t, "new-prop-value2", prop.StringVal)
+				prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(newPropNameStr))).OnlyX(ctx)
+				require.Equal(t, "new-prop-value2", prop.StringVal)
+			case currEquip:
+				// reach here on "verify mode" that failed (this is the name with no edit
+				require.True(t, withVerify)
+				require.Equal(t, equipmentType2Name, equip.QueryType().OnlyX(ctx).Name)
+				prop := equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameStr))).OnlyX(ctx)
+				require.Equal(t, propInstanceValue, prop.StringVal)
+			}
 		}
 	}
 }

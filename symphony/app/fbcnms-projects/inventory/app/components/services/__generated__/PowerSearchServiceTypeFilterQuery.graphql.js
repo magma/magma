@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4ab73de0cc0417b5a0a28ec82ae7febc
+ * @relayHash 438fb603b7d052c47df975520ed122e4
  */
 
 /* eslint-disable */
@@ -18,7 +18,7 @@ import type { ConcreteRequest } from 'relay-runtime';
 export type PowerSearchServiceTypeFilterQueryVariables = {||};
 export type PowerSearchServiceTypeFilterQueryResponse = {|
   +serviceTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

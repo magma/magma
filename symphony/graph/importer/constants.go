@@ -9,5 +9,7 @@ type ReturnMessageCode int
 
 const (
 	// SuccessfullyUploaded code for successful upload
-	SuccessfullyUploaded ReturnMessageCode = 0
+	SuccessfullyUploaded ReturnMessageCode = iota
+	// FailedToUpload code for fail in upload
+	FailedToUpload
 )

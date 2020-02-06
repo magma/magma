@@ -8,9 +8,9 @@
 #include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
 #include <devmand/devices/Datastore.h>
-#include <devmand/devices/cli/ModelRegistry.h>
 #include <devmand/devices/cli/ParsingUtils.h>
 #include <devmand/devices/cli/StructuredUbntDevice.h>
+#include <devmand/devices/cli/schema/ModelRegistry.h>
 #include <folly/futures/Future.h>
 #include <folly/json.h>
 #include <ydk_ietf/iana_if_type.hpp>
@@ -27,10 +27,6 @@ namespace cli {
 
 using namespace devmand::channels::cli;
 using namespace std;
-
-// TODO get out of here, this will be a shared single instance for all
-// structured devices
-auto mreg = std::unique_ptr<ModelRegistry>(new ModelRegistry());
 
 using Nis = openconfig::openconfig_network_instance::NetworkInstances;
 using Ni = Nis::NetworkInstance;
@@ -303,8 +299,13 @@ unique_ptr<devices::Device> StructuredUbntDevice::createDeviceWithEngine(
   const std::shared_ptr<Channel>& channel = std::make_shared<Channel>(
       deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache));
 
-  return unique_ptr<StructuredUbntDevice>(new StructuredUbntDevice(
-      app, deviceConfig.id, deviceConfig.readonly, channel, cmdCache));
+  return std::make_unique<StructuredUbntDevice>(
+      app,
+      deviceConfig.id,
+      deviceConfig.readonly,
+      channel,
+      engine.getModelRegistry(),
+      cmdCache);
 }
 
 StructuredUbntDevice::StructuredUbntDevice(
@@ -312,17 +313,20 @@ StructuredUbntDevice::StructuredUbntDevice(
     const Id id_,
     bool readonly_,
     const shared_ptr<Channel> _channel,
+    const std::shared_ptr<ModelRegistry> _mreg,
     const shared_ptr<CliCache> _cmdCache)
     : Device(application, id_, readonly_),
       channel(_channel),
-      cmdCache(_cmdCache) {}
+      cmdCache(_cmdCache),
+      mreg(_mreg) {}
 
 void StructuredUbntDevice::setIntendedDatastore(const dynamic& config) {
   const string& json = folly::toJson(config);
-  auto& bundle = mreg->getBundle(Model::OPENCONFIG_0_1_6);
+  auto& bundle = mreg->getBindingContext(Model::OPENCONFIG_0_1_6);
   const shared_ptr<OpenconfigInterfaces>& ydkModel =
       make_shared<OpenconfigInterfaces>();
-  const shared_ptr<Entity> decodedIfcEntity = bundle.decode(json, ydkModel);
+  const shared_ptr<Entity> decodedIfcEntity =
+      bundle.getCodec().decode(json, ydkModel);
   MLOG(MDEBUG) << decodedIfcEntity->get_segment_path();
 
   for (shared_ptr<Entity> entity : ydkModel->interface.entities()) {
@@ -350,17 +354,17 @@ shared_ptr<Datastore> StructuredUbntDevice::getOperationalDatastore() {
   auto state = Datastore::make(*reinterpret_cast<MetricSink*>(&app), getId());
   state->setStatus(true);
 
-  auto& bundle = mreg->getBundle(Model::OPENCONFIG_0_1_6);
+  auto& bundle = mreg->getBindingContext(Model::OPENCONFIG_0_1_6);
 
   // TODO the conversion here is: Object -> Json -> folly:dynamic
   // the json step is unnecessary
 
   auto ifcs = parseIfcs(*channel);
-  string json = bundle.encode(*ifcs);
+  string json = bundle.getCodec().encode(*ifcs);
   folly::dynamic dynamicIfcs = folly::parseJson(json);
 
   auto networks = parseNetworks(*channel);
-  json = bundle.encode(*networks);
+  json = bundle.getCodec().encode(*networks);
   folly::dynamic dynamicNis = folly::parseJson(json);
 
   state->update([&dynamicIfcs, &dynamicNis](folly::dynamic& lockedState) {

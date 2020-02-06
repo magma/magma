@@ -8,11 +8,12 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 	"github.com/facebookincubator/symphony/frontier/ent/tenant"
 )
@@ -149,90 +150,92 @@ func (tu *TenantUpdate) ExecX(ctx context.Context) {
 }
 
 func (tu *TenantUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(tu.driver.Dialect())
-		selector = builder.Select(tenant.FieldID).From(builder.Table(tenant.Table))
-	)
-	for _, p := range tu.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   tenant.Table,
+			Columns: tenant.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: tenant.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = tu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := tu.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := tu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(tenant.Table)
-	)
-	updater = updater.Where(sql.InInts(tenant.FieldID, ids...))
 	if value := tu.updated_at; value != nil {
-		updater.Set(tenant.FieldUpdatedAt, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: tenant.FieldUpdatedAt,
+		})
 	}
 	if value := tu.name; value != nil {
-		updater.Set(tenant.FieldName, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldName,
+		})
 	}
 	if value := tu.domains; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return 0, err
-		}
-		updater.Set(tenant.FieldDomains, buf)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: tenant.FieldDomains,
+		})
 	}
 	if value := tu.networks; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return 0, err
-		}
-		updater.Set(tenant.FieldNetworks, buf)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: tenant.FieldNetworks,
+		})
 	}
 	if value := tu.tabs; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return 0, err
-		}
-		updater.Set(tenant.FieldTabs, buf)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: tenant.FieldTabs,
+		})
 	}
 	if tu.cleartabs {
-		updater.SetNull(tenant.FieldTabs)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: tenant.FieldTabs,
+		})
 	}
 	if value := tu.SSOCert; value != nil {
-		updater.Set(tenant.FieldSSOCert, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldSSOCert,
+		})
 	}
 	if value := tu.SSOEntryPoint; value != nil {
-		updater.Set(tenant.FieldSSOEntryPoint, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldSSOEntryPoint,
+		})
 	}
 	if value := tu.SSOIssuer; value != nil {
-		updater.Set(tenant.FieldSSOIssuer, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldSSOIssuer,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // TenantUpdateOne is the builder for updating a single Tenant entity.
@@ -361,100 +364,86 @@ func (tuo *TenantUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (tuo *TenantUpdateOne) sqlSave(ctx context.Context) (t *Tenant, err error) {
-	var (
-		builder  = sql.Dialect(tuo.driver.Dialect())
-		selector = builder.Select(tenant.Columns...).From(builder.Table(tenant.Table))
-	)
-	tenant.ID(tuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = tuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   tenant.Table,
+			Columns: tenant.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  tuo.id,
+				Type:   field.TypeInt,
+				Column: tenant.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		t = &Tenant{config: tuo.config}
-		if err := t.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into Tenant: %v", err)
-		}
-		id = t.ID
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("Tenant with id: %v", tuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one Tenant with the same id: %v", tuo.id)
-	}
-
-	tx, err := tuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(tenant.Table)
-	)
-	updater = updater.Where(sql.InInts(tenant.FieldID, ids...))
 	if value := tuo.updated_at; value != nil {
-		updater.Set(tenant.FieldUpdatedAt, *value)
-		t.UpdatedAt = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: tenant.FieldUpdatedAt,
+		})
 	}
 	if value := tuo.name; value != nil {
-		updater.Set(tenant.FieldName, *value)
-		t.Name = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldName,
+		})
 	}
 	if value := tuo.domains; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		updater.Set(tenant.FieldDomains, buf)
-		t.Domains = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: tenant.FieldDomains,
+		})
 	}
 	if value := tuo.networks; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		updater.Set(tenant.FieldNetworks, buf)
-		t.Networks = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: tenant.FieldNetworks,
+		})
 	}
 	if value := tuo.tabs; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		updater.Set(tenant.FieldTabs, buf)
-		t.Tabs = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: tenant.FieldTabs,
+		})
 	}
 	if tuo.cleartabs {
-		var value []string
-		t.Tabs = value
-		updater.SetNull(tenant.FieldTabs)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: tenant.FieldTabs,
+		})
 	}
 	if value := tuo.SSOCert; value != nil {
-		updater.Set(tenant.FieldSSOCert, *value)
-		t.SSOCert = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldSSOCert,
+		})
 	}
 	if value := tuo.SSOEntryPoint; value != nil {
-		updater.Set(tenant.FieldSSOEntryPoint, *value)
-		t.SSOEntryPoint = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldSSOEntryPoint,
+		})
 	}
 	if value := tuo.SSOIssuer; value != nil {
-		updater.Set(tenant.FieldSSOIssuer, *value)
-		t.SSOIssuer = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: tenant.FieldSSOIssuer,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	t = &Tenant{config: tuo.config}
+	_spec.Assign = t.assignValues
+	_spec.ScanValues = t.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, tuo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return t, nil

@@ -8,7 +8,9 @@ package resolver
 import (
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -25,11 +27,14 @@ func TestAddWorkOrderType(t *testing.T) {
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 
-	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
+	typ, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
 	require.NoError(t, err)
 
-	fetchedWOType, _ := qr.WorkOrderType(ctx, woType.ID)
-	require.Equal(t, fetchedWOType.Name, "example_type", "verifying work order type name")
+	node, err := qr.Node(ctx, typ.ID)
+	require.NoError(t, err)
+	typ, ok := node.(*ent.WorkOrderType)
+	require.True(t, ok)
+	assert.Equal(t, typ.Name, "example_type", "verifying work order type name")
 }
 
 func TestAddWorkOrderTypes(t *testing.T) {
@@ -86,14 +91,17 @@ func TestAddWorkOrderTypeWithDescription(t *testing.T) {
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 
-	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+	typ, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
 		Name:        "example_type",
 		Description: pointer.ToString("wo_type_desc"),
 	})
 	require.NoError(t, err)
 
-	fetchedWOType, _ := qr.WorkOrderType(ctx, woType.ID)
-	require.Equal(t, fetchedWOType.Description, "wo_type_desc", "verifying work order type description")
+	node, err := qr.Node(ctx, typ.ID)
+	require.NoError(t, err)
+	typ, ok := node.(*ent.WorkOrderType)
+	require.True(t, ok)
+	assert.Equal(t, typ.Description, "wo_type_desc", "verifying work order type description")
 }
 
 func TestAddWorkOrderTypeWithProperties(t *testing.T) {
@@ -242,8 +250,10 @@ func TestEditWorkOrderType(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, types.Edges, 2)
 
-	typ, err := qr.WorkOrderType(ctx, woType.ID)
+	node, err := qr.Node(ctx, woType.ID)
 	require.NoError(t, err)
+	typ, ok := node.(*ent.WorkOrderType)
+	require.True(t, ok)
 	require.Equal(t, "example_type_name_2", typ.Name)
 }
 

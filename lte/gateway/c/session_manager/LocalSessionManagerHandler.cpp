@@ -58,7 +58,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 
 void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
 {
-  auto request = enforcer_->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto request = enforcer_->collect_updates(actions);
+  enforcer_->execute_actions(actions);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return; // nothing to report
   }
@@ -75,7 +77,7 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
                      << " to OCS failed entirely: " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        enforcer_->update_session_credit(response);
+        enforcer_->update_session_credits_and_rules(response);
         // Check if we need to report more updates
         check_usage_for_reporting();
       }
@@ -257,14 +259,14 @@ void LocalSessionManagerHandlerImpl::send_create_session(
       if (status.ok()) {
         bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
         if (!success) {
-          MLOG(MERROR) << "Failed to init session in Usage Monitor "
-                       << "for IMSI " << imsi;
+          MLOG(MERROR) << "Failed to init session in for IMSI " << imsi;
           status =
             Status(
               grpc::FAILED_PRECONDITION, "Failed to initialize session");
         } else {
-          MLOG(MINFO) << "Successfully initialized new session "
-                      << "in sessiond for subscriber " << imsi;
+          MLOG(MINFO) << "Successfully initialized new session " << sid
+                      << " in sessiond for subscriber " << imsi
+                      << " with default bearer id" << cfg.bearer_id;
           add_session_to_directory_record(imsi, sid);
         }
       } else {

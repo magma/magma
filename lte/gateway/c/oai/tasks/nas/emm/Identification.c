@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -283,7 +283,6 @@ int emm_proc_identification_complete(
       rc = emm_sap_send(&emm_sap);
 
     } // else ignore the response if procedure not found
-    unlock_ue_contexts(ue_mm_context);
   } // else ignore the response if ue context not found
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -446,7 +445,6 @@ static int _identification_request(nas_emm_ident_proc_t *const proc)
       (void *) emm_ctx);
   }
 
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -480,14 +478,14 @@ static int _identification_non_delivered_ho(
   int rc = RETURNerror;
   if (emm_proc) {
     nas_emm_ident_proc_t *ident_proc = (nas_emm_ident_proc_t *) emm_proc;
-    /************************README*************************************************
-  ** NAS Non Delivery indication during HO handling will be added when HO is supported
-  ** In non hand-over case if MME receives NAS Non Delivery indication message that implies
-  ** eNB and UE has lost radio connection. In this case aborting the Identification and 
-  ** Attach Procedure. 
-  *********************************************************************************
+    /************************README*******************************************
+  ** NAS Non Delivery indication during HO handling will be added when HO is
+  ** supported In non hand-over case if MME receives NAS Non Delivery
+  ** indication message that implies eNB and UE has lost radio connection.
+  ** In this case aborting the Identification and Attach Procedure.
+  *****************************************************************************
   REQUIREMENT_3GPP_24_301(R10_5_4_2_7_j);
-  *********************************************************************************/
+  ******************************************************************************/
     if (emm_ctx) {
       REQUIREMENT_3GPP_24_301(R10_5_4_2_7_j);
       /*

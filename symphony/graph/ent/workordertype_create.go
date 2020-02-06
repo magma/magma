@@ -189,8 +189,8 @@ func (wotc *WorkOrderTypeCreate) SaveX(ctx context.Context) *WorkOrderType {
 
 func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, error) {
 	var (
-		wot  = &WorkOrderType{config: wotc.config}
-		spec = &sqlgraph.CreateSpec{
+		wot   = &WorkOrderType{config: wotc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: workordertype.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -199,7 +199,7 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 		}
 	)
 	if value := wotc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workordertype.FieldCreateTime,
@@ -207,7 +207,7 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 		wot.CreateTime = *value
 	}
 	if value := wotc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: workordertype.FieldUpdateTime,
@@ -215,7 +215,7 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 		wot.UpdateTime = *value
 	}
 	if value := wotc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workordertype.FieldName,
@@ -223,7 +223,7 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 		wot.Name = *value
 	}
 	if value := wotc.description; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: workordertype.FieldDescription,
@@ -251,7 +251,7 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := wotc.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -274,7 +274,7 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := wotc.definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -297,7 +297,7 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := wotc.check_list_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -320,15 +320,15 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, wotc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, wotc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	wot.ID = strconv.FormatInt(id, 10)
 	return wot, nil
 }

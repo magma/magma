@@ -36,12 +36,17 @@ const (
 	UserColumn = "user_id"
 )
 
-// Columns holds all SQL columns are token fields.
+// Columns holds all SQL columns for token fields.
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldValue,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Token type.
+var ForeignKeys = []string{
+	"user_id",
 }
 
 var (

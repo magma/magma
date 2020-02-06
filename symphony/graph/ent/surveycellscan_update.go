@@ -9,11 +9,12 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -644,239 +645,412 @@ func (scsu *SurveyCellScanUpdate) ExecX(ctx context.Context) {
 }
 
 func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(scsu.driver.Dialect())
-		selector = builder.Select(surveycellscan.FieldID).From(builder.Table(surveycellscan.Table))
-	)
-	for _, p := range scsu.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   surveycellscan.Table,
+			Columns: surveycellscan.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveycellscan.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = scsu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := scsu.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := scsu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(surveycellscan.Table)
-	)
-	updater = updater.Where(sql.InInts(surveycellscan.FieldID, ids...))
 	if value := scsu.update_time; value != nil {
-		updater.Set(surveycellscan.FieldUpdateTime, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveycellscan.FieldUpdateTime,
+		})
 	}
 	if value := scsu.network_type; value != nil {
-		updater.Set(surveycellscan.FieldNetworkType, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldNetworkType,
+		})
 	}
 	if value := scsu.signal_strength; value != nil {
-		updater.Set(surveycellscan.FieldSignalStrength, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldSignalStrength,
+		})
 	}
 	if value := scsu.addsignal_strength; value != nil {
-		updater.Add(surveycellscan.FieldSignalStrength, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldSignalStrength,
+		})
 	}
 	if value := scsu.timestamp; value != nil {
-		updater.Set(surveycellscan.FieldTimestamp, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveycellscan.FieldTimestamp,
+		})
 	}
 	if scsu.cleartimestamp {
-		updater.SetNull(surveycellscan.FieldTimestamp)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: surveycellscan.FieldTimestamp,
+		})
 	}
 	if value := scsu.base_station_id; value != nil {
-		updater.Set(surveycellscan.FieldBaseStationID, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldBaseStationID,
+		})
 	}
 	if scsu.clearbase_station_id {
-		updater.SetNull(surveycellscan.FieldBaseStationID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldBaseStationID,
+		})
 	}
 	if value := scsu.network_id; value != nil {
-		updater.Set(surveycellscan.FieldNetworkID, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldNetworkID,
+		})
 	}
 	if scsu.clearnetwork_id {
-		updater.SetNull(surveycellscan.FieldNetworkID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldNetworkID,
+		})
 	}
 	if value := scsu.system_id; value != nil {
-		updater.Set(surveycellscan.FieldSystemID, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldSystemID,
+		})
 	}
 	if scsu.clearsystem_id {
-		updater.SetNull(surveycellscan.FieldSystemID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldSystemID,
+		})
 	}
 	if value := scsu.cell_id; value != nil {
-		updater.Set(surveycellscan.FieldCellID, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldCellID,
+		})
 	}
 	if scsu.clearcell_id {
-		updater.SetNull(surveycellscan.FieldCellID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldCellID,
+		})
 	}
 	if value := scsu.location_area_code; value != nil {
-		updater.Set(surveycellscan.FieldLocationAreaCode, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldLocationAreaCode,
+		})
 	}
 	if scsu.clearlocation_area_code {
-		updater.SetNull(surveycellscan.FieldLocationAreaCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldLocationAreaCode,
+		})
 	}
 	if value := scsu.mobile_country_code; value != nil {
-		updater.Set(surveycellscan.FieldMobileCountryCode, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldMobileCountryCode,
+		})
 	}
 	if scsu.clearmobile_country_code {
-		updater.SetNull(surveycellscan.FieldMobileCountryCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldMobileCountryCode,
+		})
 	}
 	if value := scsu.mobile_network_code; value != nil {
-		updater.Set(surveycellscan.FieldMobileNetworkCode, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldMobileNetworkCode,
+		})
 	}
 	if scsu.clearmobile_network_code {
-		updater.SetNull(surveycellscan.FieldMobileNetworkCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldMobileNetworkCode,
+		})
 	}
 	if value := scsu.primary_scrambling_code; value != nil {
-		updater.Set(surveycellscan.FieldPrimaryScramblingCode, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldPrimaryScramblingCode,
+		})
 	}
 	if scsu.clearprimary_scrambling_code {
-		updater.SetNull(surveycellscan.FieldPrimaryScramblingCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldPrimaryScramblingCode,
+		})
 	}
 	if value := scsu.operator; value != nil {
-		updater.Set(surveycellscan.FieldOperator, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldOperator,
+		})
 	}
 	if scsu.clearoperator {
-		updater.SetNull(surveycellscan.FieldOperator)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldOperator,
+		})
 	}
 	if value := scsu.arfcn; value != nil {
-		updater.Set(surveycellscan.FieldArfcn, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldArfcn,
+		})
 	}
 	if value := scsu.addarfcn; value != nil {
-		updater.Add(surveycellscan.FieldArfcn, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldArfcn,
+		})
 	}
 	if scsu.cleararfcn {
-		updater.SetNull(surveycellscan.FieldArfcn)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: surveycellscan.FieldArfcn,
+		})
 	}
 	if value := scsu.physical_cell_id; value != nil {
-		updater.Set(surveycellscan.FieldPhysicalCellID, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldPhysicalCellID,
+		})
 	}
 	if scsu.clearphysical_cell_id {
-		updater.SetNull(surveycellscan.FieldPhysicalCellID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldPhysicalCellID,
+		})
 	}
 	if value := scsu.tracking_area_code; value != nil {
-		updater.Set(surveycellscan.FieldTrackingAreaCode, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldTrackingAreaCode,
+		})
 	}
 	if scsu.cleartracking_area_code {
-		updater.SetNull(surveycellscan.FieldTrackingAreaCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldTrackingAreaCode,
+		})
 	}
 	if value := scsu.timing_advance; value != nil {
-		updater.Set(surveycellscan.FieldTimingAdvance, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldTimingAdvance,
+		})
 	}
 	if value := scsu.addtiming_advance; value != nil {
-		updater.Add(surveycellscan.FieldTimingAdvance, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldTimingAdvance,
+		})
 	}
 	if scsu.cleartiming_advance {
-		updater.SetNull(surveycellscan.FieldTimingAdvance)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: surveycellscan.FieldTimingAdvance,
+		})
 	}
 	if value := scsu.earfcn; value != nil {
-		updater.Set(surveycellscan.FieldEarfcn, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldEarfcn,
+		})
 	}
 	if value := scsu.addearfcn; value != nil {
-		updater.Add(surveycellscan.FieldEarfcn, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldEarfcn,
+		})
 	}
 	if scsu.clearearfcn {
-		updater.SetNull(surveycellscan.FieldEarfcn)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: surveycellscan.FieldEarfcn,
+		})
 	}
 	if value := scsu.uarfcn; value != nil {
-		updater.Set(surveycellscan.FieldUarfcn, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldUarfcn,
+		})
 	}
 	if value := scsu.adduarfcn; value != nil {
-		updater.Add(surveycellscan.FieldUarfcn, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldUarfcn,
+		})
 	}
 	if scsu.clearuarfcn {
-		updater.SetNull(surveycellscan.FieldUarfcn)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: surveycellscan.FieldUarfcn,
+		})
 	}
 	if value := scsu.latitude; value != nil {
-		updater.Set(surveycellscan.FieldLatitude, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLatitude,
+		})
 	}
 	if value := scsu.addlatitude; value != nil {
-		updater.Add(surveycellscan.FieldLatitude, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLatitude,
+		})
 	}
 	if scsu.clearlatitude {
-		updater.SetNull(surveycellscan.FieldLatitude)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: surveycellscan.FieldLatitude,
+		})
 	}
 	if value := scsu.longitude; value != nil {
-		updater.Set(surveycellscan.FieldLongitude, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLongitude,
+		})
 	}
 	if value := scsu.addlongitude; value != nil {
-		updater.Add(surveycellscan.FieldLongitude, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLongitude,
+		})
 	}
 	if scsu.clearlongitude {
-		updater.SetNull(surveycellscan.FieldLongitude)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: surveycellscan.FieldLongitude,
+		})
 	}
 	if scsu.clearedSurveyQuestion {
-		query, args := builder.Update(surveycellscan.SurveyQuestionTable).
-			SetNull(surveycellscan.SurveyQuestionColumn).
-			Where(sql.InInts(surveyquestion.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.SurveyQuestionTable,
+			Columns: []string{surveycellscan.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(scsu.survey_question) > 0 {
-		for eid := range scsu.survey_question {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(surveycellscan.SurveyQuestionTable).
-				Set(surveycellscan.SurveyQuestionColumn, eid).
-				Where(sql.InInts(surveycellscan.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := scsu.survey_question; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.SurveyQuestionTable,
+			Columns: []string{surveycellscan.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if scsu.clearedLocation {
-		query, args := builder.Update(surveycellscan.LocationTable).
-			SetNull(surveycellscan.LocationColumn).
-			Where(sql.InInts(location.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.LocationTable,
+			Columns: []string{surveycellscan.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(scsu.location) > 0 {
-		for eid := range scsu.location {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(surveycellscan.LocationTable).
-				Set(surveycellscan.LocationColumn, eid).
-				Where(sql.InInts(surveycellscan.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := scsu.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.LocationTable,
+			Columns: []string{surveycellscan.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, scsu.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // SurveyCellScanUpdateOne is the builder for updating a single SurveyCellScan entity.
@@ -1497,303 +1671,406 @@ func (scsuo *SurveyCellScanUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyCellScan, err error) {
-	var (
-		builder  = sql.Dialect(scsuo.driver.Dialect())
-		selector = builder.Select(surveycellscan.Columns...).From(builder.Table(surveycellscan.Table))
-	)
-	surveycellscan.ID(scsuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = scsuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   surveycellscan.Table,
+			Columns: surveycellscan.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  scsuo.id,
+				Type:   field.TypeString,
+				Column: surveycellscan.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		scs = &SurveyCellScan{config: scsuo.config}
-		if err := scs.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into SurveyCellScan: %v", err)
-		}
-		id = scs.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("SurveyCellScan with id: %v", scsuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one SurveyCellScan with the same id: %v", scsuo.id)
-	}
-
-	tx, err := scsuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(surveycellscan.Table)
-	)
-	updater = updater.Where(sql.InInts(surveycellscan.FieldID, ids...))
 	if value := scsuo.update_time; value != nil {
-		updater.Set(surveycellscan.FieldUpdateTime, *value)
-		scs.UpdateTime = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveycellscan.FieldUpdateTime,
+		})
 	}
 	if value := scsuo.network_type; value != nil {
-		updater.Set(surveycellscan.FieldNetworkType, *value)
-		scs.NetworkType = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldNetworkType,
+		})
 	}
 	if value := scsuo.signal_strength; value != nil {
-		updater.Set(surveycellscan.FieldSignalStrength, *value)
-		scs.SignalStrength = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldSignalStrength,
+		})
 	}
 	if value := scsuo.addsignal_strength; value != nil {
-		updater.Add(surveycellscan.FieldSignalStrength, *value)
-		scs.SignalStrength += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldSignalStrength,
+		})
 	}
 	if value := scsuo.timestamp; value != nil {
-		updater.Set(surveycellscan.FieldTimestamp, *value)
-		scs.Timestamp = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveycellscan.FieldTimestamp,
+		})
 	}
 	if scsuo.cleartimestamp {
-		var value time.Time
-		scs.Timestamp = value
-		updater.SetNull(surveycellscan.FieldTimestamp)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: surveycellscan.FieldTimestamp,
+		})
 	}
 	if value := scsuo.base_station_id; value != nil {
-		updater.Set(surveycellscan.FieldBaseStationID, *value)
-		scs.BaseStationID = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldBaseStationID,
+		})
 	}
 	if scsuo.clearbase_station_id {
-		var value string
-		scs.BaseStationID = value
-		updater.SetNull(surveycellscan.FieldBaseStationID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldBaseStationID,
+		})
 	}
 	if value := scsuo.network_id; value != nil {
-		updater.Set(surveycellscan.FieldNetworkID, *value)
-		scs.NetworkID = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldNetworkID,
+		})
 	}
 	if scsuo.clearnetwork_id {
-		var value string
-		scs.NetworkID = value
-		updater.SetNull(surveycellscan.FieldNetworkID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldNetworkID,
+		})
 	}
 	if value := scsuo.system_id; value != nil {
-		updater.Set(surveycellscan.FieldSystemID, *value)
-		scs.SystemID = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldSystemID,
+		})
 	}
 	if scsuo.clearsystem_id {
-		var value string
-		scs.SystemID = value
-		updater.SetNull(surveycellscan.FieldSystemID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldSystemID,
+		})
 	}
 	if value := scsuo.cell_id; value != nil {
-		updater.Set(surveycellscan.FieldCellID, *value)
-		scs.CellID = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldCellID,
+		})
 	}
 	if scsuo.clearcell_id {
-		var value string
-		scs.CellID = value
-		updater.SetNull(surveycellscan.FieldCellID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldCellID,
+		})
 	}
 	if value := scsuo.location_area_code; value != nil {
-		updater.Set(surveycellscan.FieldLocationAreaCode, *value)
-		scs.LocationAreaCode = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldLocationAreaCode,
+		})
 	}
 	if scsuo.clearlocation_area_code {
-		var value string
-		scs.LocationAreaCode = value
-		updater.SetNull(surveycellscan.FieldLocationAreaCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldLocationAreaCode,
+		})
 	}
 	if value := scsuo.mobile_country_code; value != nil {
-		updater.Set(surveycellscan.FieldMobileCountryCode, *value)
-		scs.MobileCountryCode = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldMobileCountryCode,
+		})
 	}
 	if scsuo.clearmobile_country_code {
-		var value string
-		scs.MobileCountryCode = value
-		updater.SetNull(surveycellscan.FieldMobileCountryCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldMobileCountryCode,
+		})
 	}
 	if value := scsuo.mobile_network_code; value != nil {
-		updater.Set(surveycellscan.FieldMobileNetworkCode, *value)
-		scs.MobileNetworkCode = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldMobileNetworkCode,
+		})
 	}
 	if scsuo.clearmobile_network_code {
-		var value string
-		scs.MobileNetworkCode = value
-		updater.SetNull(surveycellscan.FieldMobileNetworkCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldMobileNetworkCode,
+		})
 	}
 	if value := scsuo.primary_scrambling_code; value != nil {
-		updater.Set(surveycellscan.FieldPrimaryScramblingCode, *value)
-		scs.PrimaryScramblingCode = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldPrimaryScramblingCode,
+		})
 	}
 	if scsuo.clearprimary_scrambling_code {
-		var value string
-		scs.PrimaryScramblingCode = value
-		updater.SetNull(surveycellscan.FieldPrimaryScramblingCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldPrimaryScramblingCode,
+		})
 	}
 	if value := scsuo.operator; value != nil {
-		updater.Set(surveycellscan.FieldOperator, *value)
-		scs.Operator = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldOperator,
+		})
 	}
 	if scsuo.clearoperator {
-		var value string
-		scs.Operator = value
-		updater.SetNull(surveycellscan.FieldOperator)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldOperator,
+		})
 	}
 	if value := scsuo.arfcn; value != nil {
-		updater.Set(surveycellscan.FieldArfcn, *value)
-		scs.Arfcn = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldArfcn,
+		})
 	}
 	if value := scsuo.addarfcn; value != nil {
-		updater.Add(surveycellscan.FieldArfcn, *value)
-		scs.Arfcn += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldArfcn,
+		})
 	}
 	if scsuo.cleararfcn {
-		var value int
-		scs.Arfcn = value
-		updater.SetNull(surveycellscan.FieldArfcn)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: surveycellscan.FieldArfcn,
+		})
 	}
 	if value := scsuo.physical_cell_id; value != nil {
-		updater.Set(surveycellscan.FieldPhysicalCellID, *value)
-		scs.PhysicalCellID = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldPhysicalCellID,
+		})
 	}
 	if scsuo.clearphysical_cell_id {
-		var value string
-		scs.PhysicalCellID = value
-		updater.SetNull(surveycellscan.FieldPhysicalCellID)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldPhysicalCellID,
+		})
 	}
 	if value := scsuo.tracking_area_code; value != nil {
-		updater.Set(surveycellscan.FieldTrackingAreaCode, *value)
-		scs.TrackingAreaCode = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveycellscan.FieldTrackingAreaCode,
+		})
 	}
 	if scsuo.cleartracking_area_code {
-		var value string
-		scs.TrackingAreaCode = value
-		updater.SetNull(surveycellscan.FieldTrackingAreaCode)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: surveycellscan.FieldTrackingAreaCode,
+		})
 	}
 	if value := scsuo.timing_advance; value != nil {
-		updater.Set(surveycellscan.FieldTimingAdvance, *value)
-		scs.TimingAdvance = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldTimingAdvance,
+		})
 	}
 	if value := scsuo.addtiming_advance; value != nil {
-		updater.Add(surveycellscan.FieldTimingAdvance, *value)
-		scs.TimingAdvance += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldTimingAdvance,
+		})
 	}
 	if scsuo.cleartiming_advance {
-		var value int
-		scs.TimingAdvance = value
-		updater.SetNull(surveycellscan.FieldTimingAdvance)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: surveycellscan.FieldTimingAdvance,
+		})
 	}
 	if value := scsuo.earfcn; value != nil {
-		updater.Set(surveycellscan.FieldEarfcn, *value)
-		scs.Earfcn = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldEarfcn,
+		})
 	}
 	if value := scsuo.addearfcn; value != nil {
-		updater.Add(surveycellscan.FieldEarfcn, *value)
-		scs.Earfcn += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldEarfcn,
+		})
 	}
 	if scsuo.clearearfcn {
-		var value int
-		scs.Earfcn = value
-		updater.SetNull(surveycellscan.FieldEarfcn)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: surveycellscan.FieldEarfcn,
+		})
 	}
 	if value := scsuo.uarfcn; value != nil {
-		updater.Set(surveycellscan.FieldUarfcn, *value)
-		scs.Uarfcn = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldUarfcn,
+		})
 	}
 	if value := scsuo.adduarfcn; value != nil {
-		updater.Add(surveycellscan.FieldUarfcn, *value)
-		scs.Uarfcn += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveycellscan.FieldUarfcn,
+		})
 	}
 	if scsuo.clearuarfcn {
-		var value int
-		scs.Uarfcn = value
-		updater.SetNull(surveycellscan.FieldUarfcn)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: surveycellscan.FieldUarfcn,
+		})
 	}
 	if value := scsuo.latitude; value != nil {
-		updater.Set(surveycellscan.FieldLatitude, *value)
-		scs.Latitude = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLatitude,
+		})
 	}
 	if value := scsuo.addlatitude; value != nil {
-		updater.Add(surveycellscan.FieldLatitude, *value)
-		scs.Latitude += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLatitude,
+		})
 	}
 	if scsuo.clearlatitude {
-		var value float64
-		scs.Latitude = value
-		updater.SetNull(surveycellscan.FieldLatitude)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: surveycellscan.FieldLatitude,
+		})
 	}
 	if value := scsuo.longitude; value != nil {
-		updater.Set(surveycellscan.FieldLongitude, *value)
-		scs.Longitude = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLongitude,
+		})
 	}
 	if value := scsuo.addlongitude; value != nil {
-		updater.Add(surveycellscan.FieldLongitude, *value)
-		scs.Longitude += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: surveycellscan.FieldLongitude,
+		})
 	}
 	if scsuo.clearlongitude {
-		var value float64
-		scs.Longitude = value
-		updater.SetNull(surveycellscan.FieldLongitude)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Column: surveycellscan.FieldLongitude,
+		})
 	}
 	if scsuo.clearedSurveyQuestion {
-		query, args := builder.Update(surveycellscan.SurveyQuestionTable).
-			SetNull(surveycellscan.SurveyQuestionColumn).
-			Where(sql.InInts(surveyquestion.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.SurveyQuestionTable,
+			Columns: []string{surveycellscan.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(scsuo.survey_question) > 0 {
-		for eid := range scsuo.survey_question {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(surveycellscan.SurveyQuestionTable).
-				Set(surveycellscan.SurveyQuestionColumn, eid).
-				Where(sql.InInts(surveycellscan.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := scsuo.survey_question; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.SurveyQuestionTable,
+			Columns: []string{surveycellscan.SurveyQuestionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if scsuo.clearedLocation {
-		query, args := builder.Update(surveycellscan.LocationTable).
-			SetNull(surveycellscan.LocationColumn).
-			Where(sql.InInts(location.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.LocationTable,
+			Columns: []string{surveycellscan.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(scsuo.location) > 0 {
-		for eid := range scsuo.location {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(surveycellscan.LocationTable).
-				Set(surveycellscan.LocationColumn, eid).
-				Where(sql.InInts(surveycellscan.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := scsuo.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.LocationTable,
+			Columns: []string{surveycellscan.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	scs = &SurveyCellScan{config: scsuo.config}
+	_spec.Assign = scs.assignValues
+	_spec.ScanValues = scs.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, scsuo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return scs, nil

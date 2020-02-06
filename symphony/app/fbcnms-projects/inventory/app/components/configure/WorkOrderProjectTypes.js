@@ -11,49 +11,26 @@
 import type {WorkOrderProjectTypesQueryResponse} from './__generated__/WorkOrderProjectTypesQuery.graphql';
 
 import AddEditProjectTypeCard from './AddEditProjectTypeCard';
-import Button from '@material-ui/core/Button';
+import InventoryConfigureHeader from '../InventoryConfigureHeader';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import ProjectTypeCard from './ProjectTypeCard';
 import React, {useState} from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles({
   root: {
     flexGrow: 1,
     padding: '24px 16px',
   },
   header: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'flex-end',
     margin: '0px 8px',
-    marginBottom: '24px',
-  },
-  titleContainer: {
-    flexGrow: 1,
-  },
-  title: {
-    fontSize: '20px',
-    lineHeight: '24px',
-    fontWeight: 500,
-    color: theme.palette.blueGrayDark,
-    display: 'block',
   },
   subtitle: {
     fontSize: '14px',
     lineHeight: '24px',
     color: '#73839e',
-  },
-  addButtonContainer: {
-    display: 'flex',
-  },
-  addButton: {
-    paddingLeft: '16px',
-    paddingRight: '16px',
-    marginLeft: 'auto',
   },
   typeCards: {
     display: 'flex',
@@ -84,11 +61,11 @@ const useStyles = makeStyles(theme => ({
       flexBasis: '100%', // 1 card
     },
   },
-}));
+});
 
 const projectTypesQuery = graphql`
   query WorkOrderProjectTypesQuery {
-    projectTypes(first: 50)
+    projectTypes(first: 500)
       @connection(key: "WorkOrderProjectTypesQuery_projectTypes") {
       edges {
         node {
@@ -98,7 +75,7 @@ const projectTypesQuery = graphql`
         }
       }
     }
-    workOrderTypes(first: 50) {
+    workOrderTypes {
       edges {
         node {
           ...ProjectTypeWorkOrderTemplatesPanel_workOrderTypes
@@ -139,28 +116,22 @@ const WorkOrderProjectTypes = () => {
 
         return (
           <div className={classes.root}>
-            <div className={classes.header}>
-              <div className={classes.titleContainer}>
-                <Text className={classes.title}>Project Templates</Text>
-                <Text className={classes.subtitle}>
-                  Create and manage reusable project workflows
-                </Text>
-              </div>
-              <div className={classes.addButtonContainer}>
-                <Button
-                  className={classes.addButton}
-                  color="primary"
-                  variant="contained"
-                  onClick={() => {
+            <InventoryConfigureHeader
+              className={classes.header}
+              title="Project Templates"
+              subtitle="Create and manage reusable project workflows."
+              actionButtons={[
+                {
+                  title: 'Add Project Template',
+                  action: () => {
                     ServerLogger.info(
                       LogEvents.ADD_PROJECT_TEMPLATE_BUTTON_CLICKED,
                     );
                     setShowAddEditCard(true);
-                  }}>
-                  Add Project Template
-                </Button>
-              </div>
-            </div>
+                  },
+                },
+              ]}
+            />
             <div className={classes.typeCards}>
               {(props.projectTypes?.edges ?? [])
                 .map(edge => edge.node)

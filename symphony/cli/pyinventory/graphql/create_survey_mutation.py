@@ -41,6 +41,17 @@ def enum_field(enum_type):
     )
 
 
+class SurveyStatus(Enum):
+    PLANNED = "PLANNED"
+    INPROGRESS = "INPROGRESS"
+    COMPLETED = "COMPLETED"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
+
+
 class SurveyQuestionType(Enum):
     BOOL = "BOOL"
     EMAIL = "EMAIL"
@@ -54,11 +65,21 @@ class SurveyQuestionType(Enum):
     FLOAT = "FLOAT"
     INTEGER = "INTEGER"
     DATE = "DATE"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 class FileType(Enum):
     IMAGE = "IMAGE"
     FILE = "FILE"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 class CellularNetworkType(Enum):
@@ -66,6 +87,11 @@ class CellularNetworkType(Enum):
     GSM = "GSM"
     LTE = "LTE"
     WCDMA = "WCDMA"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -150,6 +176,8 @@ class SurveyCreateData:
     locationID: str
     surveyResponses: List[SurveyQuestionResponse]
     ownerName: Optional[str] = None
+    creationTimestamp: Optional[int] = None
+    status: Optional[SurveyStatus] = None
 
 
 @dataclass_json
@@ -168,7 +196,7 @@ class CreateSurveyMutation:
         createSurvey: Optional[str] = None
 
     data: Optional[CreateSurveyMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

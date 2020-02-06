@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -28,6 +29,10 @@ type ServiceEndpointQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.ServiceEndpoint
+	// eager-loading edges.
+	withPort    *EquipmentPortQuery
+	withService *ServiceQuery
+	withFKs     bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -80,14 +85,14 @@ func (seq *ServiceEndpointQuery) QueryService() *ServiceQuery {
 	return query
 }
 
-// First returns the first ServiceEndpoint entity in the query. Returns *ErrNotFound when no serviceendpoint was found.
+// First returns the first ServiceEndpoint entity in the query. Returns *NotFoundError when no serviceendpoint was found.
 func (seq *ServiceEndpointQuery) First(ctx context.Context) (*ServiceEndpoint, error) {
 	ses, err := seq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ses) == 0 {
-		return nil, &ErrNotFound{serviceendpoint.Label}
+		return nil, &NotFoundError{serviceendpoint.Label}
 	}
 	return ses[0], nil
 }
@@ -101,14 +106,14 @@ func (seq *ServiceEndpointQuery) FirstX(ctx context.Context) *ServiceEndpoint {
 	return se
 }
 
-// FirstID returns the first ServiceEndpoint id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first ServiceEndpoint id in the query. Returns *NotFoundError when no id was found.
 func (seq *ServiceEndpointQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = seq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{serviceendpoint.Label}
+		err = &NotFoundError{serviceendpoint.Label}
 		return
 	}
 	return ids[0], nil
@@ -133,9 +138,9 @@ func (seq *ServiceEndpointQuery) Only(ctx context.Context) (*ServiceEndpoint, er
 	case 1:
 		return ses[0], nil
 	case 0:
-		return nil, &ErrNotFound{serviceendpoint.Label}
+		return nil, &NotFoundError{serviceendpoint.Label}
 	default:
-		return nil, &ErrNotSingular{serviceendpoint.Label}
+		return nil, &NotSingularError{serviceendpoint.Label}
 	}
 }
 
@@ -158,9 +163,9 @@ func (seq *ServiceEndpointQuery) OnlyID(ctx context.Context) (id string, err err
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{serviceendpoint.Label}
+		err = &NotFoundError{serviceendpoint.Label}
 	default:
-		err = &ErrNotSingular{serviceendpoint.Label}
+		err = &NotSingularError{serviceendpoint.Label}
 	}
 	return
 }
@@ -249,6 +254,28 @@ func (seq *ServiceEndpointQuery) Clone() *ServiceEndpointQuery {
 	}
 }
 
+//  WithPort tells the query-builder to eager-loads the nodes that are connected to
+// the "port" edge. The optional arguments used to configure the query builder of the edge.
+func (seq *ServiceEndpointQuery) WithPort(opts ...func(*EquipmentPortQuery)) *ServiceEndpointQuery {
+	query := &EquipmentPortQuery{config: seq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	seq.withPort = query
+	return seq
+}
+
+//  WithService tells the query-builder to eager-loads the nodes that are connected to
+// the "service" edge. The optional arguments used to configure the query builder of the edge.
+func (seq *ServiceEndpointQuery) WithService(opts ...func(*ServiceQuery)) *ServiceEndpointQuery {
+	query := &ServiceQuery{config: seq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	seq.withService = query
+	return seq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -291,45 +318,101 @@ func (seq *ServiceEndpointQuery) Select(field string, fields ...string) *Service
 }
 
 func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint, error) {
-	rows := &sql.Rows{}
-	selector := seq.sqlQuery()
-	if unique := seq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes       = []*ServiceEndpoint{}
+		withFKs     = seq.withFKs
+		_spec       = seq.querySpec()
+		loadedTypes = [2]bool{
+			seq.withPort != nil,
+			seq.withService != nil,
+		}
+	)
+	if seq.withPort != nil || seq.withService != nil {
+		withFKs = true
 	}
-	query, args := selector.Query()
-	if err := seq.driver.Query(ctx, query, args, rows); err != nil {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, serviceendpoint.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
+		node := &ServiceEndpoint{config: seq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
+	}
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, seq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var ses ServiceEndpoints
-	if err := ses.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	ses.config(seq.config)
-	return ses, nil
+
+	if query := seq.withPort; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*ServiceEndpoint)
+		for i := range nodes {
+			if fk := nodes[i].service_endpoint_port; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipmentport.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoint_port" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Port = n
+			}
+		}
+	}
+
+	if query := seq.withService; query != nil {
+		ids := make([]string, 0, len(nodes))
+		nodeids := make(map[string][]*ServiceEndpoint)
+		for i := range nodes {
+			if fk := nodes[i].service_endpoints; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(service.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoints" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Service = n
+			}
+		}
+	}
+
+	return nodes, nil
 }
 
 func (seq *ServiceEndpointQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := seq.sqlQuery()
-	unique := []string{serviceendpoint.FieldID}
-	if len(seq.unique) > 0 {
-		unique = seq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := seq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := seq.querySpec()
+	return sqlgraph.CountNodes(ctx, seq.driver, _spec)
 }
 
 func (seq *ServiceEndpointQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -338,6 +421,42 @@ func (seq *ServiceEndpointQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (seq *ServiceEndpointQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   serviceendpoint.Table,
+			Columns: serviceendpoint.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: serviceendpoint.FieldID,
+			},
+		},
+		From:   seq.sql,
+		Unique: true,
+	}
+	if ps := seq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := seq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := seq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := seq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (seq *ServiceEndpointQuery) sqlQuery() *sql.Selector {
@@ -611,7 +730,7 @@ func (ses *ServiceEndpointSelect) sqlScan(ctx context.Context, v interface{}) er
 }
 
 func (ses *ServiceEndpointSelect) sqlQuery() sql.Querier {
-	view := "serviceendpoint_view"
-	return sql.Dialect(ses.driver.Dialect()).
-		Select(ses.fields...).From(ses.sql.As(view))
+	selector := ses.sql
+	selector.Select(selector.Columns(ses.fields...)...)
+	return selector
 }

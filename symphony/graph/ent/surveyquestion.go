@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/survey"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 )
 
 // SurveyQuestion is the model entity for the SurveyQuestion schema.
@@ -60,80 +62,223 @@ type SurveyQuestion struct {
 	IntData int `json:"int_data,omitempty"`
 	// DateData holds the value of the "date_data" field.
 	DateData time.Time `json:"date_data,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyQuestionQuery when eager-loading is set.
+	Edges                  SurveyQuestionEdges `json:"edges"`
+	survey_question_survey *string
 }
 
-// FromRows scans the sql response data into SurveyQuestion.
-func (sq *SurveyQuestion) FromRows(rows *sql.Rows) error {
-	var scansq struct {
-		ID               int
-		CreateTime       sql.NullTime
-		UpdateTime       sql.NullTime
-		FormName         sql.NullString
-		FormDescription  sql.NullString
-		FormIndex        sql.NullInt64
-		QuestionType     sql.NullString
-		QuestionFormat   sql.NullString
-		QuestionText     sql.NullString
-		QuestionIndex    sql.NullInt64
-		BoolData         sql.NullBool
-		EmailData        sql.NullString
-		Latitude         sql.NullFloat64
-		Longitude        sql.NullFloat64
-		LocationAccuracy sql.NullFloat64
-		Altitude         sql.NullFloat64
-		PhoneData        sql.NullString
-		TextData         sql.NullString
-		FloatData        sql.NullFloat64
-		IntData          sql.NullInt64
-		DateData         sql.NullTime
+// SurveyQuestionEdges holds the relations/edges for other nodes in the graph.
+type SurveyQuestionEdges struct {
+	// Survey holds the value of the survey edge.
+	Survey *Survey
+	// WifiScan holds the value of the wifi_scan edge.
+	WifiScan []*SurveyWiFiScan
+	// CellScan holds the value of the cell_scan edge.
+	CellScan []*SurveyCellScan
+	// PhotoData holds the value of the photo_data edge.
+	PhotoData []*File
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// SurveyOrErr returns the Survey value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyQuestionEdges) SurveyOrErr() (*Survey, error) {
+	if e.loadedTypes[0] {
+		if e.Survey == nil {
+			// The edge survey was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: survey.Label}
+		}
+		return e.Survey, nil
 	}
-	// the order here should be the same as in the `surveyquestion.Columns`.
-	if err := rows.Scan(
-		&scansq.ID,
-		&scansq.CreateTime,
-		&scansq.UpdateTime,
-		&scansq.FormName,
-		&scansq.FormDescription,
-		&scansq.FormIndex,
-		&scansq.QuestionType,
-		&scansq.QuestionFormat,
-		&scansq.QuestionText,
-		&scansq.QuestionIndex,
-		&scansq.BoolData,
-		&scansq.EmailData,
-		&scansq.Latitude,
-		&scansq.Longitude,
-		&scansq.LocationAccuracy,
-		&scansq.Altitude,
-		&scansq.PhoneData,
-		&scansq.TextData,
-		&scansq.FloatData,
-		&scansq.IntData,
-		&scansq.DateData,
-	); err != nil {
-		return err
+	return nil, &NotLoadedError{edge: "survey"}
+}
+
+// WifiScanOrErr returns the WifiScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) WifiScanOrErr() ([]*SurveyWiFiScan, error) {
+	if e.loadedTypes[1] {
+		return e.WifiScan, nil
 	}
-	sq.ID = strconv.Itoa(scansq.ID)
-	sq.CreateTime = scansq.CreateTime.Time
-	sq.UpdateTime = scansq.UpdateTime.Time
-	sq.FormName = scansq.FormName.String
-	sq.FormDescription = scansq.FormDescription.String
-	sq.FormIndex = int(scansq.FormIndex.Int64)
-	sq.QuestionType = scansq.QuestionType.String
-	sq.QuestionFormat = scansq.QuestionFormat.String
-	sq.QuestionText = scansq.QuestionText.String
-	sq.QuestionIndex = int(scansq.QuestionIndex.Int64)
-	sq.BoolData = scansq.BoolData.Bool
-	sq.EmailData = scansq.EmailData.String
-	sq.Latitude = scansq.Latitude.Float64
-	sq.Longitude = scansq.Longitude.Float64
-	sq.LocationAccuracy = scansq.LocationAccuracy.Float64
-	sq.Altitude = scansq.Altitude.Float64
-	sq.PhoneData = scansq.PhoneData.String
-	sq.TextData = scansq.TextData.String
-	sq.FloatData = scansq.FloatData.Float64
-	sq.IntData = int(scansq.IntData.Int64)
-	sq.DateData = scansq.DateData.Time
+	return nil, &NotLoadedError{edge: "wifi_scan"}
+}
+
+// CellScanOrErr returns the CellScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) CellScanOrErr() ([]*SurveyCellScan, error) {
+	if e.loadedTypes[2] {
+		return e.CellScan, nil
+	}
+	return nil, &NotLoadedError{edge: "cell_scan"}
+}
+
+// PhotoDataOrErr returns the PhotoData value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) PhotoDataOrErr() ([]*File, error) {
+	if e.loadedTypes[3] {
+		return e.PhotoData, nil
+	}
+	return nil, &NotLoadedError{edge: "photo_data"}
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*SurveyQuestion) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullString{},  // form_name
+		&sql.NullString{},  // form_description
+		&sql.NullInt64{},   // form_index
+		&sql.NullString{},  // question_type
+		&sql.NullString{},  // question_format
+		&sql.NullString{},  // question_text
+		&sql.NullInt64{},   // question_index
+		&sql.NullBool{},    // bool_data
+		&sql.NullString{},  // email_data
+		&sql.NullFloat64{}, // latitude
+		&sql.NullFloat64{}, // longitude
+		&sql.NullFloat64{}, // location_accuracy
+		&sql.NullFloat64{}, // altitude
+		&sql.NullString{},  // phone_data
+		&sql.NullString{},  // text_data
+		&sql.NullFloat64{}, // float_data
+		&sql.NullInt64{},   // int_data
+		&sql.NullTime{},    // date_data
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyQuestion) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // survey_question_survey
+	}
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the SurveyQuestion fields.
+func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(surveyquestion.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	sq.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		sq.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		sq.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field form_name", values[2])
+	} else if value.Valid {
+		sq.FormName = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field form_description", values[3])
+	} else if value.Valid {
+		sq.FormDescription = value.String
+	}
+	if value, ok := values[4].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field form_index", values[4])
+	} else if value.Valid {
+		sq.FormIndex = int(value.Int64)
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field question_type", values[5])
+	} else if value.Valid {
+		sq.QuestionType = value.String
+	}
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field question_format", values[6])
+	} else if value.Valid {
+		sq.QuestionFormat = value.String
+	}
+	if value, ok := values[7].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field question_text", values[7])
+	} else if value.Valid {
+		sq.QuestionText = value.String
+	}
+	if value, ok := values[8].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field question_index", values[8])
+	} else if value.Valid {
+		sq.QuestionIndex = int(value.Int64)
+	}
+	if value, ok := values[9].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field bool_data", values[9])
+	} else if value.Valid {
+		sq.BoolData = value.Bool
+	}
+	if value, ok := values[10].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field email_data", values[10])
+	} else if value.Valid {
+		sq.EmailData = value.String
+	}
+	if value, ok := values[11].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude", values[11])
+	} else if value.Valid {
+		sq.Latitude = value.Float64
+	}
+	if value, ok := values[12].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude", values[12])
+	} else if value.Valid {
+		sq.Longitude = value.Float64
+	}
+	if value, ok := values[13].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field location_accuracy", values[13])
+	} else if value.Valid {
+		sq.LocationAccuracy = value.Float64
+	}
+	if value, ok := values[14].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field altitude", values[14])
+	} else if value.Valid {
+		sq.Altitude = value.Float64
+	}
+	if value, ok := values[15].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field phone_data", values[15])
+	} else if value.Valid {
+		sq.PhoneData = value.String
+	}
+	if value, ok := values[16].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field text_data", values[16])
+	} else if value.Valid {
+		sq.TextData = value.String
+	}
+	if value, ok := values[17].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field float_data", values[17])
+	} else if value.Valid {
+		sq.FloatData = value.Float64
+	}
+	if value, ok := values[18].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field int_data", values[18])
+	} else if value.Valid {
+		sq.IntData = int(value.Int64)
+	}
+	if value, ok := values[19].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field date_data", values[19])
+	} else if value.Valid {
+		sq.DateData = value.Time
+	}
+	values = values[20:]
+	if len(values) == len(surveyquestion.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_survey", value)
+		} else if value.Valid {
+			sq.survey_question_survey = new(string)
+			*sq.survey_question_survey = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -232,18 +377,6 @@ func (sq *SurveyQuestion) id() int {
 
 // SurveyQuestions is a parsable slice of SurveyQuestion.
 type SurveyQuestions []*SurveyQuestion
-
-// FromRows scans the sql response data into SurveyQuestions.
-func (sq *SurveyQuestions) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scansq := &SurveyQuestion{}
-		if err := scansq.FromRows(rows); err != nil {
-			return err
-		}
-		*sq = append(*sq, scansq)
-	}
-	return nil
-}
 
 func (sq SurveyQuestions) config(cfg config) {
 	for _i := range sq {

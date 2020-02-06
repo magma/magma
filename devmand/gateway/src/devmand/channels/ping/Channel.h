@@ -11,10 +11,10 @@
 #include <devmand/channels/ping/Engine.h>
 #include <gtest/gtest_prod.h>
 namespace devmand {
-  namespace test {
-    class PingChannelTest_checkSequenceIdGeneration_Test;
-  }
+namespace test {
+class PingChannelTest_checkSequenceIdGeneration_Test;
 }
+} // namespace devmand
 
 namespace devmand {
 namespace channels {

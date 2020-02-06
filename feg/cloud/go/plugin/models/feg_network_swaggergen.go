@@ -7,6 +7,7 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
+	models2 "magma/lte/cloud/go/plugin/models"
 	models3 "magma/orc8r/cloud/go/models"
 	models4 "magma/orc8r/cloud/go/pluginimpl/models"
 
@@ -41,6 +42,9 @@ type FegNetwork struct {
 	// name
 	// Required: true
 	Name models3.NetworkName `json:"name"`
+
+	// subscriber config
+	SubscriberConfig *models2.NetworkSubscriberConfig `json:"subscriber_config,omitempty"`
 }
 
 // Validate validates this feg network
@@ -68,6 +72,10 @@ func (m *FegNetwork) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSubscriberConfig(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -162,6 +170,24 @@ func (m *FegNetwork) validateName(formats strfmt.Registry) error {
 			return ve.ValidateName("name")
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *FegNetwork) validateSubscriberConfig(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.SubscriberConfig) { // not required
+		return nil
+	}
+
+	if m.SubscriberConfig != nil {
+		if err := m.SubscriberConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("subscriber_config")
+			}
+			return err
+		}
 	}
 
 	return nil

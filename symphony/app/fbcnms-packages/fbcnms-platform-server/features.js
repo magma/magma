@@ -63,30 +63,6 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'upload_rural',
-    title: 'Bulk Upload: Rural',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'upload_xwf',
-    title: 'Bulk Upload: XWF',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'upload_ftth',
-    title: 'Bulk Upload: FTTH',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'python_api',
-    title: 'Download Puthon API',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
     id: 'lte_network_metrics',
     title: 'LTE Network Metrics',
     enabledByDefault: true,
@@ -103,14 +79,19 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'alerts_experimental',
-    title: 'Alerts Experimental Features',
+    id: 'alert_receivers',
+    title: 'Alert Receivers',
+    enabledByDefault: true,
+  },
+  {
+    id: 'alert_routes',
+    title: 'Alert Routes',
     enabledByDefault: false,
   },
   {
-    id: 'alert_threshold_expression',
-    title: 'Alerts Threshold Expression Editor',
-    enabledByDefault: true,
+    id: 'alert_suppressions',
+    title: 'Alert Suppressions',
+    enabledByDefault: false,
   },
   {
     id: 'logs',
@@ -135,22 +116,9 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'import_exported_equipemnt',
-    title: 'Imported Exported Equipment',
+    id: 'deprecated_imports',
+    title: 'Show Deprecated Imports',
     enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'import_exported_links',
-    title: 'Imported Exported Links',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'import_exported_ports',
-    title: 'Imported Exported Ports',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'work_order_map',
@@ -166,6 +134,7 @@ const arrayConfigs = [
     id: 'services',
     title: 'Services',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'coverage_maps',
@@ -197,12 +166,7 @@ const arrayConfigs = [
   {
     id: 'external_id',
     title: 'External ID',
-    enabledByDefault: false,
-  },
-  {
-    id: 'service_endpoints',
-    title: 'Service Endpoints',
-    enabledByDefault: false,
+    enabledByDefault: true,
   },
 ];
 
@@ -240,10 +204,12 @@ export async function getEnabledFeatures(
   organization: ?string,
 ): Promise<FeatureID[]> {
   const results = await Promise.all(
-    arrayConfigs.map(async (config): Promise<?FeatureID> => {
-      const enabled = await isFeatureEnabled(req, config.id, organization);
-      return enabled ? config.id : null;
-    }),
+    arrayConfigs.map(
+      async (config): Promise<?FeatureID> => {
+        const enabled = await isFeatureEnabled(req, config.id, organization);
+        return enabled ? config.id : null;
+      },
+    ),
   );
 
   return results.filter(Boolean);

@@ -16,6 +16,7 @@ import InventoryTreeNode from './InventoryTreeNode';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import RelayEnvironment from '../common/RelayEnvironment';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo, useState} from 'react';
@@ -27,16 +28,16 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexGrow: 1,
     flexDirection: 'column',
-    overflowY: 'auto',
+    overflow: 'hidden',
     height: '100%',
   },
   treeContainer: {
     backgroundColor: theme.palette.common.white,
     display: 'flex',
     flexDirection: 'column',
+    flexBasis: 0,
     flexGrow: 1,
-    marginBottom: '10px',
-    height: '100%',
+    overflowY: 'auto',
   },
   headerRoot: {
     display: 'flex',
@@ -156,22 +157,24 @@ const InventoryTreeView = (props: Props) => {
       </div>
       <div className={classes.treeContainer}>
         <PerfectScrollbar>
-          <div>
-            {dummyRootTitle !== null && dummyRootTitle !== undefined
-              ? renderDummyTitleNode(dummyRootTitle)
-              : null}
-            {tree.map(location => (
-              <InventoryTreeNode
-                key={location.id}
-                element={location}
-                selectedHierarchy={locationHierarchy}
-                onClick={props.onClick}
-                parent={null}
-                depth={0}
-                getHoverRightContent={getHoverRightContent}
-              />
-            ))}
-          </div>
+          <FormValidationContextProvider>
+            <div>
+              {dummyRootTitle !== null && dummyRootTitle !== undefined
+                ? renderDummyTitleNode(dummyRootTitle)
+                : null}
+              {tree.map(location => (
+                <InventoryTreeNode
+                  key={location.id}
+                  element={location}
+                  selectedHierarchy={locationHierarchy}
+                  onClick={props.onClick}
+                  parent={null}
+                  depth={0}
+                  getHoverRightContent={getHoverRightContent}
+                />
+              ))}
+            </div>
+          </FormValidationContextProvider>
         </PerfectScrollbar>
       </div>
     </div>

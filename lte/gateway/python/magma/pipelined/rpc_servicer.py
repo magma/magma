@@ -29,6 +29,8 @@ from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
     RelayDisabledException
 from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
@@ -42,13 +44,15 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     """
 
     def __init__(self, loop, metering_stats, enforcer_app, enforcement_stats,
-                 dpi_app, ue_mac_app, service_manager):
+                 dpi_app, ue_mac_app, check_quota_app, ipfix_app, service_manager):
         self._loop = loop
         self._metering_stats = metering_stats
         self._enforcer_app = enforcer_app
         self._enforcement_stats = enforcement_stats
         self._dpi_app = dpi_app
         self._ue_mac_app = ue_mac_app
+        self._check_quota_app = check_quota_app
+        self._ipfix_app = ipfix_app
         self._service_manager = service_manager
 
     def add_to_server(self, server):
@@ -276,10 +280,37 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Invalid UE MAC address provided')
             return None
 
-        resp = FlowResponse()
         self._loop.call_soon_threadsafe(
             self._ue_mac_app.add_ue_mac_flow,
             request.sid.id, request.mac_addr)
+
+
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            # Install trace flow
+            self._loop.call_soon_threadsafe(
+                self._ipfix_app.add_ue_sample_flow, request.sid.id,
+                request.msisdn, request.ap_mac_addr, request.ap_name)
+
+        resp = FlowResponse()
+        return resp
+
+    # --------------------------
+    # Check Quota App
+    # --------------------------
+
+    def UpdateSubscriberQuotaState(self, request, context):
+        """
+        Updates the subcsciber quota state
+        """
+        if not self._service_manager.is_app_enabled(
+                CheckQuotaController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        resp = FlowResponse()
+        self._loop.call_soon_threadsafe(
+            self._check_quota_app.update_subscriber_quota_state, request)
         return resp
 
     # --------------------------
@@ -296,7 +327,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             TableAssignment(app_name=app_name, main_table=tables.main_table,
                             scratch_tables=tables.scratch_tables) for
             app_name, tables in table_assignments.items()])
-
 
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult

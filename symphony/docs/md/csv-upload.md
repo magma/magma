@@ -1,3 +1,4 @@
+
 ---
 id: csv-upload
 title: Upload Inventory Data via CSV    
@@ -72,20 +73,24 @@ Location files should be of the following form:
 * The script will create a link between the two ports
 
 
-# Importing Equipment Exported Data
+# Importing Exported Data (Equipment, Links && Ports)
 
 
-### 1. Before importing you data
+## 1. Before importing you data
+* Location types, Equipment types, Port types should be defined manually before upload.
 * Verify that the locations types are defined by their order:
 Under the location types tab, drag and drop the locations types so that it's arranged from big ones to small ones.
-* Export the equipment data to CSV, [here's how you do it](equipment-export.md)
-### 2. Importing the Data
+* Export the relevant data to CSV (which will be the template for the upload), [here's how you do it](equipment-export.md)
+* It's important to note that there are four different upload flows for exported data:
+	* Equipment (for add and edit)
+	* Links (add & edit)
+	* Ports (edit only)
+	* Services (add & edit) 
+## 2. Importing the Data
 
-* Ones the CSV file is exported, it can be modified and be used for uploading new equipment data or editing existing equipment data.
-* Let's first edit the file, and on the next step we'll re-upload it.
-
-#### 2.1 Editing Existing Equipment
-
+* Once the CSV file is exported, it can be modified and be used in order to upload new records or edit existing ones.
+### 2.1 Equipment
+#### 2.1.1 Editing Existing Equipment
 * As long as the value of the "Equipment ID" column is not empty, a row will be treated as "to be edited".
 * Possible fields to be edited:
    * "Equipment Name" - for renaming an equipment instance.
@@ -93,21 +98,23 @@ Under the location types tab, drag and drop the locations types so that it's arr
    * Every property
       * Property is editable as long as the corresponding equipment-type supports this property (can be verified on Inventory, under "configure"-> "equipment-types")
 
-#### 2.2 Adding New Equipment
+#### 2.1.2 Adding New Equipment
 
 * As long as the value of the "Equipment ID" column is empty, a row will be treated as "to be added".
 * Fields:
    * "Equipment Name"
    * "Equipment Type" - must be an existing name
-   * List of locations, from big to small - (will be added on the fly if not exist)
-   * "Parent Equipment (3)" - if exist
-   * "Parent Equipment (2)" - if exist
-   * "Parent Equipment" - if exist
-   * "Parent Position" - if exist
+   * List of locations, from big to small - (will be added on the fly if not exists, but with no location properties)
+   * "Parent Equipment (3)" - if exists
+   *  "Position (3)" - if exists
+   * "Parent Equipment (2)" - if exists
+   * "Position (2)" - if exists
+   * "Parent Equipment" - if exists
+   * "Parent Position" - if exists
    * List of properties for this equipment - if exist
 * Equipment positions won't be added on the fly - they should exist and be free in advance of the new import run.
 
-#### 2.3 Uploading the modified CSV
+#### 2.1.3 Uploading the modified CSV
 
 
 
@@ -119,3 +126,43 @@ Under the location types tab, drag and drop the locations types so that it's arr
    * Click the "Bulk Upload" tab
    * "Upload Exported Equipment"
    * Choose the edited file.
+
+### 2.2 Links
+#### 2.2.1 Editing Existing Link
+* As long as the value of the "Link ID" column is not empty, a row will be treated as "to be edited".
+* Possible fields to be edited:
+   * Every link property
+      * Property is editable as long as the corresponding port-type supports this property (can be verified on Inventory, under "configure"-> "port-types"-> "link-properties")
+
+#### 2.2.2 Adding New Links
+
+* As long as the value of the "Link ID" column is empty, a row will be treated as "to be added".
+* Fields for each one of the ports (wrote "A" but the same behavior for "B"):
+   * "Port A Name" - must be a valid port name from the equipment type.
+   * "Equipment A Name" - will be added on the fly if not exists.
+   * "Equipment A Type" - must be an existing name.
+   * List of locations, from big to small - (will be added on the fly if not exists, but with no location properties)
+   * "Parent Equipment (3) A" - if exists
+   * "Position (3) A" - if exists
+   * "Parent Equipment (2) A" - if exists
+   * "Position (2) A" - if  exists
+   * "Parent Equipment A" - if exists
+   * "Parent Position A" - if exists
+   * {*Exact same columns for  port B*}
+   * List of link properties taken from both ports - if exist
+* Equipment positions won't be added on the fly - they should exist and be free in advance of the new import run.
+
+#### 2.2.3 Uploading the modified CSV
+* Now that we have our CSV ready - 
+   *  Inventory
+   * Click the '+' sign and a dialog will be opened.
+   * Click the "Bulk Upload" tab
+   * "Upload Exported Links"
+   * Choose the edited file.
+
+### 2.3 Ports
+#### 2.3.1 Editing Existing Ports
+* As long as the value of the "Port ID" column is not empty, a row will be treated as "to be edited".
+* Possible fields to be edited:
+   * Every port property
+      * Property is editable as long as the corresponding port-type supports this property (can be verified on Inventory, under "configure"-> "port-types"-> "port-properties")

@@ -43,7 +43,7 @@ func (ecd *EquipmentCategoryDelete) ExecX(ctx context.Context) int {
 }
 
 func (ecd *EquipmentCategoryDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: equipmentcategory.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (ecd *EquipmentCategoryDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := ecd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ecd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ecd.driver, _spec)
 }
 
 // EquipmentCategoryDeleteOne is the builder for deleting a single EquipmentCategory entity.
@@ -74,7 +74,7 @@ func (ecdo *EquipmentCategoryDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{equipmentcategory.Label}
+		return &NotFoundError{equipmentcategory.Label}
 	default:
 		return nil
 	}

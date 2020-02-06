@@ -87,11 +87,16 @@ def package(vcs='hg', all_deps="False",
 
         # Generate magma dependency packages
         print("Generating magma dependency packages")
-        with cd('python'):
-            run('../release/pydep finddep -b ../python/setup.py')
-            run('mv *.deb ../')
+        run('mkdir -p ~/magma-deps')
+        run('./release/pydep finddep -b --build-output ~/magma-deps python/setup.py')
+
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')
+        try:
+            run('cp -f ~/magma-deps/*.deb ~/magma-packages')
+        except Exception:
+            # might be a problem if no deps found, but don't handle here
+            pass
         run('mv *.deb ~/magma-packages')
 
         with cd('release'):
@@ -103,6 +108,14 @@ def package(vcs='hg', all_deps="False",
         if all_deps:
             pkg.download_all_pkgs()
             run('cp /var/cache/apt/archives/*.deb ~/magma-packages')
+
+
+def depclean():
+    '''Remove all generated packaged for dependencies'''
+    # If a host list isn't specified, default to the magma vagrant vm
+    if not env.hosts:
+        setup_env_vagrant()
+    run('rm -rf ~/magma-deps')
 
 
 def upload_to_aws():

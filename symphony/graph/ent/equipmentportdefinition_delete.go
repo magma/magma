@@ -43,7 +43,7 @@ func (epdd *EquipmentPortDefinitionDelete) ExecX(ctx context.Context) int {
 }
 
 func (epdd *EquipmentPortDefinitionDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: equipmentportdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (epdd *EquipmentPortDefinitionDelete) sqlExec(ctx context.Context) (int, er
 		},
 	}
 	if ps := epdd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, epdd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, epdd.driver, _spec)
 }
 
 // EquipmentPortDefinitionDeleteOne is the builder for deleting a single EquipmentPortDefinition entity.
@@ -74,7 +74,7 @@ func (epddo *EquipmentPortDefinitionDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{equipmentportdefinition.Label}
+		return &NotFoundError{equipmentportdefinition.Label}
 	default:
 		return nil
 	}

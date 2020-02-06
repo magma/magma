@@ -101,9 +101,11 @@ std::string RedisClient::read(const std::string& key)
   db_client_->sync_commit();
   auto db_read_reply = db_read_fut.get();
 
-  if (
-    db_read_reply.is_null() || db_read_reply.is_error() ||
-    !db_read_reply.is_string()) {
+  if (db_read_reply.is_null()) {
+    return "";
+  }
+
+  if(db_read_reply.is_error() || !db_read_reply.is_string()) {
     throw std::runtime_error("Could not read from redis");
   }
 
@@ -136,6 +138,19 @@ int RedisClient::read_proto(const std::string& key, Message& proto_msg)
   } catch (const std::runtime_error& e) {
     return RETURNerror;
   }
+}
+
+int RedisClient::clear_keys(const std::vector<std::string>& keys_to_clear)
+{
+  auto db_write = db_client_->del(keys_to_clear);
+  db_client_->sync_commit();
+  auto reply = db_write.get();
+
+  if (reply.is_error()) {
+    return RETURNerror;
+  }
+
+  return RETURNok;
 }
 
 } // namespace lte

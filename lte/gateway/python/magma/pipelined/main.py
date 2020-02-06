@@ -13,6 +13,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import asyncio
 import logging
+import threading
+
 
 import aioeventlet
 from ryu import cfg
@@ -22,6 +24,7 @@ from magma.common.misc_utils import call_process
 from magma.common.service import MagmaService
 from magma.configuration import environment
 from magma.pipelined.app import of_rest_server
+from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.ifaces import monitor_ifaces
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
@@ -78,14 +81,39 @@ def main():
         manager.applications.get('EnforcementStatsController', None),
         manager.applications.get('DPIController', None),
         manager.applications.get('UEMacAddressController', None),
+        manager.applications.get('CheckQuotaController', None),
+        manager.applications.get('IPFIXController', None),
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)
+
+    if service.config['setup_type'] == 'CWF':
+        bridge_ip = service.config['bridge_ip_address']
+        has_quota_port = service.config['has_quota_port']
+        no_quota_port = service.config['no_quota_port']
+
+        def on_exit_server_thread():
+            service.StopService(None, None)
+
+        # For CWF start quota check servers
+        start_check_quota_server(run_flask, bridge_ip, has_quota_port, True,
+                                 on_exit_server_thread)
+        start_check_quota_server(run_flask, bridge_ip, no_quota_port, False,
+                                 on_exit_server_thread)
 
     # Run the service loop
     service.run()
 
     # Cleanup the service
     service.close()
+
+
+def start_check_quota_server(target, ip, port, response, exit_callback):
+    """ Starts service server threads """
+    thread = threading.Thread(
+        target=target,
+        args=(ip, port, response, exit_callback))
+    thread.daemon = True
+    thread.start()
 
 
 if __name__ == "__main__":

@@ -16,12 +16,15 @@ import {useCallback, useLayoutEffect, useRef, useState} from 'react';
 const useStyles = makeStyles({
   root: {
     position: 'absolute',
+    zIndex: 1400,
   },
 });
 
+export type ContextualLayerPosition = 'below' | 'above';
+
 export type ContextualLayerOptions = $ReadOnly<{|
   align?: 'middle',
-  position?: 'below' | 'above',
+  position?: ContextualLayerPosition,
 |}>;
 
 type PositionRect = {

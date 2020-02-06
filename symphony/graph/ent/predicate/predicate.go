@@ -61,6 +61,9 @@ type FloorPlanReferencePoint func(*sql.Selector)
 // FloorPlanScale is the predicate function for floorplanscale builders.
 type FloorPlanScale func(*sql.Selector)
 
+// Hyperlink is the predicate function for hyperlink builders.
+type Hyperlink func(*sql.Selector)
+
 // Link is the predicate function for link builders.
 type Link func(*sql.Selector)
 

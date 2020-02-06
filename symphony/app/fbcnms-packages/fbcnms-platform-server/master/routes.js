@@ -138,13 +138,7 @@ router.put(
   }),
 );
 
-const USER_PROPS = [
-  'email',
-  'networkIDs',
-  'password',
-  'superUser',
-  'organization',
-];
+const USER_PROPS = ['email', 'networkIDs', 'password', 'role', 'organization'];
 
 router.post(
   '/organization/async/:name/add_user',

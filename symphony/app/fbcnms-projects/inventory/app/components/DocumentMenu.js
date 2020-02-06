@@ -9,111 +9,88 @@
  */
 
 import type {DocumentMenu_document} from './__generated__/DocumentMenu_document.graphql';
-import type {WithStyles} from '@material-ui/core';
 
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 import React from 'react';
+import TableRowOptionsButton from './TableRowOptionsButton';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
-import symphony from '@fbcnms/ui/theme/symphony';
 import {DocumentAPIUrls} from '../common/DocumentAPI';
 import {createFragmentContainer, graphql} from 'react-relay';
-import {withStyles} from '@material-ui/core/styles';
-
-const styles = () => ({
-  icon: {
-    color: symphony.palette.D400,
-    cursor: 'pointer',
-  },
-});
 
 type Props = {
   document: DocumentMenu_document,
   onDocumentDeleted: (document: DocumentMenu_document) => void,
   onDialogOpen: () => void,
-} & WithStyles<typeof styles>;
-
-type State = {
-  anchorElement: ?HTMLElement,
 };
 
-class DocumentMenu extends React.Component<Props, State> {
-  state = {
-    anchorElement: null,
-  };
-
+class DocumentMenu extends React.Component<Props> {
   downloadFileRef: {
     current: null | HTMLAnchorElement,
   } = React.createRef<HTMLAnchorElement>();
-
-  handleClick = event => {
-    this.setState({anchorElement: event.currentTarget});
-  };
-
-  hide = () => {
-    this.setState({anchorElement: null});
-  };
 
   handleDownload = () => {
     if (this.downloadFileRef.current != null) {
       this.downloadFileRef.current.click();
     }
-    this.hide();
   };
 
-  handlePreview = async _ => {
+  handlePreview = () => {
     this.props.onDialogOpen();
-    this.hide();
   };
 
-  handleDelete = async _ => {
+  handleDelete = () => {
     this.props.onDocumentDeleted(this.props.document);
-    this.hide();
-  };
-
-  handleClose = () => {
-    this.hide();
   };
 
   render() {
-    const {classes, document} = this.props;
-    const {anchorElement} = this.state;
+    const {document} = this.props;
     const storeKey = nullthrows(document.storeKey);
+    const menuOptions = [
+      {
+        onClick: this.handlePreview.bind(this),
+        caption: fbt(
+          'Preview',
+          'Caption for menu option for showing image in preview mode',
+        ),
+        ignorePermissions: true,
+      },
+      {
+        onClick: this.handleDelete.bind(this),
+        caption: fbt(
+          'Delete',
+          'Caption for menu option for deleting a file from files table',
+        ),
+      },
+      {
+        onClick: this.handleDownload.bind(this),
+        caption: fbt(
+          'Download',
+          'Caption for menu option for downloading a file from files table',
+        ),
+        ignorePermissions: true,
+      },
+    ];
     return (
-      <div>
-        <MoreVertIcon className={classes.icon} onClick={this.handleClick} />
+      <>
+        <TableRowOptionsButton options={menuOptions} />
         <a
           href={DocumentAPIUrls.download_url(storeKey, document.fileName)}
           ref={this.downloadFileRef}
           style={{display: 'none'}}
           download
         />
-        <Menu
-          id="simple-menu"
-          anchorEl={anchorElement}
-          open={!!anchorElement}
-          onClose={this.handleClose}>
-          {document.fileType === 'IMAGE' && (
-            <MenuItem onClick={this.handlePreview}>Preview</MenuItem>
-          )}
-          <MenuItem onClick={this.handleDelete}>Delete</MenuItem>
-          <MenuItem onClick={this.handleDownload}>Download</MenuItem>
-        </Menu>
-      </div>
+      </>
     );
   }
 }
 
-export default withStyles(styles)(
-  createFragmentContainer(DocumentMenu, {
-    document: graphql`
-      fragment DocumentMenu_document on File {
-        id
-        fileName
-        storeKey
-        fileType
-      }
-    `,
-  }),
-);
+export default createFragmentContainer(DocumentMenu, {
+  document: graphql`
+    fragment DocumentMenu_document on File {
+      id
+      fileName
+      storeKey
+      fileType
+    }
+  `,
+});

@@ -26,6 +26,7 @@ export type EntityDocumentsTable_files$data = EntityDocumentsTable_files;
 export type EntityDocumentsTable_files$key = $ReadOnlyArray<{
   +$data?: EntityDocumentsTable_files$data,
   +$fragmentRefs: EntityDocumentsTable_files$ref,
+  ...
 }>;
 */
 

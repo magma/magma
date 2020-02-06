@@ -5,6 +5,7 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
+#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <devmand/channels/cli/CliFlavour.h>
 #include <regex>
@@ -22,8 +23,6 @@ using devmand::channels::cli::PromptResolver;
 using devmand::channels::cli::UbiquitiInitializer;
 using devmand::channels::cli::sshsession::SessionAsync;
 using folly::Optional;
-
-static const int DEFAULT_MILLIS = 1000;
 
 SemiFuture<Unit> EmptyInitializer::initialize(
     shared_ptr<SessionAsync> session,
@@ -45,21 +44,23 @@ SemiFuture<Unit> UbiquitiInitializer::initialize(
 
 Future<string> DefaultPromptResolver::resolvePrompt(
     shared_ptr<SessionAsync> session,
-    const string& newline) {
-  return session
-      ->read(DEFAULT_MILLIS) // clear input, converges faster on
-                             // prompt
-      .thenValue([=](...) { return resolvePrompt(session, newline, 1); });
+    const string& newline,
+    shared_ptr<Timekeeper> timekeeper) {
+  return session->read().thenValue([=](...) {
+    return resolvePrompt(session, newline, delayDelta, timekeeper);
+  });
 }
 
 Future<string> DefaultPromptResolver::resolvePrompt(
     shared_ptr<SessionAsync> session,
     const string& newline,
-    int delayCounter) {
-  return resolvePromptAsync(session, newline, delayCounter)
+    chrono::milliseconds delay,
+    shared_ptr<Timekeeper> timekeeper) {
+  return resolvePromptAsync(session, newline, delay, timekeeper)
       .thenValue([=](Optional<string> prompt) {
         if (!prompt.hasValue()) {
-          return resolvePrompt(session, newline, delayCounter + 1);
+          return resolvePrompt(
+              session, newline, delay + delayDelta, timekeeper);
         } else {
           return folly::makeFuture(prompt.value());
         }
@@ -69,11 +70,11 @@ Future<string> DefaultPromptResolver::resolvePrompt(
 Future<Optional<string>> DefaultPromptResolver::resolvePromptAsync(
     shared_ptr<SessionAsync> session,
     const string& newline,
-    int delayCounter) {
+    chrono::milliseconds delay,
+    shared_ptr<Timekeeper> timekeeper) {
   return session->write(newline + newline)
-      .thenValue([delayCounter, session](...) {
-        return session->read(delayCounter * DEFAULT_MILLIS);
-      })
+      .delayed(delay, timekeeper.get())
+      .thenValue([session](...) { return session->read(); })
       .thenValue([=](string output) {
         regex regxp("\\" + newline);
         vector<string> split(
@@ -108,20 +109,76 @@ void DefaultPromptResolver::removeEmptyStrings(vector<string>& split) const {
 CliFlavour::CliFlavour(
     unique_ptr<PromptResolver>&& _resolver,
     unique_ptr<CliInitializer>&& _initializer,
-    string _newline)
+    string _newline,
+    regex _baseShowConfig,
+    unsigned int _baseShowConfigIdx,
+    Optional<char> _singleIndentChar,
+    string _configSubsectionEnd)
     : resolver(forward<unique_ptr<PromptResolver>>(_resolver)),
       initializer(forward<unique_ptr<CliInitializer>>(_initializer)),
-      newline(_newline) {}
+      newline(_newline),
+      baseShowConfig(_baseShowConfig),
+      baseShowConfigIdx(_baseShowConfigIdx),
+      singleIndentChar(_singleIndentChar),
+      configSubsectionEnd(_configSubsectionEnd) {}
 
 shared_ptr<CliFlavour> CliFlavour::create(string flavour) {
   if (flavour == UBIQUITI) {
     return make_shared<CliFlavour>(
         make_unique<DefaultPromptResolver>(),
-        make_unique<UbiquitiInitializer>());
+        make_unique<UbiquitiInitializer>(),
+        "\n",
+        regex(R"(^((do )?sho?w? runn?i?n?g?-?c?o?n?f?i?g?).*)"),
+        1,
+        none,
+        "exit");
+  } else {
+    return make_shared<CliFlavour>(
+        make_unique<DefaultPromptResolver>(),
+        make_unique<EmptyInitializer>(),
+        "\n",
+        regex(R"(^((do )?sho?w? runn?i?n?g?-?c?o?n?f?i?g?).*)"),
+        1,
+        ' ',
+        "!");
   }
+}
 
-  return make_shared<CliFlavour>(
-      make_unique<DefaultPromptResolver>(), make_unique<EmptyInitializer>());
+Optional<size_t> CliFlavour::getBaseShowConfigIdx(const string cmd) const {
+  smatch pieces_match;
+  if (regex_match(cmd, pieces_match, baseShowConfig)) {
+    return Optional<size_t>((size_t)pieces_match[baseShowConfigIdx].length());
+  }
+  return Optional<size_t>(none);
+}
+
+Optional<char> CliFlavour::getSingleIndentChar() {
+  return singleIndentChar;
+}
+
+string CliFlavour::getConfigSubsectionEnd() {
+  return configSubsectionEnd;
+}
+
+vector<string> CliFlavour::splitSubcommands(string subcommands) {
+  Optional<char> maybeIndentChar = getSingleIndentChar();
+  char indentChar = maybeIndentChar.value_or(' ');
+  vector<string> args;
+  boost::split(
+      args, subcommands, [indentChar](char s) { return s == indentChar; });
+  return args;
+}
+
+shared_ptr<PromptResolver> CliFlavour::getResolver() {
+  return resolver;
+}
+
+shared_ptr<CliInitializer> CliFlavour::getInitializer() {
+  return initializer;
+}
+
+string CliFlavour::getNewline() {
+  return newline;
 }
 
 } // namespace cli

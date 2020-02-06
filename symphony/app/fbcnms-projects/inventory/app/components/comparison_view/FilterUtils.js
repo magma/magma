@@ -116,7 +116,7 @@ export function doesFilterHasValue(filterValue: FilterValue): boolean {
   const propValue = filterValue.propertyValue;
   return (
     !!filterValue.stringValue ||
-    filterValue.boolValue !== null ||
+    filterValue.boolValue != null ||
     (!!filterValue.idSet && filterValue.idSet.length > 0) ||
     (!!propValue && !!getPropertyValue(propValue))
   );
@@ -138,8 +138,12 @@ export function getLocationTypes(
 }
 
 export const buildPropertyFilterConfigs = (
-  definitions: Array<PropertyType>,
+  definitions: ?Array<PropertyType>,
 ): Array<FilterConfig> => {
+  if (definitions == null) {
+    return [];
+  }
+
   return definitions
     .filter(
       d =>

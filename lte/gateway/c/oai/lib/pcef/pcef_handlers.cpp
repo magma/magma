@@ -22,6 +22,7 @@
 #include <grpcpp/impl/codegen/status.h>
 #include <string.h>
 #include <string>
+#include <conversions.h>
 
 #include "pcef_handlers.h"
 #include "PCEFClient.h"
@@ -54,6 +55,8 @@ static void create_session_response(
   s5_response->eps_bearer_id = bearer_request.eps_bearer_id;
   s5_response->sgi_create_endpoint_resp = sgi_response;
   s5_response->failure_cause = S5_OK;
+
+  IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
 
   if (!status.ok()) {
     struct in_addr addr;
@@ -108,6 +111,7 @@ void pcef_create_session(
   sreq.mutable_sid()->set_id("IMSI" + imsi_str);
   sreq.set_rat_type(magma::RATType::TGPP_LTE);
   sreq.set_ue_ipv4(ip_str);
+  sreq.set_bearer_id(bearer_request.eps_bearer_id);
   pcef_fill_create_session_req(session_data, &sreq);
 
   auto apn = std::string(session_data->apn);

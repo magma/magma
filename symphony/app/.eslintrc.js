@@ -39,7 +39,12 @@ module.exports.overrides = [
       jest: true,
       node: true,
     },
-    files: ['**/__mocks__/**/*.js', '**/__tests__/**/*.js', 'testHelpers.js'],
+    files: [
+      '**/__mocks__/**/*.js',
+      'testHelpers.js',
+      '**/__tests__/**/*.js',
+      '**/tests/*.js',
+    ],
   },
   {
     files: [

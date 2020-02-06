@@ -9,11 +9,13 @@
  */
 
 import * as React from 'react';
-import FormFieldContext from './FormFieldContext';
+import FormElementContext from '../Form/FormElementContext';
+import FormValidationContext from '../Form/FormValidationContext';
 import Text from '../Text';
 import classNames from 'classnames';
 import nullthrows from 'nullthrows';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useMemo} from 'react';
 
 const useStyles = makeStyles(({symphony}) => ({
   root: {
@@ -60,7 +62,7 @@ const FormField = (props: Props) => {
     children,
     label,
     helpText,
-    disabled,
+    disabled: disabledProp,
     className,
     hasError,
     errorText,
@@ -68,8 +70,14 @@ const FormField = (props: Props) => {
     required,
   } = props;
   const classes = useStyles();
+
+  const validationContext = useContext(FormValidationContext);
+  const disabled = useMemo(
+    () => disabledProp || validationContext.editLock.detected,
+    [disabledProp, validationContext.editLock.detected],
+  );
   return (
-    <FormFieldContext.Provider value={{disabled, hasError}}>
+    <FormElementContext.Provider value={{disabled, hasError}}>
       <div
         className={classNames(
           classes.root,
@@ -86,14 +94,14 @@ const FormField = (props: Props) => {
         {children}
         {(helpText || (hasError && errorText)) && (
           <Text className={classes.bottomText} variant="caption">
-            {nullthrows(hasError ? errorText : helpText)}
+            {nullthrows((hasError && errorText) || helpText)}
           </Text>
         )}
         {!helpText && !hasError && hasSpacer && (
           <div className={classes.spacer} />
         )}
       </div>
-    </FormFieldContext.Provider>
+    </FormElementContext.Provider>
   );
 };
 

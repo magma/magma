@@ -20,7 +20,8 @@ type LocationType struct {
 func (LocationType) Fields() []ent.Field {
 	return []ent.Field{
 		field.Bool("site").
-			Default(false),
+			Default(false).
+			StructTag(`gqlgen:"isSite"`),
 		field.String("name").
 			Unique(),
 		field.String("map_type").
@@ -37,9 +38,12 @@ func (LocationType) Fields() []ent.Field {
 func (LocationType) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("locations", Location.Type).
-			Ref("type"),
-		edge.To("property_types", PropertyType.Type),
-		edge.To("survey_template_categories", SurveyTemplateCategory.Type),
+			Ref("type").
+			StructTag(`gqlgen:"locations"`),
+		edge.To("property_types", PropertyType.Type).
+			StructTag(`gqlgen:"propertyTypes"`),
+		edge.To("survey_template_categories", SurveyTemplateCategory.Type).
+			StructTag(`gqlgen:"surveyTemplateCategories"`),
 	}
 }
 
@@ -54,6 +58,7 @@ func (Location) Fields() []ent.Field {
 		field.String("name").
 			NotEmpty(),
 		field.String("external_id").
+			Unique().
 			Optional(),
 		field.Float("latitude").
 			Default(0).
@@ -73,23 +78,36 @@ func (Location) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("type", LocationType.Type).
 			Unique().
-			Required(),
+			Required().
+			StructTag(`gqlgen:"locationType"`),
 		edge.To("children", Location.Type).
+			StructTag(`gqlgen:"children"`).
 			From("parent").
-			Unique(),
-		edge.To("files", File.Type),
-		edge.To("equipment", Equipment.Type),
-		edge.To("properties", Property.Type),
+			Unique().
+			StructTag(`gqlgen:"parentLocation"`),
+		edge.To("files", File.Type).
+			StructTag(`gqlgen:"files,images"`),
+		edge.To("hyperlinks", Hyperlink.Type).
+			StructTag(`gqlgen:"hyperlinks"`),
+		edge.To("equipment", Equipment.Type).
+			StructTag(`gqlgen:"equipments"`),
+		edge.To("properties", Property.Type).
+			StructTag(`gqlgen:"properties"`),
 		edge.From("survey", Survey.Type).
-			Ref("location"),
+			Ref("location").
+			StructTag(`gqlgen:"surveys"`),
 		edge.From("wifi_scan", SurveyWiFiScan.Type).
-			Ref("location"),
+			Ref("location").
+			StructTag(`gqlgen:"wifiData"`),
 		edge.From("cell_scan", SurveyCellScan.Type).
-			Ref("location"),
+			Ref("location").
+			StructTag(`gqlgen:"cellData"`),
 		edge.From("work_orders", WorkOrder.Type).
-			Ref("location"),
+			Ref("location").
+			StructTag(`gqlgen:"workOrders"`),
 		edge.From("floor_plans", FloorPlan.Type).
-			Ref("location"),
+			Ref("location").
+			StructTag(`gqlgen:"floorPlans"`),
 	}
 }
 

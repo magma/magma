@@ -199,5 +199,49 @@ void StateConverter::proto_to_apn_config_profile(
   }
 }
 
+void StateConverter::hashtable_uint64_ts_to_proto(
+  hash_table_uint64_ts_t* htbl,
+  google::protobuf::Map<unsigned long, unsigned long>* proto_map)
+{
+  hashtable_key_array_t* keys = hashtable_uint64_ts_get_keys(htbl);
+  if (keys == nullptr) {
+    return;
+  }
+
+  for (auto i = 0; i < keys->num_keys; i++) {
+    uint64_t val;
+    hashtable_rc_t ht_rc = hashtable_uint64_ts_get(htbl, keys->keys[i], &val);
+    if (ht_rc == HASH_TABLE_OK) {
+      (*proto_map)[keys->keys[i]] = val;
+    } else {
+      OAILOG_ERROR(
+        LOG_UTIL, "Key %lu not in %s", keys->keys[i], htbl->name->data);
+    }
+  }
+
+  FREE_HASHTABLE_KEY_ARRAY(keys);
+}
+
+void StateConverter::proto_to_hashtable_uint64_ts(
+  const google::protobuf::Map<unsigned long, unsigned long>& proto_map,
+  hash_table_uint64_ts_t* state_htbl)
+{
+  for (auto const& kv : proto_map) {
+    uint64_t id = kv.first;
+    uint64_t val = kv.second;
+
+    hashtable_rc_t ht_rc =
+      hashtable_uint64_ts_insert(state_htbl, (const hash_key_t) id, val);
+    if (ht_rc != HASH_TABLE_OK) {
+      OAILOG_ERROR(
+        LOG_UTIL,
+        "Failed to insert value %lu in table %s: error: %s\n",
+        val,
+        state_htbl->name->data,
+        hashtable_rc_code2string(ht_rc));
+    }
+  }
+}
+
 } // namespace lte
 } // namespace magma

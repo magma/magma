@@ -13,6 +13,9 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
+	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 )
 
 // SurveyWiFiScan is the model entity for the SurveyWiFiScan schema.
@@ -46,59 +49,172 @@ type SurveyWiFiScan struct {
 	Latitude float64 `json:"latitude,omitempty"`
 	// Longitude holds the value of the "longitude" field.
 	Longitude float64 `json:"longitude,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyWiFiScanQuery when eager-loading is set.
+	Edges                             SurveyWiFiScanEdges `json:"edges"`
+	survey_wi_fi_scan_survey_question *string
+	survey_wi_fi_scan_location        *string
 }
 
-// FromRows scans the sql response data into SurveyWiFiScan.
-func (swfs *SurveyWiFiScan) FromRows(rows *sql.Rows) error {
-	var scanswfs struct {
-		ID           int
-		CreateTime   sql.NullTime
-		UpdateTime   sql.NullTime
-		Ssid         sql.NullString
-		Bssid        sql.NullString
-		Timestamp    sql.NullTime
-		Frequency    sql.NullInt64
-		Channel      sql.NullInt64
-		Band         sql.NullString
-		ChannelWidth sql.NullInt64
-		Capabilities sql.NullString
-		Strength     sql.NullInt64
-		Latitude     sql.NullFloat64
-		Longitude    sql.NullFloat64
+// SurveyWiFiScanEdges holds the relations/edges for other nodes in the graph.
+type SurveyWiFiScanEdges struct {
+	// SurveyQuestion holds the value of the survey_question edge.
+	SurveyQuestion *SurveyQuestion
+	// Location holds the value of the location edge.
+	Location *Location
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// SurveyQuestionOrErr returns the SurveyQuestion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyWiFiScanEdges) SurveyQuestionOrErr() (*SurveyQuestion, error) {
+	if e.loadedTypes[0] {
+		if e.SurveyQuestion == nil {
+			// The edge survey_question was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: surveyquestion.Label}
+		}
+		return e.SurveyQuestion, nil
 	}
-	// the order here should be the same as in the `surveywifiscan.Columns`.
-	if err := rows.Scan(
-		&scanswfs.ID,
-		&scanswfs.CreateTime,
-		&scanswfs.UpdateTime,
-		&scanswfs.Ssid,
-		&scanswfs.Bssid,
-		&scanswfs.Timestamp,
-		&scanswfs.Frequency,
-		&scanswfs.Channel,
-		&scanswfs.Band,
-		&scanswfs.ChannelWidth,
-		&scanswfs.Capabilities,
-		&scanswfs.Strength,
-		&scanswfs.Latitude,
-		&scanswfs.Longitude,
-	); err != nil {
-		return err
+	return nil, &NotLoadedError{edge: "survey_question"}
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyWiFiScanEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
 	}
-	swfs.ID = strconv.Itoa(scanswfs.ID)
-	swfs.CreateTime = scanswfs.CreateTime.Time
-	swfs.UpdateTime = scanswfs.UpdateTime.Time
-	swfs.Ssid = scanswfs.Ssid.String
-	swfs.Bssid = scanswfs.Bssid.String
-	swfs.Timestamp = scanswfs.Timestamp.Time
-	swfs.Frequency = int(scanswfs.Frequency.Int64)
-	swfs.Channel = int(scanswfs.Channel.Int64)
-	swfs.Band = scanswfs.Band.String
-	swfs.ChannelWidth = int(scanswfs.ChannelWidth.Int64)
-	swfs.Capabilities = scanswfs.Capabilities.String
-	swfs.Strength = int(scanswfs.Strength.Int64)
-	swfs.Latitude = scanswfs.Latitude.Float64
-	swfs.Longitude = scanswfs.Longitude.Float64
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*SurveyWiFiScan) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullString{},  // ssid
+		&sql.NullString{},  // bssid
+		&sql.NullTime{},    // timestamp
+		&sql.NullInt64{},   // frequency
+		&sql.NullInt64{},   // channel
+		&sql.NullString{},  // band
+		&sql.NullInt64{},   // channel_width
+		&sql.NullString{},  // capabilities
+		&sql.NullInt64{},   // strength
+		&sql.NullFloat64{}, // latitude
+		&sql.NullFloat64{}, // longitude
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyWiFiScan) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // survey_wi_fi_scan_survey_question
+		&sql.NullInt64{}, // survey_wi_fi_scan_location
+	}
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the SurveyWiFiScan fields.
+func (swfs *SurveyWiFiScan) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(surveywifiscan.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	swfs.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		swfs.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		swfs.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field ssid", values[2])
+	} else if value.Valid {
+		swfs.Ssid = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field bssid", values[3])
+	} else if value.Valid {
+		swfs.Bssid = value.String
+	}
+	if value, ok := values[4].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field timestamp", values[4])
+	} else if value.Valid {
+		swfs.Timestamp = value.Time
+	}
+	if value, ok := values[5].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field frequency", values[5])
+	} else if value.Valid {
+		swfs.Frequency = int(value.Int64)
+	}
+	if value, ok := values[6].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field channel", values[6])
+	} else if value.Valid {
+		swfs.Channel = int(value.Int64)
+	}
+	if value, ok := values[7].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field band", values[7])
+	} else if value.Valid {
+		swfs.Band = value.String
+	}
+	if value, ok := values[8].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field channel_width", values[8])
+	} else if value.Valid {
+		swfs.ChannelWidth = int(value.Int64)
+	}
+	if value, ok := values[9].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field capabilities", values[9])
+	} else if value.Valid {
+		swfs.Capabilities = value.String
+	}
+	if value, ok := values[10].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field strength", values[10])
+	} else if value.Valid {
+		swfs.Strength = int(value.Int64)
+	}
+	if value, ok := values[11].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude", values[11])
+	} else if value.Valid {
+		swfs.Latitude = value.Float64
+	}
+	if value, ok := values[12].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude", values[12])
+	} else if value.Valid {
+		swfs.Longitude = value.Float64
+	}
+	values = values[13:]
+	if len(values) == len(surveywifiscan.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_wi_fi_scan_survey_question", value)
+		} else if value.Valid {
+			swfs.survey_wi_fi_scan_survey_question = new(string)
+			*swfs.survey_wi_fi_scan_survey_question = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_wi_fi_scan_location", value)
+		} else if value.Valid {
+			swfs.survey_wi_fi_scan_location = new(string)
+			*swfs.survey_wi_fi_scan_location = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -173,18 +289,6 @@ func (swfs *SurveyWiFiScan) id() int {
 
 // SurveyWiFiScans is a parsable slice of SurveyWiFiScan.
 type SurveyWiFiScans []*SurveyWiFiScan
-
-// FromRows scans the sql response data into SurveyWiFiScans.
-func (swfs *SurveyWiFiScans) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanswfs := &SurveyWiFiScan{}
-		if err := scanswfs.FromRows(rows); err != nil {
-			return err
-		}
-		*swfs = append(*swfs, scanswfs)
-	}
-	return nil
-}
 
 func (swfs SurveyWiFiScans) config(cfg config) {
 	for _i := range swfs {

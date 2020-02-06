@@ -43,7 +43,7 @@ type State = {
 
 const equipmentQuery = graphql`
   query EquipmentTypesListQuery {
-    equipmentTypes(first: 50) {
+    equipmentTypes {
       edges {
         node {
           id

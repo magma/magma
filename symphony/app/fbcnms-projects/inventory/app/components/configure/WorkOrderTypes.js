@@ -15,7 +15,7 @@ import type {WithStyles} from '@material-ui/core';
 
 import AddEditWorkOrderTypeCard from './AddEditWorkOrderTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import ConfigureTitle from '@fbcnms/ui/components/ConfigureTitle';
+import InventoryConfigureHeader from '../InventoryConfigureHeader';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
@@ -27,11 +27,6 @@ import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
-  header: {
-    margin: '10px',
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
   root: {
     width: '100%',
   },
@@ -51,14 +46,6 @@ const styles = theme => ({
   listItem: {
     marginBottom: theme.spacing(),
   },
-  addButton: {
-    alignSelf: 'flex-end',
-    marginLeft: 'auto',
-  },
-  addButtonContainer: {
-    marginBottom: '20px',
-    display: 'flex',
-  },
 });
 
 type Props = ContextRouter & WithStyles<typeof styles> & {};
@@ -71,7 +58,7 @@ type State = {
 
 const workOrderTypesQuery = graphql`
   query WorkOrderTypesQuery {
-    workOrderTypes(first: 50) @connection(key: "Configure_workOrderTypes") {
+    workOrderTypes(first: 500) @connection(key: "Configure_workOrderTypes") {
       edges {
         node {
           id
@@ -115,17 +102,16 @@ class WorkOrderTypes extends React.Component<Props, State> {
           }
           return (
             <div className={classes.typesList}>
-              <div className={classes.addButtonContainer}>
-                <ConfigureTitle
-                  title="Work Order Templates"
-                  subtitle="Create and manage reusable work orders."
-                />
-                <Button
-                  className={classes.addButton}
-                  onClick={() => this.showAddEditWorkOrderTypeCard(null)}>
-                  Add Work Order Template
-                </Button>
-              </div>
+              <InventoryConfigureHeader
+                title="Work Order Templates"
+                subtitle="Create and manage reusable work orders."
+                actionButtons={[
+                  {
+                    title: 'Add Work Order Template',
+                    action: () => this.showAddEditWorkOrderTypeCard(null),
+                  },
+                ]}
+              />
               <div className={classes.root}>
                 <Table
                   className={classes.table}

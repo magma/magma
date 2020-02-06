@@ -8,12 +8,15 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -27,6 +30,8 @@ type EquipmentCategoryQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentCategory
+	// eager-loading edges.
+	withTypes *EquipmentTypeQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -67,14 +72,14 @@ func (ecq *EquipmentCategoryQuery) QueryTypes() *EquipmentTypeQuery {
 	return query
 }
 
-// First returns the first EquipmentCategory entity in the query. Returns *ErrNotFound when no equipmentcategory was found.
+// First returns the first EquipmentCategory entity in the query. Returns *NotFoundError when no equipmentcategory was found.
 func (ecq *EquipmentCategoryQuery) First(ctx context.Context) (*EquipmentCategory, error) {
 	ecs, err := ecq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ecs) == 0 {
-		return nil, &ErrNotFound{equipmentcategory.Label}
+		return nil, &NotFoundError{equipmentcategory.Label}
 	}
 	return ecs[0], nil
 }
@@ -88,14 +93,14 @@ func (ecq *EquipmentCategoryQuery) FirstX(ctx context.Context) *EquipmentCategor
 	return ec
 }
 
-// FirstID returns the first EquipmentCategory id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first EquipmentCategory id in the query. Returns *NotFoundError when no id was found.
 func (ecq *EquipmentCategoryQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = ecq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmentcategory.Label}
+		err = &NotFoundError{equipmentcategory.Label}
 		return
 	}
 	return ids[0], nil
@@ -120,9 +125,9 @@ func (ecq *EquipmentCategoryQuery) Only(ctx context.Context) (*EquipmentCategory
 	case 1:
 		return ecs[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmentcategory.Label}
+		return nil, &NotFoundError{equipmentcategory.Label}
 	default:
-		return nil, &ErrNotSingular{equipmentcategory.Label}
+		return nil, &NotSingularError{equipmentcategory.Label}
 	}
 }
 
@@ -145,9 +150,9 @@ func (ecq *EquipmentCategoryQuery) OnlyID(ctx context.Context) (id string, err e
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmentcategory.Label}
+		err = &NotFoundError{equipmentcategory.Label}
 	default:
-		err = &ErrNotSingular{equipmentcategory.Label}
+		err = &NotSingularError{equipmentcategory.Label}
 	}
 	return
 }
@@ -236,6 +241,17 @@ func (ecq *EquipmentCategoryQuery) Clone() *EquipmentCategoryQuery {
 	}
 }
 
+//  WithTypes tells the query-builder to eager-loads the nodes that are connected to
+// the "types" edge. The optional arguments used to configure the query builder of the edge.
+func (ecq *EquipmentCategoryQuery) WithTypes(opts ...func(*EquipmentTypeQuery)) *EquipmentCategoryQuery {
+	query := &EquipmentTypeQuery{config: ecq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ecq.withTypes = query
+	return ecq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -278,45 +294,72 @@ func (ecq *EquipmentCategoryQuery) Select(field string, fields ...string) *Equip
 }
 
 func (ecq *EquipmentCategoryQuery) sqlAll(ctx context.Context) ([]*EquipmentCategory, error) {
-	rows := &sql.Rows{}
-	selector := ecq.sqlQuery()
-	if unique := ecq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes       = []*EquipmentCategory{}
+		_spec       = ecq.querySpec()
+		loadedTypes = [1]bool{
+			ecq.withTypes != nil,
+		}
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &EquipmentCategory{config: ecq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := ecq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, ecq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var ecs EquipmentCategories
-	if err := ecs.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	ecs.config(ecq.config)
-	return ecs, nil
+
+	if query := ecq.withTypes; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*EquipmentCategory)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.EquipmentType(func(s *sql.Selector) {
+			s.Where(sql.InValues(equipmentcategory.TypesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.equipment_type_category
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "equipment_type_category" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_category" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Types = append(node.Edges.Types, n)
+		}
+	}
+
+	return nodes, nil
 }
 
 func (ecq *EquipmentCategoryQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := ecq.sqlQuery()
-	unique := []string{equipmentcategory.FieldID}
-	if len(ecq.unique) > 0 {
-		unique = ecq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := ecq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := ecq.querySpec()
+	return sqlgraph.CountNodes(ctx, ecq.driver, _spec)
 }
 
 func (ecq *EquipmentCategoryQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -325,6 +368,42 @@ func (ecq *EquipmentCategoryQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (ecq *EquipmentCategoryQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   equipmentcategory.Table,
+			Columns: equipmentcategory.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipmentcategory.FieldID,
+			},
+		},
+		From:   ecq.sql,
+		Unique: true,
+	}
+	if ps := ecq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := ecq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := ecq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := ecq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (ecq *EquipmentCategoryQuery) sqlQuery() *sql.Selector {
@@ -598,7 +677,7 @@ func (ecs *EquipmentCategorySelect) sqlScan(ctx context.Context, v interface{}) 
 }
 
 func (ecs *EquipmentCategorySelect) sqlQuery() sql.Querier {
-	view := "equipmentcategory_view"
-	return sql.Dialect(ecs.driver.Dialect()).
-		Select(ecs.fields...).From(ecs.sql.As(view))
+	selector := ecs.sql
+	selector.Select(selector.Columns(ecs.fields...)...)
+	return selector
 }

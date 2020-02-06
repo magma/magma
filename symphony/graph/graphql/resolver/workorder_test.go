@@ -115,8 +115,10 @@ func TestAddWorkOrderWithLocation(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	fetchedLocation, err := wr.Location(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -143,8 +145,10 @@ func TestAddWorkOrderWithType(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	fetchedWorkOrderType, err := wr.WorkOrderType(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -184,8 +188,10 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 	require.Equal(t, &workOrder.Assignee, &assignee)
 
 	fetchedWorkOrderType, err := wr.WorkOrderType(ctx, fetchedWorkOrder)
@@ -242,8 +248,11 @@ func TestAddWorkOrderWithDescription(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
+
 	assert.Equal(t, fetchedWorkOrder.Name, name)
 	assert.Equal(t, fetchedWorkOrder.Description, description)
 	assert.Equal(t, location.ID, workOrder.QueryLocation().OnlyX(ctx).ID)
@@ -283,8 +292,10 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 	require.EqualValues(t, input.Priority, workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 
-	workOrder, err = qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	workOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 	require.EqualValues(t, input.Priority, workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 }
@@ -351,8 +362,10 @@ func TestAddWorkOrderWithComment(t *testing.T) {
 	w := createWorkOrder(ctx, t, *r, "Foo")
 	require.NoError(t, err)
 
-	w, err = qr.WorkOrder(ctx, w.ID)
+	node, err := qr.Node(ctx, w.ID)
 	require.NoError(t, err)
+	w, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 	comments, err := w.QueryComments().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, comments, 0)
@@ -366,8 +379,10 @@ func TestAddWorkOrderWithComment(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, ctxt, c.Text)
 
-	w, err = qr.WorkOrder(ctx, w.ID)
+	node, err = qr.Node(ctx, w.ID)
 	require.NoError(t, err)
+	w, ok = node.(*ent.WorkOrder)
+	require.True(t, ok)
 	comments, err = w.QueryComments().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
@@ -392,8 +407,11 @@ func TestAddWorkOrderNoDescription(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
+
 	assert.Equal(t, fetchedWorkOrder.Name, name)
 	assert.Empty(t, fetchedWorkOrder.Description)
 }
@@ -422,8 +440,10 @@ func TestFetchWorkOrder(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 	assert.Equal(t, fetchedWorkOrder.Name, name)
 
 	installedEquipment, err := wor.EquipmentToAdd(ctx, fetchedWorkOrder)
@@ -1078,6 +1098,54 @@ func TestExecuteWorkOrderRemoveParentEquipment(t *testing.T) {
 	assert.Nil(t, fetchedPChildEquipment)
 }
 
+func TestAddAndDeleteWorkOrderHyperlink(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, wor := r.Mutation(), r.WorkOrder()
+
+	workOrderType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "work_order_type_name_1",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "work_order_type_name_1", workOrderType.Name)
+
+	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "work_order_name_1",
+		WorkOrderTypeID: workOrderType.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, workOrderType.ID, workOrder.QueryType().OnlyXID(ctx))
+
+	category := "TSS"
+	url := "http://some.url"
+	displayName := "link to some url"
+	hyperlink, err := mr.AddHyperlink(ctx, models.AddHyperlinkInput{
+		EntityType:  models.ImageEntityWorkOrder,
+		EntityID:    workOrder.ID,
+		URL:         url,
+		DisplayName: &displayName,
+		Category:    &category,
+	})
+	require.NoError(t, err)
+	require.Equal(t, url, hyperlink.URL, "verifying hyperlink url")
+	require.Equal(t, displayName, hyperlink.Name, "verifying hyperlink display name")
+	require.Equal(t, category, hyperlink.Category, "verifying 1st hyperlink category")
+
+	hyperlinks, err := wor.Hyperlinks(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 1, "verifying has 1 hyperlink")
+
+	deletedHyperlink, err := mr.DeleteHyperlink(ctx, hyperlink.ID)
+	require.NoError(t, err)
+	require.Equal(t, hyperlink.ID, deletedHyperlink.ID, "verifying return id of deleted hyperlink")
+
+	hyperlinks, err = wor.Hyperlinks(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 0, "verifying no hyperlinks remained")
+}
+
 func TestDeleteWorkOrderWithAttachmentAndLinksAdded(t *testing.T) {
 	r, err := newTestResolver(t)
 	require.NoError(t, err)
@@ -1156,10 +1224,16 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
 
-	strValue := "Foo"
 	strPropType := models.PropertyTypeInput{
 		Name: "str_prop",
 		Type: "string",
+	}
+	strFixedValue := "FixedFoo"
+	strFixedPropType := models.PropertyTypeInput{
+		Name:               "str_fixed_prop",
+		Type:               "string",
+		IsInstanceProperty: pointer.ToBool(false),
+		StringValue:        &strFixedValue,
 	}
 	intPropType := models.PropertyTypeInput{
 		Name: "int_prop",
@@ -1169,14 +1243,21 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 		Name: "rng_prop",
 		Type: "range",
 	}
-	propTypeInputs := []*models.PropertyTypeInput{&strPropType, &intPropType, &rangePropType}
+	propTypeInputs := []*models.PropertyTypeInput{&strPropType, &strFixedPropType, &intPropType, &rangePropType}
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type", Properties: propTypeInputs})
 	require.NoError(t, err, "Adding location type")
 
+	strValue := "Foo"
 	strProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyXID(ctx),
 		StringValue:    &strValue,
 	}
+
+	strFixedProp := models.PropertyInput{
+		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("str_fixed_prop")).OnlyXID(ctx),
+		StringValue:    &strFixedValue,
+	}
+
 	intValue := 5
 	intProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("int_prop")).OnlyXID(ctx),
@@ -1189,16 +1270,18 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 		RangeFromValue: &fl1,
 		RangeToValue:   &fl2,
 	}
-	propInputs := []*models.PropertyInput{&strProp, &intProp, &rngProp}
+	propInputs := []*models.PropertyInput{&strProp, &strFixedProp, &intProp, &rngProp}
 	wo, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            "location_name_1",
 		WorkOrderTypeID: woType.ID,
 		Properties:      propInputs,
 	})
-	require.NoError(t, err, "Adding location instance")
+	require.NoError(t, err)
 
-	fetchedWo, err := qr.WorkOrder(ctx, wo.ID)
-	require.NoError(t, err, "Querying location instance")
+	node, err := qr.Node(ctx, wo.ID)
+	require.NoError(t, err)
+	fetchedWo, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	intFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("int_prop"))).OnlyX(ctx)
 	require.Equal(t, intFetchProp.IntVal, *intProp.IntValue, "Comparing properties: int value")
@@ -1208,6 +1291,10 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
 	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
 
+	fixedStrFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
+	require.Equal(t, fixedStrFetchProp.StringVal, *strFixedProp.StringValue, "Comparing properties: fixed string value")
+	require.Equal(t, fixedStrFetchProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing properties: PropertyType value")
+
 	rngFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("rng_prop"))).OnlyX(ctx)
 	require.Equal(t, rngFetchProp.RangeFromVal, *rngProp.RangeFromValue, "Comparing properties: range value")
 	require.Equal(t, rngFetchProp.RangeToVal, *rngProp.RangeToValue, "Comparing properties: range value")
@@ -1215,7 +1302,7 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 
 	fetchedProps, err := wr.Properties(ctx, fetchedWo)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(fetchedProps))
+	require.Equal(t, len(propInputs), len(fetchedProps))
 }
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {

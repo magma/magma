@@ -32,6 +32,7 @@ export type SiteSurveyQuestionReplyWifiData_data$data = SiteSurveyQuestionReplyW
 export type SiteSurveyQuestionReplyWifiData_data$key = {
   +$data?: SiteSurveyQuestionReplyWifiData_data$data,
   +$fragmentRefs: SiteSurveyQuestionReplyWifiData_data$ref,
+  ...
 };
 */
 

@@ -305,5 +305,42 @@ func TestPolicyDBRulesWithMockUpdates(t *testing.T) {
 	policyRule22Bytes, _ := proto.Marshal(policyRule22)
 	assert.Equal(t, policyRule12Bytes, pr2)
 	assert.Equal(t, policyRule22Bytes, pr3)
+}
 
+func TestOmnipresentRulesWithMockUpdates(t *testing.T) {
+	dbClient := &policydb.RedisPolicyDBClient{
+		PolicyMap:        &mockObjectStore{},
+		BaseNameMap:      &mockObjectStore{},
+		OmnipresentRules: &mockObjectStore{},
+		StreamerClient:   fegstreamer.NewStreamerClient(mockCloudRegistry{}),
+	}
+	baseNameListener := policydb.NewBaseNameStreamListener(dbClient.BaseNameMap)
+	omnipresentRulesListener := policydb.NewOmnipresentRulesListener(dbClient.OmnipresentRules)
+
+	dbClient.StreamerClient.AddListener(baseNameListener)
+	dbClient.StreamerClient.AddListener(omnipresentRulesListener)
+
+	// base case
+	ruleIDs, baseNames := dbClient.GetOmnipresentRules()
+	assert.ElementsMatch(t, []string{}, ruleIDs)
+	assert.ElementsMatch(t, []string{}, baseNames)
+
+	// with update
+	ruleSet1, _ := proto.Marshal(&protos.ChargingRuleNameSet{RuleNames: []string{"rule11", "rule12"}})
+	ruleSet2, _ := proto.Marshal(&protos.ChargingRuleNameSet{RuleNames: []string{"rule21", "rule22"}})
+	updates := []*orcprotos.DataUpdate{
+		{Key: "base_1", Value: ruleSet1},
+		{Key: "base_2", Value: ruleSet2},
+	}
+	baseNameListener.Update(&orcprotos.DataUpdateBatch{Updates: updates, Resync: true})
+
+	omnipresentRules, _ := proto.Marshal(&protos.AssignedPolicies{AssignedPolicies: []string{"rule1"}, AssignedBaseNames: []string{"base_1"}})
+	updates = []*orcprotos.DataUpdate{
+		{Key: "", Value: omnipresentRules},
+	}
+	omnipresentRulesListener.Update(&orcprotos.DataUpdateBatch{Updates: updates, Resync: true})
+
+	ruleIDs, baseNames = dbClient.GetOmnipresentRules()
+	assert.ElementsMatch(t, []string{"rule1"}, ruleIDs)
+	assert.ElementsMatch(t, []string{"base_1"}, baseNames)
 }

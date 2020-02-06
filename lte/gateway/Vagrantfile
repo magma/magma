@@ -24,6 +24,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.box = "amarpad/magma_dev"
     magma.vm.hostname = "magma-dev"
     magma.vm.box_version = "1.0.1542061022"
+    magma.vbguest.auto_update = false
+
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
@@ -51,6 +53,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_trfserver.vm.box = "fbcmagma/magma_trfserver"
     magma_trfserver.vm.hostname = "magma-trfserver"
     magma_trfserver.vm.box_version = "1.0.1551294676"
+    magma_trfserver.vbguest.auto_update = false
+
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma_trfserver.vm.network "private_network", ip: "192.168.60.144", nic_type: "82540EM"
@@ -81,6 +85,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_test.vm.box = "fbcmagma/magma_test"
     magma_test.vm.hostname = "magma-test"
     magma_test.vm.box_version = "1.0.1551391604"
+    magma_test.vbguest.auto_update = false
+
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma_test.vm.network "private_network", ip: "192.168.60.141", nic_type: "82540EM"
@@ -115,6 +121,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_oai.vm.box = "fbcmagma/ubuntu"
     magma_oai.vm.box_version = "1.3"
     magma_oai.vm.hostname = "magma-oai"
+    magma_oai.vbguest.auto_update = false
+
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma_oai.vm.network "private_network", ip: "192.168.60.145", nic_type: "82540EM"
@@ -145,6 +153,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # using slightly customized box based on debian/stretch64
     magma_prod.vm.box = "amarpad/magma_prod"
     magma_prod.vm.hostname = "magma-prod"
+    magma_prod.vbguest.auto_update = false
+
     # magma_prod.vm.box = "debian/stretch64"
     # magma_prod.vm.box_version = "9.9.1"
     # Create a private network, which can be bridged to a physical eNB

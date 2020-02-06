@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
 // Service is the model entity for the Service schema.
@@ -30,38 +32,167 @@ type Service struct {
 	ExternalID *string `json:"external_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ServiceQuery when eager-loading is set.
+	Edges        ServiceEdges `json:"edges"`
+	service_type *string
 }
 
-// FromRows scans the sql response data into Service.
-func (s *Service) FromRows(rows *sql.Rows) error {
-	var scans struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		Name       sql.NullString
-		ExternalID sql.NullString
-		Status     sql.NullString
+// ServiceEdges holds the relations/edges for other nodes in the graph.
+type ServiceEdges struct {
+	// Type holds the value of the type edge.
+	Type *ServiceType
+	// Downstream holds the value of the downstream edge.
+	Downstream []*Service
+	// Upstream holds the value of the upstream edge.
+	Upstream []*Service
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// Links holds the value of the links edge.
+	Links []*Link
+	// Customer holds the value of the customer edge.
+	Customer []*Customer
+	// Endpoints holds the value of the endpoints edge.
+	Endpoints []*ServiceEndpoint
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [7]bool
+}
+
+// TypeOrErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEdges) TypeOrErr() (*ServiceType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: servicetype.Label}
+		}
+		return e.Type, nil
 	}
-	// the order here should be the same as in the `service.Columns`.
-	if err := rows.Scan(
-		&scans.ID,
-		&scans.CreateTime,
-		&scans.UpdateTime,
-		&scans.Name,
-		&scans.ExternalID,
-		&scans.Status,
-	); err != nil {
-		return err
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// DownstreamOrErr returns the Downstream value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) DownstreamOrErr() ([]*Service, error) {
+	if e.loadedTypes[1] {
+		return e.Downstream, nil
 	}
-	s.ID = strconv.Itoa(scans.ID)
-	s.CreateTime = scans.CreateTime.Time
-	s.UpdateTime = scans.UpdateTime.Time
-	s.Name = scans.Name.String
-	if scans.ExternalID.Valid {
+	return nil, &NotLoadedError{edge: "downstream"}
+}
+
+// UpstreamOrErr returns the Upstream value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) UpstreamOrErr() ([]*Service, error) {
+	if e.loadedTypes[2] {
+		return e.Upstream, nil
+	}
+	return nil, &NotLoadedError{edge: "upstream"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) PropertiesOrErr() ([]*Property, error) {
+	if e.loadedTypes[3] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// LinksOrErr returns the Links value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) LinksOrErr() ([]*Link, error) {
+	if e.loadedTypes[4] {
+		return e.Links, nil
+	}
+	return nil, &NotLoadedError{edge: "links"}
+}
+
+// CustomerOrErr returns the Customer value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) CustomerOrErr() ([]*Customer, error) {
+	if e.loadedTypes[5] {
+		return e.Customer, nil
+	}
+	return nil, &NotLoadedError{edge: "customer"}
+}
+
+// EndpointsOrErr returns the Endpoints value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceEdges) EndpointsOrErr() ([]*ServiceEndpoint, error) {
+	if e.loadedTypes[6] {
+		return e.Endpoints, nil
+	}
+	return nil, &NotLoadedError{edge: "endpoints"}
+}
+
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Service) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // external_id
+		&sql.NullString{}, // status
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Service) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // service_type
+	}
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Service fields.
+func (s *Service) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(service.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	s.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		s.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		s.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		s.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field external_id", values[3])
+	} else if value.Valid {
 		s.ExternalID = new(string)
-		*s.ExternalID = scans.ExternalID.String
+		*s.ExternalID = value.String
 	}
-	s.Status = scans.Status.String
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field status", values[4])
+	} else if value.Valid {
+		s.Status = value.String
+	}
+	values = values[5:]
+	if len(values) == len(service.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field service_type", value)
+		} else if value.Valid {
+			s.service_type = new(string)
+			*s.service_type = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -147,18 +278,6 @@ func (s *Service) id() int {
 
 // Services is a parsable slice of Service.
 type Services []*Service
-
-// FromRows scans the sql response data into Services.
-func (s *Services) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scans := &Service{}
-		if err := scans.FromRows(rows); err != nil {
-			return err
-		}
-		*s = append(*s, scans)
-	}
-	return nil
-}
 
 func (s Services) config(cfg config) {
 	for _i := range s {

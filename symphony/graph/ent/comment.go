@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/comment"
 )
 
 // Comment is the model entity for the Comment schema.
@@ -27,33 +28,77 @@ type Comment struct {
 	// AuthorName holds the value of the "author_name" field.
 	AuthorName string `json:"author_name,omitempty"`
 	// Text holds the value of the "text" field.
-	Text string `json:"text,omitempty"`
+	Text                string `json:"text,omitempty"`
+	project_comments    *string
+	work_order_comments *string
 }
 
-// FromRows scans the sql response data into Comment.
-func (c *Comment) FromRows(rows *sql.Rows) error {
-	var scanc struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		AuthorName sql.NullString
-		Text       sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Comment) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // author_name
+		&sql.NullString{}, // text
 	}
-	// the order here should be the same as in the `comment.Columns`.
-	if err := rows.Scan(
-		&scanc.ID,
-		&scanc.CreateTime,
-		&scanc.UpdateTime,
-		&scanc.AuthorName,
-		&scanc.Text,
-	); err != nil {
-		return err
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Comment) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // project_comments
+		&sql.NullInt64{}, // work_order_comments
 	}
-	c.ID = strconv.Itoa(scanc.ID)
-	c.CreateTime = scanc.CreateTime.Time
-	c.UpdateTime = scanc.UpdateTime.Time
-	c.AuthorName = scanc.AuthorName.String
-	c.Text = scanc.Text.String
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Comment fields.
+func (c *Comment) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(comment.Columns); m < n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
+	}
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	c.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		c.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		c.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field author_name", values[2])
+	} else if value.Valid {
+		c.AuthorName = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field text", values[3])
+	} else if value.Valid {
+		c.Text = value.String
+	}
+	values = values[4:]
+	if len(values) == len(comment.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_comments", value)
+		} else if value.Valid {
+			c.project_comments = new(string)
+			*c.project_comments = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_comments", value)
+		} else if value.Valid {
+			c.work_order_comments = new(string)
+			*c.work_order_comments = strconv.FormatInt(value.Int64, 10)
+		}
+	}
 	return nil
 }
 
@@ -100,18 +145,6 @@ func (c *Comment) id() int {
 
 // Comments is a parsable slice of Comment.
 type Comments []*Comment
-
-// FromRows scans the sql response data into Comments.
-func (c *Comments) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanc := &Comment{}
-		if err := scanc.FromRows(rows); err != nil {
-			return err
-		}
-		*c = append(*c, scanc)
-	}
-	return nil
-}
 
 func (c Comments) config(cfg config) {
 	for _i := range c {

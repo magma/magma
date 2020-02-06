@@ -7,7 +7,8 @@
  * @flow
  * @format
  */
-import type {Location} from '../../common/Location';
+
+import type {LocationMoreActionsButton_location} from './__generated__/LocationMoreActionsButton_location.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {
   RemoveLocationMutationResponse,
@@ -16,44 +17,45 @@ import type {
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
-import MoreActionsButton from '@fbcnms/ui/components/MoreActionsButton';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React from 'react';
 import RemoveLocationMutation from '../../mutations/RemoveLocationMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
+import {createFragmentContainer, graphql} from 'react-relay';
 import {withSnackbar} from 'notistack';
 
 type Props = {
-  location: Location,
-  onLocationRemoved: (removedLocation: Location) => void,
+  location: LocationMoreActionsButton_location,
+  onLocationRemoved: (
+    removedLocation: LocationMoreActionsButton_location,
+  ) => void,
 } & WithAlert &
   WithSnackbarProps;
 
 class LocationMoreActionsButton extends React.Component<Props> {
   render() {
     return (
-      <MoreActionsButton
-        variant="primary"
-        items={[
-          {
-            name: 'Delete location',
-            onClick: this.removeLocation,
-          },
-        ]}
-      />
+      <FormAction>
+        <Button variant="text" skin="gray" onClick={this.removeLocation}>
+          <DeleteOutlineIcon />
+        </Button>
+      </FormAction>
     );
   }
 
   removeLocation = () => {
     const {location} = this.props;
     if (
-      location.children.length > 0 ||
-      location.equipments.length > 0 ||
-      location.images.length > 0 ||
-      location.files.length > 0 ||
-      location.surveys.length > 0
+      location.children.filter(Boolean).length > 0 ||
+      location.equipments.filter(Boolean).length > 0 ||
+      location.images.filter(Boolean).length > 0 ||
+      location.files.filter(Boolean).length > 0 ||
+      location.surveys.filter(Boolean).length > 0
     ) {
       this.props.alert(
         'Cannot delete populated location (e.g. has equipment or files)',
@@ -126,4 +128,32 @@ class LocationMoreActionsButton extends React.Component<Props> {
   };
 }
 
-export default withAlert(withSnackbar(LocationMoreActionsButton));
+export default withAlert(
+  withSnackbar(
+    createFragmentContainer(LocationMoreActionsButton, {
+      location: graphql`
+        fragment LocationMoreActionsButton_location on Location {
+          id
+          parentLocation {
+            id
+          }
+          children {
+            id
+          }
+          equipments {
+            id
+          }
+          images {
+            id
+          }
+          files {
+            id
+          }
+          surveys {
+            id
+          }
+        }
+      `,
+    }),
+  ),
+);

@@ -43,7 +43,7 @@ func (ptd *ProjectTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (ptd *ProjectTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: projecttype.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (ptd *ProjectTypeDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := ptd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ptd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ptd.driver, _spec)
 }
 
 // ProjectTypeDeleteOne is the builder for deleting a single ProjectType entity.
@@ -74,7 +74,7 @@ func (ptdo *ProjectTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{projecttype.Label}
+		return &NotFoundError{projecttype.Label}
 	default:
 		return nil
 	}

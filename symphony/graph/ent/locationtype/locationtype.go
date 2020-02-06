@@ -41,24 +41,24 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "location" package.
 	LocationsInverseTable = "locations"
 	// LocationsColumn is the table column denoting the locations relation/edge.
-	LocationsColumn = "type_id"
+	LocationsColumn = "location_type"
 	// PropertyTypesTable is the table the holds the property_types relation/edge.
 	PropertyTypesTable = "property_types"
 	// PropertyTypesInverseTable is the table name for the PropertyType entity.
 	// It exists in this package in order to avoid circular dependency with the "propertytype" package.
 	PropertyTypesInverseTable = "property_types"
 	// PropertyTypesColumn is the table column denoting the property_types relation/edge.
-	PropertyTypesColumn = "location_type_id"
+	PropertyTypesColumn = "location_type_property_types"
 	// SurveyTemplateCategoriesTable is the table the holds the survey_template_categories relation/edge.
 	SurveyTemplateCategoriesTable = "survey_template_categories"
 	// SurveyTemplateCategoriesInverseTable is the table name for the SurveyTemplateCategory entity.
 	// It exists in this package in order to avoid circular dependency with the "surveytemplatecategory" package.
 	SurveyTemplateCategoriesInverseTable = "survey_template_categories"
 	// SurveyTemplateCategoriesColumn is the table column denoting the survey_template_categories relation/edge.
-	SurveyTemplateCategoriesColumn = "location_type_survey_template_category_id"
+	SurveyTemplateCategoriesColumn = "location_type_survey_template_categories"
 )
 
-// Columns holds all SQL columns are locationtype fields.
+// Columns holds all SQL columns for locationtype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

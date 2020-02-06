@@ -215,8 +215,10 @@ func addDestinationToMessage(
 	if err != nil {
 		message.NewAVP(avp.DestinationHost, avp.Mbit, 0, destHost)
 	} else if hostAVP != nil {
-		// apply new host
-		hostAVP.Data = destHost
+		if server.OverwriteDestHost {
+			// apply new host
+			hostAVP.Data = destHost
+		}
 	}
 	return message, nil
 }

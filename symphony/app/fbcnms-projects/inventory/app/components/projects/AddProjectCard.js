@@ -105,27 +105,29 @@ type State = {
 
 const addProjectCard__projectTypeQuery = graphql`
   query AddProjectCard__projectTypeQuery($projectTypeId: ID!) {
-    projectType(id: $projectTypeId) {
-      id
-      name
-      description
-      properties {
+    projectType: node(id: $projectTypeId) {
+      ... on ProjectType {
         id
         name
-        type
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        isEditable
-        isInstanceProperty
-        isDeleted
-        isMandatory
+        description
+        properties {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+          isEditable
+          isInstanceProperty
+          isDeleted
+          isMandatory
+        }
       }
     }
   }

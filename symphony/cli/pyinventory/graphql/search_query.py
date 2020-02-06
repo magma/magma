@@ -74,12 +74,12 @@ class SearchQuery:
 
                 node: Optional[SearchEntry] = None
 
-            edges: Optional[List[SearchEntryEdge]] = None
+            edges: List[SearchEntryEdge]
 
         searchForEntity: SearchEntriesConnection
 
     data: Optional[SearchQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

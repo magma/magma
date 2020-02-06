@@ -24,6 +24,10 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/component: controller
+      annotations:
+        {{- with .Values.controller.podAnnotations }}
+{{ toYaml . | indent 8 }}
+        {{- end }}
 {{ include "selector-labels" . | indent 8 }}
     spec:
       {{- with .Values.controller.nodeSelector }}
@@ -51,7 +55,7 @@ spec:
             secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
         {{- if .Values.secret.configs }}
         {{- range $module, $secretName := .Values.secret.configs }}
-        - name: {{ $secretName }}
+        - name: {{ $secretName }}-{{ $module }}
           secret:
             secretName: {{ $secretName }}
         {{- end }}
@@ -71,7 +75,7 @@ spec:
             {{- end }}
             {{- if .Values.secret.configs }}
             {{- range $module, $secretName := .Values.secret.configs }}
-            - name: {{ $secretName }}
+            - name: {{ $secretName }}-{{ $module }}
               mountPath: {{ print "/var/opt/magma/configs/" $module }}
               readOnly: true
             {{- end }}

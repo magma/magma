@@ -16,9 +16,11 @@ import AddEditEquipmentTypeCard from './AddEditEquipmentTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
 import EquipmentTypeItem from './EquipmentTypeItem';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
@@ -79,7 +81,7 @@ type State = {
 
 const equipmentTypesQuery = graphql`
   query EquipmentTypesQuery {
-    equipmentTypes(first: 50)
+    equipmentTypes(first: 500)
       @connection(key: "EquipmentTypes_equipmentTypes") {
       edges {
         node {
@@ -137,25 +139,29 @@ class EquipmentTypes extends React.Component<Props, State> {
               </div>
             ));
           return (
-            <div className={classes.typesList}>
-              <div className={classes.firstRow}>
-                <ConfigueTitle
-                  className={classes.title}
-                  title={'Equipment Types'}
-                  subtitle={'Manage the types of equipment in your inventory'}
-                />
-                <div className={classes.addButtonContainer}>
-                  <Button
-                    className={classes.addButton}
-                    onClick={() => this.showAddEditEquipmentTypeCard(null)}>
-                    Add Equipment Type
-                  </Button>
+            <FormValidationContextProvider>
+              <div className={classes.typesList}>
+                <div className={classes.firstRow}>
+                  <ConfigueTitle
+                    className={classes.title}
+                    title={'Equipment Types'}
+                    subtitle={'Manage the types of equipment in your inventory'}
+                  />
+                  <div className={classes.addButtonContainer}>
+                    <FormAction>
+                      <Button
+                        className={classes.addButton}
+                        onClick={() => this.showAddEditEquipmentTypeCard(null)}>
+                        Add Equipment Type
+                      </Button>
+                    </FormAction>
+                  </div>
+                </div>
+                <div className={classes.root}>
+                  <div>{listItems}</div>
                 </div>
               </div>
-              <div className={classes.root}>
-                <div>{listItems}</div>
-              </div>
-            </div>
+            </FormValidationContextProvider>
           );
         }}
       />

@@ -67,14 +67,14 @@ class LocationTypeLocationsQuery:
 
                     node: Optional[Location] = None
 
-                edges: Optional[List[LocationEdge]] = None
+                edges: List[LocationEdge]
 
             locations: Optional[LocationConnection] = None
 
         locationType: Optional[Node] = None
 
     data: Optional[LocationTypeLocationsQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

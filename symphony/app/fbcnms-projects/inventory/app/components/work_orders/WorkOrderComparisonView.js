@@ -70,7 +70,7 @@ const WorkOrderComparisonView = () => {
 
   const filterConfigs = WorkOrderSearchConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(locationTypesFilterConfigs);
+    .concat(locationTypesFilterConfigs ?? []);
 
   function navigateToAddWorkOrder(selectedWorkOrderTypeId: ?string) {
     history.push(

@@ -44,6 +44,11 @@ def enum_field(enum_type):
 class ServiceEndpointRole(Enum):
     CONSUMER = "CONSUMER"
     PROVIDER = "PROVIDER"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -115,7 +120,7 @@ class AddServiceLinkMutation:
         addServiceLink: Optional[Service] = None
 
     data: Optional[AddServiceLinkMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

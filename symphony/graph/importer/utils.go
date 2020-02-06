@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/textproto"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -36,6 +37,25 @@ func findIndex(a []string, x string) int {
 		}
 	}
 	return -1
+}
+
+func findStringContainsIndex(a []string, x string) int {
+	for i, n := range a {
+		if strings.Contains(n, x) {
+			return i
+		}
+	}
+	return -1
+}
+
+func sortSlice(a []int, acs bool) []int {
+	sort.Slice(a, func(i, j int) bool {
+		if acs {
+			return a[i] < a[j]
+		}
+		return a[i] > a[j]
+	})
+	return a
 }
 
 func findIndexForSimilar(a []string, x string) int {
@@ -342,18 +362,6 @@ func (m *importer) getOrCreatePropTypeForEquipment(ctx context.Context, eTypeID 
 	return ptype, err
 }
 
-// nolint: unparam
-func (m *importer) updateMapTypeForLocationType(ctx context.Context, lTypeID string, mapType string, zoomLvl int) error {
-	lt, err := m.ClientFrom(ctx).LocationType.Query().
-		Where(locationtype.ID(lTypeID)).
-		Only(ctx)
-	if !ent.IsNotFound(err) {
-		_, err = m.ClientFrom(ctx).LocationType.UpdateOne(lt).SetMapType(mapType).SetMapZoomLevel(zoomLvl).
-			Save(ctx)
-	}
-	return err
-}
-
 func (m *importer) trimLine(line []string) []string {
 	for i, value := range line {
 		line[i] = strings.Trim(value, " ")
@@ -363,5 +371,9 @@ func (m *importer) trimLine(line []string) []string {
 
 func errorReturn(w http.ResponseWriter, msg string, log *zap.Logger, err error) {
 	log.Warn(msg, zap.Error(err))
-	http.Error(w, fmt.Sprintf("%s %q", msg, err), http.StatusBadRequest)
+	if err == nil {
+		http.Error(w, msg, http.StatusBadRequest)
+	} else {
+		http.Error(w, fmt.Sprintf("%s %q", msg, err), http.StatusBadRequest)
+	}
 }

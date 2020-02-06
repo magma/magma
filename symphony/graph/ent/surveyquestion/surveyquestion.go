@@ -67,31 +67,31 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "survey" package.
 	SurveyInverseTable = "surveys"
 	// SurveyColumn is the table column denoting the survey relation/edge.
-	SurveyColumn = "survey_id"
+	SurveyColumn = "survey_question_survey"
 	// WifiScanTable is the table the holds the wifi_scan relation/edge.
 	WifiScanTable = "survey_wi_fi_scans"
 	// WifiScanInverseTable is the table name for the SurveyWiFiScan entity.
 	// It exists in this package in order to avoid circular dependency with the "surveywifiscan" package.
 	WifiScanInverseTable = "survey_wi_fi_scans"
 	// WifiScanColumn is the table column denoting the wifi_scan relation/edge.
-	WifiScanColumn = "survey_question_id"
+	WifiScanColumn = "survey_wi_fi_scan_survey_question"
 	// CellScanTable is the table the holds the cell_scan relation/edge.
 	CellScanTable = "survey_cell_scans"
 	// CellScanInverseTable is the table name for the SurveyCellScan entity.
 	// It exists in this package in order to avoid circular dependency with the "surveycellscan" package.
 	CellScanInverseTable = "survey_cell_scans"
 	// CellScanColumn is the table column denoting the cell_scan relation/edge.
-	CellScanColumn = "survey_question_id"
+	CellScanColumn = "survey_cell_scan_survey_question"
 	// PhotoDataTable is the table the holds the photo_data relation/edge.
 	PhotoDataTable = "files"
 	// PhotoDataInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	PhotoDataInverseTable = "files"
 	// PhotoDataColumn is the table column denoting the photo_data relation/edge.
-	PhotoDataColumn = "survey_question_photo_datum_id"
+	PhotoDataColumn = "survey_question_photo_data"
 )
 
-// Columns holds all SQL columns are surveyquestion fields.
+// Columns holds all SQL columns for surveyquestion fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -114,6 +114,11 @@ var Columns = []string{
 	FieldFloatData,
 	FieldIntData,
 	FieldDateData,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the SurveyQuestion type.
+var ForeignKeys = []string{
+	"survey_question_survey",
 }
 
 var (

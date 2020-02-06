@@ -485,8 +485,8 @@ func (pc *PropertyCreate) SaveX(ctx context.Context) *Property {
 
 func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 	var (
-		pr   = &Property{config: pc.config}
-		spec = &sqlgraph.CreateSpec{
+		pr    = &Property{config: pc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: property.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -495,7 +495,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		}
 	)
 	if value := pc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: property.FieldCreateTime,
@@ -503,7 +503,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		pr.CreateTime = *value
 	}
 	if value := pc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: property.FieldUpdateTime,
@@ -511,7 +511,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		pr.UpdateTime = *value
 	}
 	if value := pc.int_val; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: property.FieldIntVal,
@@ -519,7 +519,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		pr.IntVal = *value
 	}
 	if value := pc.bool_val; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: property.FieldBoolVal,
@@ -527,7 +527,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		pr.BoolVal = *value
 	}
 	if value := pc.float_val; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldFloatVal,
@@ -535,7 +535,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		pr.FloatVal = *value
 	}
 	if value := pc.latitude_val; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLatitudeVal,
@@ -543,7 +543,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		pr.LatitudeVal = *value
 	}
 	if value := pc.longitude_val; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldLongitudeVal,
@@ -551,7 +551,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		pr.LongitudeVal = *value
 	}
 	if value := pc.range_from_val; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeFromVal,
@@ -559,7 +559,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		pr.RangeFromVal = *value
 	}
 	if value := pc.range_to_val; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: property.FieldRangeToVal,
@@ -567,7 +567,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		pr.RangeToVal = *value
 	}
 	if value := pc.string_val; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: property.FieldStringVal,
@@ -595,7 +595,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -618,7 +618,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -641,7 +641,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -664,7 +664,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.equipment_port; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -687,7 +687,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -710,7 +710,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -733,7 +733,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.project; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -756,7 +756,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.equipment_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -779,7 +779,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.location_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -802,7 +802,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.service_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -825,15 +825,15 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, pc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, pc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	pr.ID = strconv.FormatInt(id, 10)
 	return pr, nil
 }

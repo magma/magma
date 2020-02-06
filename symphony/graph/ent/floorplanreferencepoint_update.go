@@ -8,10 +8,11 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -138,78 +139,93 @@ func (fprpu *FloorPlanReferencePointUpdate) ExecX(ctx context.Context) {
 }
 
 func (fprpu *FloorPlanReferencePointUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(fprpu.driver.Dialect())
-		selector = builder.Select(floorplanreferencepoint.FieldID).From(builder.Table(floorplanreferencepoint.Table))
-	)
-	for _, p := range fprpu.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   floorplanreferencepoint.Table,
+			Columns: floorplanreferencepoint.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplanreferencepoint.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = fprpu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := fprpu.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := fprpu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(floorplanreferencepoint.Table)
-	)
-	updater = updater.Where(sql.InInts(floorplanreferencepoint.FieldID, ids...))
 	if value := fprpu.update_time; value != nil {
-		updater.Set(floorplanreferencepoint.FieldUpdateTime, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldUpdateTime,
+		})
 	}
 	if value := fprpu.x; value != nil {
-		updater.Set(floorplanreferencepoint.FieldX, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldX,
+		})
 	}
 	if value := fprpu.addx; value != nil {
-		updater.Add(floorplanreferencepoint.FieldX, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldX,
+		})
 	}
 	if value := fprpu.y; value != nil {
-		updater.Set(floorplanreferencepoint.FieldY, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldY,
+		})
 	}
 	if value := fprpu.addy; value != nil {
-		updater.Add(floorplanreferencepoint.FieldY, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldY,
+		})
 	}
 	if value := fprpu.latitude; value != nil {
-		updater.Set(floorplanreferencepoint.FieldLatitude, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldLatitude,
+		})
 	}
 	if value := fprpu.addlatitude; value != nil {
-		updater.Add(floorplanreferencepoint.FieldLatitude, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldLatitude,
+		})
 	}
 	if value := fprpu.longitude; value != nil {
-		updater.Set(floorplanreferencepoint.FieldLongitude, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldLongitude,
+		})
 	}
 	if value := fprpu.addlongitude; value != nil {
-		updater.Add(floorplanreferencepoint.FieldLongitude, *value)
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldLongitude,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if n, err = sqlgraph.UpdateNodes(ctx, fprpu.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // FloorPlanReferencePointUpdateOne is the builder for updating a single FloorPlanReferencePoint entity.
@@ -328,87 +344,87 @@ func (fprpuo *FloorPlanReferencePointUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (fprpuo *FloorPlanReferencePointUpdateOne) sqlSave(ctx context.Context) (fprp *FloorPlanReferencePoint, err error) {
-	var (
-		builder  = sql.Dialect(fprpuo.driver.Dialect())
-		selector = builder.Select(floorplanreferencepoint.Columns...).From(builder.Table(floorplanreferencepoint.Table))
-	)
-	floorplanreferencepoint.ID(fprpuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = fprpuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   floorplanreferencepoint.Table,
+			Columns: floorplanreferencepoint.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  fprpuo.id,
+				Type:   field.TypeString,
+				Column: floorplanreferencepoint.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		fprp = &FloorPlanReferencePoint{config: fprpuo.config}
-		if err := fprp.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into FloorPlanReferencePoint: %v", err)
-		}
-		id = fprp.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("FloorPlanReferencePoint with id: %v", fprpuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one FloorPlanReferencePoint with the same id: %v", fprpuo.id)
-	}
-
-	tx, err := fprpuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(floorplanreferencepoint.Table)
-	)
-	updater = updater.Where(sql.InInts(floorplanreferencepoint.FieldID, ids...))
 	if value := fprpuo.update_time; value != nil {
-		updater.Set(floorplanreferencepoint.FieldUpdateTime, *value)
-		fprp.UpdateTime = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldUpdateTime,
+		})
 	}
 	if value := fprpuo.x; value != nil {
-		updater.Set(floorplanreferencepoint.FieldX, *value)
-		fprp.X = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldX,
+		})
 	}
 	if value := fprpuo.addx; value != nil {
-		updater.Add(floorplanreferencepoint.FieldX, *value)
-		fprp.X += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldX,
+		})
 	}
 	if value := fprpuo.y; value != nil {
-		updater.Set(floorplanreferencepoint.FieldY, *value)
-		fprp.Y = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldY,
+		})
 	}
 	if value := fprpuo.addy; value != nil {
-		updater.Add(floorplanreferencepoint.FieldY, *value)
-		fprp.Y += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldY,
+		})
 	}
 	if value := fprpuo.latitude; value != nil {
-		updater.Set(floorplanreferencepoint.FieldLatitude, *value)
-		fprp.Latitude = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldLatitude,
+		})
 	}
 	if value := fprpuo.addlatitude; value != nil {
-		updater.Add(floorplanreferencepoint.FieldLatitude, *value)
-		fprp.Latitude += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldLatitude,
+		})
 	}
 	if value := fprpuo.longitude; value != nil {
-		updater.Set(floorplanreferencepoint.FieldLongitude, *value)
-		fprp.Longitude = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldLongitude,
+		})
 	}
 	if value := fprpuo.addlongitude; value != nil {
-		updater.Add(floorplanreferencepoint.FieldLongitude, *value)
-		fprp.Longitude += *value
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanreferencepoint.FieldLongitude,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	fprp = &FloorPlanReferencePoint{config: fprpuo.config}
+	_spec.Assign = fprp.assignValues
+	_spec.ScanValues = fprp.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, fprpuo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return fprp, nil

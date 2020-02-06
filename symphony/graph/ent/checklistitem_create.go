@@ -159,8 +159,8 @@ func (clic *CheckListItemCreate) SaveX(ctx context.Context) *CheckListItem {
 
 func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, error) {
 	var (
-		cli  = &CheckListItem{config: clic.config}
-		spec = &sqlgraph.CreateSpec{
+		cli   = &CheckListItem{config: clic.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: checklistitem.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeString,
@@ -169,7 +169,7 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		}
 	)
 	if value := clic.title; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitem.FieldTitle,
@@ -177,7 +177,7 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		cli.Title = *value
 	}
 	if value := clic._type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitem.FieldType,
@@ -185,7 +185,7 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		cli.Type = *value
 	}
 	if value := clic.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: checklistitem.FieldIndex,
@@ -193,7 +193,7 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		cli.Index = *value
 	}
 	if value := clic.checked; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: checklistitem.FieldChecked,
@@ -201,7 +201,7 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		cli.Checked = *value
 	}
 	if value := clic.string_val; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitem.FieldStringVal,
@@ -209,7 +209,7 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		cli.StringVal = *value
 	}
 	if value := clic.enum_values; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitem.FieldEnumValues,
@@ -217,7 +217,7 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		cli.EnumValues = *value
 	}
 	if value := clic.help_text; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitem.FieldHelpText,
@@ -245,15 +245,15 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, clic.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, clic.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	cli.ID = strconv.FormatInt(id, 10)
 	return cli, nil
 }

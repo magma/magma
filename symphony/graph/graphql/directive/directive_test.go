@@ -10,6 +10,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
@@ -29,8 +30,7 @@ func (tr *testResolver) resolve(ctx context.Context) (interface{}, error) {
 
 func TestDirectiveLength(t *testing.T) {
 	var (
-		intptr = func(i int) *int { return &i }
-		tests  = []struct {
+		tests = []struct {
 			name    string
 			input   interface{}
 			err     error
@@ -52,7 +52,7 @@ func TestDirectiveLength(t *testing.T) {
 			{
 				name:    "TooLong",
 				input:   []int{1, 2, 3},
-				max:     intptr(2),
+				max:     pointer.ToInt(2),
 				wantErr: true,
 			},
 			{
@@ -66,9 +66,10 @@ func TestDirectiveLength(t *testing.T) {
 				wantErr: true,
 			},
 			{
-				name:  "NoLength",
-				input: 42,
-				min:   10,
+				name:    "NoLength",
+				input:   42,
+				min:     10,
+				wantErr: true,
 			},
 		}
 		d      = New(logtest.NewTestLogger(t))
@@ -89,6 +90,69 @@ func TestDirectiveLength(t *testing.T) {
 			defer tr.AssertExpectations(t)
 
 			output, err := length(tc.min, tc.max)(tc.input, tr.resolve)
+			if !tc.wantErr {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.input, output)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestDirectiveRange(t *testing.T) {
+	var (
+		tests = []struct {
+			name    string
+			input   interface{}
+			err     error
+			min     *float64
+			max     *float64
+			wantErr bool
+		}{
+			{
+				name:  "Valid",
+				input: 42,
+				min:   pointer.ToFloat64(10),
+				max:   pointer.ToFloat64(50),
+			},
+			{
+				name:    "TooSmall",
+				input:   -5,
+				min:     pointer.ToFloat64(0),
+				wantErr: true,
+			},
+			{
+				name:    "TooBig",
+				input:   100,
+				min:     pointer.ToFloat64(0),
+				max:     pointer.ToFloat64(99),
+				wantErr: true,
+			},
+			{
+				name:    "NotInt",
+				input:   "55",
+				wantErr: true,
+			},
+		}
+		d       = New(logtest.NewTestLogger(t))
+		rangefn = func(min, max *float64) func(interface{}, graphql.Resolver) (interface{}, error) {
+			return func(in interface{}, next graphql.Resolver) (interface{}, error) {
+				return d.Range(context.Background(), in, next, min, max)
+			}
+		}
+	)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			var tr testResolver
+			tr.On("resolve", mock.Anything).
+				Return(tc.input, tc.err).
+				Once()
+			defer tr.AssertExpectations(t)
+
+			output, err := rangefn(tc.min, tc.max)(tc.input, tr.resolve)
 			if !tc.wantErr {
 				assert.NoError(t, err)
 				assert.Equal(t, tc.input, output)

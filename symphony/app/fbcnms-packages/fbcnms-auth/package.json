@@ -11,6 +11,7 @@
     "passport-saml": "^1.0.0"
   },
   "devDependencies": {
+    "nock": "^11.7.2",
     "sqlite3": "^4.0.9",
     "supertest": "^4.0.2"
   }

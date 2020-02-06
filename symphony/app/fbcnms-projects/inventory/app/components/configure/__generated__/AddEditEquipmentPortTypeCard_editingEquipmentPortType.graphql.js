@@ -56,6 +56,7 @@ export type AddEditEquipmentPortTypeCard_editingEquipmentPortType$data = AddEdit
 export type AddEditEquipmentPortTypeCard_editingEquipmentPortType$key = {
   +$data?: AddEditEquipmentPortTypeCard_editingEquipmentPortType$data,
   +$fragmentRefs: AddEditEquipmentPortTypeCard_editingEquipmentPortType$ref,
+  ...
 };
 */
 

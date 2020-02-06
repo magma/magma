@@ -9,11 +9,12 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -25,18 +26,20 @@ import (
 type SurveyUpdate struct {
 	config
 
-	update_time          *time.Time
-	name                 *string
-	owner_name           *string
-	clearowner_name      bool
-	completion_timestamp *time.Time
-	location             map[string]struct{}
-	source_file          map[string]struct{}
-	questions            map[string]struct{}
-	clearedLocation      bool
-	clearedSourceFile    bool
-	removedQuestions     map[string]struct{}
-	predicates           []predicate.Survey
+	update_time             *time.Time
+	name                    *string
+	owner_name              *string
+	clearowner_name         bool
+	creation_timestamp      *time.Time
+	clearcreation_timestamp bool
+	completion_timestamp    *time.Time
+	location                map[string]struct{}
+	source_file             map[string]struct{}
+	questions               map[string]struct{}
+	clearedLocation         bool
+	clearedSourceFile       bool
+	removedQuestions        map[string]struct{}
+	predicates              []predicate.Survey
 }
 
 // Where adds a new predicate for the builder.
@@ -69,6 +72,27 @@ func (su *SurveyUpdate) SetNillableOwnerName(s *string) *SurveyUpdate {
 func (su *SurveyUpdate) ClearOwnerName() *SurveyUpdate {
 	su.owner_name = nil
 	su.clearowner_name = true
+	return su
+}
+
+// SetCreationTimestamp sets the creation_timestamp field.
+func (su *SurveyUpdate) SetCreationTimestamp(t time.Time) *SurveyUpdate {
+	su.creation_timestamp = &t
+	return su
+}
+
+// SetNillableCreationTimestamp sets the creation_timestamp field if the given value is not nil.
+func (su *SurveyUpdate) SetNillableCreationTimestamp(t *time.Time) *SurveyUpdate {
+	if t != nil {
+		su.SetCreationTimestamp(*t)
+	}
+	return su
+}
+
+// ClearCreationTimestamp clears the value of creation_timestamp.
+func (su *SurveyUpdate) ClearCreationTimestamp() *SurveyUpdate {
+	su.creation_timestamp = nil
+	su.clearcreation_timestamp = true
 	return su
 }
 
@@ -212,162 +236,201 @@ func (su *SurveyUpdate) ExecX(ctx context.Context) {
 }
 
 func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(su.driver.Dialect())
-		selector = builder.Select(survey.FieldID).From(builder.Table(survey.Table))
-	)
-	for _, p := range su.predicates {
-		p(selector)
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   survey.Table,
+			Columns: survey.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: survey.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = su.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := su.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := su.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(survey.Table)
-	)
-	updater = updater.Where(sql.InInts(survey.FieldID, ids...))
 	if value := su.update_time; value != nil {
-		updater.Set(survey.FieldUpdateTime, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldUpdateTime,
+		})
 	}
 	if value := su.name; value != nil {
-		updater.Set(survey.FieldName, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: survey.FieldName,
+		})
 	}
 	if value := su.owner_name; value != nil {
-		updater.Set(survey.FieldOwnerName, *value)
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: survey.FieldOwnerName,
+		})
 	}
 	if su.clearowner_name {
-		updater.SetNull(survey.FieldOwnerName)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: survey.FieldOwnerName,
+		})
+	}
+	if value := su.creation_timestamp; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldCreationTimestamp,
+		})
+	}
+	if su.clearcreation_timestamp {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: survey.FieldCreationTimestamp,
+		})
 	}
 	if value := su.completion_timestamp; value != nil {
-		updater.Set(survey.FieldCompletionTimestamp, *value)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldCompletionTimestamp,
+		})
 	}
 	if su.clearedLocation {
-		query, args := builder.Update(survey.LocationTable).
-			SetNull(survey.LocationColumn).
-			Where(sql.InInts(location.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.LocationTable,
+			Columns: []string{survey.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(su.location) > 0 {
-		for eid := range su.location {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(survey.LocationTable).
-				Set(survey.LocationColumn, eid).
-				Where(sql.InInts(survey.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := su.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.LocationTable,
+			Columns: []string{survey.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if su.clearedSourceFile {
-		query, args := builder.Update(survey.SourceFileTable).
-			SetNull(survey.SourceFileColumn).
-			Where(sql.InInts(file.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.SourceFileTable,
+			Columns: []string{survey.SourceFileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: file.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(su.source_file) > 0 {
-		for eid := range su.source_file {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(survey.SourceFileTable).
-				Set(survey.SourceFileColumn, eid).
-				Where(sql.InInts(survey.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := su.source_file; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.SourceFileTable,
+			Columns: []string{survey.SourceFileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: file.FieldID,
+				},
+			},
 		}
-	}
-	if len(su.removedQuestions) > 0 {
-		eids := make([]int, len(su.removedQuestions))
-		for eid := range su.removedQuestions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(survey.QuestionsTable).
-			SetNull(survey.QuestionsColumn).
-			Where(sql.InInts(survey.QuestionsColumn, ids...)).
-			Where(sql.InInts(surveyquestion.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(su.questions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range su.questions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(surveyquestion.FieldID, eid)
-			}
-			query, args := builder.Update(survey.QuestionsTable).
-				Set(survey.QuestionsColumn, id).
-				Where(sql.And(p, sql.IsNull(survey.QuestionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(su.questions) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"questions\" %v already connected to a different \"Survey\"", keys(su.questions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := su.removedQuestions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   survey.QuestionsTable,
+			Columns: []string{survey.QuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.questions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   survey.QuestionsTable,
+			Columns: []string{survey.QuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // SurveyUpdateOne is the builder for updating a single Survey entity.
@@ -375,17 +438,19 @@ type SurveyUpdateOne struct {
 	config
 	id string
 
-	update_time          *time.Time
-	name                 *string
-	owner_name           *string
-	clearowner_name      bool
-	completion_timestamp *time.Time
-	location             map[string]struct{}
-	source_file          map[string]struct{}
-	questions            map[string]struct{}
-	clearedLocation      bool
-	clearedSourceFile    bool
-	removedQuestions     map[string]struct{}
+	update_time             *time.Time
+	name                    *string
+	owner_name              *string
+	clearowner_name         bool
+	creation_timestamp      *time.Time
+	clearcreation_timestamp bool
+	completion_timestamp    *time.Time
+	location                map[string]struct{}
+	source_file             map[string]struct{}
+	questions               map[string]struct{}
+	clearedLocation         bool
+	clearedSourceFile       bool
+	removedQuestions        map[string]struct{}
 }
 
 // SetName sets the name field.
@@ -412,6 +477,27 @@ func (suo *SurveyUpdateOne) SetNillableOwnerName(s *string) *SurveyUpdateOne {
 func (suo *SurveyUpdateOne) ClearOwnerName() *SurveyUpdateOne {
 	suo.owner_name = nil
 	suo.clearowner_name = true
+	return suo
+}
+
+// SetCreationTimestamp sets the creation_timestamp field.
+func (suo *SurveyUpdateOne) SetCreationTimestamp(t time.Time) *SurveyUpdateOne {
+	suo.creation_timestamp = &t
+	return suo
+}
+
+// SetNillableCreationTimestamp sets the creation_timestamp field if the given value is not nil.
+func (suo *SurveyUpdateOne) SetNillableCreationTimestamp(t *time.Time) *SurveyUpdateOne {
+	if t != nil {
+		suo.SetCreationTimestamp(*t)
+	}
+	return suo
+}
+
+// ClearCreationTimestamp clears the value of creation_timestamp.
+func (suo *SurveyUpdateOne) ClearCreationTimestamp() *SurveyUpdateOne {
+	suo.creation_timestamp = nil
+	suo.clearcreation_timestamp = true
 	return suo
 }
 
@@ -555,168 +641,195 @@ func (suo *SurveyUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) {
-	var (
-		builder  = sql.Dialect(suo.driver.Dialect())
-		selector = builder.Select(survey.Columns...).From(builder.Table(survey.Table))
-	)
-	survey.ID(suo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = suo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	_spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   survey.Table,
+			Columns: survey.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  suo.id,
+				Type:   field.TypeString,
+				Column: survey.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		s = &Survey{config: suo.config}
-		if err := s.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into Survey: %v", err)
-		}
-		id = s.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("Survey with id: %v", suo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one Survey with the same id: %v", suo.id)
-	}
-
-	tx, err := suo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(survey.Table)
-	)
-	updater = updater.Where(sql.InInts(survey.FieldID, ids...))
 	if value := suo.update_time; value != nil {
-		updater.Set(survey.FieldUpdateTime, *value)
-		s.UpdateTime = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldUpdateTime,
+		})
 	}
 	if value := suo.name; value != nil {
-		updater.Set(survey.FieldName, *value)
-		s.Name = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: survey.FieldName,
+		})
 	}
 	if value := suo.owner_name; value != nil {
-		updater.Set(survey.FieldOwnerName, *value)
-		s.OwnerName = *value
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: survey.FieldOwnerName,
+		})
 	}
 	if suo.clearowner_name {
-		var value string
-		s.OwnerName = value
-		updater.SetNull(survey.FieldOwnerName)
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: survey.FieldOwnerName,
+		})
+	}
+	if value := suo.creation_timestamp; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldCreationTimestamp,
+		})
+	}
+	if suo.clearcreation_timestamp {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: survey.FieldCreationTimestamp,
+		})
 	}
 	if value := suo.completion_timestamp; value != nil {
-		updater.Set(survey.FieldCompletionTimestamp, *value)
-		s.CompletionTimestamp = *value
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldCompletionTimestamp,
+		})
 	}
 	if suo.clearedLocation {
-		query, args := builder.Update(survey.LocationTable).
-			SetNull(survey.LocationColumn).
-			Where(sql.InInts(location.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.LocationTable,
+			Columns: []string{survey.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(suo.location) > 0 {
-		for eid := range suo.location {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(survey.LocationTable).
-				Set(survey.LocationColumn, eid).
-				Where(sql.InInts(survey.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := suo.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.LocationTable,
+			Columns: []string{survey.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if suo.clearedSourceFile {
-		query, args := builder.Update(survey.SourceFileTable).
-			SetNull(survey.SourceFileColumn).
-			Where(sql.InInts(file.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.SourceFileTable,
+			Columns: []string{survey.SourceFileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: file.FieldID,
+				},
+			},
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if len(suo.source_file) > 0 {
-		for eid := range suo.source_file {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(survey.SourceFileTable).
-				Set(survey.SourceFileColumn, eid).
-				Where(sql.InInts(survey.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := suo.source_file; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.SourceFileTable,
+			Columns: []string{survey.SourceFileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: file.FieldID,
+				},
+			},
 		}
-	}
-	if len(suo.removedQuestions) > 0 {
-		eids := make([]int, len(suo.removedQuestions))
-		for eid := range suo.removedQuestions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(survey.QuestionsTable).
-			SetNull(survey.QuestionsColumn).
-			Where(sql.InInts(survey.QuestionsColumn, ids...)).
-			Where(sql.InInts(surveyquestion.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(suo.questions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range suo.questions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(surveyquestion.FieldID, eid)
-			}
-			query, args := builder.Update(survey.QuestionsTable).
-				Set(survey.QuestionsColumn, id).
-				Where(sql.And(p, sql.IsNull(survey.QuestionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(suo.questions) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"questions\" %v already connected to a different \"Survey\"", keys(suo.questions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := suo.removedQuestions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   survey.QuestionsTable,
+			Columns: []string{survey.QuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.questions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   survey.QuestionsTable,
+			Columns: []string{survey.QuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	s = &Survey{config: suo.config}
+	_spec.Assign = s.assignValues
+	_spec.ScanValues = s.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, suo.driver, _spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return s, nil

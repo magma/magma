@@ -31,7 +31,7 @@ const ServiceLinksSubservicesMenu = (props: Props) => {
       onClose={() => setAddingEquipmentLink(false)}
       items={[
         {
-          label: fbt(
+          caption: fbt(
             'Add Equipment Link',
             'Menu option to open a dialog to add link to a service',
           ),

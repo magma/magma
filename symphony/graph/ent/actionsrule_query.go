@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -53,14 +55,14 @@ func (arq *ActionsRuleQuery) Order(o ...Order) *ActionsRuleQuery {
 	return arq
 }
 
-// First returns the first ActionsRule entity in the query. Returns *ErrNotFound when no actionsrule was found.
+// First returns the first ActionsRule entity in the query. Returns *NotFoundError when no actionsrule was found.
 func (arq *ActionsRuleQuery) First(ctx context.Context) (*ActionsRule, error) {
 	ars, err := arq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ars) == 0 {
-		return nil, &ErrNotFound{actionsrule.Label}
+		return nil, &NotFoundError{actionsrule.Label}
 	}
 	return ars[0], nil
 }
@@ -74,14 +76,14 @@ func (arq *ActionsRuleQuery) FirstX(ctx context.Context) *ActionsRule {
 	return ar
 }
 
-// FirstID returns the first ActionsRule id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first ActionsRule id in the query. Returns *NotFoundError when no id was found.
 func (arq *ActionsRuleQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = arq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{actionsrule.Label}
+		err = &NotFoundError{actionsrule.Label}
 		return
 	}
 	return ids[0], nil
@@ -106,9 +108,9 @@ func (arq *ActionsRuleQuery) Only(ctx context.Context) (*ActionsRule, error) {
 	case 1:
 		return ars[0], nil
 	case 0:
-		return nil, &ErrNotFound{actionsrule.Label}
+		return nil, &NotFoundError{actionsrule.Label}
 	default:
-		return nil, &ErrNotSingular{actionsrule.Label}
+		return nil, &NotSingularError{actionsrule.Label}
 	}
 }
 
@@ -131,9 +133,9 @@ func (arq *ActionsRuleQuery) OnlyID(ctx context.Context) (id string, err error) 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{actionsrule.Label}
+		err = &NotFoundError{actionsrule.Label}
 	default:
-		err = &ErrNotSingular{actionsrule.Label}
+		err = &NotSingularError{actionsrule.Label}
 	}
 	return
 }
@@ -264,45 +266,35 @@ func (arq *ActionsRuleQuery) Select(field string, fields ...string) *ActionsRule
 }
 
 func (arq *ActionsRuleQuery) sqlAll(ctx context.Context) ([]*ActionsRule, error) {
-	rows := &sql.Rows{}
-	selector := arq.sqlQuery()
-	if unique := arq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes = []*ActionsRule{}
+		_spec = arq.querySpec()
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &ActionsRule{config: arq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := arq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, arq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var ars ActionsRules
-	if err := ars.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	ars.config(arq.config)
-	return ars, nil
+	return nodes, nil
 }
 
 func (arq *ActionsRuleQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := arq.sqlQuery()
-	unique := []string{actionsrule.FieldID}
-	if len(arq.unique) > 0 {
-		unique = arq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := arq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := arq.querySpec()
+	return sqlgraph.CountNodes(ctx, arq.driver, _spec)
 }
 
 func (arq *ActionsRuleQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -311,6 +303,42 @@ func (arq *ActionsRuleQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (arq *ActionsRuleQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   actionsrule.Table,
+			Columns: actionsrule.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: actionsrule.FieldID,
+			},
+		},
+		From:   arq.sql,
+		Unique: true,
+	}
+	if ps := arq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := arq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := arq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := arq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (arq *ActionsRuleQuery) sqlQuery() *sql.Selector {
@@ -584,7 +612,7 @@ func (ars *ActionsRuleSelect) sqlScan(ctx context.Context, v interface{}) error 
 }
 
 func (ars *ActionsRuleSelect) sqlQuery() sql.Querier {
-	view := "actionsrule_view"
-	return sql.Dialect(ars.driver.Dialect()).
-		Select(ars.fields...).From(ars.sql.As(view))
+	selector := ars.sql
+	selector.Select(selector.Columns(ars.fields...)...)
+	return selector
 }

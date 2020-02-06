@@ -8,12 +8,15 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -27,6 +30,8 @@ type TechnicianQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Technician
+	// eager-loading edges.
+	withWorkOrders *WorkOrderQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -67,14 +72,14 @@ func (tq *TechnicianQuery) QueryWorkOrders() *WorkOrderQuery {
 	return query
 }
 
-// First returns the first Technician entity in the query. Returns *ErrNotFound when no technician was found.
+// First returns the first Technician entity in the query. Returns *NotFoundError when no technician was found.
 func (tq *TechnicianQuery) First(ctx context.Context) (*Technician, error) {
 	ts, err := tq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ts) == 0 {
-		return nil, &ErrNotFound{technician.Label}
+		return nil, &NotFoundError{technician.Label}
 	}
 	return ts[0], nil
 }
@@ -88,14 +93,14 @@ func (tq *TechnicianQuery) FirstX(ctx context.Context) *Technician {
 	return t
 }
 
-// FirstID returns the first Technician id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Technician id in the query. Returns *NotFoundError when no id was found.
 func (tq *TechnicianQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{technician.Label}
+		err = &NotFoundError{technician.Label}
 		return
 	}
 	return ids[0], nil
@@ -120,9 +125,9 @@ func (tq *TechnicianQuery) Only(ctx context.Context) (*Technician, error) {
 	case 1:
 		return ts[0], nil
 	case 0:
-		return nil, &ErrNotFound{technician.Label}
+		return nil, &NotFoundError{technician.Label}
 	default:
-		return nil, &ErrNotSingular{technician.Label}
+		return nil, &NotSingularError{technician.Label}
 	}
 }
 
@@ -145,9 +150,9 @@ func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{technician.Label}
+		err = &NotFoundError{technician.Label}
 	default:
-		err = &ErrNotSingular{technician.Label}
+		err = &NotSingularError{technician.Label}
 	}
 	return
 }
@@ -236,6 +241,17 @@ func (tq *TechnicianQuery) Clone() *TechnicianQuery {
 	}
 }
 
+//  WithWorkOrders tells the query-builder to eager-loads the nodes that are connected to
+// the "work_orders" edge. The optional arguments used to configure the query builder of the edge.
+func (tq *TechnicianQuery) WithWorkOrders(opts ...func(*WorkOrderQuery)) *TechnicianQuery {
+	query := &WorkOrderQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withWorkOrders = query
+	return tq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -278,45 +294,72 @@ func (tq *TechnicianQuery) Select(field string, fields ...string) *TechnicianSel
 }
 
 func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
-	rows := &sql.Rows{}
-	selector := tq.sqlQuery()
-	if unique := tq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes       = []*Technician{}
+		_spec       = tq.querySpec()
+		loadedTypes = [1]bool{
+			tq.withWorkOrders != nil,
+		}
+	)
+	_spec.ScanValues = func() []interface{} {
+		node := &Technician{config: tq.config}
+		nodes = append(nodes, node)
+		values := node.scanValues()
+		return values
 	}
-	query, args := selector.Query()
-	if err := tq.driver.Query(ctx, query, args, rows); err != nil {
+	_spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var ts Technicians
-	if err := ts.FromRows(rows); err != nil {
-		return nil, err
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
-	ts.config(tq.config)
-	return ts, nil
+
+	if query := tq.withWorkOrders; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[string]*Technician)
+		for i := range nodes {
+			id, err := strconv.Atoi(nodes[i].ID)
+			if err != nil {
+				return nil, err
+			}
+			fks = append(fks, id)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrder(func(s *sql.Selector) {
+			s.Where(sql.InValues(technician.WorkOrdersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_technician
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_technician" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_technician" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
+		}
+	}
+
+	return nodes, nil
 }
 
 func (tq *TechnicianQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := tq.sqlQuery()
-	unique := []string{technician.FieldID}
-	if len(tq.unique) > 0 {
-		unique = tq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := tq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	_spec := tq.querySpec()
+	return sqlgraph.CountNodes(ctx, tq.driver, _spec)
 }
 
 func (tq *TechnicianQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -325,6 +368,42 @@ func (tq *TechnicianQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (tq *TechnicianQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   technician.Table,
+			Columns: technician.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: technician.FieldID,
+			},
+		},
+		From:   tq.sql,
+		Unique: true,
+	}
+	if ps := tq.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := tq.limit; limit != nil {
+		_spec.Limit = *limit
+	}
+	if offset := tq.offset; offset != nil {
+		_spec.Offset = *offset
+	}
+	if ps := tq.order; len(ps) > 0 {
+		_spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return _spec
 }
 
 func (tq *TechnicianQuery) sqlQuery() *sql.Selector {
@@ -598,7 +677,7 @@ func (ts *TechnicianSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ts *TechnicianSelect) sqlQuery() sql.Querier {
-	view := "technician_view"
-	return sql.Dialect(ts.driver.Dialect()).
-		Select(ts.fields...).From(ts.sql.As(view))
+	selector := ts.sql
+	selector.Select(selector.Columns(ts.fields...)...)
+	return selector
 }

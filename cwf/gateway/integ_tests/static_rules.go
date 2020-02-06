@@ -15,7 +15,7 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-func getStaticPassAll(ruleID string, monitoringKey string) *protos.PolicyRule {
+func getStaticPassAll(ruleID string, monitoringKey string, trackingType string) *protos.PolicyRule {
 	rule := &models.PolicyRuleConfig{
 		FlowList: []*models.FlowDescription{
 			{
@@ -39,7 +39,7 @@ func getStaticPassAll(ruleID string, monitoringKey string) *protos.PolicyRule {
 		},
 		MonitoringKey: monitoringKey,
 		Priority:      swag.Uint32(3),
-		TrackingType:  models.PolicyRuleTrackingTypeONLYPCRF,
+		TrackingType:  trackingType,
 	}
 
 	return rule.ToProto(ruleID)

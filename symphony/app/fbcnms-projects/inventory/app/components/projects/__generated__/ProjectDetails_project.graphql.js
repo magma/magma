@@ -51,6 +51,14 @@ export type ProjectDetails_project = {|
     +longitudeValue: ?number,
     +rangeFromValue: ?number,
     +rangeToValue: ?number,
+    +equipmentValue: ?{|
+      +id: string,
+      +name: string,
+    |},
+    +locationValue: ?{|
+      +id: string,
+      +name: string,
+    |},
     +propertyType: {|
       +id: string,
       +name: string,
@@ -80,6 +88,7 @@ export type ProjectDetails_project$data = ProjectDetails_project;
 export type ProjectDetails_project$key = {
   +$data?: ProjectDetails_project$data,
   +$fragmentRefs: ProjectDetails_project$ref,
+  ...
 };
 */
 
@@ -154,7 +163,11 @@ v9 = {
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
-};
+},
+v10 = [
+  (v0/*: any*/),
+  (v1/*: any*/)
+];
 return {
   "kind": "Fragment",
   "name": "ProjectDetails_project",
@@ -269,6 +282,26 @@ return {
         {
           "kind": "LinkedField",
           "alias": null,
+          "name": "equipmentValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Equipment",
+          "plural": false,
+          "selections": (v10/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "locationValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Location",
+          "plural": false,
+          "selections": (v10/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
           "name": "propertyType",
           "storageKey": null,
           "args": null,
@@ -353,5 +386,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '1805f5d8350a8960328b3f51cdcd6a3c';
+(node/*: any*/).hash = '3ca0e55ae3c152fb023a526a70343fd9';
 module.exports = node;

@@ -37,11 +37,14 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  legendContainer: {
+    height: '100%',
+  },
 }));
 
 const locationTypesQuery = graphql`
   query LocationsMapTypesQuery {
-    locationTypes(first: 50) {
+    locationTypes {
       edges {
         node {
           id
@@ -136,7 +139,7 @@ const LocationsMap = (_props: Props) => {
   return (
     <Grid className={classes.root} container spacing={0}>
       <InventoryErrorBoundary>
-        <Grid item xs={2}>
+        <Grid className={classes.legendContainer} item xs={2}>
           <MapLayerLegend
             layers={locationTypes.map((type, i) => ({
               id: type.id,

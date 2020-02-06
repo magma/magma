@@ -35,6 +35,7 @@
 
 - name: Add the stable repository for Docker
   apt_repository:
+    # FIXME: templatize xenial -> {{ distribution }}
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
     state: present
 

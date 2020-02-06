@@ -73,7 +73,7 @@ class ServiceTypeServicesQuery:
         serviceType: Optional[Node] = None
 
     data: Optional[ServiceTypeServicesQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

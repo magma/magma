@@ -16,27 +16,38 @@ import type {
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {MutationCallbacks} from '../mutations/MutationCallbacks.js';
 import type {WithSnackbarProps} from 'notistack';
+import type {WithStyles} from '@material-ui/core';
 
 import AddImageMutation from '../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import FileUpload from './FileUpload';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import React from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import Strings from '../common/CommonStrings';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {withSnackbar} from 'notistack';
+import {withStyles} from '@material-ui/core/styles';
+
+const styles = {
+  uploadCategory: {
+    padding: '0px',
+  },
+  uploadCategoryButton: {
+    padding: '6px 16px',
+    width: '100%',
+  },
+};
 
 type Props = {
   entityId: ?string,
   entityType: ImageEntity,
-} & WithSnackbarProps;
+} & WithSnackbarProps &
+  WithStyles<typeof styles>;
 
 type State = {
-  isLoadingDocument: boolean,
-  anchorEl: ?HTMLElement,
+  isMenuOpened: boolean,
 };
 
 const FileTypeEnum = {
@@ -44,95 +55,56 @@ const FileTypeEnum = {
   FILE: 'FILE',
 };
 
-// TODO: We should make categories configurable and dynamic.
-// we are testing this for now
-const categories = [
-  'Archivos de Estudios Pre-instalación',
-  'Archivos de Contratos',
-  'Archivos de TSS',
-  'DataFills',
-  'ATP',
-  'Topología',
-  'Archivos Simulación',
-  'Reportes de Mantenimiento',
-  'Fotos',
-];
-
 class DocumentsAddButton extends React.Component<Props, State> {
   static contextType = AppContext;
   context: AppContextType;
 
   state = {
-    isLoadingDocument: false,
-    anchorEl: null,
+    isMenuOpened: false,
   };
 
   render() {
-    const {entityId} = this.props;
+    const {entityId, classes} = this.props;
     const categoriesEnabled = this.context.isFeatureEnabled('file_categories');
 
     if (!entityId) {
       return null;
     }
 
-    if (this.state.isLoadingDocument) {
-      return <CircularProgress />;
-    }
-
-    if (!categoriesEnabled) {
-      return (
-        <FileUpload
-          button={
-            <Button
-              color="primary"
-              variant="contained"
-              onClick={() =>
-                ServerLogger.info(LogEvents.LOCATION_CARD_UPLOAD_FILE_CLICKED)
-              }>
-              Upload
-            </Button>
-          }
-          onFileUploaded={this.onDocumentUploaded(null)}
-          onProgress={() => this.setState({isLoadingDocument: true})}
-        />
-      );
-    }
     return (
       <>
-        <Button color="primary" variant="contained" onClick={this.handleClick}>
-          Upload
-        </Button>
-        <Menu
-          id="simple-menu"
-          anchorEl={this.state.anchorEl}
-          keepMounted
-          open={Boolean(this.state.anchorEl)}
-          onClose={this.handleClose}>
-          {categories.map(category => (
-            <FileUpload
-              key={category}
-              button={
-                <MenuItem onClick={this.handleClose}>{category}</MenuItem>
-              }
-              onFileUploaded={this.onDocumentUploaded(category)}
-              onProgress={() => this.setState({isLoadingDocument: true})}
-            />
-          ))}
-        </Menu>
+        {categoriesEnabled && Strings.documents.categories.length ? (
+          <PopoverMenu
+            skin="primary"
+            menuDockRight={true}
+            options={Strings.documents.categories.map(category => ({
+              label: (
+                <FileUpload
+                  className={classes.uploadCategoryButton}
+                  key={category}
+                  button={category}
+                  onFileUploaded={this.onDocumentUploaded(category)}
+                />
+              ),
+              value: category,
+              className: classes.uploadCategory,
+            }))}>
+            {Strings.documents.uploadButton}
+          </PopoverMenu>
+        ) : (
+          <FileUpload
+            button={
+              <Button skin="primary">{Strings.documents.uploadButton}</Button>
+            }
+            onFileUploaded={this.onDocumentUploaded(null)}
+          />
+        )}
       </>
     );
   }
 
-  handleClick = event => {
-    ServerLogger.info(LogEvents.LOCATION_CARD_UPLOAD_FILE_CLICKED);
-    this.setState({anchorEl: event.currentTarget});
-  };
-
-  handleClose = () => {
-    this.setState({anchorEl: null});
-  };
-
   onDocumentUploaded = (category: ?string) => (file, key) => {
+    ServerLogger.info(LogEvents.LOCATION_CARD_UPLOAD_FILE_CLICKED);
     if (this.props.entityId == null) {
       return;
     }
@@ -150,7 +122,6 @@ class DocumentsAddButton extends React.Component<Props, State> {
     };
 
     const updater = store => {
-      this.setState({isLoadingDocument: false});
       const newNode = store.getRootField('addImage');
       const fileType = newNode.getValue('fileType');
       const entityProxy = store.get(this.props.entityId);
@@ -184,4 +155,4 @@ class DocumentsAddButton extends React.Component<Props, State> {
   };
 }
 
-export default withSnackbar(DocumentsAddButton);
+export default withStyles(styles)(withSnackbar(DocumentsAddButton));

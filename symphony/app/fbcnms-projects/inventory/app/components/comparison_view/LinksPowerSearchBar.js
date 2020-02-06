@@ -21,11 +21,7 @@ import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
 import {LinkCriteriaConfig} from './LinkSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {
-  buildPropertyFilterConfigs,
-  getPossibleProperties,
-  getSelectedFilter,
-} from './FilterUtils';
+import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
 
 type Props = {
   filters: FiltersQuery,
@@ -38,12 +34,8 @@ const LinksPowerSearchBar = (props: Props) => {
   const {isFeatureEnabled} = useContext(AppContext);
   const linkStatusEnabled = isFeatureEnabled('planned_equipment');
   const locationTypesFilterConfigs = useLocationTypes();
-  const linkPropertyResponse = usePropertyFilters('link');
 
-  const possibleProperties = getPossibleProperties(
-    linkPropertyResponse.response,
-  );
-
+  const possibleProperties = usePropertyFilters('link');
   const linkPropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
@@ -51,8 +43,8 @@ const LinksPowerSearchBar = (props: Props) => {
   const filterConfigs = LinkCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
     .filter(conf => linkStatusEnabled || conf.key != 'link_future_status')
-    .concat(linkPropertiesFilterConfigs)
-    .concat(locationTypesFilterConfigs);
+    .concat(linkPropertiesFilterConfigs ?? [])
+    .concat(locationTypesFilterConfigs ?? []);
 
   return (
     <PowerSearchBar
@@ -62,7 +54,7 @@ const LinksPowerSearchBar = (props: Props) => {
       onFilterRemoved={handleFilterRemoved}
       onFilterBlurred={handleFilterBlurred}
       getSelectedFilter={(filterConfig: FilterConfig) =>
-        getSelectedFilter(filterConfig, possibleProperties)
+        getSelectedFilter(filterConfig, possibleProperties ?? [])
       }
       placeholder="Filter..."
       searchConfig={LinkCriteriaConfig}

@@ -5,12 +5,21 @@
 package resolverutil
 
 import (
+	"context"
+
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/pkg/errors"
 )
+
+type AddPropertyArgs struct {
+	Context    context.Context
+	EntSetter  func(*ent.PropertyCreate)
+	IsTemplate *bool
+}
 
 // GetPropertyPredicate returns the property predicate for the filter
 func GetPropertyPredicate(p models.PropertyTypeInput) (predicate.Property, error) {
@@ -77,12 +86,8 @@ func GetDatePropertyPred(p models.PropertyTypeInput, operator models.FilterOpera
 	if p.Type != models.PropertyKindDate && p.Type != models.PropertyKindDatetimeLocal {
 		return nil, nil, errors.Errorf("property kind should be type")
 	}
-
-	propPred := property.StringValGT(*p.StringValue)
-	propTypePred := propertytype.StringValGT(*p.StringValue)
 	if operator == models.FilterOperatorDateLessThan {
-		propPred = property.StringValLT(*p.StringValue)
-		propTypePred = propertytype.StringValLT(*p.StringValue)
+		return property.StringValLT(*p.StringValue), propertytype.StringValLT(*p.StringValue), nil
 	}
-	return propPred, propTypePred, nil
+	return property.StringValGT(*p.StringValue), propertytype.StringValGT(*p.StringValue), nil
 }

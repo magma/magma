@@ -74,7 +74,7 @@ static void populate_output_actions(
   KeyType key,
   SessionRules *session_rules,
   std::unique_ptr<ServiceAction> &action,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) // const
 {
   action->set_imsi(imsi);
   action->set_ip_addr(ip_addr);
@@ -87,7 +87,7 @@ void ChargingCreditPool::get_updates(
   std::string ip_addr,
   SessionRules *session_rules,
   std::vector<CreditUsage> *updates_out,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
   for (auto &credit_pair : credit_map_) {
     auto &credit = *(credit_pair.second);
@@ -123,7 +123,7 @@ void ChargingCreditPool::get_updates(
 }
 
 bool ChargingCreditPool::get_termination_updates(
-  SessionTerminateRequest *termination_out)
+  SessionTerminateRequest *termination_out) const
 {
   for (auto &credit_pair : credit_map_) {
     termination_out->mutable_credit_usages()->Add()->CopyFrom(
@@ -181,6 +181,8 @@ bool ChargingCreditPool::init_new_credit(const CreditUpdateResponse &update)
                  << " and charging key " << update.charging_key();
     return false;
   }
+  MLOG(MDEBUG) << "Initialized a charging credit for imsi" << imsi_
+               << " and charging key " << update.charging_key();
   // unless defined, volume is defined as the maximum possible value
   // uint64_t default_volume = std::numeric_limits<uint64_t>::max();
   /*
@@ -220,7 +222,7 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
     return false;
   }
   const auto &gsu = update.credit().granted_units();
-  MLOG(MDEBUG) << "Received credit of " << gsu.total().volume()
+  MLOG(MDEBUG) << "Received charging credit of " << gsu.total().volume()
                << " total bytes, " << gsu.tx().volume() << " tx bytes, and "
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " rating group "
@@ -234,7 +236,7 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
   return true;
 }
 
-uint64_t ChargingCreditPool::get_credit(const CreditKey &key, Bucket bucket)
+uint64_t ChargingCreditPool::get_credit(const CreditKey &key, Bucket bucket) const
 {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
@@ -339,7 +341,7 @@ void UsageMonitoringCreditPool::get_updates(
   std::string ip_addr,
   SessionRules *session_rules,
   std::vector<UsageMonitorUpdate> *updates_out,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
   for (auto &monitor_pair : monitor_map_) {
     auto &credit = monitor_pair.second->credit;
@@ -368,7 +370,7 @@ void UsageMonitoringCreditPool::get_updates(
 }
 
 bool UsageMonitoringCreditPool::get_termination_updates(
-  SessionTerminateRequest *termination_out)
+  SessionTerminateRequest *termination_out) const
 {
   for (auto &credit_pair : monitor_map_) {
     termination_out->mutable_monitor_usages()->Add()->CopyFrom(
@@ -411,6 +413,8 @@ bool UsageMonitoringCreditPool::init_new_credit(
                    << update.credit().monitoring_key();
     return false;
   }
+  MLOG(MDEBUG) << "Initialized a monitoring credit for imsi" << imsi_
+             << " and monitoring key " << update.credit().monitoring_key();
   auto monitor = std::make_unique<UsageMonitoringCreditPool::Monitor>();
   monitor->level = update.credit().level();
   // validity time and final units not used for monitors
@@ -438,7 +442,7 @@ bool UsageMonitoringCreditPool::receive_credit(
     return false;
   }
   const auto &gsu = update.credit().granted_units();
-  MLOG(MDEBUG) << "Received monitor of " << gsu.total().volume()
+  MLOG(MDEBUG) << "Received monitor credit of " << gsu.total().volume()
                << " total bytes, " << gsu.tx().volume() << " tx bytes, and "
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " monitoring key "
@@ -456,7 +460,7 @@ bool UsageMonitoringCreditPool::receive_credit(
 
 uint64_t UsageMonitoringCreditPool::get_credit(
   const std::string &key,
-  Bucket bucket)
+  Bucket bucket) const
 {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {

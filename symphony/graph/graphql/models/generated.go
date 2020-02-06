@@ -14,7 +14,6 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay"
 )
 
 type ActionsAction struct {
@@ -116,6 +115,14 @@ type AddFloorPlanInput struct {
 	ScaleInMeters    float64        `json:"scaleInMeters"`
 }
 
+type AddHyperlinkInput struct {
+	EntityType  ImageEntity `json:"entityType"`
+	EntityID    string      `json:"entityId"`
+	URL         string      `json:"url"`
+	DisplayName *string     `json:"displayName"`
+	Category    *string     `json:"category"`
+}
+
 type AddImageInput struct {
 	EntityType  ImageEntity `json:"entityType"`
 	EntityID    string      `json:"entityId"`
@@ -131,6 +138,7 @@ type AddLinkInput struct {
 	Sides      []*LinkSide      `json:"sides"`
 	WorkOrder  *string          `json:"workOrder"`
 	Properties []*PropertyInput `json:"properties"`
+	ServiceIds []string         `json:"serviceIds"`
 }
 
 type AddLocationInput struct {
@@ -221,17 +229,6 @@ type CommentInput struct {
 	Text       string        `json:"text"`
 }
 
-type CustomerConnection struct {
-	TotalCount int             `json:"totalCount"`
-	Edges      []*CustomerEdge `json:"edges"`
-	PageInfo   *relay.PageInfo `json:"pageInfo"`
-}
-
-type CustomerEdge struct {
-	Node   *ent.Customer `json:"node"`
-	Cursor relay.Cursor  `json:"cursor"`
-}
-
 type Device struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -270,6 +267,7 @@ type EditEquipmentTypeInput struct {
 type EditLinkInput struct {
 	ID         string           `json:"id"`
 	Properties []*PropertyInput `json:"properties"`
+	ServiceIds []string         `json:"serviceIds"`
 }
 
 type EditLocationInput struct {
@@ -341,16 +339,6 @@ type EquipmentFilterInput struct {
 	MaxDepth      *int                `json:"maxDepth"`
 }
 
-type EquipmentPortDefinitionConnection struct {
-	Edges    []*EquipmentPortDefinitionEdge `json:"edges"`
-	PageInfo *relay.PageInfo                `json:"pageInfo"`
-}
-
-type EquipmentPortDefinitionEdge struct {
-	Node   *ent.EquipmentPortDefinition `json:"node"`
-	Cursor relay.Cursor                 `json:"cursor"`
-}
-
 type EquipmentPortInput struct {
 	ID           *string `json:"id"`
 	Name         string  `json:"name"`
@@ -358,16 +346,6 @@ type EquipmentPortInput struct {
 	VisibleLabel *string `json:"visibleLabel"`
 	PortTypeID   *string `json:"portTypeID"`
 	Bandwidth    *string `json:"bandwidth"`
-}
-
-type EquipmentPortTypeConnection struct {
-	Edges    []*EquipmentPortTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo          `json:"pageInfo"`
-}
-
-type EquipmentPortTypeEdge struct {
-	Node   *ent.EquipmentPortType `json:"node"`
-	Cursor relay.Cursor           `json:"cursor"`
 }
 
 type EquipmentPositionInput struct {
@@ -380,16 +358,6 @@ type EquipmentPositionInput struct {
 type EquipmentSearchResult struct {
 	Equipment []*ent.Equipment `json:"equipment"`
 	Count     int              `json:"count"`
-}
-
-type EquipmentTypeConnection struct {
-	Edges    []*EquipmentTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo      `json:"pageInfo"`
-}
-
-type EquipmentTypeEdge struct {
-	Node   *ent.EquipmentType `json:"node"`
-	Cursor relay.Cursor       `json:"cursor"`
 }
 
 type FileInput struct {
@@ -426,16 +394,6 @@ type LinkSide struct {
 	Port      string `json:"port"`
 }
 
-type LocationConnection struct {
-	Edges    []*LocationEdge `json:"edges"`
-	PageInfo *relay.PageInfo `json:"pageInfo"`
-}
-
-type LocationEdge struct {
-	Node   *ent.Location `json:"node"`
-	Cursor relay.Cursor  `json:"cursor"`
-}
-
 type LocationFilterInput struct {
 	FilterType    LocationFilterType `json:"filterType"`
 	Operator      FilterOperator     `json:"operator"`
@@ -449,16 +407,6 @@ type LocationFilterInput struct {
 type LocationSearchResult struct {
 	Locations []*ent.Location `json:"locations"`
 	Count     int             `json:"count"`
-}
-
-type LocationTypeConnection struct {
-	Edges    []*LocationTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo     `json:"pageInfo"`
-}
-
-type LocationTypeEdge struct {
-	Node   *ent.LocationType `json:"node"`
-	Cursor relay.Cursor      `json:"cursor"`
 }
 
 type LocationTypeIndex struct {
@@ -490,17 +438,6 @@ type ProjectFilterInput struct {
 	FilterType  ProjectFilterType `json:"filterType"`
 	Operator    FilterOperator    `json:"operator"`
 	StringValue *string           `json:"stringValue"`
-}
-
-type ProjectTypeConnection struct {
-	TotalCount int                `json:"totalCount"`
-	Edges      []*ProjectTypeEdge `json:"edges"`
-	PageInfo   *relay.PageInfo    `json:"pageInfo"`
-}
-
-type ProjectTypeEdge struct {
-	Node   *ent.ProjectType `json:"node"`
-	Cursor relay.Cursor     `json:"cursor"`
 }
 
 type PropertyInput struct {
@@ -548,21 +485,28 @@ type PythonPackage struct {
 	HasBreakingChange bool      `json:"hasBreakingChange"`
 }
 
+// A connection to a list of search entries.
 type SearchEntriesConnection struct {
-	Edges    []*SearchEntryEdge `json:"edges"`
-	PageInfo *relay.PageInfo    `json:"pageInfo"`
+	// A list of search entry edges.
+	Edges []*SearchEntryEdge `json:"edges"`
+	// Information to aid in pagination.
+	PageInfo *ent.PageInfo `json:"pageInfo"`
 }
 
 type SearchEntry struct {
-	EntityID   string `json:"entityId"`
-	EntityType string `json:"entityType"`
-	Name       string `json:"name"`
-	Type       string `json:"type"`
+	EntityID   string  `json:"entityId"`
+	EntityType string  `json:"entityType"`
+	Name       string  `json:"name"`
+	Type       string  `json:"type"`
+	ExternalID *string `json:"externalId"`
 }
 
+// A search entry edge in a connection.
 type SearchEntryEdge struct {
-	Node   *SearchEntry `json:"node"`
-	Cursor relay.Cursor `json:"cursor"`
+	// The search entry at the end of the edge.
+	Node *SearchEntry `json:"node"`
+	// A cursor for use in pagination.
+	Cursor ent.Cursor `json:"cursor"`
 }
 
 type ServiceCreateData struct {
@@ -599,20 +543,10 @@ type ServiceSearchResult struct {
 	Count    int            `json:"count"`
 }
 
-type ServiceTypeConnection struct {
-	Edges    []*ServiceTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo    `json:"pageInfo"`
-}
-
 type ServiceTypeCreateData struct {
 	Name        string               `json:"name"`
 	HasCustomer bool                 `json:"hasCustomer"`
 	Properties  []*PropertyTypeInput `json:"properties"`
-}
-
-type ServiceTypeEdge struct {
-	Node   *ent.ServiceType `json:"node"`
-	Cursor relay.Cursor     `json:"cursor"`
 }
 
 type ServiceTypeEditData struct {
@@ -648,7 +582,9 @@ type SurveyCellScanData struct {
 type SurveyCreateData struct {
 	Name                string                    `json:"name"`
 	OwnerName           *string                   `json:"ownerName"`
+	CreationTimestamp   *int                      `json:"creationTimestamp"`
 	CompletionTimestamp int                       `json:"completionTimestamp"`
+	Status              *SurveyStatus             `json:"status"`
 	LocationID          string                    `json:"locationID"`
 	SurveyResponses     []*SurveyQuestionResponse `json:"surveyResponses"`
 }
@@ -716,20 +652,10 @@ type TopologyLink struct {
 	Target ent.Noder        `json:"target"`
 }
 
-type WorkOrderConnection struct {
-	Edges    []*WorkOrderEdge `json:"edges"`
-	PageInfo *relay.PageInfo  `json:"pageInfo"`
-}
-
 type WorkOrderDefinitionInput struct {
 	ID    *string `json:"id"`
 	Index *int    `json:"index"`
 	Type  string  `json:"type"`
-}
-
-type WorkOrderEdge struct {
-	Node   *ent.WorkOrder `json:"node"`
-	Cursor relay.Cursor   `json:"cursor"`
 }
 
 type WorkOrderExecutionResult struct {
@@ -748,16 +674,6 @@ type WorkOrderFilterInput struct {
 	IDSet         []string            `json:"idSet"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                `json:"maxDepth"`
-}
-
-type WorkOrderTypeConnection struct {
-	Edges    []*WorkOrderTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo      `json:"pageInfo"`
-}
-
-type WorkOrderTypeEdge struct {
-	Node   *ent.WorkOrderType `json:"node"`
-	Cursor relay.Cursor       `json:"cursor"`
 }
 
 type CellularNetworkType string
@@ -1606,6 +1522,49 @@ func (e *SurveyQuestionType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SurveyQuestionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SurveyStatus string
+
+const (
+	SurveyStatusPlanned    SurveyStatus = "PLANNED"
+	SurveyStatusInprogress SurveyStatus = "INPROGRESS"
+	SurveyStatusCompleted  SurveyStatus = "COMPLETED"
+)
+
+var AllSurveyStatus = []SurveyStatus{
+	SurveyStatusPlanned,
+	SurveyStatusInprogress,
+	SurveyStatusCompleted,
+}
+
+func (e SurveyStatus) IsValid() bool {
+	switch e {
+	case SurveyStatusPlanned, SurveyStatusInprogress, SurveyStatusCompleted:
+		return true
+	}
+	return false
+}
+
+func (e SurveyStatus) String() string {
+	return string(e)
+}
+
+func (e *SurveyStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SurveyStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SurveyStatus", str)
+	}
+	return nil
+}
+
+func (e SurveyStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

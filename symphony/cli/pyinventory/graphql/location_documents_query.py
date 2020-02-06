@@ -34,6 +34,7 @@ class LocationDocumentsQuery:
       files {
         id
         fileName
+        category
       }
     }
   }
@@ -52,13 +53,14 @@ class LocationDocumentsQuery:
             class File:
                 id: str
                 fileName: str
+                category: Optional[str] = None
 
             files: List[File]
 
         location: Optional[Node] = None
 
     data: Optional[LocationDocumentsQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off
