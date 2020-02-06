@@ -18,11 +18,12 @@ namespace http {
 Channel::Channel(const std::string& controllerHost_, const int controllerPort)
     : controllerHost(controllerHost_),
       controller(
-          controllerHost.c_str(),
-          controllerPort,
+          controllerHost,
+          controllerPort
           // TODO convert the above to something configurable
-          20000) /* timeout in seconds */
-{}
+      ) {
+  controller.set_timeout_sec(20000); /* timeout in seconds */
+}
 
 folly::Future<Response> Channel::asyncMsg(
     const std::string& endpoint,
