@@ -295,8 +295,8 @@ userGrafana:
         emptyDir: {}
 
   image:
-    repository: docker.io/grafana/grafana
-    tag: 6.5.3
+    repository:
+    tag:
     pullPolicy: IfNotPresent
 
   # Number of metrics replicas desired
