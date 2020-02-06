@@ -16,7 +16,7 @@ package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
 message RuleRecord {
-  string sid = 1; // System Identification Number
+  string sid = 1; // Session ID - specified as IMSI
   string rule_id = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
