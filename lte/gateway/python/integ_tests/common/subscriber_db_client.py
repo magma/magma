@@ -178,12 +178,13 @@ class SubscriberDbCassandra(SubscriberDbClient):
     HSS_USER = 'vagrant'
     IDENTITY_FILE = '$HOME/.ssh/id_rsa'
     CASSANDRA_SERVER_IP = '127.0.0.1'
+    MME_IDENTITY = 'magma-dev.magma.com'
 
     def __init__(self):
         self._added_sids = set()
         print("*********Init SubscriberDbCassandra***********")
         add_mme_cmd = "$HOME/openair-cn/scripts/data_provisioning_mme --id 3 "\
-            "--mme-identity mme.magma.com --realm magma.com "\
+            "--mme-identity " + self.MME_IDENTITY + " --realm magma.com "\
             "--ue-reachability 1 -C "+ self.CASSANDRA_SERVER_IP
         self._run_remote_cmd(add_mme_cmd)
 
@@ -206,10 +207,10 @@ class SubscriberDbCassandra(SubscriberDbClient):
         # Insert into users
         add_usr_cmd = "$HOME/openair-cn/scripts/data_provisioning_users "\
             "--apn oai.ipv4 --apn2 internet --key " + KEY + \
-            " --imsi-first " + sid + "--mme-identity mme.magma.com "\
-            "--no-of-users 1 --realm magma.com "\
+            " --imsi-first " + sid + "--mme-identity "+ self.MME_IDENTITY +\
+            " --no-of-users 1 --realm magma.com "\
             "--cassandra-cluster " + self.CASSANDRA_SERVER_IP
-        self._run_remote_cmd(add_usr_cmd)
+        #self._run_remote_cmd(add_usr_cmd)
 
     def delete_subscriber(self, sid):
         print("Removing subscriber", sid)
