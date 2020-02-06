@@ -33,21 +33,21 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "equipmentport" package.
 	PortsInverseTable = "equipment_ports"
 	// PortsColumn is the table column denoting the ports relation/edge.
-	PortsColumn = "link_id"
+	PortsColumn = "equipment_port_link"
 	// WorkOrderTable is the table the holds the work_order relation/edge.
 	WorkOrderTable = "links"
 	// WorkOrderInverseTable is the table name for the WorkOrder entity.
 	// It exists in this package in order to avoid circular dependency with the "workorder" package.
 	WorkOrderInverseTable = "work_orders"
 	// WorkOrderColumn is the table column denoting the work_order relation/edge.
-	WorkOrderColumn = "work_order_id"
+	WorkOrderColumn = "link_work_order"
 	// PropertiesTable is the table the holds the properties relation/edge.
 	PropertiesTable = "properties"
 	// PropertiesInverseTable is the table name for the Property entity.
 	// It exists in this package in order to avoid circular dependency with the "property" package.
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
-	PropertiesColumn = "link_id"
+	PropertiesColumn = "link_properties"
 	// ServiceTable is the table the holds the service relation/edge. The primary key declared below.
 	ServiceTable = "service_links"
 	// ServiceInverseTable is the table name for the Service entity.
@@ -65,7 +65,7 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Link type.
 var ForeignKeys = []string{
-	"work_order_id",
+	"link_work_order",
 }
 
 var (

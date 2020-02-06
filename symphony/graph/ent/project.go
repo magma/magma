@@ -35,9 +35,9 @@ type Project struct {
 	Creator *string `json:"creator,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
-	Edges               ProjectEdges `json:"edges"`
-	project_location_id *string
-	type_id             *string
+	Edges                 ProjectEdges `json:"edges"`
+	project_location      *string
+	project_type_projects *string
 }
 
 // ProjectEdges holds the relations/edges for other nodes in the graph.
@@ -127,8 +127,8 @@ func (*Project) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Project) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // project_location_id
-		&sql.NullInt64{}, // type_id
+		&sql.NullInt64{}, // project_location
+		&sql.NullInt64{}, // project_type_projects
 	}
 }
 
@@ -174,16 +174,16 @@ func (pr *Project) assignValues(values ...interface{}) error {
 	values = values[5:]
 	if len(values) == len(project.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field project_location_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field project_location", value)
 		} else if value.Valid {
-			pr.project_location_id = new(string)
-			*pr.project_location_id = strconv.FormatInt(value.Int64, 10)
+			pr.project_location = new(string)
+			*pr.project_location = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field project_type_projects", value)
 		} else if value.Valid {
-			pr.type_id = new(string)
-			*pr.type_id = strconv.FormatInt(value.Int64, 10)
+			pr.project_type_projects = new(string)
+			*pr.project_type_projects = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

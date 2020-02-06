@@ -3918,7 +3918,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case actionsrule.Table:
 		n, err := c.ActionsRule.Query().
 			Where(actionsrule.ID(id)).
-			WithFieldCollection(ctx, "ActionsRule").
+			CollectFields(ctx, "ActionsRule").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -3927,7 +3927,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case checklistitem.Table:
 		n, err := c.CheckListItem.Query().
 			Where(checklistitem.ID(id)).
-			WithFieldCollection(ctx, "CheckListItem").
+			CollectFields(ctx, "CheckListItem").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -3936,7 +3936,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case checklistitemdefinition.Table:
 		n, err := c.CheckListItemDefinition.Query().
 			Where(checklistitemdefinition.ID(id)).
-			WithFieldCollection(ctx, "CheckListItemDefinition").
+			CollectFields(ctx, "CheckListItemDefinition").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -3945,7 +3945,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case comment.Table:
 		n, err := c.Comment.Query().
 			Where(comment.ID(id)).
-			WithFieldCollection(ctx, "Comment").
+			CollectFields(ctx, "Comment").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -3954,7 +3954,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case customer.Table:
 		n, err := c.Customer.Query().
 			Where(customer.ID(id)).
-			WithFieldCollection(ctx, "Customer").
+			CollectFields(ctx, "Customer").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -3963,7 +3963,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case equipment.Table:
 		n, err := c.Equipment.Query().
 			Where(equipment.ID(id)).
-			WithFieldCollection(ctx, "Equipment").
+			CollectFields(ctx, "Equipment").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -3972,7 +3972,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case equipmentcategory.Table:
 		n, err := c.EquipmentCategory.Query().
 			Where(equipmentcategory.ID(id)).
-			WithFieldCollection(ctx, "EquipmentCategory").
+			CollectFields(ctx, "EquipmentCategory").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -3981,7 +3981,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case equipmentport.Table:
 		n, err := c.EquipmentPort.Query().
 			Where(equipmentport.ID(id)).
-			WithFieldCollection(ctx, "EquipmentPort").
+			CollectFields(ctx, "EquipmentPort").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -3990,7 +3990,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case equipmentportdefinition.Table:
 		n, err := c.EquipmentPortDefinition.Query().
 			Where(equipmentportdefinition.ID(id)).
-			WithFieldCollection(ctx, "EquipmentPortDefinition").
+			CollectFields(ctx, "EquipmentPortDefinition").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -3999,7 +3999,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case equipmentporttype.Table:
 		n, err := c.EquipmentPortType.Query().
 			Where(equipmentporttype.ID(id)).
-			WithFieldCollection(ctx, "EquipmentPortType").
+			CollectFields(ctx, "EquipmentPortType").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4008,7 +4008,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case equipmentposition.Table:
 		n, err := c.EquipmentPosition.Query().
 			Where(equipmentposition.ID(id)).
-			WithFieldCollection(ctx, "EquipmentPosition").
+			CollectFields(ctx, "EquipmentPosition").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4017,7 +4017,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case equipmentpositiondefinition.Table:
 		n, err := c.EquipmentPositionDefinition.Query().
 			Where(equipmentpositiondefinition.ID(id)).
-			WithFieldCollection(ctx, "EquipmentPositionDefinition").
+			CollectFields(ctx, "EquipmentPositionDefinition").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4026,7 +4026,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case equipmenttype.Table:
 		n, err := c.EquipmentType.Query().
 			Where(equipmenttype.ID(id)).
-			WithFieldCollection(ctx, "EquipmentType").
+			CollectFields(ctx, "EquipmentType").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4035,7 +4035,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case file.Table:
 		n, err := c.File.Query().
 			Where(file.ID(id)).
-			WithFieldCollection(ctx, "File").
+			CollectFields(ctx, "File").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4044,7 +4044,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case floorplan.Table:
 		n, err := c.FloorPlan.Query().
 			Where(floorplan.ID(id)).
-			WithFieldCollection(ctx, "FloorPlan").
+			CollectFields(ctx, "FloorPlan").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4053,7 +4053,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case floorplanreferencepoint.Table:
 		n, err := c.FloorPlanReferencePoint.Query().
 			Where(floorplanreferencepoint.ID(id)).
-			WithFieldCollection(ctx, "FloorPlanReferencePoint").
+			CollectFields(ctx, "FloorPlanReferencePoint").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4062,7 +4062,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case floorplanscale.Table:
 		n, err := c.FloorPlanScale.Query().
 			Where(floorplanscale.ID(id)).
-			WithFieldCollection(ctx, "FloorPlanScale").
+			CollectFields(ctx, "FloorPlanScale").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4071,7 +4071,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case hyperlink.Table:
 		n, err := c.Hyperlink.Query().
 			Where(hyperlink.ID(id)).
-			WithFieldCollection(ctx, "Hyperlink").
+			CollectFields(ctx, "Hyperlink").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4080,7 +4080,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case link.Table:
 		n, err := c.Link.Query().
 			Where(link.ID(id)).
-			WithFieldCollection(ctx, "Link").
+			CollectFields(ctx, "Link").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4089,7 +4089,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case location.Table:
 		n, err := c.Location.Query().
 			Where(location.ID(id)).
-			WithFieldCollection(ctx, "Location").
+			CollectFields(ctx, "Location").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4098,7 +4098,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case locationtype.Table:
 		n, err := c.LocationType.Query().
 			Where(locationtype.ID(id)).
-			WithFieldCollection(ctx, "LocationType").
+			CollectFields(ctx, "LocationType").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4107,7 +4107,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case project.Table:
 		n, err := c.Project.Query().
 			Where(project.ID(id)).
-			WithFieldCollection(ctx, "Project").
+			CollectFields(ctx, "Project").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4116,7 +4116,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case projecttype.Table:
 		n, err := c.ProjectType.Query().
 			Where(projecttype.ID(id)).
-			WithFieldCollection(ctx, "ProjectType").
+			CollectFields(ctx, "ProjectType").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4125,7 +4125,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case property.Table:
 		n, err := c.Property.Query().
 			Where(property.ID(id)).
-			WithFieldCollection(ctx, "Property").
+			CollectFields(ctx, "Property").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4134,7 +4134,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case propertytype.Table:
 		n, err := c.PropertyType.Query().
 			Where(propertytype.ID(id)).
-			WithFieldCollection(ctx, "PropertyType").
+			CollectFields(ctx, "PropertyType").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4143,7 +4143,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case service.Table:
 		n, err := c.Service.Query().
 			Where(service.ID(id)).
-			WithFieldCollection(ctx, "Service").
+			CollectFields(ctx, "Service").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4152,7 +4152,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case serviceendpoint.Table:
 		n, err := c.ServiceEndpoint.Query().
 			Where(serviceendpoint.ID(id)).
-			WithFieldCollection(ctx, "ServiceEndpoint").
+			CollectFields(ctx, "ServiceEndpoint").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4161,7 +4161,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case servicetype.Table:
 		n, err := c.ServiceType.Query().
 			Where(servicetype.ID(id)).
-			WithFieldCollection(ctx, "ServiceType").
+			CollectFields(ctx, "ServiceType").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4170,7 +4170,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case survey.Table:
 		n, err := c.Survey.Query().
 			Where(survey.ID(id)).
-			WithFieldCollection(ctx, "Survey").
+			CollectFields(ctx, "Survey").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4179,7 +4179,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case surveycellscan.Table:
 		n, err := c.SurveyCellScan.Query().
 			Where(surveycellscan.ID(id)).
-			WithFieldCollection(ctx, "SurveyCellScan").
+			CollectFields(ctx, "SurveyCellScan").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4188,7 +4188,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case surveyquestion.Table:
 		n, err := c.SurveyQuestion.Query().
 			Where(surveyquestion.ID(id)).
-			WithFieldCollection(ctx, "SurveyQuestion").
+			CollectFields(ctx, "SurveyQuestion").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4197,7 +4197,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case surveytemplatecategory.Table:
 		n, err := c.SurveyTemplateCategory.Query().
 			Where(surveytemplatecategory.ID(id)).
-			WithFieldCollection(ctx, "SurveyTemplateCategory").
+			CollectFields(ctx, "SurveyTemplateCategory").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4206,7 +4206,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case surveytemplatequestion.Table:
 		n, err := c.SurveyTemplateQuestion.Query().
 			Where(surveytemplatequestion.ID(id)).
-			WithFieldCollection(ctx, "SurveyTemplateQuestion").
+			CollectFields(ctx, "SurveyTemplateQuestion").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4215,7 +4215,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case surveywifiscan.Table:
 		n, err := c.SurveyWiFiScan.Query().
 			Where(surveywifiscan.ID(id)).
-			WithFieldCollection(ctx, "SurveyWiFiScan").
+			CollectFields(ctx, "SurveyWiFiScan").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4224,7 +4224,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case technician.Table:
 		n, err := c.Technician.Query().
 			Where(technician.ID(id)).
-			WithFieldCollection(ctx, "Technician").
+			CollectFields(ctx, "Technician").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4233,7 +4233,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case workorder.Table:
 		n, err := c.WorkOrder.Query().
 			Where(workorder.ID(id)).
-			WithFieldCollection(ctx, "WorkOrder").
+			CollectFields(ctx, "WorkOrder").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4242,7 +4242,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case workorderdefinition.Table:
 		n, err := c.WorkOrderDefinition.Query().
 			Where(workorderdefinition.ID(id)).
-			WithFieldCollection(ctx, "WorkOrderDefinition").
+			CollectFields(ctx, "WorkOrderDefinition").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -4251,7 +4251,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error
 	case workordertype.Table:
 		n, err := c.WorkOrderType.Query().
 			Where(workordertype.ID(id)).
-			WithFieldCollection(ctx, "WorkOrderType").
+			CollectFields(ctx, "WorkOrderType").
 			Only(ctx)
 		if err != nil {
 			return nil, err

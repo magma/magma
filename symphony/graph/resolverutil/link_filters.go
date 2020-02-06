@@ -73,19 +73,22 @@ func linkEquipmentTypeFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
-func BuildGeneralEquipmentAncestorFilter(pred predicate.Equipment, depth int, maxDepth int) predicate.Equipment {
+func BuildGeneralEquipmentAncestorFilter(pred predicate.Equipment, depth, maxDepth int) predicate.Equipment {
 	if depth >= maxDepth {
 		return pred
 	}
 
-	return equipment.Or(
-		pred,
+	return equipment.Or(pred,
 		equipment.HasParentPositionWith(
-			equipmentposition.HasParentWith(BuildGeneralEquipmentAncestorFilter(pred, depth+1, maxDepth))))
+			equipmentposition.HasParentWith(
+				BuildGeneralEquipmentAncestorFilter(pred, depth+1, maxDepth),
+			),
+		),
+	)
 }
 
 // BuildEquipmentAncestorFilter returns a joined predicate for equipment ancestors
-func BuildEquipmentAncestorFilter(equipmentIDs []string, depth int, maxDepth int) predicate.Equipment {
+func BuildEquipmentAncestorFilter(equipmentIDs []string, depth, maxDepth int) predicate.Equipment {
 	return BuildGeneralEquipmentAncestorFilter(equipment.IDIn(equipmentIDs...), depth, maxDepth)
 }
 
@@ -107,14 +110,25 @@ func handleLinkServiceFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (
 func linkServiceFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (*ent.LinkQuery, error) {
 	switch filter.Operator {
 	case models.FilterOperatorIsOneOf:
-		return q.Where(link.HasServiceWith(service.IDIn(filter.IDSet...))), nil
+		return q.Where(
+			link.HasServiceWith(
+				service.IDIn(filter.IDSet...),
+			),
+		), nil
 	case models.FilterOperatorIsNotOneOf:
-		return q.Where(link.Not(
-			link.HasServiceWith(service.IDIn(filter.IDSet...)),
-		),
+		return q.Where(
+			link.Not(
+				link.HasServiceWith(
+					service.IDIn(filter.IDSet...),
+				),
+			),
 		), nil
 	case models.FilterOperatorContains:
-		return q.Where(link.HasServiceWith(service.NameContainsFold(*filter.StringValue))), nil
+		return q.Where(
+			link.HasServiceWith(
+				service.NameContainsFold(*filter.StringValue),
+			),
+		), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
@@ -141,7 +155,7 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 		if err != nil {
 			return nil, err
 		}
-		q = q.Where(link.Or(
+		return q.Where(link.Or(
 			link.HasPropertiesWith(
 				property.And(
 					property.HasTypeWith(
@@ -152,26 +166,33 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 				),
 			),
 			link.And(
-				link.HasPortsWith(equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(equipmentporttype.HasLinkPropertyTypesWith(
-					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
-					propTypePred,
-				)))),
-				link.Not(link.HasPropertiesWith(
-					property.HasTypeWith(
-						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
-					)),
-				)),
-		),
-		)
-		return q, nil
+				link.HasPortsWith(
+					equipmentport.HasDefinitionWith(
+						equipmentportdefinition.HasEquipmentPortTypeWith(
+							equipmentporttype.HasLinkPropertyTypesWith(
+								propertytype.Name(p.Name),
+								propertytype.Type(p.Type.String()),
+								propTypePred,
+							),
+						),
+					),
+				),
+				link.Not(
+					link.HasPropertiesWith(
+						property.HasTypeWith(
+							propertytype.Name(p.Name),
+							propertytype.Type(p.Type.String()),
+						),
+					),
+				),
+			),
+		)), nil
 	case models.FilterOperatorDateLessThan, models.FilterOperatorDateGreaterThan:
 		propPred, propTypePred, err := GetDatePropertyPred(*p, filter.Operator)
 		if err != nil {
 			return nil, err
 		}
-		q = q.Where(link.Or(
+		return q.Where(link.Or(
 			link.HasPropertiesWith(
 				property.And(
 					property.HasTypeWith(
@@ -182,18 +203,29 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 				),
 			),
 			link.And(
-				link.HasPortsWith(equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(equipmentporttype.HasLinkPropertyTypesWith(
-					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
-					propTypePred,
-				)))),
-				link.Not(link.HasPortsWith(equipmentport.HasPropertiesWith(
-					property.HasTypeWith(
-						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
-					)),
-				)))))
-		return q, nil
+				link.HasPortsWith(
+					equipmentport.HasDefinitionWith(
+						equipmentportdefinition.HasEquipmentPortTypeWith(
+							equipmentporttype.HasLinkPropertyTypesWith(
+								propertytype.Name(p.Name),
+								propertytype.Type(p.Type.String()),
+								propTypePred,
+							),
+						),
+					),
+				),
+				link.Not(
+					link.HasPortsWith(
+						equipmentport.HasPropertiesWith(
+							property.HasTypeWith(
+								propertytype.Name(p.Name),
+								propertytype.Type(p.Type.String()),
+							),
+						),
+					),
+				),
+			),
+		)), nil
 	default:
 		return nil, errors.Errorf("operator %q not supported", filter.Operator)
 	}

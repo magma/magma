@@ -1865,7 +1865,7 @@ type Query {
     before: Cursor
     last: Int
   ): ServiceTypeConnection
-  workOrder(id: ID!): WorkOrder
+  workOrder(id: ID!): WorkOrder @deprecated(reason: "Use `node` instead")
   workOrders(
     after: Cursor
     first: Int
@@ -1873,7 +1873,6 @@ type Query {
     last: Int
     showCompleted: Boolean
   ): WorkOrderConnection!
-  workOrderType(id: ID!): WorkOrderType
   workOrderTypes(
     after: Cursor
     first: Int
@@ -1926,15 +1925,12 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
-  projectType(id: ID!): ProjectType @deprecated(reason: "Use `node` instead")
   projectTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ProjectTypeConnection
-  project(id: ID!): Project @deprecated(reason: "Use `node` instead")
-  customer(id: ID!): Customer
   customers(
     after: Cursor
     first: Int

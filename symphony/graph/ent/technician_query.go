@@ -342,13 +342,13 @@ func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.technician_id
+			fk := n.work_order_technician
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "technician_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_technician" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "technician_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_technician" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
 		}

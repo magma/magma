@@ -12,6 +12,7 @@
 
 #include <devmand/devices/cli/schema/Model.h>
 #include <devmand/devices/cli/schema/SchemaContext.h>
+#include <folly/dynamic.h>
 #include <ydk/codec_provider.hpp>
 #include <ydk/codec_service.hpp>
 #include <ydk/json_subtree_codec.hpp>
@@ -24,13 +25,17 @@ namespace devices {
 namespace cli {
 
 using namespace std;
+using namespace folly;
 using namespace ydk;
 using namespace ydk::path;
 using namespace devmand::devices::cli;
 
 class BindingCodec {
  public:
-  explicit BindingCodec(Repository& repo, const string& schemaDir);
+  explicit BindingCodec(
+      Repository& repo,
+      const string& schemaDir,
+      const SchemaContext& _schemaCtx);
   BindingCodec() = delete;
   ~BindingCodec() = default;
   BindingCodec(const BindingCodec&) = delete;
@@ -42,15 +47,21 @@ class BindingCodec {
   mutex lock; // A codec is expected to be shared, protect it
   CodecServiceProvider codecServiceProvider;
   JsonSubtreeCodec jsonSubtreeCodec;
+  const SchemaContext& schemaCtx;
 
  public:
   string encode(Entity& entity);
   shared_ptr<Entity> decode(const string& payload, shared_ptr<Entity> pointer);
+
+  dynamic toDom(Path path, Entity& entity);
+  shared_ptr<Entity> fromDom(
+      const dynamic& payload,
+      shared_ptr<Entity> pointer);
 };
 
 class BindingContext {
  public:
-  explicit BindingContext(const Model& model);
+  explicit BindingContext(const Model& model, const SchemaContext& _schemaCtx);
   BindingContext() = delete;
   ~BindingContext() = default;
   BindingContext(const BindingContext&) = delete;

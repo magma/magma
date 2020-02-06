@@ -31,9 +31,9 @@ type ServiceEndpoint struct {
 	Role string `json:"role,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceEndpointQuery when eager-loading is set.
-	Edges      ServiceEndpointEdges `json:"edges"`
-	service_id *string
-	port_id    *string
+	Edges                 ServiceEndpointEdges `json:"edges"`
+	service_endpoints     *string
+	service_endpoint_port *string
 }
 
 // ServiceEndpointEdges holds the relations/edges for other nodes in the graph.
@@ -88,8 +88,8 @@ func (*ServiceEndpoint) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*ServiceEndpoint) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // service_id
-		&sql.NullInt64{}, // port_id
+		&sql.NullInt64{}, // service_endpoints
+		&sql.NullInt64{}, // service_endpoint_port
 	}
 }
 
@@ -123,16 +123,16 @@ func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
 	values = values[3:]
 	if len(values) == len(serviceendpoint.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field service_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field service_endpoints", value)
 		} else if value.Valid {
-			se.service_id = new(string)
-			*se.service_id = strconv.FormatInt(value.Int64, 10)
+			se.service_endpoints = new(string)
+			*se.service_endpoints = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field port_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field service_endpoint_port", value)
 		} else if value.Valid {
-			se.port_id = new(string)
-			*se.port_id = strconv.FormatInt(value.Int64, 10)
+			se.service_endpoint_port = new(string)
+			*se.service_endpoint_port = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

@@ -38,9 +38,9 @@ type Location struct {
 	SiteSurveyNeeded bool `json:"site_survey_needed,omitempty" gqlgen:"siteSurveyNeeded"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LocationQuery when eager-loading is set.
-	Edges     LocationEdges `json:"edges"`
-	type_id   *string
-	parent_id *string
+	Edges             LocationEdges `json:"edges"`
+	location_type     *string
+	location_children *string
 }
 
 // LocationEdges holds the relations/edges for other nodes in the graph.
@@ -209,8 +209,8 @@ func (*Location) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Location) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // type_id
-		&sql.NullInt64{}, // parent_id
+		&sql.NullInt64{}, // location_type
+		&sql.NullInt64{}, // location_children
 	}
 }
 
@@ -264,16 +264,16 @@ func (l *Location) assignValues(values ...interface{}) error {
 	values = values[7:]
 	if len(values) == len(location.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_type", value)
 		} else if value.Valid {
-			l.type_id = new(string)
-			*l.type_id = strconv.FormatInt(value.Int64, 10)
+			l.location_type = new(string)
+			*l.location_type = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field parent_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_children", value)
 		} else if value.Valid {
-			l.parent_id = new(string)
-			*l.parent_id = strconv.FormatInt(value.Int64, 10)
+			l.location_children = new(string)
+			*l.location_children = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

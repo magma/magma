@@ -16,6 +16,7 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/handler"
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
@@ -682,8 +683,10 @@ func TestDetachEquipmentFromPositionWithWorkOrder(t *testing.T) {
 	_, err = mr.RemoveEquipmentFromPosition(ctx, fetchedPosition.ID, &workOrder.ID)
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	removedEquipment, err := wor.EquipmentToRemove(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -747,8 +750,10 @@ func TestAddDetachEquipmentFromPositionSameWorkOrder(t *testing.T) {
 	_, err = mr.RemoveEquipmentFromPosition(ctx, fetchedPosition.ID, &workOrder.ID)
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	removedEquipment, err := wor.EquipmentToRemove(ctx, fetchedWorkOrder)
 	require.NoError(t, err)

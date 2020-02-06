@@ -116,22 +116,9 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'import_exported_equipemnt',
-    title: 'Imported Exported Equipment',
-    enabledByDefault: true,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'import_exported_links',
-    title: 'Imported Exported Links',
-    enabledByDefault: true,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'import_exported_ports',
-    title: 'Imported Exported Ports',
-    enabledByDefault: true,
-    rules: [AlwaysEnabledInTestEnvRule],
+    id: 'deprecated_imports',
+    title: 'Show Deprecated Imports',
+    enabledByDefault: false,
   },
   {
     id: 'work_order_map',
@@ -217,10 +204,12 @@ export async function getEnabledFeatures(
   organization: ?string,
 ): Promise<FeatureID[]> {
   const results = await Promise.all(
-    arrayConfigs.map(async (config): Promise<?FeatureID> => {
-      const enabled = await isFeatureEnabled(req, config.id, organization);
-      return enabled ? config.id : null;
-    }),
+    arrayConfigs.map(
+      async (config): Promise<?FeatureID> => {
+        const enabled = await isFeatureEnabled(req, config.id, organization);
+        return enabled ? config.id : null;
+      },
+    ),
   );
 
   return results.filter(Boolean);

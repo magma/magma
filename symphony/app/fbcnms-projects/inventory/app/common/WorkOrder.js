@@ -81,6 +81,11 @@ export const priorityValues = [
   },
 ];
 
+export const doneStatus = {
+  value: 'DONE',
+  label: 'Done',
+};
+
 export const statusValues = [
   {
     value: 'PLANNED',
@@ -90,10 +95,7 @@ export const statusValues = [
     value: 'PENDING',
     label: 'Pending',
   },
-  {
-    value: 'DONE',
-    label: 'Done',
-  },
+  doneStatus,
 ];
 
 export type FutureState = 'INSTALL' | 'REMOVE';

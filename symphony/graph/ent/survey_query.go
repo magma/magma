@@ -389,7 +389,7 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*Survey)
 		for i := range nodes {
-			if fk := nodes[i].location_id; fk != nil {
+			if fk := nodes[i].survey_location; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -402,7 +402,7 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_location" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Location = n
@@ -414,7 +414,7 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*Survey)
 		for i := range nodes {
-			if fk := nodes[i].survey_source_file_id; fk != nil {
+			if fk := nodes[i].survey_source_file; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -427,7 +427,7 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_source_file_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_source_file" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.SourceFile = n
@@ -455,13 +455,13 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.survey_id
+			fk := n.survey_question_survey
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "survey_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_question_survey" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_survey" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Questions = append(node.Edges.Questions, n)
 		}

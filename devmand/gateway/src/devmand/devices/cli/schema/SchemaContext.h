@@ -41,6 +41,8 @@ class SchemaContext {
   bool isList(Path p) const;
   bool isConfig(Path p) const;
   vector<string> getKeys(Path path) const;
+  // return resolved type of a leaf
+  vector<LLLY_DATA_TYPE> leafType(Path path) const;
 
   bool operator==(const SchemaContext& rhs) const;
   bool operator!=(const SchemaContext& rhs) const;

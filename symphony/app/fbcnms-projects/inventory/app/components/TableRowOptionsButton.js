@@ -13,6 +13,7 @@ import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/
 import * as React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
+import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useMemo} from 'react';
@@ -21,6 +22,12 @@ export type MenuOption = {
   onClick: () => void,
   caption: React.Node,
   ...PermissionHandlingProps,
+};
+
+type Props = {
+  options: Array<MenuOption>,
+  menuIcon?: React.Node,
+  className?: ?string,
 };
 
 const useStyles = makeStyles({
@@ -41,8 +48,8 @@ const useStyles = makeStyles({
   },
 });
 
-const TableRowOptionsButton = (props: {options: Array<MenuOption>}) => {
-  const {options} = props;
+const TableRowOptionsButton = (props: Props) => {
+  const {options, menuIcon, className} = props;
   const classes = useStyles();
   const isEnabled = useMemo(() => props.options.length > 0, [
     props.options.length,
@@ -67,7 +74,13 @@ const TableRowOptionsButton = (props: {options: Array<MenuOption>}) => {
       onChange={handleOptionClick}
       menuClassName={classes.menu}
       className={classes.menuButton}>
-      <MoreVertIcon className={isEnabled ? classes.icon : ''} />
+      {menuIcon ?? (
+        <MoreVertIcon
+          className={classNames(className, {
+            [classes.icon]: isEnabled,
+          })}
+        />
+      )}
     </PopoverMenu>
   );
 };

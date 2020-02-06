@@ -158,10 +158,11 @@ func (r queryResolver) EquipmentPortDefinitions(
 }
 
 func (r queryResolver) WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error) {
-	wo, err := r.ClientFrom(ctx).WorkOrder.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying equipment position definition: id=%q", id)
+	noder, err := r.Node(ctx, id)
+	if err != nil {
+		return nil, err
 	}
+	wo, _ := noder.(*ent.WorkOrder)
 	return wo, nil
 }
 
@@ -179,14 +180,6 @@ func (r queryResolver) WorkOrders(
 		))
 	}
 	return query.Paginate(ctx, after, first, before, last)
-}
-
-func (r queryResolver) WorkOrderType(ctx context.Context, id string) (*ent.WorkOrderType, error) {
-	lt, err := r.ClientFrom(ctx).WorkOrderType.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying work order type: id=%q", id)
-	}
-	return lt, nil
 }
 
 func (r queryResolver) WorkOrderTypes(
@@ -328,14 +321,6 @@ func (r queryResolver) ServiceTypes(
 ) (*ent.ServiceTypeConnection, error) {
 	return r.ClientFrom(ctx).ServiceType.Query().
 		Paginate(ctx, after, first, before, last)
-}
-
-func (r queryResolver) Customer(ctx context.Context, id string) (*ent.Customer, error) {
-	st, err := r.ClientFrom(ctx).Customer.Get(ctx, id)
-	if err != nil {
-		return nil, errors.Wrapf(err, "querying customer: id=%q", id)
-	}
-	return st, nil
 }
 
 func (r queryResolver) Customers(

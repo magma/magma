@@ -30,8 +30,8 @@ type Link struct {
 	FutureState string `json:"future_state,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LinkQuery when eager-loading is set.
-	Edges         LinkEdges `json:"edges"`
-	work_order_id *string
+	Edges           LinkEdges `json:"edges"`
+	link_work_order *string
 }
 
 // LinkEdges holds the relations/edges for other nodes in the graph.
@@ -103,7 +103,7 @@ func (*Link) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Link) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // work_order_id
+		&sql.NullInt64{}, // link_work_order
 	}
 }
 
@@ -137,10 +137,10 @@ func (l *Link) assignValues(values ...interface{}) error {
 	values = values[3:]
 	if len(values) == len(link.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field link_work_order", value)
 		} else if value.Valid {
-			l.work_order_id = new(string)
-			*l.work_order_id = strconv.FormatInt(value.Int64, 10)
+			l.link_work_order = new(string)
+			*l.link_work_order = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil
