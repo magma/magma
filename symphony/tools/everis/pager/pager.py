@@ -100,13 +100,13 @@ class Client(gql.Client):
         )
 
 
-def paginate(client, query, step=100):
+def paginate(client, query, step):
     values = {"first": step}
     aggr = rsp = client.execute(query, variable_values=values)
     while rsp["locations"]["pageInfo"]["hasNextPage"]:
         values["after"] = rsp["locations"]["pageInfo"]["endCursor"]
         rsp = client.execute(query, variable_values=values)
-        aggr["locations"]["edges"].append(rsp["locations"]["edges"])
+        aggr["locations"]["edges"].extend(rsp["locations"]["edges"])
     return aggr
 
 
@@ -121,11 +121,11 @@ def main():
     parser.add_argument(
         "-e", "--endpoint", type=str, required=True, help="graphql endpoint"
     )
-    parser.add_argument("--step", type=int, help="pagination step")
+    parser.add_argument("--step", type=int, default=1000, help="pagination step")
     args = parser.parse_args()
 
     client = Client(url=args.endpoint, username=args.username, password=args.password)
-    data = paginate(client, query)
+    data = paginate(client, query, args.step)
     json.dump(data, sys.stdout)
 
 
