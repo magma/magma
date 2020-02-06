@@ -36,6 +36,7 @@ import (
 	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
 
 	"github.com/labstack/echo"
@@ -98,6 +99,7 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 		metricsdh.GetObsidianHandlers(metricsConfig),
 		upgradeh.GetObsidianHandlers(),
 		stateh.GetObsidianHandlers(),
+		tenantsh.GetObsidianHandlers(),
 		// v1 handlers
 		handlers.GetObsidianHandlers(),
 		[]obsidian.Handler{{
