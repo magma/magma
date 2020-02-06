@@ -110,6 +110,7 @@ add_library(SESSION_MANAGER
     CreditPool.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
+    StoredState.h
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
