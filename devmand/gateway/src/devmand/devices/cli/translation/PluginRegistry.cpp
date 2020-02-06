@@ -71,9 +71,9 @@ void DeviceContext::provideReaders(ReaderRegistryBuilder& registry) const {
   }
 }
 
-void DeviceContext::provideWriters() const {
+void DeviceContext::provideWriters(WriterRegistryBuilder& registry) const {
   for (const auto& plugin : plugins) {
-    plugin->provideWriters();
+    plugin->provideWriters(registry);
   }
 }
 

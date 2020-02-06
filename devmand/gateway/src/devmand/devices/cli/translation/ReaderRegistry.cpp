@@ -190,17 +190,6 @@ ostream& operator<<(ostream& os, const ReaderRegistry& registry) {
   return os;
 }
 
-class PathVertexWriter {
-  YangHierarchy graph;
-
- public:
-  PathVertexWriter(YangHierarchy _name) : graph(_name) {}
-  void operator()(ostream& out, const YangHierarchy::vertex_descriptor v)
-      const {
-    out << "[path=\"" << graph.graph()[v].path << "\"]";
-  }
-};
-
 unique_ptr<ReaderRegistry> ReaderRegistryBuilder::build() {
   if (allReaders.empty()) {
     ReaderRegistryException(
