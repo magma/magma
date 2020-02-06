@@ -22,7 +22,7 @@ import (
 
 	"github.com/labstack/echo"
 	promAPI "github.com/prometheus/client_golang/api"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 const (
@@ -42,6 +42,10 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			obsidian.Handler{Path: promH.QueryV1URL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 			obsidian.Handler{Path: promH.QueryRangeV1URL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 			obsidian.Handler{Path: promH.SeriesV1URL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+
+			obsidian.Handler{Path: promH.TenantV1QueryURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+			obsidian.Handler{Path: promH.TenantV1QueryRangeURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+			obsidian.Handler{Path: promH.TenantV1SeriesURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 		)
 	} else {
 		pAPI := v1.NewAPI(client)
@@ -53,6 +57,10 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			obsidian.Handler{Path: promH.QueryV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusQueryHandler(pAPI)},
 			obsidian.Handler{Path: promH.QueryRangeV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusQueryRangeHandler(pAPI)},
 			obsidian.Handler{Path: promH.SeriesV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusSeriesHandler(pAPI)},
+
+			obsidian.Handler{Path: promH.TenantV1QueryURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantQueryHandler(pAPI)},
+			obsidian.Handler{Path: promH.TenantV1QueryRangeURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantQueryRangeHandler(pAPI)},
+			obsidian.Handler{Path: promH.TenantV1SeriesURL, Methods: obsidian.GET, HandlerFunc: promH.TenantSeriesHandlerProvider(pAPI)},
 		)
 	}
 

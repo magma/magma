@@ -57,7 +57,7 @@ paths:
       tags:
       - Tenants
       parameters:
-        - $ref: '#/parameters/tenant_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
       responses:
         '200':
           description: Requested Tenant Information
@@ -70,7 +70,7 @@ paths:
       tags:
         - Tenants
       parameters:
-        - $ref: '#/parameters/tenant_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
         - in: body
           name: tenant
           description: Tenant to be updated
@@ -87,22 +87,12 @@ paths:
       tags:
         - Tenants
       parameters:
-        - $ref: '#/parameters/tenant_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
       responses:
         '204':
           description: Ok
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-
-parameters:
-  tenant_id:
-    in: path
-    name: tenant_id
-    description: ID of tenant
-    required: true
-    type: integer
-    format: int64
-    minimum: 0
 
 definitions:
   tenant:

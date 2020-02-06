@@ -62,6 +62,18 @@ func TestGetPrometheusSeriesHandler(t *testing.T) {
 			restrictor:      networkQueryRestrictorProvider("test"),
 			expectedStrings: []string{`{networkID="test"}`},
 		},
+		{
+			name:            "tenant match",
+			inputURL:        "/",
+			restrictor:      *restrictor.NewQueryRestrictor(restrictor.Opts{ReplaceExistingLabel: false}).AddMatcher("networkID", "net1", "net2"),
+			expectedStrings: []string{`{networkID=~"net1|net2"}`},
+		},
+		{
+			name:            "tenant two match",
+			inputURL:        "/?match=up%20down",
+			restrictor:      *restrictor.NewQueryRestrictor(restrictor.Opts{ReplaceExistingLabel: false}).AddMatcher("networkID", "net1", "net2"),
+			expectedStrings: []string{`up{networkID=~"net1|net2"}`, `down{networkID=~"net1|net2"}`},
+		},
 	}
 
 	for _, tc := range testCases {
