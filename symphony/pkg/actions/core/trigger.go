@@ -6,8 +6,6 @@ package core
 
 import (
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 // Trigger is the base interface for implementing a Trigger
@@ -21,16 +19,15 @@ type Trigger interface {
 // EvaluateTrigger evaluates the user-supplied rule for if this rule
 // should be executed or not
 func EvaluateTrigger(trigger Trigger, rule Rule, inputParams map[string]interface{}) (bool, error) {
-	supportedfilters := supportedFiltersMap(trigger)
-
+	supportedFilters := supportedFiltersMap(trigger)
 	for _, ruleFilter := range rule.RuleFilters {
-		filter, ok := supportedfilters[ruleFilter.FilterID]
+		filter, ok := supportedFilters[ruleFilter.FilterID]
 		if !ok {
 			return false, fmt.Errorf("invalid filter id: %s", ruleFilter.FilterID)
 		}
 		isValid, err := filter.Evaluate(ruleFilter, inputParams)
 		if err != nil {
-			return false, errors.Wrap(err, "evaluating ruleFilter")
+			return false, fmt.Errorf("evaluating filter: %w", err)
 		}
 		if !isValid {
 			return false, nil
@@ -40,9 +37,12 @@ func EvaluateTrigger(trigger Trigger, rule Rule, inputParams map[string]interfac
 }
 
 func supportedFiltersMap(t Trigger) map[string]Filter {
-	ret := make(map[string]Filter)
-	for _, filter := range t.SupportedFilters() {
-		ret[filter.FilterID()] = filter
+	var (
+		filters   = t.SupportedFilters()
+		filterMap = make(map[string]Filter, len(filters))
+	)
+	for _, filter := range filters {
+		filterMap[filter.FilterID()] = filter
 	}
-	return ret
+	return filterMap
 }
