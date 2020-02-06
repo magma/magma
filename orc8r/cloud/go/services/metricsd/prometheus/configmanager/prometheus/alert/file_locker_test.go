@@ -52,8 +52,8 @@ func TestFileLocker_Unlock(t *testing.T) {
 	events = append(events, 3)
 	locks.Unlock(fname)
 
-	// sleep 1ms to let go func finish
-	time.Sleep(1 * time.Millisecond)
+	// sleep to let go func finish
+	time.Sleep(500 * time.Millisecond)
 	// Assert event 2 happened after event 3
 	assert.Equal(t, []int{1, 3, 2}, events)
 }
@@ -70,7 +70,7 @@ func TestFileLocker_RLock(t *testing.T) {
 		locks.RLock(fname)
 		events = append(events, 2)
 	}()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 	events = append(events, 3)
 	go func() {
 		locks.Lock(fname)
@@ -94,7 +94,7 @@ func TestFileLocker_RUnlock(t *testing.T) {
 		events = append(events, 2)
 		locks.RUnlock(fname)
 	}()
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	go func() {
 		locks.Lock(fname)
@@ -103,7 +103,7 @@ func TestFileLocker_RUnlock(t *testing.T) {
 
 	events = append(events, 4)
 	locks.RUnlock(fname)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	// Assert event 3 happened after 4
 	assert.Equal(t, []int{1, 2, 4, 3}, events)

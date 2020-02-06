@@ -29,6 +29,8 @@ type RuleManager struct {
 	dynamicRules []*fegProtos.AccountRules
 	// List of usage monitors successfully installed into PCRF
 	monitors []*fegProtos.UsageMonitorInfo
+	// List of network wide static rules successfully inserted into the policyDB store
+	omniPresentRules []*lteProtos.AssignedPolicies
 	// Wrapper around redis operations for policyDB objects
 	policyDBWrapper *policyDBWrapper
 }
@@ -46,9 +48,9 @@ func NewRuleManager() (*RuleManager, error) {
 
 // AddStaticPassAll adds a static rule that passes all traffic to policyDB
 // storage
-func (manager *RuleManager) AddStaticPassAll(ruleID string, monitoringKey string) error {
+func (manager *RuleManager) AddStaticPassAll(ruleID string, monitoringKey string, trackingType string) error {
 	fmt.Printf("************************* Adding a Pass-All static rule: %s\n", ruleID)
-	staticPassAll := getStaticPassAll(ruleID, monitoringKey)
+	staticPassAll := getStaticPassAll(ruleID, monitoringKey, trackingType)
 	return manager.insertStaticRuleIntoRedis(staticPassAll)
 }
 
@@ -71,6 +73,13 @@ func (manager *RuleManager) AddDynamicRules(imsi string, ruleNames, baseNames []
 		" with ruleNames=%v, baseNames=%v\n", imsi, ruleNames, baseNames)
 	rules := makeDynamicRules(imsi, ruleNames, baseNames)
 	return manager.addDynamicRules(rules)
+}
+
+// AddOmniPresentRules adds the network wide static rule to policyDB storage
+func (manager *RuleManager) AddOmniPresentRules(keyId string, ruleNames, baseNames []string) error {
+	fmt.Printf("************************* Adding a network wide rule\n")
+	rule := makeAssignedRules(ruleNames, baseNames)
+	return manager.insertOmniPresentRuleIntoRedis(keyId, rule)
 }
 
 // GetInstalledRulesByIMSI returns all dynamic rule ids and static rules
@@ -122,6 +131,14 @@ func (manager *RuleManager) insertStaticRuleIntoRedis(rule *lteProtos.PolicyRule
 	return err
 }
 
+func (manager *RuleManager) insertOmniPresentRuleIntoRedis(keyID string, rule *lteProtos.AssignedPolicies) error {
+	err := manager.policyDBWrapper.omniPresentRules.Set(keyID, rule)
+	if err != nil {
+		manager.omniPresentRules = append(manager.omniPresentRules, rule)
+	}
+	return err
+}
+
 func (manager *RuleManager) addDynamicRules(rules *fegProtos.AccountRules) error {
 	err := addPCRFRules(rules)
 	if err != nil {
@@ -151,6 +168,13 @@ func makeDynamicRules(imsi string, ruleNames []string, baseNames []string) *fegP
 		Imsi:          imsi,
 		RuleNames:     ruleNames,
 		RuleBaseNames: baseNames,
+	}
+}
+
+func makeAssignedRules(ruleNames []string, baseNames []string) *lteProtos.AssignedPolicies {
+	return &lteProtos.AssignedPolicies{
+		AssignedPolicies:  ruleNames,
+		AssignedBaseNames: baseNames,
 	}
 }
 
