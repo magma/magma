@@ -797,7 +797,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
       num = config_setting_length(setting);
       OAILOG_INFO(LOG_MME_APP, "Number of GUMMEIs configured =%d\n", num);
       AssertFatal(
-        num == 1,
+        num >= 1,
         "Not even one GUMMEI is configured, configure minimum one GUMMEI \n");
       AssertFatal(
         num < MAX_GUMMEI,
