@@ -23,6 +23,27 @@ const SessionCredit::FinalActionInfo default_final_action_info = {
 class SessionCreditParameterizedTest :
   public ::testing::TestWithParam<CreditType> {};
 
+TEST_P(SessionCreditParameterizedTest, test_marshal_unmarshal) {
+  CreditType credit_type = GetParam();
+  SessionCredit credit(credit_type);
+
+  // Set some fields here to non default values. Credit is used.
+  credit.add_used_credit((uint64_t) 39u, (uint64_t) 40u);
+
+  // Sanity check of credit usage. Test result after marshal/unmarshal should
+  // match.
+  EXPECT_EQ(credit.get_credit(USED_TX), (uint64_t) 39u);
+  EXPECT_EQ(credit.get_credit(USED_RX), (uint64_t) 40u);
+
+  // Check that after marshaling/unmarshaling that the fields are still the
+  // same.
+  auto marshaled = credit.marshal();
+  auto credit_2 = SessionCredit::unmarshal(marshaled, credit_type);
+
+  EXPECT_EQ(credit_2->get_credit(USED_TX), (uint64_t) 39u);
+  EXPECT_EQ(credit_2->get_credit(USED_RX), (uint64_t) 40u);
+}
+
 TEST_P(SessionCreditParameterizedTest, test_track_credit) {
   CreditType credit_type = GetParam();
   SessionCredit credit(credit_type);

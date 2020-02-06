@@ -50,6 +50,12 @@ class SessionCredit {
     RedirectServer redirect_server;
   };
 
+  static std::unique_ptr<SessionCredit> unmarshal(
+    const StoredSessionCredit &marshaled,
+    CreditType credit_type);
+
+  StoredSessionCredit marshal();
+
   SessionCredit(CreditType credit_type);
 
   SessionCredit(CreditType credit_type, ServiceState start_state);
