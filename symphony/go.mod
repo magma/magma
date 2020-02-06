@@ -28,7 +28,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.4.0
 	github.com/gorilla/mux v1.7.3
-	github.com/gorilla/websocket v1.4.1 // indirect
+	github.com/gorilla/websocket v1.4.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.12.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
