@@ -74,7 +74,7 @@ static void populate_output_actions(
   KeyType key,
   SessionRules *session_rules,
   std::unique_ptr<ServiceAction> &action,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) // const
 {
   action->set_imsi(imsi);
   action->set_ip_addr(ip_addr);
@@ -87,7 +87,7 @@ void ChargingCreditPool::get_updates(
   std::string ip_addr,
   SessionRules *session_rules,
   std::vector<CreditUsage> *updates_out,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
   for (auto &credit_pair : credit_map_) {
     auto &credit = *(credit_pair.second);
@@ -123,7 +123,7 @@ void ChargingCreditPool::get_updates(
 }
 
 bool ChargingCreditPool::get_termination_updates(
-  SessionTerminateRequest *termination_out)
+  SessionTerminateRequest *termination_out) const
 {
   for (auto &credit_pair : credit_map_) {
     termination_out->mutable_credit_usages()->Add()->CopyFrom(
@@ -236,7 +236,7 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
   return true;
 }
 
-uint64_t ChargingCreditPool::get_credit(const CreditKey &key, Bucket bucket)
+uint64_t ChargingCreditPool::get_credit(const CreditKey &key, Bucket bucket) const
 {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
@@ -341,7 +341,7 @@ void UsageMonitoringCreditPool::get_updates(
   std::string ip_addr,
   SessionRules *session_rules,
   std::vector<UsageMonitorUpdate> *updates_out,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
   for (auto &monitor_pair : monitor_map_) {
     auto &credit = monitor_pair.second->credit;
@@ -370,7 +370,7 @@ void UsageMonitoringCreditPool::get_updates(
 }
 
 bool UsageMonitoringCreditPool::get_termination_updates(
-  SessionTerminateRequest *termination_out)
+  SessionTerminateRequest *termination_out) const
 {
   for (auto &credit_pair : monitor_map_) {
     termination_out->mutable_monitor_usages()->Add()->CopyFrom(
@@ -460,7 +460,7 @@ bool UsageMonitoringCreditPool::receive_credit(
 
 uint64_t UsageMonitoringCreditPool::get_credit(
   const std::string &key,
-  Bucket bucket)
+  Bucket bucket) const
 {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {

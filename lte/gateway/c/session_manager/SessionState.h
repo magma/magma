@@ -207,10 +207,24 @@ class SessionState {
   std::function<void(SessionTerminateRequest)> on_termination_callback_;
 
  private:
+  /**
+   * For this session, add the CreditUsageUpdate to the UpdateSessionRequest.
+   * Also
+   *
+   * @param update_request_out Modified with added CreditUsageUpdate
+   * @param actions_out Modified with additional actions to take on session
+   */
   void get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out);
 
+  /**
+   * For this session, add the UsageMonitoringUpdateRequest to the
+   * UpdateSessionRequest.
+   *
+   * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
+   * @param actions_out Modified with additional actions to take on session.
+   */
   void get_updates_from_monitor_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out);

@@ -15,7 +15,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/agnivade/levenshtein v1.0.3 // indirect
-	github.com/aws/aws-sdk-go v1.19.45
+	github.com/aws/aws-sdk-go v1.28.10
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/bobesa/go-domain-util v0.0.0-20190911083921-4033b5f7dd89
 	github.com/cenkalti/backoff v2.2.1+incompatible

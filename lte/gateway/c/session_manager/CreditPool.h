@@ -46,14 +46,14 @@ class CreditPool {
     std::string ip_addr,
     SessionRules *session_rules,
     std::vector<UpdateRequestType> *updates_out,
-    std::vector<std::unique_ptr<ServiceAction>> *actions_out) = 0;
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out) const = 0;
 
   /**
    * get_termination_updates gets updates from all credits in the pool at the
    * time of termination
    */
   virtual bool get_termination_updates(
-    SessionTerminateRequest *termination_out) = 0;
+    SessionTerminateRequest *termination_out) const = 0;
 
   /**
    * receive_credit adds allowed credit from the cloud
@@ -63,7 +63,7 @@ class CreditPool {
   /**
    * get_credit is a helper function to return the bytes in a credit bucket
    */
-  virtual uint64_t get_credit(const KeyType &key, Bucket bucket) = 0;
+  virtual uint64_t get_credit(const KeyType &key, Bucket bucket) const = 0;
 };
 
 /**
@@ -86,14 +86,14 @@ class ChargingCreditPool :
     std::string ip_addr,
     SessionRules *session_rules,
     std::vector<CreditUsage> *updates_out,
-    std::vector<std::unique_ptr<ServiceAction>> *actions_out) override;
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out) const override;
 
   bool get_termination_updates(
-    SessionTerminateRequest *termination_out) override;
+    SessionTerminateRequest *termination_out) const override;
 
   bool receive_credit(const CreditUpdateResponse &update) override;
 
-  uint64_t get_credit(const CreditKey &key, Bucket bucket) override;
+  uint64_t get_credit(const CreditKey &key, Bucket bucket) const override;
 
   ChargingReAuthAnswer::Result reauth_key(const CreditKey &charging_key);
 
@@ -134,14 +134,14 @@ class UsageMonitoringCreditPool :
     std::string ip_addr,
     SessionRules *session_rules,
     std::vector<UsageMonitorUpdate> *updates_out,
-    std::vector<std::unique_ptr<ServiceAction>> *actions_out) override;
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out) const override;
 
   bool get_termination_updates(
-    SessionTerminateRequest *termination_out) override;
+    SessionTerminateRequest *termination_out) const override;
 
   bool receive_credit(const UsageMonitoringUpdateResponse &update) override;
 
-  uint64_t get_credit(const std::string &key, Bucket bucket) override;
+  uint64_t get_credit(const std::string &key, Bucket bucket) const override;
 
   std::unique_ptr<std::string> get_session_level_key();
 

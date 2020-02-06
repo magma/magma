@@ -607,7 +607,6 @@ type ComplexityRoot struct {
 	Query struct {
 		ActionsRules                        func(childComplexity int) int
 		ActionsTriggers                     func(childComplexity int) int
-		Customer                            func(childComplexity int, id string) int
 		CustomerSearch                      func(childComplexity int, limit *int) int
 		Customers                           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Equipment                           func(childComplexity int, id string) int
@@ -629,9 +628,7 @@ type ComplexityRoot struct {
 		Node                                func(childComplexity int, id string) int
 		PortSearch                          func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
 		PossibleProperties                  func(childComplexity int, entityType models.PropertyEntity) int
-		Project                             func(childComplexity int, id string) int
 		ProjectSearch                       func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
-		ProjectType                         func(childComplexity int, id string) int
 		ProjectTypes                        func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		SearchForEntity                     func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Service                             func(childComplexity int, id string) int
@@ -640,6 +637,7 @@ type ComplexityRoot struct {
 		ServiceTypes                        func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Surveys                             func(childComplexity int) int
 		Vertex                              func(childComplexity int, id string) int
+		WorkOrder                           func(childComplexity int, id string) int
 		WorkOrderSearch                     func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
 		WorkOrderTypes                      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		WorkOrders                          func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
@@ -1107,6 +1105,7 @@ type QueryResolver interface {
 	Service(ctx context.Context, id string) (*ent.Service, error)
 	ServiceType(ctx context.Context, id string) (*ent.ServiceType, error)
 	ServiceTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ServiceTypeConnection, error)
+	WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error)
 	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) (*ent.WorkOrderConnection, error)
 	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
 	SearchForEntity(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchEntriesConnection, error)
@@ -1124,10 +1123,7 @@ type QueryResolver interface {
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id string) (*ent.Node, error)
-	ProjectType(ctx context.Context, id string) (*ent.ProjectType, error)
 	ProjectTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectTypeConnection, error)
-	Project(ctx context.Context, id string) (*ent.Project, error)
-	Customer(ctx context.Context, id string) (*ent.Customer, error)
 	Customers(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.CustomerConnection, error)
 	ActionsRules(ctx context.Context) (*models.ActionsRulesSearchResult, error)
 	ActionsTriggers(ctx context.Context) (*models.ActionsTriggersSearchResult, error)
@@ -3968,18 +3964,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ActionsTriggers(childComplexity), true
 
-	case "Query.customer":
-		if e.complexity.Query.Customer == nil {
-			break
-		}
-
-		args, err := ec.field_Query_customer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Customer(childComplexity, args["id"].(string)), true
-
 	case "Query.customerSearch":
 		if e.complexity.Query.CustomerSearch == nil {
 			break
@@ -4222,18 +4206,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.PossibleProperties(childComplexity, args["entityType"].(models.PropertyEntity)), true
 
-	case "Query.project":
-		if e.complexity.Query.Project == nil {
-			break
-		}
-
-		args, err := ec.field_Query_project_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Project(childComplexity, args["id"].(string)), true
-
 	case "Query.projectSearch":
 		if e.complexity.Query.ProjectSearch == nil {
 			break
@@ -4245,18 +4217,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ProjectSearch(childComplexity, args["filters"].([]*models.ProjectFilterInput), args["limit"].(*int)), true
-
-	case "Query.projectType":
-		if e.complexity.Query.ProjectType == nil {
-			break
-		}
-
-		args, err := ec.field_Query_projectType_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ProjectType(childComplexity, args["id"].(string)), true
 
 	case "Query.projectTypes":
 		if e.complexity.Query.ProjectTypes == nil {
@@ -4348,6 +4308,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Vertex(childComplexity, args["id"].(string)), true
+
+	case "Query.workOrder":
+		if e.complexity.Query.WorkOrder == nil {
+			break
+		}
+
+		args, err := ec.field_Query_workOrder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.WorkOrder(childComplexity, args["id"].(string)), true
 
 	case "Query.workOrderSearch":
 		if e.complexity.Query.WorkOrderSearch == nil {
@@ -7469,6 +7441,7 @@ type Query {
     before: Cursor
     last: Int
   ): ServiceTypeConnection
+  workOrder(id: ID!): WorkOrder @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   workOrders(
     after: Cursor
     first: Int
@@ -7528,15 +7501,12 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
-  projectType(id: ID!): ProjectType @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   projectTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ProjectTypeConnection
-  project(id: ID!): Project @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
-  customer(id: ID!): Customer
   customers(
     after: Cursor
     first: Int
@@ -8925,20 +8895,6 @@ func (ec *executionContext) field_Query_customerSearch_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_customer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_customers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9445,20 +9401,6 @@ func (ec *executionContext) field_Query_projectSearch_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_projectType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9494,20 +9436,6 @@ func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, r
 		}
 	}
 	args["last"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_project_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -9716,6 +9644,20 @@ func (ec *executionContext) field_Query_workOrderTypes_args(ctx context.Context,
 		}
 	}
 	args["last"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_workOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -23102,6 +23044,47 @@ func (ec *executionContext) _Query_serviceTypes(ctx context.Context, field graph
 	return ec.marshalOServiceTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeConnection(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_workOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_workOrder_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().WorkOrder(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.WorkOrder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_workOrders(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -23827,47 +23810,6 @@ func (ec *executionContext) _Query_vertex(ctx context.Context, field graphql.Col
 	return ec.marshalOVertex2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNode(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_projectType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_projectType_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ProjectType(rctx, args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.ProjectType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOProjectType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectType(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_projectTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -23907,88 +23849,6 @@ func (ec *executionContext) _Query_projectTypes(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOProjectTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeConnection(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_project(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_project_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Project(rctx, args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Project)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_customer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_customer_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Customer(rctx, args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Customer)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCustomer2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_customers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -38354,6 +38214,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_serviceTypes(ctx, field)
 				return res
 			})
+		case "workOrder":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_workOrder(ctx, field)
+				return res
+			})
 		case "workOrders":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -38583,17 +38454,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_vertex(ctx, field)
 				return res
 			})
-		case "projectType":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_projectType(ctx, field)
-				return res
-			})
 		case "projectTypes":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -38603,28 +38463,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_projectTypes(ctx, field)
-				return res
-			})
-		case "project":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_project(ctx, field)
-				return res
-			})
-		case "customer":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_customer(ctx, field)
 				return res
 			})
 		case "customers":
