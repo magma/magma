@@ -20,7 +20,6 @@ import (
 )
 
 func newRouter(tenancy viewer.Tenancy, logger log.Logger, orc8rClient *http.Client, actionsRegistry *executor.Registry) (*mux.Router, error) {
-
 	router := mux.NewRouter()
 	router.Use(func(h http.Handler) http.Handler {
 		return viewer.TenancyHandler(h, tenancy)

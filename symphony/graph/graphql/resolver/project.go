@@ -174,17 +174,6 @@ func (r mutationResolver) DeleteProjectType(ctx context.Context, id string) (boo
 	return true, nil
 }
 
-func (r queryResolver) ProjectType(ctx context.Context, id string) (*ent.ProjectType, error) {
-	typ, err := r.ClientFrom(ctx).ProjectType.Get(ctx, id)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errNoProjectType
-		}
-		return nil, xerrors.Errorf("getting project type: %w", err)
-	}
-	return typ, nil
-}
-
 func (r queryResolver) ProjectTypes(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
@@ -391,15 +380,4 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		}
 	}
 	return mutation.Save(ctx)
-}
-
-func (r queryResolver) Project(ctx context.Context, id string) (*ent.Project, error) {
-	proj, err := r.ClientFrom(ctx).Project.Get(ctx, id)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errNoProject
-		}
-		return nil, xerrors.Errorf("getting project: %w", err)
-	}
-	return proj, nil
 }

@@ -319,7 +319,9 @@ TEST_F(LocalEnforcerTest, test_collect_updates)
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
   insert_static_rule(1, "", "rule1");
 
-  auto empty_update = local_enforcer->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto empty_update = local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
   EXPECT_EQ(empty_update.updates_size(), 0);
 
   RuleRecordTable table;
@@ -327,7 +329,9 @@ TEST_F(LocalEnforcerTest, test_collect_updates)
   create_rule_record("IMSI1", "rule1", 1024, 2048, record_list->Add());
 
   local_enforcer->aggregate_records(table);
-  auto session_update = local_enforcer->collect_updates();
+  actions.clear();
+  auto session_update = local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
   EXPECT_EQ(session_update.updates_size(), 1);
   EXPECT_EQ(
     local_enforcer->get_charging_credit("IMSI1", 1, REPORTING_RX), 1024);
@@ -478,7 +482,9 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting)
   local_enforcer->aggregate_records(table);
 
   // Collect updates to put key 1 into reporting state
-  auto usage_updates = local_enforcer->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto usage_updates = local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
   EXPECT_EQ(
     local_enforcer->get_charging_credit("IMSI1", 1, REPORTING_RX), 1024);
 
@@ -524,7 +530,9 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling)
     .Times(1)
     .WillOnce(testing::Return(true));
   // call collect_updates to trigger actions
-  auto usage_updates = local_enforcer->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto usage_updates = local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling)
@@ -561,7 +569,9 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling)
     .Times(1)
     .WillOnce(testing::Return(true));
   // call collect_updates to trigger actions
-  auto usage_updates = local_enforcer->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto usage_updates = local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
 }
 
 TEST_F(LocalEnforcerTest, test_all)
@@ -600,7 +610,9 @@ TEST_F(LocalEnforcerTest, test_all)
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, USED_TX), 1024);
 
   // Collect updates for reporting
-  auto session_update = local_enforcer->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto session_update = local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
   EXPECT_EQ(session_update.updates_size(), 1);
   EXPECT_EQ(
     local_enforcer->get_charging_credit("IMSI2", 2, REPORTING_RX), 1024);
@@ -649,7 +661,9 @@ TEST_F(LocalEnforcerTest, test_re_auth)
   auto result = local_enforcer->init_charging_reauth(reauth);
   EXPECT_EQ(result, ChargingReAuthAnswer::UPDATE_INITIATED);
 
-  auto update_req = local_enforcer->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto update_req = local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
   EXPECT_EQ(update_req.updates_size(), 1);
   EXPECT_EQ(update_req.updates(0).sid(), "IMSI1");
   EXPECT_EQ(update_req.updates(0).usage().type(), CreditUsage::REAUTH_REQUIRED);
@@ -667,7 +681,9 @@ TEST_F(LocalEnforcerTest, test_re_auth)
     activate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
-  local_enforcer->collect_updates();
+  actions.clear();
+  local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
 }
 
 TEST_F(LocalEnforcerTest, test_dynamic_rules)
@@ -728,7 +744,9 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions)
     deactivate_flows_for_rules(testing::_, CheckCount(2), CheckCount(1)))
     .Times(1)
     .WillOnce(testing::Return(true));
-  auto usage_updates = local_enforcer->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto usage_updates = local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
 }
 
 TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time)
@@ -864,7 +882,9 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
     "IMSI1", USED_TX, {{"1", 40}, {"3", 1024}, {"4", 1079}});
 
   // Collect updates, should only have mkeys 3 and 4
-  auto session_update = local_enforcer->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto session_update = local_enforcer->collect_updates(actions);
+  local_enforcer->execute_actions(actions);
   EXPECT_EQ(session_update.usage_monitors_size(), 2);
   for (const auto &monitor : session_update.usage_monitors()) {
     EXPECT_EQ(monitor.sid(), "IMSI1");

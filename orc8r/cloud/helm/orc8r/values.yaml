@@ -169,6 +169,8 @@ controller:
     new_mconfigs: 0
     mconfig_whitelist: ""
 
+  podAnnotations: {}
+
   # Number of controller replicas desired
   replicas: 1
 
