@@ -22,7 +22,7 @@ using std::string;
 
 class SchemaContextTest : public ::testing::Test {
  public:
-  SchemaContextTest() : context(Model::OPENCONFIG_0_1_6){};
+  SchemaContextTest() : context(Model::OPENCONFIG_2_4_3){};
 
  protected:
   void SetUp() override {

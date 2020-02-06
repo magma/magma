@@ -8,4 +8,5 @@ libxml2-dev
 libxslt1-dev
 pkg-config
 python-dev
+python-pip
 python3-dev
