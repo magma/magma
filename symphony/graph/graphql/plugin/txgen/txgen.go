@@ -9,6 +9,7 @@ import (
 	"go/types"
 	"os"
 	"path/filepath"
+	ttemplates "text/template"
 
 	"github.com/99designs/gqlgen/codegen"
 	"github.com/99designs/gqlgen/codegen/config"
@@ -38,7 +39,7 @@ func (txgen) Name() string {
 	return "txgen"
 }
 
-func (t txgen) MutateConfig(cfg *config.Config) error {
+func (t txgen) MutateConfig(*config.Config) error {
 	err := os.Remove(t.Filename)
 	if os.IsNotExist(err) {
 		err = nil
@@ -60,11 +61,11 @@ func (t txgen) GenerateCode(data *codegen.Data) error {
 	return templates.Render(templates.Options{
 		PackageName: t.Package,
 		Filename:    filepath.Join(t.Package, t.Filename),
-		Data: &ResolverBuild{
+		Data: &txgenData{
 			Object: mutation,
 			Type:   t.Type,
 		},
-		Funcs: map[string]interface{}{
+		Funcs: ttemplates.FuncMap{
 			"ResultType": func(f *codegen.Field) string {
 				result := templates.CurrentImports.LookupType(f.TypeReference.GO)
 				if f.Object.Stream {
@@ -87,8 +88,7 @@ func (t txgen) GenerateCode(data *codegen.Data) error {
 	})
 }
 
-// ResolverBuild defines the data passed to txgen template.
-type ResolverBuild struct {
+type txgenData struct {
 	*codegen.Object
 	Type string
 }

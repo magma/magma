@@ -58,7 +58,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 
 void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
 {
-  auto request = enforcer_->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto request = enforcer_->collect_updates(actions);
+  enforcer_->execute_actions(actions);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return; // nothing to report
   }

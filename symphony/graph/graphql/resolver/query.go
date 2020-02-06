@@ -157,6 +157,15 @@ func (r queryResolver) EquipmentPortDefinitions(
 		Paginate(ctx, after, first, before, last)
 }
 
+func (r queryResolver) WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error) {
+	noder, err := r.Node(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	wo, _ := noder.(*ent.WorkOrder)
+	return wo, nil
+}
+
 func (r queryResolver) WorkOrders(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
@@ -312,14 +321,6 @@ func (r queryResolver) ServiceTypes(
 ) (*ent.ServiceTypeConnection, error) {
 	return r.ClientFrom(ctx).ServiceType.Query().
 		Paginate(ctx, after, first, before, last)
-}
-
-func (r queryResolver) Customer(ctx context.Context, id string) (*ent.Customer, error) {
-	st, err := r.ClientFrom(ctx).Customer.Get(ctx, id)
-	if err != nil {
-		return nil, errors.Wrapf(err, "querying customer: id=%q", id)
-	}
-	return st, nil
 }
 
 func (r queryResolver) Customers(
