@@ -25,15 +25,15 @@ class TestMultiEnbMultiUEAttachDetach(unittest.TestCase):
         # column is a enb parameter,  row is a number of enbs
         """            Cell Id,   Tac, EnbType, PLMN Id """
         enb_list = list([[1,       1,     1,    "001010"],
-                         [1,       1,     1,    "001010"],
-                         [1,       1,     1,    "001010"],
-                         [1,       1,     1,    "001010"],
-                         [1,       1,     1,    "001010"],
-                         [1,       1,     1,    "001010"],
-                         [1,       1,     1,    "001010"],
-                         [1,       1,     1,    "001010"],
-                         [1,       1,     1,    "001010"],
-                         [1,       1,     1,    "001010"]])
+                         [2,       1,     1,    "001010"],
+                         [3,       1,     1,    "001010"],
+                         [4,       1,     1,    "001010"],
+                         [5,       1,     1,    "001010"],
+                         [6,       1,     1,    "001010"],
+                         [7,       1,     1,    "001010"],
+                         [8,       1,     1,    "001010"],
+                         [9,       1,     1,    "001010"],
+                         [10,       1,     1,    "001010"]])
 
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
