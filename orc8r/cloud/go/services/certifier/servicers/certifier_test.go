@@ -13,10 +13,13 @@ import (
 	"testing"
 	"time"
 
+	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
+	"magma/orc8r/cloud/go/services/certifier/storage"
 	certifier_test_utils "magma/orc8r/cloud/go/services/certifier/test_utils"
-	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -24,19 +27,34 @@ import (
 	"golang.org/x/net/context"
 )
 
-func TestCertifier(t *testing.T) {
-	ds := test_utils.NewMockDatastore()
+func TestCertifierBlobstore(t *testing.T) {
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	fact := blobstore.NewEntStorage(storage.CertifierTableBlobstore, db, sqorc.GetSqlBuilder())
+	err = fact.InitializeFactory()
+	assert.NoError(t, err)
+	store := storage.NewCertifierBlobstore(fact)
+	testCertifierImpl(t, store)
+}
+
+func TestCertifierDatastore(t *testing.T) {
+	ds, err := datastore.NewSqlDb("sqlite3", ":memory:", sqorc.GetSqlBuilder())
+	assert.NoError(t, err)
+	store := storage.NewCertifierDatastore(ds)
+	testCertifierImpl(t, store)
+}
+
+func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	ctx := context.Background()
 
-	caCert, caKey, err := certifier_test_utils.CreateSignedCertAndPrivKey(
-		time.Duration(time.Hour * 24 * 10))
+	caCert, caKey, err := certifier_test_utils.CreateSignedCertAndPrivKey(time.Hour * 24 * 10)
 	assert.NoError(t, err)
 
 	// just test with default
 	caMap := map[protos.CertType]*servicers.CAInfo{
 		protos.CertType_DEFAULT: {caCert, caKey},
 	}
-	srv, err := servicers.NewCertifierServer(ds, caMap)
+	srv, err := servicers.NewCertifierServer(store, caMap)
 	assert.NoError(t, err)
 
 	// sign and add
@@ -85,10 +103,10 @@ func TestCertifier(t *testing.T) {
 		_, err = srv.SignAddCertificate(ctx, csrMsg)
 		assert.NoError(t, err)
 	}
-	allSns, _ := ds.ListKeys(servicers.CERTIFICATE_INFO_TABLE)
+	allSns, _ := store.ListSerialNumbers()
 	assert.Equal(t, 3, len(allSns))
 	srv.CollectGarbage(ctx, nil)
-	allSns, _ = ds.ListKeys(servicers.CERTIFICATE_INFO_TABLE)
+	allSns, _ = store.ListSerialNumbers()
 	assert.Equal(t, 0, len(allSns))
 
 	// test csr longer than cert
