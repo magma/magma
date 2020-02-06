@@ -51,8 +51,6 @@ static void create_session_response(
   s5_response.sgi_create_endpoint_resp = sgi_response;
   s5_response.failure_cause = S5_OK;
 
-  IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
-
   if (!status.ok()) {
     struct in_addr addr;
     //BUFFER_TO_IN_ADDR (sgi_response.paa.ipv4_address, addr);

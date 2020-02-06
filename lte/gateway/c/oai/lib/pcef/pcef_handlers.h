@@ -65,7 +65,7 @@ void pcef_create_session(
   char* ip,
   const struct pcef_create_session_data* session_data,
   itti_sgi_create_end_point_response_t sgi_response,
-  5_create_bearer_request_t bearer_request);
+  s5_create_bearer_request_t bearer_request);
 
 /**
  * pcef_end_session is a *synchronous* call that ends the UE session in the

@@ -69,8 +69,6 @@ int sgw_handle_release_access_bearers_request(
   const itti_s11_release_access_bearers_request_t
     *const release_access_bearers_req_pP,
     imsi64_t imsi64);
-int sgw_handle_s5_create_bearer_response(
-  s5_create_bearer_response_t bearer_resp);
 int sgw_handle_suspend_notification(
   spgw_state_t *state,
   const itti_s11_suspend_notification_t *const suspend_notification_pP,

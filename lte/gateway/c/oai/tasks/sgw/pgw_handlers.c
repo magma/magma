@@ -74,7 +74,6 @@ void pgw_handle_create_bearer_request(
 {
   // assign the IP here
   s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p = NULL;
-  MessageDef *message_p = NULL;
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   struct in_addr inaddr;
@@ -84,7 +83,7 @@ void pgw_handle_create_bearer_request(
 
   OAILOG_DEBUG(
     LOG_PGW_APP,
-    "Rx S5_CREATE_BEARER_REQUEST, Context S-GW S11 teid" TEID_FMT
+    "Handle S5_CREATE_BEARER_REQUEST, Context S-GW S11 teid" TEID_FMT
     " , EPS bearer id %u\n",
     context_teid,
     eps_bearer_id);
@@ -113,8 +112,9 @@ void pgw_handle_create_bearer_request(
       OAILOG_DEBUG(
         LOG_PGW_APP,
         "Error in processing PCO in create bearer request for "
-        "context_id: " TEID_FMT "\n");
-      OAILOG_FUNC_OUT(LOG_MME_APP);
+        "context_id: " TEID_FMT "\n",
+        context_teid);
+      OAILOG_FUNC_OUT(LOG_PGW_APP);
     }
     copy_protocol_configuration_options(
       &sgi_create_endpoint_resp.pco, &pco_resp);
@@ -262,40 +262,22 @@ void pgw_handle_create_bearer_request(
       &session_data);
     pcef_create_session(
       imsi, ip_str, &session_data, sgi_create_endpoint_resp, bearer_req);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_OUT(LOG_PGW_APP);
   }
-<<<<<<< Updated upstream
-  message_p = itti_alloc_new_message(TASK_SPGW_APP, S5_CREATE_BEARER_RESPONSE);
-  itti_s5_create_bearer_response_t *s5_response =
-    &message_p->ittiMsg.s5_create_bearer_response;
-  memset(s5_response, 0, sizeof(itti_s5_create_bearer_response_t));
-  s5_response->context_teid = bearer_req_p->context_teid;
-  s5_response->S1u_teid = bearer_req_p->S1u_teid;
-  s5_response->eps_bearer_id = bearer_req_p->eps_bearer_id;
-  s5_response->sgi_create_endpoint_resp = sgi_create_endpoint_resp;
-  s5_response->failure_cause = S5_OK;
-
-  message_p->ittiMsgHeader.imsi = imsi64;
-
-  OAILOG_DEBUG(
-    LOG_PGW_APP,
-    "Sending S5 Create Bearer Response to SPGW APP: Context teid %u, S1U-teid "
-    "= %u,"
-    "EPS Bearer Id = %u\n",
-    s5_response->context_teid,
-    s5_response->S1u_teid,
-    s5_response->eps_bearer_id);
-  itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNok);
-=======
   s5_create_bearer_response_t s5_response = {0};
   s5_response.context_teid = context_teid;
   s5_response.eps_bearer_id = eps_bearer_id;
   s5_response.sgi_create_endpoint_resp = sgi_create_endpoint_resp;
   s5_response.failure_cause = S5_OK;
+
+  OAILOG_DEBUG(
+    LOG_PGW_APP,
+    "Sending S5 Create Bearer Response to SGW: Context teid, " TEID_FMT
+    "EPS Bearer Id = %u\n",
+    s5_response.context_teid,
+    s5_response.eps_bearer_id);
   sgw_handle_s5_create_bearer_response(s5_response);
-  OAILOG_FUNC_OUT(LOG_MME_APP);
->>>>>>> Stashed changes
+  OAILOG_FUNC_OUT(LOG_PGW_APP);
 }
 
 static int get_imeisv_from_session_req(
