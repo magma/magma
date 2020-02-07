@@ -10,6 +10,41 @@
 
 namespace magma {
 
+std::unique_ptr<SessionRules> SessionRules::unmarshal(
+  const StoredSessionRules& marshaled,
+  StaticRuleStore &static_rule_ref)
+{
+  return std::make_unique<SessionRules>(marshaled, static_rule_ref);
+}
+
+SessionRules::SessionRules(
+  const StoredSessionRules& marshaled,
+  StaticRuleStore &static_rule_ref):
+  static_rules_(static_rule_ref)
+{
+  for (const std::string& rule_id : marshaled.static_rule_ids)
+  {
+    active_static_rules_.push_back(rule_id);
+  }
+  for (auto& rule : marshaled.dynamic_rules)
+  {
+    dynamic_rules_.insert_rule(rule);
+  }
+}
+
+StoredSessionRules SessionRules::marshal()
+{
+  StoredSessionRules stored_rules;
+  for (auto& rule_id : active_static_rules_)
+  {
+    stored_rules.static_rule_ids.push_back(rule_id);
+  }
+  std::vector<PolicyRule> dynamic_rules;
+  dynamic_rules_.get_rules(dynamic_rules);
+  stored_rules.dynamic_rules = std::move(dynamic_rules);
+  return stored_rules;
+}
+
 SessionRules::SessionRules(StaticRuleStore &static_rule_ref):
   static_rules_(static_rule_ref)
 {

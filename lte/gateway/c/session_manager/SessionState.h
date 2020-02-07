@@ -14,6 +14,7 @@
 
 #include "RuleStore.h"
 #include "SessionRules.h"
+#include "StoredState.h"
 #include "CreditPool.h"
 
 namespace magma {
@@ -60,6 +61,16 @@ class SessionState {
     const SessionState::Config& cfg,
     StaticRuleStore& rule_store,
     const magma::lte::TgppContext& tgpp_context);
+
+  SessionState(
+    const StoredSessionState &marshaled,
+    StaticRuleStore &rule_store);
+
+  static std::unique_ptr<SessionState> unmarshal(
+    const StoredSessionState &marshaled,
+    StaticRuleStore &rule_store);
+
+  StoredSessionState marshal();
 
   /**
    * new_report sets the state of terminating session to aggregating, to tell if

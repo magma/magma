@@ -45,12 +45,13 @@ class TestAttachCompleteWithActvDfltBearCtxtRej(unittest.TestCase):
 
         print("********Triggering Attach Request ")
 
-        self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.
-                                              UE_ATTACH_REQUEST,
-                                              attach_req)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response,
-                        s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+        )
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
@@ -58,21 +59,30 @@ class TestAttachCompleteWithActvDfltBearCtxtRej(unittest.TestCase):
         sqnRecvd = s1ap_types.ueSqnRcvd_t()
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
-        self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.
-                                              UE_AUTH_RESP,
-                                              auth_res)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response,
-                        s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+        )
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete)
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+        )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+        )
+
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+        )
         msg = response.cast(s1ap_types.ueAttachAccept_t)
         bid = msg.esmInfo.epsBearerId
 
@@ -88,8 +98,8 @@ class TestAttachCompleteWithActvDfltBearCtxtRej(unittest.TestCase):
         # Attach Complete message
         # Attach Complete + Activate Default EPS Bearer Context Reject
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ACTV_DEFAULT_EPS_BEARER_CNTXT_REJECT,
-            act_rej)
+            s1ap_types.tfwCmd.UE_ACTV_DEFAULT_EPS_BEARER_CNTXT_REJECT, act_rej
+        )
         # Added delay to ensure S1APTester receives the emm information before
         # sending the detach request message
         time.sleep(0.5)
@@ -97,10 +107,12 @@ class TestAttachCompleteWithActvDfltBearCtxtRej(unittest.TestCase):
         # Now detach the UE
         detach_req = s1ap_types.uedetachReq_t()
         detach_req.ue_Id = req.ue_id
-        detach_req.ueDetType = s1ap_types.ueDetachType_t.\
-            UE_SWITCHOFF_DETACH.value
+        detach_req.ueDetType = (
+            s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
+        )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
+        )
         time.sleep(0.5)
 
 

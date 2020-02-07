@@ -82,6 +82,26 @@ class SessionStateTest : public ::testing::Test {
   std::shared_ptr<SessionState> session_state;
 };
 
+TEST_F(SessionStateTest, test_marshal_unmarshal)
+{
+  insert_rule(1, "m1", "rule1", true);
+
+  receive_credit_from_ocs(1, 1024);
+  EXPECT_EQ(
+    session_state->get_charging_pool().get_credit(1, ALLOWED_TOTAL), 1024);
+
+  receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
+  EXPECT_EQ(
+    session_state->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL), 1024);
+
+  auto marshaled = session_state->marshal();
+  auto unmarshaled = SessionState::unmarshal(marshaled, *rule_store);
+  EXPECT_EQ(
+    unmarshaled->get_charging_pool().get_credit(1, ALLOWED_TOTAL), 1024);
+  EXPECT_EQ(
+    unmarshaled->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL), 1024);
+}
+
 TEST_F(SessionStateTest, test_insert_credit)
 {
   insert_rule(1, "m1", "rule1", true);

@@ -13,6 +13,7 @@
 #include "CreditKey.h"
 #include "SessionCredit.h"
 #include "SessionRules.h"
+#include "StoredState.h"
 
 namespace magma {
 
@@ -74,6 +75,11 @@ class CreditPool {
 class ChargingCreditPool :
   public CreditPool<CreditKey, CreditUpdateResponse, CreditUsage> {
  public:
+  static std::unique_ptr<ChargingCreditPool> unmarshal(
+    const StoredChargingCreditPool &marshaled);
+
+  StoredChargingCreditPool marshal();
+
   ChargingCreditPool(const std::string &imsi);
 
   bool add_used_credit(const CreditKey &key, uint64_t used_tx, uint64_t used_rx)
@@ -120,6 +126,11 @@ class UsageMonitoringCreditPool :
     UsageMonitoringUpdateResponse,
     UsageMonitorUpdate> {
  public:
+  static std::unique_ptr<UsageMonitoringCreditPool> unmarshal(
+    const StoredUsageMonitoringCreditPool &marshaled);
+
+  StoredUsageMonitoringCreditPool marshal();
+
   UsageMonitoringCreditPool(const std::string &imsi);
 
   bool add_used_credit(

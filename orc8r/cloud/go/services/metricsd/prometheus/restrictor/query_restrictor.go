@@ -10,6 +10,7 @@ package restrictor
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/promql"
@@ -18,14 +19,43 @@ import (
 // QueryRestrictor provides functionality to add restrictor labels to a
 // Prometheus query
 type QueryRestrictor struct {
-	restrictors map[string]string
+	matchers []labels.Matcher
+	Opts
 }
 
-// NewQueryRestrictor returns a new QueryRestrictor with the given labels
-func NewQueryRestrictor(restrictors map[string]string) *QueryRestrictor {
+// Opts contains optional configurations for the QueryRestrictor
+type Opts struct {
+	ReplaceExistingLabel bool
+}
+
+var DefaultOpts = Opts{ReplaceExistingLabel: true}
+
+// NewQueryRestrictor returns a new QueryRestrictor to be built upon
+func NewQueryRestrictor(opts Opts) *QueryRestrictor {
 	return &QueryRestrictor{
-		restrictors: restrictors,
+		matchers: []labels.Matcher{},
+		Opts:     opts,
 	}
+}
+
+// AddMatcher takes a key and an arbitrary number of values. If only one value
+// is provided, an Equal matcher will be added to the restrictor. Otherwise a
+// Regex matcher with an OR of the values will be added. e.g. {label=~"value1|value2"}
+// If values is empty the label will be matched to the empty string e.g. {label=""}
+// effectively, this matches which do not contain this label
+func (q *QueryRestrictor) AddMatcher(key string, values ...string) *QueryRestrictor {
+	if len(values) < 1 {
+		q.matchers = append(q.matchers, labels.Matcher{Type: labels.MatchEqual, Name: key})
+		return q
+	}
+
+	if len(values) == 1 {
+		q.matchers = append(q.matchers, labels.Matcher{Type: labels.MatchEqual, Name: key, Value: values[0]})
+		return q
+	}
+
+	q.matchers = append(q.matchers, labels.Matcher{Type: labels.MatchRegexp, Name: key, Value: strings.Join(values, "|")})
+	return q
 }
 
 // RestrictQuery appends a label selector to each metric in a given query so
@@ -43,29 +73,30 @@ func (q *QueryRestrictor) RestrictQuery(query string) (string, error) {
 	return promQuery.String(), nil
 }
 
+// Matchers returns the list of label matchers for the restrictor
+func (q *QueryRestrictor) Matchers() []labels.Matcher {
+	return q.matchers
+}
+
 func (q *QueryRestrictor) addRestrictorLabels() func(n promql.Node, path []promql.Node) error {
 	return func(n promql.Node, path []promql.Node) error {
 		if n == nil {
 			return nil
 		}
-		for labelName, labelValue := range q.restrictors {
-			injectedLabelMatcher, err := labels.NewMatcher(labels.MatchEqual, labelName, labelValue)
-			if err != nil {
-				return fmt.Errorf("error creating labelMatcher: %v", err)
-			}
+		for _, matcher := range q.matchers {
 			switch n := n.(type) {
 			case *promql.VectorSelector:
-				n.LabelMatchers = appendOrReplaceMatcher(n.LabelMatchers, *injectedLabelMatcher)
+				n.LabelMatchers = appendOrReplaceMatcher(n.LabelMatchers, matcher, q.ReplaceExistingLabel)
 			case *promql.MatrixSelector:
-				n.LabelMatchers = appendOrReplaceMatcher(n.LabelMatchers, *injectedLabelMatcher)
+				n.LabelMatchers = appendOrReplaceMatcher(n.LabelMatchers, matcher, q.ReplaceExistingLabel)
 			}
 		}
 		return nil
 	}
 }
 
-func appendOrReplaceMatcher(matchers []*labels.Matcher, newMatcher labels.Matcher) []*labels.Matcher {
-	if getMatcherIndex(matchers, newMatcher.Name) >= 0 {
+func appendOrReplaceMatcher(matchers []*labels.Matcher, newMatcher labels.Matcher, replaceExistingLabel bool) []*labels.Matcher {
+	if replaceExistingLabel && getMatcherIndex(matchers, newMatcher.Name) >= 0 {
 		return replaceLabelValue(matchers, newMatcher.Name, newMatcher.Value)
 	} else {
 		return append(matchers, &newMatcher)

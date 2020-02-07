@@ -11,6 +11,7 @@ package gy
 
 import (
 	"magma/feg/gateway/services/session_proxy/credit_control"
+	"magma/lte/cloud/go/protos"
 )
 
 type FinalUnitAction uint8
@@ -66,6 +67,7 @@ type CreditControlRequest struct {
 	Qos           *QosRequestInfo
 	Credits       []*UsedCredits
 	RatType       string
+	TgppCtx       *protos.TgppContext
 }
 
 type QosRequestInfo struct {
@@ -88,6 +90,7 @@ type CreditControlAnswer struct {
 	ResultCode    uint32
 	SessionID     string
 	RequestNumber uint32
+	OriginHost    string
 	Credits       []*ReceivedCredits
 }
 
@@ -123,6 +126,7 @@ type CCADiameterMessage struct {
 	SessionID     string                 `avp:"Session-Id"`
 	RequestNumber uint32                 `avp:"CC-Request-Number"`
 	ResultCode    uint32                 `avp:"Result-Code"`
+	OriginHost    string                 `avp:"Origin-Host"`
 	RequestType   uint32                 `avp:"CC-Request-Type"`
 	CreditControl []*MSCCDiameterMessage `avp:"Multiple-Services-Credit-Control"`
 }

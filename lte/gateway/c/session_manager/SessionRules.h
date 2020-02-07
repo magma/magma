@@ -11,6 +11,7 @@
 #include "CreditKey.h"
 #include "RuleStore.h"
 #include "ServiceAction.h"
+#include "StoredState.h"
 
 namespace magma {
 
@@ -19,7 +20,17 @@ namespace magma {
  */
 class SessionRules {
  public:
+  static std::unique_ptr<SessionRules> unmarshal(
+    const StoredSessionRules& marshaled,
+    StaticRuleStore &static_rule_ref);
+
+  StoredSessionRules marshal();
+
   SessionRules(StaticRuleStore &static_rule_ref);
+
+  SessionRules(
+    const StoredSessionRules& marshaled,
+    StaticRuleStore &static_rule_ref);
 
   bool get_charging_key_for_rule_id(
     const std::string &rule_id,

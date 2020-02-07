@@ -16,40 +16,10 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "ServiceAction.h"
+#include "StoredState.h"
 #include "CreditKey.h"
 
 namespace magma {
-
-/**
- * A bucket is a counter used for tracking credit volume across sessiond.
- * These are independently incremented and reset
- * Each value is in terms of a volume unit - either bytes or seconds
- */
-enum Bucket {
-  USED_TX = 0,
-  USED_RX = 1,
-  ALLOWED_TOTAL = 2,
-  ALLOWED_TX = 3,
-  ALLOWED_RX = 4,
-  REPORTING_TX = 5,
-  REPORTING_RX = 6,
-  REPORTED_TX = 7,
-  REPORTED_RX = 8,
-  MAX_VALUES = 9,
-};
-
-enum ReAuthState {
-  REAUTH_NOT_NEEDED = 0,
-  REAUTH_REQUIRED = 1,
-  REAUTH_PROCESSING = 2,
-};
-
-enum ServiceState {
-  SERVICE_ENABLED = 0,
-  SERVICE_NEEDS_DEACTIVATION = 1,
-  SERVICE_DISABLED = 2,
-  SERVICE_NEEDS_ACTIVATION = 3,
-};
 
 enum CreditUpdateType {
   CREDIT_NO_UPDATE = 0,
@@ -79,6 +49,12 @@ class SessionCredit {
     ChargingCredit_FinalAction final_action;
     RedirectServer redirect_server;
   };
+
+  static std::unique_ptr<SessionCredit> unmarshal(
+    const StoredSessionCredit &marshaled,
+    CreditType credit_type);
+
+  StoredSessionCredit marshal();
 
   SessionCredit(CreditType credit_type);
 

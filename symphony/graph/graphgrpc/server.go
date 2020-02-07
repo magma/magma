@@ -7,17 +7,18 @@ package graphgrpc
 import (
 	"context"
 	"database/sql"
+	"fmt"
+
 	"github.com/facebookincubator/symphony/graph/graphactions"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
 	"github.com/facebookincubator/symphony/pkg/grpc-middleware/sqltx"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"github.com/pkg/errors"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
@@ -65,7 +66,7 @@ func newServer(tenancy viewer.Tenancy, db *sql.DB, logger log.Logger, registry *
 	reflection.Register(s)
 	err := view.Register(ocgrpc.DefaultServerViews...)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "registering grpc views")
+		return nil, nil, fmt.Errorf("registering grpc views: %w", err)
 	}
 	return s, func() { view.Unregister(ocgrpc.DefaultServerViews...) }, nil
 }
