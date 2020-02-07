@@ -46,6 +46,7 @@ func (request *CreditControlRequest) FromCreditUsageUpdate(update *protos.Credit
 	request.Type = credit_control.CRTUpdate
 	request.Credits = []*UsedCredits{(&UsedCredits{}).FromCreditUsage(update.Usage)}
 	request.RatType = GetRATType(update.GetRatType())
+	request.TgppCtx = update.GetTgppCtx()
 	return request
 }
 

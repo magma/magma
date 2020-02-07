@@ -43,7 +43,7 @@ func NewHandler(logger log.Logger, orc8rClient *http.Client) (http.Handler, erro
 
 	router := mux.NewRouter()
 	router.Use(func(handler http.Handler) http.Handler {
-		timeouter := http.TimeoutHandler(handler, 30*time.Second, "request timed out")
+		timeouter := http.TimeoutHandler(handler, 3*time.Minute, "request timed out")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			h := timeouter
 			if websocket.IsWebSocketUpgrade(r) {
