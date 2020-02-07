@@ -12,8 +12,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	// registers sqlite3 driver with sql package
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -27,13 +25,13 @@ type sqlite3 struct{}
 func (sqlite3) open() (*sql.DB, error) {
 	var dbid [10]byte
 	if _, err := rand.Read(dbid[:]); err != nil {
-		return nil, errors.Wrap(err, "generating random bytes")
+		return nil, fmt.Errorf("generating random bytes: %w", err)
 	}
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1",
 		hex.EncodeToString(dbid[:]))
 	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
-		return nil, errors.Wrap(err, "opening database")
+		return nil, fmt.Errorf("opening database: %w", err)
 	}
 	return db, nil
 }

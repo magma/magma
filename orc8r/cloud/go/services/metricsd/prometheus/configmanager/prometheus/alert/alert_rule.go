@@ -83,8 +83,7 @@ func SecureRule(restrictQueries bool, matcherName, matcherValue string, rule *ru
 	expr := rule.Expr
 	var err error
 	if restrictQueries {
-		tenantLabels := map[string]string{matcherName: matcherValue}
-		queryRestrictor := restrictor.NewQueryRestrictor(tenantLabels)
+		queryRestrictor := restrictor.NewQueryRestrictor(restrictor.DefaultOpts).AddMatcher(matcherName, matcherValue)
 		expr, err = queryRestrictor.RestrictQuery(rule.Expr)
 		if err != nil {
 			return err

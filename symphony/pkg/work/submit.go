@@ -7,8 +7,8 @@ package work
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
-	"github.com/pkg/errors"
 	"gocloud.dev/pubsub"
 )
 
@@ -26,7 +26,7 @@ func NewSubmitter(topic *pubsub.Topic) *Submitter {
 func NewSubmitterURL(ctx context.Context, url string) (*Submitter, error) {
 	topic, err := pubsub.OpenTopic(ctx, url)
 	if err != nil {
-		return nil, errors.Wrap(err, "opening topic")
+		return nil, fmt.Errorf("opening topic: %w", err)
 	}
 	return NewSubmitter(topic), nil
 }
@@ -35,7 +35,7 @@ func NewSubmitterURL(ctx context.Context, url string) (*Submitter, error) {
 func (s *Submitter) Submit(ctx context.Context, job Job) (err error) {
 	var msg pubsub.Message
 	if msg.Body, err = json.Marshal(job); err != nil {
-		return errors.Wrap(err, "json encoding job")
+		return fmt.Errorf("json encoding job: %w", err)
 	}
 	// TODO: handle trace context propagation
 	return s.topic.Send(ctx, &msg)

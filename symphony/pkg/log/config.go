@@ -5,9 +5,10 @@
 package log
 
 import (
+	"fmt"
+
 	"github.com/google/wire"
 	"github.com/jessevdk/go-flags"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -54,13 +55,13 @@ func (cfg Config) Build() (Logger, error) {
 	case "json":
 		c = zap.NewProductionConfig()
 	default:
-		return nil, errors.Errorf("unsupported logging format: %q", cfg.Format)
+		return nil, fmt.Errorf("unsupported logging format: %q", cfg.Format)
 	}
 	c.Level = zap.NewAtomicLevelAt(zapcore.Level(cfg.Level))
 
 	logger, err := c.Build(zap.AddStacktrace(zap.DPanicLevel))
 	if err != nil {
-		return nil, errors.Wrap(err, "creating logger")
+		return nil, fmt.Errorf("creating logger: %w", err)
 	}
 	return NewDefaultLogger(logger), nil
 }

@@ -4,7 +4,7 @@ dependencies:
   version: 0.1.3
 - name: metrics
   repository: ""
-  version: 1.4.2
+  version: 1.4.5
 - name: nms
   repository: ""
   version: 0.1.0

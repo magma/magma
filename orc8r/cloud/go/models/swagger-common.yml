@@ -86,6 +86,12 @@ parameters:
     description: Gateway ID
     required: true
     type: string
+  tenant_id:
+    in: path
+    name: tenant_id
+    description: Tenant ID
+    required : true
+    type: integer
 
 definitions:
   network_id:

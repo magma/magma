@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
+	"magma/orc8r/cloud/go/services/certifier/storage"
 	certifier_test_utils "magma/orc8r/cloud/go/services/certifier/test_utils"
 	"magma/orc8r/cloud/go/test_utils"
 )
@@ -39,7 +40,9 @@ func StartTestService(t *testing.T) {
 	} else {
 		caMap[protos.CertType_VPN] = &servicers.CAInfo{vpnCert, vpnKey}
 	}
-	certServer, err := servicers.NewCertifierServer(test_utils.GetMockDatastoreInstance(), caMap)
+	ds := test_utils.GetMockDatastoreInstance()
+	certStore := storage.NewCertifierDatastore(ds)
+	certServer, err := servicers.NewCertifierServer(certStore, caMap)
 	if err != nil {
 		t.Fatalf("Failed to create certifier server: %s", err)
 	}
