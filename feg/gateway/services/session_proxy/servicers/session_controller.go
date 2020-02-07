@@ -78,7 +78,6 @@ func (srv *CentralSessionController) CreateSession(
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")
 	imsi := credit_control.RemoveIMSIPrefix(request.Subscriber.Id)
-	sessionID := request.SessionId
 	gxCCAInit, err := srv.sendInitialGxRequest(imsi, request)
 	metrics.UpdateGxRecentRequestMetrics(err)
 	if err != nil {
@@ -96,10 +95,10 @@ func (srv *CentralSessionController) CreateSession(
 	omnipresentRuleIDs = append(omnipresentRuleIDs, srv.dbClient.GetRuleIDsForBaseNames(omnipresentBaseNames)...)
 	staticRuleInstalls = append(staticRuleInstalls, gx.RuleIDsToProtosRuleInstalls(omnipresentRuleIDs)...)
 
-	usageMonitors := getUsageMonitorsFromCCA_I(imsi, sessionID, gxCCAInit)
-
+	var gxOriginHost, gyOriginHost string = gxCCAInit.OriginHost, ""
 	if srv.cfg.UseGyForAuthOnly {
-		return srv.handleUseGyForAuthOnly(imsi, request, staticRuleInstalls, dynamicRuleInstalls, usageMonitors)
+		return srv.handleUseGyForAuthOnly(
+			imsi, request, staticRuleInstalls, dynamicRuleInstalls, gxCCAInit)
 	}
 	credits := []*protos.CreditUpdateResponse{}
 
@@ -123,17 +122,20 @@ func (srv *CentralSessionController) CreateSession(
 			glog.Errorf("Failed to send second single credit request: %s", err)
 			return nil, err
 		}
+		gyOriginHost = gyCCAInit.OriginHost
 		credits = getInitialCreditResponsesFromCCA(gyCCRInit, gyCCAInit)
 
 		metrics.OcsCcrInitRequests.Inc()
 	}
+
+	usageMonitors := getUsageMonitorsFromCCA_I(imsi, gyOriginHost, request.SessionId, gxCCAInit)
 
 	return &protos.CreateSessionResponse{
 		Credits:       credits,
 		StaticRules:   staticRuleInstalls,
 		DynamicRules:  dynamicRuleInstalls,
 		UsageMonitors: usageMonitors,
-		TgppCtx:       &protos.TgppContext{GxDestHost: gxCCAInit.OriginHost},
+		TgppCtx:       &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyOriginHost},
 	}, nil
 }
 
@@ -142,8 +144,8 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 	pReq *protos.CreateSessionRequest,
 	staticRuleInstalls []*protos.StaticRuleInstall,
 	dynamicRuleInstalls []*protos.DynamicRuleInstall,
-	usageMonitors []*protos.UsageMonitoringUpdateResponse,
-) (*protos.CreateSessionResponse, error) {
+	gxCCAInit *gx.CreditControlAnswer) (*protos.CreateSessionResponse, error) {
+
 	gyCCRInit := getCCRInitRequest(imsi, pReq)
 	gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 	metrics.UpdateGyRecentRequestMetrics(err)
@@ -159,10 +161,12 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 		glog.Errorf("MSCC Avp Failure: %s", err)
 		return nil, err
 	}
+	gxOriginHost, gyOriginHost := gxCCAInit.OriginHost, gyCCAInit.OriginHost
 	return &protos.CreateSessionResponse{
 		StaticRules:   staticRuleInstalls,
 		DynamicRules:  dynamicRuleInstalls,
-		UsageMonitors: usageMonitors,
+		UsageMonitors: getUsageMonitorsFromCCA_I(imsi, gyOriginHost, gyCCAInit.SessionID, gxCCAInit),
+		TgppCtx:       &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyCCAInit.OriginHost},
 	}, nil
 }
 
@@ -199,19 +203,57 @@ func (srv *CentralSessionController) UpdateSession(
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	var gxUpdateResponses []*protos.UsageMonitoringUpdateResponse
+	var (
+		gxUpdateResponses []*protos.UsageMonitoringUpdateResponse
+		gyUpdateResponses []*protos.CreditUpdateResponse
+		gxTgppCtx         = make([]struct {
+			sid string
+			ctx *protos.TgppContext
+		}, 0, len(request.UsageMonitors))
+		gyTgppCtx = map[string]*protos.TgppContext{}
+	)
 	go func() {
 		defer wg.Done()
 		requests := getGxUpdateRequestsFromUsage(request.UsageMonitors)
 		gxUpdateResponses = srv.sendMultipleGxRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
+		for _, mur := range gxUpdateResponses {
+			if mur != nil {
+				if mur.TgppCtx != nil {
+					gxTgppCtx = append(gxTgppCtx, struct {
+						sid string
+						ctx *protos.TgppContext
+					}{mur.Sid, mur.TgppCtx})
+				}
+			}
+		}
 	}()
-	var gyUpdateResponses []*protos.CreditUpdateResponse
 	go func() {
 		defer wg.Done()
 		requests := getGyUpdateRequestsFromUsage(request.Updates)
 		gyUpdateResponses = srv.sendMultipleGyRequestsWithTimeout(requests, srv.cfg.RequestTimeout)
+		for _, cur := range gyUpdateResponses {
+			if cur != nil {
+				if cur.TgppCtx != nil {
+					gyTgppCtx[cur.GetSid()] = cur.TgppCtx
+				}
+			}
+		}
 	}()
 	wg.Wait()
+
+	// Update destination hosts in all results with common SIDs
+	if len(gxTgppCtx) > 0 && len(gyTgppCtx) > 0 {
+		for _, pair := range gxTgppCtx {
+			if gyCtx, ok := gyTgppCtx[pair.sid]; ok {
+				if len(pair.ctx.GxDestHost) > 0 {
+					gyCtx.GxDestHost = pair.ctx.GxDestHost
+				}
+				if len(gyCtx.GyDestHost) > 0 {
+					pair.ctx.GyDestHost = gyCtx.GyDestHost
+				}
+			}
+		}
+	}
 
 	return &protos.UpdateSessionResponse{
 		Responses:             gyUpdateResponses,
