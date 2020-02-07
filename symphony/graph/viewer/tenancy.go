@@ -7,6 +7,7 @@ package viewer
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"runtime"
 	"strings"
 	"sync"
@@ -20,7 +21,6 @@ import (
 	"go.opencensus.io/trace"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gocloud.dev/server/health"
 	"gocloud.dev/server/health/sqlhealth"
@@ -65,7 +65,7 @@ type MySQLTenancy struct {
 func NewMySQLTenancy(dsn string) (*MySQLTenancy, error) {
 	config, err := mysql.ParseDSN(dsn)
 	if err != nil {
-		return nil, errors.Wrapf(err, "parsing dsn")
+		return nil, fmt.Errorf("parsing dsn: %w", err)
 	}
 	db := pkgmysql.Open(dsn)
 	checker := sqlhealth.New(db)
@@ -121,7 +121,7 @@ func (m *MySQLTenancy) migrate(ctx context.Context, client *ent.Client) error {
 	if err := client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true)); err != nil {
 		m.logger.For(ctx).Error("tenancy migrate", zap.Error(err))
 		span.SetStatus(trace.Status{Code: trace.StatusCodeUnknown, Message: err.Error()})
-		return errors.Wrap(err, "running tenancy migration")
+		return fmt.Errorf("running tenancy migration: %w", err)
 	}
 	return nil
 }

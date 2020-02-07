@@ -12,35 +12,48 @@ import unittest
 import orc8r.protos.metricsd_pb2 as metricsd
 import s1ap_types
 import s1ap_wrapper
-from python.integ_tests.common.service303_utils import MetricValue, \
-    verify_gateway_metrics
+from python.integ_tests.common.service303_utils import (
+    MetricValue,
+    verify_gateway_metrics,
+)
 
 
 class TestNoAuthResponse(unittest.TestCase):
 
     TEST_METRICS = [
-        MetricValue(service='mme',
-                    name=str(metricsd.ue_attach),
-                    labels={
-                        str(metricsd.result): "failure",
-                        str(metricsd.cause): "no_response_for_auth_request"},
-                    value=1),
-        MetricValue(service='mme',
-                    name=str(metricsd.ue_attach),
-                    labels={str(metricsd.action): "attach_accept_sent"},
-                    value=0),
-        MetricValue(service='mme',
-                    name=str(metricsd.ue_detach),
-                    labels={str(metricsd.cause): "implicit_detach"},
-                    value=1),
-        MetricValue(service='mme',
-                    name=str(metricsd.nas_auth_rsp_timer_expired),
-                    labels={},
-                    value=1),
-        MetricValue(service='mme',
-                    name=str(metricsd.spgw_create_session),
-                    labels={str(metricsd.result): "success"},
-                    value=0),
+        MetricValue(
+            service="mme",
+            name=str(metricsd.ue_attach),
+            labels={
+                str(metricsd.result): "failure",
+                str(metricsd.cause): "no_response_for_auth_request",
+            },
+            value=1,
+        ),
+        MetricValue(
+            service="mme",
+            name=str(metricsd.ue_attach),
+            labels={str(metricsd.action): "attach_accept_sent"},
+            value=0,
+        ),
+        MetricValue(
+            service="mme",
+            name=str(metricsd.ue_detach),
+            labels={str(metricsd.cause): "implicit_detach"},
+            value=1,
+        ),
+        MetricValue(
+            service="mme",
+            name=str(metricsd.nas_auth_rsp_timer_expired),
+            labels={},
+            value=1,
+        ),
+        MetricValue(
+            service="mme",
+            name=str(metricsd.spgw_create_session),
+            labels={str(metricsd.result): "success"},
+            value=0,
+        ),
     ]
 
     def setUp(self):
@@ -57,8 +70,10 @@ class TestNoAuthResponse(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
 
         req = self._s1ap_wrapper.ue_req
-        print("************************* Running attach no auth response \
-            timer expiry test")
+        print(
+            "************************* Running attach no auth response \
+            timer expiry test"
+        )
 
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = req.ue_id
@@ -70,17 +85,28 @@ class TestNoAuthResponse(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req)
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+        )
         # Wait for timer expiry 5 times, until context is released
         for i in range(5):
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value)
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            )
             print("************************* Timeout", i + 1)
 
         print("************************* Timeouts complete")
+        # Attach Reject
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
+        )
+
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
         print("************************* Context released")
 
 

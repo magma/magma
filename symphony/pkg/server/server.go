@@ -6,6 +6,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/pprof"
 	"path"
@@ -16,7 +17,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/server/recovery"
 
 	"github.com/google/wire"
-	"github.com/pkg/errors"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
@@ -144,7 +144,7 @@ func (srv *Server) ListenAndServe(addr string) error {
 	}
 	// Register metrics views
 	if err := view.Register(srv.views...); err != nil {
-		return errors.Wrap(err, "registering views")
+		return fmt.Errorf("registering views: %w", err)
 	}
 
 	// Setup profiling, /debug/pprof route is taken by default.
