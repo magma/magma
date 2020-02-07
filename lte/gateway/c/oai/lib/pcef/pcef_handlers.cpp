@@ -42,10 +42,10 @@ static void create_session_response(
   const std::string& imsi,
   const std::string& apn,
   itti_sgi_create_end_point_response_t sgi_response,
-  s5_create_bearer_request_t bearer_request,
+  s5_create_session_request_t bearer_request,
   const grpc::Status& status)
 {
-  s5_create_bearer_response_t s5_response = {0};
+  s5_create_session_response_t s5_response = {0};
   s5_response.context_teid = bearer_request.context_teid;
   s5_response.eps_bearer_id = bearer_request.eps_bearer_id;
   s5_response.sgi_create_endpoint_resp = sgi_response;
@@ -59,7 +59,7 @@ static void create_session_response(
                          &sgi_response.paa.ipv4_address);
     s5_response.failure_cause = PCEF_FAILURE;
   }
-  sgw_handle_s5_create_bearer_response(s5_response);
+  handle_s5_create_session_response(s5_response);
 }
 
 static void pcef_fill_create_session_req(
@@ -94,7 +94,7 @@ void pcef_create_session(
   char* ip,
   const pcef_create_session_data* session_data,
   itti_sgi_create_end_point_response_t sgi_response,
-  s5_create_bearer_request_t bearer_request)
+  s5_create_session_request_t bearer_request)
 {
   auto imsi_str = std::string(imsi);
   auto ip_str = std::string(ip);

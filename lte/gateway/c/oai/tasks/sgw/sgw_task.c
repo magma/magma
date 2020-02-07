@@ -104,7 +104,7 @@ static void* sgw_intertask_interface(void* args_p)
          * * * *      E-UTRAN Initial Attach
          * * * *      UE requests PDN connectivity
          */
-        sgw_handle_create_session_request(
+        sgw_handle_s11_create_session_request(
           spgw_state_p,
           &received_message_p->ittiMsg.s11_create_session_request,
           imsi64);

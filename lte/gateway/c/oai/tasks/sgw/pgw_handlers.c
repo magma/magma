@@ -67,24 +67,23 @@ extern uint32_t sgw_get_new_s1u_teid(void);
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 //--------------------------------------------------------------------------------
 
-void pgw_handle_create_bearer_request(
+void handle_s5_create_session_request(
   spgw_state_t* spgw_state,
   teid_t context_teid,
   ebi_t eps_bearer_id)
 {
-  // assign the IP here
+  OAILOG_FUNC_IN(LOG_PGW_APP);
   s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p = NULL;
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   struct in_addr inaddr;
   char *imsi = NULL;
   char *apn = NULL;
-  OAILOG_FUNC_IN(LOG_PGW_APP);
 
   OAILOG_DEBUG(
     LOG_PGW_APP,
-    "Handle S5_CREATE_BEARER_REQUEST, Context S-GW S11 teid" TEID_FMT
-    " , EPS bearer id %u\n",
+    "Handle s5_create_session_request, for context sgw s11 teid, " TEID_FMT
+    "EPS bearer id %u\n",
     context_teid,
     eps_bearer_id);
   hash_rc = hashtable_ts_get(
@@ -108,116 +107,89 @@ void pgw_handle_create_bearer_request(
     protocol_configuration_options_ids_t pco_ids;
     memset(&pco_ids, 0, sizeof pco_ids);
 
-    if (pgw_process_pco_request(pco_req, &pco_resp, &pco_ids) != RETURNok) {
-      OAILOG_DEBUG(
-        LOG_PGW_APP,
-        "Error in processing PCO in create bearer request for "
-        "context_id: " TEID_FMT "\n",
-        context_teid);
-      OAILOG_FUNC_OUT(LOG_PGW_APP);
-    }
-    copy_protocol_configuration_options(
-      &sgi_create_endpoint_resp.pco, &pco_resp);
-    clear_protocol_configuration_options(&pco_resp);
+    if (pgw_process_pco_request(pco_req, &pco_resp, &pco_ids) == RETURNok) {
+      copy_protocol_configuration_options(
+        &sgi_create_endpoint_resp.pco, &pco_resp);
+      clear_protocol_configuration_options(&pco_resp);
 
-    //--------------------------------------------------------------------------
-    // IP forward will forward packets to this teid
-    sgi_create_endpoint_resp.context_teid = context_teid;
-    sgi_create_endpoint_resp.eps_bearer_id = eps_bearer_id;
-    // TO DO NOW
-    sgi_create_endpoint_resp.paa.pdn_type =
-      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-        .pdn_type;
+      //--------------------------------------------------------------------------
+      // IP forward will forward packets to this teid
+      sgi_create_endpoint_resp.context_teid = context_teid;
+      sgi_create_endpoint_resp.eps_bearer_id = eps_bearer_id;
+      // TO DO NOW
+      sgi_create_endpoint_resp.paa.pdn_type =
+        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
+          .pdn_type;
 
-    imsi =
-      (char *)
-        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
+      imsi =
+        (char*)
+          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
 
-    apn =
-      (char *)
-        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-          .pdn_connection.apn_in_use;
+      apn = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+              .pdn_connection.apn_in_use;
 
-    switch (sgi_create_endpoint_resp.paa.pdn_type) {
-      case IPv4:
-        // Use NAS by default if no preference is set.
-        //
-        // For context, the protocol configuration options (PCO) section of the
-        // packet from the UE is optional, which means that it is perfectly valid
-        // for a UE to send no PCO preferences at all. The previous logic only
-        // allocates an IPv4 address if the UE has explicitly set the PCO
-        // parameter for allocating IPv4 via NAS signaling (as opposed to via
-        // DHCPv4). This means that, in the absence of either parameter being set,
-        // the does not know what to do, so we need a default option as well.
-        //
-        // Since we only support the NAS signaling option right now, we will
-        // default to using NAS signaling UNLESS we see a preference for DHCPv4.
-        // This means that all IPv4 addresses are now allocated via NAS signaling
-        // unless specified otherwise.
-        //
-        // In the long run, we will want to evolve the logic to use whatever
-        // information we have to choose the ``best" allocation method. This means
-        // adding new bitfields to pco_ids in pgw_pco.h, setting them in pgw_pco.c
-        // and using them here in conditional logic. We will also want to
-        // implement different logic between the PDN types.
-        if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
-          if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
-            increment_counter(
-              "ue_pdn_connection",
-              1,
-              2,
-              "pdn_type",
-              "ipv4",
-              "result",
-              "success");
-            sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
-            OAILOG_DEBUG(
-              LOG_PGW_APP, "Allocated IPv4 address for imsi <%s>, apn <%s>\n",
-              imsi, apn);
-            sgi_create_endpoint_resp.status = SGI_STATUS_OK;
-          } else {
-            increment_counter(
-              "ue_pdn_connection",
-              1,
-              2,
-              "pdn_type",
-              "ipv4",
-              "result",
-              "failure");
-            OAILOG_ERROR(
-              LOG_PGW_APP, "Failed to allocate IPv4 PAA for PDN type IPv4 for "
-              "imsi <%s> and apn <%s>\n", imsi, apn);
-            sgi_create_endpoint_resp.status =
-              SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
+      switch (sgi_create_endpoint_resp.paa.pdn_type) {
+        case IPv4:
+          // Use NAS by default if no preference is set.
+          //
+          // For context, the protocol configuration options (PCO) section of
+          // packet from the UE is optional, which means that it is perfectly
+          // valid UE to send no PCO preferences at all. The previous logic only
+          // allocates an IPv4 address if the UE has explicitly set the PCO
+          // parameter for allocating IPv4 via NAS signaling (as opposed to via
+          // DHCPv4). This means that, in the absence of either parameter being,
+          // set the does not know what to do, so we need a default option as well.
+          //
+          // Since we only support the NAS signaling option right now, we will
+          // default to using NAS signaling UNLESS we see a preference for DHCPv4.
+          // This means that all IPv4 addresses are now allocated via NAS signaling
+          // unless specified otherwise.
+          //
+          // In the long run, we will want to evolve the logic to use whatever
+          // information we have to choose the ``best" allocation method. This means
+          // adding new bitfields to pco_ids in pgw_pco.h, setting them in pgw_pco.c
+          // and using them here in conditional logic. We will also want to
+          // implement different logic between the PDN types.
+          if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
+            if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
+              increment_counter(
+                "ue_pdn_connection",
+                1,
+                2,
+                "pdn_type",
+                "ipv4",
+                "result",
+                "success");
+              sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
+              OAILOG_DEBUG(
+                LOG_PGW_APP,
+                "Allocated IPv4 address for imsi <%s>, apn <%s>\n",
+                imsi,
+                apn);
+              sgi_create_endpoint_resp.status = SGI_STATUS_OK;
+            } else {
+              increment_counter(
+                "ue_pdn_connection",
+                1,
+                2,
+                "pdn_type",
+                "ipv4",
+                "result",
+                "failure");
+              OAILOG_ERROR(
+                LOG_PGW_APP,
+                "Failed to allocate IPv4 PAA for PDN type IPv4 for "
+                "imsi <%s> and apn <%s>\n",
+                imsi,
+                apn);
+              sgi_create_endpoint_resp.status =
+                SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
+            }
           }
-        }
 
-        break;
+          break;
 
-      case IPv6:
-        increment_counter(
-          "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result", "failure");
-        OAILOG_ERROR(LOG_PGW_APP, "IPV6 PDN type NOT Supported\n");
-        sgi_create_endpoint_resp.status =
-          SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;
-
-        break;
-
-      case IPv4_AND_v6:
-        if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
-          increment_counter(
-            "ue_pdn_connection",
-            1,
-            2,
-            "pdn_type",
-            "ipv4v6",
-            "result",
-            "success");
-          sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
-          OAILOG_DEBUG(LOG_PGW_APP, "Allocated IPv4 address\n");
-          sgi_create_endpoint_resp.status = SGI_STATUS_OK;
-          sgi_create_endpoint_resp.paa.pdn_type = IPv4;
-        } else {
+        case IPv6:
           increment_counter(
             "ue_pdn_connection",
             1,
@@ -226,31 +198,68 @@ void pgw_handle_create_bearer_request(
             "ipv4v6",
             "result",
             "failure");
-          OAILOG_ERROR(
-            LOG_PGW_APP,
-            "Failed to allocate IPv4 PAA for PDN type IPv4_AND_v6\n");
+          OAILOG_ERROR(LOG_PGW_APP, "IPV6 PDN type NOT Supported\n");
           sgi_create_endpoint_resp.status =
-            SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
-        }
+            SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;
 
-        break;
+          break;
 
-      default:
-        AssertFatal(
-          0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
-        break;
+        case IPv4_AND_v6:
+          if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
+            increment_counter(
+              "ue_pdn_connection",
+              1,
+              2,
+              "pdn_type",
+              "ipv4v6",
+              "result",
+              "success");
+            sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
+            OAILOG_DEBUG(LOG_PGW_APP, "Allocated IPv4 address\n");
+            sgi_create_endpoint_resp.status = SGI_STATUS_OK;
+            sgi_create_endpoint_resp.paa.pdn_type = IPv4;
+          } else {
+            increment_counter(
+              "ue_pdn_connection",
+              1,
+              2,
+              "pdn_type",
+              "ipv4v6",
+              "result",
+              "failure");
+            OAILOG_ERROR(
+              LOG_PGW_APP,
+              "Failed to allocate IPv4 PAA for PDN type IPv4_AND_v6\n");
+            sgi_create_endpoint_resp.status =
+              SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
+          }
+
+          break;
+
+        default:
+          AssertFatal(
+            0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
+          break;
+      }
+    } else { // pgw_process_pco_request != RETURNok
+      OAILOG_ERROR(
+        LOG_PGW_APP,
+        "Error in processing PCO in create session request for "
+        "context_id: " TEID_FMT "\n",
+        context_teid);
+      sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
     }
-
   } else { // if (HASH_TABLE_OK == hash_rc)
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_PGW_APP,
-      "Rx S11_S1U_ENDPOINT_CREATED, Context: teid %u NOT FOUND\n",
+      "Failed to fetch sgw bearer context from the received context "
+      "teid" TEID_FMT "\n",
       context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
   }
   if (sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
     // create session in PCEF and return
-    s5_create_bearer_request_t bearer_req = {0};
+    s5_create_session_request_t bearer_req = {0};
     bearer_req.context_teid = context_teid;
     bearer_req.eps_bearer_id = eps_bearer_id;
     char ip_str[INET_ADDRSTRLEN];
@@ -264,7 +273,7 @@ void pgw_handle_create_bearer_request(
       imsi, ip_str, &session_data, sgi_create_endpoint_resp, bearer_req);
     OAILOG_FUNC_OUT(LOG_PGW_APP);
   }
-  s5_create_bearer_response_t s5_response = {0};
+  s5_create_session_response_t s5_response = {0};
   s5_response.context_teid = context_teid;
   s5_response.eps_bearer_id = eps_bearer_id;
   s5_response.sgi_create_endpoint_resp = sgi_create_endpoint_resp;
@@ -272,11 +281,11 @@ void pgw_handle_create_bearer_request(
 
   OAILOG_DEBUG(
     LOG_PGW_APP,
-    "Sending S5 Create Bearer Response to SGW: Context teid, " TEID_FMT
+    "Sending S5 Create Session Response to SGW: with context teid, " TEID_FMT
     "EPS Bearer Id = %u\n",
     s5_response.context_teid,
     s5_response.eps_bearer_id);
-  sgw_handle_s5_create_bearer_response(s5_response);
+  handle_s5_create_session_response(s5_response);
   OAILOG_FUNC_OUT(LOG_PGW_APP);
 }
 

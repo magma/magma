@@ -32,7 +32,7 @@
 #include "sgw_messages_types.h"
 #include "spgw_state.h"
 
-void pgw_handle_create_bearer_request(
+void handle_s5_create_session_request(
   spgw_state_t* spgw_state,
   teid_t context_teid,
   ebi_t eps_bearer_id);

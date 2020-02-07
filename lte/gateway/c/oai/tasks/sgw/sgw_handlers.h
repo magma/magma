@@ -36,9 +36,9 @@
 #include "s5_messages_types.h"
 #include "spgw_state.h"
 
-int sgw_handle_create_session_request(
-  spgw_state_t *state,
-  const itti_s11_create_session_request_t *const session_req_p,
+int sgw_handle_s11_create_session_request(
+  spgw_state_t* state,
+  const itti_s11_create_session_request_t* const session_req_p,
   imsi64_t imsi64);
 int sgw_handle_sgi_endpoint_created(
   spgw_state_t *state,
