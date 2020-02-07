@@ -792,5 +792,26 @@ void MmeNasStateConverter::proto_to_state(
     mme_ue_ctxts_proto.guti_ue_id_htbl(),
     mme_ue_ctxt_state->guti_ue_context_htbl);*/
 }
+
+void MmeNasStateConverter::proto_to_mme_imsi_map(
+  const MmeImsiMap& mme_imsi_proto,
+  mme_imsi_map_t* mme_imsi_map)
+{
+  proto_to_hashtable_uint64_ts(
+    mme_imsi_proto.enb_ue_id_mme_ue_id_map(), mme_imsi_map->enb_s1ap_mme_ue_id_htbl);
+  proto_to_hashtable_uint64_ts(
+    mme_imsi_proto.mme_ue_id_imsi_map(), mme_imsi_map->mme_ue_s1ap_imsi_htbl);
+}
+
+void MmeNasStateConverter::mme_imsi_map_to_proto(
+  const mme_imsi_map_t* mme_imsi_map,
+  MmeImsiMap* mme_imsi_proto)
+{
+  hashtable_uint64_ts_to_proto(
+    mme_imsi_map->enb_s1ap_mme_ue_id_htbl, mme_imsi_proto->mutable_enb_ue_id_mme_ue_id_map());
+  hashtable_uint64_ts_to_proto(
+    mme_imsi_map->mme_ue_s1ap_imsi_htbl, mme_imsi_proto->mutable_mme_ue_id_imsi_map());
+}
+
 } // namespace lte
 } // namespace magma

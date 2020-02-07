@@ -58,6 +58,16 @@ class MmeNasStateConverter : public StateConverter {
     const MmeNasState& state_proto,
     mme_app_desc_t* mme_nas_state_p);
 
+  // Serialize mme_imsi_map_to to MmeImsiMap proto
+  static void mme_imsi_map_to_proto(
+    const mme_imsi_map_t* mme_imsi_map,
+    MmeImsiMap* mme_imsi_proto);
+
+  // Deserialize mme_imsi_map_to from MmeImsiMap proto
+  static void proto_to_mme_imsi_map(
+    const MmeImsiMap& mme_imsi_proto,
+    mme_imsi_map_t* mme_imsi_map);
+
  private:
   /***********************************************************
     *                 Hashtable <-> Proto

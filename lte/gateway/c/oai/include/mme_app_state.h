@@ -64,6 +64,16 @@ void put_mme_nas_state(mme_app_desc_t** task_state_ptr);
 */
 void clear_mme_nas_state(void);
 
+/**
+ * Converts mme_imsi_map to protobuf and saves it into data store
+ */
+void put_mme_imsi_map(void);
+
+/**
+ * @return mme_imsi_map_t pointer
+ */
+mme_imsi_map_t* get_mme_imsi_map(void);
+
 #ifdef __cplusplus
 }
 #endif

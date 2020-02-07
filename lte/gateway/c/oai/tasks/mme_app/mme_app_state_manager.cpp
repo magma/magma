@@ -277,9 +277,14 @@ void MmeNasStateManager::create_state()
   if (!state_cache_p) {
     return;
   }
+
+  mme_imsi_map_ = (mme_imsi_map_t*) calloc(1, sizeof(mme_imsi_map_t));
+
   create_hashtables();
   // Initialize the lock and local timers, which are non-persistent
   mme_nas_state_init_local_state();
+
+  create_mme_imsi_map();
 }
 
 // Delete the hashtables for MME NAS state
@@ -313,6 +318,46 @@ void MmeNasStateManager::free_state()
   pthread_rwlock_destroy(&state_cache_p->rw_lock);
   free(state_cache_p);
   state_cache_p = nullptr;
+
+  clear_mme_imsi_map();
+}
+
+void MmeNasStateManager::create_mme_imsi_map()
+{
+  mme_imsi_map_ = (mme_imsi_map_t*) calloc(1, sizeof(mme_imsi_map_t));
+
+  mme_imsi_map_->mme_ue_s1ap_imsi_htbl =
+    hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, nullptr);
+  mme_imsi_map_->enb_s1ap_mme_ue_id_htbl =
+    hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, nullptr);
+
+  MmeImsiMap imsi_proto = MmeImsiMap();
+  redis_client->read_proto(MME_IMSI_MAP_TABLE_NAME, imsi_proto);
+
+  MmeNasStateConverter::proto_to_mme_imsi_map(imsi_proto, mme_imsi_map_);
+}
+
+mme_imsi_map_t* MmeNasStateManager::get_mme_imsi_map()
+{
+  return mme_imsi_map_;
+}
+
+void MmeNasStateManager::put_mme_imsi_map() {
+  MmeImsiMap imsi_proto = MmeImsiMap();
+  MmeNasStateConverter::mme_imsi_map_to_proto(mme_imsi_map_, &imsi_proto);
+  redis_client->write_proto(MME_IMSI_MAP_TABLE_NAME, imsi_proto);
+}
+
+void MmeNasStateManager::clear_mme_imsi_map() {
+  if(!mme_imsi_map_) {
+    return;
+  }
+
+  hashtable_uint64_ts_destroy(mme_imsi_map_->mme_ue_s1ap_imsi_htbl);
+  hashtable_uint64_ts_destroy(mme_imsi_map_->enb_s1ap_mme_ue_id_htbl);
+
+  free_wrapper((void **) &mme_imsi_map_);
+
 }
 
 } // namespace lte
