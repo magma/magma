@@ -79,6 +79,16 @@ type TransactionalBlobStorage interface {
 	IncrementVersion(networkID string, id storage.TypeAndKey) error
 }
 
+// GetTKsFromKeys returns the passed keys mapped as TypeAndKey, with the passed
+// type applied to each.
+func GetTKsFromKeys(typ string, keys []string) []storage.TypeAndKey {
+	tks := make([]storage.TypeAndKey, 0, len(keys))
+	for _, k := range keys {
+		tks = append(tks, storage.TypeAndKey{Type: typ, Key: k})
+	}
+	return tks
+}
+
 // GetBlobsByTypeAndKey returns a computed view of a list of blobs as a map of
 // blobs keyed by blob TypeAndKey.
 func GetBlobsByTypeAndKey(blobs []Blob) map[storage.TypeAndKey]Blob {

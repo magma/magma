@@ -68,3 +68,14 @@ services:
     ports:
       - 3000:3000/tcp
     restart: always
+
+  user-grafana:
+    volumes:
+      - userGrafanaData:/var/lib/grafana
+    build:
+      context: $PWD/../../../orc8r/cloud
+      dockerfile: $PWD/user-grafana/Dockerfile
+    restart: always
+
+volumes:
+  userGrafanaData:

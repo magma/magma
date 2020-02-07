@@ -9,14 +9,13 @@ package testdb
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
 	"sync/atomic"
 
 	"libfb/go/fbmysql/testdb"
-
-	"github.com/pkg/errors"
 )
 
 type fbmysql struct {
@@ -28,7 +27,7 @@ func init() { register("mysql", &fbmysql{}) }
 func (m *fbmysql) open() (*sql.DB, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
-		return nil, errors.Wrap(err, "resolving hostname")
+		return nil, fmt.Errorf("resolving hostname: %w")
 	}
 	prefix := strings.SplitN(hostname, ".", 2)[0] +
 		"_" + strconv.FormatUint(atomic.AddUint64(&m.id, 1), 10)
@@ -41,7 +40,7 @@ func (m *fbmysql) open() (*sql.DB, error) {
 		},
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "opening database")
+		return nil, fmt.Errorf("opening database: %w", err)
 	}
 	return db, nil
 }

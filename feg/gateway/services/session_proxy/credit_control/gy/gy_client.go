@@ -195,7 +195,11 @@ func createReAuthAnswerMessage(requestMsg *diam.Message, answer *ReAuthAnswer) *
 // getAdditionalAvps retrieves any extra AVPs based on the type of request.
 // For update and terminate, it returns the used credit AVPs
 func getAdditionalAvps(request *CreditControlRequest) ([]*diam.AVP, error) {
-	avpList := make([]*diam.AVP, 0, len(request.Credits))
+	avpList := make([]*diam.AVP, 0, len(request.Credits)+1)
+	if len(request.TgppCtx.GetGyDestHost()) > 0 {
+		avpList = append(avpList,
+			diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.TgppCtx.GetGyDestHost())))
+	}
 	for _, credit := range request.Credits {
 		avpList = append(avpList, getMSCCAVP(request.Type, credit))
 	}
@@ -434,6 +438,7 @@ func getCCAHandler() diameter.AnswerHandler {
 			Answer: &CreditControlAnswer{
 				ResultCode:    cca.ResultCode,
 				SessionID:     sid,
+				OriginHost:    cca.OriginHost,
 				RequestNumber: cca.RequestNumber,
 				Credits:       getReceivedCredits(&cca),
 			},

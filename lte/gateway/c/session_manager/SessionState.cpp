@@ -15,6 +15,81 @@
 
 namespace magma {
 
+std::unique_ptr<SessionState> SessionState::unmarshal(
+  const StoredSessionState &marshaled, StaticRuleStore &rule_store)
+{
+  return std::make_unique<SessionState>(marshaled, rule_store);
+}
+
+StoredSessionState SessionState::marshal()
+{
+  StoredSessionState marshaled{};
+
+  StoredSessionConfig config{};
+  config.ue_ipv4 = config_.ue_ipv4;
+  config.spgw_ipv4 = config_.spgw_ipv4;
+  config.msisdn = config_.msisdn;
+  config.apn = config_.apn;
+  config.imei = config_.apn;
+  config.plmn_id = config_.plmn_id;
+  config.imsi_plmn_id = config_.imsi_plmn_id;
+  config.user_location = config_.user_location;
+  config.rat_type = config_.rat_type;
+  config.mac_addr = config_.mac_addr; // MAC Address for WLAN
+  config.hardware_addr = config_.hardware_addr; // MAC Address for WLAN (binary)
+  config.radius_session_id = config_.radius_session_id;
+  config.bearer_id = config_.bearer_id;
+  StoredQoSInfo qos_info{};
+  qos_info.enabled = config_.qos_info.enabled;
+  qos_info.qci = config_.qos_info.qci;
+  config.qos_info = qos_info;
+
+  marshaled.config = config;
+  marshaled.rules = session_rules_.marshal();
+  marshaled.charging_pool = charging_pool_.marshal();
+  marshaled.monitor_pool = monitor_pool_.marshal();
+  marshaled.imsi = imsi_;
+  marshaled.session_id = session_id_;
+  marshaled.core_session_id = core_session_id_;
+
+  return marshaled;
+}
+
+SessionState::SessionState(
+  const StoredSessionState &marshaled,
+  StaticRuleStore &rule_store):
+  request_number_(2),
+  curr_state_(SESSION_ACTIVE),
+  session_rules_(marshaled.rules, rule_store),
+  charging_pool_(std::move(*ChargingCreditPool::unmarshal(marshaled.charging_pool))),
+  monitor_pool_(std::move(*UsageMonitoringCreditPool::unmarshal(marshaled.monitor_pool)))
+{
+SessionState::Config cfg{};
+  StoredSessionConfig marshaled_cfg = marshaled.config;
+  cfg.ue_ipv4 = marshaled_cfg.ue_ipv4;
+  cfg.spgw_ipv4 = marshaled_cfg.spgw_ipv4;
+  cfg.msisdn = marshaled_cfg.msisdn;
+  cfg.apn = marshaled_cfg.apn;
+  cfg.imei = marshaled_cfg.apn;
+  cfg.plmn_id = marshaled_cfg.plmn_id;
+  cfg.imsi_plmn_id = marshaled_cfg.imsi_plmn_id;
+  cfg.user_location = marshaled_cfg.user_location;
+  cfg.rat_type = marshaled_cfg.rat_type;
+  cfg.mac_addr = marshaled_cfg.mac_addr; // MAC Address for WLAN
+  cfg.hardware_addr = marshaled_cfg.hardware_addr; // MAC Address for WLAN (binary)
+  cfg.radius_session_id = marshaled_cfg.radius_session_id;
+  cfg.bearer_id = marshaled_cfg.bearer_id;
+  SessionState::QoSInfo qos_info{};
+  qos_info.enabled = marshaled_cfg.qos_info.enabled;
+  qos_info.qci = marshaled_cfg.qos_info.qci;
+  cfg.qos_info = qos_info;
+  config_ = cfg;
+
+  imsi_ = marshaled.imsi;
+  session_id_ = marshaled.session_id;
+  core_session_id_ = marshaled.core_session_id;
+}
+
 SessionState::SessionState(
   const std::string& imsi,
   const std::string& session_id,

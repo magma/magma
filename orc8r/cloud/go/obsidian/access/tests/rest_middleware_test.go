@@ -17,6 +17,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/access"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
+	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 )
 
 func TestMiddlewareWithoutCertifier(t *testing.T) {
@@ -110,6 +111,24 @@ func TestMiddleware(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 403, s)
 
+	// Test WRITE Tenants URL
+	s, err = SendRequest(
+		"GET",
+		urlPrefix+tenantsh.TenantInfoURL,
+		operCertSn,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 403, s)
+
+	// Test WRITE Tenants URL
+	s, err = SendRequest(
+		"POST",
+		urlPrefix+tenantsh.TenantInfoURL,
+		operCertSn,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 403, s)
+
 	// Test Supervisor Permissions
 	// Super - Test READ network entity
 	s, err = SendRequest(
@@ -173,6 +192,25 @@ func TestMiddleware(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, s)
+
+	// Super - Test WRITE Tenants URL
+	s, err = SendRequest(
+		"GET",
+		urlPrefix+tenantsh.TenantInfoURL,
+		superCertSn,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+
+	// Super - Test WRITE Tenants URL
+	s, err = SendRequest(
+		"POST",
+		urlPrefix+tenantsh.TenantInfoURL,
+		superCertSn,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+
 }
 
 func startTestMidlewareServer(t *testing.T) *echo.Echo {
@@ -208,6 +246,16 @@ func startTestMidlewareServer(t *testing.T) *echo.Echo {
 	// Endpoint requiring Write supervisor permissions
 	e.PUT("/malformed/url", func(c echo.Context) error {
 		return c.String(http.StatusOK, "!")
+	})
+
+	// Tenants Endpoint requiring Network Wildcard WRITE access permissions
+	e.POST(tenantsh.TenantInfoURL, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
+	})
+
+	// Tenants Endpoint requiring Network Wildcard READ access permissions
+	e.GET(tenantsh.TenantInfoURL, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
 	})
 
 	e.Use(access.Middleware) // inject obsidian access control middleware
