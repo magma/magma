@@ -24,6 +24,7 @@
 namespace {
 constexpr char s1ap_enb_coll[] = "s1ap_eNB_coll";
 constexpr char s1ap_mme_id2assoc_id_coll[] = "s1ap_mme_id2assoc_id_coll";
+constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 } // namespace
 
 namespace magma {
@@ -80,6 +81,8 @@ void S1apStateManager::create_state()
   bdestroy(ht_name);
 
   state_cache_p->num_enbs = 0;
+
+  create_s1ap_imsi_map();
 }
 
 void S1apStateManager::free_state()
@@ -122,6 +125,44 @@ void S1apStateManager::free_state()
     OAI_FPRINTF_ERR("An error occured while destroying assoc_id hash table");
   }
   free_wrapper((void**) &state_cache_p);
+
+  clear_s1ap_imsi_map();
+}
+
+void S1apStateManager::create_s1ap_imsi_map()
+{
+  s1ap_imsi_map_ = (s1ap_imsi_map_t*) calloc(1, sizeof(s1ap_imsi_map_t));
+
+  s1ap_imsi_map_->enb_s1ap_mme_ue_id_htbl =
+    hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
+  s1ap_imsi_map_->mme_ue_id_imsi_htbl =
+    hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
+
+  gateway::s1ap::S1apImsiMap imsi_proto = gateway::s1ap::S1apImsiMap();
+  redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
+
+  S1apStateConverter::proto_to_s1ap_imsi_map(imsi_proto, s1ap_imsi_map_);
+}
+
+void S1apStateManager::clear_s1ap_imsi_map() {
+  if(!s1ap_imsi_map_) {
+    return;
+  }
+  hashtable_uint64_ts_destroy(s1ap_imsi_map_->enb_s1ap_mme_ue_id_htbl);
+  hashtable_uint64_ts_destroy(s1ap_imsi_map_->mme_ue_id_imsi_htbl);
+
+  free_wrapper((void **) &s1ap_imsi_map_);
+}
+
+s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map()
+{
+  return s1ap_imsi_map_;
+}
+
+void S1apStateManager::put_s1ap_imsi_map() {
+  gateway::s1ap::S1apImsiMap imsi_proto = gateway::s1ap::S1apImsiMap();
+  S1apStateConverter::s1ap_imsi_map_to_proto(s1ap_imsi_map_, &imsi_proto);
+  redis_client->write_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
 }
 
 } // namespace lte
