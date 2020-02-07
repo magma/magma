@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"magma/feg/gateway/services/session_proxy/credit_control"
+	"magma/lte/cloud/go/protos"
 )
 
 type MonitoringLevel uint8
@@ -32,7 +33,6 @@ const (
 // CreditControlRequest represents a call over gx
 type CreditControlRequest struct {
 	SessionID     string
-	DestHost      string
 	Type          credit_control.CreditRequestType
 	IMSI          string
 	RequestNumber uint32
@@ -49,6 +49,7 @@ type CreditControlRequest struct {
 	HardwareAddr  []byte
 	IPCANType     credit_control.IPCANType
 	RATType       credit_control.RATType
+	TgppCtx       *protos.TgppContext
 }
 
 type QosRequestInfo struct {
