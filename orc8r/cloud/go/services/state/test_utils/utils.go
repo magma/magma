@@ -9,11 +9,9 @@ LICENSE file in the root directory of this source tree.
 package test_utils
 
 import (
-	"encoding/json"
 	"testing"
 
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
@@ -51,21 +49,4 @@ func GetContextWithCertificate(t *testing.T, hwID string) context.Context {
 	return metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs(identity.CLIENT_CERT_SN_KEY, csn[0]))
-}
-
-func GetGWStatusViaHTTPNoError(t *testing.T, url string, networkID string, key string) {
-	status, response, err := tests.SendHttpRequest("GET", url, "")
-	assert.NoError(t, err)
-	assert.Equal(t, 200, status)
-	expected, err := state.GetGatewayStatus(networkID, key)
-	assert.NoError(t, err)
-	expectedJSON, err := json.Marshal(*expected)
-	assert.NoError(t, err)
-	assert.Equal(t, string(expectedJSON), response)
-}
-
-func GetGWStatusExpectNotFound(t *testing.T, url string) {
-	status, _, err := tests.SendHttpRequest("GET", url, "")
-	assert.NoError(t, err)
-	assert.Equal(t, 404, status)
 }
