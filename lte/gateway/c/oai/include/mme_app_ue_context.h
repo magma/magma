@@ -486,6 +486,11 @@ typedef struct mme_ue_context_s {
   obj_hash_table_uint64_t *guti_ue_context_htbl; // data is mme_ue_s1ap_id_t
 } mme_ue_context_t;
 
+typedef struct mme_imsi_map_s {
+  hash_table_uint64_ts_t *enb_s1ap_mme_ue_id_htbl;
+  hash_table_uint64_ts_t *mme_ue_s1ap_imsi_htbl;
+} mme_imsi_map_t;
+
 /** \brief Retrieve an UE context by selecting the provided IMSI
  * \param imsi Imsi to find in UE map
  * @returns an UE context matching the IMSI or NULL if the context doesn't exists

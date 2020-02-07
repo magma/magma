@@ -159,3 +159,8 @@ message MmeNasState {
   uint32 nb_s1u_bearers = 6;
   uint64 statistic_timer_id = 7;
 }
+
+message MmeImsiMap {
+  map<uint64, uint64> mme_ue_id_imsi_map = 1; // mme_s1ap_ue_id => IMSI64
+  map<uint64, uint64> enb_ue_id_mme_ue_id_map = 2; // enb_s1ap_ue_id => mme_s1ap_ue_id
+}

@@ -31,6 +31,10 @@ extern "C" {
 #include "mme_app_state_converter.h"
 #include "ServiceConfigLoader.h"
 
+namespace {
+constexpr char MME_IMSI_MAP_TABLE_NAME[] = "mme_imsi_map";
+}
+
 namespace magma {
 namespace lte {
 /**
@@ -79,6 +83,16 @@ class MmeNasStateManager :
   void free_state() override;
 
   /**
+   * Serializes mme_imsi_map into proto and writes it into data store
+   */
+  void put_mme_imsi_map();
+  /**
+   * Returns a pointer to mme_imsi_map
+   * @return mme_imsi_map_t pointer
+   */
+  mme_imsi_map_t* get_mme_imsi_map();
+
+  /**
    * Copy constructor and assignment operator are marked as deleted functions.
    * Making them public for better debugging/logging.
    */
@@ -100,6 +114,7 @@ class MmeNasStateManager :
   int max_ue_htbl_lists_;
   uint32_t mme_statistic_timer_;
   bool mme_nas_state_dirty_; // TODO: convert this to version numbers
+  mme_imsi_map_t* mme_imsi_map_;
 
   // Initialize state that is non-persistent, e.g. mutex locks and timers
   void mme_nas_state_init_local_state();
@@ -122,6 +137,11 @@ class MmeNasStateManager :
    * task terminates
    */
   void create_state() override;
+
+  // Allocates mme_imsi_map_t and hashtables
+  void create_mme_imsi_map();
+  // Cleans up mme_imsi_map_t and hashtables
+  void clear_mme_imsi_map();
 
   // Clean-up the in-memory hashtables
   void clear_mme_nas_hashtables();

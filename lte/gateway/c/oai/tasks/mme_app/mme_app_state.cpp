@@ -81,3 +81,12 @@ void clear_mme_nas_state()
   magma::lte::MmeNasStateManager::getInstance().free_state();
 }
 
+void put_mme_imsi_map(void)
+{
+  magma::lte::MmeNasStateManager::getInstance().put_mme_imsi_map();
+}
+
+mme_imsi_map_t* get_mme_imsi_map(void)
+{
+  return magma::lte::MmeNasStateManager::getInstance().get_mme_imsi_map();
+}
