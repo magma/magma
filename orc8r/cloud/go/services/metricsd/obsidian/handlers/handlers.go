@@ -14,11 +14,11 @@ import (
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	promH "magma/orc8r/cloud/go/services/metricsd/prometheus/handlers"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/labstack/echo"
 	promAPI "github.com/prometheus/client_golang/api"

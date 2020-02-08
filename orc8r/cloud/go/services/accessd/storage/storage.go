@@ -9,8 +9,8 @@
 package storage
 
 import (
-	"magma/orc8r/cloud/go/protos"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 // AccessdStorage provides storage functionality for mapping identities to ACLs.

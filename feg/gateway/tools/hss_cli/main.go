@@ -18,8 +18,8 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	lteprotos "magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/tools/commands"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (

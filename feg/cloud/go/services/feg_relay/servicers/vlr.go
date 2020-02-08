@@ -13,7 +13,7 @@ import (
 	"golang.org/x/net/context"
 
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 // VLRResetAck relays the ResetAck sent from VLR->FeG->All Access Gateway

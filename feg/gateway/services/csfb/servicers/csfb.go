@@ -11,7 +11,7 @@ package servicers
 import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"

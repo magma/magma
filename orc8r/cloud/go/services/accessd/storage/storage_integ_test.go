@@ -14,10 +14,10 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/accessd/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"

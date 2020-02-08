@@ -10,7 +10,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	protos "magma/orc8r/cloud/go/protos"
+	protos "magma/orc8r/lib/go/protos"
 	math "math"
 )
 
@@ -1550,11 +1550,11 @@ var fileDescriptor_de15f7845cd65880 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // CSFBFedGWServiceClient is the client API for CSFBFedGWService service.
 //
@@ -1578,10 +1578,10 @@ type CSFBFedGWServiceClient interface {
 }
 
 type cSFBFedGWServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewCSFBFedGWServiceClient(cc *grpc.ClientConn) CSFBFedGWServiceClient {
+func NewCSFBFedGWServiceClient(cc grpc.ClientConnInterface) CSFBFedGWServiceClient {
 	return &cSFBFedGWServiceClient{cc}
 }
 
@@ -2119,10 +2119,10 @@ type CSFBGatewayServiceClient interface {
 }
 
 type cSFBGatewayServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewCSFBGatewayServiceClient(cc *grpc.ClientConn) CSFBGatewayServiceClient {
+func NewCSFBGatewayServiceClient(cc grpc.ClientConnInterface) CSFBGatewayServiceClient {
 	return &cSFBGatewayServiceClient{cc}
 }
 

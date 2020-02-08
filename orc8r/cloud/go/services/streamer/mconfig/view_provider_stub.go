@@ -9,8 +9,8 @@ LICENSE file in the root directory of this source tree.
 package mconfig
 
 import (
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes/any"
 )

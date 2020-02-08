@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/access"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"

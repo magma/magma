@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package storage
 
 import (
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 /*

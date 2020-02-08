@@ -17,9 +17,9 @@ import (
 	"magma/orc8r/cloud/go/blobstore/ent"
 	"magma/orc8r/cloud/go/blobstore/ent/blob"
 	"magma/orc8r/cloud/go/blobstore/ent/predicate"
-	magmaerrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	magmaerrors "magma/orc8r/lib/go/errors"
 
 	entsql "github.com/facebookincubator/ent/dialect/sql"
 )

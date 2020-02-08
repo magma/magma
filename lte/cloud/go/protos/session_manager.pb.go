@@ -11,7 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	protos "magma/orc8r/cloud/go/protos"
+	protos "magma/orc8r/lib/go/protos"
 	math "math"
 )
 
@@ -3368,11 +3368,11 @@ var fileDescriptor_85add0446af78174 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // LocalSessionManagerClient is the client API for LocalSessionManager service.
 //
@@ -3384,10 +3384,10 @@ type LocalSessionManagerClient interface {
 }
 
 type localSessionManagerClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewLocalSessionManagerClient(cc *grpc.ClientConn) LocalSessionManagerClient {
+func NewLocalSessionManagerClient(cc grpc.ClientConnInterface) LocalSessionManagerClient {
 	return &localSessionManagerClient{cc}
 }
 
@@ -3529,10 +3529,10 @@ type SessionProxyResponderClient interface {
 }
 
 type sessionProxyResponderClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewSessionProxyResponderClient(cc *grpc.ClientConn) SessionProxyResponderClient {
+func NewSessionProxyResponderClient(cc grpc.ClientConnInterface) SessionProxyResponderClient {
 	return &sessionProxyResponderClient{cc}
 }
 
@@ -3644,10 +3644,10 @@ type CentralSessionControllerClient interface {
 }
 
 type centralSessionControllerClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewCentralSessionControllerClient(cc *grpc.ClientConn) CentralSessionControllerClient {
+func NewCentralSessionControllerClient(cc grpc.ClientConnInterface) CentralSessionControllerClient {
 	return &centralSessionControllerClient{cc}
 }
 

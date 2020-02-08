@@ -10,7 +10,7 @@ package servicers
 
 import (
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"golang.org/x/net/context"
 )

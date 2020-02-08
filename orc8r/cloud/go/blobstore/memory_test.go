@@ -13,8 +13,8 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/errors"
 
 	"github.com/stretchr/testify/assert"
 )

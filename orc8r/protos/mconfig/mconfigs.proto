@@ -10,7 +10,7 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 
 package magma.mconfig;
-option go_package = "magma/orc8r/cloud/go/protos/mconfig";
+option go_package = "magma/orc8r/lib/go/protos/mconfig";
 
 // ===========================================================================
 // Service-specific configs

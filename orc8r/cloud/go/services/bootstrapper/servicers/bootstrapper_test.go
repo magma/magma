@@ -20,7 +20,6 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/key"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
@@ -31,6 +30,7 @@ import (
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"

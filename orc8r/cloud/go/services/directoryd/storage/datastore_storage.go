@@ -12,7 +12,7 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/datastore"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 type DirectorydPersistenceServiceImpl struct {

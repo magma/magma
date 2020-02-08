@@ -15,11 +15,11 @@ import (
 	"magma/lte/cloud/go/lte"
 	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"

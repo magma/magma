@@ -1158,11 +1158,11 @@ var fileDescriptor_d46b5bf6ceb95a32 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // EPSAuthenticationClient is the client API for EPSAuthentication service.
 //
@@ -1177,10 +1177,10 @@ type EPSAuthenticationClient interface {
 }
 
 type ePSAuthenticationClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewEPSAuthenticationClient(cc *grpc.ClientConn) EPSAuthenticationClient {
+func NewEPSAuthenticationClient(cc grpc.ClientConnInterface) EPSAuthenticationClient {
 	return &ePSAuthenticationClient{cc}
 }
 

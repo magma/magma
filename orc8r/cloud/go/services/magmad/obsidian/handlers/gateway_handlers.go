@@ -16,9 +16,9 @@ import (
 	models2 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/labstack/echo"
 )

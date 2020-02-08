@@ -16,14 +16,14 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
-	orc8rProtos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
+	orc8rProtos "magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"

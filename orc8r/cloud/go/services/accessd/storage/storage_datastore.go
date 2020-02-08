@@ -10,8 +10,8 @@ package storage
 
 import (
 	"magma/orc8r/cloud/go/datastore"
-	"magma/orc8r/cloud/go/protos"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/codes"

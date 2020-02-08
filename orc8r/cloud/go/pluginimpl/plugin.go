@@ -16,9 +16,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -34,6 +32,8 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/labstack/echo"
 )

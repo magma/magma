@@ -13,12 +13,12 @@ import (
 	"encoding/json"
 	"sync"
 
-	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
