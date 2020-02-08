@@ -14,7 +14,7 @@ import (
 	"go/token"
 	"testing"
 
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 // TestHashableIdentitiesTypeNames uses Go compiler facilities to parse

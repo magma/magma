@@ -12,12 +12,12 @@ import (
 	"context"
 	"fmt"
 
-	merrors "magma/orc8r/cloud/go/errors"
-	commonProtos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	storage2 "magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
+	commonProtos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/wrappers"

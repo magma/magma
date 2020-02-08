@@ -10,7 +10,7 @@ LICENSE file in the root directory of this source tree.
 package protos
 
 import (
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

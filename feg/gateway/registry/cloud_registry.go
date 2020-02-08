@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package registry
 
 import (
-	"magma/orc8r/gateway/cloud_registry"
+	"magma/gateway/cloud_registry"
 )
 
 // CloudRegistry interface for FeG scoped users, see cloud_registry.CloudRegistry

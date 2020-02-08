@@ -18,10 +18,10 @@ import (
 	pdbstreamer "magma/lte/cloud/go/services/policydb/streamer"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/storage"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"

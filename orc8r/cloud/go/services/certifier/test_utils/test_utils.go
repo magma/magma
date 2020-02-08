@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/key"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes"
 )

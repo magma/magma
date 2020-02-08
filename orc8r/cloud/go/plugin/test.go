@@ -12,8 +12,8 @@ import (
 	"sync"
 	"testing"
 
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
+	"magma/orc8r/lib/go/service/config"
 )
 
 type testPluginRegistry struct {

@@ -5,23 +5,24 @@
  * This source code is licensed under the BSD-style license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package protos
+package servicers
 
 import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/protos"
 )
 
-func BlobsToStates(blobs []blobstore.Blob) []*State {
-	states := make([]*State, 0, len(blobs))
+func BlobsToStates(blobs []blobstore.Blob) []*protos.State {
+	states := make([]*protos.State, 0, len(blobs))
 	for _, blob := range blobs {
-		states = append(states, &State{Type: blob.Type, DeviceID: blob.Key,
+		states = append(states, &protos.State{Type: blob.Type, DeviceID: blob.Key,
 			Value: blob.Value, Version: blob.Version})
 	}
 	return states
 }
 
-func (state *State) ToBlob() blobstore.Blob {
+func ToBlob(state *protos.State) blobstore.Blob {
 	return blobstore.Blob{
 		Type:    state.GetType(),
 		Key:     state.GetDeviceID(),
@@ -30,7 +31,7 @@ func (state *State) ToBlob() blobstore.Blob {
 	}
 }
 
-func StateIDsToTKs(IDs []*StateID) []storage.TypeAndKey {
+func StateIDsToTKs(IDs []*protos.StateID) []storage.TypeAndKey {
 	ids := []storage.TypeAndKey{}
 	for _, id := range IDs {
 		ids = append(ids, toStorageTK(id))
@@ -38,7 +39,7 @@ func StateIDsToTKs(IDs []*StateID) []storage.TypeAndKey {
 	return ids
 }
 
-func StateIDAndVersionsToTKs(IDs []*IDAndVersion) []storage.TypeAndKey {
+func StateIDAndVersionsToTKs(IDs []*protos.IDAndVersion) []storage.TypeAndKey {
 	ids := []storage.TypeAndKey{}
 	for _, idAndVersion := range IDs {
 		ids = append(ids, toStorageTK(idAndVersion.Id))
@@ -46,6 +47,6 @@ func StateIDAndVersionsToTKs(IDs []*IDAndVersion) []storage.TypeAndKey {
 	return ids
 }
 
-func toStorageTK(id *StateID) storage.TypeAndKey {
+func toStorageTK(id *protos.StateID) storage.TypeAndKey {
 	return storage.TypeAndKey{Type: id.GetType(), Key: id.GetDeviceID()}
 }

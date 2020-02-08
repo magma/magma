@@ -12,8 +12,6 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mocks"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -23,6 +21,8 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/mconfig/test_protos"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	streamerTestInit "magma/orc8r/cloud/go/services/streamer/test_init"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"

@@ -15,9 +15,9 @@ package servicers
 import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"

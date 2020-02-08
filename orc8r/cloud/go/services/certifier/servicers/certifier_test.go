@@ -15,11 +15,11 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/datastore"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	certifier_test_utils "magma/orc8r/cloud/go/services/certifier/test_utils"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"

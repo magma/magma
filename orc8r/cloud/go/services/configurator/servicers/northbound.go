@@ -12,12 +12,12 @@ import (
 	"context"
 	"fmt"
 
-	commonProtos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	orc8rStorage "magma/orc8r/cloud/go/storage"
+	commonProtos "magma/orc8r/lib/go/protos"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

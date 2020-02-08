@@ -15,12 +15,12 @@ import (
 	"os"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/dispatcher"
 	sync_rpc_broker "magma/orc8r/cloud/go/services/dispatcher/broker"
 	"magma/orc8r/cloud/go/services/dispatcher/httpserver"
 	"magma/orc8r/cloud/go/services/dispatcher/servicers"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"

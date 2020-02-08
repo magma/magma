@@ -12,8 +12,8 @@ import (
 	"context"
 	"fmt"
 
-	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 

@@ -10,7 +10,7 @@ package access
 
 import (
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/labstack/echo"
 )

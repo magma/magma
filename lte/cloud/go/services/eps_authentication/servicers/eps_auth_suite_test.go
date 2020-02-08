@@ -16,11 +16,11 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 	utils "magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
-	orc8rprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/test_utils"
+	orc8rprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

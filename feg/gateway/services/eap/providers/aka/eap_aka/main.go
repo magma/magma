@@ -18,8 +18,8 @@ import (
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
+	managed_configs "magma/gateway/mconfig"
 	"magma/orc8r/cloud/go/service"
-	managed_configs "magma/orc8r/gateway/mconfig"
 )
 
 const EapAkaServiceName = "eap_aka"

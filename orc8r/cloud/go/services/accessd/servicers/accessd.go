@@ -19,8 +19,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"magma/orc8r/cloud/go/protos"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 type AccessControlServer struct {

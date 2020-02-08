@@ -15,7 +15,6 @@ import (
 
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/cert"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/certifier"
@@ -23,6 +22,7 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/servicers"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"

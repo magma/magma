@@ -12,10 +12,10 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/streamer"
 	"magma/orc8r/cloud/go/services/streamer/servicers"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 )
 
 // A little Go "polymorphism" magic for testing

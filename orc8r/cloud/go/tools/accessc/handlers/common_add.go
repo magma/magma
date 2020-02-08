@@ -21,12 +21,12 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/cert"
 	"magma/orc8r/cloud/go/security/key"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes"
 )
