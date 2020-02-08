@@ -348,3 +348,12 @@ func (id *Identity) GetWildcardForIdentity() *Identity {
 	}
 	return nil
 }
+
+// GetHashToIdentity converts the passed slice to a map, whose keys are the hash strings of each Identity proto.
+func GetHashToIdentity(ids []*Identity) map[string]*Identity {
+	ret := make(map[string]*Identity)
+	for _, id := range ids {
+		ret[id.HashString()] = id
+	}
+	return ret
+}

@@ -97,7 +97,7 @@ func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 }
 
-func TestCertifierBlobstore_GetMany(t *testing.T) {
+func TestCertifierBlobstore_GetManyCertInfo(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
 	someErr := errors.New("generic error")
@@ -192,7 +192,7 @@ func TestCertifierBlobstore_GetMany(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 }
 
-func TestCertifierBlobstore_GetAll(t *testing.T) {
+func TestCertifierBlobstore_GetAllCertInfo(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
 	someErr := errors.New("generic error")
@@ -304,7 +304,7 @@ func TestCertifierBlobstore_GetAll(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 }
 
-func TestCertifierBlobstore_Put(t *testing.T) {
+func TestCertifierBlobstore_PutCertInfo(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
 	someErr := errors.New("generic error")
@@ -359,7 +359,7 @@ func TestCertifierBlobstore_Put(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 }
 
-func TestCertifierBlobstore_Delete(t *testing.T) {
+func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
 	someErr := errors.New("generic error")
@@ -406,7 +406,7 @@ func TestCertifierBlobstore_Delete(t *testing.T) {
 	blobStoreMock.AssertExpectations(t)
 }
 
-func TestCertifierBlobstore_GetSerialNumbers(t *testing.T) {
+func TestCertifierBlobstore_ListSerialNumbers(t *testing.T) {
 	var blobFactMock *mocks.BlobStorageFactory
 	var blobStoreMock *mocks.TransactionalBlobStorage
 	someErr := errors.New("generic error")
@@ -423,7 +423,7 @@ func TestCertifierBlobstore_GetSerialNumbers(t *testing.T) {
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
 
-	// store.GetSerialNumbers fails
+	// store.ListKeys fails
 	blobFactMock = &mocks.BlobStorageFactory{}
 	blobStoreMock = &mocks.TransactionalBlobStorage{}
 	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()

@@ -13,97 +13,80 @@ check & manage Identity access permissions.
 package servicers
 
 import (
+	"magma/orc8r/cloud/go/services/accessd/storage"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/protos"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 )
 
-const (
-	ACCESS_TABLE = "access_control"
-)
-
 type AccessControlServer struct {
-	store datastore.Api
+	store storage.AccessdStorage
 }
 
-func NewAccessdServer(store datastore.Api) *AccessControlServer {
+func NewAccessdServer(store storage.AccessdStorage) *AccessControlServer {
 	return &AccessControlServer{store}
 }
 
 // SetOperator Overwrites Permissions for operator Identity to manage others
 // Request includes ACL to add for the Operator
 func (srv *AccessControlServer) SetOperator(ctx context.Context, req *accessprotos.AccessControl_ListRequest) (*protos.Void, error) {
-
-	err := verifyACLRequest(req)
+	err := accessprotos.VerifyACLRequest(req)
 	if err != nil {
-		return &protos.Void{}, err
+		return nil, err
 	}
 
-	acl := &accessprotos.AccessControl_List{Operator: req.Operator,
-		Entities: map[string]*accessprotos.AccessControl_Entity{}}
-	err = addToACL(req.Operator, acl, req.Entities)
+	acl := &accessprotos.AccessControl_List{
+		Operator: req.Operator,
+		Entities: map[string]*accessprotos.AccessControl_Entity{},
+	}
+	err = accessprotos.AddToACL(acl, req.Entities)
 	if err != nil {
-		return &protos.Void{}, err
+		return nil, err
 	}
 
-	return &protos.Void{}, srv.putACL(req.Operator, acl)
+	err = srv.store.PutACL(req.Operator, acl)
+	if err != nil {
+		return nil, err
+	}
+
+	return &protos.Void{}, nil
 }
 
 // AddACL Adds Permissions for one Identity to manage others
 // Request includes ACL to add for the Operator
 func (srv *AccessControlServer) UpdateOperator(ctx context.Context, req *accessprotos.AccessControl_ListRequest) (*protos.Void, error) {
-
-	voidVar, err := &protos.Void{}, verifyACLRequest(req)
+	err := accessprotos.VerifyACLRequest(req)
 	if err != nil {
-		return voidVar, err
+		return nil, err
 	}
 
-	acl, err := srv.getACL(req.Operator)
+	err = srv.store.UpdateACLWithEntities(req.Operator, req.Entities)
 	if err != nil {
-		return voidVar, err
+		return nil, err
 	}
 
-	err = addToACL(req.Operator, acl, req.Entities)
-	if err != nil {
-		return voidVar, err
-	}
-
-	err = srv.putACL(req.Operator, acl)
-	if err != nil {
-		return voidVar, err
-	}
-
-	return voidVar, nil
+	return &protos.Void{}, nil
 }
 
 // DeleteOperator Removes all operator's permissions (the entire operator's ACL)
 func (srv *AccessControlServer) DeleteOperator(ctx context.Context, oper *protos.Identity) (*protos.Void, error) {
-
-	if oper == nil {
-		return &protos.Void{}, status.Errorf(codes.InvalidArgument, "Nil Operator")
-	}
-	opkey, table := getKeyTablePair(oper)
-	err := srv.store.Delete(table, opkey)
-	if err != nil {
-		return &protos.Void{}, status.Errorf(codes.NotFound, "Operator %s Delete from table %s error: %s", opkey, table, err)
-	}
-	return &protos.Void{}, nil
+	return &protos.Void{}, srv.store.DeleteACL(oper)
 }
 
 // GetOperatorACL Returns the managing Identity's permissions list
 func (srv *AccessControlServer) GetOperatorACL(ctx context.Context, oper *protos.Identity) (*accessprotos.AccessControl_List, error) {
-	return srv.getACL(oper)
+	return srv.store.GetACL(oper)
 }
 
 // GetOperatorsACLs Returns the managing Identities' permissions list
 func (srv *AccessControlServer) GetOperatorsACLs(
 	ctx context.Context, opers *protos.Identity_List,
 ) (*accessprotos.AccessControl_Lists, error) {
-	res, err := srv.getACLs(opers.GetList())
+	res, err := srv.store.GetManyACL(opers.GetList())
 	return &accessprotos.AccessControl_Lists{Acls: res}, err
 }
 
@@ -113,7 +96,18 @@ func (srv *AccessControlServer) GetPermissions(
 	ctx context.Context,
 	req *accessprotos.AccessControl_PermissionsRequest,
 ) (*accessprotos.AccessControl_Entity, error) {
-	return srv.getACLEntity(req)
+	res := &accessprotos.AccessControl_Entity{}
+	err := accessprotos.VerifyPermissionsRequest(req)
+	if err != nil {
+		return res, err
+	}
+	acl, err := srv.store.GetACL(req.Operator)
+	if err != nil {
+		return res, err
+	}
+	res.Id = req.Entity
+	res.Permissions = accessprotos.GetEntityPermissions(acl, res.Id) // Aggregated entity permissions
+	return res, nil
 }
 
 // Returns the managing Identity's permissions for a given entity
@@ -122,41 +116,30 @@ func (srv *AccessControlServer) CheckPermissions(
 	ctx context.Context,
 	req *accessprotos.AccessControl_ListRequest,
 ) (*protos.Void, error) {
+	err := accessprotos.VerifyACLRequest(req)
+	if err != nil {
+		return nil, err
+	}
 
-	voidRes := &protos.Void{}
-	err := verifyACLRequest(req)
+	acl, err := srv.store.GetACL(req.Operator)
 	if err != nil {
-		return voidRes, err
+		return nil, err
 	}
-	acl, err := srv.getACL(req.Operator)
-	if err != nil {
-		return voidRes, err
-	}
-	return voidRes, checkEntitiesPermissions(acl, req.Entities)
+
+	return &protos.Void{}, accessprotos.CheckEntitiesPermissions(acl, req.Entities)
 }
 
 // Lists all globally registered operators on the cloud
 func (srv *AccessControlServer) ListOperators(ctx context.Context, _ *protos.Void) (*protos.Identity_List, error) {
 	res := new(protos.Identity_List)
-	keys, err := srv.store.ListKeys(ACCESS_TABLE)
-	if err != nil {
-		return res, status.Errorf(codes.NotFound, "Error %s listing table %s keys", err, ACCESS_TABLE)
-	}
-	operators := make([]*protos.Identity, len(keys))
-	for i, key := range keys {
-		acl, err := srv.getACLForKey(ACCESS_TABLE, key)
-		if err != nil {
-			return res, err
-		}
-		operators[i] = acl.Operator
-	}
+	operators, err := srv.store.ListAllIdentity()
 	res.List = operators
-	return res, nil
+	return res, err
 }
 
 // Cleanup a given entity from all Operators' ACLs
 // TBD: This needs to be implemented to avoid security venerability when deleting
 //      a network with customer selected ID (vs. generated by the cloud ID)
 func (srv *AccessControlServer) DeleteEntity(ctx context.Context, ent *protos.Identity) (*protos.Void, error) {
-	return &protos.Void{}, status.Errorf(codes.Unimplemented, "Not Implemented")
+	return nil, status.Errorf(codes.Unimplemented, "Not Implemented")
 }
