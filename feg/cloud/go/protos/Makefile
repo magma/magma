@@ -1,3 +1,3 @@
 # Targets for protos submodule
-gen::
+gen:
 	go generate ./...
