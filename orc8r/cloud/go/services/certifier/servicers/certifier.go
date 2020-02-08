@@ -378,7 +378,6 @@ func (srv *CertifierServer) FindCertificates(ctx context.Context, id *protos.Ide
 
 // Returns serial numbers of all certificates in the table
 func (srv *CertifierServer) ListCertificates(ctx context.Context, void *protos.Void) (*certprotos.SerialNumbers, error) {
-
 	res := &certprotos.SerialNumbers{}
 	snList, err := srv.store.ListSerialNumbers()
 	if err != nil {
