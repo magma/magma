@@ -16,6 +16,7 @@
     - role: pkgrepo
       vars:
         distribution: "bionic"
+        repo: "test"
     - role: ovs
     - role: resolv_conf
       vars:

@@ -21,6 +21,7 @@
     - role: gateway_dev
       vars:
         distribution: "stretch"
+        repo: "dev"
         config_dir: "lte/gateway/configs"
     - role: python_dev
     - role: dev_common

@@ -25,6 +25,7 @@
     - role: gateway_dev
       vars:
         distribution: "xenial"
+        repo: "dev"
         config_dir: "feg/gateway/configs"
     - role: golang
       vars:
