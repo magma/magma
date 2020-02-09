@@ -73,6 +73,8 @@ COPY lte/cloud/go/go.* $MAGMA_ROOT/lte/cloud/go/
 COPY feg/cloud/go/go.* $MAGMA_ROOT/feg/cloud/go/
 COPY feg/cloud/go/protos/go.* $MAGMA_ROOT/feg/cloud/go/protos/
 COPY feg/gateway/go.* $MAGMA_ROOT/feg/gateway/
+COPY orc8r/lib/go/go.* $MAGMA_ROOT/orc8r/lib/go/
+COPY orc8r/lib/go/protos/go.* $MAGMA_ROOT/orc8r/lib/go/protos/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
 COPY orc8r/gateway/go/go.* $MAGMA_ROOT/orc8r/gateway/go/
 WORKDIR $MAGMA_ROOT/feg/gateway
@@ -90,6 +92,7 @@ RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_n
 # Build the code.
 COPY feg $MAGMA_ROOT/feg
 COPY lte/cloud $MAGMA_ROOT/lte/cloud
+COPY orc8r/lib/go $MAGMA_ROOT/orc8r/lib/go
 COPY orc8r/cloud $MAGMA_ROOT/orc8r/cloud
 COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
 
