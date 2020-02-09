@@ -20,7 +20,7 @@ import CSVFileExport from '../CSVFileExport';
 import FiltersTypeahead from '../comparison_view/FiltersTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
-import {useEffect, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 
 import update from 'immutability-helper';
 import {doesFilterHasValue} from '../comparison_view/FilterUtils';
@@ -107,11 +107,7 @@ const PowerSearchBar = (props: Props) => {
     footer,
     exportPath,
   } = props;
-  const [filterValues, setFilterValues] = useState([]);
-
-  useEffect(() => {
-    setFilterValues(props.filterValues ?? []);
-  }, [props.filterValues, filterConfigs]);
+  const [filterValues, setFilterValues] = useState(props.filterValues ?? []);
 
   const [editingFilterIndex, setEditingFilterIndex] = useState((null: ?number));
   const [isInputFocused, setIsInputFocused] = useState(false);
