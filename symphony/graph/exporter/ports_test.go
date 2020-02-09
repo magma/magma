@@ -202,7 +202,7 @@ func TestPortWithFilters(t *testing.T) {
 	loc := r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx)
 	pDef2 := r.client.EquipmentPortDefinition.Query().Where(equipmentportdefinition.Name(portName2)).OnlyX(ctx)
 
-	f1, err := json.Marshal([]portfilterInput{
+	f1, err := json.Marshal([]portFilterInput{
 		{
 			Name:     "LOCATION_INST",
 			Operator: "IS_ONE_OF",
@@ -220,7 +220,7 @@ func TestPortWithFilters(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	f2, err := json.Marshal([]portfilterInput{
+	f2, err := json.Marshal([]portFilterInput{
 		{
 			Name:     "PROPERTY",
 			Operator: "IS",
@@ -234,7 +234,7 @@ func TestPortWithFilters(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	f3, err := json.Marshal([]portfilterInput{
+	f3, err := json.Marshal([]portFilterInput{
 		{
 			Name:      "PORT_INST_HAS_LINK",
 			Operator:  "IS",

@@ -15,6 +15,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/log"
+
+	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -24,6 +26,7 @@ type linksFilterInput struct {
 	Operator      models.FilterOperator    `jsons:"operator"`
 	StringValue   string                   `json:"stringValue"`
 	IDSet         []string                 `json:"idSet"`
+	StringSet     []string                 `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput `json:"propertyValue"`
 	MaxDepth      *int                     `json:"maxDepth"`
 }
@@ -33,9 +36,8 @@ type linksRower struct {
 }
 
 func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
-	log := er.log.For(ctx)
-
 	var (
+		logger          = er.log.For(ctx)
 		err             error
 		filterInput     []*models.LinkFilterInput
 		portADataHeader = [...]string{bom + "Link ID", "Port A Name", "Equipment A Name", "Equipment A Type"}
@@ -48,7 +50,7 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	if filtersParam != "" {
 		filterInput, err = paramToLinkFilterInput(filtersParam)
 		if err != nil {
-			log.Error("cannot filter links", zap.Error(err))
+			logger.Error("cannot filter links", zap.Error(err))
 			return nil, errors.Wrap(err, "cannot filter links")
 		}
 	}
@@ -57,7 +59,7 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 
 	links, err := resolverutil.LinkSearch(ctx, client, filterInput, nil)
 	if err != nil {
-		log.Error("cannot query links", zap.Error(err))
+		logger.Error("cannot query links", zap.Error(err))
 		return nil, errors.Wrap(err, "cannot query links")
 	}
 
@@ -71,14 +73,14 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	cg := ctxgroup.WithContext(ctx, ctxgroup.MaxConcurrency(32))
 	cg.Go(func(ctx context.Context) error {
 		if orderedLocTypes, err = locationTypeHierarchy(ctx, client); err != nil {
-			log.Error("cannot query location types", zap.Error(err))
+			logger.Error("cannot query location types", zap.Error(err))
 			return errors.Wrap(err, "cannot query location types")
 		}
 		return nil
 	})
 	cg.Go(func(ctx context.Context) error {
 		if propertyTypes, err = propertyTypesSlice(ctx, linkIDs, client, models.PropertyEntityLink); err != nil {
-			log.Error("cannot query property types", zap.Error(err))
+			logger.Error("cannot query property types", zap.Error(err))
 			return errors.Wrap(err, "cannot query property types")
 		}
 		return nil
@@ -111,7 +113,7 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		})
 	}
 	if err := cg.Wait(); err != nil {
-		log.Error("error in wait", zap.Error(err))
+		logger.Error("error in wait", zap.Error(err))
 		return nil, errors.WithMessage(err, "error in wait")
 	}
 	return allRows, nil
@@ -191,17 +193,16 @@ func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes, orderedLocT
 }
 
 func paramToLinkFilterInput(params string) ([]*models.LinkFilterInput, error) {
-	var ret []*models.LinkFilterInput
 	var inputs []linksFilterInput
 	err := json.Unmarshal([]byte(params), &inputs)
 	if err != nil {
 		return nil, err
 	}
 
+	ret := make([]*models.LinkFilterInput, 0, len(inputs))
 	for _, f := range inputs {
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
-		StringVal := f.StringValue
 		propVal := f.PropertyValue
 		maxDepth := 5
 		if f.MaxDepth != nil {
@@ -210,9 +211,10 @@ func paramToLinkFilterInput(params string) ([]*models.LinkFilterInput, error) {
 		inp := models.LinkFilterInput{
 			FilterType:    models.LinkFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
-			StringValue:   &StringVal,
+			StringValue:   pointer.ToString(f.StringValue),
 			PropertyValue: &propVal,
 			IDSet:         f.IDSet,
+			StringSet:     f.StringSet,
 			MaxDepth:      &maxDepth,
 		}
 		ret = append(ret, &inp)

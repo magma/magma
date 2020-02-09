@@ -605,42 +605,41 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ActionsRules                        func(childComplexity int) int
-		ActionsTriggers                     func(childComplexity int) int
-		CustomerSearch                      func(childComplexity int, limit *int) int
-		Customers                           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Equipment                           func(childComplexity int, id string) int
-		EquipmentPortDefinitions            func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		EquipmentPortTypes                  func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		EquipmentSearch                     func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
-		EquipmentType                       func(childComplexity int, id string) int
-		EquipmentTypes                      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		FindLocationWithDuplicateProperties func(childComplexity int, locationTypeID string, propertyName string) int
-		LatestPythonPackage                 func(childComplexity int) int
-		LinkSearch                          func(childComplexity int, filters []*models.LinkFilterInput, limit *int) int
-		Location                            func(childComplexity int, id string) int
-		LocationSearch                      func(childComplexity int, filters []*models.LocationFilterInput, limit *int) int
-		LocationType                        func(childComplexity int, id string) int
-		LocationTypes                       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Locations                           func(childComplexity int, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Me                                  func(childComplexity int) int
-		NearestSites                        func(childComplexity int, latitude float64, longitude float64, first int) int
-		Node                                func(childComplexity int, id string) int
-		PortSearch                          func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
-		PossibleProperties                  func(childComplexity int, entityType models.PropertyEntity) int
-		ProjectSearch                       func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
-		ProjectTypes                        func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		SearchForEntity                     func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Service                             func(childComplexity int, id string) int
-		ServiceSearch                       func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
-		ServiceType                         func(childComplexity int, id string) int
-		ServiceTypes                        func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Surveys                             func(childComplexity int) int
-		Vertex                              func(childComplexity int, id string) int
-		WorkOrder                           func(childComplexity int, id string) int
-		WorkOrderSearch                     func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
-		WorkOrderTypes                      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		WorkOrders                          func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
+		ActionsRules             func(childComplexity int) int
+		ActionsTriggers          func(childComplexity int) int
+		CustomerSearch           func(childComplexity int, limit *int) int
+		Customers                func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Equipment                func(childComplexity int, id string) int
+		EquipmentPortDefinitions func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		EquipmentPortTypes       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		EquipmentSearch          func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
+		EquipmentType            func(childComplexity int, id string) int
+		EquipmentTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		LatestPythonPackage      func(childComplexity int) int
+		LinkSearch               func(childComplexity int, filters []*models.LinkFilterInput, limit *int) int
+		Location                 func(childComplexity int, id string) int
+		LocationSearch           func(childComplexity int, filters []*models.LocationFilterInput, limit *int) int
+		LocationType             func(childComplexity int, id string) int
+		LocationTypes            func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Locations                func(childComplexity int, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Me                       func(childComplexity int) int
+		NearestSites             func(childComplexity int, latitude float64, longitude float64, first int) int
+		Node                     func(childComplexity int, id string) int
+		PortSearch               func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
+		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
+		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
+		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		SearchForEntity          func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Service                  func(childComplexity int, id string) int
+		ServiceSearch            func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
+		ServiceType              func(childComplexity int, id string) int
+		ServiceTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Surveys                  func(childComplexity int) int
+		Vertex                   func(childComplexity int, id string) int
+		WorkOrder                func(childComplexity int, id string) int
+		WorkOrderSearch          func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
+		WorkOrderTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		WorkOrders               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
 	}
 
 	SearchEntriesConnection struct {
@@ -1119,7 +1118,6 @@ type QueryResolver interface {
 	ServiceSearch(ctx context.Context, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error)
 	PossibleProperties(ctx context.Context, entityType models.PropertyEntity) ([]*ent.PropertyType, error)
 	Surveys(ctx context.Context) ([]*ent.Survey, error)
-	FindLocationWithDuplicateProperties(ctx context.Context, locationTypeID string, propertyName string) ([]string, error)
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id string) (*ent.Node, error)
@@ -4059,18 +4057,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.EquipmentTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
-
-	case "Query.findLocationWithDuplicateProperties":
-		if e.complexity.Query.FindLocationWithDuplicateProperties == nil {
-			break
-		}
-
-		args, err := ec.field_Query_findLocationWithDuplicateProperties_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FindLocationWithDuplicateProperties(childComplexity, args["locationTypeId"].(string), args["propertyName"].(string)), true
 
 	case "Query.latestPythonPackage":
 		if e.complexity.Query.LatestPythonPackage == nil {
@@ -7496,10 +7482,6 @@ type Query {
   ): ServiceSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
-  findLocationWithDuplicateProperties(
-    locationTypeId: ID!
-    propertyName: String!
-  ): [ID!]!
   latestPythonPackage: LatestPythonPackageResult
   nearestSites(
     latitude: Float!
@@ -9100,28 +9082,6 @@ func (ec *executionContext) field_Query_equipment_args(ctx context.Context, rawA
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_findLocationWithDuplicateProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["locationTypeId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["locationTypeId"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["propertyName"]; ok {
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["propertyName"] = arg1
 	return args, nil
 }
 
@@ -23651,50 +23611,6 @@ func (ec *executionContext) _Query_surveys(ctx context.Context, field graphql.Co
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNSurvey2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_findLocationWithDuplicateProperties(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_findLocationWithDuplicateProperties_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindLocationWithDuplicateProperties(rctx, args["locationTypeId"].(string), args["propertyName"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_latestPythonPackage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -38441,20 +38357,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_surveys(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "findLocationWithDuplicateProperties":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_findLocationWithDuplicateProperties(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

@@ -15,8 +15,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
-	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -374,36 +372,6 @@ func (r queryResolver) ActionsTrigger(
 		TriggerID:   triggerID,
 		Description: trigger.Description(),
 	}, nil
-}
-
-func (r queryResolver) FindLocationWithDuplicateProperties(ctx context.Context, locationTypeID, propertyName string) ([]string, error) {
-	query := r.ClientFrom(ctx).
-		LocationType.
-		Query().
-		Where(locationtype.ID(locationTypeID)).
-		QueryLocations().
-		QueryProperties().
-		Where(property.HasTypeWith(
-			propertytype.Name(propertyName),
-		))
-	properties, err := query.All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying properties")
-	}
-
-	var values []string
-	for _, p := range properties {
-		count, err := query.Clone().
-			Where(property.StringVal(p.StringVal)).
-			Count(ctx)
-		if err != nil {
-			return nil, errors.Wrap(err, "querying count properties of properties with same value")
-		}
-		if count > 1 {
-			values = append(values, p.StringVal)
-		}
-	}
-	return values, nil
 }
 
 func (queryResolver) LatestPythonPackage(context.Context) (*models.LatestPythonPackageResult, error) {
