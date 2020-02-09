@@ -60,6 +60,7 @@ const LocationViewQueryRenderer = (props: Props) => {
           propertyValue: f.propertyValue,
           boolValue: f.boolValue,
           idSet: f.idSet,
+          stringSet: f.stringSet,
         })),
       }}
       render={props => {
