@@ -64,6 +64,7 @@ export type FilterValue = {
   operator: Operator,
   stringValue?: ?string,
   idSet?: ?Array<string>,
+  stringSet?: ?Array<string>,
   boolValue?: ?boolean,
   propertyValue?: ?PropertyType,
 };

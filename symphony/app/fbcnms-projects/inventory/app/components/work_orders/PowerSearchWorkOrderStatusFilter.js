@@ -28,8 +28,10 @@ const PowerSearchWorkOrderStatusFilter = (props: FilterProps) => {
       name="Status"
       operator={value.operator}
       editMode={editMode}
-      value={(value.idSet ?? [])
-        .map(id => statusValues.find(status => status.value === id)?.label)
+      value={(value.stringSet ?? [])
+        .map(
+          value => statusValues.find(status => status.value === value)?.label,
+        )
         .join(', ')}
       onRemoveFilter={onRemoveFilter}
       input={
@@ -37,14 +39,14 @@ const PowerSearchWorkOrderStatusFilter = (props: FilterProps) => {
           options={statusValues}
           onSubmit={onInputBlurred}
           onBlur={onInputBlurred}
-          value={value.idSet ?? []}
+          value={value.stringSet ?? []}
           onChange={newEntries => {
             onValueChanged({
               id: value.id,
               key: value.key,
               name: value.name,
               operator: value.operator,
-              idSet: newEntries,
+              stringSet: newEntries,
             });
           }}
         />

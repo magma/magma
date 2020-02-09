@@ -6712,6 +6712,7 @@ input EquipmentFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6790,6 +6791,7 @@ input PortFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6799,6 +6801,7 @@ input LinkFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6809,6 +6812,7 @@ input LocationFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6818,6 +6822,7 @@ input ServiceFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6842,6 +6847,7 @@ input WorkOrderFilterInput {
   operator: FilterOperator!
   stringValue: String
   idSet: [ID!]
+  stringSet: [String!]
   propertyValue: PropertyTypeInput
   maxDepth: Int = 5
 }
@@ -33021,6 +33027,12 @@ func (ec *executionContext) unmarshalInputEquipmentFilterInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "maxDepth":
 			var err error
 			it.MaxDepth, err = ec.unmarshalOInt2ᚖint(ctx, v)
@@ -33211,6 +33223,12 @@ func (ec *executionContext) unmarshalInputLinkFilterInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "maxDepth":
 			var err error
 			it.MaxDepth, err = ec.unmarshalOInt2ᚖint(ctx, v)
@@ -33293,6 +33311,12 @@ func (ec *executionContext) unmarshalInputLocationFilterInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "maxDepth":
 			var err error
 			it.MaxDepth, err = ec.unmarshalOInt2ᚖint(ctx, v)
@@ -33372,6 +33396,12 @@ func (ec *executionContext) unmarshalInputPortFilterInput(ctx context.Context, o
 		case "idSet":
 			var err error
 			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33782,6 +33812,12 @@ func (ec *executionContext) unmarshalInputServiceFilterInput(ctx context.Context
 		case "idSet":
 			var err error
 			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34468,6 +34504,12 @@ func (ec *executionContext) unmarshalInputWorkOrderFilterInput(ctx context.Conte
 		case "idSet":
 			var err error
 			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
