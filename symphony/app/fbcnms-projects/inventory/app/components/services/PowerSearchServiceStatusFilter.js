@@ -28,8 +28,8 @@ const PowerSearchServiceStatusFilter = (props: FilterProps) => {
       name="Status"
       operator={value.operator}
       editMode={editMode}
-      value={(value.idSet ?? [])
-        .map(id => serviceStatusToVisibleNames[id])
+      value={(value.stringSet ?? [])
+        .map(status => serviceStatusToVisibleNames[status])
         .join(', ')}
       onRemoveFilter={onRemoveFilter}
       input={
@@ -40,14 +40,14 @@ const PowerSearchServiceStatusFilter = (props: FilterProps) => {
           })}
           onSubmit={onInputBlurred}
           onBlur={onInputBlurred}
-          value={value.idSet ?? []}
+          value={value.stringSet ?? []}
           onChange={newEntries => {
             onValueChanged({
               id: value.id,
               key: value.key,
               name: value.name,
               operator: value.operator,
-              idSet: newEntries,
+              stringSet: newEntries,
             });
           }}
         />
