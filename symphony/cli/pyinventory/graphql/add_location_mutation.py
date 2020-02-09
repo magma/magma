@@ -63,7 +63,12 @@ class AddLocationMutation:
   addLocation(input: $input) {
     id
     name
+    latitude
+    longitude
     externalId
+    locationType {
+      name
+    }
   }
 }
 
@@ -75,8 +80,16 @@ class AddLocationMutation:
         @dataclass_json
         @dataclass
         class Location:
+            @dataclass_json
+            @dataclass
+            class LocationType:
+                name: str
+
             id: str
             name: str
+            latitude: float
+            longitude: float
+            locationType: LocationType
             externalId: Optional[str] = None
 
         addLocation: Optional[Location] = None
