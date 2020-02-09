@@ -8,12 +8,14 @@ ENV PATH ${PATH}:${GOBIN}
 ENV GOPROXY https://proxy.golang.org
 
 # Copy go.mod file to cache the downloads
-COPY go/go.mod /gomod/
+COPY cloud/go/go.mod /gomod/
+COPY lib/go/go.mod /gomod/
 WORKDIR /gomod
 RUN go mod download
 
 # Copy magma code
-COPY go/ /go/src/magma/orc8r/cloud/go/
+COPY cloud/go/ /go/src/magma/orc8r/cloud/go/
+COPY lib/go/ /go/src/magma/orc8r/lib/go/
 
 # Build alertmanager_configurer service
 WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/
@@ -29,6 +31,6 @@ COPY --from=go /build/bin/alertmanager_configurer /bin/alertmanager_configurer
 COPY --from=go /build/bin/migration /bin/migration
 
 # Copy config files
-COPY docker/alertmanager-configurer/configs /etc/configs
+COPY cloud/docker/alertmanager-configurer/configs /etc/configs
 
 ENTRYPOINT ["alertmanager_configurer"]
