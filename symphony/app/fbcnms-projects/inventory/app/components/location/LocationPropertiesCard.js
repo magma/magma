@@ -86,7 +86,7 @@ const styles = theme => ({
     alignItems: 'center',
     padding: '0px 24px',
     marginBottom: '16px',
-    '& :not(:last-child)': {
+    '&>:not(:last-child)': {
       marginRight: '8px',
     },
   },
@@ -105,6 +105,9 @@ const styles = theme => ({
   },
   breadcrumbs: {
     flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    width: '200px',
   },
   footer: {
     padding: '12px 16px',
