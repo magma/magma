@@ -296,7 +296,7 @@ func TestSearchLinksFutureState(t *testing.T) {
 	f1 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeLinkFutureStatus,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.FutureStateRemove.String()},
+		StringSet:  []string{models.FutureStateRemove.String()},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1}, &limit)
@@ -305,8 +305,8 @@ func TestSearchLinksFutureState(t *testing.T) {
 	ports := res1.Links[0].QueryPorts().AllX(ctx)
 	require.NotEqual(t, ports[0].QueryParent().OnlyX(ctx).ID, ports[1].QueryParent().OnlyX(ctx).ID)
 	for _, port := range ports {
-		prnt := port.QueryParent().OnlyX(ctx).ID
-		require.Contains(t, []string{data.e2, data.e4}, prnt)
+		id := port.QueryParent().OnlyXID(ctx)
+		require.Contains(t, []string{data.e2, data.e4}, id)
 	}
 }
 
