@@ -156,3 +156,15 @@ message RadiusdConfig {
     // Hostname for prometheus metrics
     string radius_metrics_host = 4;
 }
+
+
+message SCTPClientConfig {
+    string server_address = 1; // server's host:port
+    string local_address = 2; // client's local address to bind socket to IP:port OR :port
+}
+
+message CsfbConfig {
+    orc8r.LogLevel log_level = 1;
+    SCTPClientConfig client = 2;
+}
+
