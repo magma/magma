@@ -9,28 +9,18 @@
  */
 
 import * as React from 'react';
-import classNames from 'classnames';
-import symphony from '../theme/symphony';
+import Table from './design-system/Table/Table';
+import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles({
-  content: {
-    paddingTop: '4px',
-    paddingBottom: '4px',
-  },
   root: {
-    borderWidth: '1px',
-    borderRadius: '4px',
-    borderStyle: 'solid',
     margin: '4px 8px',
-    padding: '4px 10px',
     alignItems: 'center',
-  },
-  border: {
-    borderColor: symphony.palette.Y600,
   },
 });
 type errLine = {
+  key?: string,
   line: number,
   error: string,
   message: string,
@@ -48,17 +38,28 @@ const UploadErrorsList = (props: Props) => {
   const allSkippedRows = errors.concat(skipped ?? []).sort((a, b) => {
     return a.line - b.line;
   });
+
+  const errToMessage = (e: errLine): string => {
+    return e.error == '' ? e.message : e.error + ': ' + e.message;
+  };
+
   return (
-    <div className={classNames(classes.root, classes.border)}>
-      {allSkippedRows.map(e => (
-        <div className={classes.content} key={e.line}>
-          {e.line}
-          {': '}
-          {e.error}
-          {': '}
-          {e.message}
-        </div>
-      ))}
+    <div className={classes.root}>
+      <Table
+        data={allSkippedRows}
+        columns={[
+          {
+            key: '0',
+            title: fbt('Line', 'title of the number of the line'),
+            render: row => row.line,
+          },
+          {
+            key: '1',
+            title: fbt('Issue', ' title of the error description'),
+            render: row => errToMessage(row),
+          },
+        ]}
+      />
     </div>
   );
 };
