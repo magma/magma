@@ -5,17 +5,17 @@ from typing import List, Tuple
 
 from gql.gql.client import OperationException
 
-from .consts import Equipment, EquipmentPort, Link
-from .exceptions import (
+from ..consts import Equipment, EquipmentPort, Link
+from ..exceptions import (
     EquipmentPortIsNotUniqueException,
     EquipmentPortNotFoundException,
     LinkNotFoundException,
     PortAlreadyOccupiedException,
 )
-from .graphql.add_link_mutation import AddLinkInput, AddLinkMutation
-from .graphql.equipment_ports_query import EquipmentPortsQuery
-from .graphql_client import GraphqlClient
-from .reporter import FailedOperationException
+from ..graphql.add_link_mutation import AddLinkInput, AddLinkMutation
+from ..graphql.equipment_ports_query import EquipmentPortsQuery
+from ..graphql_client import GraphqlClient
+from ..reporter import FailedOperationException
 
 
 ADD_LINK_MUTATION_NAME = "addLink"

@@ -75,7 +75,7 @@ class InventoryClient(GraphqlClient):
         get_or_create_equipment,
         get_or_create_equipment_in_position,
     )
-    from ._link import (
+    from .api.link import (
         add_link,
         get_link_in_port_of_equipment,
         get_all_links_and_port_names_of_equipment,
