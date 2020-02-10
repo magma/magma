@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from ._equipmenttype import _populate_equipment_types
+from .api.equipment_type import _populate_equipment_types
 from .api.location_type import _populate_location_types
 from .api.service import _populate_service_types
 from .consts import DUMMY_REPORTER
@@ -52,7 +52,7 @@ class InventoryClient(GraphqlClient):
         edit_location,
         move_location,
     )
-    from ._equipmenttype import (
+    from .api.equipment_type import (
         copy_equipment_type,
         delete_equipment_type_with_equipments,
         _add_equipment_type,

@@ -6,24 +6,24 @@ from typing import Any, Dict, List, Tuple, Union
 from dacite import from_dict
 from gql.gql.client import OperationException
 
-from ._utils import PropertyValue, _make_property_types
-from .api.equipment import delete_equipment
-from .consts import Equipment, EquipmentType
-from .exceptions import EquipmentTypeNotFoundException
-from .graphql.add_equipment_type_mutation import (
+from .._utils import PropertyValue, _make_property_types
+from ..consts import Equipment, EquipmentType
+from ..exceptions import EquipmentTypeNotFoundException
+from ..graphql.add_equipment_type_mutation import (
     AddEquipmentTypeInput,
     AddEquipmentTypeMutation,
     PropertyKind,
 )
-from .graphql.edit_equipment_type_mutation import (
+from ..graphql.edit_equipment_type_mutation import (
     EditEquipmentTypeInput,
     EditEquipmentTypeMutation,
 )
-from .graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
-from .graphql.equipment_types_query import EquipmentTypesQuery
-from .graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
-from .graphql_client import GraphqlClient
-from .reporter import FailedOperationException
+from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
+from ..graphql.equipment_types_query import EquipmentTypesQuery
+from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
+from ..graphql_client import GraphqlClient
+from ..reporter import FailedOperationException
+from .equipment import delete_equipment
 
 
 ADD_EQUIPMENT_TYPE_MUTATION_NAME = "addEquipmentType"
