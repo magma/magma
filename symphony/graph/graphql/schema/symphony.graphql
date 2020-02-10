@@ -2113,3 +2113,7 @@ type Mutation {
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
 }
+
+type Subscription {
+  workOrderAdded: WorkOrder
+}

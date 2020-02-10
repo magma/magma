@@ -11,12 +11,9 @@ import (
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
-
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
-
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -78,7 +75,7 @@ func (m *Migrator) Migrate(ctx context.Context, tenants ...string) error {
 	tx, err := m.driver.Tx(ctx)
 	if err != nil {
 		logger.Error("cannot begin transaction", zap.Error(err))
-		return errors.Wrap(err, "beginning transaction")
+		return fmt.Errorf("beginning transaction: %w", err)
 	}
 	migration := migration{m, tx}
 	if err := migration.Do(ctx, tenants...); err != nil {
@@ -89,7 +86,7 @@ func (m *Migrator) Migrate(ctx context.Context, tenants ...string) error {
 	}
 	if err := tx.Commit(); err != nil {
 		logger.Error("cannot commit transaction", zap.Error(err))
-		return errors.Wrap(err, "committing transaction")
+		return fmt.Errorf("committing transaction: %w", err)
 	}
 	logger.Info("finished migrations", zap.Strings("tenants", tenants))
 	return nil
@@ -116,10 +113,10 @@ func (m *migration) Do(ctx context.Context, tenants ...string) error {
 func (m *migration) do(ctx context.Context, tenant string) error {
 	query := fmt.Sprintf("USE `%s`", viewer.DBName(tenant))
 	if err := m.tx.Exec(ctx, query, []interface{}{}, new(sql.Result)); err != nil {
-		return errors.Wrap(err, "switching database")
+		return fmt.Errorf("switching database: %w", err)
 	}
 	if err := m.newCreator(m).Create(ctx, m.options...); err != nil {
-		return errors.Wrap(err, "migrating schema")
+		return fmt.Errorf("migrating schema: %w", err)
 	}
 	return nil
 }

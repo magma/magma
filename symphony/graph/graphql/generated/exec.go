@@ -11,6 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -70,6 +71,7 @@ type ResolverRoot interface {
 	Service() ServiceResolver
 	ServiceEndpoint() ServiceEndpointResolver
 	ServiceType() ServiceTypeResolver
+	Subscription() SubscriptionResolver
 	Survey() SurveyResolver
 	SurveyCellScan() SurveyCellScanResolver
 	SurveyQuestion() SurveyQuestionResolver
@@ -707,6 +709,10 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	Subscription struct {
+		WorkOrderAdded func(childComplexity int) int
+	}
+
 	Survey struct {
 		CompletionTimestamp func(childComplexity int) int
 		CreationTimestamp   func(childComplexity int) int
@@ -1148,6 +1154,9 @@ type ServiceTypeResolver interface {
 	PropertyTypes(ctx context.Context, obj *ent.ServiceType) ([]*ent.PropertyType, error)
 	Services(ctx context.Context, obj *ent.ServiceType) ([]*ent.Service, error)
 	NumberOfServices(ctx context.Context, obj *ent.ServiceType) (int, error)
+}
+type SubscriptionResolver interface {
+	WorkOrderAdded(ctx context.Context) (<-chan *ent.WorkOrder, error)
 }
 type SurveyResolver interface {
 	CreationTimestamp(ctx context.Context, obj *ent.Survey) (*int, error)
@@ -4616,6 +4625,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceTypeEdge.Node(childComplexity), true
 
+	case "Subscription.workOrderAdded":
+		if e.complexity.Subscription.WorkOrderAdded == nil {
+			break
+		}
+
+		return e.complexity.Subscription.WorkOrderAdded(childComplexity), true
+
 	case "Survey.completionTimestamp":
 		if e.complexity.Survey.CompletionTimestamp == nil {
 			break
@@ -5551,7 +5567,36 @@ func (e *executableSchema) Mutation(ctx context.Context, op *ast.OperationDefini
 }
 
 func (e *executableSchema) Subscription(ctx context.Context, op *ast.OperationDefinition) func() *graphql.Response {
-	return graphql.OneShot(graphql.ErrorResponse(ctx, "subscriptions are not supported"))
+	ec := executionContext{graphql.GetRequestContext(ctx), e}
+
+	next := ec._Subscription(ctx, op.SelectionSet)
+	if ec.Errors != nil {
+		return graphql.OneShot(&graphql.Response{Data: []byte("null"), Errors: ec.Errors})
+	}
+
+	var buf bytes.Buffer
+	return func() *graphql.Response {
+		buf := ec.RequestMiddleware(ctx, func(ctx context.Context) []byte {
+			buf.Reset()
+			data := next()
+
+			if data == nil {
+				return nil
+			}
+			data.MarshalGQL(&buf)
+			return buf.Bytes()
+		})
+
+		if buf == nil {
+			return nil
+		}
+
+		return &graphql.Response{
+			Data:       buf,
+			Errors:     ec.Errors,
+			Extensions: ec.Extensions,
+		}
+	}
 }
 
 type executionContext struct {
@@ -7688,6 +7733,10 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
+}
+
+type Subscription {
+  workOrderAdded: WorkOrder
 }
 `},
 )
@@ -25378,6 +25427,49 @@ func (ec *executionContext) _ServiceTypeEdge_cursor(ctx context.Context, field g
 	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Subscription_workOrderAdded(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Subscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().WorkOrderAdded(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan *ent.WorkOrder)
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
+}
+
 func (ec *executionContext) _Survey_id(ctx context.Context, field graphql.CollectedField, obj *ent.Survey) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -39027,6 +39119,26 @@ func (ec *executionContext) _ServiceTypeEdge(ctx context.Context, sel ast.Select
 		return graphql.Null
 	}
 	return out
+}
+
+var subscriptionImplementors = []string{"Subscription"}
+
+func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func() graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, subscriptionImplementors)
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "Subscription",
+	})
+	if len(fields) != 1 {
+		ec.Errorf(ctx, "must subscribe to exactly one stream")
+		return nil
+	}
+
+	switch fields[0].Name {
+	case "workOrderAdded":
+		return ec._Subscription_workOrderAdded(ctx, fields[0])
+	default:
+		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
 }
 
 var surveyImplementors = []string{"Survey", "Node"}
