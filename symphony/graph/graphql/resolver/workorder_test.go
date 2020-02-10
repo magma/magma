@@ -1501,3 +1501,22 @@ func TestEditWorkOrderLocation(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, locEx)
 }
+
+func TestTechnicianCheckinToWorkOrder(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr := r.Mutation()
+
+	w := createWorkOrder(ctx, t, *r, "Foo")
+	require.NoError(t, err)
+
+	w, err = mr.TechnicianWorkOrderCheckIn(ctx, w.ID)
+	require.NoError(t, err)
+
+	assert.Equal(t, w.Status, models.WorkOrderStatusPending.String())
+	comments, err := w.QueryComments().All(ctx)
+	require.NoError(t, err)
+	assert.Len(t, comments, 1)
+}

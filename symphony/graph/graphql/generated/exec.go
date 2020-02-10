@@ -509,6 +509,7 @@ type ComplexityRoot struct {
 		RemoveSiteSurvey                         func(childComplexity int, id string) int
 		RemoveWorkOrder                          func(childComplexity int, id string) int
 		RemoveWorkOrderType                      func(childComplexity int, id string) int
+		TechnicianWorkOrderCheckIn               func(childComplexity int, workOrderID string) int
 	}
 
 	NetworkTopology struct {
@@ -1064,6 +1065,7 @@ type MutationResolver interface {
 	AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	EditActionsRule(ctx context.Context, id string, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	RemoveActionsRule(ctx context.Context, id string) (bool, error)
+	TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID string) (*ent.WorkOrder, error)
 }
 type ProjectResolver interface {
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
@@ -3506,6 +3508,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RemoveWorkOrderType(childComplexity, args["id"].(string)), true
+
+	case "Mutation.technicianWorkOrderCheckIn":
+		if e.complexity.Mutation.TechnicianWorkOrderCheckIn == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_technicianWorkOrderCheckIn_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TechnicianWorkOrderCheckIn(childComplexity, args["workOrderId"].(string)), true
 
 	case "NetworkTopology.links":
 		if e.complexity.NetworkTopology.Links == nil {
@@ -7673,6 +7687,7 @@ type Mutation {
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
   removeActionsRule(id: ID!): Boolean!
+  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
 }
 `},
 )
@@ -8852,6 +8867,20 @@ func (ec *executionContext) field_Mutation_removeWorkOrder_args(ctx context.Cont
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_technicianWorkOrderCheckIn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["workOrderId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workOrderId"] = arg0
 	return args, nil
 }
 
@@ -20149,6 +20178,47 @@ func (ec *executionContext) _Mutation_removeActionsRule(ctx context.Context, fie
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_technicianWorkOrderCheckIn(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_technicianWorkOrderCheckIn_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TechnicianWorkOrderCheckIn(rctx, args["workOrderId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.WorkOrder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
@@ -37409,6 +37479,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "technicianWorkOrderCheckIn":
+			out.Values[i] = ec._Mutation_technicianWorkOrderCheckIn(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

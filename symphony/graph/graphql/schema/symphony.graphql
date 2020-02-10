@@ -2111,4 +2111,5 @@ type Mutation {
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
   removeActionsRule(id: ID!): Boolean!
+  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
 }
