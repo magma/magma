@@ -94,7 +94,7 @@ class InventoryClient(GraphqlClient):
         delete_site_survey,
         build_site_survey_from_survey_response,
     )
-    from ._locationtemplate import (
+    from .api.location_template import (
         apply_location_template_to_location,
         copy_equipment_with_all_attachments,
     )
