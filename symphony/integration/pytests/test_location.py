@@ -73,8 +73,11 @@ class TestLocation(BaseTest):
         self.assertEqual(self.location_with_ext_id, fetch_locations[0])
 
     def test_location_edited(self):
-        self.client.edit_location(self.location_1, "Lima4", 10, 20, None)
+        self.client.edit_location(
+            self.location_1, "Lima4", 10, 20, None, {"Contact": "new_limacity@peru.pe"}
+        )
         edited_location = self.client.get_location([("City", "Lima4")])
+        # TODO update test to check updated properties
         self.assertEqual(self.location_1.id, edited_location.id)
 
     def test_location_upload_folder(self):
