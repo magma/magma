@@ -310,7 +310,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(
-            self._check_quota_app.update_subscriber_quota_state, request)
+            self._check_quota_app.update_subscriber_quota_state, request.updates)
         return resp
 
     # --------------------------
