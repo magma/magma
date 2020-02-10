@@ -9,17 +9,17 @@ from typing import Dict, Generator, Optional
 
 import filetype
 
-from .consts import Document, ImageEntity, Location, SiteSurvey
-from .graphql.add_image_mutation import (
+from ..consts import Document, ImageEntity, Location, SiteSurvey
+from ..graphql.add_image_mutation import (
     AddImageInput,
     AddImageMutation,
     ImageEntity as AddImageEntity,
 )
-from .graphql.delete_image_mutation import (
+from ..graphql.delete_image_mutation import (
     DeleteImageMutation,
     ImageEntity as DeleteImageEntity,
 )
-from .graphql_client import GraphqlClient
+from ..graphql_client import GraphqlClient
 
 
 IMAGE_ENTITY_TO_DELETE_IMAGE_ENTITY: Dict[ImageEntity, DeleteImageEntity] = {

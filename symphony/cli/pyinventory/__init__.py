@@ -28,7 +28,7 @@ Example of how to connect:
 
 class InventoryClient(GraphqlClient):
 
-    from ._image import (
+    from .api.file import (
         add_location_image,
         add_site_survey_image,
         delete_document,
