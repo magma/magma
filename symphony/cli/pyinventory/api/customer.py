@@ -3,11 +3,11 @@
 
 from typing import List, Optional
 
-from .consts import Customer
-from .graphql.add_customer_mutation import AddCustomerInput, AddCustomerMutation
-from .graphql.customers_query import CustomersQuery
-from .graphql.remove_customer_mutation import RemoveCustomerMutation
-from .graphql_client import GraphqlClient
+from ..consts import Customer
+from ..graphql.add_customer_mutation import AddCustomerInput, AddCustomerMutation
+from ..graphql.customers_query import CustomersQuery
+from ..graphql.remove_customer_mutation import RemoveCustomerMutation
+from ..graphql_client import GraphqlClient
 
 
 def add_customer(

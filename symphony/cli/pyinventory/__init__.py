@@ -98,7 +98,7 @@ class InventoryClient(GraphqlClient):
         apply_location_template_to_location,
         copy_equipment_with_all_attachments,
     )
-    from ._customer import add_customer, delete_customer, get_all_customers
+    from .api.customer import add_customer, delete_customer, get_all_customers
 
     def __init__(
         self,
