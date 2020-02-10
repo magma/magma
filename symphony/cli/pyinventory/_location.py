@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from dacite import from_dict
 from gql.gql.client import OperationException
 
-from ._utils import _get_properties_to_add
+from ._utils import _get_properties_to_add, deprecated
 from .consts import Document, ImageEntity, Location
 from .exceptions import (
     LocationCannotBeDeletedWithDependency,
@@ -446,36 +446,43 @@ def move_location(
         )
 
 
+@deprecated(deprecated_in="2.3.6", deprecated_by="get_location_by_external_id")
 def get_locations_by_external_id(
     client: GraphqlClient, external_id: str
 ) -> List[Location]:
 
+    locations = []
+    locations.append(get_location_by_external_id(client, external_id))
+    return locations
+
+
+def get_location_by_external_id(client: GraphqlClient, external_id: str) -> Location:
     locations = SearchQuery.execute(client, name=external_id).searchForEntity.edges
+    if not locations:
+        raise LocationNotFoundException()
 
-    locations = [
-        location.node
-        for location in locations
-        if location.node.entityType == "location"
-    ]
-
-    res = []
+    location_details = None
     for location in locations:
-        location_details = LocationDetailsQuery.execute(
-            client, id=location.entityId
-        ).location
-        if location_details.externalId == external_id:
-            res.append(
-                Location(
-                    name=location_details.name,
-                    id=location_details.id,
-                    latitude=location_details.latitude,
-                    longitude=location_details.longitude,
-                    externalId=location_details.externalId,
-                    locationTypeName=location_details.locationType.name,
-                )
-            )
+        if location.node.entityType == "location":
+            location_details = LocationDetailsQuery.execute(
+                client, id=locations[0].node.entityId
+            ).location
+            if location_details.externalId == external_id:
+                break
+            else:
+                location_details = None
 
-    return res
+    if not location_details:
+        raise LocationNotFoundException()
+
+    return Location(
+        name=location_details.name,
+        id=location_details.id,
+        latitude=location_details.latitude,
+        longitude=location_details.longitude,
+        externalId=location_details.externalId,
+        locationTypeName=location_details.locationType.name,
+    )
 
 
 def get_location_documents(client: GraphqlClient, location: Location) -> List[Document]:

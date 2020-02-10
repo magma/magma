@@ -44,6 +44,7 @@ class InventoryClient(GraphqlClient):
     from ._location import (
         get_location,
         get_locations_by_external_id,
+        get_location_by_external_id,
         get_location_children,
         get_location_documents,
         delete_location,
