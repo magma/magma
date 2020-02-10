@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 """
 import netifaces
-from typing import NamedTuple, Dict
+from typing import NamedTuple, Dict, List
 
 from ryu.lib.packet import ether_types
 from ryu.ofproto.inet import IPPROTO_TCP
@@ -70,14 +70,16 @@ class CheckQuotaController(MagmaController):
     def cleanup_on_disconnect(self, datapath: Datapath):
         self._delete_all_flows(datapath)
 
-    def update_subscriber_quota_state(self, update: SubscriberQuotaUpdate):
-        imsi = update.sid.id
-        if update.update_type == SubscriberQuotaUpdate.VALID_QUOTA:
-            self._add_subscriber_flow(imsi, update.mac_addr, True)
-        elif update.update_type == SubscriberQuotaUpdate.NO_QUOTA:
-            self._add_subscriber_flow(imsi, update.mac_addr, False)
-        elif update.update_type == SubscriberQuotaUpdate.TERMINATE:
-            self._remove_subscriber_flow(imsi)
+    def update_subscriber_quota_state(self,
+                                      updates: List[SubscriberQuotaUpdate]):
+        for update in updates:
+            imsi = update.sid.id
+            if update.update_type == SubscriberQuotaUpdate.VALID_QUOTA:
+                self._add_subscriber_flow(imsi, update.mac_addr, True)
+            elif update.update_type == SubscriberQuotaUpdate.NO_QUOTA:
+                self._add_subscriber_flow(imsi, update.mac_addr, False)
+            elif update.update_type == SubscriberQuotaUpdate.TERMINATE:
+                self._remove_subscriber_flow(imsi)
 
     def _add_subscriber_flow(self, imsi: str, ue_mac: str, has_quota: bool):
         """

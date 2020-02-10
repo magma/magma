@@ -112,6 +112,10 @@ message SubscriberQuotaUpdate{
   Type update_type = 3;
 }
 
+message UpdateSubscriberQuotaStateRequest {
+  repeated SubscriberQuotaUpdate updates = 1;
+}
+
 message TableAssignment {
   string app_name = 1;
   uint64 main_table = 2;
@@ -173,7 +177,7 @@ service Pipelined {
   // ----------------
 
   // Synchronize subscribers quota check flows
-  rpc UpdateSubscriberQuotaState (SubscriberQuotaUpdate) returns (FlowResponse) {}
+  rpc UpdateSubscriberQuotaState (UpdateSubscriberQuotaStateRequest) returns (FlowResponse) {}
 
   // -----------
   // UE MAC App:
