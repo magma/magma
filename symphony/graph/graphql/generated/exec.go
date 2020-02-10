@@ -5816,7 +5816,7 @@ type Equipment implements Node {
 }
 
 type Device {
-  id: ID!
+  id: String!
   name: String!
   up: Boolean
 }
@@ -11808,7 +11808,7 @@ func (ec *executionContext) _Device_id(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Device_name(ctx context.Context, field graphql.CollectedField, obj *models.Device) (ret graphql.Marshaler) {

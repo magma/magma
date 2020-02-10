@@ -140,4 +140,9 @@ var (
 	descName = fields[0].Descriptor()
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator = descName.Validators[0].(func(string) error)
+
+	// descDeviceID is the schema descriptor for device_id field.
+	descDeviceID = fields[2].Descriptor()
+	// DeviceIDValidator is a validator for the "device_id" field. It is called by the builders before save.
+	DeviceIDValidator = descDeviceID.Validators[0].(func(string) error)
 )

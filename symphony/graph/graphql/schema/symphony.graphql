@@ -240,7 +240,7 @@ type Equipment implements Node {
 }
 
 type Device {
-  id: ID!
+  id: String!
   name: String!
   up: Boolean
 }
