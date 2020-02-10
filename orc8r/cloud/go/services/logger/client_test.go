@@ -17,9 +17,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/logger"
 	"magma/orc8r/cloud/go/services/logger/test_init"
+	"magma/orc8r/lib/go/protos"
 )
 
 func TestLoggingServiceClientMethods(t *testing.T) {

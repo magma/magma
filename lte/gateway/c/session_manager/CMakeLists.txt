@@ -111,6 +111,9 @@ add_library(SESSION_MANAGER
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
     StoredState.h
+    SessionStore.h
+    MemorySessionStore.cpp
+    MemorySessionStore.h
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )

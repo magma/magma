@@ -19,11 +19,11 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb/servicers"
 	"magma/orc8r/cloud/go/orc8r"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/storage"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"

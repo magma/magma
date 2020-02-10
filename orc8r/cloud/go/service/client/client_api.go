@@ -9,9 +9,9 @@ LICENSE file in the root directory of this source tree.
 package client
 
 import (
-	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"

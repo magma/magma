@@ -4,23 +4,23 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
+import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
-import React, {useState} from 'react';
 
 type Props = {
   id: string,
-  children: any,
-  buttonContent: React$Element<any>,
+  children: React.Node,
+  buttonContent: React.Node,
   className?: string,
 };
 
 export default function TopBarAnchoredMenu(props: Props) {
-  const [anchorEl, setAnchorEl] = useState<?HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = React.useState<?HTMLElement>(null);
   return (
     <>
       <Button

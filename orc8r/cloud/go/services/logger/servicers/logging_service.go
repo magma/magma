@@ -12,8 +12,8 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/logger/exporters"
+	"magma/orc8r/lib/go/protos"
 
 	"golang.org/x/net/context"
 )

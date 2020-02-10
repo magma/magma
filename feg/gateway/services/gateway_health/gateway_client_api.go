@@ -17,7 +17,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
-	"magma/orc8r/cloud/go/errors"
+	"magma/orc8r/lib/go/errors"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"

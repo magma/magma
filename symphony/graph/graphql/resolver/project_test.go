@@ -400,6 +400,57 @@ func TestAddProjectWithProperties(t *testing.T) {
 	fetchedProps, err := pr.Properties(ctx, fetchedProj)
 	require.NoError(t, err)
 	require.Equal(t, len(propInputs), len(fetchedProps))
+
+	failProp := models.PropertyInput{
+		PropertyTypeID: "someFakeTypeID",
+	}
+	failEditInput := models.EditProjectInput{
+		ID:         p.ID,
+		Name:       "test",
+		Properties: []*models.PropertyInput{&failProp},
+	}
+	_, err = mutation.EditProject(ctx, failEditInput)
+	require.Error(t, err, "editing project instance property with wrong property type id")
+
+	failProp2 := models.PropertyInput{
+		ID:             &strFetchProp.ID,
+		PropertyTypeID: intProp.PropertyTypeID,
+	}
+	failEditInput2 := models.EditProjectInput{
+		ID:         p.ID,
+		Name:       "test",
+		Properties: []*models.PropertyInput{&failProp2},
+	}
+	_, err = mutation.EditProject(ctx, failEditInput2)
+	require.Error(t, err, "editing project instance property when id and property type id mismach")
+
+	newStrValue := "Foo"
+	prop := models.PropertyInput{
+		PropertyTypeID: strProp.PropertyTypeID,
+		StringValue:    &newStrValue,
+	}
+	newProjectName := "updated test"
+	editInput := models.EditProjectInput{
+		ID:         p.ID,
+		Name:       newProjectName,
+		Properties: []*models.PropertyInput{&prop},
+	}
+	updatedP, err := mutation.EditProject(ctx, editInput)
+	require.NoError(t, err)
+
+	updatedNode, err := qr.Node(ctx, updatedP.ID)
+	require.NoError(t, err, "querying updated project node")
+	updatedProj, ok := updatedNode.(*ent.Project)
+	require.True(t, ok, "casting updated project instance")
+
+	require.Equal(t, updatedProj.Name, newProjectName, "Comparing updated project name")
+
+	fetchedProps, _ = pr.Properties(ctx, updatedProj)
+	require.Equal(t, len(propInputs), len(fetchedProps), "number of properties should remain he same")
+
+	updatedProp := updatedProj.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
+	require.Equal(t, updatedProp.StringVal, *prop.StringValue, "Comparing updated properties: string value")
+	require.Equal(t, updatedProp.QueryType().OnlyXID(ctx), prop.PropertyTypeID, "Comparing updated properties: PropertyType value")
 }
 
 func TestEditProjectType(t *testing.T) {

@@ -18,10 +18,10 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/cert"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
@@ -378,7 +378,6 @@ func (srv *CertifierServer) FindCertificates(ctx context.Context, id *protos.Ide
 
 // Returns serial numbers of all certificates in the table
 func (srv *CertifierServer) ListCertificates(ctx context.Context, void *protos.Void) (*certprotos.SerialNumbers, error) {
-
 	res := &certprotos.SerialNumbers{}
 	snList, err := srv.store.ListSerialNumbers()
 	if err != nil {

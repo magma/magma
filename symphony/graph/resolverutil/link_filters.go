@@ -30,8 +30,8 @@ func handleLinkFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (*ent.Li
 
 func stateFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (*ent.LinkQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
-		p := link.FutureStateIn(filter.IDSet...)
-		if Find(filter.IDSet, models.FutureStateInstall.String()) {
+		p := link.FutureStateIn(filter.StringSet...)
+		if Find(filter.StringSet, models.FutureStateInstall.String()) {
 			p = link.Or(p, link.FutureStateIsNil())
 		}
 		return q.Where(p), nil

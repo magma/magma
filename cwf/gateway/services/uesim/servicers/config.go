@@ -13,7 +13,7 @@ import (
 	"net"
 
 	"magma/cwf/gateway/registry"
-	"magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"

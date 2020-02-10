@@ -16,7 +16,7 @@ import (
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"

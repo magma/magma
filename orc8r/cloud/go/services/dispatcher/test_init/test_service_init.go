@@ -12,11 +12,11 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher"
 	"magma/orc8r/cloud/go/services/dispatcher/broker/mocks"
 	"magma/orc8r/cloud/go/services/dispatcher/servicers"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 )
 
 func StartTestService(t *testing.T) *mocks.GatewayRPCBroker {

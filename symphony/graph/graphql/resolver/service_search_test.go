@@ -6,10 +6,10 @@ package resolver
 
 import (
 	"context"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -193,7 +193,7 @@ func TestSearchServicesByStatus(t *testing.T) {
 	f1 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeServiceStatus,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.ServiceStatusMaintenance.String()},
+		StringSet:  []string{models.ServiceStatusMaintenance.String()},
 	}
 	res1, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f1}, &limit)
 	require.NoError(t, err)
@@ -202,7 +202,7 @@ func TestSearchServicesByStatus(t *testing.T) {
 	f2 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeServiceStatus,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.ServiceStatusInService.String()},
+		StringSet:  []string{models.ServiceStatusInService.String()},
 	}
 	res2, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f2}, &limit)
 	require.NoError(t, err)
@@ -211,7 +211,7 @@ func TestSearchServicesByStatus(t *testing.T) {
 	f3 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeServiceStatus,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.ServiceStatusPending.String()},
+		StringSet:  []string{models.ServiceStatusPending.String()},
 	}
 	res3, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f3}, &limit)
 	require.NoError(t, err)

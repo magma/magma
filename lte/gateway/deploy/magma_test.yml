@@ -13,6 +13,7 @@
     - role: apt_cache
       vars:
         distribution: "stretch"
+        repo: "dev"
     - role: pkgrepo
     - role: python_dev
     - role: dev_common

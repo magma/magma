@@ -17,7 +17,7 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
-	managed_configs "magma/orc8r/gateway/mconfig"
+	managed_configs "magma/gateway/mconfig"
 )
 
 // PCRF Environment Variables

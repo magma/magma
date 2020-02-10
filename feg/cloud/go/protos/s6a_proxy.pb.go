@@ -1163,11 +1163,11 @@ var fileDescriptor_f32b2af5087a8858 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // S6AProxyClient is the client API for S6AProxy service.
 //
@@ -1182,10 +1182,10 @@ type S6AProxyClient interface {
 }
 
 type s6AProxyClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewS6AProxyClient(cc *grpc.ClientConn) S6AProxyClient {
+func NewS6AProxyClient(cc grpc.ClientConnInterface) S6AProxyClient {
 	return &s6AProxyClient{cc}
 }
 
@@ -1330,10 +1330,10 @@ type S6AGatewayServiceClient interface {
 }
 
 type s6AGatewayServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewS6AGatewayServiceClient(cc *grpc.ClientConn) S6AGatewayServiceClient {
+func NewS6AGatewayServiceClient(cc grpc.ClientConnInterface) S6AGatewayServiceClient {
 	return &s6AGatewayServiceClient{cc}
 }
 

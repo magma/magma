@@ -11,7 +11,7 @@ import (
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	protos "magma/lte/cloud/go/protos"
-	protos1 "magma/orc8r/cloud/go/protos"
+	protos1 "magma/orc8r/lib/go/protos"
 	math "math"
 )
 
@@ -1444,11 +1444,11 @@ var fileDescriptor_ef3afe2df05d1dc6 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // MockCoreConfiguratorClient is the client API for MockCoreConfigurator service.
 //
@@ -1459,10 +1459,10 @@ type MockCoreConfiguratorClient interface {
 }
 
 type mockCoreConfiguratorClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewMockCoreConfiguratorClient(cc *grpc.ClientConn) MockCoreConfiguratorClient {
+func NewMockCoreConfiguratorClient(cc grpc.ClientConnInterface) MockCoreConfiguratorClient {
 	return &mockCoreConfiguratorClient{cc}
 }
 
@@ -1570,10 +1570,10 @@ type MockOCSClient interface {
 }
 
 type mockOCSClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewMockOCSClient(cc *grpc.ClientConn) MockOCSClient {
+func NewMockOCSClient(cc grpc.ClientConnInterface) MockOCSClient {
 	return &mockOCSClient{cc}
 }
 
@@ -1785,10 +1785,10 @@ type MockPCRFClient interface {
 }
 
 type mockPCRFClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewMockPCRFClient(cc *grpc.ClientConn) MockPCRFClient {
+func NewMockPCRFClient(cc grpc.ClientConnInterface) MockPCRFClient {
 	return &mockPCRFClient{cc}
 }
 

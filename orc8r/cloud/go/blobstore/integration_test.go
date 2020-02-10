@@ -13,8 +13,8 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/blobstore"
-	magmaerrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/storage"
+	magmaerrors "magma/orc8r/lib/go/errors"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"

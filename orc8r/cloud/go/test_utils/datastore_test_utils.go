@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/datastore"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"

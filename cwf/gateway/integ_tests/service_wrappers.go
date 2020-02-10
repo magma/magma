@@ -18,7 +18,7 @@ import (
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/testcore/hss"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 	registryTestUtils "magma/orc8r/cloud/go/test_utils"
 
 	"github.com/go-redis/redis"

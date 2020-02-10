@@ -27,7 +27,7 @@ import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import useStateWithCallback from 'use-state-with-callback';
-import useVerticalScrollingEffect from '../../common/useVerticalScrollingEffect';
+import useVerticalScrollingEffect from '@fbcnms/ui/components/design-system/hooks/useVerticalScrollingEffect';
 
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import {createFragmentContainer, graphql} from 'react-relay';

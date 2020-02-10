@@ -16,7 +16,7 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/testcore/hss/servicers/test"
 	"magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"

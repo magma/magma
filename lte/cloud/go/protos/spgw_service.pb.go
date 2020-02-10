@@ -249,11 +249,11 @@ var fileDescriptor_b9b6f72b6fee9214 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // SpgwServiceClient is the client API for SpgwService service.
 //
@@ -264,10 +264,10 @@ type SpgwServiceClient interface {
 }
 
 type spgwServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewSpgwServiceClient(cc *grpc.ClientConn) SpgwServiceClient {
+func NewSpgwServiceClient(cc grpc.ClientConnInterface) SpgwServiceClient {
 	return &spgwServiceClient{cc}
 }
 

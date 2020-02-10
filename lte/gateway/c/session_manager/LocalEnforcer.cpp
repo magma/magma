@@ -197,6 +197,8 @@ void LocalEnforcer::execute_actions(
   }
 }
 
+// Terminates sessions that correspond to the given IMSI.
+// (For session termination triggered by sessiond)
 void LocalEnforcer::terminate_service(
   const std::string& imsi,
   const std::vector<std::string>& rule_ids,
@@ -869,9 +871,8 @@ void LocalEnforcer::update_session_credits_and_rules(
   terminate_multiple_services(subscribers_to_terminate);
 }
 
-// terminate_subscriber,
-// if apn is specified, it teminates the corresponding PDN session
-// else all sessions for IMSI are terminated
+// terminate_subscriber (for externally triggered EndSession)
+// terminates the session that is associated with the given imsi and apn
 void LocalEnforcer::terminate_subscriber(
   const std::string& imsi,
   const std::string& apn,

@@ -6,7 +6,7 @@ package mconfig
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	protos "magma/orc8r/cloud/go/protos"
+	protos "magma/orc8r/lib/go/protos"
 	math "math"
 )
 

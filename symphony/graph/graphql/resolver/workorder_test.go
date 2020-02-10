@@ -1303,6 +1303,57 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	fetchedProps, err := wr.Properties(ctx, fetchedWo)
 	require.NoError(t, err)
 	require.Equal(t, len(propInputs), len(fetchedProps))
+
+	failProp := models.PropertyInput{
+		PropertyTypeID: "someFakeTypeID",
+	}
+	failEditInput := models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       "test",
+		Properties: []*models.PropertyInput{&failProp},
+	}
+	_, err = mr.EditWorkOrder(ctx, failEditInput)
+	require.Error(t, err, "editing Work Order instance property with wrong property type id")
+
+	failProp2 := models.PropertyInput{
+		ID:             &strFetchProp.ID,
+		PropertyTypeID: intProp.PropertyTypeID,
+	}
+	failEditInput2 := models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       "test",
+		Properties: []*models.PropertyInput{&failProp2},
+	}
+	_, err = mr.EditWorkOrder(ctx, failEditInput2)
+	require.Error(t, err, "editing Work Order instance property when id and property type id mismach")
+
+	newStrValue := "Foo"
+	prop := models.PropertyInput{
+		PropertyTypeID: strProp.PropertyTypeID,
+		StringValue:    &newStrValue,
+	}
+	newWorkOrderName := "updated test"
+	editInput := models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       newWorkOrderName,
+		Properties: []*models.PropertyInput{&prop},
+	}
+	updatedP, err := mr.EditWorkOrder(ctx, editInput)
+	require.NoError(t, err)
+
+	updatedNode, err := qr.Node(ctx, updatedP.ID)
+	require.NoError(t, err, "querying updated Work Order node")
+	updatedWO, ok := updatedNode.(*ent.WorkOrder)
+	require.True(t, ok, "casting updated Work Order instance")
+
+	require.Equal(t, updatedWO.Name, newWorkOrderName, "Comparing updated Work Order name")
+
+	fetchedProps, _ = wr.Properties(ctx, updatedWO)
+	require.Equal(t, len(propInputs), len(fetchedProps), "number of properties should remain he same")
+
+	updatedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
+	require.Equal(t, updatedProp.StringVal, *prop.StringValue, "Comparing updated properties: string value")
+	require.Equal(t, updatedProp.QueryType().OnlyXID(ctx), prop.PropertyTypeID, "Comparing updated properties: PropertyType value")
 }
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {

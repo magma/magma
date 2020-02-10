@@ -554,7 +554,7 @@ func TestSearchWO(t *testing.T) {
 	f2 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderStatus,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{status},
+		StringSet:  []string{status},
 	}
 	res2, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f2}, &limit)
 	require.NoError(t, err)
@@ -573,7 +573,7 @@ func TestSearchWO(t *testing.T) {
 	f4 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderAssignee,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.assignee1},
+		StringSet:  []string{data.assignee1},
 	}
 	res4, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f4}, &limit)
 	require.NoError(t, err)
@@ -595,7 +595,7 @@ func TestSearchWO(t *testing.T) {
 	f7 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderOwner,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.owner},
+		StringSet:  []string{data.owner},
 	}
 	res7, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f7}, &limit)
 	require.NoError(t, err)
@@ -638,7 +638,7 @@ func TestSearchWOByPriority(t *testing.T) {
 	f1 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderPriority,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.WorkOrderPriorityHigh.String()},
+		StringSet:  []string{models.WorkOrderPriorityHigh.String()},
 	}
 	res1, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f1}, &limit)
 	require.NoError(t, err)
