@@ -43,7 +43,7 @@ TEST_F(PathTest, path) {
   ASSERT_EQ(ifcs.getParent(), root);
 
   Path ifc =
-      "/openconfig-interfaces:interfaces/interface[id=\"ethernet 0/1\"]/config";
+      "/openconfig-interfaces:interfaces/interface[id='ethernet 0/1']/config";
   ASSERT_EQ(ifc.getDepth(), 3);
   ASSERT_TRUE(ifc.isChildOf(root));
   ASSERT_TRUE(ifc.isChildOf(ifcs));
@@ -51,10 +51,10 @@ TEST_F(PathTest, path) {
       ifc.unkeyed(), "/openconfig-interfaces:interfaces/interface/config");
   ASSERT_EQ(
       ifc.getParent(),
-      "/openconfig-interfaces:interfaces/interface[id=\"ethernet 0/1\"]");
+      "/openconfig-interfaces:interfaces/interface[id='ethernet 0/1']");
   vector<string> expectedSegments =
       vector<string>{"openconfig-interfaces:interfaces",
-                     "interface[id=\"ethernet 0/1\"]",
+                     "interface[id='ethernet 0/1']",
                      "config"};
   ASSERT_EQ(ifc.getSegments(), expectedSegments);
   Path::Keys expectedKeys = dynamic::object("id", "ethernet 0/1");
@@ -63,12 +63,12 @@ TEST_F(PathTest, path) {
   ASSERT_EQ(ifc.getKeysFromSegment("config"), expectedEmptyKeys);
 
   Path ip =
-      R"(/openconfig-interfaces:interfaces/interface[id="ethernet 0/1"]/subinterfaces/subinterface[index=0]/openconfig-if-ip:ip/ipv4/address[ip="4:4:4:4"])";
+      R"(/openconfig-interfaces:interfaces/interface[id='ethernet 0/1']/subinterfaces/subinterface[index=0]/openconfig-if-ip:ip/ipv4/address[ip='4:4:4:4'])";
   ASSERT_EQ(ip.unkeyed().getSegments().size(), 7);
   ASSERT_EQ(ip.getSegments().size(), ip.getDepth());
   ASSERT_EQ(
       ip.prefixAllSegments().str(),
-      R"(/openconfig-interfaces:interfaces/openconfig-interfaces:interface[id="ethernet 0/1"]/openconfig-interfaces:subinterfaces/openconfig-interfaces:subinterface[index=0]/openconfig-if-ip:ip/openconfig-if-ip:ipv4/openconfig-if-ip:address[ip="4:4:4:4"])");
+      R"(/openconfig-interfaces:interfaces/openconfig-interfaces:interface[id='ethernet 0/1']/openconfig-interfaces:subinterfaces/openconfig-interfaces:subinterface[index=0]/openconfig-if-ip:ip/openconfig-if-ip:ipv4/openconfig-if-ip:address[ip='4:4:4:4'])");
 }
 
 TEST_F(PathTest, invalidPath) {
@@ -80,6 +80,14 @@ TEST_F(PathTest, invalidPath) {
   EXPECT_THROW(
       Path("/openconfig-interfaces:interfaces").getChild("/abcd"),
       InvalidPathException);
+}
+
+TEST_F(PathTest, segmentKeys) {
+  EXPECT_EQ(
+      Path("/openconfig-interfaces:interfaces/interface[name='0/85']/state")
+          .getKeysFromSegment("interface")
+          .size(),
+      1);
 }
 
 } // namespace cli

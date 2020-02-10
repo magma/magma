@@ -63,6 +63,7 @@ class Path {
   friend bool operator>(const Path& lhs, const Path& rhs);
   friend bool operator<=(const Path& lhs, const Path& rhs);
   friend bool operator>=(const Path& lhs, const Path& rhs);
+  friend Path operator+(const Path& lhs, const string& rhs);
 };
 
 class InvalidPathException : public runtime_error {
