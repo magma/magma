@@ -6,8 +6,8 @@ from typing import Any, Dict, List, Tuple, Union
 from dacite import from_dict
 from gql.gql.client import OperationException
 
-from ._equipment import delete_equipment
 from ._utils import PropertyValue, _make_property_types
+from .api.equipment import delete_equipment
 from .consts import Equipment, EquipmentType
 from .exceptions import EquipmentTypeNotFoundException
 from .graphql.add_equipment_type_mutation import (

@@ -3,11 +3,11 @@
 
 from typing import Dict, List, Tuple
 
-from .._equipment import copy_equipment, copy_equipment_in_position
 from ..consts import Equipment, Location
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
 from ..graphql_client import GraphqlClient
+from .equipment import copy_equipment, copy_equipment_in_position
 from .link import add_link, get_all_links_and_port_names_of_equipment
 
 

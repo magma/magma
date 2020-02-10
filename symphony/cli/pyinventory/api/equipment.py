@@ -6,22 +6,24 @@ from typing import Dict, List, Optional, Tuple
 from gql.gql.client import OperationException
 from tqdm import tqdm
 
-from ._utils import PropertyValue, _get_properties_to_add, _get_property_value
-from .consts import Equipment, Location
-from .exceptions import (
+from .._utils import PropertyValue, _get_properties_to_add, _get_property_value
+from ..consts import Equipment, Location
+from ..exceptions import (
     EquipmentIsNotUniqueException,
     EquipmentNotFoundException,
     EquipmentPositionIsNotUniqueException,
     EquipmentPositionNotFoundException,
 )
-from .graphql.add_equipment_mutation import AddEquipmentInput, AddEquipmentMutation
-from .graphql.equipment_positions_query import EquipmentPositionsQuery
-from .graphql.equipment_search_query import EquipmentSearchQuery
-from .graphql.equipment_type_and_properties_query import EquipmentTypeAndPropertiesQuery
-from .graphql.location_equipments_query import LocationEquipmentsQuery
-from .graphql.remove_equipment_mutation import RemoveEquipmentMutation
-from .graphql_client import GraphqlClient
-from .reporter import FailedOperationException
+from ..graphql.add_equipment_mutation import AddEquipmentInput, AddEquipmentMutation
+from ..graphql.equipment_positions_query import EquipmentPositionsQuery
+from ..graphql.equipment_search_query import EquipmentSearchQuery
+from ..graphql.equipment_type_and_properties_query import (
+    EquipmentTypeAndPropertiesQuery,
+)
+from ..graphql.location_equipments_query import LocationEquipmentsQuery
+from ..graphql.remove_equipment_mutation import RemoveEquipmentMutation
+from ..graphql_client import GraphqlClient
+from ..reporter import FailedOperationException
 
 
 ADD_EQUIPMENT_MUTATION_NAME = "addEquipment"

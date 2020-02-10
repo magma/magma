@@ -61,7 +61,7 @@ class InventoryClient(GraphqlClient):
         _edit_equipment_type,
         edit_equipment_type,
     )
-    from ._equipment import (
+    from .api.equipment import (
         add_equipment,
         add_equipment_to_position,
         get_equipment,
