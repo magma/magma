@@ -57,7 +57,10 @@ class LocationType(NamedTuple):
 class Location(NamedTuple):
     name: str
     id: str
+    latitude: float
+    longitude: float
     externalId: Optional[str]
+    locationTypeName: str
 
 
 class EquipmentType(NamedTuple):

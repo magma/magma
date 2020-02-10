@@ -103,7 +103,10 @@ def delete_locations_by_location_type(
             Location(
                 id=location.node.id,
                 name=location.node.name,
+                latitude=location.node.latitude,
+                longitude=location.node.longitude,
                 externalId=location.node.externalId,
+                locationTypeName=location.node.locationType.name,
             ),
         )
 
