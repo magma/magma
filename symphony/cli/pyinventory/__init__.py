@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from ._equipmenttype import _populate_equipment_types
-from ._locationtype import _populate_location_types
 from ._service import _populate_service_types
+from .api.location_type import _populate_location_types
 from .consts import DUMMY_REPORTER
 from .graphql_client import GraphqlClient
 from .reporter import Reporter
@@ -36,7 +36,7 @@ class InventoryClient(GraphqlClient):
         add_file,
         add_files,
     )
-    from ._locationtype import (
+    from .api.location_type import (
         add_location_type,
         delete_locations_by_location_type,
         delete_location_type_with_locations,

@@ -6,19 +6,19 @@ from typing import List, Tuple, Union
 from dacite import from_dict
 from gql.gql.client import OperationException
 
-from ._utils import PropertyValue, _make_property_types
-from .api.location import delete_location
-from .consts import Location, LocationType
-from .graphql.add_location_type_mutation import (
+from .._utils import PropertyValue, _make_property_types
+from ..consts import Location, LocationType
+from ..graphql.add_location_type_mutation import (
     AddLocationTypeInput,
     AddLocationTypeMutation,
     PropertyKind,
 )
-from .graphql.location_type_locations_query import LocationTypeLocationsQuery
-from .graphql.location_types_query import LocationTypesQuery
-from .graphql.remove_location_type_mutation import RemoveLocationTypeMutation
-from .graphql_client import GraphqlClient
-from .reporter import FailedOperationException
+from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
+from ..graphql.location_types_query import LocationTypesQuery
+from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
+from ..graphql_client import GraphqlClient
+from ..reporter import FailedOperationException
+from .location import delete_location
 
 
 ADD_LOCATION_TYPE_MUTATION_NAME = "addLocationType"
