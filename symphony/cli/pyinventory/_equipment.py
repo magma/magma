@@ -6,9 +6,8 @@ from typing import Dict, List, Optional, Tuple
 from gql.gql.client import OperationException
 from tqdm import tqdm
 
-from ._location import Location
 from ._utils import PropertyValue, _get_properties_to_add, _get_property_value
-from .consts import Equipment
+from .consts import Equipment, Location
 from .exceptions import (
     EquipmentIsNotUniqueException,
     EquipmentNotFoundException,

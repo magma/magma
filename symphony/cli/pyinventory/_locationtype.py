@@ -6,8 +6,8 @@ from typing import List, Tuple, Union
 from dacite import from_dict
 from gql.gql.client import OperationException
 
-from ._location import delete_location
 from ._utils import PropertyValue, _make_property_types
+from .api.location import delete_location
 from .consts import Location, LocationType
 from .graphql.add_location_type_mutation import (
     AddLocationTypeInput,

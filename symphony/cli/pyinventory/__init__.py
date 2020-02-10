@@ -41,7 +41,7 @@ class InventoryClient(GraphqlClient):
         delete_locations_by_location_type,
         delete_location_type_with_locations,
     )
-    from ._location import (
+    from .api.location import (
         get_location,
         get_locations_by_external_id,
         get_location_by_external_id,
