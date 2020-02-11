@@ -47,6 +47,7 @@ const useStyles = makeStyles({
   actionButtons: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   actionButton: {
     '&:not(:first-child)': {
