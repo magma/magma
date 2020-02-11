@@ -189,7 +189,7 @@
   become: yes
   git:
     repo: 'https://github.com/swagger-api/swagger-codegen'
-    dest: /home/{{ ansible_user }}/codegen
+    dest: "{{ codegen_root }}"
     version: v2.2.3
     force: yes
   when: preburn
@@ -221,14 +221,13 @@
   become: yes
   copy:
     src: build_swagger_codegen.sh
-    dest: /home/{{ ansible_user }}/build_swagger_codegen.sh
+    dest: /var/tmp/build_swagger_codegen.sh
     mode: 0755
   when: preburn
 
 - name: Build swagger code-gen
   become: yes
-  #  no_log: True
-  command: "/home/{{ ansible_user }}/build_swagger_codegen.sh"
+  command: "/var/tmp/build_swagger_codegen.sh"
   args:
     creates: "{{ swagger_codegen_jar }}"
   environment:
