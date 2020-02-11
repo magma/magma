@@ -15,7 +15,20 @@ sleep 30
 
 apt-get update
 
-apt-get install -y linux-headers-4.9.0-8-amd64 linux-image-4.9.0-8-amd64
+# Install a deprecated linux kernel for openvswitch
+if [ "$(uname -r)" != "4.9.0-9-amd64" ]; then
+  # Adding the snapshot to retrieve 4.9.0-9-amd64
+  if ! grep -q "deb http://snapshot.debian.org/archive/debian/20190801T025637Z" /etc/apt/sources.list; then
+    echo "deb http://snapshot.debian.org/archive/debian/20190801T025637Z stretch main non-free contrib" >> /etc/apt/sources.list
+  fi
+  apt update
+  # Installing prerequesites, Kvers, headers
+  apt install -y sudo python-minimal aptitude linux-image-4.9.0-9-amd64 linux-headers-4.9.0-9-amd64
+  # Removing dev repository snapshot from source.list
+  sed -i '/20190801T025637Z/d' /etc/apt/sources.list
+  # Removing incompatible Kernel version
+  DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-4.9.0-11-amd64
+fi
 
 # Install some packages
 apt-get install -y openssh-server gcc rsync dirmngr
