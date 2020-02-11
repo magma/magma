@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from dacite import from_dict
 
-from .._utils import PropertyValue, _get_properties_to_add, _make_property_types
+from .._utils import PropertyValue, _get_graphql_properties, _make_property_types
 from ..consts import (
     Customer,
     EquipmentPort,
@@ -104,7 +104,7 @@ def add_service(
     links: List[Link],
 ) -> Service:
     property_types = client.serviceTypes[service_type].propertyTypes
-    properties = _get_properties_to_add(property_types, properties_dict)
+    properties = _get_graphql_properties(property_types, properties_dict)
     service_create_data = ServiceCreateData(
         name=name,
         externalId=external_id,

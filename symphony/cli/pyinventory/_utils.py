@@ -19,7 +19,7 @@ ReturnType = TypeVar("ReturnType")
 PropertyValue = Union[date, float, int, str, bool, Tuple[float, float]]
 
 
-def _get_properties_to_add(
+def _get_graphql_properties(
     property_types: List[Dict[str, Any]], properties_dict: Dict[str, PropertyValue]
 ) -> List[Dict[str, PropertyValue]]:
     properties = []

@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple
 from gql.gql.client import OperationException
 from tqdm import tqdm
 
-from .._utils import PropertyValue, _get_properties_to_add, _get_property_value
+from .._utils import PropertyValue, _get_graphql_properties, _get_property_value
 from ..consts import Equipment, Location
 from ..exceptions import (
     EquipmentIsNotUniqueException,
@@ -158,7 +158,7 @@ def add_equipment(
     """
 
     property_types = client.equipmentTypes[equipment_type].propertyTypes
-    properties = _get_properties_to_add(property_types, properties_dict)
+    properties = _get_graphql_properties(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
         name=name,
@@ -279,7 +279,7 @@ def add_equipment_to_position(
         client, existing_equipment, position_name
     )
     property_types = client.equipmentTypes[equipment_type].propertyTypes
-    properties = _get_properties_to_add(property_types, properties_dict)
+    properties = _get_graphql_properties(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
         name=name,
