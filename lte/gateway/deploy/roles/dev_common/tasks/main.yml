@@ -60,6 +60,7 @@
       - byobu
       - vim
       - aptitude
+  retries: 5
   when: preburn
 
 - name: Install debugger packages
@@ -67,6 +68,7 @@
     pkg: gdb
     state: present
     update_cache: no
+  retries: 5
   when: preburn
 
 - name: Install monitoring packages
@@ -76,6 +78,7 @@
     pkg:
       - htop
       - iotop
+  retries: 5
   when: preburn
 
 # TODO: remove this after migrating magma_test box image to plain Debian
@@ -97,6 +100,7 @@
       - python3-setuptools
       - python-setuptools
       - libssl-dev
+  retries: 5
   when: preburn
 
 - name: Setup FPM so we can build packages
@@ -127,6 +131,7 @@
       - net-tools # ifconfig
       - tcpdump
       - curl
+  retries: 5
   when: preburn
 
 # /etc/environment doesn't expand variables, so if we want to modify the path,
@@ -173,6 +178,7 @@
       - iperf3
       - libsystemd-dev
       - pkg-config
+  retries: 5
   when: preburn
 
 ###############################################
@@ -194,6 +200,7 @@
     pkg: openjdk-8-jdk
     state: present
     update_cache: yes
+  retries: 5
   when: preburn
 
 - name: Download maven

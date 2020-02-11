@@ -90,4 +90,5 @@
       - protobuf-compiler
       - python-protobuf
       - libsystemd-dev
+  retries: 5
   when: preburn

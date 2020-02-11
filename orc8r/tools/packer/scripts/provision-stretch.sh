@@ -13,28 +13,16 @@ set -e
 # actually is
 sleep 30
 
+# Adding the snapshot to retrieve 4.9.0-9-amd64, install the kernel, then
+# remove this snapshot
+echo "deb http://snapshot.debian.org/archive/debian/20190801T025637Z stretch main non-free contrib" >> /etc/apt/sources.list
 apt-get update
-
-# Install a deprecated linux kernel for openvswitch
-if [ "$(uname -r)" != "4.9.0-9-amd64" ]; then
-  # Adding the snapshot to retrieve 4.9.0-9-amd64
-  if ! grep -q "deb http://snapshot.debian.org/archive/debian/20190801T025637Z" /etc/apt/sources.list; then
-    echo "deb http://snapshot.debian.org/archive/debian/20190801T025637Z stretch main non-free contrib" >> /etc/apt/sources.list
-  fi
-  apt update
-  # Installing prerequesites, Kvers, headers
-  apt install -y sudo python-minimal aptitude linux-image-4.9.0-9-amd64 linux-headers-4.9.0-9-amd64
-  # Removing dev repository snapshot from source.list
-  sed -i '/20190801T025637Z/d' /etc/apt/sources.list
-  # Removing incompatible Kernel version
-  DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-4.9.0-11-amd64
-fi
+apt install -y linux-image-4.9.0-9-amd64 linux-headers-4.9.0-9-amd64
+sed -i '/20190801T025637Z/d' /etc/apt/sources.list
 
 # Install some packages
+apt-get update
 apt-get install -y openssh-server gcc rsync dirmngr
-
-# Add the Etagecom key
-apt-key adv --fetch-keys http://packages.magma.etagecom.io/pubkey.gpg
 
 # Add the Etagecom magma repo
 bash -c 'echo -e "deb http://packages.magma.etagecom.io magma-custom main" > /etc/apt/sources.list.d/packages_magma_etagecom_io.list'
@@ -46,6 +34,8 @@ Pin: origin packages.magma.etagecom.io
 Pin-Priority: 900
 EOF'
 
+# Add the Etagecom key
+apt-key adv --fetch-keys http://packages.magma.etagecom.io/pubkey.gpg
 apt-get update
 
 # Disable daily auto updates, so that vagrant ansible scripts can
