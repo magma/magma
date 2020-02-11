@@ -11,6 +11,7 @@ COPY ${CACHE_FILES} /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/pr
 # Copy go.mod file to cache the downloads
 COPY cloud/go/go.mod /gomod/
 COPY lib/go/go.mod /gomod/
+COPY lib/go/protos/go.mod /gomod/
 WORKDIR /gomod
 RUN go mod download
 
