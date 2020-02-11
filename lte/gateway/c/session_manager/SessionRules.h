@@ -51,12 +51,17 @@ class SessionRules {
   void add_rules_to_action(ServiceAction &action, const CreditKey &charging_key);
   void add_rules_to_action(ServiceAction &action, std::string monitoring_key);
 
-  std::vector<std::string> &get_static_rule_ids();
-  DynamicRuleStore &get_dynamic_rules();
+  uint32_t total_monitored_rules_count();
+
+  std::vector<std::string>& get_static_rule_ids();
+  DynamicRuleStore& get_dynamic_rules();
 
  private:
-  StaticRuleStore &static_rules_;
+  // All static rules synced from policy DB
+  StaticRuleStore& static_rules_;
+  // Static rules that are currently installed for the session
   std::vector<std::string> active_static_rules_;
+  // Dynamic rules that are currently installed for the session
   DynamicRuleStore dynamic_rules_;
 };
 

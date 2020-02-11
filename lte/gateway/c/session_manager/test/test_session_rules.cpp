@@ -49,18 +49,27 @@ class SessionRulesTest : public ::testing::Test {
     return rule;
   }
 
+  enum RuleType {
+    STATIC = 0,
+    DYNAMIC = 1,
+  };
+
+  // TODO take these into a test common file
   void activate_rule(
     uint32_t rating_group,
     const std::string &m_key,
     const std::string &rule_id,
-    bool is_static)
+    RuleType rule_type)
   {
     PolicyRule rule = get_rule(rating_group, m_key, rule_id);
-    if (is_static) {
-      rule_store->insert_rule(rule);
-      session_rules->activate_static_rule(rule_id);
-    } else {
-      session_rules->insert_dynamic_rule(rule);
+    switch (rule_type) {
+      case STATIC:
+        rule_store->insert_rule(rule);
+        session_rules->activate_static_rule(rule_id);
+        break;
+      case DYNAMIC:
+        session_rules->insert_dynamic_rule(rule);
+        break;
     }
   }
 
@@ -71,11 +80,8 @@ class SessionRulesTest : public ::testing::Test {
 
 TEST_F(SessionRulesTest, test_marshal_unmarshal)
 {
-  // Activate a dynamic rule
-  activate_rule(1, "m1", "rule1", false);
-
-  // Activate static rules
-  activate_rule(2, "m2", "rule2", true);
+  activate_rule(1, "m1", "rule1", DYNAMIC);
+  activate_rule(2, "m2", "rule2", STATIC);
 
   std::vector<std::string> rules_out{};
   std::vector<std::string>& rules_out_ptr = rules_out;
@@ -88,7 +94,7 @@ TEST_F(SessionRulesTest, test_marshal_unmarshal)
   EXPECT_EQ(static_rules.size(), 1);
   EXPECT_EQ(static_rules[0], "rule2");
 
-  // Check that after marshaling/unmarshaling that the fields are still the
+  // Check that after marshaling/un-marshaling that the fields are still the
   // same.
   auto marshaled = (*session_rules).marshal();
   auto session_rules_2 = SessionRules::unmarshal(marshaled, *rule_store);
@@ -101,6 +107,55 @@ TEST_F(SessionRulesTest, test_marshal_unmarshal)
   static_rules = session_rules_2->get_static_rule_ids();
   EXPECT_EQ(static_rules.size(), 1);
   EXPECT_EQ(static_rules[0], "rule2");
+}
+
+TEST_F(SessionRulesTest, test_insert_remove)
+{
+  activate_rule(1, "m1", "rule1", DYNAMIC);
+  EXPECT_EQ(1, session_rules->total_monitored_rules_count());
+  activate_rule(2, "m2", "rule2", STATIC);
+  EXPECT_EQ(2, session_rules->total_monitored_rules_count());
+  // add a OCS-ONLY static rule
+  activate_rule(3, "", "rule3", STATIC);
+  EXPECT_EQ(2, session_rules->total_monitored_rules_count());
+
+  std::vector<std::string> rules_out{};
+  std::vector<std::string>& rules_out_ptr = rules_out;
+
+  session_rules->get_dynamic_rules().get_rule_ids(rules_out_ptr);
+  EXPECT_EQ(rules_out_ptr.size(), 1);
+  EXPECT_EQ(rules_out_ptr[0], "rule1");
+
+  auto static_rules = session_rules->get_static_rule_ids();
+  EXPECT_EQ(static_rules.size(), 2);
+  EXPECT_EQ(static_rules[0], "rule2");
+  EXPECT_EQ(static_rules[1], "rule3");
+
+  // Test rule removals
+  PolicyRule rule_out;
+  session_rules->deactivate_static_rule("rule2");
+  EXPECT_EQ(1, session_rules->total_monitored_rules_count());
+  EXPECT_EQ(true, session_rules->remove_dynamic_rule("rule1", &rule_out));
+  EXPECT_EQ("m1", rule_out.monitoring_key());
+  EXPECT_EQ(0, session_rules->total_monitored_rules_count());
+
+  // basic sanity checks to see it's properly deleted
+  rules_out = {};
+  session_rules->get_dynamic_rules().get_rule_ids(rules_out_ptr);
+  EXPECT_EQ(rules_out_ptr.size(), 0);
+
+  rules_out = {};
+  session_rules->get_dynamic_rules()
+    .get_rule_ids_for_monitoring_key("m1", rules_out);
+  EXPECT_EQ(0, rules_out.size());
+
+  std::string mkey;
+  // searching for non-existent rule should fail
+  EXPECT_EQ(false, session_rules->get_dynamic_rules()
+    .get_monitoring_key_for_rule_id("rule1", &mkey));
+  // deleting an already deleted rule should fail
+  EXPECT_EQ(false, session_rules->get_dynamic_rules()
+    .remove_rule("rule1", &rule_out));
 }
 
 int main(int argc, char **argv)
