@@ -17,8 +17,8 @@ import (
 	"log"
 	"os"
 
-	"magma/orc8r/cloud/go/security/csr"
-	"magma/orc8r/cloud/go/security/key"
+	"magma/orc8r/lib/go/security/csr"
+	"magma/orc8r/lib/go/security/key"
 )
 
 var (

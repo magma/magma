@@ -22,12 +22,12 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/access"
 	access_tests "magma/orc8r/cloud/go/obsidian/access/tests"
-	security_cert "magma/orc8r/cloud/go/security/cert"
 	"magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/accessd/obsidian/models"
 	"magma/orc8r/cloud/go/services/accessd/test_init"
-	certifier_test_utils "magma/orc8r/cloud/go/services/certifier/test_utils"
 	"magma/orc8r/cloud/go/test_utils"
+	security_cert "magma/orc8r/lib/go/security/cert"
+	certifier_test_utils "magma/orc8r/lib/go/security/csr"
 )
 
 const (

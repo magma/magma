@@ -6,7 +6,8 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test_utils
+// package csr contains helper functions related to certificate signing requests
+package csr
 
 import (
 	"crypto/rand"
@@ -16,11 +17,10 @@ import (
 	"math/big"
 	"time"
 
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/security/key"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/protobuf/ptypes"
+
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/security/key"
 )
 
 func CreateCSR(validTime time.Duration, cn, idCn string) (*protos.CSR, error) {
@@ -65,7 +65,7 @@ func createCSR(validTime time.Duration, cn string, id *protos.Identity) (*protos
 
 func CreateSignedCertAndPrivKey(validTime time.Duration) (*x509.Certificate, interface{}, error) {
 	priv, err := key.GenerateKey("", 2048)
-	notBefore := clock.Now().UTC()
+	notBefore := time.Now().UTC()
 	notAfter := notBefore.Add(validTime)
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
