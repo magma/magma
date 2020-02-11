@@ -1080,11 +1080,20 @@ void LocalEnforcer::init_policy_reauth(
     mark_rule_failures(
       all_activated, all_deactivated, request, answer_out);
   } else {
+    bool session_id_valid = false;
     for (const auto& session : it->second) {
       if (session->get_session_id() == request.session_id()) {
+        session_id_valid = true;
         init_policy_reauth_for_session(
           request, session, activate_success, deactivate_success);
       }
+    }
+    if(!session_id_valid) {
+      MLOG(MERROR) << "Found a matching IMSI " << request.imsi()
+      << ", but no matching session ID " << request.session_id() <<
+      " during policy reauth";
+      answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
+      return;
     }
     mark_rule_failures(activate_success, deactivate_success, request, answer_out);
   }
