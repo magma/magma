@@ -1,0 +1,21 @@
+---
+swagger: '2.0'
+
+info:
+  title: Event definitions
+  description: These are the definitions for events allowed to be forwarded to orchestrator
+  version: 1.0.0
+
+definitions:
+  mock_subscriber_event:
+    type: object
+    description: A mock event for testing
+    properties:
+      foo:
+        type: string
+      bar:
+        type: integer
+      baz:
+        type: array
+        items:
+          type: integer
