@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
+	"gocloud.dev/pubsub/mempubsub"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -34,21 +35,28 @@ type TestImporterResolver struct {
 	importer importer
 }
 
-func newImporterTestResolver(t *testing.T) (*TestImporterResolver, error) {
+func newImporterTestResolver(t *testing.T) *TestImporterResolver {
 	db, name, err := testdb.Open()
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
 	return newResolver(t, sql.OpenDB(name, db))
 }
 
-func newResolver(t *testing.T, drv dialect.Driver) (*TestImporterResolver, error) {
+func newResolver(t *testing.T, drv dialect.Driver) *TestImporterResolver {
 	client := ent.NewClient(ent.Driver(drv))
 	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
-	r, err := resolver.New(logtest.NewTestLogger(t))
-	require.NoError(t, err)
-
-	i := newImporter(logtest.NewTestLogger(t), r)
-	return &TestImporterResolver{drv, client, *i}, nil
+	r := resolver.New(resolver.ResolveConfig{
+		Logger: logtest.NewTestLogger(t),
+		Topic:  mempubsub.NewTopic(),
+	})
+	return &TestImporterResolver{
+		drv:    drv,
+		client: client,
+		importer: importer{
+			log: logtest.NewTestLogger(t),
+			r:   r,
+		},
+	}
 }
 
 func prepareSvcData(ctx context.Context, t *testing.T, r TestImporterResolver) {

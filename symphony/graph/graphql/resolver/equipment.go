@@ -331,7 +331,7 @@ func (r equipmentResolver) Device(ctx context.Context, e *ent.Equipment) (*model
 	if e.DeviceID == "" {
 		return nil, nil
 	}
-	if r.orc8rClient == nil {
+	if r.orc8r.client == nil {
 		return nil, errors.New("unsupported field")
 	}
 	parts := strings.Split(e.DeviceID, ".")
@@ -344,7 +344,7 @@ func (r equipmentResolver) Device(ctx context.Context, e *ent.Equipment) (*model
 	if err != nil {
 		return nil, fmt.Errorf("cannot create http request: %w", err)
 	}
-	rsp, err := r.orc8rClient.Do(req)
+	rsp, err := r.orc8r.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("performing orc8r status request: %w", err)
 	}

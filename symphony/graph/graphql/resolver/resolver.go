@@ -10,40 +10,58 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"gocloud.dev/pubsub"
 )
 
-type resolver struct {
-	log         log.Logger
-	withTx      bool
-	orc8rClient *http.Client
-}
+type (
+	// ResolveConfig configures resolver.
+	ResolveConfig struct {
+		Logger log.Logger
+		Topic  *pubsub.Topic
+	}
 
-// User information of the graphql request initiator
-type User struct {
-	email string
-}
+	// ResolveOption allows for managing resolver configuration using functional options.
+	ResolveOption func(*resolver)
+
+	resolver struct {
+		logger   log.Logger
+		events   struct{ topic *pubsub.Topic }
+		mutation struct{ transactional bool }
+		orc8r    struct{ client *http.Client }
+	}
+)
 
 // New creates a graphql resolver.
-func New(logger log.Logger, opts ...ResolveOption) (generated.ResolverRoot, error) {
-	r := &resolver{log: logger, withTx: true}
+func New(cfg ResolveConfig, opts ...ResolveOption) generated.ResolverRoot {
+	r := &resolver{logger: cfg.Logger}
+	r.events.topic = cfg.Topic
+	r.mutation.transactional = true
 	for _, opt := range opts {
 		opt(r)
 	}
-	return r, nil
+	return r
 }
 
-func (r resolver) ClientFrom(ctx context.Context) *ent.Client {
+// WithTransaction if set to true, will wraps the mutation with transaction.
+func WithTransaction(b bool) ResolveOption {
+	return func(r *resolver) {
+		r.mutation.transactional = b
+	}
+}
+
+// WithOrc8rClient is used to provide orchestrator http client.
+func WithOrc8rClient(client *http.Client) ResolveOption {
+	return func(r *resolver) {
+		r.orc8r.client = client
+	}
+}
+func (resolver) ClientFrom(ctx context.Context) *ent.Client {
 	client := ent.FromContext(ctx)
 	if client == nil {
 		panic("no ClientFrom attached to context")
 	}
 	return client
-}
-
-func (r resolver) User(ctx context.Context) User {
-	return User{viewer.FromContext(ctx).User}
 }
 
 func (r resolver) Equipment() generated.EquipmentResolver {
@@ -92,7 +110,7 @@ func (resolver) FloorPlan() generated.FloorPlanResolver {
 
 func (r resolver) Mutation() generated.MutationResolver {
 	mr := mutationResolver{r}
-	if r.withTx {
+	if r.mutation.transactional {
 		return txResolver{mr}
 	}
 	return mr
@@ -192,21 +210,4 @@ func (resolver) ActionsRuleFilter() generated.ActionsRuleFilterResolver {
 
 func (resolver) ActionsTrigger() generated.ActionsTriggerResolver {
 	return actionsTriggerResolver{}
-}
-
-// ResolveOption allows for managing resolver configuration using functional options.
-type ResolveOption func(*resolver)
-
-// WithTransaction if set to true, will wraps the mutation with transaction.
-func WithTransaction(b bool) ResolveOption {
-	return func(r *resolver) {
-		r.withTx = b
-	}
-}
-
-// WithOrc8rClient is used to provide orchestrator http client.
-func WithOrc8rClient(client *http.Client) ResolveOption {
-	return func(r *resolver) {
-		r.orc8rClient = client
-	}
 }

@@ -43,7 +43,7 @@ type portSearchDataModels struct {
 		e3(type2)[port: typ2_p1]
 		e4(type2)[port: typ2_p2]
 */
-func preparePortData(ctx context.Context, r *TestResolver, props []*models.PropertyInput) portSearchDataModels {
+func preparePortData(ctx context.Context, r *TestResolver) portSearchDataModels {
 	mr := r.Mutation()
 	locType1, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "loc_type1",
@@ -158,12 +158,11 @@ func preparePortData(ctx context.Context, r *TestResolver, props []*models.Prope
 }
 
 func TestSearchPortEquipmentName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	data := preparePortData(ctx, r, nil)
+	data := preparePortData(ctx, r)
 	qr := r.Query()
 	limit := 100
 	all, err := qr.PortSearch(ctx, []*models.PortFilterInput{}, &limit)
@@ -184,12 +183,11 @@ func TestSearchPortEquipmentName(t *testing.T) {
 }
 
 func TestSearchPortHasLink(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	preparePortData(ctx, r, nil)
+	preparePortData(ctx, r)
 	qr := r.Query()
 	limit := 100
 	all, err := qr.PortSearch(ctx, []*models.PortFilterInput{}, &limit)
@@ -208,12 +206,11 @@ func TestSearchPortHasLink(t *testing.T) {
 }
 
 func TestSearchPortDefinition(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	d := preparePortData(ctx, r, nil)
+	d := preparePortData(ctx, r)
 
 	qr := r.Query()
 	limit := 100
@@ -231,12 +228,11 @@ func TestSearchPortDefinition(t *testing.T) {
 }
 
 func TestSearchPortLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	d := preparePortData(ctx, r, nil)
+	d := preparePortData(ctx, r)
 	qr := r.Query()
 	limit := 100
 
@@ -253,12 +249,11 @@ func TestSearchPortLocation(t *testing.T) {
 }
 
 func TestSearchPortProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	preparePortData(ctx, r, nil)
+	preparePortData(ctx, r)
 
 	qr := r.Query()
 	limit := 100
@@ -340,12 +335,11 @@ func TestSearchPortProperties(t *testing.T) {
 }
 
 func TestSearchPortsByService(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	data := preparePortData(ctx, r, nil)
+	data := preparePortData(ctx, r)
 
 	qr, mr := r.Query(), r.Mutation()
 
