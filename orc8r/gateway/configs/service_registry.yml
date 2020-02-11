@@ -14,3 +14,6 @@ services:
   state:
     ip_address: 127.0.0.1
     port: 50074
+  eventd:
+    ip_address: 127.0.0.1
+    port: 50075

@@ -34,6 +34,7 @@ setup(
         'magma.magmad.logging',
         'magma.magmad.upgrade',
         'magma.state',
+        'magma.eventd',
     ],
     scripts=[
         'scripts/checkin_cli.py',

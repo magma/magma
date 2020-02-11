@@ -23,6 +23,7 @@ magma_services:
   - dnsd
   - policydb
   - state
+  - eventd
 
 # List of services that don't provide service303 interface
 non_service303_services:
