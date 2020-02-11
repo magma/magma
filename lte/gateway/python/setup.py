@@ -96,8 +96,7 @@ setup(
         'idna==2.8',
         'python-dateutil==2.8',
         'six>=1.12.0',
-        'eventlet>=0.24',
-        'hpack>=3.0'
+        'eventlet>=0.24'
     ],
     extras_require={
         'dev': [
