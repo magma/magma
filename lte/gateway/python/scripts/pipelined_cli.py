@@ -17,7 +17,10 @@ import subprocess
 
 import re
 from magma.common.rpc_utils import grpc_wrapper
-from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate
+from lte.protos.pipelined_pb2 import (
+    SubscriberQuotaUpdate,
+    UpdateSubscriberQuotaStateRequest,
+)
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.subscriberdb.sid import SIDUtils
@@ -196,11 +199,12 @@ def create_ue_mac_parser(apps):
 
 @grpc_wrapper
 def update_quota(client, args):
-    request = SubscriberQuotaUpdate(
+    update = SubscriberQuotaUpdate(
         sid=SIDUtils.to_pb(args.imsi),
         mac_addr=args.mac,
         update_type=args.update_type
     )
+    request = UpdateSubscriberQuotaStateRequest(updates=[update],)
     res = client.UpdateSubscriberQuotaState(request)
     if res is None:
         print("Error updating check quota flows")

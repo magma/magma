@@ -3,9 +3,10 @@
 
 from typing import Any, Dict, List, Optional, Tuple
 
+from dacite import from_dict
 from gql.gql.client import OperationException
 
-from ._utils import _get_properties_to_add
+from ._utils import _get_properties_to_add, deprecated
 from .consts import Document, ImageEntity, Location
 from .exceptions import (
     LocationCannotBeDeletedWithDependency,
@@ -28,124 +29,6 @@ from .reporter import FailedOperationException
 ADD_LOCATION_MUTATION_NAME = "addLocation"
 EDIT_LOCATION_MUTATION_NAME = "editLocation"
 MOVE_LOCATION_MUTATION_NAME = "moveLocation"
-
-
-def get_location(
-    client: GraphqlClient, location_hirerchy: List[Tuple[str, str]]
-) -> Location:
-    """This function returns a location of a specific type with a specific name.
-        It can get only the requested location specifiers or the hirerchy leading to it
-
-        Args:
-            location_hirerchy (list of tuple(str, str)):
-                the first str is location type name
-                the second str is location name
-
-        Returns: client.Location object
-
-        Raises: LocationIsNotUniqueException if there is more than one correct
-                location to return
-                or LocationNotFoundException if no location was found
-
-        Example:
-                location = client.getLocation([
-                    ('Country', 'England'),
-                    ('City', 'Milton Keynes'),
-                    ('Site', 'Bletchley Park')
-                ])
-            or
-                location = client.getLocation([('Site', 'Bletchley Park')])
-                # This call will fail if there is Bletchley Park in two cities in london
-    """
-
-    last_location = None
-
-    for location in location_hirerchy:
-        location_type = location[0]
-        location_name = location[1]
-
-        if last_location is None:
-            locations = SearchQuery.execute(
-                client, name=location_name
-            ).searchForEntity.edges
-
-            locations = [
-                location.node
-                for location in locations
-                if location.node.entityType == "location"
-                and location.node.type == location_type
-                and location.node.name == location_name
-            ]
-            if len(locations) == 0:
-                raise LocationNotFoundException(
-                    location_name=location_name, location_type=location_type
-                )
-            if len(locations) != 1:
-                raise LocationIsNotUniqueException(
-                    location_name=location_name, location_type=location_type
-                )
-            location_details = LocationDetailsQuery.execute(
-                client, id=locations[0].entityId
-            ).location
-            last_location = Location(
-                name=location_details.name,
-                id=location_details.id,
-                externalId=location_details.externalId,
-            )
-        else:
-            location_id = last_location.id
-
-            result = LocationChildrenQuery.execute(client, id=location_id)
-            locations = result.location.children
-
-            locations = [
-                location
-                for location in locations
-                if location.locationType.name == location_type
-                and location.name == location_name
-            ]
-            if len(locations) == 0:
-                raise LocationNotFoundException(location_name=location_name)
-            if len(locations) != 1:
-                raise LocationIsNotUniqueException(
-                    location_name=location_name, location_type=location_type
-                )
-            last_location = Location(
-                name=locations[0].name,
-                id=locations[0].id,
-                externalId=locations[0].externalId,
-            )
-
-    if last_location is None:
-        raise LocationNotFoundException()
-    return last_location
-
-
-def get_location_children(client: GraphqlClient, location_id: str) -> List[Location]:
-    """This function returns all locations that are children of the given location
-
-        Args:
-            location_id (str):
-                id of the parent location
-
-        Returns: List of client.Location objects
-
-        Example:
-                client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
-                client.addLocation([('Country', 'England'), ('City', 'London')], {})
-                locations = client.get_location_children([('Country', 'England')])
-                # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
-    """
-    result = LocationChildrenQuery.execute(client, id=location_id)
-    locations = result.location.children
-
-    if len(locations) == 0:
-        return []
-
-    return [
-        Location(name=location.name, id=location.id, externalId=location.externalId)
-        for location in locations
-    ]
 
 
 def add_location(
@@ -238,7 +121,10 @@ def add_location(
                 last_location = Location(
                     name=location_details.name,
                     id=location_details.id,
+                    latitude=location_details.latitude,
+                    longitude=location_details.longitude,
                     externalId=location_details.externalId,
+                    locationTypeName=location_details.locationType.name,
                 )
             else:
                 add_location_input = AddLocationInput(
@@ -266,7 +152,12 @@ def add_location(
                         add_location_input.__dict__,
                     )
                 last_location = Location(
-                    name=result.name, id=result.id, externalId=result.externalId
+                    name=result.name,
+                    id=result.id,
+                    latitude=result.latitude,
+                    longitude=result.longitude,
+                    externalId=result.externalId,
+                    locationTypeName=result.locationType.name,
                 )
         else:
             location_id = last_location.id
@@ -287,7 +178,10 @@ def add_location(
                 last_location = Location(
                     name=locations[0].name,
                     id=locations[0].id,
+                    latitude=location[0].latitude,
+                    longitude=location[0].longitude,
                     externalId=locations[0].externalId,
+                    locationTypeName=locations[0].locationType.name,
                 )
             else:
                 add_location_input = AddLocationInput(
@@ -315,7 +209,12 @@ def add_location(
                         add_location_input.__dict__,
                     )
                 last_location = Location(
-                    name=result.name, id=result.id, externalId=result.externalId
+                    name=result.name,
+                    id=result.id,
+                    latitude=result.latitude,
+                    longitude=result.longitude,
+                    externalId=result.externalId,
+                    locationTypeName=result.locationType.name,
                 )
 
     if last_location is None:
@@ -323,22 +222,164 @@ def add_location(
     return last_location
 
 
+def get_location(
+    client: GraphqlClient, location_hirerchy: List[Tuple[str, str]]
+) -> Location:
+    """This function returns a location of a specific type with a specific name.
+        It can get only the requested location specifiers or the hirerchy leading to it
+
+        Args:
+            location_hirerchy (list of tuple(str, str)):
+                the first str is location type name
+                the second str is location name
+
+        Returns: client.Location object
+
+        Raises: LocationIsNotUniqueException if there is more than one correct
+                location to return
+                or LocationNotFoundException if no location was found
+
+        Example:
+                location = client.getLocation([
+                    ('Country', 'England'),
+                    ('City', 'Milton Keynes'),
+                    ('Site', 'Bletchley Park')
+                ])
+            or
+                location = client.getLocation([('Site', 'Bletchley Park')])
+                this call will fail if there is Bletchley Park in two cities in london
+    """
+
+    last_location = None
+
+    for location in location_hirerchy:
+        location_type = location[0]
+        location_name = location[1]
+
+        if last_location is None:
+            locations = SearchQuery.execute(
+                client, name=location_name
+            ).searchForEntity.edges
+
+            locations = [
+                location.node
+                for location in locations
+                if location.node.entityType == "location"
+                and location.node.type == location_type
+                and location.node.name == location_name
+            ]
+            if len(locations) == 0:
+                raise LocationNotFoundException(
+                    location_name=location_name, location_type=location_type
+                )
+            if len(locations) != 1:
+                raise LocationIsNotUniqueException(
+                    location_name=location_name, location_type=location_type
+                )
+            location_details = LocationDetailsQuery.execute(
+                client, id=locations[0].entityId
+            ).location
+            last_location = Location(
+                name=location_details.name,
+                id=location_details.id,
+                latitude=location_details.latitude,
+                longitude=location_details.longitude,
+                externalId=location_details.externalId,
+                locationTypeName=location_details.locationType.name,
+            )
+        else:
+            location_id = last_location.id
+
+            result = LocationChildrenQuery.execute(client, id=location_id)
+            locations = result.location.children
+
+            locations = [
+                location
+                for location in locations
+                if location.locationType.name == location_type
+                and location.name == location_name
+            ]
+            if len(locations) == 0:
+                raise LocationNotFoundException(location_name=location_name)
+            if len(locations) != 1:
+                raise LocationIsNotUniqueException(
+                    location_name=location_name, location_type=location_type
+                )
+            last_location = Location(
+                name=locations[0].name,
+                id=locations[0].id,
+                latitude=locations[0].latitude,
+                longitude=locations[0].longitude,
+                externalId=locations[0].externalId,
+                locationTypeName=locations[0].locationType.name,
+            )
+
+    if last_location is None:
+        raise LocationNotFoundException()
+    return last_location
+
+
+def get_location_children(client: GraphqlClient, location_id: str) -> List[Location]:
+    """This function returns all locations that are children of the given location
+
+        Args:
+            location_id (str):
+                id of the parent location
+
+        Returns: List of client.Location objects
+
+        Example:
+                client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
+                client.addLocation([('Country', 'England'), ('City', 'London')], {})
+                locations = client.get_location_children([('Country', 'England')])
+                # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
+    """
+    result = LocationChildrenQuery.execute(client, id=location_id)
+    locations = result.location.children
+
+    if len(locations) == 0:
+        return []
+
+    return [
+        Location(
+            name=location.name,
+            id=location.id,
+            latitude=location.latitude,
+            longitude=location.longitude,
+            externalId=location.externalId,
+            locationTypeName=location.locationType.name,
+        )
+        for location in locations
+    ]
+
+
 def edit_location(
     client: GraphqlClient,
     location: Location,
-    new_name: str,
-    new_lat: float,
-    new_long: float,
-    new_externalID: Optional[str],
+    new_name: Optional[str] = None,
+    new_lat: Optional[float] = None,
+    new_long: Optional[float] = None,
+    new_external_id: Optional[str] = None,
+    new_properties: Optional[Dict[str, Any]] = None,
 ) -> Location:
 
+    properties = []
+    location_type = location.locationTypeName
+    property_types = client.locationTypes[location_type].propertyTypes
+    if new_properties:
+        properties = _get_properties_to_add(property_types, new_properties)
     edit_location_input = EditLocationInput(
         id=location.id,
-        name=new_name,
-        latitude=new_lat,
-        longitude=new_long,
-        properties=[],
-        externalID=new_externalID,
+        name=new_name if new_name is not None else location.name,
+        latitude=new_lat if new_lat is not None else location.latitude,
+        longitude=new_long if new_long is not None else location.longitude,
+        properties=[
+            from_dict(data_class=EditLocationInput.PropertyInput, data=p)
+            for p in properties
+        ],
+        externalID=new_external_id
+        if new_external_id is not None
+        else location.externalId,
     )
 
     try:
@@ -348,7 +389,14 @@ def edit_location(
         client.reporter.log_successful_operation(
             EDIT_LOCATION_MUTATION_NAME, edit_location_input.__dict__
         )
-        return Location(name=result.name, id=result.id, externalId=result.externalId)
+        return Location(
+            name=result.name,
+            id=result.id,
+            latitude=result.latitude,
+            longitude=result.longitude,
+            externalId=result.externalId,
+            locationTypeName=result.locationType.name,
+        )
 
     except OperationException as e:
         raise FailedOperationException(
@@ -383,42 +431,58 @@ def move_location(
             client, locationID=location_id, parentLocationID=new_parent_id
         ).__dict__[MOVE_LOCATION_MUTATION_NAME]
         client.reporter.log_successful_operation(MOVE_LOCATION_MUTATION_NAME, params)
-        return Location(name=result.name, id=result.id, externalId=result.externalId)
+        return Location(
+            name=result.name,
+            id=result.id,
+            latitude=result.latitude,
+            longitude=result.longitude,
+            externalId=result.externalId,
+            locationTypeName=result.locationType.name,
+        )
 
     except OperationException as e:
         raise FailedOperationException(
             client.reporter, e.err_msg, e.err_id, MOVE_LOCATION_MUTATION_NAME, params
         )
-        return None
 
 
+@deprecated(deprecated_in="2.3.6", deprecated_by="get_location_by_external_id")
 def get_locations_by_external_id(
     client: GraphqlClient, external_id: str
 ) -> List[Location]:
 
+    locations = []
+    locations.append(get_location_by_external_id(client, external_id))
+    return locations
+
+
+def get_location_by_external_id(client: GraphqlClient, external_id: str) -> Location:
     locations = SearchQuery.execute(client, name=external_id).searchForEntity.edges
+    if not locations:
+        raise LocationNotFoundException()
 
-    locations = [
-        location.node
-        for location in locations
-        if location.node.entityType == "location"
-    ]
-
-    res = []
+    location_details = None
     for location in locations:
-        location_details = LocationDetailsQuery.execute(
-            client, id=location.entityId
-        ).location
-        if location_details.externalId == external_id:
-            res.append(
-                Location(
-                    name=location_details.name,
-                    id=location_details.id,
-                    externalId=location_details.externalId,
-                )
-            )
+        if location.node.entityType == "location":
+            location_details = LocationDetailsQuery.execute(
+                client, id=locations[0].node.entityId
+            ).location
+            if location_details.externalId == external_id:
+                break
+            else:
+                location_details = None
 
-    return res
+    if not location_details:
+        raise LocationNotFoundException()
+
+    return Location(
+        name=location_details.name,
+        id=location_details.id,
+        latitude=location_details.latitude,
+        longitude=location_details.longitude,
+        externalId=location_details.externalId,
+        locationTypeName=location_details.locationType.name,
+    )
 
 
 def get_location_documents(client: GraphqlClient, location: Location) -> List[Document]:

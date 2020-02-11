@@ -102,6 +102,10 @@ func (r resolver) Query() generated.QueryResolver {
 	return queryResolver{r}
 }
 
+func (r resolver) Subscription() generated.SubscriptionResolver {
+	return subscriptionResolver{r}
+}
+
 func (resolver) WorkOrder() generated.WorkOrderResolver {
 	return workOrderResolver{}
 }

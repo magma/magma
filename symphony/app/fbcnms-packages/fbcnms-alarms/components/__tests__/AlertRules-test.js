@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import 'jest-dom/extend-expect';
@@ -12,6 +12,7 @@ import * as React from 'react';
 import AlertRules from '../AlertRules';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../test/testHelpers';
+import {assertType} from '@fbcnms/util/assert';
 import {mockPrometheusRule} from '../../test/data';
 
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
@@ -125,7 +126,11 @@ test('clicking the "edit" button in the table menu opens AddEditAlert for that a
   act(() => {
     fireEvent.click(getByText(/edit/i));
   });
-  expect(getByLabelText(/rule name/i).value).toBe('<<test>>');
+  const ruleNameInput = assertType(
+    getByLabelText(/rule name/i),
+    HTMLInputElement,
+  );
+  expect(ruleNameInput.value).toBe('<<test>>');
 });
 
 /**

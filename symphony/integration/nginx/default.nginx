@@ -29,28 +29,29 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_pass http://$inventory_host;
-
         proxy_redirect off;
-
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
     }
 
     location ~ ^/(__webpack_dev_server__|__webpack_hmr|inventory/static/dist) {
+        proxy_pass http://$inventory_host;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_pass http://$inventory_host;
     }
 
     location / {
+        proxy_pass http://$frontier_host;
+        proxy_http_version 1.1;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_pass http://$frontier_host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 }
 
@@ -63,19 +64,19 @@ server {
     listen 80;
 
     location ~ ^/(sockjs-node|__webpack_dev_server__|__webpack_hmr|inventory/static/dist) {
+        proxy_pass http://$inventory_host;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_pass http://$inventory_host;
     }
 
     location / {
+        proxy_pass http://$frontier_host;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_pass http://$frontier_host;
     }
 }
 
@@ -87,11 +88,11 @@ server {
     ssl_certificate_key /etc/nginx/ssl/ssl.key;
 
     location / {
-        client_max_body_size 5M;
+        proxy_pass http://$minio_host;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_pass http://$minio_host;
+        client_max_body_size 5M;
     }
 }

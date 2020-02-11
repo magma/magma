@@ -1,5 +1,4 @@
 import {QueryCtrl} from 'app/plugins/sdk';
-import './css/query-editor.css!'
 
 export class GenericDatasourceQueryCtrl extends QueryCtrl {
 

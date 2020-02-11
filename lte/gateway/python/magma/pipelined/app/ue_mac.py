@@ -54,9 +54,8 @@ class UEMacAddressController(MagmaController):
         self.delete_all_flows(datapath)
 
     def delete_all_flows(self, datapath):
-        flows.delete_all_flows_from_table(datapath,
-                                          self._service_manager.get_table_num(
-                                              self.APP_NAME))
+        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._dhcp_learn_scratch)
 
     def add_ue_mac_flow(self, sid, mac_addr):
         self._add_dhcp_passthrough_flows(sid, mac_addr)

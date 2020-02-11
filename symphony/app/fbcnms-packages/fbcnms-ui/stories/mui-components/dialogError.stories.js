@@ -15,5 +15,5 @@ import {storiesOf} from '@storybook/react';
 
 storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/DialogError`, module).add(
   'default',
-  () => <DialogError message={'This is an error message!'} />,
+  () => <DialogError message={'This is an error message!'} color={'error'} />,
 );

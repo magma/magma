@@ -240,7 +240,7 @@ type Equipment implements Node {
 }
 
 type Device {
-  id: ID!
+  id: String!
   name: String!
   up: Boolean
 }
@@ -2111,4 +2111,9 @@ type Mutation {
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
   removeActionsRule(id: ID!): Boolean!
+  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
+}
+
+type Subscription {
+  workOrderAdded: WorkOrder
 }

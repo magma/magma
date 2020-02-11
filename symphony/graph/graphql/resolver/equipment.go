@@ -332,7 +332,7 @@ func (r equipmentResolver) Device(ctx context.Context, e *ent.Equipment) (*model
 		return nil, nil
 	}
 	if r.orc8rClient == nil {
-		return nil, errors.New("unsupported orc8r field")
+		return nil, errors.New("unsupported field")
 	}
 	parts := strings.Split(e.DeviceID, ".")
 	if len(parts) < 2 {
@@ -359,8 +359,9 @@ func (r equipmentResolver) Device(ctx context.Context, e *ent.Equipment) (*model
 
 	dev := models.Device{ID: e.DeviceID}
 	if result.CheckinTime != 0 {
-		up := checkinTimeIsUp(result.CheckinTime, 3*time.Minute)
-		dev.Up = &up
+		dev.Up = pointer.ToBool(
+			checkinTimeIsUp(result.CheckinTime, 3*time.Minute),
+		)
 	}
 	return &dev, nil
 }

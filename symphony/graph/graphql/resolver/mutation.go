@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -2946,4 +2947,34 @@ func (r mutationResolver) DeleteFloorPlan(ctx context.Context, id string) (bool,
 		return false, errors.Wrapf(err, "deleting floorplan: id=%q", id)
 	}
 	return true, nil
+}
+
+func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, woID string) (*ent.WorkOrder, error) {
+	client := r.ClientFrom(ctx).WorkOrder
+	wo, err := client.Get(ctx, woID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying work order: id=%q", woID)
+	}
+
+	if wo.Status != models.WorkOrderStatusPlanned.String() {
+		return wo, nil
+	}
+
+	updatedWo, err := wo.Update().SetStatus(models.WorkOrderStatusPending.String()).Save(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error updating wo status to pending: id=%q", woID)
+	}
+
+	commentInput := models.CommentInput{
+		EntityType: models.CommentEntityWorkOrder,
+		ID:         woID,
+		Text:       fmt.Sprintf("%v checked-in", r.User(ctx).email),
+	}
+
+	_, err = r.AddComment(ctx, commentInput)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error adding technician check-in comment")
+	}
+
+	return updatedWo, nil
 }

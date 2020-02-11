@@ -59,6 +59,7 @@ class VlanLearnController(MagmaController):
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        flows.delete_all_flows_from_table(datapath, self.vlan_id_scratch)
         flows.delete_all_flows_from_table(datapath, self.vlan_header_scratch)
 
     def _install_default_flows(self, dp):

@@ -37,6 +37,7 @@ class SchemaContext {
   SchemaContext(SchemaContext&&) = delete;
   SchemaContext& operator=(SchemaContext&&) = delete;
 
+  llly_ctx* getLyContext() const;
   bool isPathValid(Path path) const;
   bool isList(Path p) const;
   bool isConfig(Path p) const;
@@ -49,6 +50,7 @@ class SchemaContext {
 
  private:
   SchemaContext(llly_ctx* _ctx) : ctx(_ctx){};
+  static void loadModules(llly_ctx* context, const Model& _model);
 };
 
 class SchemaContextException : public runtime_error {

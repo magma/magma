@@ -5,7 +5,7 @@ set -e
 docker_registry=${SYMPHONY_DOCKER_REGISTRY:="facebookconnectivity-southpoll-dev-docker.jfrog.io"}
 tag="${docker_registry}/thirdparty:latest"
 (
-  echo "FROM scratch AS thirdparty"
+  echo "FROM debian:stretch AS thirdparty"
   cd thirdparty
   for pkg in *; do
     echo "COPY --from=${docker_registry}/${pkg} /cache/${pkg}/install /cache/install"

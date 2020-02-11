@@ -75,6 +75,13 @@ message MagmaD {
     repeated string dynamic_services = 10;
 }
 
+//------------------------------------------------------------------------------
+// EventD configs
+//------------------------------------------------------------------------------
+message EventD {
+    orc8r.LogLevel log_level = 1;
+}
+
 message DirectoryD {
     orc8r.LogLevel log_level = 1;
 }

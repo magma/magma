@@ -28,8 +28,10 @@ const useStyles = makeStyles(theme => ({
   breadcrumbs: {
     display: 'flex',
     alignItems: 'flex-start',
-    minWidth: '200px',
     overflow: 'hidden',
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
   },
   moreIcon: {
     display: 'flex',
@@ -182,7 +184,8 @@ const Breadcrumbs = (props: Props) => {
       )}
       {endBreadcrumbs.map((b, i) => {
         const isLast = i === endBreadcrumbs.length - 1;
-        const isSingle = endBreadcrumbs.length === 1;
+        const isSingle =
+          startBreadcrumbs.length === 0 && endBreadcrumbs.length === 1;
         return (
           <Breadcrumb
             key={b.id}

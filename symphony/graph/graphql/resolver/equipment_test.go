@@ -14,8 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
@@ -27,6 +25,10 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
+
+	"github.com/99designs/gqlgen/client"
+	"github.com/99designs/gqlgen/handler"
+	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -253,13 +255,18 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	deviceID := "deviceID.networkID"
 	equipment, err = mr.EditEquipment(ctx, models.EditEquipmentInput{
 		ID:       equipment.ID,
 		Name:     "equipment_name_1",
-		DeviceID: &deviceID,
+		DeviceID: pointer.ToString("deviceID.networkID"),
 	})
 	require.NoError(t, err)
+	_, err = mr.EditEquipment(ctx, models.EditEquipmentInput{
+		ID:       equipment.ID,
+		Name:     "equipment_name_1",
+		DeviceID: pointer.ToString("networkID"),
+	})
+	require.Error(t, err)
 
 	graphHandler := handler.GraphQL(
 		generated.NewExecutableSchema(

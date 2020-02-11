@@ -318,6 +318,11 @@ func (ec *EquipmentCreate) Save(ctx context.Context) (*Equipment, error) {
 	if err := equipment.NameValidator(*ec.name); err != nil {
 		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 	}
+	if ec.device_id != nil {
+		if err := equipment.DeviceIDValidator(*ec.device_id); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"device_id\": %v", err)
+		}
+	}
 	if len(ec._type) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}

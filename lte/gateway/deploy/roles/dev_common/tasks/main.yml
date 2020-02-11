@@ -25,6 +25,8 @@
     -  CCACHE_DIR="{{magma_root}}/.cache/gateway/ccache"
     -  MAGMA_DEV_MODE=1
     -  XDG_CACHE_HOME="{{magma_root}}/.cache"
+    -  SWAGGER_CODEGEN_JAR={{ swagger_codegen_jar }}
+    -  CODEGEN_ROOT={{ codegen_root }}
   when: full_provision
 
 - name: Create the ccache directory
@@ -58,6 +60,7 @@
       - byobu
       - vim
       - aptitude
+  retries: 5
   when: preburn
 
 - name: Install debugger packages
@@ -65,6 +68,7 @@
     pkg: gdb
     state: present
     update_cache: no
+  retries: 5
   when: preburn
 
 - name: Install monitoring packages
@@ -74,6 +78,7 @@
     pkg:
       - htop
       - iotop
+  retries: 5
   when: preburn
 
 # TODO: remove this after migrating magma_test box image to plain Debian
@@ -95,6 +100,7 @@
       - python3-setuptools
       - python-setuptools
       - libssl-dev
+  retries: 5
   when: preburn
 
 - name: Setup FPM so we can build packages
@@ -125,6 +131,7 @@
       - net-tools # ifconfig
       - tcpdump
       - curl
+  retries: 5
   when: preburn
 
 # /etc/environment doesn't expand variables, so if we want to modify the path,
@@ -171,4 +178,60 @@
       - iperf3
       - libsystemd-dev
       - pkg-config
+  retries: 5
+  when: preburn
+
+###############################################
+# Download and build swagger-codegen
+###############################################
+
+- name: Clone swagger-codegen repo
+  become: yes
+  git:
+    repo: 'https://github.com/swagger-api/swagger-codegen'
+    dest: /home/{{ ansible_user }}/codegen
+    version: v2.2.3
+    force: yes
+  when: preburn
+
+- name: Setup build requirements for python sdk
+  become: yes
+  apt:
+    pkg: openjdk-8-jdk
+    state: present
+    update_cache: yes
+  retries: 5
+  when: preburn
+
+- name: Download maven
+  get_url:
+    url: "http://mirrors.ibiblio.org/apache/maven/maven-3/{{ mvn_version }}/binaries/apache-maven-{{ mvn_version }}-bin.tar.gz"
+    dest: "{{ mvn_dir }}-bin.tar.gz"
+    checksum: "sha1:{{ mvn_sha1 }}"
+  when: preburn
+
+- name: Unarchive maven
+  unarchive:
+    src: "{{ mvn_dir }}-bin.tar.gz"
+    dest: /var/tmp
+    remote_src: yes
+  when: preburn
+
+- name: Upload script to build swagger-codegen
+  become: yes
+  copy:
+    src: build_swagger_codegen.sh
+    dest: /home/{{ ansible_user }}/build_swagger_codegen.sh
+    mode: 0755
+  when: preburn
+
+- name: Build swagger code-gen
+  become: yes
+  #  no_log: True
+  command: "/home/{{ ansible_user }}/build_swagger_codegen.sh"
+  args:
+    creates: "{{ swagger_codegen_jar }}"
+  environment:
+    M2_HOME: "{{ mvn_dir }}"
+    CODEGEN_ROOT: "{{ codegen_root }}"
   when: preburn
