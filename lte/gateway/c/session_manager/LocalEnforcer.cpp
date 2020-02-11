@@ -903,6 +903,18 @@ void LocalEnforcer::terminate_subscriber(
                      << " and session " << session->get_session_id()
                      << " during termination";
       }
+
+      if (session->is_radius_cwf_session()) {
+        MLOG(MDEBUG) << "Deleting UE MAC flow for subscriber " << imsi;
+        SubscriberID sid;
+        sid.set_id(imsi);
+        bool delete_ue_mac_flow_success = pipelined_client_->delete_ue_mac_flow(
+            sid, session->get_mac_addr());
+        if (!delete_ue_mac_flow_success) {
+          MLOG(MERROR) << "Failed to delete UE MAC flow for subscriber " << imsi;
+        }
+      }
+
       session->start_termination(on_termination_callback);
       std::string session_id = session->get_session_id();
       // The termination should be completed when aggregated usage record no
