@@ -158,10 +158,31 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/BindingAwareDatastoreTransaction.h
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreDiff.h
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/BindingAwareDatastore.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/BindingAwareDatastore.h)
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/BindingAwareDatastore.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/Common.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/Common.grpc.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/ReaderPlugin.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/ReaderPlugin.grpc.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/WriterPlugin.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/WriterPlugin.grpc.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/PluginRegistration.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/PluginRegistration.grpc.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/CliFlavour.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/CliFlavour.grpc.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcReader.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcListReader.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcWriter.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcCliHandler.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcPlugin.cpp
+)
 
 target_link_libraries(devman_channel_cli
-  devman)
+  devman
+  protobuf
+  grpc
+  grpc++
+  grpc++_reflection
+)
 
 find_library(MGM_ASYNC_GRPC ASYNC_GRPC ${MGM_COM_DIR}/async_grpc)
 find_library(MGM_CONFIG CONFIG HINTS ${MGM_COM_DIR}/config)
@@ -282,6 +303,8 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ReconnectingSshTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/TreeCacheCliTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/TreeCacheTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/GrpcReaderTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/GrpcListReaderTest.cpp
 )
 
 target_link_libraries(devmantest
@@ -290,7 +313,8 @@ target_link_libraries(devmantest
   devman_channel_cli
   gtest
   gtest_main
-  devman_service_magma)
+  devman_service_magma
+)
 
 install(TARGETS devmand devmantest
   RUNTIME DESTINATION bin)

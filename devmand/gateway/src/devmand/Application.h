@@ -27,6 +27,7 @@
 #include <devmand/channels/snmp/Engine.h>
 #include <devmand/devices/Device.h>
 #include <devmand/devices/Factory.h>
+#include <devmand/magma/DevConf.h>
 #include <devmand/syslog/Manager.h>
 
 namespace devmand {
@@ -46,7 +47,7 @@ class Application : public MetricSink {
   Application& operator=(Application&&) = delete;
 
  public:
-  void init();
+  void init(const std::shared_ptr<devmand::magma::DevConf>& devConf);
   void run();
   int status() const;
 

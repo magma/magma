@@ -7,6 +7,7 @@
 #include <devmand/channels/cli/TreeCacheCli.h>
 #include <devmand/test/cli/TreeCacheTestData.h>
 #include <devmand/test/cli/utils/Log.h>
+#include <devmand/test/cli/utils/MockCli.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/executors/ThreadedExecutor.h>
 #include <folly/futures/ThreadWheelTimekeeper.h>
@@ -17,42 +18,12 @@ namespace devmand::channels::cli {
 
 using namespace std;
 using namespace std::chrono_literals;
+using devmand::test::utils::cli::MockedCli;
 using folly::CPUThreadPoolExecutor;
 
 static const shared_ptr<CliFlavour> ubiquitiFlavour =
     CliFlavour::create(UBIQUITI);
 static const char* showRunningCommand = "show running-config";
-
-// responds to read commands using a pre populated map of commands -> outputs
-class MockedCli : public Cli {
- private:
-  map<string, string> responseMap;
-
- public:
-  MockedCli(map<string, string> map) : responseMap(map) {}
-
-  SemiFuture<Unit> destroy() override {
-    return makeSemiFuture(unit);
-  }
-
-  SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
-    if (responseMap.count(cmd.raw()) == 1) {
-      MLOG(MDEBUG) << "MockedCli.executeRead hit ('" << cmd.raw() << "')";
-      return responseMap.at(cmd.raw());
-    } else {
-      MLOG(MDEBUG) << "MockedCli.executeRead miss ('" << cmd.raw() << "')";
-      return Future<string>(runtime_error(cmd.raw()));
-    }
-  }
-
-  SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
-    return Future<string>(runtime_error(cmd.raw()));
-  }
-
-  void clear() {
-    responseMap.clear();
-  }
-};
 
 class TreeCacheCliTest : public ::testing::Test {
  protected:

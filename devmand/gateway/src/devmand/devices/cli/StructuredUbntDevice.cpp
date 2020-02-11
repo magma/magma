@@ -8,8 +8,6 @@
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
 #include <devmand/devices/Datastore.h>
 #include <devmand/devices/cli/StructuredUbntDevice.h>
-#include <devmand/devices/cli/UbntInterfacePlugin.h>
-#include <devmand/devices/cli/UbntNetworksPlugin.h>
 #include <devmand/devices/cli/UbntStpPlugin.h>
 #include <devmand/devices/cli/schema/ModelRegistry.h>
 #include <devmand/devices/cli/translation/PluginRegistry.h>
@@ -43,32 +41,15 @@ unique_ptr<devices::Device> StructuredUbntDevice::createDeviceWithEngine(
   const std::shared_ptr<Channel>& channel = std::make_shared<Channel>(
       deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache, treeCache));
 
-  // TODO move to engine
-  PluginRegistry pReg;
-  pReg.registerPlugin(make_shared<UbntInterfacePlugin>(
-      engine.getModelRegistry()->getBindingContext(Model::OPENCONFIG_2_4_3)));
-  pReg.registerPlugin(make_shared<UbntStpPlugin>(
-      engine.getModelRegistry()->getBindingContext(Model::OPENCONFIG_2_4_3)));
-  pReg.registerPlugin(make_shared<UbntNetworksPlugin>(
-      engine.getModelRegistry()->getBindingContext(Model::OPENCONFIG_2_4_3)));
-
-  shared_ptr<DeviceContext> deviceCtx = pReg.getDeviceContext({"ubnt", "*"});
-
-  ReaderRegistryBuilder rRegBuilder{
-      engine.getModelRegistry()->getSchemaContext(Model::OPENCONFIG_2_4_3)};
-  deviceCtx->provideReaders(rRegBuilder);
-  WriterRegistryBuilder wRegBuilder{
-      engine.getModelRegistry()->getSchemaContext(Model::OPENCONFIG_2_4_3)};
-  deviceCtx->provideWriters(wRegBuilder);
-
+  shared_ptr<DeviceContext> deviceCtx = engine.getDeviceContext({"ubnt", "*"});
   return std::make_unique<StructuredUbntDevice>(
       app,
       deviceConfig.id,
       deviceConfig.readonly,
       channel,
       engine.getModelRegistry(),
-      rRegBuilder.build(),
-      wRegBuilder.build(),
+      engine.getReaderRegistry(deviceCtx),
+      engine.getWriterRegistry(deviceCtx),
       cmdCache,
       treeCache);
 }
