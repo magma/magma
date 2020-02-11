@@ -159,6 +159,24 @@ class IPFIXController(MagmaController):
         except subprocess.CalledProcessError as e:
             raise Exception('Error: {} failed with: {}'.format(action_str, e))
 
+    def delete_ue_sample_flow(self, imsi: str) -> None:
+        """
+        Delete a flow to sample packets for IPFIX for specific imsi
+
+        Args:
+            imsi (string): subscriber to install rule for
+        """
+        if self._datapath is None:
+            self.logger.error('Datapath not initialized')
+            return
+
+        if not imsi:
+            self.logger.error('No subscriber specified')
+            return
+
+        match = MagmaMatch(imsi=encode_imsi(imsi))
+        flows.delete_flow(self._datapath, self.tbl_num, match)
+
     def deactivate_rules(self, imsi: str) -> None:
         """
         Deactivate flows for a subscriber.

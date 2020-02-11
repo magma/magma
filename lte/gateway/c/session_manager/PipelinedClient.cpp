@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-present, Facebook, Inc.
+deactivate_rulesdeactivate_rules Copyright (c) 2016-present, Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -66,6 +66,16 @@ magma::UEMacFlowRequest create_add_ue_mac_flow_req(
   req.set_msisdn(msisdn);
   req.set_ap_mac_addr(ap_mac_addr);
   req.set_ap_name(ap_name);
+  return req;
+}
+
+magma::UEMacFlowRequest create_delete_ue_mac_flow_req(
+  const magma::SubscriberID &sid,
+  const std::string &ue_mac_addr)
+{
+  magma::UEMacFlowRequest req;
+  req.mutable_sid()->CopyFrom(sid);
+  req.set_mac_addr(ue_mac_addr);
   return req;
 }
 
@@ -198,6 +208,20 @@ bool AsyncPipelinedClient::add_ue_mac_flow(
   return true;
 }
 
+bool AsyncPipelinedClient::delete_ue_mac_flow(
+    const SubscriberID &sid,
+    const std::string &ue_mac_addr)
+{
+  auto req = create_delete_ue_mac_flow_req(sid, ue_mac_addr);
+  delete_ue_mac_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not delete flow for subscriber with UE MAC"
+                   << ue_mac_addr << ": " << status.error_message();
+    }
+  });
+  return true;
+}
+
 void AsyncPipelinedClient::setup_flows_rpc(
   const SetupFlowsRequest &request,
   std::function<void(Status, SetupFlowsResult)> callback)
@@ -236,6 +260,16 @@ void AsyncPipelinedClient::add_ue_mac_flow_rpc(
     std::move(callback), RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(
     stub_->AsyncAddUEMacFlow(local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::delete_ue_mac_flow_rpc(
+    const UEMacFlowRequest &request,
+    std::function<void(Status, FlowResponse)> callback)
+{
+  auto local_resp = new AsyncLocalResponse<FlowResponse>(
+    std::move(callback), RESPONSE_TIMEOUT);
+  local_resp->set_response_reader(std::move(
+    stub_->AsyncDeleteUEMacFlow(local_resp->get_context(), request, &queue_)));
 }
 
 } // namespace magma

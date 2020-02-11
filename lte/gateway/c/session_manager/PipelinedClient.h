@@ -76,6 +76,14 @@ class PipelinedClient {
     const std::string &msisdn,
     const std::string &ap_mac_addr,
     const std::string &ap_name) = 0;
+
+  /**
+   * Send the MAC address of UE and the subscriberID
+   * for pipelined to delete a flow for the subscriber by matching the MAC
+   */
+  virtual bool delete_ue_mac_flow(
+    const SubscriberID &sid,
+    const std::string &ue_mac_addr) = 0;
 };
 
 /**
@@ -132,6 +140,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string &ap_mac_addr,
     const std::string &ap_name);
 
+  bool delete_ue_mac_flow(
+    const SubscriberID &sid,
+    const std::string &ue_mac_addr);
+
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<Pipelined::Stub> stub_;
@@ -150,6 +162,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     std::function<void(Status, ActivateFlowsResult)> callback);
 
   void add_ue_mac_flow_rpc(
+    const UEMacFlowRequest &request,
+    std::function<void(Status, FlowResponse)> callback);
+
+  void delete_ue_mac_flow_rpc(
     const UEMacFlowRequest &request,
     std::function<void(Status, FlowResponse)> callback);
 };
