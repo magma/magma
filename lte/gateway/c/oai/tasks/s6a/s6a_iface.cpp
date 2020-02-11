@@ -62,6 +62,7 @@ bool s6a_viface_open(const s6a_config_t *config)
     }
     return false;
   }
+  return true;
 }
 
 //------------------------------------------------------------------------------
