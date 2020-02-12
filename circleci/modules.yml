@@ -1,0 +1,8 @@
+native_modules:
+  - devmand
+  - orc8r
+  - lte
+  - feg
+  - cwf
+
+external_modules: []
