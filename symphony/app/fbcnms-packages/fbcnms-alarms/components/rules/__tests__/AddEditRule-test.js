@@ -15,7 +15,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil, renderAsync} from '../../../test/testHelpers';
 import {assertType} from '@fbcnms/util/assert';
-import {mockPrometheusRule} from '../../../test/data';
+import {mockPrometheusRule} from '../../../test/testData';
 import {toBaseFields} from '../PrometheusEditor/PrometheusEditor';
 import type {AlertConfig} from '../../AlarmAPIType';
 import type {RuleEditorProps} from '../RuleInterface';

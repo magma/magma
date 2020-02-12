@@ -4,13 +4,14 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
 import * as React from 'react';
 import AddEditReceiver from './AddEditReceiver';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import SimpleTable from '../../SimpleTable';
@@ -22,14 +23,17 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import type {AlertReceiver} from '../../AlarmAPIType';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
+  root: {
+    padding: theme.spacing(4),
+  },
   loading: {
     display: 'flex',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));
 
 export default function Receivers() {
   const {apiUtil} = useAlarmContext();
@@ -135,7 +139,7 @@ export default function Receivers() {
   }
 
   return (
-    <>
+    <Grid className={classes.root}>
       <SimpleTable
         tableData={receiversData}
         onActionsClick={handleActionsMenuOpen}
@@ -183,7 +187,7 @@ export default function Receivers() {
         }}
         data-testid="add-receiver-button"
       />
-    </>
+    </Grid>
   );
 }
 
@@ -198,7 +202,7 @@ function getNotificationsSummary(receiver: AlertReceiver) {
   const {slack_configs, email_configs, webhook_configs} = receiver;
   if (slack_configs) {
     const channelNames = slack_configs.map(({channel}) => {
-      if (!channel) {
+      if (channel == null) {
         return '';
       }
       return channel.replace(/#/, '');

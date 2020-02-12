@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 type Props<TRow> = {
   open: boolean,
   onClose: () => void,
-  title: string,
+  title: React.Node,
   additionalContent?: React.Node,
   row: TRow,
   showCopyButton?: boolean,
@@ -101,7 +101,7 @@ const useJsonStyles = makeStyles({
   },
 });
 
-function SimpleJsonViewer<TRow>({row}: {row: TRow}) {
+export function SimpleJsonViewer<TRow>({row}: {row: TRow}) {
   const classes = useJsonStyles();
   return <pre className={classes.pre}>{JSON.stringify(row, null, 2)}</pre>;
 }

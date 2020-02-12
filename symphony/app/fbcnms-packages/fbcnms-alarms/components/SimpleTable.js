@@ -12,22 +12,17 @@ import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
 import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
+import Paper from '@material-ui/core/Paper';
+import SeverityIndicator from './common/SeverityIndicator';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import grey from '@material-ui/core/colors/grey';
-import orange from '@material-ui/core/colors/orange';
-import red from '@material-ui/core/colors/red';
-import yellow from '@material-ui/core/colors/yellow';
 import {makeStyles} from '@material-ui/styles';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
-  body: {
-    padding: theme.spacing(3),
-  },
   labelChip: {
     backgroundColor: theme.palette.grey[50],
     color: theme.palette.secondary.main,
@@ -48,28 +43,15 @@ const useStyles = makeStyles(theme => ({
   secondaryChip: {
     color: theme.palette.secondary.main,
   },
-  redSeverityChip: {
-    color: theme.palette.secondary.main,
-    border: `1px solid ${red.A400}`,
-  },
-  orangeSeverityChip: {
-    color: theme.palette.secondary.main,
-    border: `1px solid ${orange.A400}`,
-  },
-  yellowSeverityChip: {
-    color: theme.palette.secondary.main,
-    border: `1px solid ${yellow.A400}`,
-  },
-  greySeverityChip: {
-    color: theme.palette.secondary.main,
-    border: `1px solid ${grey[500]}`,
-  },
   ellipsisChip: {
     display: 'block',
     maxWidth: 256,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
+  },
+  selectableRowHover: {
+    cursor: 'pointer',
   },
 }));
 
@@ -87,15 +69,6 @@ const BodyTableCell = withStyles({
     borderBottom: 'none',
   },
 })(TableCell);
-
-const SEVERITY = {
-  critical: {style: 'redSeverityChip'},
-  major: {style: 'orangeSeverityChip'},
-  minor: {style: 'yellowSeverityChip'},
-  warning: {style: 'yellowSeverityChip'},
-  info: {style: 'greySeverityChip'},
-  notice: {style: 'greySeverityChip'},
-};
 
 type RenderCellProps<TRow> = {
   row: TRow,
@@ -259,20 +232,10 @@ function TextCell({value, classes, columnIdx}: CellProps<string>) {
   );
 }
 
-function SeverityCell({value, classes}: CellProps<string>) {
+function SeverityCell({value}: CellProps<string>) {
   return (
     <BodyTableCell>
-      {value && value.toLowerCase() in SEVERITY && (
-        <Chip
-          classes={{
-            outlined: classes[SEVERITY[value.toLowerCase()].style],
-            label: classes.ellipsisChip,
-          }}
-          label={value.toUpperCase()}
-          variant="outlined"
-          data-severity={value} // for testing
-        />
-      )}
+      <SeverityIndicator severity={value} />
     </BodyTableCell>
   );
 }
@@ -334,6 +297,7 @@ type Props<TRow> = {
   columnStruct: Array<ColumnData<TRow>>,
   tableData: Array<TRow>,
   onActionsClick?: (row: TRow, target: HTMLElement) => void,
+  onRowClick?: (row: TRow, index: number) => void,
   sortFunc?: (row1: TRow, row2: TRow) => number,
 };
 
@@ -343,6 +307,7 @@ export default function SimpleTable<T>(props: Props<T>) {
     columnStruct,
     tableData,
     onActionsClick,
+    onRowClick,
     sortFunc: _sortFunc,
     ...extraProps
   } = props;
@@ -352,7 +317,18 @@ export default function SimpleTable<T>(props: Props<T>) {
   const rows = data.map((row: T, rowIdx: number) => {
     const rowKey = JSON.stringify(row || {});
     return (
-      <TableRow key={rowKey}>
+      <TableRow
+        hover={!!onRowClick}
+        classes={{
+          root: !!onRowClick ? classes.selectableRowHover : undefined,
+        }}
+        key={rowKey}
+        onClick={e => {
+          e.stopPropagation();
+          if (onRowClick) {
+            onRowClick(row, rowIdx);
+          }
+        }}>
         {columnStruct.map((column, columnIdx) => (
           <RenderCell
             row={row}
@@ -368,7 +344,10 @@ export default function SimpleTable<T>(props: Props<T>) {
           <BodyTableCell>
             <Button
               variant="outlined"
-              onClick={event => onActionsClick(row, event.target)}
+              onClick={event => {
+                event.stopPropagation();
+                onActionsClick(row, event.target);
+              }}
               aria-label="Action Menu">
               <MoreHorizIcon color="action" />
             </Button>
@@ -379,7 +358,7 @@ export default function SimpleTable<T>(props: Props<T>) {
   });
 
   return (
-    <div {...extraProps} className={classes.body}>
+    <Paper {...extraProps} elevation={1}>
       <Table>
         <TableHead>
           <TableRow>
@@ -392,7 +371,7 @@ export default function SimpleTable<T>(props: Props<T>) {
         </TableHead>
         <TableBody>{rows}</TableBody>
       </Table>
-    </div>
+    </Paper>
   );
 }
 

@@ -244,7 +244,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
       onExit();
     } catch (error) {
       enqueueSnackbar(
-        `Unable to create alert: ${
+        `Unable to create rule: ${
           error.response ? error.response.data.message : error.message
         }.`,
         {

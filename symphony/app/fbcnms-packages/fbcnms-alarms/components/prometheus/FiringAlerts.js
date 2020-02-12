@@ -8,12 +8,12 @@
  * @format
  */
 
+import AlertDetailsPane from './AlertDetails/AlertDetailsPane';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SimpleTable, {toLabels} from '../SimpleTable';
-import TableActionDialog from '../TableActionDialog';
+import Slide from '@material-ui/core/Slide';
 import {SEVERITY} from '../Severity';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
@@ -21,22 +21,24 @@ import {useAlarmContext} from '../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
+
 import type {FiringAlarm} from '../AlarmAPIType';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
+  root: {
+    padding: theme.spacing(4),
+  },
   loading: {
     display: 'flex',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));
 
 export default function FiringAlerts() {
   const {apiUtil, filterLabels} = useAlarmContext();
-  const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
-  const [currentAlert, setCurrentAlert] = useState<?FiringAlarm>(null);
-  const [showDialog, setShowDialog] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<?FiringAlarm>(null);
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
@@ -50,10 +52,20 @@ export default function FiringAlerts() {
     lastRefreshTime,
   );
 
+  const showRowDetailsPane = React.useCallback(
+    (row: FiringAlarm) => {
+      setSelectedRow(row);
+    },
+    [setSelectedRow],
+  );
+  const hideDetailsPane = React.useCallback(() => {
+    setSelectedRow(null);
+  }, [setSelectedRow]);
+
   if (error) {
     enqueueSnackbar(
-      `Unable to load firing alerts: ${
-        error.response ? error.response.data.message : error.message
+      `Unable to load firing alerts. ${
+        error.response ? error.response.data.message : error.message || ''
       }`,
       {variant: 'error'},
     );
@@ -73,78 +85,72 @@ export default function FiringAlerts() {
     : [];
 
   return (
-    <>
-      <SimpleTable
-        columnStruct={[
-          {
-            title: 'name',
-            getValue: x => x.labels?.alertname,
-            renderFunc: (data, classes) => {
-              const entity = data.labels.entity || data.labels.nodeMac || null;
-              const desc = data.annotations.description;
-              return (
-                <>
-                  <div className={classes.titleCell}>
-                    {data.labels?.alertname}
-                  </div>
-                  {entity && (
-                    <div className={classes.secondaryCell}>{entity}</div>
-                  )}
-                  <div className={classes.secondaryItalicCell}>{desc}</div>
-                </>
-              );
+    <Grid className={classes.root} container spacing={2}>
+      <Grid item xs={selectedRow ? 8 : 12}>
+        <SimpleTable
+          onRowClick={showRowDetailsPane}
+          columnStruct={[
+            {
+              title: 'name',
+              getValue: x => x.labels?.alertname,
+              renderFunc: (data, classes) => {
+                const entity =
+                  data.labels.entity || data.labels.nodeMac || null;
+                const desc = data?.annotations?.description ?? '';
+                return (
+                  <>
+                    <div className={classes.titleCell}>
+                      {data.labels?.alertname}
+                    </div>
+                    {entity && (
+                      <div className={classes.secondaryCell}>{entity}</div>
+                    )}
+                    <div className={classes.secondaryItalicCell}>{desc}</div>
+                  </>
+                );
+              },
             },
-          },
-          {
-            title: 'severity',
-            getValue: x => x.labels?.severity,
-            render: 'severity',
-          },
-          {
-            title: 'labels',
-            getValue: x => toLabels(x.labels),
-            render: 'labels',
-            hideFields: ['alertname', 'severity', 'team'],
-          },
-          {
-            title: 'annotations',
-            getValue: x => toLabels(x.annotations),
-            render: 'labels',
-            hideFields: ['description'],
-          },
-        ]}
-        tableData={alertData}
-        sortFunc={alert =>
-          get(
-            SEVERITY,
-            [get(alert, ['labels', 'severity']).toLowerCase(), 'index'],
-            undefined,
-          )
-        }
-        onActionsClick={(alert, target) => {
-          setMenuAnchorEl(target);
-          setCurrentAlert(alert);
-        }}
-        data-testid="firing-alerts"
-      />
-      {isLoading && alertData.length === 0 && (
-        <div className={classes.loading}>
-          <CircularProgress />
-        </div>
-      )}
-      <Menu
-        anchorEl={menuAnchorEl}
-        keepMounted
-        open={Boolean(menuAnchorEl)}
-        onClose={() => setMenuAnchorEl(null)}>
-        <MenuItem onClick={() => setShowDialog(true)}>View</MenuItem>
-      </Menu>
-      <TableActionDialog
-        open={showDialog}
-        onClose={() => setShowDialog(false)}
-        title={'View Alert'}
-        row={currentAlert}
-      />
-    </>
+            {
+              title: 'severity',
+              getValue: x => x.labels?.severity,
+              render: 'severity',
+            },
+            {
+              title: 'labels',
+              getValue: x => toLabels(x.labels),
+              render: 'labels',
+              hideFields: ['alertname', 'severity', 'team'],
+            },
+            {
+              title: 'annotations',
+              getValue: x => toLabels(x.annotations),
+              render: 'labels',
+              hideFields: ['description'],
+            },
+          ]}
+          tableData={alertData}
+          sortFunc={alert =>
+            get(
+              SEVERITY,
+              [get(alert, ['labels', 'severity']).toLowerCase(), 'index'],
+              undefined,
+            )
+          }
+          data-testid="firing-alerts"
+        />
+        {isLoading && alertData.length === 0 && (
+          <div className={classes.loading}>
+            <CircularProgress />
+          </div>
+        )}
+      </Grid>
+      <Slide direction="left" in={!!selectedRow}>
+        <Grid item xs={4}>
+          {selectedRow && (
+            <AlertDetailsPane alert={selectedRow} onClose={hideDetailsPane} />
+          )}
+        </Grid>
+      </Slide>
+    </Grid>
   );
 }

@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import 'jest-dom/extend-expect';
@@ -146,7 +146,7 @@ describe('column renderers', () => {
   });
 
   test('if column render is "severity", severity cell is rendered', () => {
-    const {container} = render(
+    const {getByText} = render(
       <Wrapper>
         <SimpleTable
           columnStruct={[
@@ -160,12 +160,8 @@ describe('column renderers', () => {
         />
       </Wrapper>,
     );
-    expect(
-      container.querySelector('[data-severity="major"]'),
-    ).toBeInTheDocument();
-    expect(
-      container.querySelector('[data-severity="minor"]'),
-    ).toBeInTheDocument();
+    expect(getByText('major')).toBeInTheDocument();
+    expect(getByText('minor')).toBeInTheDocument();
   });
 
   test('if column render is "chip", chip cell is rendered', () => {
