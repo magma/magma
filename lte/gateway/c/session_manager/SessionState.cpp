@@ -161,6 +161,11 @@ void SessionState::set_monitoring_quota_state(
   monitoring_quota_state_ = state;
 }
 
+bool SessionState::active_monitored_rules_exist()
+{
+  return session_rules_.total_monitored_rules_count() > 0;
+}
+
 void SessionState::get_updates_from_charging_pool(
   UpdateSessionRequest& update_request_out,
   std::vector<std::unique_ptr<ServiceAction>>* actions_out)

@@ -7,7 +7,6 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 #include "SessionRules.h"
-
 namespace magma {
 
 std::unique_ptr<SessionRules> SessionRules::unmarshal(
@@ -137,6 +136,22 @@ std::vector<std::string> &SessionRules::get_static_rule_ids()
 DynamicRuleStore &SessionRules::get_dynamic_rules()
 {
   return dynamic_rules_;
+}
+
+uint32_t SessionRules::total_monitored_rules_count()
+{
+  uint32_t monitored_dynamic_rules = dynamic_rules_.monitored_rules_count();
+  uint32_t monitored_static_rules = 0;
+  for (auto& rule_id : active_static_rules_)
+  {
+    std::string mkey; // ignore value
+    auto is_monitored = static_rules_.get_monitoring_key_for_rule_id(
+      rule_id, &mkey);
+    if (is_monitored) {
+      monitored_static_rules++;
+    }
+  }
+  return monitored_dynamic_rules + monitored_static_rules;
 }
 
 } // namespace magma

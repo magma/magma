@@ -710,7 +710,7 @@ bool LocalEnforcer::init_session_credit(
     if (!add_ue_mac_flow_success) {
       MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
     }
-    MLOG(MDEBUG) << "Setting subscriber quota state as TERMINATE "
+    MLOG(MDEBUG) << "Setting subscriber quota state as VALID "
                  << "for subscriber " << imsi;
     session_state->set_monitoring_quota_state(
       SubscriberQuotaUpdate_Type_VALID_QUOTA);

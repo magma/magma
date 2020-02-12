@@ -179,6 +179,8 @@ class SessionState {
   void set_monitoring_quota_state(
     const magma::lte::SubscriberQuotaUpdate_Type state);
 
+  bool active_monitored_rules_exist();
+
  private:
   /**
    * State transitions of a session:
