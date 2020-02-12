@@ -22,34 +22,34 @@ class SessionRules {
  public:
   static std::unique_ptr<SessionRules> unmarshal(
     const StoredSessionRules& marshaled,
-    StaticRuleStore &static_rule_ref);
+    StaticRuleStore& static_rule_ref);
 
   StoredSessionRules marshal();
 
-  SessionRules(StaticRuleStore &static_rule_ref);
+  SessionRules(StaticRuleStore& static_rule_ref);
 
   SessionRules(
     const StoredSessionRules& marshaled,
-    StaticRuleStore &static_rule_ref);
+    StaticRuleStore& static_rule_ref);
 
   bool get_charging_key_for_rule_id(
-    const std::string &rule_id,
-    CreditKey *charging_key);
+    const std::string& rule_id,
+    CreditKey* charging_key);
 
   bool get_monitoring_key_for_rule_id(
-    const std::string &rule_id,
-    std::string *monitoring_key);
+    const std::string& rule_id,
+    std::string* monitoring_key);
 
-  void insert_dynamic_rule(const PolicyRule &rule);
+  void insert_dynamic_rule(const PolicyRule& rule);
 
-  void activate_static_rule(const std::string &rule_id);
+  void activate_static_rule(const std::string& rule_id);
 
-  bool remove_dynamic_rule(const std::string &rule_id, PolicyRule *rule_out);
+  bool remove_dynamic_rule(const std::string& rule_id, PolicyRule *rule_out);
 
-  bool deactivate_static_rule(const std::string &rule_id);
+  bool deactivate_static_rule(const std::string& rule_id);
 
-  void add_rules_to_action(ServiceAction &action, const CreditKey &charging_key);
-  void add_rules_to_action(ServiceAction &action, std::string monitoring_key);
+  void add_rules_to_action(ServiceAction& action, const CreditKey& charging_key);
+  void add_rules_to_action(ServiceAction& action, std::string monitoring_key);
 
   uint32_t total_monitored_rules_count();
 
