@@ -26,6 +26,8 @@ from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 from magma.subscriberdb.sid import SIDUtils
 
 KEY = '000102030405060708090A0B0C0D0E0F'
+#OP='11111111111111111111111111111111' -> OPc='24c05f7c2f2b368de10f252f25f6cfc2'
+OPC = '24c05f7c2f2b368de10f252f25f6cfc2'
 RETRY_COUNT = 4
 RETRY_INTERVAL = 1  # seconds
 
@@ -207,10 +209,10 @@ class SubscriberDbCassandra(SubscriberDbClient):
         # Insert into users
         add_usr_cmd = "$HOME/openair-cn/scripts/data_provisioning_users "\
             "--apn oai.ipv4 --apn2 internet --key " + KEY + \
-            " --imsi-first " + sid + "--mme-identity "+ self.MME_IDENTITY +\
-            " --no-of-users 1 --realm magma.com "\
-            "--cassandra-cluster " + self.CASSANDRA_SERVER_IP
-        #self._run_remote_cmd(add_usr_cmd)
+            " --imsi-first " + sid + " --mme-identity "+ self.MME_IDENTITY +\
+            " --no-of-users 1 --realm magma.com --opc "+ OPC + \
+            " --cassandra-cluster " + self.CASSANDRA_SERVER_IP
+        self._run_remote_cmd(add_usr_cmd)
 
     def delete_subscriber(self, sid):
         print("Removing subscriber", sid)
