@@ -85,6 +85,7 @@ int mme_app_handle_nas_dl_req(
   S1AP_NAS_DL_DATA_REQ(message_p).nas_msg = bstrcpy(nas_msg);
   bdestroy_wrapper(&nas_msg);
 
+  message_p->ittiMsgHeader.imsi = ue_context->emm_context._imsi64;
   /*
    * Store the S1AP NAS DL DATA REQ in case of IMSI or combined EPS/IMSI detach in sgs context
    * and send it after recieving the SGS IMSI Detach Ack from SGS task.
