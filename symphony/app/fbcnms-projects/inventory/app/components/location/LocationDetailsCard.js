@@ -61,13 +61,13 @@ const LocationDetailsCard = (props: Props) => {
                   value={location.externalId}
                 />
               )}
-              {location.latitude && (
+              {location.latitude !== 0 && (
                 <LocationDetailsCardProperty
                   title="Lat"
                   value={String(location.latitude)}
                 />
               )}
-              {location.longitude && (
+              {location.longitude !== 0 && (
                 <LocationDetailsCardProperty
                   title="Long"
                   value={String(location.longitude)}

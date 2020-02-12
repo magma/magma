@@ -17,9 +17,9 @@ import (
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
 	"magma/orc8r/cloud/go/services/certifier/storage"
-	certifier_test_utils "magma/orc8r/cloud/go/services/certifier/test_utils"
 	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
+	certifier_test_utils "magma/orc8r/lib/go/security/csr"
 )
 
 func StartTestService(t *testing.T) {

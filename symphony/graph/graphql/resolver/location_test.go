@@ -19,8 +19,7 @@ import (
 )
 
 func TestAddLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -54,8 +53,7 @@ func TestAddLocation(t *testing.T) {
 }
 
 func TestAddLocationWithExternalID(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -79,8 +77,7 @@ func TestAddLocationWithExternalID(t *testing.T) {
 }
 
 func TestAddLocationWithSameName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -125,8 +122,7 @@ func TestAddLocationWithSameName(t *testing.T) {
 }
 
 func TestAddLocationWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -194,8 +190,7 @@ func TestAddLocationWithProperties(t *testing.T) {
 
 func TestAddLocationWithInvalidProperties(t *testing.T) {
 	t.Skip("skipping test until mandatory props are added - T57858029")
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -224,8 +219,7 @@ func TestAddLocationWithInvalidProperties(t *testing.T) {
 }
 
 func TestAddMultiLevelLocations(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -320,8 +314,7 @@ func TestAddMultiLevelLocations(t *testing.T) {
 }
 
 func TestAddLocationCellScans(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -376,8 +369,7 @@ func TestAddLocationCellScans(t *testing.T) {
 }
 
 func TestEditLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -410,8 +402,7 @@ func TestEditLocation(t *testing.T) {
 }
 
 func TestEditLocationWithExternalID(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -456,8 +447,7 @@ func TestEditLocationWithExternalID(t *testing.T) {
 }
 
 func TestEditLocationWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -568,8 +558,7 @@ func TestEditLocationWithProperties(t *testing.T) {
 // }
 
 func TestAddAndDeleteLocationImages(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, lr := r.Mutation(), r.Location()
@@ -641,8 +630,7 @@ func TestAddAndDeleteLocationImages(t *testing.T) {
 }
 
 func TestAddAndDeleteLocationHyperlink(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, lr := r.Mutation(), r.Location()
@@ -689,8 +677,7 @@ func TestAddAndDeleteLocationHyperlink(t *testing.T) {
 }
 
 func TestDeleteLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -717,8 +704,7 @@ func TestDeleteLocation(t *testing.T) {
 }
 
 func TestDeleteLocationWithEquipmentsFails(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -764,8 +750,7 @@ func TestDeleteLocationWithEquipmentsFails(t *testing.T) {
 }
 
 func TestQueryParentLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, loc := r.Mutation(), r.Location()
@@ -798,8 +783,7 @@ func TestQueryParentLocation(t *testing.T) {
 }
 
 func TestGetLocationsByType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -842,8 +826,7 @@ func TestGetLocationsByType(t *testing.T) {
 }
 
 func TestOnlyTopLevelLocationsFilter(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -879,8 +862,7 @@ func TestOnlyTopLevelLocationsFilter(t *testing.T) {
 }
 
 func TestGetLocationsByName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -923,8 +905,7 @@ func TestGetLocationsForSiteSurvey(t *testing.T) {
 }
 
 func TestMoveLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -970,8 +951,7 @@ func TestMoveLocation(t *testing.T) {
 }
 
 func TestMoveLocationDuplicateName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -1011,8 +991,7 @@ func TestMoveLocationDuplicateName(t *testing.T) {
 }
 
 func TestMoveLocationWrongHierarchy(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -1039,8 +1018,7 @@ func TestMoveLocationWrongHierarchy(t *testing.T) {
 }
 
 func TestDistanceKm(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -1067,8 +1045,7 @@ func TestDistanceKm(t *testing.T) {
 }
 
 func TestNearestSites(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -1128,8 +1105,7 @@ func TestNearestSites(t *testing.T) {
 }
 
 func TestAddLocationWithEquipmentProperty(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -1189,8 +1165,7 @@ func TestAddLocationWithEquipmentProperty(t *testing.T) {
 }
 
 func TestAddLocationWithLocationProperty(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()

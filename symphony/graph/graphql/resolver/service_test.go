@@ -5,8 +5,9 @@
 package resolver
 
 import (
-	"github.com/AlekSi/pointer"
 	"testing"
+
+	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
@@ -25,13 +26,11 @@ func pointerToServiceStatus(status models.ServiceStatus) *models.ServiceStatus {
 }
 
 func TestAddServiceWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	serviceTypeStrValue := "Foo"
 	serviceStrPropType := models.PropertyTypeInput{
 		Name:        "service_str_prop",
@@ -67,13 +66,11 @@ func TestAddServiceWithProperties(t *testing.T) {
 }
 
 func TestAddServiceWithExternalIdUnique(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name:        "Internet Access",
 		HasCustomer: false,
@@ -115,13 +112,11 @@ func TestAddServiceWithExternalIdUnique(t *testing.T) {
 }
 
 func TestAddServiceWithCustomer(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name:        "Internet Access",
 		HasCustomer: true,
@@ -150,8 +145,7 @@ func TestAddServiceWithCustomer(t *testing.T) {
 }
 
 func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -237,8 +231,7 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 }
 
 func TestServiceTopologyWithSlots(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -340,13 +333,11 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 }
 
 func TestEditService(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "service_type_name",
 	})
@@ -372,13 +363,11 @@ func TestEditService(t *testing.T) {
 }
 
 func TestEditServiceWithExternalID(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "service_type_name",
 	})
@@ -416,13 +405,11 @@ func TestEditServiceWithExternalID(t *testing.T) {
 }
 
 func TestEditServiceWithCustomer(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "service_type_name",
 	})
@@ -472,13 +459,11 @@ func TestEditServiceWithCustomer(t *testing.T) {
 }
 
 func TestEditServiceWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	pTypes := models.PropertyTypeInput{
 		Name: "str_prop",
 		Type: "string",
@@ -545,13 +530,11 @@ func TestEditServiceWithProperties(t *testing.T) {
 }
 
 func TestAddEndpointsToService(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "loc_type_name",
 	})
@@ -653,13 +636,11 @@ func TestAddEndpointsToService(t *testing.T) {
 }
 
 func TestServicesOfEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	locType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "Room",
 	})
@@ -758,14 +739,11 @@ func TestServicesOfEquipment(t *testing.T) {
 }
 
 func TestAddServiceWithServiceProperty(t *testing.T) {
-
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "service_type", HasCustomer: false})
 	require.NoError(t, err)

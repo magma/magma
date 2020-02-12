@@ -54,6 +54,7 @@
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
     "jest": "echo 'Dont run jest directly, use \"yarn run test\"' && exit 1",
     "test": "NODE_ENV=test jest",
+    "flow-typed-install": "flow-typed --flowVersion $(flow version --json | jq -r .semver) install --",
     "extract-drop-fbt-inventory": "babel-node scripts/fb/fbt/extract-and-drop --manifest-output-dir ./fbcnms-projects/inventory/i18n/ --src ./fbcnms-projects/inventory/app/ ./fbcnms-packages/fbcnms-ui/ --app-name symphony-web",
     "fetch-land-fbt-inventory": "babel-node scripts/fb/fbt/fetch-land-translations --manifest-output-dir ./fbcnms-projects/inventory/i18n/ --src ./fbcnms-projects/inventory/app/ ./fbcnms-packages/fbcnms-ui/ --translations-dir ./fbcnms-projects/inventory/i18n/ --app-name symphony-web",
     "generate-promql-grammar": "nearleyc fbcnms-packages/fbcnms-alarms/components/prometheus/PromQLGrammer.ne -o fbcnms-packages/fbcnms-alarms/components/prometheus/__generated__/PromQLGrammar.js"

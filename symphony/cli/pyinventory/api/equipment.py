@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # pyre-strict
 
+from dataclasses import asdict
 from typing import Dict, List, Optional, Tuple
 
 from gql.gql.client import OperationException
 from tqdm import tqdm
 
-from .._utils import PropertyValue, _get_properties_to_add, _get_property_value
+from .._utils import PropertyValue, _get_graphql_properties, _get_property_value
 from ..consts import Equipment, Location
 from ..exceptions import (
     EquipmentIsNotUniqueException,
@@ -158,7 +159,7 @@ def add_equipment(
     """
 
     property_types = client.equipmentTypes[equipment_type].propertyTypes
-    properties = _get_properties_to_add(property_types, properties_dict)
+    properties = _get_graphql_properties(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
         name=name,
@@ -279,7 +280,7 @@ def add_equipment_to_position(
         client, existing_equipment, position_name
     )
     property_types = client.equipmentTypes[equipment_type].propertyTypes
-    properties = _get_properties_to_add(property_types, properties_dict)
+    properties = _get_graphql_properties(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
         name=name,
@@ -369,7 +370,7 @@ def _get_equipment_type_and_properties_dict(
             equipment_type, property_type_id
         )
         property_type = property_types_with_id[0]
-        property_value = _get_property_value(property_type, property.to_dict())
+        property_value = _get_property_value(property_type, asdict(property))
         properties_dict[property_type["name"]] = property_value
     return equipment_type, properties_dict
 

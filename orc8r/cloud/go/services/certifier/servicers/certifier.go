@@ -18,10 +18,10 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/security/cert"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/security/cert"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"

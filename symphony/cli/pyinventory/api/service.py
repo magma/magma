@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # pyre-strict
 
+from dataclasses import asdict
 from typing import Dict, List, Optional, Tuple, Union
 
-from dacite import from_dict
+from dacite import Config, from_dict
 
-from .._utils import PropertyValue, _get_properties_to_add, _make_property_types
+from .._utils import PropertyValue, _get_graphql_properties, _make_property_types
 from ..consts import (
     Customer,
     EquipmentPort,
@@ -51,7 +52,7 @@ def _populate_service_types(client: GraphqlClient) -> None:
             name=node.name,
             id=node.id,
             hasCustomer=node.hasCustomer,
-            propertyTypes=[p.to_dict() for p in node.propertyTypes],
+            propertyTypes=[asdict(p) for p in node.propertyTypes],
         )
 
 
@@ -78,7 +79,11 @@ def add_service_type(
             name=name,
             hasCustomer=hasCustomer,
             properties=[
-                from_dict(data_class=ServiceTypeCreateData.PropertyTypeInput, data=p)
+                from_dict(
+                    data_class=ServiceTypeCreateData.PropertyTypeInput,
+                    data=p,
+                    config=Config(strict=True),
+                )
                 for p in new_property_types
             ],
         ),
@@ -88,7 +93,7 @@ def add_service_type(
         name=result.name,
         id=result.id,
         hasCustomer=result.hasCustomer,
-        propertyTypes=[p.to_dict() for p in result.propertyTypes],
+        propertyTypes=[asdict(p) for p in result.propertyTypes],
     )
     client.serviceTypes[name] = service_type
     return service_type
@@ -104,7 +109,7 @@ def add_service(
     links: List[Link],
 ) -> Service:
     property_types = client.serviceTypes[service_type].propertyTypes
-    properties = _get_properties_to_add(property_types, properties_dict)
+    properties = _get_graphql_properties(property_types, properties_dict)
     service_create_data = ServiceCreateData(
         name=name,
         externalId=external_id,

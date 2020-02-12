@@ -63,7 +63,8 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method, withVerify boo
 	bw := multipart.NewWriter(&buf)
 
 	if withVerify {
-		bw.WriteField("verify_before_commit", "true")
+		err := bw.WriteField("verify_before_commit", "true")
+		require.NoError(t, err)
 	}
 	fileWriter, err := bw.CreateFormFile("file_0", "name1")
 	require.Nil(t, err)
@@ -276,10 +277,8 @@ func importServiceExportedData(ctx context.Context, t *testing.T, organization s
 
 func TestServiceImportDataAdd(t *testing.T) {
 	for _, withVerify := range []bool{true, false} {
-		r, err := newImporterTestResolver(t)
-		require.NoError(t, err)
+		r := newImporterTestResolver(t)
 		ctx := newImportContext(viewertest.NewContext(r.client))
-		require.NoError(t, err)
 		prepareServiceData(ctx, t, r)
 		exportedData := exportServiceData(ctx, t, tenantHeader, r)
 		deleteServiceData(ctx, t, r)
@@ -293,10 +292,8 @@ func TestServiceImportDataAdd(t *testing.T) {
 
 func TestServiceImportDataEdit(t *testing.T) {
 	for _, withVerify := range []bool{true, false} {
-		r, err := newImporterTestResolver(t)
-		require.NoError(t, err)
+		r := newImporterTestResolver(t)
 		ctx := newImportContext(viewertest.NewContext(r.client))
-		require.NoError(t, err)
 		prepareServiceData(ctx, t, r)
 		exportedData := exportServiceData(ctx, t, tenantHeader, r)
 		readr := csv.NewReader(&exportedData)
@@ -304,6 +301,5 @@ func TestServiceImportDataEdit(t *testing.T) {
 		code := importServiceExportedData(ctx, t, tenantHeader, *modifiedExportedData, contentType, r)
 		verifyServiceData(ctx, t, r, withVerify)
 		require.Equal(t, http.StatusOK, code)
-		require.NoError(t, err)
 	}
 }

@@ -18,24 +18,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/strfmt"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/metadata"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/security/key"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	certifierTestInit "magma/orc8r/cloud/go/services/certifier/test_init"
-	certifierTestUtils "magma/orc8r/cloud/go/services/certifier/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/metadata"
+	"magma/orc8r/lib/go/security/csr"
+	"magma/orc8r/lib/go/security/key"
 )
 
 const (
@@ -68,7 +68,7 @@ func testWithECHO(
 	response := &protos.Response_EchoResponse{
 		EchoResponse: &protos.Response_Echo{Response: challenge.Challenge},
 	}
-	csr, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
 	assert.NoError(t, err)
 	resp := protos.Response{
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
@@ -117,7 +117,7 @@ func testWithRSA(
 	response := &protos.Response_RsaResponse{
 		RsaResponse: &protos.Response_RSA{Signature: signature},
 	}
-	csr, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
 	assert.NoError(t, err)
 	resp := protos.Response{
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
@@ -165,7 +165,7 @@ func testWithECDSA(
 	response := &protos.Response_EcdsaResponse{
 		EcdsaResponse: &protos.Response_ECDSA{R: r.Bytes(), S: s.Bytes()},
 	}
-	csr, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
 	assert.NoError(t, err)
 	resp := protos.Response{
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
@@ -228,7 +228,7 @@ func testNegative(
 	r, s, err := ecdsa.Sign(rand.Reader, privateKey.(*ecdsa.PrivateKey), hashed[:])
 	assert.NoError(t, err)
 
-	csr, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
 	assert.NoError(t, err)
 
 	// create response

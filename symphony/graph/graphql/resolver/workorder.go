@@ -130,7 +130,7 @@ func (r mutationResolver) AddWorkOrder(
 		SetNillableProjectID(input.ProjectID).
 		SetNillableLocationID(input.LocationID).
 		SetNillableDescription(input.Description).
-		SetOwnerName(r.User(ctx).email).
+		SetOwnerName(r.Me(ctx).User).
 		SetCreationDate(time.Now()).
 		SetNillableAssignee(input.Assignee).
 		SetNillableIndex(input.Index)
@@ -400,7 +400,7 @@ func (r mutationResolver) createOrUpdateCheckListDefinition(
 }
 
 func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id string) (string, error) {
-	client, logger := r.ClientFrom(ctx), r.log.For(ctx).With(zap.String("id", id))
+	client, logger := r.ClientFrom(ctx), r.logger.For(ctx).With(zap.String("id", id))
 	switch count, err := client.WorkOrderType.Query().
 		Where(workordertype.ID(id)).
 		QueryWorkOrders().

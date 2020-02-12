@@ -138,10 +138,5 @@ func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.Pipeline
 			apps = append(apps, mc)
 		}
 	}
-	if len(apps) == 0 {
-		apps = []ltemconfig.PipelineD_NetworkServices{
-			ltemconfig.PipelineD_ENFORCEMENT,
-		}
-	}
 	return apps, nil
 }

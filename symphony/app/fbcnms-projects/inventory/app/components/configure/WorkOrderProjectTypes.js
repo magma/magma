@@ -101,16 +101,12 @@ const WorkOrderProjectTypes = () => {
         if (showAddEditCard || editingProjectType) {
           const workOrderTypes = props.workOrderTypes?.edges ?? [];
           return (
-            <div className={classes.root}>
-              <AddEditProjectTypeCard
-                workOrderTypes={workOrderTypes
-                  .map(e => e?.node)
-                  .filter(Boolean)}
-                editingProjectType={editingProjectType}
-                onCancelClicked={hideAddEditCard}
-                onProjectTypeSaved={hideAddEditCard}
-              />
-            </div>
+            <AddEditProjectTypeCard
+              workOrderTypes={workOrderTypes.map(e => e?.node).filter(Boolean)}
+              editingProjectType={editingProjectType}
+              onCancelClicked={hideAddEditCard}
+              onProjectTypeSaved={hideAddEditCard}
+            />
           );
         }
 

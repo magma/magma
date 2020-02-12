@@ -19,7 +19,7 @@ ReturnType = TypeVar("ReturnType")
 PropertyValue = Union[date, float, int, str, bool, Tuple[float, float]]
 
 
-def _get_properties_to_add(
+def _get_graphql_properties(
     property_types: List[Dict[str, Any]], properties_dict: Dict[str, PropertyValue]
 ) -> List[Dict[str, PropertyValue]]:
     properties = []
@@ -27,7 +27,7 @@ def _get_properties_to_add(
         property_type_name = property_type["name"]
         property_type_id = property_type["id"]
         if property_type_name in properties_dict:
-            type = property_type["type"]
+            type = property_type["type"].value
             value = properties_dict[property_type_name]
             assert property_type[
                 "isInstanceProperty"

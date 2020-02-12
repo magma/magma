@@ -22,6 +22,7 @@ class DataclassesRenderer:
         buffer.write("from datetime import datetime")
         buffer.write("from enum import Enum")
         buffer.write("from functools import partial")
+        buffer.write("from numbers import Number")
         buffer.write("from typing import Any, Callable, List, Mapping, Optional")
         buffer.write("")
         buffer.write("from dataclasses_json import dataclass_json")

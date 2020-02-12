@@ -21,8 +21,7 @@ import (
 )
 
 func TestQueryNode(t *testing.T) {
-	resolver, err := newTestResolver(t)
-	require.NoError(t, err)
+	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
 
 	c := client.New(handler.GraphQL(
@@ -41,20 +40,18 @@ func TestQueryNode(t *testing.T) {
 	))
 
 	var lt struct{ AddLocationType struct{ ID string } }
-	err = c.Post(
+	c.MustPost(
 		`mutation($input: AddLocationTypeInput!) { addLocationType(input: $input) { id } }`,
 		&lt,
 		client.Var("input", models.AddLocationTypeInput{Name: "city"}),
 	)
-	require.NoError(t, err)
 
 	var l struct{ AddLocation struct{ ID string } }
-	err = c.Post(
+	c.MustPost(
 		`mutation($input: AddLocationInput!) { addLocation(input: $input) { id } }`,
 		&l,
 		client.Var("input", models.AddLocationInput{Name: "tlv", Type: lt.AddLocationType.ID}),
 	)
-	require.NoError(t, err)
 
 	t.Run("LocationType", func(t *testing.T) {
 		var rsp struct{ Node struct{ Name string } }

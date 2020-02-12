@@ -23,7 +23,7 @@ const styles = {
   exportButton: {
     paddingLeft: '16px',
     paddingRight: '16px',
-    marginLeft: 'auto',
+    marginLeft: '10px',
   },
   exportButtonContainer: {
     display: 'flex',

@@ -186,6 +186,8 @@ service Pipelined {
   // Add a flow for a subscriber by matching the provided UE MAC address
   rpc AddUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
+  // Delete a flow for a subscriber by matching the provided UE MAC address
+  rpc DeleteUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
   // --------
   // Debugging:

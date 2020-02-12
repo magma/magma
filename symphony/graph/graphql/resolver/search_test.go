@@ -158,8 +158,7 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 }
 
 func TestSearchEquipmentByName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -216,8 +215,7 @@ func TestSearchEquipmentByName(t *testing.T) {
 }
 
 func TestEquipmentSearch(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -313,8 +311,7 @@ func TestEquipmentSearch(t *testing.T) {
 }
 
 func TestUnsupportedEquipmentSearch(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -327,7 +324,7 @@ func TestUnsupportedEquipmentSearch(t *testing.T) {
 		Operator:   models.FilterOperatorContains,
 		MaxDepth:   &maxDepth,
 	}
-	_, err = qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f}, &limit)
+	_, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f}, &limit)
 	require.Error(t, err)
 
 	f = models.EquipmentFilterInput{
@@ -348,8 +345,7 @@ func TestUnsupportedEquipmentSearch(t *testing.T) {
 }
 
 func TestQueryEquipmentPossibleProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -380,8 +376,7 @@ func TestQueryEquipmentPossibleProperties(t *testing.T) {
 }
 
 func TestSearchEquipmentByLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -438,8 +433,7 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 }
 
 func TestSearchEquipmentByDate(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -518,8 +512,7 @@ func TestSearchEquipmentByDate(t *testing.T) {
 }
 
 func TestSearchWO(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -623,8 +616,7 @@ func TestSearchWO(t *testing.T) {
 }
 
 func TestSearchWOByPriority(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	data := prepareWOData(ctx, r, "B")
@@ -656,8 +648,7 @@ func TestSearchWOByPriority(t *testing.T) {
 }
 
 func TestSearchWOByLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 

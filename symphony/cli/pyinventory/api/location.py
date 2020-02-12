@@ -3,10 +3,10 @@
 
 from typing import Any, Dict, List, Optional, Tuple
 
-from dacite import from_dict
+from dacite import Config, from_dict
 from gql.gql.client import OperationException
 
-from .._utils import _get_properties_to_add, deprecated
+from .._utils import _get_graphql_properties, deprecated
 from ..consts import Document, ImageEntity, Location
 from ..exceptions import (
     LocationCannotBeDeletedWithDependency,
@@ -94,7 +94,7 @@ def add_location(
         long_val = None
         if i == len(location_hirerchy) - 1:
             property_types = client.locationTypes[location_type].propertyTypes
-            properties = _get_properties_to_add(property_types, properties_dict)
+            properties = _get_graphql_properties(property_types, properties_dict)
             lat_val = lat
             long_val = long
 
@@ -367,19 +367,23 @@ def edit_location(
     location_type = location.locationTypeName
     property_types = client.locationTypes[location_type].propertyTypes
     if new_properties:
-        properties = _get_properties_to_add(property_types, new_properties)
+        properties = _get_graphql_properties(property_types, new_properties)
+    if new_external_id is None:
+        new_external_id = location.externalId
     edit_location_input = EditLocationInput(
         id=location.id,
         name=new_name if new_name is not None else location.name,
         latitude=new_lat if new_lat is not None else location.latitude,
         longitude=new_long if new_long is not None else location.longitude,
         properties=[
-            from_dict(data_class=EditLocationInput.PropertyInput, data=p)
+            from_dict(
+                data_class=EditLocationInput.PropertyInput,
+                data=p,
+                config=Config(strict=True),
+            )
             for p in properties
         ],
-        externalID=new_external_id
-        if new_external_id is not None
-        else location.externalId,
+        externalID=new_external_id,
     )
 
     try:

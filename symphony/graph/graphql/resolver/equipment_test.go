@@ -34,8 +34,7 @@ import (
 )
 
 func TestAddEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -103,8 +102,7 @@ func TestAddEquipment(t *testing.T) {
 }
 
 func TestAddEquipmentWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -150,8 +148,7 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 }
 
 func TestAddAndDeleteEquipmentHyperlink(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, er := r.Mutation(), r.Equipment()
@@ -224,8 +221,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 		Base: orc8rClient.Transport,
 		Host: uri.Host,
 	}
-	r, err := newTestResolver(t, WithOrc8rClient(orc8rClient))
-	require.NoError(t, err)
+	r := newTestResolver(t, WithOrc8rClient(orc8rClient))
 	defer r.drv.Close()
 
 	ctx := viewertest.NewContext(r.client)
@@ -304,8 +300,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 }
 
 func TestAddEquipmentWithoutLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -323,10 +318,8 @@ func TestAddEquipmentWithoutLocation(t *testing.T) {
 }
 
 func TestRemoveEquipmentWithChildren(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
-	require.NoError(t, err)
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -391,13 +384,11 @@ func TestRemoveEquipmentWithChildren(t *testing.T) {
 }
 
 func TestRemoveEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -434,8 +425,7 @@ func TestRemoveEquipment(t *testing.T) {
 }
 
 func TestAttachEquipmentToPosition(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -505,8 +495,7 @@ func TestAttachEquipmentToPosition(t *testing.T) {
 }
 
 func TestMoveEquipmentToPosition(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -565,8 +554,7 @@ func TestMoveEquipmentToPosition(t *testing.T) {
 }
 
 func TestDetachEquipmentFromPosition(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -641,8 +629,7 @@ func TestDetachEquipmentFromPosition(t *testing.T) {
 }
 
 func TestDetachEquipmentFromPositionWithWorkOrder(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr, wor := r.Mutation(), r.Query(), r.WorkOrder()
@@ -709,8 +696,7 @@ func TestDetachEquipmentFromPositionWithWorkOrder(t *testing.T) {
 }
 
 func TestAddDetachEquipmentFromPositionSameWorkOrder(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr, wor := r.Mutation(), r.Query(), r.WorkOrder()
@@ -777,13 +763,11 @@ func TestAddDetachEquipmentFromPositionSameWorkOrder(t *testing.T) {
 }
 
 func TestEquipmentPortsAreCreatedFromType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -827,8 +811,7 @@ func TestEquipmentPortsAreCreatedFromType(t *testing.T) {
 }
 
 func TestEquipmentParentLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, er := r.Mutation(), r.Equipment()
@@ -874,8 +857,7 @@ func TestEquipmentParentLocation(t *testing.T) {
 }
 
 func TestEquipmentParentEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, er := r.Mutation(), r.Equipment()
@@ -938,13 +920,11 @@ func TestEquipmentParentEquipment(t *testing.T) {
 }
 
 func TestEditEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -1024,13 +1004,11 @@ func TestEditEquipment(t *testing.T) {
 }
 
 func TestEditEquipmentPort(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -1094,13 +1072,11 @@ func TestEditEquipmentPort(t *testing.T) {
 }
 
 func TestAddLinkToNewlyAddedPortDefinition(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})

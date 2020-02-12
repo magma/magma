@@ -35,7 +35,7 @@ func (r queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
 	if err == nil {
 		return n, nil
 	}
-	r.log.For(ctx).
+	r.logger.For(ctx).
 		Debug("cannot query node",
 			zap.String("id", id),
 			zap.Error(err),

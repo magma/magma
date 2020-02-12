@@ -19,8 +19,7 @@ import (
 )
 
 func TestNumOfProjects(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, ptr := r.Mutation(), r.ProjectType()
@@ -81,8 +80,7 @@ func TestProjectQuery(t *testing.T) {
 }
 
 func TestProjectWithWorkOrders(t *testing.T) {
-	resolver, err := newTestResolver(t)
-	require.NoError(t, err)
+	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
 	ctx := viewertest.NewContext(resolver.client)
 	mutation := resolver.Mutation()
@@ -284,8 +282,7 @@ func TestEditProject(t *testing.T) {
 }
 
 func TestEditProjectLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -313,13 +310,11 @@ func TestEditProjectLocation(t *testing.T) {
 }
 
 func TestAddProjectWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	mutation, ctx := mutationctx(t)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.Project()
-
 	strPropType := models.PropertyTypeInput{
 		Name: "str_prop",
 		Type: "string",
@@ -454,8 +449,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 }
 
 func TestEditProjectType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()

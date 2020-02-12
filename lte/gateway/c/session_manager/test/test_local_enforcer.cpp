@@ -1018,6 +1018,7 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer)
 
 TEST_F(LocalEnforcerTest, test_rar_session_not_found)
 {
+  // verify session validity by passing in an invalid IMSI
   PolicyReAuthRequest rar;
   std::vector<std::string> rules_to_remove;
   std::vector<StaticRuleInstall> rules_to_install;
@@ -1035,6 +1036,13 @@ TEST_F(LocalEnforcerTest, test_rar_session_not_found)
     usage_monitoring_credits,
     &rar);
   PolicyReAuthAnswer raa;
+  local_enforcer->init_policy_reauth(rar, raa);
+  EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
+
+  // verify session validity passing in a valid IMSI (IMSI1)
+  // and an invalid session-id (session1)
+  CreateSessionResponse response;
+  local_enforcer->init_session_credit("IMSI1", "session0", test_cfg, response);
   local_enforcer->init_policy_reauth(rar, raa);
   EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
 }
