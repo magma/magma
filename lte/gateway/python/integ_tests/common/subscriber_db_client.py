@@ -215,15 +215,14 @@ class SubscriberDbCassandra(SubscriberDbClient):
         self._run_remote_cmd(add_usr_cmd)
 
     def delete_subscriber(self, sid):
-        print("Removing subscriber", sid)
+        print("Removing single subscriber not supported")
 
     def _delete_all_subscribers(self):
         print("Removing all subscribers")
         del_all_subs_cmd = "$HOME/openair-cn/scripts/data_provisioning_users "\
             "--verbose True --truncate True -n 0 "\
             "-C " + self.CASSANDRA_SERVER_IP
-        del_mme_cmd = "$HOME/openair-cn/scripts/data_provisioning_mme "\
-            "--verbose True --truncate True -C " + self.CASSANDRA_SERVER_IP
+        self._run_remote_cmd(del_all_subs_cmd)
 
     def list_subscriber_sids(self):
         sids = []
