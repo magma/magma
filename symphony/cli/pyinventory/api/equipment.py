@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # pyre-strict
 
+from dataclasses import asdict
 from typing import Dict, List, Optional, Tuple
 
 from gql.gql.client import OperationException
@@ -369,7 +370,7 @@ def _get_equipment_type_and_properties_dict(
             equipment_type, property_type_id
         )
         property_type = property_types_with_id[0]
-        property_value = _get_property_value(property_type, property.to_dict())
+        property_value = _get_property_value(property_type, asdict(property))
         properties_dict[property_type["name"]] = property_value
     return equipment_type, properties_dict
 
