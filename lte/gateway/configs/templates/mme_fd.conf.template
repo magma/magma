@@ -66,7 +66,7 @@ SecPort = 5870;
 # -------- Extensions ---------
 
 # Uncomment (and create rtd.conf) to specify routing table for this peer.
-#LoadExtension = "rt_default.fdx" : "rtd.conf";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_default.fdx" : "rtd.conf";
 
 #LoadExtension = "/usr/local/lib/freeDiameter/_sample.fdx";
 #LoadExtension = "/usr/local/lib/freeDiameter/app_acct.fdx";
