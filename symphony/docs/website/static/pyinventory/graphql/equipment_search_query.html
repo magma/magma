@@ -41,15 +41,15 @@
 <dl>
 <dt id="pyinventory.graphql.equipment_search_query.EquipmentFilterInput"><code class="flex name class">
 <span>class <span class="ident">EquipmentFilterInput</span></span>
-<span>(</span><span>filterType, operator, idSet, stringValue=None, propertyValue=None, maxDepth=None)</span>
+<span>(</span><span>filterType, operator, idSet, stringSet, stringValue=None, propertyValue=None, maxDepth=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentFilterInput(filterType: pyinventory.graphql.equipment_search_query.EquipmentFilterType, operator: pyinventory.graphql.equipment_search_query.FilterOperator, idSet: List[str], stringValue: Union[str, NoneType] = None, propertyValue: Union[pyinventory.graphql.equipment_search_query.EquipmentFilterInput.PropertyTypeInput, NoneType] = None, maxDepth: Union[int, NoneType] = None)</p></section>
+<section class="desc"><p>EquipmentFilterInput(filterType: pyinventory.graphql.equipment_search_query.EquipmentFilterType, operator: pyinventory.graphql.equipment_search_query.FilterOperator, idSet: List[str], stringSet: List[str], stringValue: Union[str, NoneType] = None, propertyValue: Union[pyinventory.graphql.equipment_search_query.EquipmentFilterInput.PropertyTypeInput, NoneType] = None, maxDepth: Union[int, NoneType] = None)</p></section>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.equipment_search_query.EquipmentFilterInput.PropertyTypeInput"><code class="name">var <span class="ident">PropertyTypeInput</span></code></dt>
 <dd>
-<section class="desc"><p>PropertyTypeInput(name: str, type: pyinventory.graphql.equipment_search_query.PropertyKind, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[float, NoneType] = None, latitudeValue: Union[float, NoneType] = None, longitudeValue: Union[float, NoneType] = None, rangeFromValue: Union[float, NoneType] = None, rangeToValue: Union[float, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None, isDeleted: Union[bool, NoneType] = None)</p></section>
+<section class="desc"><p>PropertyTypeInput(name: str, type: pyinventory.graphql.equipment_search_query.PropertyKind, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[numbers.Number, NoneType] = None, latitudeValue: Union[numbers.Number, NoneType] = None, longitudeValue: Union[numbers.Number, NoneType] = None, rangeFromValue: Union[numbers.Number, NoneType] = None, rangeToValue: Union[numbers.Number, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None, isDeleted: Union[bool, NoneType] = None)</p></section>
 </dd>
 <dt id="pyinventory.graphql.equipment_search_query.EquipmentFilterInput.maxDepth"><code class="name">var <span class="ident">maxDepth</span></code></dt>
 <dd>
@@ -125,6 +125,10 @@
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
+<dt id="pyinventory.graphql.equipment_search_query.EquipmentFilterType.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 <dt id="pyinventory.graphql.equipment_search_query.EquipmentFilterType.PROPERTY"><code class="name">var <span class="ident">PROPERTY</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -136,7 +140,7 @@
 <span>(</span><span>data=None, errors=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentSearchQuery(data: Union[pyinventory.graphql.equipment_search_query.EquipmentSearchQuery.EquipmentSearchQueryData, NoneType] = None, errors: Any = None)</p></section>
+<section class="desc"><p>EquipmentSearchQuery(data: Union[pyinventory.graphql.equipment_search_query.EquipmentSearchQuery.EquipmentSearchQueryData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.equipment_search_query.EquipmentSearchQuery.EquipmentSearchQueryData"><code class="name">var <span class="ident">EquipmentSearchQueryData</span></code></dt>
@@ -231,6 +235,10 @@
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
+<dt id="pyinventory.graphql.equipment_search_query.FilterOperator.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 </dl>
 </dd>
 <dt id="pyinventory.graphql.equipment_search_query.PropertyKind"><code class="flex name class">
@@ -245,6 +253,10 @@
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="pyinventory.graphql.equipment_search_query.PropertyKind.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 <dt id="pyinventory.graphql.equipment_search_query.PropertyKind.bool"><code class="name">var <span class="ident">bool</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -340,6 +352,7 @@
 <li><code><a title="pyinventory.graphql.equipment_search_query.EquipmentFilterType.EQUIPMENT_TYPE" href="#pyinventory.graphql.equipment_search_query.EquipmentFilterType.EQUIPMENT_TYPE">EQUIPMENT_TYPE</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_search_query.EquipmentFilterType.EQUIP_INST_NAME" href="#pyinventory.graphql.equipment_search_query.EquipmentFilterType.EQUIP_INST_NAME">EQUIP_INST_NAME</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_search_query.EquipmentFilterType.LOCATION_INST" href="#pyinventory.graphql.equipment_search_query.EquipmentFilterType.LOCATION_INST">LOCATION_INST</a></code></li>
+<li><code><a title="pyinventory.graphql.equipment_search_query.EquipmentFilterType.MISSING_ENUM" href="#pyinventory.graphql.equipment_search_query.EquipmentFilterType.MISSING_ENUM">MISSING_ENUM</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_search_query.EquipmentFilterType.PROPERTY" href="#pyinventory.graphql.equipment_search_query.EquipmentFilterType.PROPERTY">PROPERTY</a></code></li>
 </ul>
 </li>
@@ -366,11 +379,13 @@
 <li><code><a title="pyinventory.graphql.equipment_search_query.FilterOperator.IS" href="#pyinventory.graphql.equipment_search_query.FilterOperator.IS">IS</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_search_query.FilterOperator.IS_NOT_ONE_OF" href="#pyinventory.graphql.equipment_search_query.FilterOperator.IS_NOT_ONE_OF">IS_NOT_ONE_OF</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_search_query.FilterOperator.IS_ONE_OF" href="#pyinventory.graphql.equipment_search_query.FilterOperator.IS_ONE_OF">IS_ONE_OF</a></code></li>
+<li><code><a title="pyinventory.graphql.equipment_search_query.FilterOperator.MISSING_ENUM" href="#pyinventory.graphql.equipment_search_query.FilterOperator.MISSING_ENUM">MISSING_ENUM</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="pyinventory.graphql.equipment_search_query.PropertyKind" href="#pyinventory.graphql.equipment_search_query.PropertyKind">PropertyKind</a></code></h4>
 <ul class="two-column">
+<li><code><a title="pyinventory.graphql.equipment_search_query.PropertyKind.MISSING_ENUM" href="#pyinventory.graphql.equipment_search_query.PropertyKind.MISSING_ENUM">MISSING_ENUM</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_search_query.PropertyKind.bool" href="#pyinventory.graphql.equipment_search_query.PropertyKind.bool">bool</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_search_query.PropertyKind.date" href="#pyinventory.graphql.equipment_search_query.PropertyKind.date">date</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_search_query.PropertyKind.datetime_local" href="#pyinventory.graphql.equipment_search_query.PropertyKind.datetime_local">datetime_local</a></code></li>

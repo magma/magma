@@ -24,6 +24,10 @@
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
+<dt><code class="name"><a title="pyinventory.api" href="api/index.html">pyinventory.api</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
 <dt><code class="name"><a title="pyinventory.consts" href="consts.html">pyinventory.consts</a></code></dt>
 <dd>
 <section class="desc"></section>
@@ -489,10 +493,31 @@ attached to it</dd>
 <span>def <span class="ident">edit_equipment_type</span></span>(<span>client, name, new_positions_list, new_ports_dict)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Edit existing equipment type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>equipment type name</dd>
+<dt><strong><code>new_positions_list</code></strong> :&ensp;<code>List</code>[<code>str</code>]</dt>
+<dd>new position list</dd>
+<dt><strong><code>new_ports_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>str</code>]</dt>
+<dd>ports dictionary, where key is a port name and value is port type name</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>EquipmentType</code> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>FailedOperationException</code> <code>for</code> <code>internal</code> <code>inventory</code> <code>error</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>edited_equipment = client.edit_equipment_type("Card", [], {"Port 5": "Z Cards Only (LS - DND)"})</p></section>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_location"><code class="name flex">
-<span>def <span class="ident">edit_location</span></span>(<span>client, location, new_name, new_lat, new_long, new_externalID)</span>
+<span>def <span class="ident">edit_location</span></span>(<span>client, location, new_name=None, new_lat=None, new_long=None, new_external_id=None, new_properties=None)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -593,9 +618,15 @@ or LocationNotFoundException if no location was found</dd>
 </code></pre>
 <dl>
 <dt><strong><code>or</code></strong></dt>
-<dd>location = client.getLocation([('Site', 'Bletchley Park')])<h1 id="this-call-will-fail-if-there-is-bletchley-park-in-two-cities-in-london">This call will fail if there is Bletchley Park in two cities in london</h1>
-</dd>
+<dd>location = client.getLocation([('Site', 'Bletchley Park')])
+this call will fail if there is Bletchley Park in two cities in london</dd>
 </dl></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_location_by_external_id"><code class="name flex">
+<span>def <span class="ident">get_location_by_external_id</span></span>(<span>client, external_id)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_location_children"><code class="name flex">
 <span>def <span class="ident">get_location_children</span></span>(<span>client, location_id)</span>
@@ -622,7 +653,7 @@ locations = client.get_location_children([('Country', 'England')])</p>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_locations_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_locations_by_external_id</span></span>(<span>client, external_id)</span>
+<span>def <span class="ident">get_locations_by_external_id</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -752,6 +783,7 @@ with the paremeter jsonFilePath (the next parameter of this function)</dd>
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
+<li><code><a title="pyinventory.api" href="api/index.html">pyinventory.api</a></code></li>
 <li><code><a title="pyinventory.consts" href="consts.html">pyinventory.consts</a></code></li>
 <li><code><a title="pyinventory.exceptions" href="exceptions.html">pyinventory.exceptions</a></code></li>
 <li><code><a title="pyinventory.graphql" href="graphql/index.html">pyinventory.graphql</a></code></li>
@@ -807,6 +839,7 @@ with the paremeter jsonFilePath (the next parameter of this function)</dd>
 <li><code><a title="pyinventory.InventoryClient.get_equipment_type_of_equipment" href="#pyinventory.InventoryClient.get_equipment_type_of_equipment">get_equipment_type_of_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_link_in_port_of_equipment" href="#pyinventory.InventoryClient.get_link_in_port_of_equipment">get_link_in_port_of_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location" href="#pyinventory.InventoryClient.get_location">get_location</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_location_by_external_id" href="#pyinventory.InventoryClient.get_location_by_external_id">get_location_by_external_id</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location_children" href="#pyinventory.InventoryClient.get_location_children">get_location_children</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location_documents" href="#pyinventory.InventoryClient.get_location_documents">get_location_documents</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_locations_by_external_id" href="#pyinventory.InventoryClient.get_locations_by_external_id">get_locations_by_external_id</a></code></li>
