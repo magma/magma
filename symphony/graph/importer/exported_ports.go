@@ -27,7 +27,7 @@ const minimalPortsLineLength = 15
 // nolint: staticcheck
 func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 
 	nextLineToSkipIndex := -1
 	log.Debug("exported ports-started")

@@ -7,6 +7,7 @@
 package graphhttp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -21,15 +22,18 @@ import (
 
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
+	"gocloud.dev/pubsub"
 	"gocloud.dev/server/health"
 )
 
 // Config defines the http server config.
 type Config struct {
-	Tenancy *viewer.MySQLTenancy
-	Logger  log.Logger
-	Census  oc.Options
-	Orc8r   orc8r.Config
+	Tenancy   *viewer.MySQLTenancy
+	Topic     *pubsub.Topic
+	Subscribe func(context.Context) (*pubsub.Subscription, error)
+	Logger    log.Logger
+	Census    oc.Options
+	Orc8r     orc8r.Config
 }
 
 // NewServer creates a server from config.
@@ -63,6 +67,8 @@ func newRouterConfig(config Config) (cfg routerConfig, err error) {
 		tenancy: config.Tenancy,
 		logger:  config.Logger,
 	}
+	cfg.events.topic = config.Topic
+	cfg.events.subscribe = config.Subscribe
 	cfg.orc8r.client = client
 	cfg.actions.registry = registry
 	return cfg, nil

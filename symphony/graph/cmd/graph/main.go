@@ -47,12 +47,17 @@ func main() {
 		}
 		os.Exit(1)
 	}
-	app, _, err := NewApplication(&cf)
+
+	ctx := ctxutil.WithSignal(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	app, _, err := NewApplication(ctx, &cf)
 	if err != nil {
 		stdlog.Fatal(err)
 	}
 
-	ctx := ctxutil.WithSignal(context.Background(), os.Interrupt, syscall.SIGTERM)
 	app.Info("starting application",
 		zap.String("http", cf.HTTPAddress),
 		zap.String("grpc", cf.GRPCAddress),
