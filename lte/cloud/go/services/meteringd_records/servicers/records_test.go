@@ -14,8 +14,8 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/meteringd_records/servicers"
 	"magma/lte/cloud/go/services/meteringd_records/storage"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/test_utils"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"

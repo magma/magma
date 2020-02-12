@@ -11,7 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	protos "magma/orc8r/cloud/go/protos"
+	protos "magma/orc8r/lib/go/protos"
 	math "math"
 )
 
@@ -1309,11 +1309,11 @@ var fileDescriptor_d870e4203d378ec0 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // PolicyAssignmentControllerClient is the client API for PolicyAssignmentController service.
 //
@@ -1328,10 +1328,10 @@ type PolicyAssignmentControllerClient interface {
 }
 
 type policyAssignmentControllerClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewPolicyAssignmentControllerClient(cc *grpc.ClientConn) PolicyAssignmentControllerClient {
+func NewPolicyAssignmentControllerClient(cc grpc.ClientConnInterface) PolicyAssignmentControllerClient {
 	return &policyAssignmentControllerClient{cc}
 }
 
@@ -1457,10 +1457,10 @@ type SubscriberDBClient interface {
 }
 
 type subscriberDBClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewSubscriberDBClient(cc *grpc.ClientConn) SubscriberDBClient {
+func NewSubscriberDBClient(cc grpc.ClientConnInterface) SubscriberDBClient {
 	return &subscriberDBClient{cc}
 }
 
@@ -1703,10 +1703,10 @@ type SubscriberDBControllerClient interface {
 }
 
 type subscriberDBControllerClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewSubscriberDBControllerClient(cc *grpc.ClientConn) SubscriberDBControllerClient {
+func NewSubscriberDBControllerClient(cc grpc.ClientConnInterface) SubscriberDBControllerClient {
 	return &subscriberDBControllerClient{cc}
 }
 

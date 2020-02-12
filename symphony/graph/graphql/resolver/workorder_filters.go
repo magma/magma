@@ -57,14 +57,14 @@ func nameFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*en
 
 func statusFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.StatusIn(filter.IDSet...)), nil
+		return q.Where(workorder.StatusIn(filter.StringSet...)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
 func ownerFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.OwnerNameIn(filter.IDSet...)), nil
+		return q.Where(workorder.OwnerNameIn(filter.StringSet...)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
@@ -78,7 +78,7 @@ func typeFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*en
 
 func assigneeFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.AssigneeIn(filter.IDSet...)), nil
+		return q.Where(workorder.AssigneeIn(filter.StringSet...)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
@@ -124,7 +124,7 @@ func locationInstFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInp
 
 func priorityFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.PriorityIn(filter.IDSet...)), nil
+		return q.Where(workorder.PriorityIn(filter.StringSet...)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

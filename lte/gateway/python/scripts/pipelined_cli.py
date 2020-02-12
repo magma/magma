@@ -17,7 +17,10 @@ import subprocess
 
 import re
 from magma.common.rpc_utils import grpc_wrapper
-from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate
+from lte.protos.pipelined_pb2 import (
+    SubscriberQuotaUpdate,
+    UpdateSubscriberQuotaStateRequest,
+)
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.subscriberdb.sid import SIDUtils
@@ -173,6 +176,17 @@ def add_ue_mac_flow(client, args):
         print("Error associating MAC to IMSI")
 
 
+@grpc_wrapper
+def delete_ue_mac_flow(client, args):
+    request = UEMacFlowRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        mac_addr=args.mac
+    )
+    res = client.DeleteUEMacFlow(request)
+    if res is None:
+        print("Error associating MAC to IMSI")
+
+
 def create_ue_mac_parser(apps):
     """
     Creates the argparse subparser for the MAC App
@@ -188,6 +202,14 @@ def create_ue_mac_parser(apps):
     subcmd.add_argument('--mac', help='UE MAC address',
                         default='5e:cc:cc:b1:49:ff')
     subcmd.set_defaults(func=add_ue_mac_flow)
+    # Delete subcommands
+    subcmd = subparsers.add_parser('delete_ue_mac_flow',
+                                   help='Delete flow to match UE MAC \
+                                   with a subscriber')
+    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--mac', help='UE MAC address',
+                        default='5e:cc:cc:b1:49:ff')
+    subcmd.set_defaults(func=delete_ue_mac_flow)
 
 
 # -------------
@@ -196,11 +218,12 @@ def create_ue_mac_parser(apps):
 
 @grpc_wrapper
 def update_quota(client, args):
-    request = SubscriberQuotaUpdate(
+    update = SubscriberQuotaUpdate(
         sid=SIDUtils.to_pb(args.imsi),
         mac_addr=args.mac,
         update_type=args.update_type
     )
+    request = UpdateSubscriberQuotaStateRequest(updates=[update],)
     res = client.UpdateSubscriberQuotaState(request)
     if res is None:
         print("Error updating check quota flows")

@@ -17,8 +17,8 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/s6a_proxy/servicers/test"
+	"magma/gateway/mconfig"
 	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/gateway/mconfig"
 )
 
 func StartTestService(t *testing.T) error {

@@ -20,8 +20,7 @@ import (
 )
 
 func TestAddEquipmentTypesSameName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -38,8 +37,7 @@ func TestAddEquipmentTypesSameName(t *testing.T) {
 }
 
 func TestQueryEquipmentTypes(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -72,13 +70,11 @@ func TestQueryEquipmentTypes(t *testing.T) {
 }
 
 func TestAddEquipmentTypeWithPositions(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	position1 := models.EquipmentPositionInput{
 		Name: "Position 1",
 	}
@@ -96,19 +92,16 @@ func TestAddEquipmentTypeWithPositions(t *testing.T) {
 }
 
 func TestAddEquipmentTypeWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr, etr := r.Mutation(), r.Query(), r.EquipmentType()
 
-	strValue := "Foo"
-	index := 5
 	ptype := models.PropertyTypeInput{
 		Name:        "str_prop",
 		Type:        "string",
-		Index:       &index,
-		StringValue: &strValue,
+		Index:       pointer.ToInt(5),
+		StringValue: pointer.ToString("Foo"),
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:       "example_type_a",
@@ -125,12 +118,11 @@ func TestAddEquipmentTypeWithProperties(t *testing.T) {
 }
 
 func TestAddEquipmentTypeWithoutPositionNames(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr := r.Mutation()
 
+	mr := r.Mutation()
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "equipment_type_name_1",
 	})
@@ -141,8 +133,7 @@ func TestAddEquipmentTypeWithoutPositionNames(t *testing.T) {
 }
 
 func TestAddEquipmentTypeWithPorts(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -151,8 +142,8 @@ func TestAddEquipmentTypeWithPorts(t *testing.T) {
 	bandwidth := "10/100/1000BASE-T"
 	portDef := models.EquipmentPortInput{
 		Name:         "Port 1",
-		VisibleLabel: &visibleLabel,
-		Bandwidth:    &bandwidth,
+		VisibleLabel: pointer.ToString("Eth1"),
+		Bandwidth:    pointer.ToString("10/100/1000BASE-T"),
 	}
 
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -170,12 +161,11 @@ func TestAddEquipmentTypeWithPorts(t *testing.T) {
 }
 
 func TestRemoveEquipmentTypeWithExistingEquipments(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr, qr := r.Mutation(), r.Query()
 
+	mr, qr := r.Mutation(), r.Query()
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "example_type_a",
 	})
@@ -206,24 +196,20 @@ func TestRemoveEquipmentTypeWithExistingEquipments(t *testing.T) {
 }
 
 func TestRemoveEquipmentType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr, qr := r.Mutation(), r.Query()
 
-	visibleLabel := "Eth1"
-	bandwidth := "10/100/1000BASE-T"
+	mr, qr := r.Mutation(), r.Query()
 	portDef := models.EquipmentPortInput{
 		Name:         "Port 1",
-		VisibleLabel: &visibleLabel,
-		Bandwidth:    &bandwidth,
+		VisibleLabel: pointer.ToString("Eth1"),
+		Bandwidth:    pointer.ToString("10/100/1000BASE-T"),
 	}
-	strValue := "Foo"
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",
 		Type:        models.PropertyKindString,
-		StringValue: &strValue,
+		StringValue: pointer.ToString("Foo"),
 	}
 	position1 := models.EquipmentPositionInput{
 		Name: "Position 1",
@@ -249,8 +235,7 @@ func TestRemoveEquipmentType(t *testing.T) {
 }
 
 func TestEditEquipmentType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -263,16 +248,15 @@ func TestEditEquipmentType(t *testing.T) {
 	c, _ := eqType.QueryCategory().Only(ctx)
 	require.Nil(t, c)
 
-	category := "example_type"
 	newType, err := mr.EditEquipmentType(ctx, models.EditEquipmentTypeInput{
 		ID:       eqType.ID,
 		Name:     "example_type_name_edited",
-		Category: &category,
+		Category: pointer.ToString("example_type"),
 	})
 	require.NoError(t, err)
 	require.Equal(t, "example_type_name_edited", newType.Name, "successfully edited equipment type name")
 	c, _ = newType.QueryCategory().Only(ctx)
-	require.Equal(t, category, c.Name)
+	require.Equal(t, "example_type", c.Name)
 
 	eqType, err = mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "example_type_name_2",
@@ -294,21 +278,19 @@ func TestEditEquipmentType(t *testing.T) {
 }
 
 func TestEditEquipmentTypeRemoveCategory(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr := r.Mutation()
 
-	category := "example_type"
+	mr := r.Mutation()
 	eqType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:     "example_type_name",
-		Category: &category,
+		Category: pointer.ToString("example_type"),
 	})
 	require.NoError(t, err)
 	require.Equal(t, "example_type_name", eqType.Name)
 	c, _ := eqType.QueryCategory().Only(ctx)
-	require.Equal(t, category, c.Name)
+	require.Equal(t, "example_type", c.Name)
 
 	newType, err := mr.EditEquipmentType(ctx, models.EditEquipmentTypeInput{
 		ID:   eqType.ID,
@@ -321,17 +303,15 @@ func TestEditEquipmentTypeRemoveCategory(t *testing.T) {
 }
 
 func TestEditEquipmentTypeWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr := r.Mutation()
 
-	strValue := "Foo"
+	mr := r.Mutation()
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",
 		Type:        models.PropertyKindString,
-		StringValue: &strValue,
+		StringValue: pointer.ToString("Foo"),
 	}
 	propTypeInput := []*models.PropertyTypeInput{&strPropType}
 	eqType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -341,18 +321,16 @@ func TestEditEquipmentTypeWithProperties(t *testing.T) {
 	require.NoError(t, err)
 
 	strProp := eqType.QueryPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
-	strValue = "Foo - edited"
-	intValue := 5
 	strPropType = models.PropertyTypeInput{
 		ID:          &strProp.ID,
 		Name:        "str_prop_new",
 		Type:        models.PropertyKindString,
-		StringValue: &strValue,
+		StringValue: pointer.ToString("Foo - edited"),
 	}
 	intPropType := models.PropertyTypeInput{
 		Name:     "int_prop",
 		Type:     models.PropertyKindInt,
-		IntValue: &intValue,
+		IntValue: pointer.ToInt(5),
 	}
 	editedPropTypeInput := []*models.PropertyTypeInput{&strPropType, &intPropType}
 	newType, err := mr.EditEquipmentType(ctx, models.EditEquipmentTypeInput{
@@ -365,17 +343,16 @@ func TestEditEquipmentTypeWithProperties(t *testing.T) {
 
 	strProp = eqType.QueryPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
 	require.Equal(t, "str_prop_new", strProp.Name, "successfully edited prop type name")
-	require.Equal(t, strValue, strProp.StringVal, "successfully edited prop type string value")
+	require.Equal(t, "Foo - edited", strProp.StringVal, "successfully edited prop type string value")
 
 	intProp := eqType.QueryPropertyTypes().Where(propertytype.Type("int")).OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
-	require.Equal(t, intValue, intProp.IntVal, "successfully edited prop type int value")
+	require.Equal(t, 5, intProp.IntVal, "successfully edited prop type int value")
 
-	intValue = 6
 	intPropType = models.PropertyTypeInput{
 		Name:     "int_prop",
 		Type:     models.PropertyKindInt,
-		IntValue: &intValue,
+		IntValue: pointer.ToInt(6),
 	}
 	editedPropTypeInput = []*models.PropertyTypeInput{&intPropType}
 	_, err = mr.EditEquipmentType(ctx, models.EditEquipmentTypeInput{
@@ -387,12 +364,11 @@ func TestEditEquipmentTypeWithProperties(t *testing.T) {
 }
 
 func TestEditEquipmentTypeWithPortsAndPositions(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr := r.Mutation()
 
+	mr := r.Mutation()
 	bandwidth := "b1"
 	label := "v1"
 	strPortType := models.EquipmentPortInput{

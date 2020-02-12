@@ -10,8 +10,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 package plugin
 
 import (
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
 	"orc8r/devmand/cloud/go/devmand"
 	models2 "orc8r/devmand/cloud/go/plugin/models"
 	"orc8r/devmand/cloud/go/protos/mconfig"

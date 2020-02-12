@@ -13,8 +13,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/access"
-	"magma/orc8r/cloud/go/protos"
-	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
@@ -32,14 +31,10 @@ func TestIdentityFinder(t *testing.T) {
 	if listener != nil {
 		urlPrefix := "http://" + listener.Addr().String()
 
-		// Test a network entity
-		testGet(t, urlPrefix+magmadh.RegisterNetwork+"/"+TEST_NETWORK_ID)
 		// Test V1 network entity
 		testGet(t, urlPrefix+RegisterNetworkV1+"/"+TEST_NETWORK_ID)
 		// Test V1 LTE network entity
 		testGet(t, urlPrefix+RegisterLteNetworkV1+"/"+TEST_NETWORK_ID)
-		// Test network wildcard
-		testGet(t, urlPrefix+magmadh.RegisterNetwork)
 		// Test operator entity
 		testGet(t, urlPrefix+"/magma/operators/"+TEST_OPERATOR_ID)
 		// Test supervisor wildcards (non magma URL)
@@ -76,28 +71,6 @@ func startTestIdentityServer(t *testing.T) *echo.Echo {
 	e := echo.New()
 
 	assert.NotNil(t, e)
-
-	// Endpoint requiring Network Wildcard Access Permissions
-	e.GET(magmadh.RegisterNetwork, func(c echo.Context) error {
-		assert.NotNil(t, c)
-		ents := access.FindRequestedIdentities(c)
-		assert.Len(t, ents, 1)
-		wildcard := ents[0].GetWildcard()
-		assert.NotNil(t, wildcard)
-		assert.Equal(t, wildcard.Type, protos.Identity_Wildcard_Network)
-		return c.String(http.StatusOK, "All good!")
-	})
-
-	// Endpoint requiring a specific Network Entity Access Permissions
-	e.GET(magmadh.ManageNetwork, func(c echo.Context) error {
-		assert.NotNil(t, c)
-		ents := access.FindRequestedIdentities(c)
-		assert.Len(t, ents, 1)
-		networkIdentity, ok := ents[0].Value.(*protos.Identity_Network)
-		assert.True(t, ok)
-		assert.Equal(t, networkIdentity.Network, TEST_NETWORK_ID)
-		return c.String(http.StatusOK, "All good!")
-	})
 
 	// V1 Endpoint requiring a specific Network Entity Access Permissions
 	e.GET(ManageNetworkV1, func(c echo.Context) error {

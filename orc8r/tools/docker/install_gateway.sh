@@ -14,6 +14,7 @@ set -e
 CWAG="cwag"
 FEG="feg"
 INSTALL_DIR="/tmp/magmagw_install"
+GIT_HASH="master"
 
 # TODO: Update docker-compose to stable version
 
@@ -64,8 +65,13 @@ git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
 
 source .env
+if [[ $IMAGE_VERSION == *"|"* ]]; then
+  GIT_HASH=$(cut -d'|' -f2 <<< "$IMAGE_VERSION")
+  IMAGE_VERSION=$(cut -d'|' -f1 <<< "$IMAGE_VERSION")
+fi
+
 if [ "$IMAGE_VERSION" != "latest" ]; then
-    git -C $INSTALL_DIR/magma checkout "$IMAGE_VERSION"
+    git -C $INSTALL_DIR/magma checkout "$GIT_HASH"
 fi
 
 # Ensure this script hasn't changed
@@ -155,4 +161,3 @@ docker-compose pull
 docker-compose -f docker-compose.yml up -d
 
 echo "Installed successfully!!"
-

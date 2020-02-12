@@ -178,6 +178,9 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   auto imsi = request->sid().id();
   auto sid = id_gen_.gen_session_id(imsi);
   auto mac_addr = convert_mac_addr_to_str(request->hardware_addr());
+  MLOG(MDEBUG) << "PLMN_ID: " << request->plmn_id()
+              << " IMSI_PLMN_ID: " << request->imsi_plmn_id();
+
   SessionState::Config cfg = {.ue_ipv4 = request->ue_ipv4(),
                               .spgw_ipv4 = request->spgw_ipv4(),
                               .msisdn = request->msisdn(),
@@ -266,7 +269,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         } else {
           MLOG(MINFO) << "Successfully initialized new session " << sid
                       << " in sessiond for subscriber " << imsi
-                      << " with default bearer id" << cfg.bearer_id;
+                      << " with default bearer id " << cfg.bearer_id;
           add_session_to_directory_record(imsi, sid);
         }
       } else {

@@ -451,6 +451,11 @@ func (eu *EquipmentUpdate) Save(ctx context.Context) (int, error) {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
+	if eu.device_id != nil {
+		if err := equipment.DeviceIDValidator(*eu.device_id); err != nil {
+			return 0, fmt.Errorf("ent: validator failed for field \"device_id\": %v", err)
+		}
+	}
 	if len(eu._type) > 1 {
 		return 0, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}
@@ -1372,6 +1377,11 @@ func (euo *EquipmentUpdateOne) Save(ctx context.Context) (*Equipment, error) {
 	if euo.name != nil {
 		if err := equipment.NameValidator(*euo.name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
+	}
+	if euo.device_id != nil {
+		if err := equipment.DeviceIDValidator(*euo.device_id); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"device_id\": %v", err)
 		}
 	}
 	if len(euo._type) > 1 {

@@ -71,6 +71,9 @@ class InOutController(MagmaController):
                                               INGRESS))
         flows.delete_all_flows_from_table(datapath,
                                           self._service_manager.get_table_num(
+                                              PHYSICAL_TO_LOGICAL))
+        flows.delete_all_flows_from_table(datapath,
+                                          self._service_manager.get_table_num(
                                               EGRESS))
 
     def _install_default_middle_flows(self, dp):

@@ -57,6 +57,16 @@ const EquipmentPortsTableMenu = (props: Props) => {
   if (!!port.link) {
     menuOptions.push({
       onClick: () => {
+        ServerLogger.info(LogEvents.EDIT_LINK_CLICKED);
+        setEditingLink(port.link);
+      },
+      caption: fbt(
+        'Edit Link Properties',
+        'Caption for menu option for editing port link properties',
+      ),
+    });
+    menuOptions.push({
+      onClick: () => {
         ServerLogger.info(LogEvents.DISCONNECT_PORTS_CLICKED);
         setSelectedPort(port);
       },

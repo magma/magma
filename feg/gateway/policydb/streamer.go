@@ -11,7 +11,7 @@ package policydb
 import (
 	"magma/feg/gateway/object_store"
 	"magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"

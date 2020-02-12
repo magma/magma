@@ -115,6 +115,7 @@ class EquipmentFilterInput:
     filterType: EquipmentFilterType = enum_field(EquipmentFilterType)
     operator: FilterOperator = enum_field(FilterOperator)
     idSet: List[str]
+    stringSet: List[str]
     stringValue: Optional[str] = None
     propertyValue: Optional[PropertyTypeInput] = None
     maxDepth: Optional[int] = None

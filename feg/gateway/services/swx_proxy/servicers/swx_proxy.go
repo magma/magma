@@ -29,7 +29,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/feg/gateway/services/swx_proxy/metrics"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (

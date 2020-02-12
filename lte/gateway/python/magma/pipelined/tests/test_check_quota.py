@@ -105,8 +105,11 @@ class UEMacAddressTest(unittest.TestCase):
 
         # Add subscriber with UE MAC address """
         self.check_quota_controller.update_subscriber_quota_state(
-            SubscriberQuotaUpdate(sid=SubscriberID(id=imsi_1), mac_addr=mac_1,
-                                  update_type=SubscriberQuotaUpdate.VALID_QUOTA)
+            [
+                SubscriberQuotaUpdate(
+                    sid=SubscriberID(id=imsi_1), mac_addr=mac_1,
+                    update_type=SubscriberQuotaUpdate.VALID_QUOTA),
+            ]
         )
 
         wait_after_send(self.testing_controller)
@@ -126,29 +129,30 @@ class UEMacAddressTest(unittest.TestCase):
         # Add subscriber with UE MAC address """
 
         self.check_quota_controller.update_subscriber_quota_state(
-            SubscriberQuotaUpdate(sid=SubscriberID(id=imsi_1), mac_addr=mac_1,
-                                  update_type=SubscriberQuotaUpdate.NO_QUOTA)
+            [
+                SubscriberQuotaUpdate(
+                    sid=SubscriberID(id=imsi_1), mac_addr=mac_1,
+                    update_type=SubscriberQuotaUpdate.NO_QUOTA),
+                SubscriberQuotaUpdate(
+                    sid=SubscriberID(id=imsi_2), mac_addr=mac_2,
+                    update_type=SubscriberQuotaUpdate.NO_QUOTA),
+                SubscriberQuotaUpdate(
+                    sid=SubscriberID(id=imsi_3), mac_addr=mac_3,
+                    update_type=SubscriberQuotaUpdate.VALID_QUOTA),
+            ]
         )
-        self.check_quota_controller.update_subscriber_quota_state(
-            SubscriberQuotaUpdate(sid=SubscriberID(id=imsi_2), mac_addr=mac_2,
-                                  update_type=SubscriberQuotaUpdate.NO_QUOTA)
-        )
-        self.check_quota_controller.update_subscriber_quota_state(
-            SubscriberQuotaUpdate(sid=SubscriberID(id=imsi_3), mac_addr=mac_3,
-                                  update_type=SubscriberQuotaUpdate.VALID_QUOTA)
-        )
-
         wait_after_send(self.testing_controller)
 
         assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
-
         self.check_quota_controller.update_subscriber_quota_state(
-            SubscriberQuotaUpdate(sid=SubscriberID(id=imsi_2), mac_addr=mac_2,
-                                  update_type=SubscriberQuotaUpdate.TERMINATE)
-        )
-        self.check_quota_controller.update_subscriber_quota_state(
-            SubscriberQuotaUpdate(sid=SubscriberID(id=imsi_3), mac_addr=mac_3,
-                                  update_type=SubscriberQuotaUpdate.TERMINATE)
+            [
+                SubscriberQuotaUpdate(
+                    sid=SubscriberID(id=imsi_2), mac_addr=mac_2,
+                    update_type=SubscriberQuotaUpdate.TERMINATE),
+                SubscriberQuotaUpdate(
+                    sid=SubscriberID(id=imsi_3), mac_addr=mac_3,
+                    update_type=SubscriberQuotaUpdate.TERMINATE),
+            ]
         )
 
 

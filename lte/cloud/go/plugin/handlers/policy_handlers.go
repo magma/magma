@@ -15,9 +15,9 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin/models"
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"

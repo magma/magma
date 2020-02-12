@@ -5,6 +5,7 @@
 package graphhttp
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/facebookincubator/symphony/graph/exporter"
@@ -16,40 +17,46 @@ import (
 	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 )
 
-func newRouter(tenancy viewer.Tenancy, logger log.Logger, orc8rClient *http.Client, actionsRegistry *executor.Registry) (*mux.Router, error) {
+type routerConfig struct {
+	tenancy viewer.Tenancy
+	logger  log.Logger
+	orc8r   struct{ client *http.Client }
+	actions struct{ registry *executor.Registry }
+}
+
+func newRouter(cfg routerConfig) (*mux.Router, error) {
 	router := mux.NewRouter()
-	router.Use(func(h http.Handler) http.Handler {
-		return viewer.TenancyHandler(h, tenancy)
-	})
-	router.Use(func(h http.Handler) http.Handler {
-		return actions.Handler(h, logger, actionsRegistry)
-	})
-	importHandler, err := importer.NewHandler(logger)
+	router.Use(
+		func(h http.Handler) http.Handler {
+			return viewer.TenancyHandler(h, cfg.tenancy)
+		},
+		func(h http.Handler) http.Handler {
+			return actions.Handler(h, cfg.logger, cfg.actions.registry)
+		},
+	)
+	handler, err := importer.NewHandler(cfg.logger)
 	if err != nil {
-		return nil, errors.WithMessage(err, "creating import handler")
+		return nil, fmt.Errorf("creating import handler: %w", err)
 	}
 	router.PathPrefix("/import/").
-		Handler(http.StripPrefix("/import", importHandler)).
+		Handler(http.StripPrefix("/import", handler)).
 		Name("import")
 
-	exportHandler, err := exporter.NewHandler(logger)
-	if err != nil {
-		return nil, errors.WithMessage(err, "creating export handler")
+	if handler, err = exporter.NewHandler(cfg.logger); err != nil {
+		return nil, fmt.Errorf("creating export handler: %w", err)
 	}
-
 	router.PathPrefix("/export/").
-		Handler(http.StripPrefix("/export", exportHandler)).
+		Handler(http.StripPrefix("/export", handler)).
 		Name("export")
 
-	handler, err := graphql.NewHandler(logger, orc8rClient)
-	if err != nil {
-		return nil, errors.WithMessage(err, "creating graphql handler")
+	if handler, err = graphql.NewHandler(cfg.logger, cfg.orc8r.client); err != nil {
+		return nil, fmt.Errorf("creating graphql handler: %w", err)
 	}
 	router.PathPrefix("/").
 		Handler(handler).
 		Name("root")
+
 	return router, nil
 }

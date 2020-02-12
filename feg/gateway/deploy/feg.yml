@@ -10,5 +10,6 @@
     - role: pkgrepo
       vars:
         distribution: "xenial"
+        repo: "dev"
     - role: gateway_services
     - role: feg_services

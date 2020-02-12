@@ -64,6 +64,11 @@ static bool parse_apn(
   std::string& mac_addr,
   std::string& name);
 
+static SubscriberQuotaUpdate make_subscriber_quota_update(
+  const std::string& imsi,
+  const std::string& ue_mac_addr,
+  const SubscriberQuotaUpdate_Type state);
+
 LocalEnforcer::LocalEnforcer(
   std::shared_ptr<SessionReporter> reporter,
   std::shared_ptr<StaticRuleStore> rule_store,
@@ -197,6 +202,8 @@ void LocalEnforcer::execute_actions(
   }
 }
 
+// Terminates sessions that correspond to the given IMSI.
+// (For session termination triggered by sessiond)
 void LocalEnforcer::terminate_service(
   const std::string& imsi,
   const std::vector<std::string>& rule_ids,
@@ -225,6 +232,21 @@ void LocalEnforcer::terminate_service(
                    << "Radius ID: " << session->get_radius_session_id()
                    << ", IMSI: " << imsi;
       aaa_client_->terminate_session(session->get_radius_session_id(), imsi);
+
+      MLOG(MDEBUG) << "Deleting UE MAC flow for subscriber " << imsi;
+      SubscriberID sid;
+      sid.set_id(imsi);
+      bool delete_ue_mac_flow_success = pipelined_client_->delete_ue_mac_flow(
+          sid, session->get_mac_addr());
+      if (!delete_ue_mac_flow_success) {
+        MLOG(MERROR) << "Failed to delete UE MAC flow for subscriber " << imsi;
+      }
+      MLOG(MDEBUG) << "Setting subscriber quota state as TERMINATE "
+                   << "for subscriber " << imsi;
+      session->set_monitoring_quota_state(
+        SubscriberQuotaUpdate_Type_TERMINATE);
+      report_subscriber_state_to_pipelined(
+        imsi, session->get_mac_addr(), SubscriberQuotaUpdate_Type_TERMINATE);
     }
 
     std::string session_id = session->get_session_id();
@@ -682,13 +704,35 @@ bool LocalEnforcer::init_session_credit(
         apn_mac_addr = "";
         apn_name = cfg.apn;
     }
+    auto ue_mac_addr = session_state->get_mac_addr();
     bool add_ue_mac_flow_success = pipelined_client_->add_ue_mac_flow(
-      sid, session_state->get_mac_addr(), cfg.msisdn, apn_mac_addr, apn_name);
+      sid, ue_mac_addr, cfg.msisdn, apn_mac_addr, apn_name);
     if (!add_ue_mac_flow_success) {
       MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
     }
+    MLOG(MDEBUG) << "Setting subscriber quota state as VALID "
+                 << "for subscriber " << imsi;
+    session_state->set_monitoring_quota_state(
+      SubscriberQuotaUpdate_Type_VALID_QUOTA);
+    report_subscriber_state_to_pipelined(
+      imsi, ue_mac_addr, SubscriberQuotaUpdate_Type_VALID_QUOTA);
   }
   return rule_update_success;
+}
+
+void LocalEnforcer::report_subscriber_state_to_pipelined(
+  const std::string& imsi,
+  const std::string& ue_mac_addr,
+  const SubscriberQuotaUpdate_Type state)
+{
+  auto update = make_subscriber_quota_update(imsi, ue_mac_addr, state);
+  bool add_subscriber_quota_state_success =
+  pipelined_client_->update_subscriber_quota_state(
+    std::vector<SubscriberQuotaUpdate>{update});
+  if (!add_subscriber_quota_state_success) {
+    MLOG(MERROR) << "Failed to update subscriber's quota state to " << state
+                 << " for subscriber " << imsi;
+  }
 }
 
 void LocalEnforcer::complete_termination(
@@ -867,11 +911,12 @@ void LocalEnforcer::update_session_credits_and_rules(
   update_monitoring_credits_and_rules(response, subscribers_to_terminate);
 
   terminate_multiple_services(subscribers_to_terminate);
+  // todo update monitoring quota if all monitoring rules are gone OR
+  // subscriber is terminated
 }
 
-// terminate_subscriber,
-// if apn is specified, it teminates the corresponding PDN session
-// else all sessions for IMSI are terminated
+// terminate_subscriber (for externally triggered EndSession)
+// terminates the session that is associated with the given imsi and apn
 void LocalEnforcer::terminate_subscriber(
   const std::string& imsi,
   const std::string& apn,
@@ -902,6 +947,21 @@ void LocalEnforcer::terminate_subscriber(
                      << " and session " << session->get_session_id()
                      << " during termination";
       }
+
+      if (session->is_radius_cwf_session()) {
+        MLOG(MDEBUG) << "Deleting UE MAC flow for subscriber " << imsi;
+        SubscriberID sid;
+        sid.set_id(imsi);
+        bool delete_ue_mac_flow_success = pipelined_client_->delete_ue_mac_flow(
+            sid, session->get_mac_addr());
+        if (!delete_ue_mac_flow_success) {
+          MLOG(MERROR) << "Failed to delete UE MAC flow for subscriber " << imsi;
+        }
+        session->set_monitoring_quota_state(SubscriberQuotaUpdate_Type_TERMINATE);
+        report_subscriber_state_to_pipelined(
+          imsi, session->get_mac_addr(), SubscriberQuotaUpdate_Type_TERMINATE);
+      }
+
       session->start_termination(on_termination_callback);
       std::string session_id = session->get_session_id();
       // The termination should be completed when aggregated usage record no
@@ -1020,11 +1080,20 @@ void LocalEnforcer::init_policy_reauth(
     mark_rule_failures(
       all_activated, all_deactivated, request, answer_out);
   } else {
+    bool session_id_valid = false;
     for (const auto& session : it->second) {
       if (session->get_session_id() == request.session_id()) {
+        session_id_valid = true;
         init_policy_reauth_for_session(
           request, session, activate_success, deactivate_success);
       }
+    }
+    if(!session_id_valid) {
+      MLOG(MERROR) << "Found a matching IMSI " << request.imsi()
+      << ", but no matching session ID " << request.session_id() <<
+      " during policy reauth";
+      answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
+      return;
     }
     mark_rule_failures(activate_success, deactivate_success, request, answer_out);
   }
@@ -1076,6 +1145,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
       request.imsi(), ip_addr, rules_to_activate.static_rules,
       rules_to_activate.dynamic_rules);
   }
+  // todo update monitoring quota if all monitoring rules are gone
 
   create_bearer(
     activate_success, session, request, rules_to_activate.dynamic_rules);
@@ -1269,7 +1339,7 @@ void LocalEnforcer::check_usage_for_reporting()
     });
 }
 
-bool LocalEnforcer::is_imsi_duplicate(const std::string& imsi)
+bool LocalEnforcer::is_imsi_duplicate(const std::string& imsi) const
 {
   auto it = session_map_.find(imsi);
   if (it == session_map_.end()) {
@@ -1278,7 +1348,8 @@ bool LocalEnforcer::is_imsi_duplicate(const std::string& imsi)
   return true;
 }
 
-bool LocalEnforcer::is_apn_duplicate(const std::string& imsi, const std::string& apn)
+bool LocalEnforcer::is_apn_duplicate(
+  const std::string& imsi, const std::string& apn) const
 {
   auto it = session_map_.find(imsi);
   if (it == session_map_.end()) {
@@ -1292,8 +1363,8 @@ bool LocalEnforcer::is_apn_duplicate(const std::string& imsi, const std::string&
   return false;
 }
 
-std::string *LocalEnforcer::duplicate_session_id(
-  const std::string& imsi, const magma::SessionState::Config& config)
+std::string* LocalEnforcer::duplicate_session_id(
+  const std::string& imsi, const magma::SessionState::Config& config) const
 {
   auto it = session_map_.find(imsi);
   if (it != session_map_.end()) {
@@ -1394,5 +1465,18 @@ static bool parse_apn(
   // Allow empty name, spec is unclear on this
   name = apn.substr(split_location + 1, apn.size());
   return true;
+}
+
+static SubscriberQuotaUpdate make_subscriber_quota_update(
+  const std::string& imsi,
+  const std::string& ue_mac_addr,
+  const SubscriberQuotaUpdate_Type state)
+{
+  SubscriberQuotaUpdate update;
+  auto sid = update.mutable_sid();
+  sid->set_id(imsi);
+  update.set_mac_addr(ue_mac_addr);
+  update.set_update_type(state);
+  return update;
 }
 } // namespace magma

@@ -912,3 +912,17 @@ func (tr txResolver) RemoveActionsRule(ctx context.Context, id string) (bool, er
 	}
 	return result, nil
 }
+
+func (tr txResolver) TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID string) (*ent.WorkOrder, error) {
+	var result, zero *ent.WorkOrder
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.TechnicianWorkOrderCheckIn(ctx, workOrderID)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}

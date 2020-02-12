@@ -396,11 +396,11 @@ var fileDescriptor_cb3d75761beb5907 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // AccountingClient is the client API for Accounting service.
 //
@@ -423,10 +423,10 @@ type AccountingClient interface {
 }
 
 type accountingClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewAccountingClient(cc *grpc.ClientConn) AccountingClient {
+func NewAccountingClient(cc grpc.ClientConnInterface) AccountingClient {
 	return &accountingClient{cc}
 }
 

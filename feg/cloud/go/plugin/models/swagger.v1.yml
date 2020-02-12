@@ -995,6 +995,12 @@ definitions:
         example: 0.75
     x-go-custom-tag: 'magma_alt_name:"HEALTH"'
 
+  csfb:
+    type: object
+    description: csfb configuration
+    properties:
+      client:
+        $ref: '#/definitions/sctp_client_configs'
 
   network_federation_configs:
     description: Federation configuration for a network
@@ -1010,6 +1016,7 @@ definitions:
       - aaa_server
       - served_network_ids
       - health
+      - csfb
     properties:
       s6a:
         $ref: '#/definitions/s6a'
@@ -1029,6 +1036,8 @@ definitions:
         $ref: '#/definitions/served_network_ids'
       health:
         $ref: '#/definitions/health'
+      csfb:
+        $ref: '#/definitions/csfb'
 
   eap_aka_timeouts:
     type: object
@@ -1170,6 +1179,21 @@ definitions:
         example: "magma-fedgw.magma.com"
         x-nullable: false
 
+  sctp_client_configs:
+    description: SCTP Configuration of the CSFB service
+    type: object
+    properties:
+      server_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+      local_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: ":56789"
+        x-nullable: false
+
   subscription_profile:
     description: HSS Subscription Profile
     type: object
@@ -1256,6 +1280,7 @@ definitions:
       - aaa_server
       - served_network_ids
       - health
+      - csfb
     properties:
       s6a:
         $ref: '#/definitions/s6a'
@@ -1275,6 +1300,8 @@ definitions:
         $ref: '#/definitions/served_network_ids'
       health:
         $ref: '#/definitions/health'
+      csfb:
+        $ref: '#/definitions/csfb'
 
   federated_network_configs:
     description: Configs for networks that are federated

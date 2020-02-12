@@ -12,8 +12,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 )

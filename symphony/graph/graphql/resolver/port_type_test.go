@@ -16,13 +16,12 @@ import (
 )
 
 func TestAddEquipmentPortType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 
-	_, err = mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{
+	_, err := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{
 		Name: "example_type",
 	})
 	require.NoError(t, err)
@@ -34,13 +33,12 @@ func TestAddEquipmentPortType(t *testing.T) {
 }
 
 func TestAddEquipmentPortTypes(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 
-	_, err = mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{Name: "example_type_a"})
+	_, err := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{Name: "example_type_a"})
 	require.NoError(t, err)
 	_, err = mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{Name: "example_type_b"})
 	require.NoError(t, err)
@@ -50,8 +48,7 @@ func TestAddEquipmentPortTypes(t *testing.T) {
 }
 
 func TestAddEquipmentPortTypeWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -92,8 +89,7 @@ func TestAddEquipmentPortTypeWithProperties(t *testing.T) {
 }
 
 func TestAddEquipmentPortTypeWithLinkProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -134,8 +130,7 @@ func TestAddEquipmentPortTypeWithLinkProperties(t *testing.T) {
 }
 
 func TestAddEquipmentPortTypesSameName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -150,8 +145,7 @@ func TestAddEquipmentPortTypesSameName(t *testing.T) {
 }
 
 func TestRemoveEquipmentPortType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -173,8 +167,7 @@ func TestRemoveEquipmentPortType(t *testing.T) {
 }
 
 func TestEditEquipmentPortType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -206,8 +199,7 @@ func TestEditEquipmentPortType(t *testing.T) {
 }
 
 func TestEditEquipmentPortTypeWithLinkProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -272,8 +264,7 @@ func TestEditEquipmentPortTypeWithLinkProperties(t *testing.T) {
 }
 
 func TestEditEquipmentPortTypeWithLinkPropertiesSameName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -307,8 +298,7 @@ func TestEditEquipmentPortTypeWithLinkPropertiesSameName(t *testing.T) {
 }
 
 func TestRemoveEquipmentPortTypeWithLinkedEquipmentType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()

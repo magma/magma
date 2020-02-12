@@ -62,6 +62,7 @@ static void get_session_req_data(
   spgw_state_t *spgw_state,
   const itti_s11_create_session_request_t *saved_req,
   struct pcef_create_session_data *data);
+static char convert_digit_to_char(char digit);
 extern spgw_config_t spgw_config;
 extern uint32_t sgw_get_new_s1u_teid(void);
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
@@ -311,18 +312,38 @@ static int get_imeisv_from_session_req(
   return 0;
 }
 
+/*
+ * Converts ascii values in [0,9] to [48,57]=['0','9']
+ * else if they are in [48,57] keep them the same
+ * else log an error and return '0'=48 value
+ */
+static char convert_digit_to_char(char digit)
+{
+  if ((digit >= 0) && (digit <= 9)) {
+    return (digit + '0');
+  } else if ((digit >= '0') && (digit <= '9')){
+    return digit;
+  } else {
+    OAILOG_ERROR(
+      LOG_PGW_APP,
+      "The input value for digit is not in a valid range: "
+      "Session request would likely be rejected on Gx or Gy interface\n");
+    return '0';
+  }
+}
+
 static void get_plmn_from_session_req(
   const itti_s11_create_session_request_t* saved_req,
   struct pcef_create_session_data* data)
 {
-  data->mcc_mnc[0] = saved_req->serving_network.mcc[0];
-  data->mcc_mnc[1] = saved_req->serving_network.mcc[1];
-  data->mcc_mnc[2] = saved_req->serving_network.mcc[2];
-  data->mcc_mnc[3] = saved_req->serving_network.mnc[0];
-  data->mcc_mnc[4] = saved_req->serving_network.mnc[1];
+  data->mcc_mnc[0] = convert_digit_to_char(saved_req->serving_network.mcc[0]);
+  data->mcc_mnc[1] = convert_digit_to_char(saved_req->serving_network.mcc[1]);
+  data->mcc_mnc[2] = convert_digit_to_char(saved_req->serving_network.mcc[2]);
+  data->mcc_mnc[3] = convert_digit_to_char(saved_req->serving_network.mnc[0]);
+  data->mcc_mnc[4] = convert_digit_to_char(saved_req->serving_network.mnc[1]);
   data->mcc_mnc_len = 5;
-  if (saved_req->serving_network.mnc[2] != 0xff) {
-    data->mcc_mnc[5] = saved_req->serving_network.mnc[2];
+  if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
+    data->mcc_mnc[5] = convert_digit_to_char(saved_req->serving_network.mnc[2]);
     data->mcc_mnc[6] = '\0';
     data->mcc_mnc_len += 1;
   } else {
@@ -334,14 +355,15 @@ static void get_imsi_plmn_from_session_req(
   const itti_s11_create_session_request_t* saved_req,
   struct pcef_create_session_data* data)
 {
-  data->imsi_mcc_mnc[0] = saved_req->imsi.digit[0];
-  data->imsi_mcc_mnc[1] = saved_req->imsi.digit[1];
-  data->imsi_mcc_mnc[2] = saved_req->imsi.digit[2];
-  data->imsi_mcc_mnc[3] = saved_req->imsi.digit[3];
-  data->imsi_mcc_mnc[4] = saved_req->imsi.digit[4];
+  data->imsi_mcc_mnc[0] = convert_digit_to_char(saved_req->imsi.digit[0]);
+  data->imsi_mcc_mnc[1] = convert_digit_to_char(saved_req->imsi.digit[1]);
+  data->imsi_mcc_mnc[2] = convert_digit_to_char(saved_req->imsi.digit[2]);
+  data->imsi_mcc_mnc[3] = convert_digit_to_char(saved_req->imsi.digit[3]);
+  data->imsi_mcc_mnc[4] = convert_digit_to_char(saved_req->imsi.digit[4]);
   data->imsi_mcc_mnc_len = 5;
-  if ((saved_req->imsi.digit[5] & 0xf) != 0xf) {
-    data->imsi_mcc_mnc[5] = saved_req->imsi.digit[5];
+  // Check if 2 or 3 digit by verifying mnc[2] has a valid value
+  if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
+    data->imsi_mcc_mnc[5] = convert_digit_to_char(saved_req->imsi.digit[5]);
     data->imsi_mcc_mnc[6] = '\0';
     data->imsi_mcc_mnc_len += 1;
   } else {

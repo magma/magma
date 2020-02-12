@@ -86,7 +86,7 @@ const styles = theme => ({
     alignItems: 'center',
     padding: '0px 24px',
     marginBottom: '16px',
-    '& :not(:last-child)': {
+    '&>:not(:last-child)': {
       marginRight: '8px',
     },
   },
@@ -102,9 +102,6 @@ const styles = theme => ({
     '&:last-child': {
       paddingBottom: '0px',
     },
-  },
-  breadcrumbs: {
-    flexGrow: 1,
   },
   footer: {
     padding: '12px 16px',
@@ -215,12 +212,10 @@ class LocationPropertiesCard extends React.Component<Props, State> {
               <div className={classes.root}>
                 <div className={classes.cardHeader}>
                   <div className={classes.locationNameHeader}>
-                    <div className={classes.breadcrumbs}>
-                      <LocationBreadcrumbsTitle
-                        locationDetails={location}
-                        hideTypes={false}
-                      />
-                    </div>
+                    <LocationBreadcrumbsTitle
+                      locationDetails={location}
+                      hideTypes={false}
+                    />
                     <LocationMoreActionsButton
                       location={location}
                       onLocationRemoved={onLocationRemoved}

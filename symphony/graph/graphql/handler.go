@@ -6,7 +6,6 @@ package graphql
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -34,16 +33,17 @@ func init() { gqlprometheus.Register() }
 
 // NewHandler creates a graphql http handler.
 func NewHandler(logger log.Logger, orc8rClient *http.Client) (http.Handler, error) {
-	var opts []resolver.ResolveOption
-	opts = append(opts, resolver.WithOrc8rClient(orc8rClient))
-	rsv, err := resolver.New(logger, opts...)
-	if err != nil {
-		return nil, fmt.Errorf("creating resolver: %w", err)
-	}
+	rsv := resolver.New(
+		resolver.ResolveConfig{
+			Logger: logger,
+			// TODO: add events topic
+		},
+		resolver.WithOrc8rClient(orc8rClient),
+	)
 
 	router := mux.NewRouter()
 	router.Use(func(handler http.Handler) http.Handler {
-		timeouter := http.TimeoutHandler(handler, 30*time.Second, "request timed out")
+		timeouter := http.TimeoutHandler(handler, 3*time.Minute, "request timed out")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			h := timeouter
 			if websocket.IsWebSocketUpgrade(r) {

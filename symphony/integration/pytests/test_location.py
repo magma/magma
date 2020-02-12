@@ -73,9 +73,36 @@ class TestLocation(BaseTest):
         self.assertEqual(self.location_with_ext_id, fetch_locations[0])
 
     def test_location_edited(self):
-        self.client.edit_location(self.location_1, "Lima4", 10, 20, None)
+        self.client.edit_location(
+            self.location_1, "Lima4", 10, 20, None, {"Contact": "new_limacity@peru.pe"}
+        )
         edited_location = self.client.get_location([("City", "Lima4")])
+        # TODO update test to check updated properties
         self.assertEqual(self.location_1.id, edited_location.id)
+
+    def test_location_add_file(self):
+        temp_file_path = os.path.join(self.tmpdir, ".".join(["temp_file", "txt"]))
+        with open(temp_file_path, "wb") as tmp_file:
+            tmp_file.write(b"TEST DATA FILE")
+
+        self.client.add_file(temp_file_path, "LOCATION", self.location_1.id)
+
+        docs = self.client.get_location_documents(self.location_1)
+        self.assertEqual(len(docs), 1)
+        for doc in docs:
+            self.client.delete_document(doc)
+
+    def test_location_add_file_with_category(self):
+        temp_file_path = os.path.join(self.tmpdir, ".".join(["temp_file", "txt"]))
+        with open(temp_file_path, "wb") as tmp_file:
+            tmp_file.write(b"TEST DATA FILE")
+        self.client.add_file(
+            temp_file_path, "LOCATION", self.location_1.id, "test_category"
+        )
+        docs = self.client.get_location_documents(self.location_1)
+        for doc in docs:
+            self.assertEqual(doc.category, "test_category")
+            self.client.delete_document(doc)
 
     def test_location_upload_folder(self):
         fetch_location = self.client.get_location([("City", "Lima1")])

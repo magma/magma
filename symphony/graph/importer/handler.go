@@ -6,16 +6,13 @@ package importer
 
 import (
 	"net/http"
-	"net/http/httputil"
 
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	"go.opencensus.io/plugin/ochttp"
-	"go.uber.org/zap"
 )
 
 type importer struct {
@@ -23,18 +20,16 @@ type importer struct {
 	r   generated.ResolverRoot
 }
 
-// newImporter is a constructor for an importer
-func newImporter(log log.Logger, r generated.ResolverRoot) *importer {
-	return &importer{log, r}
-}
-
 // NewHandler creates a upload http handler.
-func NewHandler(log log.Logger) (http.Handler, error) {
-	r, err := resolver.New(log, resolver.WithTransaction(false))
-	if err != nil {
-		return nil, errors.WithMessage(err, "creating resolver")
-	}
-	u := newImporter(log, r)
+func NewHandler(logger log.Logger) (http.Handler, error) {
+	r := resolver.New(
+		resolver.ResolveConfig{
+			Logger: logger,
+			// TODO: add events topic
+		},
+		resolver.WithTransaction(false),
+	)
+	u := &importer{logger, r}
 
 	router := mux.NewRouter()
 	router.Use(
@@ -50,17 +45,6 @@ func NewHandler(log log.Logger) (http.Handler, error) {
 					if name := route.GetName(); name != "" {
 						ochttp.SetRoute(r.Context(), "import_"+name)
 					}
-				}
-				next.ServeHTTP(w, r)
-			})
-		},
-		func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if content, err := httputil.DumpRequest(r, false); err == nil {
-					log.For(r.Context()).Debug(
-						"http request dump",
-						zap.ByteString("content", content),
-					)
 				}
 				next.ServeHTTP(w, r)
 			})

@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -47,6 +47,7 @@ const useStyles = makeStyles({
   actionButtons: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   actionButton: {
     '&:not(:first-child)': {

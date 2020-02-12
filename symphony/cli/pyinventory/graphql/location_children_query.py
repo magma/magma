@@ -34,6 +34,8 @@ class LocationChildrenQuery:
       children {
         id
         name
+        latitude
+        longitude
         externalId
         locationType {
           name
@@ -61,6 +63,8 @@ class LocationChildrenQuery:
 
                 id: str
                 name: str
+                latitude: float
+                longitude: float
                 locationType: LocationType
                 externalId: Optional[str] = None
 

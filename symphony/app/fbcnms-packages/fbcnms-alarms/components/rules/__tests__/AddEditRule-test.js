@@ -4,15 +4,17 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AddEditRule from '../AddEditRule';
 import RuleEditorBase from '../RuleEditorBase';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil, renderAsync} from '../../../test/testHelpers';
+import {assertType} from '@fbcnms/util/assert';
 import {mockPrometheusRule} from '../../../test/data';
 import {toBaseFields} from '../PrometheusEditor/PrometheusEditor';
 import type {AlertConfig} from '../../AlarmAPIType';
@@ -101,7 +103,12 @@ describe('Receiver select', () => {
     act(() => {
       fireEvent.click(getByText('new_receiver'));
     });
-    expect(getByTestId('select-receiver-input').value).toBe('new_receiver');
+
+    const receiverInput = assertType(
+      getByTestId('select-receiver-input'),
+      HTMLInputElement,
+    );
+    expect(receiverInput.value).toBe('new_receiver');
   });
 
   test('setting a receiver adds a new route', async () => {
@@ -169,7 +176,7 @@ describe('Receiver select', () => {
       <AlarmsWrapper>
         <AddEditRule {...commonProps} />
       </AlarmsWrapper>,
-      {baseElement: document.body},
+      {baseElement: nullthrows(document.body)},
     );
 
     act(() => {
@@ -218,7 +225,7 @@ describe('Receiver select', () => {
       <AlarmsWrapper>
         <AddEditRule {...commonProps} />
       </AlarmsWrapper>,
-      {baseElement: document.body},
+      {baseElement: nullthrows(document.body)},
     );
 
     act(() => {

@@ -168,6 +168,11 @@ def _copy_module(module: MagmaModule) -> None:
         os.path.join(module.host_path, 'cloud'),
         os.path.join(dst, 'cloud'),
     )
+    if module.name == 'orc8r':
+        shutil.copytree(
+            os.path.join(module.host_path, 'lib'),
+            os.path.join(dst, 'lib'),
+        )
 
     if os.path.isdir(os.path.join(module.host_path, 'tools')):
         shutil.copytree(

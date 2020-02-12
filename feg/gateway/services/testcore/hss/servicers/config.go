@@ -18,9 +18,9 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
+	configs "magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/service/config"
-	configs "magma/orc8r/gateway/mconfig"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )

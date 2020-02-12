@@ -13,12 +13,12 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/logger"
 	"magma/orc8r/cloud/go/services/logger/exporters"
 	"magma/orc8r/cloud/go/services/logger/nghttpxlogger"
 	"magma/orc8r/cloud/go/services/logger/servicers"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 )

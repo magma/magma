@@ -11,11 +11,11 @@ package device
 import (
 	"context"
 
-	merrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/device/protos"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"

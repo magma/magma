@@ -31,7 +31,7 @@ $ /bin/entscript --tenant=fb-test --user=fbuser@fb.com
 - Connect to production context
 ```kubectl config use-context symphony-production```
 - Verify you're on the right context (where the "*" is)
-```kubectl get contexts``` 
+```kubectl config get-contexts``` 
 - Find the pod names and choose one of the graph's pods (for later use in {graph_pod_name})
 ```kubectl get pods```
 

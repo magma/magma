@@ -9,12 +9,12 @@
 package pluginimpl
 
 import (
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/protos/mconfig"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"

@@ -15,7 +15,7 @@ import (
 	"net/http"
 
 	"magma/feg/cloud/go/protos/mconfig"
-	gwmcfg "magma/orc8r/gateway/mconfig"
+	gwmcfg "magma/gateway/mconfig"
 
 	"github.com/golang/glog"
 )

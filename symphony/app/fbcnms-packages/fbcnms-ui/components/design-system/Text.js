@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -42,6 +42,9 @@ export const typographyStyles = makeStyles({
   errorColor: {
     color: symphony.palette.R600,
   },
+  warningColor: {
+    color: symphony.palette.Y600,
+  },
   lightWeight: {
     fontWeight: 300,
   },
@@ -74,7 +77,7 @@ type Props = {
     | 'overline',
   className?: string,
   weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold',
-  color?: 'light' | 'regular' | 'primary' | 'error' | 'gray',
+  color?: 'light' | 'regular' | 'primary' | 'error' | 'gray' | 'warning',
 };
 
 const Text = (props: Props) => {

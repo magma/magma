@@ -104,12 +104,6 @@ class ArpController(MagmaController):
             self._current_ues.append(ue_ip)
             self._set_outgoing_arp_flows(datapath, ue_ip)
 
-    def cleanup_on_discnnect(self, datapath):
-        self.delete_all_flows(datapath)
-        self._set_incoming_arp_flows(datapath)
-        self._set_default_eth_dst_flow(datapath)
-        self._set_default_forward_flow(datapath)
-
     def cleanup_on_disconnect(self, datapath):
         self.delete_all_flows(datapath)
 

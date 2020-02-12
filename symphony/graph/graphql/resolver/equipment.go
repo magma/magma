@@ -331,8 +331,8 @@ func (r equipmentResolver) Device(ctx context.Context, e *ent.Equipment) (*model
 	if e.DeviceID == "" {
 		return nil, nil
 	}
-	if r.orc8rClient == nil {
-		return nil, errors.New("unsupported orc8r field")
+	if r.orc8r.client == nil {
+		return nil, errors.New("unsupported field")
 	}
 	parts := strings.Split(e.DeviceID, ".")
 	if len(parts) < 2 {
@@ -344,7 +344,7 @@ func (r equipmentResolver) Device(ctx context.Context, e *ent.Equipment) (*model
 	if err != nil {
 		return nil, fmt.Errorf("cannot create http request: %w", err)
 	}
-	rsp, err := r.orc8rClient.Do(req)
+	rsp, err := r.orc8r.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("performing orc8r status request: %w", err)
 	}
@@ -359,8 +359,9 @@ func (r equipmentResolver) Device(ctx context.Context, e *ent.Equipment) (*model
 
 	dev := models.Device{ID: e.DeviceID}
 	if result.CheckinTime != 0 {
-		up := checkinTimeIsUp(result.CheckinTime, 3*time.Minute)
-		dev.Up = &up
+		dev.Up = pointer.ToBool(
+			checkinTimeIsUp(result.CheckinTime, 3*time.Minute),
+		)
 	}
 	return &dev, nil
 }

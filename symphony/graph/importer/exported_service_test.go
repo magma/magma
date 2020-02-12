@@ -96,8 +96,7 @@ func prepareServiceTypeData(ctx context.Context, t *testing.T, r TestImporterRes
 }
 
 func TestValidatePropertiesForServiceType(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	q := r.importer.r.Query()
 	defer r.drv.Close()
@@ -105,7 +104,6 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	data := prepareServiceTypeData(ctx, t, *r)
 
 	mr := r.importer.r.Mutation()
-
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "City"})
 	require.NoError(t, err)
 	loc, err := mr.AddLocation(ctx, models.AddLocationInput{Name: "New York", Type: locType.ID})
@@ -220,8 +218,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 }
 
 func TestValidateForExistingService(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 	ctx := newImportContext(viewertest.NewContext(r.client))

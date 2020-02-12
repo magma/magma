@@ -6,10 +6,10 @@ package resolver
 
 import (
 	"context"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -110,15 +110,14 @@ func prepareServiceData(ctx context.Context, r *TestResolver) serviceSearchDataM
 }
 
 func TestSearchServicesByName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(r.client)
 
 	data := prepareServiceData(ctx, r)
 
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
+	_, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
@@ -160,15 +159,14 @@ func TestSearchServicesByName(t *testing.T) {
 }
 
 func TestSearchServicesByStatus(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(r.client)
 
 	data := prepareServiceData(ctx, r)
 
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
+	_, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
 		Status:        pointerToServiceStatus(models.ServiceStatusMaintenance),
@@ -193,7 +191,7 @@ func TestSearchServicesByStatus(t *testing.T) {
 	f1 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeServiceStatus,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.ServiceStatusMaintenance.String()},
+		StringSet:  []string{models.ServiceStatusMaintenance.String()},
 	}
 	res1, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f1}, &limit)
 	require.NoError(t, err)
@@ -202,7 +200,7 @@ func TestSearchServicesByStatus(t *testing.T) {
 	f2 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeServiceStatus,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.ServiceStatusInService.String()},
+		StringSet:  []string{models.ServiceStatusInService.String()},
 	}
 	res2, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f2}, &limit)
 	require.NoError(t, err)
@@ -211,7 +209,7 @@ func TestSearchServicesByStatus(t *testing.T) {
 	f3 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeServiceStatus,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.ServiceStatusPending.String()},
+		StringSet:  []string{models.ServiceStatusPending.String()},
 	}
 	res3, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f3}, &limit)
 	require.NoError(t, err)
@@ -219,8 +217,7 @@ func TestSearchServicesByStatus(t *testing.T) {
 }
 
 func TestSearchServicesByType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(r.client)
@@ -273,8 +270,7 @@ func TestSearchServicesByType(t *testing.T) {
 }
 
 func TestSearchServicesByExternalID(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(r.client)
@@ -328,8 +324,7 @@ func TestSearchServicesByExternalID(t *testing.T) {
 }
 
 func TestSearchServicesByCustomerName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(r.client)
@@ -386,8 +381,7 @@ func TestSearchServicesByCustomerName(t *testing.T) {
 }
 
 func TestSearchServicesByProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	qr, mr := r.Query(), r.Mutation()
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
@@ -400,7 +394,7 @@ func TestSearchServicesByProperties(t *testing.T) {
 	}
 	servicePropInput := []*models.PropertyInput{&serviceStrProp}
 
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
+	_, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
 		Properties:    servicePropInput,
@@ -434,8 +428,7 @@ func TestSearchServicesByProperties(t *testing.T) {
 }
 
 func TestSearchServicesByLocations(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(r.client)
@@ -554,8 +547,7 @@ func TestSearchServicesByLocations(t *testing.T) {
 }
 
 func TestSearchServicesByEquipmentInside(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(r.client)
@@ -607,7 +599,7 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 
 	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
 
-	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+	_, err := mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
 		ID:     s1.ID,
 		PortID: ep1.ID,
 		Role:   models.ServiceEndpointRoleConsumer,

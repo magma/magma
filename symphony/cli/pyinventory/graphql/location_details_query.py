@@ -32,8 +32,13 @@ class LocationDetailsQuery:
   location: node(id: $id) {
     ... on Location {
       id
-      externalId
       name
+      latitude
+      longitude
+      externalId
+      locationType {
+        name
+      }
     }
   }
 }
@@ -46,8 +51,16 @@ class LocationDetailsQuery:
         @dataclass_json
         @dataclass
         class Node:
+            @dataclass_json
+            @dataclass
+            class LocationType:
+                name: str
+
             id: str
             name: str
+            latitude: float
+            longitude: float
+            locationType: LocationType
             externalId: Optional[str] = None
 
         location: Optional[Node] = None

@@ -23,7 +23,7 @@ import (
 	"magma/feg/gateway/service_health"
 	"magma/feg/gateway/services/gateway_health"
 	"magma/feg/gateway/services/gateway_health/collection"
-	gwmcfg "magma/orc8r/gateway/mconfig"
+	gwmcfg "magma/gateway/mconfig"
 
 	"github.com/golang/glog"
 )

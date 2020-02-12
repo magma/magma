@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -35,6 +36,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 
@@ -44,6 +46,10 @@ import (
 )
 
 type mutationResolver struct{ resolver }
+
+func (mutationResolver) Me(ctx context.Context) *viewer.Viewer {
+	return viewer.FromContext(ctx)
+}
 
 func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) (bool, error) {
 	var (
@@ -313,7 +319,7 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 		SetLocationID(data.LocationID).
 		SetCompletionTimestamp(time.Unix(int64(data.CompletionTimestamp), 0)).
 		SetName(data.Name).
-		SetOwnerName(r.User(ctx).email)
+		SetOwnerName(r.Me(ctx).User)
 	if data.CreationTimestamp != nil {
 		query.SetCreationTimestamp(time.Unix(int64(*data.CreationTimestamp), 0))
 	}
@@ -658,7 +664,7 @@ func (r mutationResolver) AddEquipmentPositionDefinitions(
 			case err != nil && !ent.IsNotFound(err):
 				return nil, errors.Wrap(err, "querying position definition name existence")
 			case def != nil:
-				r.log.For(ctx).Error("duplicate position definition name for equipment type",
+				r.logger.For(ctx).Error("duplicate position definition name for equipment type",
 					zap.String("name", input.Name),
 					zap.String("type", *equipmentTypeID),
 				)
@@ -703,7 +709,7 @@ func (r mutationResolver) AddEquipmentPortDefinitions(
 			case err != nil && !ent.IsNotFound(err):
 				return nil, errors.Wrap(err, "querying port definition name existence")
 			case pd != nil:
-				r.log.For(ctx).Error("duplicate port definition name for equipment type ",
+				r.logger.For(ctx).Error("duplicate port definition name for equipment type ",
 					zap.String("name", input.Name),
 					zap.String("type", *equipmentTypeID),
 				)
@@ -935,7 +941,7 @@ func (r mutationResolver) hasPositionCycle(ctx context.Context, parent, child st
 	seen := map[string]struct{}{child: {}}
 	for current != nil {
 		if _, ok := seen[current.ID]; ok {
-			r.log.For(ctx).Warn("equipment position cycle",
+			r.logger.For(ctx).Warn("equipment position cycle",
 				zap.String("current", current.ID),
 				zap.Reflect("seen", seen),
 			)
@@ -1172,7 +1178,7 @@ func (r mutationResolver) DeleteImage(ctx context.Context, _ models.ImageEntity,
 func (r mutationResolver) AddComment(ctx context.Context, input models.CommentInput) (*ent.Comment, error) {
 	client := r.ClientFrom(ctx)
 	c, err := client.Comment.Create().
-		SetAuthorName(r.User(ctx).email).
+		SetAuthorName(r.Me(ctx).User).
 		SetText(input.Text).
 		Save(ctx)
 	if err != nil {
@@ -2197,7 +2203,7 @@ func (r mutationResolver) validateEquipmentNameIsUnique(ctx context.Context, nam
 			}
 			parentName = parent.ID
 		}
-		r.log.For(ctx).Error(
+		r.logger.For(ctx).Error(
 			"duplicate equipment name",
 			zap.String("name", name),
 			zap.String("parent", parentName))
@@ -2236,14 +2242,14 @@ func (r mutationResolver) EditLocationTypesIndex(ctx context.Context, locationTy
 	for _, obj := range locationTypesIndex {
 		lt, err := client.LocationType.Get(ctx, obj.LocationTypeID)
 		if err != nil {
-			r.log.For(ctx).Error("couldn't fetch location type",
+			r.logger.For(ctx).Error("couldn't fetch location type",
 				zap.String("id", obj.LocationTypeID),
 			)
 			return nil, gqlerror.Errorf("couldn't fetch location type. id=%q", obj.LocationTypeID)
 		}
 		saved, err := lt.Update().SetIndex(obj.Index).Save(ctx)
 		if err != nil {
-			r.log.For(ctx).Error("couldn't update location type",
+			r.logger.For(ctx).Error("couldn't update location type",
 				zap.String("id", obj.LocationTypeID),
 				zap.Int("index", obj.Index),
 			)
@@ -2931,19 +2937,38 @@ func (r mutationResolver) EditActionsRule(ctx context.Context, id string, input 
 func (r mutationResolver) RemoveActionsRule(ctx context.Context, id string) (bool, error) {
 	client := r.ClientFrom(ctx)
 	if err := client.ActionsRule.DeleteOneID(id).Exec(ctx); err != nil {
-		return false, errors.Wrap(err, "removing actionsrule")
+		return false, fmt.Errorf("removing actions rule: %w", err)
 	}
 	return true, nil
 }
 
 func (r mutationResolver) DeleteFloorPlan(ctx context.Context, id string) (bool, error) {
-	client := r.ClientFrom(ctx).FloorPlan
-	f, err := client.Get(ctx, id)
-	if err != nil {
-		return false, errors.Wrapf(err, "querying floorplan: id=%q", id)
-	}
-	if err := client.DeleteOne(f).Exec(ctx); err != nil {
-		return false, errors.Wrapf(err, "deleting floorplan: id=%q", id)
+	if err := r.ClientFrom(ctx).FloorPlan.DeleteOneID(id).Exec(ctx); err != nil {
+		return false, fmt.Errorf("deleting floor plan %q: err %w", id, err)
 	}
 	return true, nil
+}
+
+func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id string) (*ent.WorkOrder, error) {
+	client := r.ClientFrom(ctx).WorkOrder
+	wo, err := client.Get(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("getting work order %q: %w", id, err)
+	}
+	if wo.Status != models.WorkOrderStatusPlanned.String() {
+		return wo, nil
+	}
+	if wo, err = wo.Update().
+		SetStatus(models.WorkOrderStatusPending.String()).
+		Save(ctx); err != nil {
+		return nil, fmt.Errorf("updating work order %q status to pending: %w", id, err)
+	}
+	if _, err = r.AddComment(ctx, models.CommentInput{
+		EntityType: models.CommentEntityWorkOrder,
+		ID:         id,
+		Text:       r.Me(ctx).User + " checked-in",
+	}); err != nil {
+		return nil, fmt.Errorf("adding technician check-in comment: %w", err)
+	}
+	return wo, nil
 }

@@ -601,11 +601,11 @@ var fileDescriptor_56882954a8fab9d2 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // SwxProxyClient is the client API for SwxProxy service.
 //
@@ -620,10 +620,10 @@ type SwxProxyClient interface {
 }
 
 type swxProxyClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewSwxProxyClient(cc *grpc.ClientConn) SwxProxyClient {
+func NewSwxProxyClient(cc grpc.ClientConnInterface) SwxProxyClient {
 	return &swxProxyClient{cc}
 }
 
@@ -767,10 +767,10 @@ type SwxGatewayServiceClient interface {
 }
 
 type swxGatewayServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewSwxGatewayServiceClient(cc *grpc.ClientConn) SwxGatewayServiceClient {
+func NewSwxGatewayServiceClient(cc grpc.ClientConnInterface) SwxGatewayServiceClient {
 	return &swxGatewayServiceClient{cc}
 }
 

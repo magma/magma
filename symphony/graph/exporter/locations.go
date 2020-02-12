@@ -16,6 +16,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/log"
+
+	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -25,6 +27,7 @@ type locationsFilterInput struct {
 	Operator      models.FilterOperator     `jsons:"operator"`
 	StringValue   string                    `json:"stringValue"`
 	IDSet         []string                  `json:"idSet"`
+	StringSet     []string                  `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                      `json:"maxDepth"`
 	BoolValue     *bool                     `json:"boolValue"`
@@ -35,8 +38,8 @@ type locationsRower struct {
 }
 
 func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
-	log := er.log.For(ctx)
 	var (
+		logger           = er.log.For(ctx)
 		err              error
 		filterInput      []*models.LocationFilterInput
 		locationIDHeader = [...]string{bom + "Location ID"}
@@ -46,7 +49,7 @@ func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 	if filtersParam != "" {
 		filterInput, err = paramToLocationFilterInput(filtersParam)
 		if err != nil {
-			log.Error("cannot filter location", zap.Error(err))
+			logger.Error("cannot filter location", zap.Error(err))
 			return nil, errors.Wrap(err, "cannot filter location")
 		}
 	}
@@ -54,7 +57,7 @@ func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 
 	locations, err := resolverutil.LocationSearch(ctx, client, filterInput, nil)
 	if err != nil {
-		log.Error("cannot query location", zap.Error(err))
+		logger.Error("cannot query location", zap.Error(err))
 		return nil, errors.Wrap(err, "cannot query location")
 	}
 
@@ -71,7 +74,7 @@ func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 	cg.Go(func(ctx context.Context) (err error) {
 		orderedLocTypes, err = locationTypeHierarchy(ctx, client)
 		if err != nil {
-			log.Error("cannot query location types", zap.Error(err))
+			logger.Error("cannot query location types", zap.Error(err))
 			return errors.Wrap(err, "cannot query location types")
 		}
 		return nil
@@ -83,7 +86,7 @@ func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		}
 		propertyTypes, err = propertyTypesSlice(ctx, locationIDs, client, models.PropertyEntityLocation)
 		if err != nil {
-			log.Error("cannot query property types", zap.Error(err))
+			logger.Error("cannot query property types", zap.Error(err))
 			return errors.Wrap(err, "cannot query property types")
 		}
 		return nil
@@ -110,13 +113,13 @@ func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		})
 	}
 	if err := cg.Wait(); err != nil {
-		log.Error("error in wait", zap.Error(err))
+		logger.Error("error in wait", zap.Error(err))
 		return nil, errors.WithMessage(err, "error in wait")
 	}
 	return allRows, nil
 }
 
-func locationToSlice(ctx context.Context, location *ent.Location, orderedLocTypes []string, propertyTypes []string) ([]string, error) {
+func locationToSlice(ctx context.Context, location *ent.Location, orderedLocTypes, propertyTypes []string) ([]string, error) {
 	var (
 		lParents, properties []string
 	)
@@ -146,18 +149,17 @@ func locationToSlice(ctx context.Context, location *ent.Location, orderedLocType
 }
 
 func paramToLocationFilterInput(params string) ([]*models.LocationFilterInput, error) {
-	var ret []*models.LocationFilterInput
 	var inputs []locationsFilterInput
 	err := json.Unmarshal([]byte(params), &inputs)
 	if err != nil {
 		return nil, err
 	}
 
+	ret := make([]*models.LocationFilterInput, 0, len(inputs))
 	for _, f := range inputs {
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
-		StringVal := f.StringValue
-		propVal := f.PropertyValue
+		propertyValue := f.PropertyValue
 		maxDepth := 5
 		if f.MaxDepth != nil {
 			maxDepth = *f.MaxDepth
@@ -165,9 +167,10 @@ func paramToLocationFilterInput(params string) ([]*models.LocationFilterInput, e
 		inp := models.LocationFilterInput{
 			FilterType:    models.LocationFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
-			StringValue:   &StringVal,
-			PropertyValue: &propVal,
+			StringValue:   pointer.ToString(f.StringValue),
+			PropertyValue: &propertyValue,
 			IDSet:         f.IDSet,
+			StringSet:     f.StringSet,
 			MaxDepth:      &maxDepth,
 			BoolValue:     f.BoolValue,
 		}

@@ -14,8 +14,8 @@ import (
 	"magma/lte/cloud/go/lte"
 	models2 "magma/lte/cloud/go/plugin/models"
 	protos2 "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"

@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/services/accessd"
 	"magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/accessd/servicers"
+	"magma/orc8r/cloud/go/services/accessd/storage"
 	"magma/orc8r/cloud/go/sqorc"
 )
 
@@ -37,7 +38,8 @@ func main() {
 	}
 
 	// Add servicers to the service
-	accessdServer := servicers.NewAccessdServer(ds)
+	accessdStore := storage.NewAccessdDatastore(ds)
+	accessdServer := servicers.NewAccessdServer(accessdStore)
 	protos.RegisterAccessControlManagerServer(srv.GrpcServer, accessdServer)
 
 	// Run the service
