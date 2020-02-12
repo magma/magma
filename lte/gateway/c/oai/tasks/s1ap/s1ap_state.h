@@ -49,6 +49,15 @@ ue_description_t* s1ap_state_get_ue_mmeid(
   s1ap_state_t* state,
   mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
+/**
+ * Converts s1ap_imsi_map to protobuf and saves it into data store
+ */
+void put_s1ap_imsi_map(void);
+/**
+ * @return s1ap_imsi_map_t pointer
+ */
+s1ap_imsi_map_t * get_s1ap_imsi_map(void);
+
 bool s1ap_enb_find_ue_by_mme_ue_id_cb(
   __attribute__((unused)) hash_key_t keyP,
   void* elementP,
