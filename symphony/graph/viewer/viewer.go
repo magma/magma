@@ -12,6 +12,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
 
+	"go.opencensus.io/tag"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -24,6 +25,20 @@ const (
 	UserHeader = "x-auth-user-email"
 	// ReadOnlyHeader is the http readonly permission header.
 	ReadOnlyHeader = "x-auth-user-readonly"
+)
+
+// Attributes recorded on the span of the requests.
+const (
+	TenantAttribute = "viewer.tenant"
+	UserAttribute   = "viewer.user"
+	RoleAttribute   = "viewer.role"
+)
+
+// The following tags are applied to context recorded by this package.
+var (
+	KeyTenant = tag.MustNewKey(TenantAttribute)
+	KeyUser   = tag.MustNewKey(UserAttribute)
+	KeyRole   = tag.MustNewKey(RoleAttribute)
 )
 
 // Viewer holds additional per request information.
@@ -43,9 +58,17 @@ func (v *Viewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 
 func (v *Viewer) traceAttrs() []trace.Attribute {
 	return []trace.Attribute{
-		trace.StringAttribute("viewer.tenant", v.Tenant),
-		trace.StringAttribute("viewer.user", v.User),
-		trace.StringAttribute("viewer.role", v.Role),
+		trace.StringAttribute(TenantAttribute, v.Tenant),
+		trace.StringAttribute(UserAttribute, v.User),
+		trace.StringAttribute(RoleAttribute, v.Role),
+	}
+}
+
+func (v *Viewer) tags() []tag.Mutator {
+	return []tag.Mutator{
+		tag.Upsert(KeyTenant, v.Tenant),
+		tag.Upsert(KeyUser, v.User),
+		tag.Upsert(KeyRole, v.Role),
 	}
 }
 
@@ -65,8 +88,9 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 
 		ctx := log.NewFieldsContext(r.Context(), zap.Object("viewer", v))
 		trace.FromContext(ctx).AddAttributes(v.traceAttrs()...)
-		ctx = NewContext(ctx, v)
+		ctx, _ = tag.New(ctx, v.tags()...)
 
+		ctx = NewContext(ctx, v)
 		if tenancy != nil {
 			client, err := tenancy.ClientFor(ctx, tenant)
 			if err != nil {
