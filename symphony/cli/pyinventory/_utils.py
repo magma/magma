@@ -27,7 +27,7 @@ def _get_graphql_properties(
         property_type_name = property_type["name"]
         property_type_id = property_type["id"]
         if property_type_name in properties_dict:
-            type = property_type["type"]
+            type = property_type["type"].value
             value = properties_dict[property_type_name]
             assert property_type[
                 "isInstanceProperty"
