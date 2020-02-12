@@ -8,7 +8,7 @@ from dacite import Config, from_dict
 from gql.gql.client import OperationException
 
 from .._utils import PropertyValue, _make_property_types
-from ..consts import Equipment, EquipmentType
+from ..consts import Equipment, EquipmentPortType, EquipmentType
 from ..exceptions import EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_mutation import (
     AddEquipmentTypeInput,
@@ -19,6 +19,7 @@ from ..graphql.edit_equipment_type_mutation import (
     EditEquipmentTypeInput,
     EditEquipmentTypeMutation,
 )
+from ..graphql.equipment_port_types import EquipmentPortTypesQuery
 from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
 from ..graphql.equipment_types_query import EquipmentTypesQuery
 from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
@@ -46,6 +47,14 @@ def _populate_equipment_types(client: GraphqlClient) -> None:
             ),
             portDefinitions=list(map(lambda p: asdict(p), node.portDefinitions)),
         )
+
+
+def _populate_equipment_port_types(client: GraphqlClient) -> None:
+    edges = EquipmentPortTypesQuery.execute(client).equipmentPortTypes.edges
+
+    for edge in edges:
+        node = edge.node
+        client.portTypes[node.name] = EquipmentPortType(id=node.id, name=node.name)
 
 
 def _add_equipment_type(
@@ -218,6 +227,22 @@ def edit_equipment_type(
     new_positions_list: List[str],
     new_ports_dict: Dict[str, str],
 ) -> EquipmentType:
+    """Edit existing equipment type.
+
+        Args:
+            name (str): equipment type name
+            new_positions_list (List[str]): new position list
+            new_ports_dict (Dict[str, str]): ports dictionary, where key is a port name and value is port type name
+
+        Returns:
+            EquipmentType object
+
+        Raises:
+            FailedOperationException for internal inventory error
+
+        Example:
+            edited_equipment = client.edit_equipment_type("Card", [], {"Port 5": "Z Cards Only (LS - DND)"})
+    """
     if name not in client.equipmentTypes:
         raise EquipmentTypeNotFoundException
     equipment_type = client.equipmentTypes[name]
@@ -225,7 +250,8 @@ def edit_equipment_type(
         {"name": position} for position in new_positions_list
     ]
     port_definitions = equipment_type.portDefinitions + [
-        {"name": name} for name, _ in new_ports_dict.items()
+        {"name": name, "portTypeID": client.portTypes[_type].id}
+        for name, _type in new_ports_dict.items()
     ]
 
     edit_equipment_type_variables = {
