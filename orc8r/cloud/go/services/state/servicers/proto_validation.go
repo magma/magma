@@ -11,9 +11,9 @@ package servicers
 import (
 	"errors"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/serde"
 	stateservice "magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/lib/go/protos"
 )
 
 // ValidateGetStatesRequest checks that all required fields exist

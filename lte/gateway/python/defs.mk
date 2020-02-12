@@ -6,6 +6,7 @@
 #
 PYTHON_SRCS=$(MAGMA_ROOT)/lte/gateway/python $(MAGMA_ROOT)/orc8r/gateway/python
 PROTO_LIST:=orc8r_protos lte_protos feg_protos
+SWAGGER_LIST:=orc8r_swagger_specs
 
 # Path to the test files
 TESTS=magma/tests \

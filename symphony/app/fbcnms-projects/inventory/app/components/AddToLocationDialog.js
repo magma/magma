@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -53,6 +53,9 @@ const styles = _ => ({
   dialogContent: {
     padding: 0,
   },
+  dialogPaper: {
+    minHeight: 550,
+  },
 });
 
 class AddToLocationDialog extends React.Component<Props, State> {
@@ -75,7 +78,11 @@ class AddToLocationDialog extends React.Component<Props, State> {
     const {value, mode} = this.state;
 
     return (
-      <Dialog maxWidth="sm" open={this.props.open} onClose={this.props.onClose}>
+      <Dialog
+        maxWidth="sm"
+        open={this.props.open}
+        onClose={this.props.onClose}
+        classes={{paper: classes.dialogPaper}}>
         {show === 'location' ? (
           <Tabs
             value={value}

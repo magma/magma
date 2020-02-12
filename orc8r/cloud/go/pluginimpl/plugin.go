@@ -16,12 +16,9 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
-	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
@@ -33,11 +30,10 @@ import (
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promeExp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 	"magma/orc8r/cloud/go/services/state"
-	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/providers"
-	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
-	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/labstack/echo"
 )
@@ -94,13 +90,9 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 	return plugin.FlattenHandlerLists(
 		// v0 handlers
 		accessdh.GetObsidianHandlers(),
-		checkinh.GetObsidianHandlers(),
+		// v1 handlers
 		magmadh.GetObsidianHandlers(),
 		metricsdh.GetObsidianHandlers(metricsConfig),
-		upgradeh.GetObsidianHandlers(),
-		stateh.GetObsidianHandlers(),
-		tenantsh.GetObsidianHandlers(),
-		// v1 handlers
 		handlers.GetObsidianHandlers(),
 		[]obsidian.Handler{{
 			Path:    "/",

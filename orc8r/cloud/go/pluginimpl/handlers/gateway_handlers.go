@@ -11,7 +11,6 @@ package handlers
 import (
 	"net/http"
 
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
@@ -20,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"

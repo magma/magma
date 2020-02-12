@@ -59,6 +59,7 @@ const PortViewQueryRenderer = (props: Props) => {
           stringValue: f.stringValue,
           propertyValue: f.propertyValue,
           idSet: f.idSet,
+          stringSet: f.stringSet,
           boolValue: f.boolValue,
         })),
       }}

@@ -271,8 +271,7 @@ func prepareLinkDataByHirerchy(ctx context.Context, r *TestResolver) linkSearchH
 }
 
 func TestSearchLinksFutureState(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -296,7 +295,7 @@ func TestSearchLinksFutureState(t *testing.T) {
 	f1 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeLinkFutureStatus,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.FutureStateRemove.String()},
+		StringSet:  []string{models.FutureStateRemove.String()},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1}, &limit)
@@ -305,14 +304,13 @@ func TestSearchLinksFutureState(t *testing.T) {
 	ports := res1.Links[0].QueryPorts().AllX(ctx)
 	require.NotEqual(t, ports[0].QueryParent().OnlyX(ctx).ID, ports[1].QueryParent().OnlyX(ctx).ID)
 	for _, port := range ports {
-		prnt := port.QueryParent().OnlyX(ctx).ID
-		require.Contains(t, []string{data.e2, data.e4}, prnt)
+		id := port.QueryParent().OnlyXID(ctx)
+		require.Contains(t, []string{data.e2, data.e4}, id)
 	}
 }
 
 func TestSearchLinksByLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -361,8 +359,7 @@ func TestSearchLinksByLocation(t *testing.T) {
 }
 
 func TestSearchLinksByEquipmentTyp(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -420,8 +417,7 @@ func TestSearchLinksByEquipmentTyp(t *testing.T) {
 }
 
 func TestSearchLinksByEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -464,8 +460,7 @@ func TestSearchLinksByEquipment(t *testing.T) {
 }
 
 func TestSearchLinksByEquipmentHirerchy(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -513,8 +508,7 @@ func TestSearchLinksByEquipmentHirerchy(t *testing.T) {
 }
 
 func TestSearchLinksByService(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -603,8 +597,7 @@ func TestSearchLinksByService(t *testing.T) {
 }
 
 func TestSearchLinksByProperty(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -653,8 +646,7 @@ func TestSearchLinksByProperty(t *testing.T) {
 }
 
 func TestSearchLinksByServiceName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 

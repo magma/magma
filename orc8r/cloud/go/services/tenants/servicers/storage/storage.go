@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/pkg/errors"
 )

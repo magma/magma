@@ -215,6 +215,11 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 				m.getOrCreateLocation(ctx, locName, lat, long, locTyp, &parent.ID, propertyInput, &externalID)
 			}
 		}
+		err = writeSuccessMessage(w, i, i, []ErrorLine{}, true)
+		if err != nil {
+			errorReturn(w, "cannot marshal message", log, err)
+			return
+		}
 	}
 	log.Debug("Locations- Done")
 	w.WriteHeader(http.StatusOK)

@@ -11,6 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -70,6 +71,7 @@ type ResolverRoot interface {
 	Service() ServiceResolver
 	ServiceEndpoint() ServiceEndpointResolver
 	ServiceType() ServiceTypeResolver
+	Subscription() SubscriptionResolver
 	Survey() SurveyResolver
 	SurveyCellScan() SurveyCellScanResolver
 	SurveyQuestion() SurveyQuestionResolver
@@ -509,6 +511,7 @@ type ComplexityRoot struct {
 		RemoveSiteSurvey                         func(childComplexity int, id string) int
 		RemoveWorkOrder                          func(childComplexity int, id string) int
 		RemoveWorkOrderType                      func(childComplexity int, id string) int
+		TechnicianWorkOrderCheckIn               func(childComplexity int, workOrderID string) int
 	}
 
 	NetworkTopology struct {
@@ -605,42 +608,41 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ActionsRules                        func(childComplexity int) int
-		ActionsTriggers                     func(childComplexity int) int
-		CustomerSearch                      func(childComplexity int, limit *int) int
-		Customers                           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Equipment                           func(childComplexity int, id string) int
-		EquipmentPortDefinitions            func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		EquipmentPortTypes                  func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		EquipmentSearch                     func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
-		EquipmentType                       func(childComplexity int, id string) int
-		EquipmentTypes                      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		FindLocationWithDuplicateProperties func(childComplexity int, locationTypeID string, propertyName string) int
-		LatestPythonPackage                 func(childComplexity int) int
-		LinkSearch                          func(childComplexity int, filters []*models.LinkFilterInput, limit *int) int
-		Location                            func(childComplexity int, id string) int
-		LocationSearch                      func(childComplexity int, filters []*models.LocationFilterInput, limit *int) int
-		LocationType                        func(childComplexity int, id string) int
-		LocationTypes                       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Locations                           func(childComplexity int, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Me                                  func(childComplexity int) int
-		NearestSites                        func(childComplexity int, latitude float64, longitude float64, first int) int
-		Node                                func(childComplexity int, id string) int
-		PortSearch                          func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
-		PossibleProperties                  func(childComplexity int, entityType models.PropertyEntity) int
-		ProjectSearch                       func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
-		ProjectTypes                        func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		SearchForEntity                     func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Service                             func(childComplexity int, id string) int
-		ServiceSearch                       func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
-		ServiceType                         func(childComplexity int, id string) int
-		ServiceTypes                        func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Surveys                             func(childComplexity int) int
-		Vertex                              func(childComplexity int, id string) int
-		WorkOrder                           func(childComplexity int, id string) int
-		WorkOrderSearch                     func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
-		WorkOrderTypes                      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		WorkOrders                          func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
+		ActionsRules             func(childComplexity int) int
+		ActionsTriggers          func(childComplexity int) int
+		CustomerSearch           func(childComplexity int, limit *int) int
+		Customers                func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Equipment                func(childComplexity int, id string) int
+		EquipmentPortDefinitions func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		EquipmentPortTypes       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		EquipmentSearch          func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
+		EquipmentType            func(childComplexity int, id string) int
+		EquipmentTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		LatestPythonPackage      func(childComplexity int) int
+		LinkSearch               func(childComplexity int, filters []*models.LinkFilterInput, limit *int) int
+		Location                 func(childComplexity int, id string) int
+		LocationSearch           func(childComplexity int, filters []*models.LocationFilterInput, limit *int) int
+		LocationType             func(childComplexity int, id string) int
+		LocationTypes            func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Locations                func(childComplexity int, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Me                       func(childComplexity int) int
+		NearestSites             func(childComplexity int, latitude float64, longitude float64, first int) int
+		Node                     func(childComplexity int, id string) int
+		PortSearch               func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
+		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
+		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
+		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		SearchForEntity          func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Service                  func(childComplexity int, id string) int
+		ServiceSearch            func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
+		ServiceType              func(childComplexity int, id string) int
+		ServiceTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Surveys                  func(childComplexity int) int
+		Vertex                   func(childComplexity int, id string) int
+		WorkOrder                func(childComplexity int, id string) int
+		WorkOrderSearch          func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
+		WorkOrderTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		WorkOrders               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
 	}
 
 	SearchEntriesConnection struct {
@@ -705,6 +707,10 @@ type ComplexityRoot struct {
 	ServiceTypeEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	Subscription struct {
+		WorkOrderAdded func(childComplexity int) int
 	}
 
 	Survey struct {
@@ -1065,6 +1071,7 @@ type MutationResolver interface {
 	AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	EditActionsRule(ctx context.Context, id string, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	RemoveActionsRule(ctx context.Context, id string) (bool, error)
+	TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID string) (*ent.WorkOrder, error)
 }
 type ProjectResolver interface {
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
@@ -1119,7 +1126,6 @@ type QueryResolver interface {
 	ServiceSearch(ctx context.Context, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error)
 	PossibleProperties(ctx context.Context, entityType models.PropertyEntity) ([]*ent.PropertyType, error)
 	Surveys(ctx context.Context) ([]*ent.Survey, error)
-	FindLocationWithDuplicateProperties(ctx context.Context, locationTypeID string, propertyName string) ([]string, error)
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id string) (*ent.Node, error)
@@ -1148,6 +1154,9 @@ type ServiceTypeResolver interface {
 	PropertyTypes(ctx context.Context, obj *ent.ServiceType) ([]*ent.PropertyType, error)
 	Services(ctx context.Context, obj *ent.ServiceType) ([]*ent.Service, error)
 	NumberOfServices(ctx context.Context, obj *ent.ServiceType) (int, error)
+}
+type SubscriptionResolver interface {
+	WorkOrderAdded(ctx context.Context) (<-chan *ent.WorkOrder, error)
 }
 type SurveyResolver interface {
 	CreationTimestamp(ctx context.Context, obj *ent.Survey) (*int, error)
@@ -3509,6 +3518,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RemoveWorkOrderType(childComplexity, args["id"].(string)), true
 
+	case "Mutation.technicianWorkOrderCheckIn":
+		if e.complexity.Mutation.TechnicianWorkOrderCheckIn == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_technicianWorkOrderCheckIn_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TechnicianWorkOrderCheckIn(childComplexity, args["workOrderId"].(string)), true
+
 	case "NetworkTopology.links":
 		if e.complexity.NetworkTopology.Links == nil {
 			break
@@ -4060,18 +4081,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.EquipmentTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
-	case "Query.findLocationWithDuplicateProperties":
-		if e.complexity.Query.FindLocationWithDuplicateProperties == nil {
-			break
-		}
-
-		args, err := ec.field_Query_findLocationWithDuplicateProperties_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FindLocationWithDuplicateProperties(childComplexity, args["locationTypeId"].(string), args["propertyName"].(string)), true
-
 	case "Query.latestPythonPackage":
 		if e.complexity.Query.LatestPythonPackage == nil {
 			break
@@ -4615,6 +4624,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceTypeEdge.Node(childComplexity), true
+
+	case "Subscription.workOrderAdded":
+		if e.complexity.Subscription.WorkOrderAdded == nil {
+			break
+		}
+
+		return e.complexity.Subscription.WorkOrderAdded(childComplexity), true
 
 	case "Survey.completionTimestamp":
 		if e.complexity.Survey.CompletionTimestamp == nil {
@@ -5551,7 +5567,36 @@ func (e *executableSchema) Mutation(ctx context.Context, op *ast.OperationDefini
 }
 
 func (e *executableSchema) Subscription(ctx context.Context, op *ast.OperationDefinition) func() *graphql.Response {
-	return graphql.OneShot(graphql.ErrorResponse(ctx, "subscriptions are not supported"))
+	ec := executionContext{graphql.GetRequestContext(ctx), e}
+
+	next := ec._Subscription(ctx, op.SelectionSet)
+	if ec.Errors != nil {
+		return graphql.OneShot(&graphql.Response{Data: []byte("null"), Errors: ec.Errors})
+	}
+
+	var buf bytes.Buffer
+	return func() *graphql.Response {
+		buf := ec.RequestMiddleware(ctx, func(ctx context.Context) []byte {
+			buf.Reset()
+			data := next()
+
+			if data == nil {
+				return nil
+			}
+			data.MarshalGQL(&buf)
+			return buf.Bytes()
+		})
+
+		if buf == nil {
+			return nil
+		}
+
+		return &graphql.Response{
+			Data:       buf,
+			Errors:     ec.Errors,
+			Extensions: ec.Extensions,
+		}
+	}
 }
 
 type executionContext struct {
@@ -5816,7 +5861,7 @@ type Equipment implements Node {
 }
 
 type Device {
-  id: ID!
+  id: String!
   name: String!
   up: Boolean
 }
@@ -6712,6 +6757,7 @@ input EquipmentFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6790,6 +6836,7 @@ input PortFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6799,6 +6846,7 @@ input LinkFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6809,6 +6857,7 @@ input LocationFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6818,6 +6867,7 @@ input ServiceFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -6842,6 +6892,7 @@ input WorkOrderFilterInput {
   operator: FilterOperator!
   stringValue: String
   idSet: [ID!]
+  stringSet: [String!]
   propertyValue: PropertyTypeInput
   maxDepth: Int = 5
 }
@@ -7490,10 +7541,6 @@ type Query {
   ): ServiceSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
-  findLocationWithDuplicateProperties(
-    locationTypeId: ID!
-    propertyName: String!
-  ): [ID!]!
   latestPythonPackage: LatestPythonPackageResult
   nearestSites(
     latitude: Float!
@@ -7685,6 +7732,11 @@ type Mutation {
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
   removeActionsRule(id: ID!): Boolean!
+  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
+}
+
+type Subscription {
+  workOrderAdded: WorkOrder
 }
 `},
 )
@@ -8867,6 +8919,20 @@ func (ec *executionContext) field_Mutation_removeWorkOrder_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_technicianWorkOrderCheckIn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["workOrderId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workOrderId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9094,28 +9160,6 @@ func (ec *executionContext) field_Query_equipment_args(ctx context.Context, rawA
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_findLocationWithDuplicateProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["locationTypeId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["locationTypeId"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["propertyName"]; ok {
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["propertyName"] = arg1
 	return args, nil
 }
 
@@ -11813,7 +11857,7 @@ func (ec *executionContext) _Device_id(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Device_name(ctx context.Context, field graphql.CollectedField, obj *models.Device) (ret graphql.Marshaler) {
@@ -20185,6 +20229,47 @@ func (ec *executionContext) _Mutation_removeActionsRule(ctx context.Context, fie
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_technicianWorkOrderCheckIn(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_technicianWorkOrderCheckIn_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TechnicianWorkOrderCheckIn(rctx, args["workOrderId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.WorkOrder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -23647,50 +23732,6 @@ func (ec *executionContext) _Query_surveys(ctx context.Context, field graphql.Co
 	return ec.marshalNSurvey2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_findLocationWithDuplicateProperties(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_findLocationWithDuplicateProperties_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindLocationWithDuplicateProperties(rctx, args["locationTypeId"].(string), args["propertyName"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_latestPythonPackage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -25384,6 +25425,49 @@ func (ec *executionContext) _ServiceTypeEdge_cursor(ctx context.Context, field g
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Subscription_workOrderAdded(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Subscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().WorkOrderAdded(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan *ent.WorkOrder)
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
 }
 
 func (ec *executionContext) _Survey_id(ctx context.Context, field graphql.CollectedField, obj *ent.Survey) (ret graphql.Marshaler) {
@@ -33021,6 +33105,12 @@ func (ec *executionContext) unmarshalInputEquipmentFilterInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "maxDepth":
 			var err error
 			it.MaxDepth, err = ec.unmarshalOInt2ᚖint(ctx, v)
@@ -33211,6 +33301,12 @@ func (ec *executionContext) unmarshalInputLinkFilterInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "maxDepth":
 			var err error
 			it.MaxDepth, err = ec.unmarshalOInt2ᚖint(ctx, v)
@@ -33293,6 +33389,12 @@ func (ec *executionContext) unmarshalInputLocationFilterInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "maxDepth":
 			var err error
 			it.MaxDepth, err = ec.unmarshalOInt2ᚖint(ctx, v)
@@ -33372,6 +33474,12 @@ func (ec *executionContext) unmarshalInputPortFilterInput(ctx context.Context, o
 		case "idSet":
 			var err error
 			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33782,6 +33890,12 @@ func (ec *executionContext) unmarshalInputServiceFilterInput(ctx context.Context
 		case "idSet":
 			var err error
 			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34468,6 +34582,12 @@ func (ec *executionContext) unmarshalInputWorkOrderFilterInput(ctx context.Conte
 		case "idSet":
 			var err error
 			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37451,6 +37571,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "technicianWorkOrderCheckIn":
+			out.Values[i] = ec._Mutation_technicianWorkOrderCheckIn(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38404,20 +38526,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "findLocationWithDuplicateProperties":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_findLocationWithDuplicateProperties(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "latestPythonPackage":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -39011,6 +39119,26 @@ func (ec *executionContext) _ServiceTypeEdge(ctx context.Context, sel ast.Select
 		return graphql.Null
 	}
 	return out
+}
+
+var subscriptionImplementors = []string{"Subscription"}
+
+func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func() graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, subscriptionImplementors)
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "Subscription",
+	})
+	if len(fields) != 1 {
+		ec.Errorf(ctx, "must subscribe to exactly one stream")
+		return nil
+	}
+
+	switch fields[0].Name {
+	case "workOrderAdded":
+		return ec._Subscription_workOrderAdded(ctx, fields[0])
+	default:
+		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
 }
 
 var surveyImplementors = []string{"Survey", "Node"}

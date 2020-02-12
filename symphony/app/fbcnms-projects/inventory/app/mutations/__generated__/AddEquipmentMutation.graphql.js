@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash eea5591e67a8f5903c9ebb4d10465f58
+ * @relayHash 879009c68a392d168b0a6523dd38053e
  */
 
 /* eslint-disable */
@@ -82,7 +82,6 @@ fragment EquipmentTable_equipment on Equipment {
   }
   device {
     up
-    id
   }
   services {
     id
@@ -217,8 +216,7 @@ return {
                 "name": "up",
                 "args": null,
                 "storageKey": null
-              },
-              (v2/*: any*/)
+              }
             ]
           },
           {
@@ -241,7 +239,7 @@ return {
     "operationKind": "mutation",
     "name": "AddEquipmentMutation",
     "id": null,
-    "text": "mutation AddEquipmentMutation(\n  $input: AddEquipmentInput!\n) {\n  addEquipment(input: $input) {\n    ...EquipmentTable_equipment\n    id\n  }\n}\n\nfragment EquipmentTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  device {\n    up\n    id\n  }\n  services {\n    id\n  }\n}\n",
+    "text": "mutation AddEquipmentMutation(\n  $input: AddEquipmentInput!\n) {\n  addEquipment(input: $input) {\n    ...EquipmentTable_equipment\n    id\n  }\n}\n\nfragment EquipmentTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  device {\n    up\n  }\n  services {\n    id\n  }\n}\n",
     "metadata": {}
   }
 };

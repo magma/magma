@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -22,12 +22,12 @@ const useStyles = makeStyles({
 });
 
 type Props = {
-  children: any,
+  children: React.Node,
   to: string,
   className?: string,
 };
 
-function NestedRouteLink(props: Props, ref: React.Ref<any>) {
+function NestedRouteLink(props: Props, ref: React.Ref<*>) {
   const classes = useStyles();
   const {match} = useRouter();
   const {children, to, className: childClassName, ...childProps} = props;

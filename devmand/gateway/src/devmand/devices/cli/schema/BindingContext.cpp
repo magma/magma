@@ -193,7 +193,6 @@ shared_ptr<Entity> BindingCodec::decode(
     const string& payload,
     shared_ptr<Entity> pointer) {
   lock_guard<std::mutex> lg(lock);
-
   try {
     return jsonSubtreeCodec.decode(payload, pointer);
   } catch (std::exception& e) {

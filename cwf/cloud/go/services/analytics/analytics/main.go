@@ -16,9 +16,9 @@ import (
 	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 	promAPI "github.com/prometheus/client_golang/api"

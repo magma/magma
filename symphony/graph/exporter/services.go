@@ -15,6 +15,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/log"
+
+	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -24,6 +26,7 @@ type servicesFilterInput struct {
 	Operator      models.FilterOperator    `jsons:"operator"`
 	StringValue   string                   `json:"stringValue"`
 	IDSet         []string                 `json:"idSet"`
+	StringSet     []string                 `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput `json:"propertyValue"`
 }
 
@@ -32,9 +35,8 @@ type servicesRower struct {
 }
 
 func (er servicesRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
-	log := er.log.For(ctx)
-
 	var (
+		logger      = er.log.For(ctx)
 		err         error
 		filterInput []*models.ServiceFilterInput
 		dataHeader  = [...]string{bom + "Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID", "Status"}
@@ -43,7 +45,7 @@ func (er servicesRower) rows(ctx context.Context, url *url.URL) ([][]string, err
 	if filtersParam != "" {
 		filterInput, err = paramToServiceFilterInput(filtersParam)
 		if err != nil {
-			log.Error("cannot filter services", zap.Error(err))
+			logger.Error("cannot filter services", zap.Error(err))
 			return nil, errors.Wrap(err, "cannot filter services")
 		}
 	}
@@ -51,7 +53,7 @@ func (er servicesRower) rows(ctx context.Context, url *url.URL) ([][]string, err
 
 	services, err := resolverutil.ServiceSearch(ctx, client, filterInput, nil)
 	if err != nil {
-		log.Error("cannot query services", zap.Error(err))
+		logger.Error("cannot query services", zap.Error(err))
 		return nil, errors.Wrap(err, "cannot query services")
 	}
 	cg := ctxgroup.WithContext(ctx, ctxgroup.MaxConcurrency(32))
@@ -67,7 +69,7 @@ func (er servicesRower) rows(ctx context.Context, url *url.URL) ([][]string, err
 		}
 		propertyTypes, err = propertyTypesSlice(ctx, serviceIDs, client, models.PropertyEntityService)
 		if err != nil {
-			log.Error("cannot query property types", zap.Error(err))
+			logger.Error("cannot query property types", zap.Error(err))
 			return errors.Wrap(err, "cannot query property types")
 		}
 		return nil
@@ -92,7 +94,7 @@ func (er servicesRower) rows(ctx context.Context, url *url.URL) ([][]string, err
 		})
 	}
 	if err := cg.Wait(); err != nil {
-		log.Error("error in wait", zap.Error(err))
+		logger.Error("error in wait", zap.Error(err))
 		return nil, errors.WithMessage(err, "error in wait")
 	}
 	return allRows, nil
@@ -129,26 +131,23 @@ func serviceToSlice(ctx context.Context, service *ent.Service, propertyTypes []s
 }
 
 func paramToServiceFilterInput(params string) ([]*models.ServiceFilterInput, error) {
-	var ret []*models.ServiceFilterInput
 	var inputs []servicesFilterInput
-	err := json.Unmarshal([]byte(params), &inputs)
-	if err != nil {
+	if err := json.Unmarshal([]byte(params), &inputs); err != nil {
 		return nil, err
 	}
-
+	ret := make([]*models.ServiceFilterInput, 0, len(inputs))
 	for _, f := range inputs {
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
-		StringVal := f.StringValue
-		propVal := f.PropertyValue
-		maxDepth := 5
+		propertyValue := f.PropertyValue
 		inp := models.ServiceFilterInput{
 			FilterType:    models.ServiceFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
-			StringValue:   &StringVal,
-			PropertyValue: &propVal,
+			StringValue:   pointer.ToString(f.StringValue),
+			PropertyValue: &propertyValue,
 			IDSet:         f.IDSet,
-			MaxDepth:      &maxDepth,
+			StringSet:     f.StringSet,
+			MaxDepth:      pointer.ToInt(5),
 		}
 		ret = append(ret, &inp)
 	}

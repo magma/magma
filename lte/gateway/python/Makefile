@@ -11,7 +11,7 @@ define setup_rules
 endef
 _ := $(foreach python_src, $(PYTHON_SRCS), $(eval $(call setup_rules,$(python_src))))
 
-buildenv: setupenv protos $(BUILD_LIST)
+buildenv: setupenv protos swagger $(BUILD_LIST)
 $(BUILD_LIST): %_build:
 	make -C $* install_egg
 

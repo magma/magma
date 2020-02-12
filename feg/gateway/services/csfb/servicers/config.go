@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"strings"
 
+	fegMconfig "magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos/mconfig"
-	fegMconfig "magma/orc8r/gateway/mconfig"
 
 	"github.com/golang/glog"
 )

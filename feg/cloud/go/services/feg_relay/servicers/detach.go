@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/context"
 
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 // EPSDetachAc relays the EPSDetachAck sent from VLR->FeG->Access Gateway

@@ -26,7 +26,7 @@ type locationSearchDataModels struct {
 }
 
 // nolint: errcheck
-func prepareLocationData(ctx context.Context, r *TestResolver, props []*models.PropertyInput) locationSearchDataModels {
+func prepareLocationData(ctx context.Context, r *TestResolver) locationSearchDataModels {
 	mr := r.Mutation()
 	locType1, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "loc_type1",
@@ -72,11 +72,13 @@ func prepareLocationData(ctx context.Context, r *TestResolver, props []*models.P
 	equType, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "eq_type",
 	})
-	mr.AddEquipment(ctx, models.AddEquipmentInput{
+	if _, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:     "eq_inst",
 		Type:     equType.ID,
 		Location: &loc1.ID,
-	})
+	}); err != nil {
+		panic(err)
+	}
 	return locationSearchDataModels{
 		loc1,
 		loc2,
@@ -86,12 +88,11 @@ func prepareLocationData(ctx context.Context, r *TestResolver, props []*models.P
 }
 
 func TestSearchLocationAncestors(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	data := prepareLocationData(ctx, r, nil)
+	data := prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1):
@@ -129,12 +130,11 @@ func TestSearchLocationAncestors(t *testing.T) {
 }
 
 func TestSearchLocationByType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	data := prepareLocationData(ctx, r, nil)
+	data := prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1):
@@ -154,12 +154,11 @@ func TestSearchLocationByType(t *testing.T) {
 }
 
 func TestSearchLocationHasEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	prepareLocationData(ctx, r, nil)
+	prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1):
@@ -189,12 +188,11 @@ func TestSearchLocationHasEquipment(t *testing.T) {
 }
 
 func TestSearchMultipleFilters(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	data := prepareLocationData(ctx, r, nil)
+	data := prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1):
@@ -225,12 +223,11 @@ func TestSearchMultipleFilters(t *testing.T) {
 }
 
 func TestSearchLocationProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	prepareLocationData(ctx, r, nil)
+	prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1): - properties

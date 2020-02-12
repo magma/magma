@@ -10,7 +10,7 @@ syntax = "proto3";
 import "google/protobuf/any.proto";
 
 package magma.orc8r;
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 // --------------------------------------------------------------------------
 // Streamer provides a pipeline for the cloud to push the updates to the

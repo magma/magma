@@ -19,8 +19,7 @@ func getInput(name, email string) models.TechnicianInput {
 }
 
 func TestAddTechnician(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -40,14 +39,13 @@ func TestAddTechnician(t *testing.T) {
 }
 
 func TestAddTechniciansSameName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
 	inp := getInput("name_1", "email_1@mail.com")
-	_, err = mr.AddTechnician(ctx, inp)
+	_, err := mr.AddTechnician(ctx, inp)
 	require.NoError(t, err)
 
 	inp = getInput("name_2", "email_1@mail.com")

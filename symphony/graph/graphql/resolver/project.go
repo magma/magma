@@ -317,13 +317,13 @@ func (r mutationResolver) DeleteProject(ctx context.Context, id string) (bool, e
 
 func (r mutationResolver) EditProject(ctx context.Context, input models.EditProjectInput) (*ent.Project, error) {
 	client := r.ClientFrom(ctx)
-	p, err := client.Project.Get(ctx, input.ID)
+	proj, err := client.Project.Get(ctx, input.ID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "querying project: id=%q", input.ID)
 	}
 
 	mutation := client.Project.
-		UpdateOne(p).
+		UpdateOne(proj).
 		SetName(input.Name).
 		SetNillableDescription(input.Description)
 	if input.Creator != nil {
@@ -336,45 +336,29 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 	} else {
 		mutation.ClearLocation()
 	}
-	var added, edited []*models.PropertyInput
-	for _, input := range input.Properties {
-		if input.ID == nil {
-			added = append(added, input)
-		} else {
-			edited = append(edited, input)
+	for _, pInput := range input.Properties {
+		propertyQuery := proj.QueryProperties().
+			Where(property.HasTypeWith(propertytype.ID(pInput.PropertyTypeID)))
+		if pInput.ID != nil {
+			propertyQuery = propertyQuery.
+				Where(property.ID(*pInput.ID))
 		}
-	}
-	if _, err := r.AddProperties(
-		added,
-		resolverutil.AddPropertyArgs{
-			Context:    ctx,
-			EntSetter:  func(b *ent.PropertyCreate) { b.SetProjectID(p.ID) },
-			IsTemplate: pointer.ToBool(true),
-		},
-	); err != nil {
-		return nil, err
-	}
-	ptID, err := p.QueryType().OnlyID(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying project type id")
-	}
-	for _, input := range edited {
-		typ, err := client.ProjectType.Query().
-			Where(projecttype.ID(ptID)).
-			QueryProperties().
-			Where(propertytype.ID(input.PropertyTypeID)).
-			Only(ctx)
+		existingProperty, err := propertyQuery.Only(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying work order property type %q", input.PropertyTypeID)
+			if pInput.ID == nil {
+				return nil, errors.Wrapf(err, "querying project property type %q", pInput.PropertyTypeID)
+			}
+			return nil, errors.Wrapf(err, "querying project property type %q and id %q", pInput.PropertyTypeID, *pInput.ID)
 		}
-		if typ.Editable {
+		typ, err := client.PropertyType.Get(ctx, pInput.PropertyTypeID)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying property type %q", pInput.PropertyTypeID)
+		}
+		if typ.Editable && typ.IsInstanceProperty {
 			query := client.Property.
 				Update().
-				Where(
-					property.HasProjectWith(project.ID(p.ID)),
-					property.ID(*input.ID),
-				)
-			if _, err := updatePropValues(input, query).Save(ctx); err != nil {
+				Where(property.ID(existingProperty.ID))
+			if _, err := updatePropValues(pInput, query).Save(ctx); err != nil {
 				return nil, errors.Wrap(err, "updating property values")
 			}
 		}

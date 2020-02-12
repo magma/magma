@@ -36,6 +36,8 @@ class PoliciesByKeyMap {
 
   void remove(const KeyType& key, std::shared_ptr<PolicyRule> rule_p);
 
+  uint32_t policy_count();
+
   bool get_rule_ids_for_key(
     const KeyType& key,
     std::vector<std::string>& rules_out);
@@ -104,11 +106,17 @@ class PolicyRuleBiMap {
     const std::string& monitoring_key,
     std::vector<PolicyRule>& rules_out);
 
+  /**
+   * Get the number of rules tracked by a monitoring key
+   */
+  virtual uint32_t monitored_rules_count();
+
   virtual bool get_rule_ids(std::vector<std::string>& rules_ids_out);
 
   virtual bool get_rules(std::vector<PolicyRule>& rules_out);
 
  protected:
+  // guards all three maps below
   std::mutex map_mutex_;
   // rule_id -> PolicyRule
   std::unordered_map<std::string, std::shared_ptr<PolicyRule>>

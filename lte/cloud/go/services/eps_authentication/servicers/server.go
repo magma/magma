@@ -13,7 +13,7 @@ import (
 
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
-	orc8rprotos "magma/orc8r/cloud/go/protos"
+	orc8rprotos "magma/orc8r/lib/go/protos"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

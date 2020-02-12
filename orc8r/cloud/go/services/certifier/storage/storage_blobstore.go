@@ -10,9 +10,9 @@ package storage
 
 import (
 	"magma/orc8r/cloud/go/blobstore"
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"

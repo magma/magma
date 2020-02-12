@@ -46,7 +46,7 @@ func serviceNameFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (
 
 func serviceStatusFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(service.StatusIn(filter.IDSet...)), nil
+		return q.Where(service.StatusIn(filter.StringSet...)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

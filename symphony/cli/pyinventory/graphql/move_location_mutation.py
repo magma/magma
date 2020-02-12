@@ -32,7 +32,12 @@ class MoveLocationMutation:
   moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {
     id
     name
+    latitude
+    longitude
     externalId
+    locationType {
+      name
+    }
   }
 }
 
@@ -44,8 +49,16 @@ class MoveLocationMutation:
         @dataclass_json
         @dataclass
         class Location:
+            @dataclass_json
+            @dataclass
+            class LocationType:
+                name: str
+
             id: str
             name: str
+            latitude: float
+            longitude: float
+            locationType: LocationType
             externalId: Optional[str] = None
 
         moveLocation: Optional[Location] = None

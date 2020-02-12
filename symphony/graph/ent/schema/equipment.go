@@ -5,6 +5,9 @@
 package schema
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
@@ -228,7 +231,13 @@ func (Equipment) Fields() []ent.Field {
 		field.String("future_state").
 			Optional(),
 		field.String("device_id").
-			Optional(),
+			Optional().
+			Validate(func(s string) error {
+				if !strings.ContainsRune(s, '.') {
+					return errors.New("invalid device id")
+				}
+				return nil
+			}),
 		field.String("external_id").
 			Unique().
 			Optional(),

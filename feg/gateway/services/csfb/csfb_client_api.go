@@ -17,7 +17,7 @@ import (
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/csfb/servicers/decode"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"

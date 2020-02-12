@@ -11,7 +11,7 @@ import (
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	protos "magma/lte/cloud/go/protos"
-	protos1 "magma/orc8r/cloud/go/protos"
+	protos1 "magma/orc8r/lib/go/protos"
 	math "math"
 )
 
@@ -50,11 +50,11 @@ var fileDescriptor_6adda26d69f7818f = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // HSSConfiguratorClient is the client API for HSSConfigurator service.
 //
@@ -81,10 +81,10 @@ type HSSConfiguratorClient interface {
 }
 
 type hSSConfiguratorClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewHSSConfiguratorClient(cc *grpc.ClientConn) HSSConfiguratorClient {
+func NewHSSConfiguratorClient(cc grpc.ClientConnInterface) HSSConfiguratorClient {
 	return &hSSConfiguratorClient{cc}
 }
 

@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package registry
 
 import (
-	platform_registry "magma/orc8r/cloud/go/registry"
+	platform_registry "magma/orc8r/lib/go/registry"
 
 	"google.golang.org/grpc"
 )

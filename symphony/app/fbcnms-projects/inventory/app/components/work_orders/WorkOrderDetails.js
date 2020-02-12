@@ -203,6 +203,12 @@ class WorkOrderDetails extends React.Component<Props, State> {
             {({user}) => (
               <FormValidationContext.Consumer>
                 {validationContext => {
+                  const noOwnerError = validationContext.error.check({
+                    fieldId: 'Owner',
+                    fieldDisplayName: 'Owner',
+                    value: workOrder.ownerName,
+                    required: true,
+                  });
                   validationContext.editLock.check({
                     fieldId: 'status',
                     fieldDisplayName: 'Status',
@@ -215,7 +221,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
                   validationContext.editLock.check({
                     fieldId: 'OwnerRule',
                     fieldDisplayName: 'Owner rule',
-                    value: {user, workOrder},
+                    value: {user, workOrder: this.props.workOrder},
                     checkCallback: checkData =>
                       checkData?.user.isSuperUser ||
                       checkData?.user.email ===
@@ -227,7 +233,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
                   const nonOwnerAssignee = validationContext.editLock.check({
                     fieldId: 'NonOwnerAssigneeRule',
                     fieldDisplayName: 'Non Owner assignee rule',
-                    value: {user, workOrder},
+                    value: {user, workOrder: this.props.workOrder},
                     checkCallback: checkData =>
                       checkData?.user.email !==
                         checkData?.workOrder.ownerName &&
@@ -489,10 +495,13 @@ class WorkOrderDetails extends React.Component<Props, State> {
                         <Grid item xs={4} sm={4} lg={4} xl={4}>
                           <ExpandingPanel title="Team" className={classes.card}>
                             <FormField
+                              className={classes.input}
                               label="Owner"
+                              required={true}
+                              hasError={!!noOwnerError}
+                              errorText={noOwnerError}
                               disabled={!!nonOwnerAssignee}>
                               <UserTypeahead
-                                className={classes.input}
                                 selectedUser={workOrder.ownerName}
                                 onUserSelection={user =>
                                   this._setWorkOrderDetail('ownerName', user)
@@ -500,9 +509,10 @@ class WorkOrderDetails extends React.Component<Props, State> {
                                 margin="dense"
                               />
                             </FormField>
-                            <FormField label="Assignee">
+                            <FormField
+                              label="Assignee"
+                              className={classes.input}>
                               <UserTypeahead
-                                className={classes.input}
                                 selectedUser={workOrder.assignee}
                                 onUserSelection={user =>
                                   this._setWorkOrderDetail('assignee', user)

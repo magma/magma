@@ -140,22 +140,42 @@ class IPFIXController(MagmaController):
             apn_mac_addr (string): AP mac address string
             apn_name (string): AP name
         """
+        imsi_hex = hex(encode_imsi(imsi))
         action_str = (
-            'ovs-ofctl add-flow {} "table={},priority={},'
+            'ovs-ofctl add-flow {} "table={},priority={},metadata={},'
             'actions=sample(probability={},collector_set_id={},'
             'obs_domain_id={},obs_point_id={},apn_mac_addr={},msisdn={},'
             'apn_name={},sampling_port={}),resubmit(,{})"'
         ).format(
-            self._bridge_name, self.tbl_num, flows.UE_FLOW_PRIORITY,
+            self._bridge_name, self.tbl_num, flows.UE_FLOW_PRIORITY, imsi_hex,
             self.ipfix_config.probability, self.ipfix_config.collector_set_id,
             self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
             apn_mac_addr.replace("-", ":"), msisdn, apn_name,
             self.ipfix_config.gtp_port, self.next_main_table
         )
+        self.logger.error(action_str)
         try:
             subprocess.Popen(action_str, shell=True).wait()
         except subprocess.CalledProcessError as e:
             raise Exception('Error: {} failed with: {}'.format(action_str, e))
+
+    def delete_ue_sample_flow(self, imsi: str) -> None:
+        """
+        Delete a flow to sample packets for IPFIX for specific imsi
+
+        Args:
+            imsi (string): subscriber to install rule for
+        """
+        if self._datapath is None:
+            self.logger.error('Datapath not initialized')
+            return
+
+        if not imsi:
+            self.logger.error('No subscriber specified')
+            return
+
+        match = MagmaMatch(imsi=encode_imsi(imsi))
+        flows.delete_flow(self._datapath, self.tbl_num, match)
 
     def deactivate_rules(self, imsi: str) -> None:
         """

@@ -104,7 +104,8 @@ int mme_api_get_emm_config(
 {
   OAILOG_FUNC_IN(LOG_NAS);
   AssertFatal(mme_config_p->served_tai.nb_tai >= 1, "No TAI configured");
-  AssertFatal(mme_config_p->gummei.nb >= 1, "No GUMMEI configured");
+  OAILOG_INFO(
+    LOG_NAS, "Number of GUMMEIs supported = %d\n", mme_config_p->gummei.nb);
 
   config->tai_list.numberoflists = 0;
   // TODO actually we support only one partial TAI list.
@@ -247,8 +248,12 @@ int mme_api_get_emm_config(
         "BAD TAI list configuration, unknown TAI list type %u",
         mme_config_p->served_tai.list_type);
   }
-
-  config->gummei = mme_config_p->gummei.gummei[0];
+  // Read GUMMEI List
+  config->gummei.num_gummei = mme_config_p->gummei.nb;
+  for (uint8_t num_gummei = 0; num_gummei < mme_config_p->gummei.nb;
+      num_gummei++) {
+    config->gummei.gummei[num_gummei] = mme_config_p->gummei.gummei[num_gummei];
+  }
 
   // hardcoded
   config->eps_network_feature_support =
@@ -440,19 +445,30 @@ int mme_api_new_guti(
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_context = NULL;
   imsi64_t imsi64 = imsi_to_imsi64(imsi);
+  bool is_plmn_equal = false;
 
   ue_context =
     mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
 
   if (ue_context) {
-    guti->gummei.mme_gid = _emm_data.conf.gummei.mme_gid;
-    guti->gummei.mme_code = _emm_data.conf.gummei.mme_code;
-    guti->gummei.plmn.mcc_digit1 = _emm_data.conf.gummei.plmn.mcc_digit1;
-    guti->gummei.plmn.mcc_digit2 = _emm_data.conf.gummei.plmn.mcc_digit2;
-    guti->gummei.plmn.mcc_digit3 = _emm_data.conf.gummei.plmn.mcc_digit3;
-    guti->gummei.plmn.mnc_digit1 = _emm_data.conf.gummei.plmn.mnc_digit1;
-    guti->gummei.plmn.mnc_digit2 = _emm_data.conf.gummei.plmn.mnc_digit2;
-    guti->gummei.plmn.mnc_digit3 = _emm_data.conf.gummei.plmn.mnc_digit3;
+    for (uint8_t nb_gummei = 0; nb_gummei < _emm_data.conf.gummei.num_gummei;
+         nb_gummei++) {
+      /* comparing UE serving cell plmn with the gummei list in
+       * mme configuration. */
+      if (IS_PLMN_EQUAL(
+            ue_context->emm_context.originating_tai,
+            mme_config.gummei.gummei[nb_gummei].plmn)) {
+        is_plmn_equal = true;
+        /* Copies the GUMMEI value from configuration to the emm context */
+        COPY_GUMMEI(guti, _emm_data.conf.gummei.gummei[nb_gummei]);
+        break;
+      }
+    }
+    if (!is_plmn_equal) {
+      OAILOG_ERROR(LOG_NAS, "Serving PLMN not matching with GUMMEI List!\n");
+      OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+    }
+    is_plmn_equal = false;
     // TODO Find another way to generate m_tmsi
     guti->m_tmsi = (tmsi_t)(uintptr_t) ue_context;
     if (guti->m_tmsi == INVALID_M_TMSI) {
@@ -465,50 +481,24 @@ int mme_api_new_guti(
 
   int j = 0;
   for (int i = 0; i < _emm_data.conf.tai_list.numberoflists; i++) {
+    /* Comparing mme configuration plmn of TAI_LIST with plmn of GUMMEI_LIST
+     * if PLMN matches, _emm_data.conf.tai_list value gets updated with TAI_LIST
+     * values from mme configuration file
+     */
     switch (_emm_data.conf.tai_list.partial_tai_list[i].typeoflist) {
       case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
-        if (
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1 ==
-           guti->gummei.plmn.mcc_digit1) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2 ==
-           guti->gummei.plmn.mcc_digit2) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3 ==
-           guti->gummei.plmn.mcc_digit3) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1 ==
-           guti->gummei.plmn.mnc_digit1) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2 ==
-           guti->gummei.plmn.mnc_digit2) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3 ==
-           guti->gummei.plmn.mnc_digit3)) {
+        if (IS_PLMN_EQUAL(
+              _emm_data.conf.tai_list.partial_tai_list[i]
+                .u.tai_one_plmn_non_consecutive_tacs,
+              guti->gummei.plmn)) {
           tai_list->partial_tai_list[j].numberofelements =
             _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
           tai_list->partial_tai_list[j].typeoflist =
             _emm_data.conf.tai_list.partial_tai_list[i].typeoflist;
+          COPY_PLMN(
+            tai_list->partial_tai_list[j].u.tai_one_plmn_non_consecutive_tacs,
+            guti->gummei.plmn);
 
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1 =
-            guti->gummei.plmn.mcc_digit1;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2 =
-            guti->gummei.plmn.mcc_digit2;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3 =
-            guti->gummei.plmn.mcc_digit3;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1 =
-            guti->gummei.plmn.mnc_digit1;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2 =
-            guti->gummei.plmn.mnc_digit2;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3 =
-            guti->gummei.plmn.mnc_digit3;
           // _emm_data.conf.tai_list is sorted
           for (int t = 0;
                t < (tai_list->partial_tai_list[j].numberofelements + 1);
@@ -519,111 +509,75 @@ int mme_api_new_guti(
                 .u.tai_one_plmn_non_consecutive_tacs.tac[t];
           }
           j += 1;
+        } else {
+          OAILOG_ERROR(
+            LOG_NAS,
+            "GUTI PLMN does not match with mme configuration tai list\n");
         }
         break;
       case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
-        if (
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_consecutive_tacs.mcc_digit1 ==
-           guti->gummei.plmn.mcc_digit1) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_consecutive_tacs.mcc_digit2 ==
-           guti->gummei.plmn.mcc_digit2) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_consecutive_tacs.mcc_digit3 ==
-           guti->gummei.plmn.mcc_digit3) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_consecutive_tacs.mnc_digit1 ==
-           guti->gummei.plmn.mnc_digit1) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_consecutive_tacs.mnc_digit2 ==
-           guti->gummei.plmn.mnc_digit2) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_consecutive_tacs.mnc_digit3 ==
-           guti->gummei.plmn.mnc_digit3)) {
+        if (IS_PLMN_EQUAL(
+              _emm_data.conf.tai_list.partial_tai_list[i]
+                .u.tai_one_plmn_consecutive_tacs,
+              guti->gummei.plmn)) {
           tai_list->partial_tai_list[j].numberofelements =
             _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
           tai_list->partial_tai_list[j].typeoflist =
             _emm_data.conf.tai_list.partial_tai_list[i].typeoflist;
 
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_consecutive_tacs.mcc_digit1 =
-            guti->gummei.plmn.mcc_digit1;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_consecutive_tacs.mcc_digit2 =
-            guti->gummei.plmn.mcc_digit2;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_consecutive_tacs.mcc_digit3 =
-            guti->gummei.plmn.mcc_digit3;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_consecutive_tacs.mnc_digit1 =
-            guti->gummei.plmn.mnc_digit1;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_consecutive_tacs.mnc_digit2 =
-            guti->gummei.plmn.mnc_digit2;
-          tai_list->partial_tai_list[j]
-            .u.tai_one_plmn_consecutive_tacs.mnc_digit3 =
-            guti->gummei.plmn.mnc_digit3;
+          COPY_PLMN(
+            tai_list->partial_tai_list[j].u.tai_one_plmn_consecutive_tacs,
+            guti->gummei.plmn);
+
           // _emm_data.conf.tai_list is sorted
           tai_list->partial_tai_list[j].u.tai_one_plmn_consecutive_tacs.tac =
             _emm_data.conf.tai_list.partial_tai_list[i]
               .u.tai_one_plmn_consecutive_tacs.tac;
           j += 1;
+        } else {
+          OAILOG_ERROR(
+            LOG_NAS,
+            "GUTI PLMN does not match with mme configuration tai list\n");
         }
         break;
       case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
-        if (
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1 ==
-           guti->gummei.plmn.mcc_digit1) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2 ==
-           guti->gummei.plmn.mcc_digit2) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3 ==
-           guti->gummei.plmn.mcc_digit3) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1 ==
-           guti->gummei.plmn.mnc_digit1) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2 ==
-           guti->gummei.plmn.mnc_digit2) &&
-          (_emm_data.conf.tai_list.partial_tai_list[i]
-             .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3 ==
-           guti->gummei.plmn.mnc_digit3)) {
-          tai_list->partial_tai_list[j].numberofelements =
-            _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
-          tai_list->partial_tai_list[j].typeoflist =
-            _emm_data.conf.tai_list.partial_tai_list[i].typeoflist;
+        for (uint8_t p_cnt = 0;
+             p_cnt <
+             (_emm_data.conf.tai_list.partial_tai_list[i].numberofelements + 1);
+             p_cnt++) {
+          if (IS_PLMN_EQUAL(
+                _emm_data.conf.tai_list.partial_tai_list[i]
+                  .u.tai_many_plmn[p_cnt],
+                guti->gummei.plmn)) {
+            is_plmn_equal = true;
+            tai_list->partial_tai_list[j].numberofelements =
+              _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
+            tai_list->partial_tai_list[j].typeoflist =
+              _emm_data.conf.tai_list.partial_tai_list[i].typeoflist;
 
-          for (int t = 0;
-               t < (tai_list->partial_tai_list[j].numberofelements + 1);
-               t++) {
-            tai_list->partial_tai_list[j].u.tai_many_plmn[t].mcc_digit1 =
-              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
-              .mcc_digit1;
-            tai_list->partial_tai_list[j].u.tai_many_plmn[t].mcc_digit2 =
-              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
-              .mcc_digit2;
-            tai_list->partial_tai_list[j].u.tai_many_plmn[t].mcc_digit3 =
-              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
-              .mcc_digit3;
-            tai_list->partial_tai_list[j].u.tai_many_plmn[t].mnc_digit1 =
-              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
-             .mnc_digit1;
-            tai_list->partial_tai_list[j].u.tai_many_plmn[t].mnc_digit2 =
-              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
-              .mnc_digit2;
-            tai_list->partial_tai_list[j].u.tai_many_plmn[t].mnc_digit3 =
-              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
-              .mnc_digit3;
-            // _emm_data.conf.tai_list is sorted
-            tai_list->partial_tai_list[j].u.tai_many_plmn[t].tac =
-              _emm_data.conf.tai_list.partial_tai_list[i]
-                .u.tai_many_plmn[t]
-                .tac;
+            for (int t = 0;
+                 t < (tai_list->partial_tai_list[j].numberofelements + 1);
+                 t++) {
+              COPY_PLMN(
+                tai_list->partial_tai_list[j].u.tai_many_plmn[t],
+                _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]);
+
+              // _emm_data.conf.tai_list is sorted
+              tai_list->partial_tai_list[j].u.tai_many_plmn[t].tac =
+                _emm_data.conf.tai_list.partial_tai_list[i]
+                  .u.tai_many_plmn[t]
+                  .tac;
+            }
+            j += 1;
+            break;
           }
-          j += 1;
+        }
+        if (!is_plmn_equal) {
+          OAILOG_ERROR(
+            LOG_NAS,
+            "GUTI PLMN does not match with mme configuration tai list\n");
+        } else {
+          is_plmn_equal = false;
         }
         break;
       default:

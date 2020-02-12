@@ -163,11 +163,11 @@ class LocalEnforcer {
     PolicyReAuthRequest request,
     PolicyReAuthAnswer& answer_out);
 
-  bool is_imsi_duplicate(const std::string& imsi);
-  bool is_apn_duplicate(const std::string& imsi, const std::string& apn);
+  bool is_imsi_duplicate(const std::string& imsi) const;
+  bool is_apn_duplicate(const std::string& imsi, const std::string& apn) const;
 
-  std::string *duplicate_session_id(
-    const std::string& imsi, const magma::SessionState::Config& config);
+  std::string* duplicate_session_id(
+    const std::string& imsi, const magma::SessionState::Config& config) const;
 
   /**
    * Execute actions on subscriber's service, eg. terminate, redirect data, or
@@ -372,6 +372,11 @@ class LocalEnforcer {
   void install_redirect_flow(const std::unique_ptr<ServiceAction>& action);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
+
+  void report_subscriber_state_to_pipelined(
+    const std::string& imsi,
+    const std::string& ue_mac_addr,
+    const SubscriberQuotaUpdate_Type state);
 };
 
 } // namespace magma

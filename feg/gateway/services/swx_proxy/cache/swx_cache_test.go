@@ -20,7 +20,7 @@ import (
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
 	"magma/feg/gateway/services/swx_proxy/test_init"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 func TestSwxCacheGC(t *testing.T) {

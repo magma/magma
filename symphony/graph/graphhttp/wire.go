@@ -38,12 +38,10 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 		xserver.ServiceSet,
 		xserver.DefaultViews,
 		newHealthChecker,
-		newOrc8rClient,
-		newActionsRegistry,
-		wire.FieldsOf(new(Config), "Tenancy", "Logger", "Census", "Orc8r"),
+		wire.FieldsOf(new(Config), "Tenancy", "Logger", "Census"),
+		newRouterConfig,
 		newRouter,
 		wire.Bind(new(http.Handler), new(*mux.Router)),
-		wire.Bind(new(viewer.Tenancy), new(*viewer.MySQLTenancy)),
 	)
 	return nil, nil, nil
 }
@@ -52,14 +50,20 @@ func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
 }
 
-func newOrc8rClient(config orc8r.Config) *http.Client {
-	client, _ := orc8r.NewClient(config)
-	return client
-}
-
-func newActionsRegistry(orc8rClient *http.Client) *executor.Registry {
+func newRouterConfig(config Config) (cfg routerConfig, err error) {
+	client, _ := orc8r.NewClient(config.Orc8r)
 	registry := executor.NewRegistry()
-	registry.MustRegisterTrigger(magmaalert.New())
-	registry.MustRegisterAction(magmarebootnode.New(orc8rClient))
-	return registry
+	if err = registry.RegisterTrigger(magmaalert.New()); err != nil {
+		return
+	}
+	if err = registry.RegisterAction(magmarebootnode.New(client)); err != nil {
+		return
+	}
+	cfg = routerConfig{
+		tenancy: config.Tenancy,
+		logger:  config.Logger,
+	}
+	cfg.orc8r.client = client
+	cfg.actions.registry = registry
+	return cfg, nil
 }

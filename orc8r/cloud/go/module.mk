@@ -20,11 +20,12 @@ clean_gen:
 download:
 	go mod download
 
-fmt:
+fmt::
 	go fmt ./...
 
 gen::
 	go generate ./...
+
 
 # The sed expression replaces '/' with '_' and gets rid of any './ in the path
 # For v1, we prepend the module name to the filename as well
@@ -51,7 +52,7 @@ tools:: $(TOOL_DEPS)
 $(TOOL_DEPS): %:
 	go install $*
 
-vet:
+vet::
 	go vet -composites=false ./...
 
 COVER_FILE=$(COVER_DIR)/$(PLUGIN_NAME).gocov

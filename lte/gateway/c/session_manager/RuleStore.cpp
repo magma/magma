@@ -44,6 +44,7 @@ void PoliciesByKeyMap<KeyType, hash, equal>::remove(
     return;
   }
   rules.erase(found);
+  rules_by_key_[key] = rules;
 }
 
 template<typename KeyType, typename hash, typename equal>
@@ -76,6 +77,16 @@ bool PoliciesByKeyMap<KeyType, hash, equal>::get_rule_definitions_for_key(
     rules_out.push_back(*rule);
   }
   return true;
+}
+
+template<typename KeyType, typename hash, typename equal>
+uint32_t PoliciesByKeyMap<KeyType, hash, equal>::policy_count()
+{
+  uint32_t count = 0;
+  for (auto const& kv : rules_by_key_) {
+    count += kv.second.size();
+  }
+  return count;
 }
 
 static bool should_track_charging_key(PolicyRule::TrackingType tracking_type)
@@ -229,6 +240,12 @@ bool PolicyRuleBiMap::get_rule_definitions_for_monitoring_key(
   bool success = rules_by_monitoring_key_.get_rule_definitions_for_key(
     monitoring_key, rules_out);
   return success;
+}
+
+uint32_t PolicyRuleBiMap::monitored_rules_count()
+{
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  return rules_by_monitoring_key_.policy_count();
 }
 
 bool PolicyRuleBiMap::get_rule_ids(

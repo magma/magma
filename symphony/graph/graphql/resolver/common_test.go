@@ -10,17 +10,17 @@ import (
 	"os"
 	"testing"
 
+	"github.com/facebookincubator/ent/dialect"
+	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 
-	"github.com/facebookincubator/ent/dialect"
-	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
-
 	"github.com/stretchr/testify/require"
+	"gocloud.dev/pubsub/mempubsub"
 )
 
 var debug = flag.Bool("debug", false, "run database driver on debug mode")
@@ -36,29 +36,31 @@ type TestResolver struct {
 	client *ent.Client
 }
 
-func newTestResolver(t *testing.T, opts ...ResolveOption) (*TestResolver, error) {
+func newTestResolver(t *testing.T, opts ...ResolveOption) *TestResolver {
 	db, name, err := testdb.Open()
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
 	return newResolver(t, sql.OpenDB(name, db), opts...)
 }
 
-func newResolver(t *testing.T, drv dialect.Driver, opts ...ResolveOption) (*TestResolver, error) {
+func newResolver(t *testing.T, drv dialect.Driver, opts ...ResolveOption) *TestResolver {
 	if *debug {
 		drv = dialect.Debug(drv)
 	}
 	client := ent.NewClient(ent.Driver(drv))
 	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
-	r, err := New(logtest.NewTestLogger(t), opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &TestResolver{r, drv, client}, nil
+	r := New(
+		ResolveConfig{
+			Logger: logtest.NewTestLogger(t),
+			Topic:  mempubsub.NewTopic(),
+		},
+		opts...,
+	)
+	return &TestResolver{r, drv, client}
 }
 
 func resolverctx(t *testing.T) (generated.ResolverRoot, context.Context) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	return r, viewertest.NewContext(r.client)
 }
 

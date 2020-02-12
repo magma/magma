@@ -16,7 +16,7 @@ import (
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/feg/gateway/services/testcore/hss/test_init"
 	lteprotos "magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

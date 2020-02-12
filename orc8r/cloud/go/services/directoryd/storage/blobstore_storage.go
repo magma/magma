@@ -10,9 +10,9 @@ package storage
 
 import (
 	"magma/orc8r/cloud/go/blobstore"
-	merrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/pkg/errors"
 )

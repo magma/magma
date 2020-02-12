@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 83908f55e73a568dadcf6679c8edf8ff
+ * @relayHash fa9a921a033e3c15c42fe3db0c72581c
  */
 
 /* eslint-disable */
@@ -26,6 +26,7 @@ export type PortFilterInput = {|
   stringValue?: ?string,
   propertyValue?: ?PropertyTypeInput,
   idSet?: ?$ReadOnlyArray<string>,
+  stringSet?: ?$ReadOnlyArray<string>,
   maxDepth?: ?number,
 |};
 export type PropertyTypeInput = {|

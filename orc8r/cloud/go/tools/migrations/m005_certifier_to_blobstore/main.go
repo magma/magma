@@ -12,9 +12,9 @@ import (
 	"context"
 	"flag"
 
-	"magma/orc8r/cloud/go/protos"
 	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/tools/migrations"
+	"magma/orc8r/lib/go/protos"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"

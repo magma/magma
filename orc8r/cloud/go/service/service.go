@@ -18,11 +18,11 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/cloud/go/util"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"

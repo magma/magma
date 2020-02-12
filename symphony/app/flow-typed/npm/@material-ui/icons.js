@@ -1,4 +1,4 @@
-// @flow
+// @flow strict-local
 // Taken from https://github.com/flow-typed/flow-typed/pull/2323
 // (+ fixing SvgIcon). Once it's merged, let's use the official
 

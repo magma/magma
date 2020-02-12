@@ -21,9 +21,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - debian/contrib-jessie64
     # - linux kernel from debian jessie backports
     # - updated vbguest-tool
-    magma.vm.box = "amarpad/magma_dev"
+    magma.vm.box = "fbcmagma/magma_dev"
     magma.vm.hostname = "magma-dev"
-    magma.vm.box_version = "1.0.1542061022"
+    magma.vm.box_version = "1.0.1581412195"
     magma.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
