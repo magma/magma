@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/directoryd"
+	"magma/orc8r/lib/go/registry"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"

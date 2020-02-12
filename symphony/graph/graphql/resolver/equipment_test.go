@@ -14,8 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
@@ -27,13 +25,16 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
+
+	"github.com/99designs/gqlgen/client"
+	"github.com/99designs/gqlgen/handler"
+	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAddEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -101,8 +102,7 @@ func TestAddEquipment(t *testing.T) {
 }
 
 func TestAddEquipmentWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -148,8 +148,7 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 }
 
 func TestAddAndDeleteEquipmentHyperlink(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, er := r.Mutation(), r.Equipment()
@@ -222,8 +221,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 		Base: orc8rClient.Transport,
 		Host: uri.Host,
 	}
-	r, err := newTestResolver(t, WithOrc8rClient(orc8rClient))
-	require.NoError(t, err)
+	r := newTestResolver(t, WithOrc8rClient(orc8rClient))
 	defer r.drv.Close()
 
 	ctx := viewertest.NewContext(r.client)
@@ -253,13 +251,18 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	deviceID := "deviceID.networkID"
 	equipment, err = mr.EditEquipment(ctx, models.EditEquipmentInput{
 		ID:       equipment.ID,
 		Name:     "equipment_name_1",
-		DeviceID: &deviceID,
+		DeviceID: pointer.ToString("deviceID.networkID"),
 	})
 	require.NoError(t, err)
+	_, err = mr.EditEquipment(ctx, models.EditEquipmentInput{
+		ID:       equipment.ID,
+		Name:     "equipment_name_1",
+		DeviceID: pointer.ToString("networkID"),
+	})
+	require.Error(t, err)
 
 	graphHandler := handler.GraphQL(
 		generated.NewExecutableSchema(
@@ -297,8 +300,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 }
 
 func TestAddEquipmentWithoutLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -316,10 +318,8 @@ func TestAddEquipmentWithoutLocation(t *testing.T) {
 }
 
 func TestRemoveEquipmentWithChildren(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
-	require.NoError(t, err)
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
@@ -384,13 +384,11 @@ func TestRemoveEquipmentWithChildren(t *testing.T) {
 }
 
 func TestRemoveEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -427,8 +425,7 @@ func TestRemoveEquipment(t *testing.T) {
 }
 
 func TestAttachEquipmentToPosition(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -498,8 +495,7 @@ func TestAttachEquipmentToPosition(t *testing.T) {
 }
 
 func TestMoveEquipmentToPosition(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -558,8 +554,7 @@ func TestMoveEquipmentToPosition(t *testing.T) {
 }
 
 func TestDetachEquipmentFromPosition(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -634,8 +629,7 @@ func TestDetachEquipmentFromPosition(t *testing.T) {
 }
 
 func TestDetachEquipmentFromPositionWithWorkOrder(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr, wor := r.Mutation(), r.Query(), r.WorkOrder()
@@ -702,8 +696,7 @@ func TestDetachEquipmentFromPositionWithWorkOrder(t *testing.T) {
 }
 
 func TestAddDetachEquipmentFromPositionSameWorkOrder(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr, wor := r.Mutation(), r.Query(), r.WorkOrder()
@@ -770,13 +763,11 @@ func TestAddDetachEquipmentFromPositionSameWorkOrder(t *testing.T) {
 }
 
 func TestEquipmentPortsAreCreatedFromType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -820,8 +811,7 @@ func TestEquipmentPortsAreCreatedFromType(t *testing.T) {
 }
 
 func TestEquipmentParentLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, er := r.Mutation(), r.Equipment()
@@ -867,8 +857,7 @@ func TestEquipmentParentLocation(t *testing.T) {
 }
 
 func TestEquipmentParentEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, er := r.Mutation(), r.Equipment()
@@ -931,13 +920,11 @@ func TestEquipmentParentEquipment(t *testing.T) {
 }
 
 func TestEditEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -1017,13 +1004,11 @@ func TestEditEquipment(t *testing.T) {
 }
 
 func TestEditEquipmentPort(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -1087,13 +1072,11 @@ func TestEditEquipmentPort(t *testing.T) {
 }
 
 func TestAddLinkToNewlyAddedPortDefinition(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})

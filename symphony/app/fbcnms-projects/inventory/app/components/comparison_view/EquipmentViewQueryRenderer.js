@@ -64,6 +64,7 @@ const EquipmentViewQueryRenderer = (props: Props) => {
           stringValue: f.stringValue,
           propertyValue: f.propertyValue,
           idSet: f.idSet,
+          stringSet: f.stringSet,
         })),
       }}
       render={(props: EquipmentViewQueryRendererSearchQueryResponse) => {

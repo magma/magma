@@ -12,8 +12,8 @@ import (
 	"sync"
 	"testing"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher/broker/memstore"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 )

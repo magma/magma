@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 )
 
 func TestServiceRun(t *testing.T) {

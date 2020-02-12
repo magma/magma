@@ -8,7 +8,7 @@ LICENSE file in the root directory of this source tree.
 
 package exporters
 
-import "magma/orc8r/cloud/go/protos"
+import "magma/orc8r/lib/go/protos"
 
 type Exporter interface {
 	// export logEntries

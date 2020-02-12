@@ -17,8 +17,8 @@ package servicers
 
 import (
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/lib/go/protos"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

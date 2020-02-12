@@ -155,6 +155,8 @@ function RuleRow(props: {rule: ActionsListCard_actionsRule$key}) {
                 .map(a => ({...a, data: JSON.parse(a.data)})),
               ruleFilters: rule.ruleFilters
                 .filter(Boolean)
+                // T62071472
+                // $FlowFixMe v0.118.0+ filter fields may be null
                 .map(f => ({...f, data: JSON.parse(f.data)})),
             }}
             onClose={() => history.push(relativeUrl(''))}

@@ -20,7 +20,7 @@ import (
 
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"golang.org/x/net/context"
 )

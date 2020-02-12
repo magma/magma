@@ -15,7 +15,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/labstack/echo"
 	"github.com/olivere/elastic/v7"

@@ -13,11 +13,11 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/orc8r"
-	commonProtos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	orc8rStorage "magma/orc8r/cloud/go/storage"
+	commonProtos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/thoas/go-funk"

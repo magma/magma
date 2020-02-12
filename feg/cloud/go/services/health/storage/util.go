@@ -15,7 +15,7 @@ import (
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 // HealthToBlob converts a gatewayID and healthStats proto to a Blobstore blob

@@ -14,9 +14,9 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/protos/mconfig"
-	merrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -52,6 +52,7 @@ func (*Builder) Build(
 	swxc := gwConfig.Swx
 	eapAka := gwConfig.EapAka
 	aaa := gwConfig.AaaServer
+	csfb := gwConfig.Csfb
 	healthc := protos.SafeInit(healthConfig).(*models.Health)
 
 	if s6ac != nil {
@@ -110,6 +111,12 @@ func (*Builder) Build(
 		mc := &mconfig.AAAConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(aaa, mc)
 		mconfigOut["aaa_server"] = mc
+	}
+
+	if csfb != nil {
+		mc := &mconfig.CsfbConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(csfb, mc)
+		mconfigOut["csfb"] = mc
 	}
 
 	return nil

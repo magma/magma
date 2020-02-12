@@ -18,11 +18,11 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"

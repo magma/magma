@@ -11,12 +11,12 @@ package main
 import (
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 )

@@ -14,10 +14,10 @@ import (
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/accessd"
 	"magma/orc8r/cloud/go/services/accessd/obsidian/models"
 	"magma/orc8r/cloud/go/services/certifier"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/labstack/echo"
 )

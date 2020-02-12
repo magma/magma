@@ -19,12 +19,10 @@ import (
 )
 
 func TestRouter(t *testing.T) {
-	router, err := newRouter(
-		viewer.NewFixedTenancy(&ent.Client{}),
-		logtest.NewTestLogger(t),
-		nil,
-		nil,
-	)
+	router, err := newRouter(routerConfig{
+		tenancy: viewer.NewFixedTenancy(&ent.Client{}),
+		logger:  logtest.NewTestLogger(t),
+	})
 	require.NoError(t, err)
 
 	tests := []struct {

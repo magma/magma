@@ -14,7 +14,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
@@ -131,7 +130,7 @@ func (r mutationResolver) AddWorkOrder(
 		SetNillableProjectID(input.ProjectID).
 		SetNillableLocationID(input.LocationID).
 		SetNillableDescription(input.Description).
-		SetOwnerName(r.User(ctx).email).
+		SetOwnerName(r.Me(ctx).User).
 		SetCreationDate(time.Now()).
 		SetNillableAssignee(input.Assignee).
 		SetNillableIndex(input.Index)
@@ -204,48 +203,34 @@ func (r mutationResolver) EditWorkOrder(
 		mutation.ClearLocation()
 	}
 
-	wotID, err := wo.QueryType().OnlyID(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying work order type id")
-	}
-	var added, edited []*models.PropertyInput
-	for _, input := range input.Properties {
-		if input.ID == nil {
-			added = append(added, input)
-		} else {
-			edited = append(edited, input)
+	for _, pInput := range input.Properties {
+		propertyQuery := wo.QueryProperties().
+			Where(property.HasTypeWith(propertytype.ID(pInput.PropertyTypeID)))
+		if pInput.ID != nil {
+			propertyQuery = propertyQuery.
+				Where(property.ID(*pInput.ID))
 		}
-	}
-	if _, err := r.AddProperties(added,
-		resolverutil.AddPropertyArgs{
-			Context:    ctx,
-			EntSetter:  func(b *ent.PropertyCreate) { b.SetWorkOrderID(input.ID) },
-			IsTemplate: pointer.ToBool(true),
-		},
-	); err != nil {
-		return nil, err
-	}
-	for _, input := range edited {
-		typ, err := client.WorkOrderType.Query().
-			Where(workordertype.ID(wotID)).
-			QueryPropertyTypes().
-			Where(propertytype.ID(input.PropertyTypeID)).
-			Only(ctx)
+		existingProperty, err := propertyQuery.Only(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying work order property type %q", input.PropertyTypeID)
+			if pInput.ID == nil {
+				return nil, errors.Wrapf(err, "querying work order property type %q", pInput.PropertyTypeID)
+			}
+			return nil, errors.Wrapf(err, "querying work order property type %q and id %q", pInput.PropertyTypeID, *pInput.ID)
+		}
+		typ, err := client.PropertyType.Get(ctx, pInput.PropertyTypeID)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying property type %q", pInput.PropertyTypeID)
 		}
 		if typ.Editable && typ.IsInstanceProperty {
 			query := client.Property.
 				Update().
-				Where(
-					property.HasWorkOrderWith(workorder.ID(wo.ID)),
-					property.ID(*input.ID),
-				)
-			if _, err := updatePropValues(input, query).Save(ctx); err != nil {
+				Where(property.ID(existingProperty.ID))
+			if _, err := updatePropValues(pInput, query).Save(ctx); err != nil {
 				return nil, errors.Wrap(err, "updating property values")
 			}
 		}
 	}
+
 	ids := make([]string, 0, len(input.CheckList))
 	for _, clInput := range input.CheckList {
 		cli, err := r.createOrUpdateCheckListItem(ctx, clInput)
@@ -415,7 +400,7 @@ func (r mutationResolver) createOrUpdateCheckListDefinition(
 }
 
 func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id string) (string, error) {
-	client, logger := r.ClientFrom(ctx), r.log.For(ctx).With(zap.String("id", id))
+	client, logger := r.ClientFrom(ctx), r.logger.For(ctx).With(zap.String("id", id))
 	switch count, err := client.WorkOrderType.Query().
 		Where(workordertype.ID(id)).
 		QueryWorkOrders().

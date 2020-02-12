@@ -20,7 +20,7 @@ import CSVFileExport from '../CSVFileExport';
 import FiltersTypeahead from '../comparison_view/FiltersTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
-import {useEffect, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 
 import update from 'immutability-helper';
 import {doesFilterHasValue} from '../comparison_view/FilterUtils';
@@ -39,6 +39,7 @@ const useStyles = makeStyles(theme => ({
   searchBarContainer: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
     flexGrow: 1,
   },
   searchTypeahead: {
@@ -50,11 +51,15 @@ const useStyles = makeStyles(theme => ({
   },
   placeholder: {
     position: 'absolute',
+    top: '0px',
+    bottom: '0px',
     zIndex: 2,
     lineHeight: '36px',
     color: theme.palette.grey.A200,
     fontWeight: 'bold',
     pointerEvents: 'none',
+    alignItems: 'center',
+    display: 'flex',
   },
   filter: {
     marginRight: theme.spacing(),
@@ -63,7 +68,7 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   footer: {
-    padding: '8px 14px',
+    padding: '8px 4px',
     color: theme.palette.grey.A200,
     fontWeight: 'bold',
     pointerEvents: 'none',
@@ -107,11 +112,7 @@ const PowerSearchBar = (props: Props) => {
     footer,
     exportPath,
   } = props;
-  const [filterValues, setFilterValues] = useState([]);
-
-  useEffect(() => {
-    setFilterValues(props.filterValues ?? []);
-  }, [props.filterValues, filterConfigs]);
+  const [filterValues, setFilterValues] = useState(props.filterValues ?? []);
 
   const [editingFilterIndex, setEditingFilterIndex] = useState((null: ?number));
   const [isInputFocused, setIsInputFocused] = useState(false);

@@ -13,8 +13,6 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
@@ -25,6 +23,8 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/stretchr/testify/assert"
 )

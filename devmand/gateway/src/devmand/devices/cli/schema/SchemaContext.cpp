@@ -105,6 +105,41 @@ bool SchemaContext::isConfig(Path path) const {
   return result;
 }
 
+void SchemaContext::loadModules(llly_ctx* context, const Model& _model) {
+  int modelCount = 0;
+  int failedModelCount = 0;
+
+  try {
+    for (boost::filesystem::directory_entry& p :
+         boost::filesystem::directory_iterator(
+             boost::filesystem::path(_model.getDir()))) {
+      if (!boost::filesystem::is_regular_file(p)) {
+        continue;
+      }
+      if (!p.path().has_extension() or p.path().extension() != ".yang") {
+        continue;
+      }
+      auto modelName = p.path().filename().replace_extension();
+      modelCount++;
+      if (!llly_ctx_load_module(context, modelName.string().c_str(), NULL)) {
+        failedModelCount++;
+        MLOG(MWARNING) << "Unable to parse model: " << p.path() << ". Ignoring";
+      };
+    }
+
+    if (failedModelCount == modelCount) {
+      throw SchemaContextException(
+          "Unable to parse schema context from " + _model.getDir() +
+          " due to: Failed to parse all models: " +
+          to_string(failedModelCount));
+    }
+  } catch (boost::filesystem::filesystem_error& e) {
+    throw SchemaContextException(
+        "Unable to parse schema context from " + _model.getDir() +
+        " due to: " + e.what());
+  }
+}
+
 bool SchemaContext::isPathValid(Path path) const {
   if (path == Path::ROOT) {
     return true;
@@ -112,6 +147,7 @@ bool SchemaContext::isPathValid(Path path) const {
 
   void* schema =
       llly_path_data2schema(ctx, const_cast<char*>(path.str().c_str()));
+
   auto result = schema != nullptr;
   free(schema);
   return result;
@@ -130,39 +166,7 @@ SchemaContext::SchemaContext(const Model& _model) : model(_model.getDir()) {
   setenv(
       "LIBYANG_USER_TYPES_PLUGINS_DIR", LIBYANG_USER_TYPES_PLUGINS_DIR, false);
   ctx = llly_ctx_new(_model.getDir().c_str(), LLLY_CTX_ALLIMPLEMENTED);
-
-  int modelCount = 0;
-  int failedModelCount = 0;
-
-  try {
-    for (boost::filesystem::directory_entry& p :
-         boost::filesystem::directory_iterator(
-             boost::filesystem::path(_model.getDir()))) {
-      if (!boost::filesystem::is_regular_file(p)) {
-        continue;
-      }
-      if (!p.path().has_extension() or p.path().extension() != ".yang") {
-        continue;
-      }
-      auto modelName = p.path().filename().replace_extension();
-      modelCount++;
-      if (!llly_ctx_load_module(ctx, modelName.string().c_str(), NULL)) {
-        failedModelCount++;
-        MLOG(MWARNING) << "Unable to parse model: " << p.path() << ". Ignoring";
-      };
-    }
-
-    if (failedModelCount == modelCount) {
-      throw SchemaContextException(
-          "Unable to parse schema context from " + _model.getDir() +
-          " due to: Failed to parse all models: " +
-          to_string(failedModelCount));
-    }
-  } catch (boost::filesystem::filesystem_error& e) {
-    throw SchemaContextException(
-        "Unable to parse schema context from " + _model.getDir() +
-        " due to: " + e.what());
-  }
+  loadModules(ctx, _model);
 }
 
 llly_set* SchemaContext::getNodes(Path path) const {
@@ -197,5 +201,9 @@ bool SchemaContext::operator==(const SchemaContext& rhs) const {
 
 bool SchemaContext::operator!=(const SchemaContext& rhs) const {
   return !(rhs == *this);
+}
+
+llly_ctx* SchemaContext::getLyContext() const {
+  return ctx;
 }
 } // namespace devmand::devices::cli

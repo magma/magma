@@ -21,6 +21,10 @@ type GatewayFederationConfigs struct {
 	// Required: true
 	AaaServer *AaaServer `json:"aaa_server"`
 
+	// csfb
+	// Required: true
+	Csfb *Csfb `json:"csfb"`
+
 	// eap aka
 	// Required: true
 	EapAka *EapAka `json:"eap_aka"`
@@ -59,6 +63,10 @@ func (m *GatewayFederationConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateAaaServer(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateCsfb(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -110,6 +118,24 @@ func (m *GatewayFederationConfigs) validateAaaServer(formats strfmt.Registry) er
 		if err := m.AaaServer.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("aaa_server")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayFederationConfigs) validateCsfb(formats strfmt.Registry) error {
+
+	if err := validate.Required("csfb", "body", m.Csfb); err != nil {
+		return err
+	}
+
+	if m.Csfb != nil {
+		if err := m.Csfb.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("csfb")
 			}
 			return err
 		}

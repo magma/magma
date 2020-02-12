@@ -39,6 +39,26 @@ $(PYTHON_BUILD):
 $(SITE_PACKAGES_DIR)/setuptools: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) "setuptools>=41.0.1"
 
+swagger:: swagger_prereqs $(SWAGGER_LIST)
+swagger_prereqs:
+	test -f /usr/bin/java # Java exists
+	test -n "$(SWAGGER_CODEGEN_JAR)" # SWAGGER_CODEGEN_JAR set
+	test -f $(SWAGGER_CODEGEN_JAR) # swagger-codegen exists
+	@mkdir -p $(PYTHON_BUILD)/gen
+$(SWAGGER_LIST): %_swagger_specs:
+	@echo "Generating python code for $* swagger*.yml files"
+	@rm -rf $(PYTHON_BUILD)/gen/$*/swagger # clean directory for easy moving of files
+	@mkdir -p $(PYTHON_BUILD)/gen/$*/swagger
+	@touch $(PYTHON_BUILD)/gen/$*/swagger/__init__.py
+	/usr/bin/java -jar "$(SWAGGER_CODEGEN_JAR)" generate \
+		-i $(SRC)/$*/swagger/swagger*.yml \
+		-o $(PYTHON_BUILD)/gen/$*/swagger \
+		-l python \
+		-Dmodels
+	@mv $(PYTHON_BUILD)/gen/$*/swagger/swagger_client/* $(PYTHON_BUILD)/gen/$*/swagger/ # flatten directory
+	@rmdir $(PYTHON_BUILD)/gen/$*/swagger/swagger_client
+	@rm -r $(PYTHON_BUILD)/gen/$*/swagger/test # remove tests
+
 protos:: $(BIN)/grpcio-tools $(PROTO_LIST) prometheus_proto
 	@find $(PYTHON_BUILD)/gen -type d | tail -n +2 | sed '/__pycache__/d' | xargs -I % touch "%/__init__.py"
 $(PROTO_LIST): %_protos:

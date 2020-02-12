@@ -18,7 +18,7 @@ type CertifierStorage interface {
 	ListSerialNumbers() ([]string, error)
 
 	// GetCertInfo returns the certificate info associated with the serial number.
-	// If not found, returns ErrNotFound from magma/orc8r/cloud/go/errors.
+	// If not found, returns ErrNotFound from magma/orc8r/lib/go/errors.
 	GetCertInfo(serialNumber string) (*protos.CertificateInfo, error)
 
 	// GetManyCertInfo maps the passed serial numbers to their associated certificate info.

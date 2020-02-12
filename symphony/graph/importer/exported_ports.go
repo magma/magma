@@ -171,6 +171,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 							log.Info(fmt.Sprintf("(row #%d) editing port", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
 						}
 					} else {
+						modifiedCount++
 						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port type or properties", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
 					}
 				}

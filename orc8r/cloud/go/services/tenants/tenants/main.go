@@ -12,12 +12,12 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/cloud/go/services/tenants/servicers"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 )

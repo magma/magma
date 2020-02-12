@@ -27,7 +27,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	lteprotos "magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (

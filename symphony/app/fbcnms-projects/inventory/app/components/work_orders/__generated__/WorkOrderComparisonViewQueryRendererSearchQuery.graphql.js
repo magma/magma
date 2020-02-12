@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash edf035514edc9a474258187357dc8d02
+ * @relayHash dce0024d6265214fb4aeac3e28258c39
  */
 
 /* eslint-disable */
@@ -25,6 +25,7 @@ export type WorkOrderFilterInput = {|
   operator: FilterOperator,
   stringValue?: ?string,
   idSet?: ?$ReadOnlyArray<string>,
+  stringSet?: ?$ReadOnlyArray<string>,
   propertyValue?: ?PropertyTypeInput,
   maxDepth?: ?number,
 |};

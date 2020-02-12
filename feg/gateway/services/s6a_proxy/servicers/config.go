@@ -16,7 +16,7 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	managed_configs "magma/orc8r/gateway/mconfig"
+	managed_configs "magma/gateway/mconfig"
 )
 
 // S6a Environment Variables to overwrite default configs

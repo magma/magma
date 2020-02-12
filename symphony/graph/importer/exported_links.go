@@ -188,6 +188,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 						continue
 					}
 					if len(allPropInputs) == 0 {
+						modifiedCount++
 						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port types or link properties", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
 						continue
 					}

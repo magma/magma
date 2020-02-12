@@ -36,7 +36,12 @@ class LocationTypeLocationsQuery:
           node {
             id
             name
+            latitude
+            longitude
             externalId
+            locationType {
+              name
+            }
           }
         }
       }
@@ -61,8 +66,16 @@ class LocationTypeLocationsQuery:
                     @dataclass_json
                     @dataclass
                     class Location:
+                        @dataclass_json
+                        @dataclass
+                        class LocationType:
+                            name: str
+
                         id: str
                         name: str
+                        latitude: float
+                        longitude: float
+                        locationType: LocationType
                         externalId: Optional[str] = None
 
                     node: Optional[Location] = None

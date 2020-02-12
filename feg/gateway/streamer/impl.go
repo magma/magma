@@ -20,7 +20,7 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/feg/gateway/registry"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (

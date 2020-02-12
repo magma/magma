@@ -4,11 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import React, {useState} from 'react';
+import * as React from 'react';
 
 export type TopBarContextType = {
   drawerOpen: boolean,
@@ -23,11 +23,11 @@ const TopBarContext = React.createContext<TopBarContextType>({
 });
 
 type Props = {
-  children: any,
+  children: React.Node,
 };
 
 export function TopBarContextProvider(props: Props) {
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+  const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
   return (
     <TopBarContext.Provider
       value={{

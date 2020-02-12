@@ -7,6 +7,7 @@ DEPLOY_PATH="/home/$MAGMA_USER/magma/lte/gateway/deploy"
 SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
+KVERS=$(uname -r)
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
@@ -50,7 +51,7 @@ else
 fi
 
 echo "Checking if the righ kernel version is installed (4.9.0-9-amd64)"
-if [ "$(uname -r)" != "4.9.0-9-amd64" ]; then
+if [ "$KVERS" != "4.9.0-9-amd64" ]; then
   # Adding the snapshot to retrieve 4.9.0-9-amd64
   if ! grep -q "deb http://snapshot.debian.org/archive/debian/20190801T025637Z" /etc/apt/sources.list; then
     echo "deb http://snapshot.debian.org/archive/debian/20190801T025637Z stretch main non-free contrib" >> /etc/apt/sources.list
@@ -61,7 +62,7 @@ if [ "$(uname -r)" != "4.9.0-9-amd64" ]; then
   # Removing dev repository snapshot from source.list
   sed -i '/20190801T025637Z/d' /etc/apt/sources.list
   # Removing incompatible Kernel version
-  DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-4.9.0-11-amd64
+  DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-"$KVERS"-amd64
   # Setting REBOOT flag to 1 because we need to boot with the right Kernel version
   NEED_REBOOT=1
 fi

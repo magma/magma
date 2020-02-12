@@ -1,7 +1,7 @@
 // flow-typed signature: e06d5aa5fc6082a4ad52b6f9d5e922d4
 // flow-typed version: 0d36584dff/sequelize_v4.x.x/flow_>=v0.42.x
 
-// @flow
+// @flow strict-local
 
 declare module "sequelize" {
   /**

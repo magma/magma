@@ -24,15 +24,14 @@ var (
 )
 
 func TestLinkTitleInputValidation(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	prepareBasicData(ctx, t, *r)
 
-	err = importer.inputValidationsLinks(ctx, NewImportHeader([]string{"aa"}, ImportEntityLink))
+	err := importer.inputValidationsLinks(ctx, NewImportHeader([]string{"aa"}, ImportEntityLink))
 	require.Error(t, err)
 	err = importer.inputValidationsLinks(ctx, NewImportHeader(fixedFirstPortLink, ImportEntityLink))
 	require.Error(t, err)
@@ -42,8 +41,7 @@ func TestLinkTitleInputValidation(t *testing.T) {
 }
 
 func TestGeneralLinksEditImport(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 
@@ -67,7 +65,7 @@ func TestGeneralLinksEditImport(t *testing.T) {
 	header := append(append(firstPortHeader, secondPortHeader...), "Service Names", propNameInt, propNameDate, propNameBool)
 
 	fl := NewImportHeader(header, ImportEntityLink)
-	err = importer.inputValidationsLinks(ctx, fl)
+	err := importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)
 
 	r1 := NewImportRecord(row1, fl)
@@ -109,8 +107,7 @@ func TestGeneralLinksEditImport(t *testing.T) {
 }
 
 func TestGeneralLinksAddImport(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 
@@ -135,7 +132,7 @@ func TestGeneralLinksAddImport(t *testing.T) {
 	header := append(append(firstPortHeader, secondPortHeader...), "Service Names", propNameInt, propNameDate, propNameBool)
 
 	fl := NewImportHeader(header, ImportEntityLink)
-	err = importer.inputValidationsLinks(ctx, fl)
+	err := importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)
 	r1 := NewImportRecord(row1, fl)
 

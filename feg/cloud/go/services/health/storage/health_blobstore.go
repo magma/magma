@@ -14,8 +14,8 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 )

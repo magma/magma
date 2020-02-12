@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -29,9 +29,10 @@ const PowerSearchWorkOrderPriorityFilter = (props: FilterProps) => {
       operator={value.operator}
       editMode={editMode}
       onRemoveFilter={onRemoveFilter}
-      value={(value.idSet ?? [])
+      value={(value.stringSet ?? [])
         .map(
-          id => priorityValues.find(priority => priority.value === id)?.label,
+          value =>
+            priorityValues.find(priority => priority.value === value)?.label,
         )
         .join(', ')}
       input={
@@ -39,14 +40,14 @@ const PowerSearchWorkOrderPriorityFilter = (props: FilterProps) => {
           options={priorityValues}
           onSubmit={onInputBlurred}
           onBlur={onInputBlurred}
-          value={value.idSet ?? []}
+          value={value.stringSet ?? []}
           onChange={newName =>
             onValueChanged({
               id: value.id,
               key: value.key,
               name: value.name,
               operator: value.operator,
-              idSet: newName,
+              stringSet: newName,
             })
           }
         />

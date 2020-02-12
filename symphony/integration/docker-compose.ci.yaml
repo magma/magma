@@ -53,7 +53,7 @@ services:
   graph:
     image: ${DOCKER_REGISTRY}/graph:${TAG}
     environment:
-      MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true
+      MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true&interpolateParams=true
     env_file: *env_file
     depends_on:
       - mysql

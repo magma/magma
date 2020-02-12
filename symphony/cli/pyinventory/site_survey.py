@@ -14,7 +14,7 @@ from xlsxwriter.utility import xl_col_to_name
 from xlsxwriter.workbook import Workbook
 from xlsxwriter.worksheet import Worksheet
 
-from ._image import add_site_survey_image, delete_site_survey_image
+from .api.file import add_site_survey_image, delete_site_survey_image
 from .consts import Location, SiteSurvey
 from .graphql.create_survey_mutation import (
     CreateSurveyMutation,

@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -95,7 +96,7 @@ func testCertifierStorageImpl(t *testing.T, store storage.CertifierStorage) {
 	err = store.DeleteCertInfo(sn0)
 	assert.NoError(t, err)
 	_, err = store.GetCertInfo(sn0)
-	assert.Error(t, err)
+	assert.EqualError(t, err, merrors.ErrNotFound.Error())
 	infos, err = store.GetManyCertInfo([]string{sn0, sn1})
 	assert.NoError(t, err)
 	assert.Len(t, infos, 1)

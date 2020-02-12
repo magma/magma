@@ -20,6 +20,7 @@
       - daemontools
       - git
       - vim
+  retries: 5
   when: preburn
 
 ########################################
@@ -33,6 +34,7 @@
       - python3-pip
       - pkg-config
       - libsystemd-dev
+  retries: 5
   when: preburn
 
 ########################################
@@ -51,10 +53,12 @@
       - libjemalloc-dev
       - libc-ares-dev
       - magma-nghttpx=1.31.1-1
+  retries: 5
   when: preburn and ansible_distribution == 'Ubuntu'
 
 - name: Install nghttpx for Debian
   apt: pkg=nghttp2-proxy state=present
+  retries: 5
   when: preburn and ansible_distribution == 'Debian'
 
 #################################

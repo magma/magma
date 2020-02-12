@@ -13,8 +13,8 @@ import (
 	"log"
 	"time"
 
-	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/gateway/directoryd"
+	"magma/gateway/directoryd"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"

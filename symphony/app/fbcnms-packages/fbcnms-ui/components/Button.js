@@ -4,16 +4,16 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import React from 'react';
+import * as React from 'react';
 
 type Props = {
   onClick?: () => void,
   error?: boolean,
-  children: any,
+  children: React.Node,
 };
 
 type State = {};
@@ -27,7 +27,7 @@ export default class Button extends React.Component<Props, State> {
       fontSize: 15,
       padding: '3px 10px',
     };
-    if (this.props.error) {
+    if (this.props.error != null) {
       styles['border'] = '1px solid red';
     }
     return (

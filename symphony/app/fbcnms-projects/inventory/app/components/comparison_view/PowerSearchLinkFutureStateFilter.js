@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -28,8 +28,11 @@ const PowerSearchLinkFutureStateFilter = (props: FilterProps) => {
       name="Future State"
       operator={value.operator}
       editMode={editMode}
-      value={(value.idSet ?? [])
-        .map(id => FutureStateValues.find(status => status.value === id)?.label)
+      value={(value.stringSet ?? [])
+        .map(
+          value =>
+            FutureStateValues.find(status => status.value === value)?.label,
+        )
         .join(', ')}
       onRemoveFilter={onRemoveFilter}
       input={
@@ -37,14 +40,14 @@ const PowerSearchLinkFutureStateFilter = (props: FilterProps) => {
           options={FutureStateValues}
           onSubmit={onInputBlurred}
           onBlur={onInputBlurred}
-          value={value.idSet ?? []}
+          value={value.stringSet ?? []}
           onChange={newEntries => {
             onValueChanged({
               id: value.id,
               key: value.key,
               name: value.name,
               operator: value.operator,
-              idSet: newEntries,
+              stringSet: newEntries,
             });
           }}
         />

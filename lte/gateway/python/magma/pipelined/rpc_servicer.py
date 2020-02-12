@@ -284,12 +284,39 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._ue_mac_app.add_ue_mac_flow,
             request.sid.id, request.mac_addr)
 
-
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
             # Install trace flow
             self._loop.call_soon_threadsafe(
                 self._ipfix_app.add_ue_sample_flow, request.sid.id,
                 request.msisdn, request.ap_mac_addr, request.ap_name)
+
+        resp = FlowResponse()
+        return resp
+
+    def DeleteUEMacFlow(self, request, context):
+        """
+        Delete UE MAC address to subscriber association
+        """
+        if not self._service_manager.is_app_enabled(
+                UEMacAddressController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        # 12 hex characters + 5 colons
+        if len(request.mac_addr) != 17:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details('Invalid UE MAC address provided')
+            return None
+
+        self._loop.call_soon_threadsafe(
+            self._ue_mac_app.delete_ue_mac_flow,
+            request.sid.id, request.mac_addr)
+
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            # Delete trace flow
+            self._loop.call_soon_threadsafe(
+                self._ipfix_app.delete_ue_sample_flow, request.sid.id)
 
         resp = FlowResponse()
         return resp
@@ -310,7 +337,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(
-            self._check_quota_app.update_subscriber_quota_state, request)
+            self._check_quota_app.update_subscriber_quota_state, request.updates)
         return resp
 
     # --------------------------

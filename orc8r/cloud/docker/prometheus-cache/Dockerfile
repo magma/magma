@@ -4,17 +4,20 @@ FROM golang:1.13-alpine3.11 as go
 ENV GOPROXY https://proxy.golang.org
 ENV GOBIN /build/bin
 
-ARG CACHE_FILES=go/services/metricsd/prometheus/prometheus-cache
+ARG CACHE_FILES=cloud/go/services/metricsd/prometheus/prometheus-cache
 
 COPY ${CACHE_FILES} /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/prometheus-cache
 
 # Copy go.mod file to cache the downloads
-COPY go/go.mod /gomod/
+COPY cloud/go/go.mod /gomod/
+COPY lib/go/go.mod /gomod/
+COPY lib/go/protos/go.mod /gomod/
 WORKDIR /gomod
 RUN go mod download
 
 # Copy magma code
-COPY go/ /go/src/magma/orc8r/cloud/go/
+COPY cloud/go/ /go/src/magma/orc8r/cloud/go/
+COPY lib/go/ /go/src/magma/orc8r/lib/go/
 
 WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/prometheus-cache
 RUN go build -i -o $GOBIN/prometheus-cache

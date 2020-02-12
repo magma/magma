@@ -16,8 +16,8 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/services/feg_relay/utils"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"

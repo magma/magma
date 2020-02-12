@@ -170,6 +170,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 
 					var pos *ent.EquipmentPosition
 					var created bool
+					var equ *ent.Equipment
 					if commit {
 						pos, err = resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID, true)
 					} else {
@@ -184,10 +185,16 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 						if created {
 							modifiedCount++
 						} else if err == nil {
+							errs = append(errs, ErrorLine{Line: numRows, Error: "", Message: "Equipment already exists under location/position"})
 							log.Info("Row " + strconv.FormatInt(int64(numRows), 10) + ": Equipment already exists under location/position")
+							continue
 						}
 					} else {
-						_, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
+						equ, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
+						if equ != nil {
+							errs = append(errs, ErrorLine{Line: numRows, Error: "", Message: "Equipment already exists under location/position"})
+							continue
+						}
 					}
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/fetching equipment"})

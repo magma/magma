@@ -8,8 +8,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/jessevdk/go-flags"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -17,7 +15,9 @@ import (
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
 
+	"github.com/jessevdk/go-flags"
 	"go.uber.org/zap"
+	"gocloud.dev/pubsub/mempubsub"
 )
 
 type cliFlags struct {
@@ -77,11 +77,13 @@ func main() {
 	ctx = ent.NewContext(ctx, tx.Client())
 
 	// Since the client is already uses transaction we can't have transactions on graphql also
-	r, err := resolver.New(logger, resolver.WithTransaction(false))
-	if err != nil {
-		logger.For(ctx).Error("cannot initialize graphql resolver", zap.Error(err))
-		return
-	}
+	r := resolver.New(
+		resolver.ResolveConfig{
+			Logger: logger,
+			Topic:  mempubsub.NewTopic(),
+		},
+		resolver.WithTransaction(false),
+	)
 
 	if err := utilityFunc(ctx, r, logger); err != nil {
 		logger.For(ctx).Error("failed to run function", zap.Error(err))

@@ -10,7 +10,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	protos "magma/orc8r/cloud/go/protos"
+	protos "magma/orc8r/lib/go/protos"
 	math "math"
 )
 
@@ -136,7 +136,8 @@ func (m *AccessControl_Entity) GetPermissions() AccessControl_Permission {
 
 // Operator's Access Control List (map)
 type AccessControl_List struct {
-	Operator             *protos.Identity                 `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	Operator *protos.Identity `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// Map entity's hash string -> entity
 	Entities             map[string]*AccessControl_Entity `protobuf:"bytes,2,rep,name=entities,proto3" json:"entities,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}                         `json:"-"`
 	XXX_unrecognized     []byte                           `json:"-"`
@@ -374,11 +375,11 @@ var fileDescriptor_a098e900d2c3a6f2 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // AccessControlManagerClient is the client API for AccessControlManager service.
 //
@@ -415,10 +416,10 @@ type AccessControlManagerClient interface {
 }
 
 type accessControlManagerClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewAccessControlManagerClient(cc *grpc.ClientConn) AccessControlManagerClient {
+func NewAccessControlManagerClient(cc grpc.ClientConnInterface) AccessControlManagerClient {
 	return &accessControlManagerClient{cc}
 }
 

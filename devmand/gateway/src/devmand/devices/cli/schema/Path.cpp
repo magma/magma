@@ -35,6 +35,7 @@ Path::Path(const string& _path) : path(_path) {
   // pre-cache segments and unkeyed version
 }
 
+// TODO description
 vector<string> Path::getSegments() const {
   if (ROOT == *this) {
     return vector<string>();
@@ -222,7 +223,7 @@ Path::Keys Path::getKeysFromSegment(string segment) const {
 
 // TODO make Keys a proper class and move serialize/parse there
 
-static const auto KEY_IN_PATH = regex("([^=]*)=\"([^\"]*)\"");
+static const auto KEY_IN_PATH = regex("([^=]*)=\'([^\']*)\'");
 static const string KEY_SEPARATOR = ",";
 
 const Path::Keys Path::parseKeys(string keys) {
@@ -254,7 +255,7 @@ const string Path::serializeKeys(Keys keys) {
   stringstream keysAsString;
   keysAsString << "[";
   for (const auto& keyName : keys.keys()) {
-    keysAsString << keyName << "=\"" << keys[keyName] << "\"";
+    keysAsString << keyName << "='" << keys[keyName] << "'";
   }
   keysAsString << "]";
   return keysAsString.str();
@@ -293,6 +294,10 @@ bool operator<=(const Path& lhs, const Path& rhs) {
 
 bool operator>=(const Path& lhs, const Path& rhs) {
   return !(lhs < rhs);
+}
+
+Path operator+(const Path& lhs, const string& rhs) {
+  return Path(lhs.str() + rhs);
 }
 
 string Path::str() const {

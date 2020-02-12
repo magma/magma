@@ -172,7 +172,7 @@ TEST_F(ReaderRegistryTest, api) {
                "}"),
       sortJson(toPrettyJson(
           r->readConfiguration(
-               "/openconfig-interfaces:interfaces/interface[id=\"1\"]",
+               "/openconfig-interfaces:interfaces/interface[id='1']",
                mockDevice)
               .get())));
   ASSERT_TRUE(
@@ -216,13 +216,12 @@ TEST_F(ReaderRegistryTest, readerError) {
   ASSERT_TRUE(r->readConfiguration("/", mockDevice).hasException());
   ASSERT_TRUE(
       r->readConfiguration(
-           "/openconfig-interfaces:interfaces/interface[id=\"1\"]", mockDevice)
+           "/openconfig-interfaces:interfaces/interface[id='1']", mockDevice)
           .hasException());
-  ASSERT_FALSE(
-      r->readConfiguration(
-           "/openconfig-interfaces:interfaces/interface[id=\"1\"]/state",
-           mockDevice)
-          .hasException());
+  ASSERT_FALSE(r->readConfiguration(
+                    "/openconfig-interfaces:interfaces/interface[id='1']/state",
+                    mockDevice)
+                   .hasException());
 }
 
 TEST_F(ReaderRegistryTest, withSchemaContext) {
@@ -268,7 +267,7 @@ TEST_F(ReaderRegistryTest, withSchemaContext) {
                "}"),
       sortJson(toPrettyJson(
           r->readConfiguration(
-               "/openconfig-interfaces:interfaces/interface[name=\"0\"]",
+               "/openconfig-interfaces:interfaces/interface[name='0']",
                mockDevice)
               .get())));
   ASSERT_EQ(
@@ -287,7 +286,7 @@ TEST_F(ReaderRegistryTest, withSchemaContext) {
                "}"),
       sortJson(toPrettyJson(
           r->readState(
-               "/openconfig-interfaces:interfaces/interface[name=\"0\"]",
+               "/openconfig-interfaces:interfaces/interface[name='0']",
                mockDevice)
               .get())));
 }

@@ -16,12 +16,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/importer"
-
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-
-	"github.com/AlekSi/pointer"
+	"github.com/facebookincubator/ent/dialect"
+	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
@@ -30,19 +27,21 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
+	"github.com/facebookincubator/symphony/graph/importer"
+	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 
-	"github.com/facebookincubator/ent/dialect"
-	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
+	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
+	"gocloud.dev/pubsub/mempubsub"
 )
 
 var debug = flag.Bool("debug", false, "run database driver on debug mode")
 
 const (
-	tenantHeader               = "x-auth-organization"
+	tenantHeader               = viewer.TenantHeader
 	equipmentTypeName          = "equipmentType"
 	equipmentType2Name         = "equipmentType2"
 	parentEquip                = "parentEquipmentName"
@@ -105,14 +104,13 @@ func newResolver(t *testing.T, drv dialect.Driver) (*TestExporterResolver, error
 	client := ent.NewClient(ent.Driver(drv))
 	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
 
-	r, err := resolver.New(logtest.NewTestLogger(t))
-	require.NoError(t, err)
 	log := logtest.NewTestLogger(t)
+	r := resolver.New(resolver.ResolveConfig{
+		Logger: log,
+		Topic:  mempubsub.NewTopic(),
+	})
 
 	e := exporter{log, equipmentRower{log}}
-	if err != nil {
-		return nil, err
-	}
 	return &TestExporterResolver{r, drv, client, e}, nil
 }
 

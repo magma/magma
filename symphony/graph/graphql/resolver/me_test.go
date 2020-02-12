@@ -13,12 +13,10 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestQueryMe(t *testing.T) {
-	resolver, err := newTestResolver(t)
-	require.NoError(t, err)
+	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
 
 	v := &viewer.Viewer{Tenant: "testing", User: "tester@example.com"}
@@ -41,8 +39,7 @@ func TestQueryMe(t *testing.T) {
 			Email  string
 		}
 	}
-	err = client.New(h).Post("query { me { tenant, email } }", &rsp)
-	require.NoError(t, err)
+	client.New(h).MustPost("query { me { tenant, email } }", &rsp)
 	assert.Equal(t, v.Tenant, rsp.Me.Tenant)
 	assert.Equal(t, v.User, rsp.Me.Email)
 }

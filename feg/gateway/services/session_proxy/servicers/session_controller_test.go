@@ -20,9 +20,9 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/servicers"
+	"magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/gateway/mconfig"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
