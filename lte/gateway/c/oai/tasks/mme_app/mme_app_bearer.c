@@ -567,7 +567,6 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
   struct ue_mm_context_s *ue_context_p = NULL;
   bool is_guti_valid = false;
   bool is_mm_ctx_new = false;
-  emm_context_t *ue_nas_ctx = NULL;
   enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
 
   OAILOG_INFO(LOG_MME_APP, "Received MME_APP_INITIAL_UE_MESSAGE from S1AP\n");
@@ -601,78 +600,67 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
     is_guti_valid =
       mme_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
     if (is_guti_valid) {
-      ue_nas_ctx = emm_context_get_by_guti(&_emm_data, &guti);
-      if (ue_nas_ctx) {
-        // Get the UE context using mme_ue_s1ap_id
-        ue_context_p =
-          PARENT_STRUCT(ue_nas_ctx, struct ue_mm_context_s, emm_context);
-        if (ue_context_p != NULL) {
-          initial_pP->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
-          if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
-            /*
-             * Ideally this should never happen. When UE move to IDLE this key is set to INVALID.
-             * Note - This can happen if eNB detects RLF late and by that time UE sends Initial NAS message via new RRC
-             * connection
-             * However if this key is valid, remove the key from the hashtable.
-             */
+      ue_context_p =
+        mme_ue_context_exists_guti(&mme_app_desc_p->mme_ue_contexts, &guti);
+      if (ue_context_p) {
+        initial_pP->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
+        if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
+          /*
+           * Ideally this should never happen. When UE move to IDLE this key is set to INVALID.
+           * Note - This can happen if eNB detects RLF late and by that time UE sends Initial NAS message via new RRC
+           * connection
+           * However if this key is valid, remove the key from the hashtable.
+           */
 
-            OAILOG_ERROR(
-              LOG_MME_APP,
-              "MME_APP_INITAIL_UE_MESSAGE: enb_s1ap_id_key %ld has "
-              "valid value \n",
-              ue_context_p->enb_s1ap_id_key);
-            //inform s1ap to do local cleanup of enb_ue_s1ap_id from the ue context
-            ue_context_p->ue_context_rel_cause = S1AP_INVALID_ENB_ID;
-            OAILOG_ERROR(
-              LOG_MME_APP,
-              " Sending UE Context Release to S1AP for ue_id =(%u)\n",
-              ue_context_p->mme_ue_s1ap_id);
-            mme_app_itti_ue_context_release(
-              ue_context_p, ue_context_p->ue_context_rel_cause);
-            hashtable_uint64_ts_remove(
-              mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-              (const hash_key_t) ue_context_p->enb_s1ap_id_key);
-            ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
-            ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
-          }
-          // Update MME UE context with new enb_ue_s1ap_id
-          ue_context_p->enb_ue_s1ap_id = initial_pP->enb_ue_s1ap_id;
-          // regenerate the enb_s1ap_id_key as enb_ue_s1ap_id is changed.
-          MME_APP_ENB_S1AP_ID_KEY(
-            enb_s1ap_id_key, initial_pP->enb_id, initial_pP->enb_ue_s1ap_id);
-          // Update enb_s1ap_id_key in hashtable
-          mme_ue_context_update_coll_keys(
-            &mme_app_desc_p->mme_ue_contexts,
-            ue_context_p,
-            enb_s1ap_id_key,
-            ue_context_p->mme_ue_s1ap_id,
-            ue_nas_ctx->_imsi64,
-            ue_context_p->mme_teid_s11,
-            &guti);
-          // Check if paging timer exists for UE and remove
-          if (
-            ue_context_p->paging_response_timer.id !=
-            MME_APP_TIMER_INACTIVE_ID) {
-            if (timer_remove(ue_context_p->paging_response_timer.id, NULL)) {
-              OAILOG_ERROR(
-                LOG_MME_APP,
-                "Failed to stop paging response timer for UE id %d\n",
-                ue_context_p->mme_ue_s1ap_id);
-            }
-            ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
-          }
-        } else {
           OAILOG_ERROR(
             LOG_MME_APP,
-            "Failed to get the UE context using MME UE S1AP Id "
-            "(" MME_UE_S1AP_ID_FMT ")\n",
-            initial_pP->mme_ue_s1ap_id);
+            "MME_APP_INITAIL_UE_MESSAGE: enb_s1ap_id_key %ld has "
+            "valid value \n",
+            ue_context_p->enb_s1ap_id_key);
+          //inform s1ap to do local cleanup of enb_ue_s1ap_id from the ue context
+          ue_context_p->ue_context_rel_cause = S1AP_INVALID_ENB_ID;
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            " Sending UE Context Release to S1AP for ue_id =(%u)\n",
+            ue_context_p->mme_ue_s1ap_id);
+          mme_app_itti_ue_context_release(
+            ue_context_p, ue_context_p->ue_context_rel_cause);
+          hashtable_uint64_ts_remove(
+            mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+            (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+          ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
+          ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
+        }
+        // Update MME UE context with new enb_ue_s1ap_id
+        ue_context_p->enb_ue_s1ap_id = initial_pP->enb_ue_s1ap_id;
+        // regenerate the enb_s1ap_id_key as enb_ue_s1ap_id is changed.
+        MME_APP_ENB_S1AP_ID_KEY(
+          enb_s1ap_id_key, initial_pP->enb_id, initial_pP->enb_ue_s1ap_id);
+        // Update enb_s1ap_id_key in hashtable
+        mme_ue_context_update_coll_keys(
+          &mme_app_desc_p->mme_ue_contexts,
+          ue_context_p,
+          enb_s1ap_id_key,
+          ue_context_p->mme_ue_s1ap_id,
+          ue_context_p->emm_context._imsi64,
+          ue_context_p->mme_teid_s11,
+          &guti);
+        // Check if paging timer exists for UE and remove
+        if (
+          ue_context_p->paging_response_timer.id !=
+          MME_APP_TIMER_INACTIVE_ID) {
+          if (timer_remove(ue_context_p->paging_response_timer.id, NULL)) {
+            OAILOG_ERROR(
+              LOG_MME_APP,
+              "Failed to stop paging response timer for UE id %d\n",
+              ue_context_p->mme_ue_s1ap_id);
+          }
+          ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
         }
       } else {
         OAILOG_DEBUG(
           LOG_MME_APP,
-          "MME_APP_INITIAL_UE_MESSAGE with mme code %u and S-TMSI %u:"
-          "no UE context found \n",
+          "No UE context found for MME code %u and S-TMSI %u\n",
           initial_pP->opt_s_tmsi.mme_code,
           initial_pP->opt_s_tmsi.m_tmsi);
       }
@@ -1043,40 +1031,23 @@ int mme_app_handle_create_sess_resp(
    * NAS-ESM maps this "S11 cause" to "ESM cause" and sends it in PDN Connectivity Reject message to the UE.
    */
 
+  emm_cn_ula_or_csrsp_fail_t create_session_response_fail = {0};
   if (create_sess_resp_pP->cause.cause_value != REQUEST_ACCEPTED) {
     // Send PDN CONNECTIVITY FAIL message  to NAS layer
-    increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "failure");
     OAILOG_DEBUG(
       LOG_MME_APP,
       "Create Session Response Cause value = (%d) for ue_id =(%u)\n",
       create_sess_resp_pP->cause.cause_value,
       ue_context_p->mme_ue_s1ap_id);
-    emm_cn_ula_or_csrsp_fail_t create_session_response_fail = {0};
-    bearer_id = create_sess_resp_pP->bearer_contexts_created.bearer_contexts[0]
-                  .eps_bearer_id /* - 5 */;
-    current_bearer_p = mme_app_get_bearer_context(ue_context_p, bearer_id);
-    if (current_bearer_p) {
-      transaction_identifier = current_bearer_p->transaction_identifier;
-    }
-    create_session_response_fail.pti = transaction_identifier;
-    create_session_response_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
     create_session_response_fail.cause =
       (pdn_conn_rsp_cause_t)(create_sess_resp_pP->cause.cause_value);
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Handling Create Session Response failure for ue_id = (%u)"
-      ", bearer id = (%d)"
-      ", pti = (%d)\n",
-      ue_context_p->mme_ue_s1ap_id,
-      bearer_id,
-      transaction_identifier);
-    rc = nas_proc_ula_or_csrsp_fail(&create_session_response_fail);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+    goto error_handling_csr_failure;
   }
   increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "success");
   //---------------------------------------------------------
   // Process itti_sgw_create_session_response_t.bearer_context_created
   //---------------------------------------------------------
+  uint_8 num_successful_bearers = 0;
   for (int i = 0;
        i < create_sess_resp_pP->bearer_contexts_created.num_bearer_context;
        i++) {
@@ -1098,6 +1069,7 @@ int mme_app_handle_create_sess_resp(
       OAILOG_ERROR(
         LOG_MME_APP,
         "Cases where bearer cause != REQUEST_ACCEPTED are not handled\n");
+      continue;
     }
     if (
       create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
@@ -1108,6 +1080,7 @@ int mme_app_handle_create_sess_resp(
         create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
           .s1u_sgw_fteid.interface_type,
         S1_U_SGW_GTP_U);
+      continue;
     }
 
     current_bearer_p = mme_app_get_bearer_context(ue_context_p, bearer_id);
@@ -1116,6 +1089,7 @@ int mme_app_handle_create_sess_resp(
         LOG_MME_APP,
         "Failed to get bearer context for bearer Id (%d)\n",
         bearer_id);
+      continue;
     }
 
     update_mme_app_stats_default_bearer_add();
@@ -1189,6 +1163,13 @@ int mme_app_handle_create_sess_resp(
         current_bearer_p->qci,
         bearer_id);
     }
+    ++num_successful_bearers;
+  }
+  if (num_successful_bearers == 0) {
+    // Send PDN CONNECTIVITY FAIL message to NAS layer, if none of the bearer
+    // could be allocated
+    create_session_response_fail.cause = CAUSE_NO_RESOURCES_AVAILABLE;
+    goto error_handling_csr_failure;
   }
   /* Send Create Session Response to NAS module */
   emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {0};
@@ -1225,6 +1206,26 @@ int mme_app_handle_create_sess_resp(
   }
 
   nas_proc_cs_respose_success(&nas_pdn_cs_respose_success);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+
+error_handling_csr_failure:
+  increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "failure");
+  bearer_id = create_sess_resp_pP->bearer_contexts_created.bearer_contexts[0]
+                .eps_bearer_id /* - 5 */;
+  current_bearer_p = mme_app_get_bearer_context(ue_context_p, bearer_id);
+  if (current_bearer_p) {
+    transaction_identifier = current_bearer_p->transaction_identifier;
+  }
+  create_session_response_fail.pti = transaction_identifier;
+  create_session_response_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
+  OAILOG_ERROR(
+    LOG_MME_APP,
+    "Handling Create Session Response failure for ue_id = (%u), "
+    "bearer id = (%d), pti = (%d)\n",
+    ue_context_p->mme_ue_s1ap_id,
+    bearer_id,
+    transaction_identifier);
+  rc = nas_proc_ula_or_csrsp_fail(&create_session_response_fail);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
