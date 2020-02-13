@@ -450,7 +450,7 @@ def move_location(
         )
 
 
-@deprecated(deprecated_in="2.3.6", deprecated_by="get_location_by_external_id")
+@deprecated(deprecated_in="2.4.0", deprecated_by="get_location_by_external_id")
 def get_locations_by_external_id(
     client: GraphqlClient, external_id: str
 ) -> List[Location]:

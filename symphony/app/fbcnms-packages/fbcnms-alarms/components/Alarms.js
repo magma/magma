@@ -11,11 +11,11 @@
 import AlarmContext from './AlarmContext';
 import AlertRules from './AlertRules';
 import AppBar from '@material-ui/core/AppBar';
-import FiringAlerts from './prometheus/FiringAlerts';
+import FiringAlerts from './alertmanager/FiringAlerts';
 import React from 'react';
-import Receivers from './prometheus/Receivers/Receivers';
-import Routes from './prometheus/Routes';
-import Suppressions from './prometheus/Suppressions';
+import Receivers from './alertmanager/Receivers/Receivers';
+import Routes from './alertmanager/Routes';
+import Suppressions from './alertmanager/Suppressions';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import getPrometheusRuleInterface from './rules/PrometheusEditor/getRuleInterface';
@@ -25,6 +25,7 @@ import {matchPath} from 'react-router';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 import type {ApiUtil} from './AlarmsApi';
+import type {FiringAlarm} from './AlarmAPIType';
 import type {Labels} from './AlarmAPIType';
 import type {Match} from 'react-router-dom';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
@@ -65,9 +66,10 @@ type Props<TRuleUnion> = {
   disabledTabs?: Array<string>,
   // context props
   apiUtil: ApiUtil,
+  ruleMap?: ?RuleInterfaceMap<TRuleUnion>,
   thresholdEditorEnabled?: boolean,
   filterLabels?: (labels: Labels) => Labels,
-  ruleMap?: ?RuleInterfaceMap<TRuleUnion>,
+  getAlertType?: (alert: FiringAlarm) => string,
 };
 
 export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
@@ -78,6 +80,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
     disabledTabs,
     thresholdEditorEnabled,
     ruleMap,
+    getAlertType,
   } = props;
   const classes = useStyles();
   const {match, location} = useRouter();
@@ -85,7 +88,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
   const currentTabMatch = matchPath(location.pathname, {
     path: `${match.path}/:tabName`,
   });
-  const mergedRuleMap = useMergedRuleInterface<TRuleUnion>({ruleMap, apiUtil});
+  const mergedRuleMap = useMergedRuleMap<TRuleUnion>({ruleMap, apiUtil});
 
   const disabledTabSet = React.useMemo(() => {
     return new Set(disabledTabs ?? []);
@@ -98,6 +101,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
         thresholdEditorEnabled,
         filterLabels,
         ruleMap: mergedRuleMap,
+        getAlertType: getAlertType,
       }}>
       <AppBar className={classes.appBar} color="default">
         <Tabs
@@ -121,6 +125,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
           })}
         </Tabs>
       </AppBar>
+
       <Switch>
         <Route
           path={`${match.path}/alerts`}
@@ -148,7 +153,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
 }
 
 // merge custom ruleMap with default prometheus rule map
-function useMergedRuleInterface<TRuleUnion>({
+function useMergedRuleMap<TRuleUnion>({
   ruleMap,
   apiUtil,
 }: {

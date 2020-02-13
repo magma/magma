@@ -236,7 +236,9 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
     flag is not set fail the test case.
     """
     if setup_flows_request is None:
-        setup_flows_request = SetupFlowsRequest(requests=[], epoch=global_epoch)
+        setup_flows_request = SetupFlowsRequest(
+            requests=[], epoch=global_epoch, quota_updates=[]
+        )
     enf_controller.init_finished = False
     if startup_flow_controller:
         startup_flow_controller._flows_received = False

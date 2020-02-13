@@ -15,12 +15,15 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication"
 	"magma/lte/cloud/go/services/eps_authentication/servicers"
-	"magma/lte/cloud/go/services/subscriberdb/storage"
-	"magma/orc8r/cloud/go/datastore"
+	"magma/lte/cloud/go/services/eps_authentication/storage"
 	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/cloud/go/sqorc"
 )
 
+// DEPRECATED -- eps_authentication service is temporarily deprecated and currently not in-use.
+// NOT WORKING -- calling any of the service's endpoints will result in a handler panic.
+// To un-deprecate:
+// 	- Point storage at subscriber data in configurator
+//	- Search in directory for all items denoted DEPRECATED (e.g. skipped tests)
 func main() {
 	// Create the service
 	srv, err := service.NewOrchestratorService(lte.ModuleName, eps_authentication.ServiceName)
@@ -28,19 +31,9 @@ func main() {
 		log.Fatalf("Error creating service: %s", err)
 	}
 
-	// Init the Datastore
-	store, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
-	if err != nil {
-		log.Fatalf("Failed to initialize datastore: %s", err)
-	}
-
-	subscriberDBStore, err := storage.NewSubscriberDBStorage(store)
-	if err != nil {
-		log.Fatalf("Failed to initialize subscriberdb store: %s", err)
-	}
-
 	// Add servicers to the service
-	servicer, err := servicers.NewEPSAuthServer(subscriberDBStore)
+	store := storage.NewSubscriberDBStorage()
+	servicer, err := servicers.NewEPSAuthServer(store)
 	if err != nil {
 		log.Fatalf("EPS Auth Servicer Initialization Error: %s", err)
 	}

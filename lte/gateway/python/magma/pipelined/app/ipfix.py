@@ -153,7 +153,6 @@ class IPFIXController(MagmaController):
             apn_mac_addr.replace("-", ":"), msisdn, apn_name,
             self.ipfix_config.gtp_port, self.next_main_table
         )
-        self.logger.error(action_str)
         try:
             subprocess.Popen(action_str, shell=True).wait()
         except subprocess.CalledProcessError as e:

@@ -34,7 +34,7 @@ func minimalLinksLineLength() int {
 // nolint: staticcheck
 func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	var (
 		commitRuns             []bool
 		errs                   Errors

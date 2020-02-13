@@ -28,7 +28,7 @@ const minimalLineLength = 6
 // nolint: staticcheck, dupl
 func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
 	var (
 		err                    error

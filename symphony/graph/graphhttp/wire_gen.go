@@ -10,6 +10,7 @@
 package graphhttp
 
 import (
+	"context"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions/action/magmarebootnode"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
@@ -19,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
+	"gocloud.dev/pubsub"
 	"gocloud.dev/server/health"
 )
 
@@ -78,10 +80,12 @@ var (
 
 // Config defines the http server config.
 type Config struct {
-	Tenancy *viewer.MySQLTenancy
-	Logger  log.Logger
-	Census  oc.Options
-	Orc8r   orc8r.Config
+	Tenancy   *viewer.MySQLTenancy
+	Topic     *pubsub.Topic
+	Subscribe func(context.Context) (*pubsub.Subscription, error)
+	Logger    log.Logger
+	Census    oc.Options
+	Orc8r     orc8r.Config
 }
 
 func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
@@ -101,6 +105,8 @@ func newRouterConfig(config Config) (cfg routerConfig, err error) {
 		tenancy: config.Tenancy,
 		logger:  config.Logger,
 	}
+	cfg.events.topic = config.Topic
+	cfg.events.subscribe = config.Subscribe
 	cfg.orc8r.client = client
 	cfg.actions.registry = registry
 	return cfg, nil

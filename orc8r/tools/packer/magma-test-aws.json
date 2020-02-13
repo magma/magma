@@ -48,9 +48,29 @@
       "inventory_groups": "test",
       "role_paths": [
         "../../../orc8r/tools/ansible/roles/apt_cache",
+        "../../../orc8r/tools/ansible/roles/distro_snapshot",
+        "../../../orc8r/tools/ansible/roles/docker",
+        "../../../orc8r/tools/ansible/roles/fluent_bit",
+        "../../../orc8r/tools/ansible/roles/gateway_dev",
+        "../../../orc8r/tools/ansible/roles/gateway_services",
+        "../../../orc8r/tools/ansible/roles/golang",
+        "../../../orc8r/tools/ansible/roles/pkgrepo",
         "../../../orc8r/tools/ansible/roles/python_dev",
+        "../../../orc8r/tools/ansible/roles/resolv_conf",
+        "../../../orc8r/tools/ansible/roles/test_certs",
+        "../../../lte/gateway/deploy/roles/stretch_snapshot",
         "../../../lte/gateway/deploy/roles/dev_common",
-        "../../../lte/gateway/deploy/roles/magma_test"
+        "../../../lte/gateway/deploy/roles/magma",
+        "../../../lte/gateway/deploy/roles/dev_common",
+        "../../../lte/gateway/deploy/roles/magma",
+        "../../../lte/gateway/deploy/roles/magma_oai",
+        "../../../lte/gateway/deploy/roles/magma_test",
+        "../../../lte/gateway/deploy/roles/ovs_build",
+        "../../../lte/gateway/deploy/roles/ovs_deploy",
+        "../../../lte/gateway/deploy/roles/ovs_prepare",
+        "../../../lte/gateway/deploy/roles/stretch_snapshot",
+        "../../../lte/gateway/deploy/roles/trfserver",
+        "../../../lte/gateway/deploy/roles/uselocalpkgrepo"
       ],
       "extra_arguments": [
         "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"

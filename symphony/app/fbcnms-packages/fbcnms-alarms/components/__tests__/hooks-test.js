@@ -9,11 +9,11 @@
  */
 
 import 'jest-dom/extend-expect';
-import * as React from 'react';
 import {cleanup} from '@testing-library/react';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
+import {mockRuleInterface} from '../../test/testData';
 import {useForm, useLoadRules} from '../hooks';
-import type {GenericRule, RuleInterface} from '../rules/RuleInterface';
+import type {GenericRule} from '../rules/RuleInterface';
 
 jest.useFakeTimers();
 afterEach(() => {
@@ -238,21 +238,6 @@ describe('useForm hook', () => {
   });
 });
 
-function mockRuleInterface(
-  merge?: $Shape<RuleInterface<{}>>,
-): RuleInterface<{}> {
-  return Object.assign(
-    {
-      friendlyName: '',
-      RuleEditor: MockComponent,
-      RuleViewer: MockComponent,
-      getRules: _ => Promise.resolve([]),
-      deleteRule: _ => Promise.resolve(),
-    },
-    merge || {},
-  );
-}
-
 function mockRule(): GenericRule<{}> {
   return {
     severity: '',
@@ -265,11 +250,6 @@ function mockRule(): GenericRule<{}> {
   };
 }
 
-function MockComponent() {
-  return <span />;
-}
-
-// eslint-disable-next-line flowtype/no-weak-types
 async function renderHookAsync(renderFn): any {
   let response;
   await hooksAct(async () => {

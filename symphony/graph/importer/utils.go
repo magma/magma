@@ -306,7 +306,7 @@ func (m *importer) newReader(key string, req *http.Request) ([]string, *reader, 
 	}
 	r, err := m.charsetReader(f, hdr.Header, textproto.MIMEHeader(req.Header))
 	if err != nil {
-		m.log.For(req.Context()).Warn("cannot detect mime charset", zap.Error(err))
+		m.logger.For(req.Context()).Warn("cannot detect mime charset", zap.Error(err))
 		r, err = charset.NewReader(f, req.Header.Get("Content-Type"))
 	}
 	if err != nil {

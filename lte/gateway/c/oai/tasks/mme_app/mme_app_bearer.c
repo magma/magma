@@ -496,6 +496,7 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
     "security_capabilities_integrity_algorithms  0x%04X\n",
     establishment_cnf_p->ue_security_capabilities_integrity_algorithms);
 
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
   /*
@@ -855,6 +856,7 @@ void mme_app_handle_erab_setup_req(
 
     s1ap_e_rab_setup_req->e_rab_to_be_setup_list.item[0].nas_pdu = nas_msg;
 
+    message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
     itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   } else {
     OAILOG_DEBUG(
@@ -1357,8 +1359,10 @@ void mme_app_handle_initial_context_setup_rsp(mme_app_desc_t *mme_app_desc_p,
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
   OAILOG_INFO(
-    TASK_MME_APP, "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
-    initial_ctxt_setup_rsp_pP->ue_id, s11_modify_bearer_request->teid);
+    LOG_MME_APP,
+    "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
+    initial_ctxt_setup_rsp_pP->ue_id,
+    s11_modify_bearer_request->teid);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   /*
    * During Service request procedure,after initial context setup response
@@ -1678,6 +1682,8 @@ void mme_app_handle_e_rab_setup_rsp(
         bc->bearer_state = BEARER_STATE_NULL;
       }
     }
+
+    message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
     itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, message_p);
   } else {
     // not send S11 response
@@ -2043,6 +2049,7 @@ int mme_app_paging_request_helper(
       &tai_list->partial_tai_list[tai_list_idx],
       tai_list->partial_tai_list[tai_list_idx].numberofelements);
   }
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
   rc = itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
   if (!set_timer) {
@@ -2728,6 +2735,8 @@ void mme_app_handle_modify_ue_ambr_request(mme_app_desc_t *mme_app_desc_p,
       modify_ue_ambr_request_p->ue_ambr.br_ul;
     S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).ue_ambr.br_dl =
       modify_ue_ambr_request_p->ue_ambr.br_dl;
+
+    message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
     itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
     OAILOG_DEBUG(
       LOG_MME_APP,
@@ -3290,6 +3299,8 @@ void mme_app_handle_erab_rel_cmd(
     "and EBI %u \n",
     ue_id,
     ebi);
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -3395,6 +3406,8 @@ void mme_app_handle_path_switch_req_ack(
     LOG_MME_APP,
     "MME_APP send PATH_SWITCH_REQUEST_ACK to S1AP for ue_id %d \n",
     ue_context_p->mme_ue_s1ap_id);
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -3429,6 +3442,7 @@ void mme_app_handle_path_switch_req_failure(
     LOG_MME_APP,
     "MME_APP send PATH_SWITCH_REQUEST_FAILURE to S1AP for ue_id %d \n",
     ue_context_p->mme_ue_s1ap_id);
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);

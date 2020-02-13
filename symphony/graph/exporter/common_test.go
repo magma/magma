@@ -15,6 +15,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -35,6 +36,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
+	"gocloud.dev/pubsub"
 	"gocloud.dev/pubsub/mempubsub"
 )
 
@@ -102,15 +104,19 @@ func newResolver(t *testing.T, drv dialect.Driver) (*TestExporterResolver, error
 		drv = dialect.Debug(drv)
 	}
 	client := ent.NewClient(ent.Driver(drv))
-	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
+	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
+	require.NoError(t, err)
 
-	log := logtest.NewTestLogger(t)
-	r := resolver.New(resolver.ResolveConfig{
-		Logger: log,
-		Topic:  mempubsub.NewTopic(),
+	logger, topic := logtest.NewTestLogger(t), mempubsub.NewTopic()
+	r := resolver.New(resolver.Config{
+		Logger: logger,
+		Topic:  topic,
+		Subscribe: func(context.Context) (*pubsub.Subscription, error) {
+			return mempubsub.NewSubscription(topic, time.Second), nil
+		},
 	})
 
-	e := exporter{log, equipmentRower{log}}
+	e := exporter{logger, equipmentRower{logger}}
 	return &TestExporterResolver{r, drv, client, e}, nil
 }
 
@@ -380,7 +386,16 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 		buf, contentType = writeModifiedPortsCSV(t, readr, skipLines, withVerify)
 	}
 
-	h, _ := importer.NewHandler(logtest.NewTestLogger(t))
+	topic := mempubsub.NewTopic()
+	h, _ := importer.NewHandler(
+		importer.Config{
+			Logger: logtest.NewTestLogger(t),
+			Topic:  topic,
+			Subscribe: func(context.Context) (*pubsub.Subscription, error) {
+				return mempubsub.NewSubscription(topic, time.Second), nil
+			},
+		},
+	)
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
 	server := httptest.NewServer(th)
 	defer server.Close()
