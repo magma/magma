@@ -18,7 +18,7 @@ type Props = {
   useLargeIcon?: boolean,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   markerContainer: {
     cursor: 'pointer',
     width: '15px',
@@ -39,7 +39,7 @@ const useStyles = makeStyles({
     strokeOpacity: 0.8,
     fillOpacity: 0.45,
   },
-});
+}));
 
 const CircleIcon = ({className = '', color = '#fff'}) => (
   <svg viewBox="-2 -2 4 4">

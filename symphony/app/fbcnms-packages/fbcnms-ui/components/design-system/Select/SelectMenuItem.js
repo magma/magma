@@ -19,7 +19,7 @@ import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   option: {
     display: 'flex',
     alignItems: 'center',
@@ -40,7 +40,7 @@ const useStyles = makeStyles({
     marginLeft: '6px',
     color: symphony.palette.primary,
   },
-});
+}));
 
 type Props<TValue> = {|
   label: React.Node,

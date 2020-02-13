@@ -16,7 +16,7 @@ import TextField from '@material-ui/core/TextField';
 
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'block',
     margin: '5px 0',
@@ -35,7 +35,7 @@ const useStyles = makeStyles({
     height: '30px',
     verticalAlign: 'bottom',
   },
-});
+}));
 
 type Props = {
   keyValuePairs: Array<[string, string]>,

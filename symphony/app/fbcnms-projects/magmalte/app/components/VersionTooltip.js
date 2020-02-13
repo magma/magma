@@ -15,7 +15,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   version: {
     bottom: '10px',
     cursor: 'pointer',
@@ -23,7 +23,7 @@ const useStyles = makeStyles({
     position: 'absolute',
     textDecoration: 'underline',
   },
-});
+}));
 
 export default function VersionTooltip() {
   const classes = useStyles();

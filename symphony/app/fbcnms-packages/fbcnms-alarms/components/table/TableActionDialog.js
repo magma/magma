@@ -16,7 +16,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   paper: {
     minWidth: 360,
   },
@@ -24,7 +24,7 @@ const useStyles = makeStyles({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-all',
   },
-});
+}));
 
 type Props<TRow> = {
   open: boolean,
@@ -94,12 +94,12 @@ TableActionDialog.defaultProps = {
   RowViewer: SimpleJsonViewer,
 };
 
-const useJsonStyles = makeStyles({
+const useJsonStyles = makeStyles(() => ({
   pre: {
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-all',
   },
-});
+}));
 
 export function SimpleJsonViewer<TRow>({row}: {row: TRow}) {
   const classes = useJsonStyles();

@@ -11,12 +11,12 @@
 import React from 'react';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   noCommentsEmptyState: {
     textAlign: 'center',
     paddingTop: '16px',
   },
-});
+}));
 
 const CommentsLogEmptyState = () => {
   const classes = useStyles();

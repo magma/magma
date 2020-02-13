@@ -39,14 +39,14 @@ import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   header: {
     flexGrow: 1,
   },
   actionsColumn: {
     width: '300px',
   },
-});
+}));
 
 function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
   const classes = useStyles();

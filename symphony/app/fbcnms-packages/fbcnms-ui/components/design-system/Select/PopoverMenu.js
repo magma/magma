@@ -19,7 +19,7 @@ import classNames from 'classnames';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   menu: {
     margin: '8px 0px',
   },
@@ -27,7 +27,7 @@ const useStyles = makeStyles({
     position: 'absolute',
     right: '0',
   },
-});
+}));
 
 type Props<TValue> = {
   className?: string,

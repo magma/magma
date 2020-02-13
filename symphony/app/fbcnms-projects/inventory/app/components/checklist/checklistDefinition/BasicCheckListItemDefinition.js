@@ -21,7 +21,7 @@ type Props = {
   onChange: (updatedChecklistItem: BasicCheckListItemDefinition_item) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -30,7 +30,7 @@ const useStyles = makeStyles({
     flexGrow: 1,
     flexBasis: 0,
   },
-});
+}));
 
 const BasicCheckListItemDefinition = (props: Props) => {
   const {item, onChange} = props;

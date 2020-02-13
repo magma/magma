@@ -14,10 +14,11 @@ import FormValidationContext from '../Form/FormValidationContext';
 import Text from '../Text';
 import classNames from 'classnames';
 import nullthrows from 'nullthrows';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useMemo} from 'react';
 
-const useStyles = makeStyles(({symphony}) => ({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',

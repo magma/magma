@@ -18,7 +18,7 @@ type Props = {
   feature: MagmaGatewayFeature,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     padding: 12,
   },
@@ -31,7 +31,7 @@ const useStyles = makeStyles({
   '@global': {
     'div.mapboxgl-popup-content': {padding: 0},
   },
-});
+}));
 
 export default function WifiMapMarkerPopup({feature}: Props) {
   const classes = useStyles();

@@ -109,7 +109,7 @@ function Organizations(props: Props) {
           <Button>Add Organization</Button>
         </NestedRouteLink>
       </div>
-      <Paper className={classes.tableRoot} elevation={2}>
+      <Paper elevation={2}>
         <Table>
           <TableHead>
             <TableRow>

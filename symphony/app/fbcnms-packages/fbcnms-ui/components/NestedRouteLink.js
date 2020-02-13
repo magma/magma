@@ -15,11 +15,11 @@ import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   link: {
     textDecoration: 'none',
   },
-});
+}));
 
 type Props = {
   children: React.Node,

@@ -13,7 +13,7 @@ import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     minWidth: '24px',
     minHeight: '24px',
@@ -38,7 +38,7 @@ const useStyles = makeStyles({
   errorColor: {
     fill: symphony.palette.R600,
   },
-});
+}));
 
 export type SvgIconStyleProps = {
   className?: string,

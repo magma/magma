@@ -32,12 +32,12 @@ import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   table: {
     minWidth: 70,
     marginBottom: '12px',
   },
-});
+}));
 
 type Props = {
   location: LocationFloorPlansTab_location$key,

@@ -21,12 +21,12 @@ type Props = {
   onChange: (isOnEdit: boolean) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   disabled: {
     opacity: 0.5,
     pointerEvents: 'none',
   },
-});
+}));
 
 const EditToggleButton = (props: Props) => {
   const {isOnEdit, onChange} = props;

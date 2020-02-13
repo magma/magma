@@ -199,7 +199,6 @@ class LocationTypes extends React.Component<Props, State> {
                   </DroppableTableBody>
                 </div>
               </div>
-              /
             </FormValidationContextProvider>
           );
         }}

@@ -9,14 +9,14 @@
  */
 
 import React from 'react';
-import SymphonyTheme from '../../theme/symphony';
 import Text from '../../components/design-system/Text';
 import classNames from 'classnames';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
 
-const useStyles = makeStyles(({symphony}) => ({
+const useStyles = makeStyles(() => ({
   root: {
     padding: '52px',
     display: 'flex',
@@ -60,7 +60,7 @@ const ShadowBlocksRoot = () => {
   const classes = useStyles();
   return (
     <div className={classes.root}>
-      {Object.keys(SymphonyTheme.shadows).map(shadow => (
+      {Object.keys(symphony.shadows).map(shadow => (
         <ShadowBlock key={shadow} shadow={shadow} />
       ))}
     </div>

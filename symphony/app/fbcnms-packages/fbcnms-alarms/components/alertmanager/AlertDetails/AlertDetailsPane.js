@@ -72,9 +72,7 @@ export default function AlertDetailsPane({alert, onClose}: Props) {
         <Grid item container direction="column" spacing={1}>
           <Grid item container justify="space-between">
             <Grid item>
-              <Typography variant="h6" className={classes.panelTitle}>
-                {alertname}
-              </Typography>
+              <Typography variant="h6">{alertname}</Typography>
             </Grid>
             <Grid item>
               <IconButton
@@ -185,13 +183,10 @@ export function Section({
    */
   divider?: boolean,
 }) {
-  const classes = useStyles();
   return (
     <Grid item container direction="column" spacing={2}>
       <Grid item>
-        <Typography variant="h6" className={classes.panelTitle}>
-          {title}
-        </Typography>
+        <Typography variant="h6">{title}</Typography>
       </Grid>
       <Grid item container spacing={2}>
         {children}

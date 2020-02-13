@@ -20,14 +20,14 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   loading: {
     display: 'flex',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));
 
 export default function Routes() {
   const {apiUtil} = useAlarmContext();

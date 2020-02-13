@@ -63,7 +63,6 @@ const PowerSearchOperatorComponent = (props: Props) => {
             variant="outlined"
             classes={{
               root: classes.root,
-              selectMenu: classes.selectMenu,
             }}
             onChange={event => {
               const v = event.target.value;
