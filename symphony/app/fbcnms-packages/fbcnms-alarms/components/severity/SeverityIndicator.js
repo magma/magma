@@ -10,10 +10,7 @@
 import * as React from 'react';
 import Typography from '@material-ui/core/Typography';
 import classnames from 'classnames';
-import grey from '@material-ui/core/colors/grey';
-import orange from '@material-ui/core/colors/orange';
-import red from '@material-ui/core/colors/red';
-import yellow from '@material-ui/core/colors/yellow';
+import {SEVERITY} from './Severity';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -28,29 +25,28 @@ const useStyles = makeStyles(theme => ({
     marginLeft: theme.spacing(1),
     textTransform: 'capitalize',
   },
-  red: {
-    backgroundColor: red.A400,
+  critical: {
+    backgroundColor: SEVERITY.CRITICAL.color,
   },
-  orange: {
-    backgroundColor: orange.A400,
+  major: {
+    backgroundColor: SEVERITY.MAJOR.color,
   },
-  yellow: {
-    backgroundColor: yellow.A400,
+  minor: {
+    backgroundColor: SEVERITY.MINOR.color,
   },
-  grey: {
-    backgroundColor: grey[500],
+  warning: {
+    backgroundColor: SEVERITY.WARNING.color,
+  },
+  info: {
+    backgroundColor: SEVERITY.INFO.color,
+  },
+  notice: {
+    backgroundColor: SEVERITY.NOTICE.color,
+  },
+  unknown: {
+    backgroundColor: SEVERITY.NOTICE.color,
   },
 }));
-
-const SEVERITY_CLASS_MAP = {
-  critical: {className: 'red'},
-  major: {className: 'orange'},
-  minor: {className: 'yellow'},
-  warning: {className: 'yellow'},
-  info: {className: 'grey'},
-  notice: {className: 'grey'},
-  unknown: {className: 'grey'},
-};
 
 type Props = {
   severity: string,
@@ -62,11 +58,7 @@ export default function SeverityIndicator({severity}: Props) {
   const classes = useStyles();
 
   const colorClassname = React.useMemo(
-    () =>
-      classnames(
-        classes.indicator,
-        classes[(SEVERITY_CLASS_MAP[value]?.className)],
-      ),
+    () => classnames(classes.indicator, classes[value] ?? classes.unknown),
     [value, classes],
   );
 

@@ -13,7 +13,7 @@ import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
 import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import Paper from '@material-ui/core/Paper';
-import SeverityIndicator from './common/SeverityIndicator';
+import SeverityIndicator from '../severity/SeverityIndicator';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';

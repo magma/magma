@@ -12,80 +12,82 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import SimpleTable, {toLabels} from '../SimpleTable';
-import TableActionDialog from '../TableActionDialog';
+import SimpleTable, {toLabels} from '../table/SimpleTable';
+import TableActionDialog from '../table/TableActionDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
+  addButton: {
+    position: 'fixed',
+    bottom: 0,
+    right: 0,
+    margin: theme.spacing(2),
+  },
   loading: {
     display: 'flex',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));
 
-export default function Routes() {
+export default function Suppressions() {
   const {apiUtil} = useAlarmContext();
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
   const [currentRow, setCurrentRow] = useState<{}>({});
-  const [showDialog, setShowDialog] = useState<?'view'>(null);
+  const [showDialog, setShowDialog] = useState(false);
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
+  const [_isAddEditAlert, _setIsAddEditAlert] = useState<boolean>(false);
   const classes = useStyles();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const onDialogAction = args => {
-    setShowDialog(args);
-    setMenuAnchorEl(null);
-  };
-
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
-    apiUtil.getRouteTree,
+    apiUtil.getSuppressions,
     {networkId: match.params.networkId},
     lastRefreshTime,
   );
 
   if (error) {
     enqueueSnackbar(
-      `Unable to load receivers: ${
+      `Unable to load suppressions: ${
         error.response ? error.response.data.message : error.message
       }`,
       {variant: 'error'},
     );
   }
 
-  const routesList = response?.routes || [];
+  const silencesList = response || [];
 
   return (
     <>
       <SimpleTable
-        tableData={routesList}
+        tableData={silencesList}
         onActionsClick={(alert, target) => {
           setMenuAnchorEl(target);
           setCurrentRow(alert);
         }}
         columnStruct={[
-          {title: 'name', getValue: row => row.receiver},
+          {title: 'name', getValue: row => row.comment || ''},
+          {title: 'active', getValue: row => row.status?.state ?? ''},
+          {title: 'created by', getValue: row => row.createdBy},
           {
-            title: 'group by',
-            getValue: row => row.group_by || [],
-            render: 'list',
-          },
-          {
-            title: 'match',
-            getValue: row => (row.match ? toLabels(row.match) : {}),
-            render: 'labels',
+            title: 'matchers',
+            getValue: row =>
+              row.matchers
+                ? row.matchers.map(matcher => toLabels(matcher))
+                : [],
+            render: 'multipleGroups',
           },
         ]}
       />
-      {isLoading && routesList.length === 0 && (
+      {isLoading && silencesList.length === 0 && (
         <div className={classes.loading}>
           <CircularProgress />
         </div>
@@ -95,12 +97,12 @@ export default function Routes() {
         keepMounted
         open={Boolean(menuAnchorEl)}
         onClose={() => setMenuAnchorEl(null)}>
-        <MenuItem onClick={() => onDialogAction('view')}>View</MenuItem>
+        <MenuItem onClick={() => setShowDialog(true)}>View</MenuItem>
       </Menu>
       <TableActionDialog
-        open={showDialog != null}
-        onClose={() => onDialogAction(null)}
-        title={'View Alert'}
+        open={showDialog}
+        onClose={() => setShowDialog(false)}
+        title={'View Suppression'}
         row={currentRow || {}}
         showCopyButton={true}
         showDeleteButton={false}

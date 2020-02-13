@@ -24,7 +24,7 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import MetricAlertViewer from './MetricAlertViewer';
 import Paper from '@material-ui/core/Paper';
-import SeverityIndicator from '../../common/SeverityIndicator';
+import SeverityIndicator from '../../severity/SeverityIndicator';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import {makeStyles} from '@material-ui/styles';

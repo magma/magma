@@ -23,7 +23,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {BINARY_COMPARATORS} from '../../prometheus/PromQLTypes';
 import {Labels} from '../../prometheus/PromQL';
 import {Parse} from '../../prometheus/PromQLParser';
-import {SEVERITY} from '../../Severity';
+import {SEVERITY} from '../../severity/Severity';
 import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useForm} from '../../hooks';
