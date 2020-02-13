@@ -10,16 +10,6 @@ package protos
 
 import "google.golang.org/grpc"
 
-func GetLegacySubscriberdbDesc() *grpc.ServiceDesc {
-	return &grpc.ServiceDesc{
-		ServiceName: "magma.SubscriberDBController",
-		HandlerType: _SubscriberDBController_serviceDesc.HandlerType,
-		Methods:     _SubscriberDBController_serviceDesc.Methods,
-		Streams:     _SubscriberDBController_serviceDesc.Streams,
-		Metadata:    _SubscriberDBController_serviceDesc.Metadata,
-	}
-}
-
 func GetLegacyMeteringDesc() *grpc.ServiceDesc {
 	return &grpc.ServiceDesc{
 		ServiceName: "magma.MeteringdRecordsController",
