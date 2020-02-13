@@ -1,3 +1,6 @@
+<!--
+@generated
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -49,7 +52,7 @@
 <dl>
 <dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.PropertyTypeInput"><code class="name">var <span class="ident">PropertyTypeInput</span></code></dt>
 <dd>
-<section class="desc"><p>PropertyTypeInput(name: str, type: pyinventory.graphql.add_location_type_mutation.PropertyKind, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[float, NoneType] = None, latitudeValue: Union[float, NoneType] = None, longitudeValue: Union[float, NoneType] = None, rangeFromValue: Union[float, NoneType] = None, rangeToValue: Union[float, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None, isDeleted: Union[bool, NoneType] = None)</p></section>
+<section class="desc"><p>PropertyTypeInput(name: str, type: pyinventory.graphql.add_location_type_mutation.PropertyKind, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[numbers.Number, NoneType] = None, latitudeValue: Union[numbers.Number, NoneType] = None, longitudeValue: Union[numbers.Number, NoneType] = None, rangeFromValue: Union[numbers.Number, NoneType] = None, rangeToValue: Union[numbers.Number, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None, isDeleted: Union[bool, NoneType] = None)</p></section>
 </dd>
 <dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.SurveyTemplateCategoryInput"><code class="name">var <span class="ident">SurveyTemplateCategoryInput</span></code></dt>
 <dd>
@@ -110,7 +113,7 @@
 <span>(</span><span>data=None, errors=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>AddLocationTypeMutation(data: Union[pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData, NoneType] = None, errors: Any = None)</p></section>
+<section class="desc"><p>AddLocationTypeMutation(data: Union[pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData"><code class="name">var <span class="ident">AddLocationTypeMutationData</span></code></dt>
@@ -181,6 +184,10 @@
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 <dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.bool"><code class="name">var <span class="ident">bool</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -275,6 +282,10 @@
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
+<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 <dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHONE"><code class="name">var <span class="ident">PHONE</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -350,6 +361,7 @@
 <li>
 <h4><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind">PropertyKind</a></code></h4>
 <ul class="two-column">
+<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.MISSING_ENUM" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.MISSING_ENUM">MISSING_ENUM</a></code></li>
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.bool" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.bool">bool</a></code></li>
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.date" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.date">date</a></code></li>
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.datetime_local" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.datetime_local">datetime_local</a></code></li>
@@ -375,6 +387,7 @@
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.EMAIL" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.EMAIL">EMAIL</a></code></li>
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.FLOAT" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.FLOAT">FLOAT</a></code></li>
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.INTEGER" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.INTEGER">INTEGER</a></code></li>
+<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.MISSING_ENUM" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.MISSING_ENUM">MISSING_ENUM</a></code></li>
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHONE" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHONE">PHONE</a></code></li>
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHOTO" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHOTO">PHOTO</a></code></li>
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.TEXT" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.TEXT">TEXT</a></code></li>

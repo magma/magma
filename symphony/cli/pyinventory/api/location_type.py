@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # pyre-strict
 
+from dataclasses import asdict
 from typing import List, Tuple, Union
 
-from dacite import from_dict
+from dacite import Config, from_dict
 from gql.gql.client import OperationException
 
 from .._utils import PropertyValue, _make_property_types
@@ -31,7 +32,7 @@ def _populate_location_types(client: GraphqlClient) -> None:
         client.locationTypes[node.name] = LocationType(
             name=node.name,
             id=node.id,
-            propertyTypes=[p.to_dict() for p in node.propertyTypes],
+            propertyTypes=[asdict(p) for p in node.propertyTypes],
         )
 
 
@@ -64,7 +65,11 @@ def add_location_type(
                 name=name,
                 mapZoomLevel=map_zoom_level,
                 properties=[
-                    from_dict(data_class=AddLocationTypeInput.PropertyTypeInput, data=p)
+                    from_dict(
+                        data_class=AddLocationTypeInput.PropertyTypeInput,
+                        data=p,
+                        config=Config(strict=True),
+                    )
                     for p in new_property_types
                 ],
                 surveyTemplateCategories=[],
@@ -85,7 +90,7 @@ def add_location_type(
     location_type = LocationType(
         name=result.name,
         id=result.id,
-        propertyTypes=[p.to_dict() for p in result.propertyTypes],
+        propertyTypes=[asdict(p) for p in result.propertyTypes],
     )
     client.locationTypes[result.name] = location_type
     return location_type

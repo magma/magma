@@ -23,7 +23,7 @@ type Props = {
   children: React.Node,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   addIcon: {
     fill: symphony.palette.primary,
     marginRight: '8px',
@@ -34,7 +34,7 @@ const useStyles = makeStyles({
     height: '90%',
     maxHeight: '800px',
   },
-});
+}));
 
 const ServiceMenu = (props: Props) => {
   const classes = useStyles();

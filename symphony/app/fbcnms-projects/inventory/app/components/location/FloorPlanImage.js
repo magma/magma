@@ -22,7 +22,7 @@ import useSnackbar from '@fbcnms/ui/hooks/useSnackbar';
 import {makeStyles} from '@material-ui/styles';
 import {uploadFile} from '../FileUpload';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   img: {
     maxWidth: '500px',
     maxHeight: '500px',
@@ -32,7 +32,7 @@ const useStyles = makeStyles({
     margin: '5px 0',
     width: '100%',
   },
-});
+}));
 
 type ReferencePoint = {
   x: number,

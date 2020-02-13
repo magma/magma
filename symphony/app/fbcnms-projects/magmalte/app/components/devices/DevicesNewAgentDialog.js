@@ -26,7 +26,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
@@ -35,7 +35,7 @@ const useStyles = makeStyles({
   title: {
     margin: '15px 0 5px',
   },
-});
+}));
 
 type Props = {
   onClose: () => void,

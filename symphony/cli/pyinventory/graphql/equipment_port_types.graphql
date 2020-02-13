@@ -1,0 +1,10 @@
+query EquipmentPortTypesQuery {
+  equipmentPortTypes {
+    edges {
+      node {
+        id
+        name
+      }
+    }
+  }
+}

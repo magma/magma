@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
@@ -41,11 +42,11 @@ class AddLinkInput:
         stringValue: Optional[str] = None
         intValue: Optional[int] = None
         booleanValue: Optional[bool] = None
-        floatValue: Optional[float] = None
-        latitudeValue: Optional[float] = None
-        longitudeValue: Optional[float] = None
-        rangeFromValue: Optional[float] = None
-        rangeToValue: Optional[float] = None
+        floatValue: Optional[Number] = None
+        latitudeValue: Optional[Number] = None
+        longitudeValue: Optional[Number] = None
+        rangeFromValue: Optional[Number] = None
+        rangeToValue: Optional[Number] = None
         equipmentIDValue: Optional[str] = None
         locationIDValue: Optional[str] = None
         serviceIDValue: Optional[str] = None

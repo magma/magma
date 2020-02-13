@@ -24,6 +24,7 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <conversions.h>
 
 #include "intertask_interface.h"
 #include "log.h"
@@ -54,6 +55,7 @@ int sgw_send_paging_request(const struct in_addr *dest_ip)
   paging_request_p->imsi = strdup(imsi);
   free(imsi);
 
+  IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   ret = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   return ret;
 }

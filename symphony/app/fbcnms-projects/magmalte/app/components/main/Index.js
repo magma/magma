@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {Theme} from '@material-ui/core';
+
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
@@ -26,7 +28,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 // These won't be considered networkIds
 export const ROOT_PATHS = new Set<string>(['network']);
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     display: 'flex',
   },

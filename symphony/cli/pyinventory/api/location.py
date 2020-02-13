@@ -3,7 +3,7 @@
 
 from typing import Any, Dict, List, Optional, Tuple
 
-from dacite import from_dict
+from dacite import Config, from_dict
 from gql.gql.client import OperationException
 
 from .._utils import _get_graphql_properties, deprecated
@@ -376,7 +376,11 @@ def edit_location(
         latitude=new_lat if new_lat is not None else location.latitude,
         longitude=new_long if new_long is not None else location.longitude,
         properties=[
-            from_dict(data_class=EditLocationInput.PropertyInput, data=p)
+            from_dict(
+                data_class=EditLocationInput.PropertyInput,
+                data=p,
+                config=Config(strict=True),
+            )
             for p in properties
         ],
         externalID=new_external_id,
@@ -446,7 +450,7 @@ def move_location(
         )
 
 
-@deprecated(deprecated_in="2.3.6", deprecated_by="get_location_by_external_id")
+@deprecated(deprecated_in="2.4.0", deprecated_by="get_location_by_external_id")
 def get_locations_by_external_id(
     client: GraphqlClient, external_id: str
 ) -> List[Location]:

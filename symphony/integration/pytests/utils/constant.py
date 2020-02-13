@@ -6,6 +6,7 @@
 import os
 
 
+XML_OUTPUT_DIRECTORY = os.getenv("XML_OUTPUT_DIRECTORY")
 TEST_USER_EMAIL = "fbuser@fb.com"
 PLATFORM_SERVER_HEALTH_CHECK_URL = os.getenv(
     "PLATFORM_SERVER_HEALTH_CHECK_URL", "http://platform-server/healthz"

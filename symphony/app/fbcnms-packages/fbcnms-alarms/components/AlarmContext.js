@@ -10,8 +10,9 @@
  */
 
 import React from 'react';
+import {PROMETHEUS_RULE_TYPE} from './rules/PrometheusEditor/getRuleInterface';
 import type {ApiUtil} from './AlarmsApi';
-import type {Labels} from './AlarmAPIType';
+import type {FiringAlarm, Labels} from './AlarmAPIType';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
 export type AlarmContext = {|
@@ -19,7 +20,18 @@ export type AlarmContext = {|
   thresholdEditorEnabled?: boolean,
   filterLabels?: (labels: Labels) => Labels,
   ruleMap: RuleInterfaceMap<*>,
+  getAlertType?: ?GetAlertType,
 |};
+
+/***
+ * Determine the type of alert based on its labels/annotations. Since all
+ * alerts come from alertmanager, regardless of source, we can only determine
+ * the source by inspecting the labels/annotations.
+ */
+export type GetAlertType = (
+  alert: FiringAlarm,
+  ruleMap?: RuleInterfaceMap<mixed>,
+) => $Keys<RuleInterfaceMap<mixed>>;
 
 const emptyApiUtil = {
   useAlarmsApi: () => ({
@@ -48,6 +60,7 @@ const context = React.createContext<AlarmContext>({
   thresholdEditorEnabled: false,
   filterLabels: x => x,
   ruleMap: {},
+  getAlertType: _ => PROMETHEUS_RULE_TYPE,
 });
 
 export function useAlarmContext() {

@@ -9,6 +9,7 @@ import (
 	"flag"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -20,6 +21,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/testdb"
 
 	"github.com/stretchr/testify/require"
+	"gocloud.dev/pubsub"
 	"gocloud.dev/pubsub/mempubsub"
 )
 
@@ -36,23 +38,28 @@ type TestResolver struct {
 	client *ent.Client
 }
 
-func newTestResolver(t *testing.T, opts ...ResolveOption) *TestResolver {
+func newTestResolver(t *testing.T, opts ...Option) *TestResolver {
 	db, name, err := testdb.Open()
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
 	return newResolver(t, sql.OpenDB(name, db), opts...)
 }
 
-func newResolver(t *testing.T, drv dialect.Driver, opts ...ResolveOption) *TestResolver {
+func newResolver(t *testing.T, drv dialect.Driver, opts ...Option) *TestResolver {
 	if *debug {
 		drv = dialect.Debug(drv)
 	}
 	client := ent.NewClient(ent.Driver(drv))
 	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
+
+	topic := mempubsub.NewTopic()
 	r := New(
-		ResolveConfig{
+		Config{
 			Logger: logtest.NewTestLogger(t),
-			Topic:  mempubsub.NewTopic(),
+			Topic:  topic,
+			Subscribe: func(context.Context) (*pubsub.Subscription, error) {
+				return mempubsub.NewSubscription(topic, time.Second), nil
+			},
 		},
 		opts...,
 	)

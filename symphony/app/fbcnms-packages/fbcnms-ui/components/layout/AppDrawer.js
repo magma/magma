@@ -74,7 +74,7 @@ export default function AppDrawer(props: Props) {
         ),
       }}
       open={topbarContext.drawerOpen}>
-      <div className={classes.drawerHeader}>
+      <div>
         <div className={classes.toolbarIcon}>
           <IconButton onClick={() => topbarContext.closeDrawer()}>
             <ChevronLeftIcon />
@@ -82,7 +82,7 @@ export default function AppDrawer(props: Props) {
         </div>
         {projects.length > 0 && (
           <Collapse in={topbarContext.drawerOpen}>
-            <div className={classes.dropdown}>
+            <div>
               <AppDrawerProjectNavigation projects={projects} />
             </div>
           </Collapse>

@@ -74,9 +74,6 @@ const PowerSearchFilterSubjectDropDown = (props: Props) => {
         className={classes.input}
         SelectProps={{
           classes: {selectMenu: classes.selectMenu},
-          MenuProps: {
-            className: classes.menu,
-          },
         }}
         margin="dense">
         {Object.keys(FILTER_SUBJECTS).map(type => (

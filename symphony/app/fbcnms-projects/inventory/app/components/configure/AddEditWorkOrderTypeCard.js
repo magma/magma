@@ -47,7 +47,7 @@ import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
 import {withStyles} from '@material-ui/core/styles';
 
-const styles = theme => ({
+const styles = {
   root: {
     padding: '24px 16px',
     maxHeight: '100%',
@@ -56,40 +56,17 @@ const styles = theme => ({
     flexDirection: 'column',
   },
   header: {
-    marginBottom: '21px',
-    paddingBottom: '0px',
+    display: 'flex',
+    paddingBottom: '24px',
   },
   body: {
     overflowY: 'auto',
   },
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '305px',
-    marginBottom: '40px',
-  },
-  section: {
-    marginBottom: '28px',
-  },
-  closeButton: {
-    marginRight: theme.spacing(),
-  },
-  headerText: {
-    fontSize: '20px',
-    lineHeight: '24px',
-    fontWeight: 500,
-  },
   buttons: {
     display: 'flex',
-    justifyContent: 'flex-end',
-    marginBottom: '24px',
   },
   cancelButton: {
     marginRight: '8px',
-  },
-  iconButton: {
-    display: 'block',
-    marginLeft: 'auto',
   },
   deleteButton: {
     cursor: 'pointer',
@@ -101,7 +78,7 @@ const styles = theme => ({
     justifyContent: 'center',
     marginRight: '8px',
   },
-});
+};
 
 type Props = WithSnackbarProps &
   WithStyles<typeof styles> &
@@ -132,48 +109,50 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
     return (
       <FormValidationContextProvider>
         <div className={classes.root}>
-          <Breadcrumbs
-            className={classes.title}
-            breadcrumbs={[
-              {
-                id: 'wo_templates',
-                name: 'Work Order Templates',
-              },
-              this.props.editingWorkOrderType
-                ? {
-                    id: this.props.editingWorkOrderType.id,
-                    name: this.props.editingWorkOrderType.name,
-                  }
-                : {
-                    id: 'new_wo_type',
-                    name: 'New Work Order Template',
-                  },
-            ]}
-            size="large"
-          />
-          <div className={classes.buttons}>
-            {!!this.props.editingWorkOrderType && (
+          <div className={classes.header}>
+            <Breadcrumbs
+              breadcrumbs={[
+                {
+                  id: 'wo_templates',
+                  name: 'Work Order Templates',
+                  onClick: onClose,
+                },
+                this.props.editingWorkOrderType
+                  ? {
+                      id: this.props.editingWorkOrderType.id,
+                      name: this.props.editingWorkOrderType.name,
+                    }
+                  : {
+                      id: 'new_wo_type',
+                      name: 'New Work Order Template',
+                    },
+              ]}
+              size="large"
+            />
+            <div className={classes.buttons}>
+              {!!this.props.editingWorkOrderType && (
+                <FormAction>
+                  <Button
+                    className={classes.deleteButton}
+                    variant="text"
+                    skin="gray"
+                    onClick={this.onDelete}>
+                    <DeleteOutlineIcon />
+                  </Button>
+                </FormAction>
+              )}
+              <Button
+                className={classes.cancelButton}
+                skin="regular"
+                onClick={onClose}>
+                Cancel
+              </Button>
               <FormAction>
-                <Button
-                  className={classes.deleteButton}
-                  variant="text"
-                  skin="gray"
-                  onClick={this.onDelete}>
-                  <DeleteOutlineIcon />
+                <Button disabled={this.isSaveDisabled()} onClick={this.onSave}>
+                  Save
                 </Button>
               </FormAction>
-            )}
-            <Button
-              className={classes.cancelButton}
-              skin="regular"
-              onClick={onClose}>
-              Cancel
-            </Button>
-            <FormAction>
-              <Button disabled={this.isSaveDisabled()} onClick={this.onSave}>
-                Save
-              </Button>
-            </FormAction>
+            </div>
           </div>
           <div className={classes.body}>
             <ExpandingPanel title="Details">

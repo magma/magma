@@ -336,6 +336,12 @@ describe('magma api proxy tests', () => {
     nock('https://' + API_HOST)
       .get('/magma/v1/networks')
       .reply(200, new Buffer(JSON.stringify(allNetworks), 'utf8'));
+    nock('https://' + API_HOST)
+      .get('/magma/v1/networks/network1')
+      .reply(200);
+    nock('https://' + API_HOST)
+      .get('/magma/v1/networks/network2')
+      .reply(200);
   });
 
   afterEach(async () => {
@@ -343,7 +349,7 @@ describe('magma api proxy tests', () => {
     nock.cleanAll();
   });
 
-  describe('get networks no organization', () => {
+  describe('get all networks no organization', () => {
     it('as normal user, can only see own networks', async () => {
       const app = getApp('', 'valid@123.com');
       await request(app)
@@ -365,6 +371,27 @@ describe('magma api proxy tests', () => {
             allNetworks,
           ),
         );
+    });
+  });
+
+  describe('get one network no organization', () => {
+    it('as normal user, can only get own networks', async () => {
+      const app = getApp('', 'valid@123.com');
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks/network1')
+        .expect(200);
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks/network2')
+        .expect(404);
+    });
+    it('as super user, can get all networks', async () => {
+      const app = getApp('', 'superuser@123.com');
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks/network1')
+        .expect(200);
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks/network2')
+        .expect(200);
     });
   });
 });

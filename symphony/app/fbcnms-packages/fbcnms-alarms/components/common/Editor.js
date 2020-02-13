@@ -71,10 +71,7 @@ export default function Editor({
                 justify="flex-end"
                 alignItems="center">
                 <Grid item>
-                  <Button
-                    variant="outlined"
-                    onClick={() => onExit()}
-                    className={classes.button}>
+                  <Button variant="outlined" onClick={() => onExit()}>
                     Close
                   </Button>
                 </Grid>
@@ -83,7 +80,6 @@ export default function Editor({
                     variant="contained"
                     color="primary"
                     type="submit"
-                    className={classes.button}
                     data-testid="editor-submit-button">
                     {isNew ? 'Add' : 'Save'}
                   </Button>

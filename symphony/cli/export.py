@@ -11,7 +11,7 @@ from datetime import datetime
 from distutils.version import LooseVersion
 
 from pyinventory import InventoryClient
-from pyinventory._image import delete_file, store_file
+from pyinventory.api.file import delete_file, store_file
 
 GRAPHQL_PYINVENORY_CONTENT = \
     """// Copyright (c) 2004-present Facebook All rights reserved.
@@ -44,7 +44,7 @@ def write_files(m: pdoc.Module, output_dir: str, **kwargs):
 
     try:
         with open(f, 'w+', encoding='utf-8') as w:
-            w.write(m.html(**kwargs))
+            w.write('<!--\n@' + 'generated\n-->\n' + m.html(**kwargs))
     except Exception:
         try:
             os.unlink(f)

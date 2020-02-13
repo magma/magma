@@ -11,6 +11,6 @@
     - role: pkgrepo
       vars:
         distribution: "bionic"
-        repo: "test"
+        repo: "cwf"
     - role: ovs
     - role: cwag

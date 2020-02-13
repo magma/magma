@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
@@ -122,11 +123,11 @@ class LocationSurveysQuery:
                     questionFormat: Optional[SurveyQuestionType] = None
                     boolData: Optional[bool] = None
                     emailData: Optional[str] = None
-                    latitude: Optional[float] = None
-                    longitude: Optional[float] = None
+                    latitude: Optional[Number] = None
+                    longitude: Optional[Number] = None
                     phoneData: Optional[str] = None
                     textData: Optional[str] = None
-                    floatData: Optional[float] = None
+                    floatData: Optional[Number] = None
                     intData: Optional[int] = None
                     dateData: Optional[int] = None
 

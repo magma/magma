@@ -7,7 +7,7 @@ from itertools import combinations
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from dacite import from_dict
+from dacite import Config, from_dict
 from gql.gql.client import OperationException
 from xlsxwriter.format import Format
 from xlsxwriter.utility import xl_col_to_name
@@ -752,7 +752,9 @@ def upload_site_survey(
         "surveyResponses": _get_survey_reponses(excel_file_path, json_file_path),
     }
     create_survey_variables = {
-        "data": from_dict(data_class=SurveyCreateData, data=data_variables)
+        "data": from_dict(
+            data_class=SurveyCreateData, data=data_variables, config=Config(strict=True)
+        )
     }
 
     try:

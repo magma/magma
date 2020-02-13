@@ -15,27 +15,32 @@ import (
 )
 
 type (
-	// ResolveConfig configures resolver.
-	ResolveConfig struct {
-		Logger log.Logger
-		Topic  *pubsub.Topic
+	// Config configures resolver.
+	Config struct {
+		Logger    log.Logger
+		Topic     *pubsub.Topic
+		Subscribe func(context.Context) (*pubsub.Subscription, error)
 	}
 
-	// ResolveOption allows for managing resolver configuration using functional options.
-	ResolveOption func(*resolver)
+	// Option allows for managing resolver configuration using functional options.
+	Option func(*resolver)
 
 	resolver struct {
-		logger   log.Logger
-		events   struct{ topic *pubsub.Topic }
+		logger log.Logger
+		events struct {
+			topic     *pubsub.Topic
+			subscribe func(context.Context) (*pubsub.Subscription, error)
+		}
 		mutation struct{ transactional bool }
 		orc8r    struct{ client *http.Client }
 	}
 )
 
 // New creates a graphql resolver.
-func New(cfg ResolveConfig, opts ...ResolveOption) generated.ResolverRoot {
+func New(cfg Config, opts ...Option) generated.ResolverRoot {
 	r := &resolver{logger: cfg.Logger}
 	r.events.topic = cfg.Topic
+	r.events.subscribe = cfg.Subscribe
 	r.mutation.transactional = true
 	for _, opt := range opts {
 		opt(r)
@@ -44,14 +49,14 @@ func New(cfg ResolveConfig, opts ...ResolveOption) generated.ResolverRoot {
 }
 
 // WithTransaction if set to true, will wraps the mutation with transaction.
-func WithTransaction(b bool) ResolveOption {
+func WithTransaction(b bool) Option {
 	return func(r *resolver) {
 		r.mutation.transactional = b
 	}
 }
 
 // WithOrc8rClient is used to provide orchestrator http client.
-func WithOrc8rClient(client *http.Client) ResolveOption {
+func WithOrc8rClient(client *http.Client) Option {
 	return func(r *resolver) {
 		r.orc8r.client = client
 	}

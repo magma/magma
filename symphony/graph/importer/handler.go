@@ -5,6 +5,7 @@
 package importer
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
@@ -13,23 +14,34 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.opencensus.io/plugin/ochttp"
+	"gocloud.dev/pubsub"
 )
 
-type importer struct {
-	log log.Logger
-	r   generated.ResolverRoot
-}
+type (
+	// Config configures import handler.
+	Config struct {
+		Logger    log.Logger
+		Topic     *pubsub.Topic
+		Subscribe func(context.Context) (*pubsub.Subscription, error)
+	}
+
+	importer struct {
+		logger log.Logger
+		r      generated.ResolverRoot
+	}
+)
 
 // NewHandler creates a upload http handler.
-func NewHandler(logger log.Logger) (http.Handler, error) {
+func NewHandler(cfg Config) (http.Handler, error) {
 	r := resolver.New(
-		resolver.ResolveConfig{
-			Logger: logger,
-			// TODO: add events topic
+		resolver.Config{
+			Logger:    cfg.Logger,
+			Topic:     cfg.Topic,
+			Subscribe: cfg.Subscribe,
 		},
 		resolver.WithTransaction(false),
 	)
-	u := &importer{logger, r}
+	u := &importer{cfg.Logger, r}
 
 	router := mux.NewRouter()
 	router.Use(

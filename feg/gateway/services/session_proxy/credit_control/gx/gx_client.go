@@ -356,7 +356,7 @@ func (gxClient *GxClient) getAdditionalAvps(request *CreditControlRequest) ([]*d
 	avpList := make([]*diam.AVP, 0, len(request.UsageReports)+2)
 	if len(request.TgppCtx.GetGxDestHost()) > 0 {
 		avpList = append(avpList,
-			diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.TgppCtx.GetGyDestHost())))
+			diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.TgppCtx.GetGxDestHost())))
 	}
 	for _, usage := range request.UsageReports {
 		avpList = append(avpList, getUsageMonitoringAVP(usage))

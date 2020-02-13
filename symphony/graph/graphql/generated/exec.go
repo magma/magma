@@ -6048,7 +6048,7 @@ input EquipmentPortInput {
   name: String!
   index: Int
   visibleLabel: String
-  portTypeID: String
+  portTypeID: ID
   bandwidth: String
 }
 
@@ -33155,7 +33155,7 @@ func (ec *executionContext) unmarshalInputEquipmentPortInput(ctx context.Context
 			}
 		case "portTypeID":
 			var err error
-			it.PortTypeID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.PortTypeID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

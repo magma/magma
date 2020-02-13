@@ -8,7 +8,7 @@ from typing import Any, Dict, List, NamedTuple, Optional
 from .reporter import DummyReporter
 
 
-__version__ = "2.3.6"
+__version__ = "2.4.0"
 
 DUMMY_REPORTER = DummyReporter()
 
@@ -70,6 +70,11 @@ class EquipmentType(NamedTuple):
     propertyTypes: List[Dict[str, Any]]
     positionDefinitions: List[Dict[str, Any]]
     portDefinitions: List[Dict[str, Any]]
+
+
+class EquipmentPortType(NamedTuple):
+    id: str
+    name: str
 
 
 class Equipment(NamedTuple):

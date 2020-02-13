@@ -10,4 +10,4 @@ RUN python setup.py -q install
 # Switch to intergration pytests directory
 WORKDIR /src/symphony/integration/pytests
 
-CMD ["python", "-m", "xmlrunner", "discover", "-v"]
+CMD ["python", "runner.py"]

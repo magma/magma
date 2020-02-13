@@ -21,11 +21,17 @@ import type {RuleInterfaceMap} from '../components/rules/RuleInterface';
  * The consuming code is all strongly typed, this shouldn't be much of an issue.
  */
 // eslint-disable-next-line flowtype/no-weak-types
-export const useMagmaAPIMock = jest.fn<any, any>(() => ({
-  isLoading: false,
-  response: [],
-  error: null,
-}));
+export const useMagmaAPIMock = jest.fn<any, any>(
+  <TParams, TResponse>(
+    func: TParams => Promise<TResponse>,
+    params: TParams,
+    _cacheCounter?: string | number,
+  ) => ({
+    isLoading: false,
+    response: func(params),
+    error: null,
+  }),
+);
 
 /**
  * Make sure when adding new functions to ApiUtil to add their mocks here
