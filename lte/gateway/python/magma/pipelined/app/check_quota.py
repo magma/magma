@@ -17,7 +17,7 @@ from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate, \
     ActivateFlowsRequest, SetupFlowsResult
 from magma.pipelined.app.base import MagmaController, ControllerType
-from magma.pipelined.app.inout import INGRESS
+from magma.pipelined.app.inout import INGRESS, EGRESS
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -49,6 +49,7 @@ class CheckQuotaController(MagmaController):
             self.APP_NAME)
         self.next_table = \
             self._service_manager.get_table_num(INGRESS)
+        self.egress_table = self._service_manager.get_table_num(EGRESS)
         self._datapath = None
 
     def _get_config(self, config_dict: Dict) -> NamedTuple:
@@ -137,7 +138,7 @@ class CheckQuotaController(MagmaController):
         flows.add_resubmit_next_service_flow(
             self._datapath, self.tbl_num, match, actions,
             priority=flows.DEFAULT_PRIORITY,
-            resubmit_table=self.next_main_table
+            resubmit_table=self.egress_table
         )
 
     def _remove_subscriber_flow(self, imsi: str):
