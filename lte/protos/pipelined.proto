@@ -97,6 +97,32 @@ message ActivateFlowsResult {
 message DeactivateFlowsResult {
 }
 
+// ActivateAPNTaggingFlowsForUserRequest is sent to setup flows which should mark each packet which 
+// going to / from APN with APN tag so we can apply APN specific rulles.
+message ActivateAPNTaggingFlowsForUserRequest {
+  SubscriberID sid = 1;
+
+  // Subscriber session ipv4 address
+  string ip_addr = 2;
+
+  // APN subscriber connected to
+  string ap_name = 3;
+}
+
+message DeactivateAPNTaggingFlowsForUserRequest {
+  SubscriberID sid = 1;
+
+  // Subscriber session ipv4 address
+  string ip_addr = 2;
+
+  // APN subscriber connected to
+  string ap_name = 3;
+}
+
+message APNTaggingResponse {
+}
+
+
 message FlowRequest {
   FlowMatch match = 1;
   string app_name = 2;
@@ -222,4 +248,13 @@ service Pipelined {
   // Get the flow table assignment for all apps ordered by main table number
   // and name
   rpc GetAllTableAssignments (magma.orc8r.Void) returns (AllTableAssignments);
+
+  // --------
+  // APN app:
+  // --------
+  
+  // Setup flows to tag user's packets with APN 
+  rpc AddAPNFlowForUser (ActivateAPNTaggingFlowsForUserRequest) returns (APNTaggingResponse);
+  // Delete flows which should tag user's packets with APN 
+  rpc DeleteAPNFlowForUser (DeactivateAPNTaggingFlowsForUserRequest) returns (APNTaggingResponse);
 }

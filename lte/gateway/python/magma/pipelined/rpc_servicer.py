@@ -24,7 +24,11 @@ from lte.protos.pipelined_pb2 import (
     SetupQuotaRequest,
     ActivateFlowsRequest,
     AllTableAssignments,
-    TableAssignment)
+    TableAssignment,
+    ActivateAPNTaggingFlowsForUserRequest,
+    DeactivateAPNTaggingFlowsForUserRequest,
+    APNTaggingResponse
+)
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
@@ -407,22 +411,25 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # APN App
     # --------------------------
 
-    def AddAPNFlowForUser(self, request, context):
+    def AddAPNFlowForUser(self, request: ActivateAPNTaggingFlowsForUserRequest, context) -> APNTaggingResponse:
         # if app is not enabled
         #     return None
         # self._loop.call_soon_threadsafe(
-        #     self._apn_app.add_apn_flow_for_ue, request.ap_ip_addr, request.ap_name)
+        #     self._apn_app.add_apn_flow_for_ue, request.ip_addr, request.ap_name)
         # )
-        pass
+        # TODO(119vik): add async handlers
+        resp = APNTaggingResponse()
+        return resp
 
-    def DeleteAPNFlowForUser(self, request, context):
+    def DeleteAPNFlowForUser(self, request: DeactivateAPNTaggingFlowsForUserRequest, context) -> APNTaggingResponse:
         # if app is not enabled
         #     return None
         # self._loop.call_soon_threadsafe(
-        #     self._apn_app.delete_apn_flow_for_ue, request.ap_ip_addr, request.ap_name)
+        #     self._apn_app.delete_apn_flow_for_ue, request.ip_addr, request.ap_name)
         # )
-        pass
-
+        # TODO(119vik): add async handlers
+        resp = APNTaggingResponse()
+        return resp
 
     # --------------------------
     # Debugging
