@@ -31,6 +31,8 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsRequest,
     RuleModResult,
     UEMacFlowRequest,
+    ActivateAPNTaggingFlowsForUserRequest,
+    DeactivateAPNTaggingFlowsForUserRequest,
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
@@ -319,6 +321,56 @@ def create_debug_parser(apps):
     subcmd.set_defaults(func=display_flows)
 
 
+
+# -------------
+# APN APP
+# -------------
+
+@grpc_wrapper
+def add_tagging_for_user(client, args):
+    request = ActivateAPNTaggingFlowsForUserRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        ip_addr=args.ip,
+        ap_name=args.apn
+    )
+    res = client.AddAPNFlowForUser(request)
+    if res is None:
+        print("Error creating APN tagging flows")
+
+@grpc_wrapper
+def delete_tagging_for_user(client, args):
+    request = DeactivateAPNTaggingFlowsForUserRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        ip_addr=args.ip,
+        ap_name=args.apn
+    )
+    res = client.DeleteAPNFlowForUser(request)
+    if res is None:
+        print("Error deleting APN tagging flows")
+
+def create_apn_app_parser(apps):
+    """
+    Creates the argparse subparser for the APN App
+    """
+    app = apps.add_parser('apn')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    # Add subcommands
+    subcmd = subparsers.add_parser('add_tagging_for_user',
+                                   help='Add flow to match to mark each packet with APN')
+    subcmd.add_argument('imsi', help='Subscriber ID')
+    subcmd.add_argument('ip', help='IP address allocated for the UE')
+    subcmd.add_argument('apn', help='APN UE connected to')
+    subcmd.set_defaults(func=add_tagging_for_user)
+
+    subcmd = subparsers.add_parser('delete_tagging_for_user',
+                                   help='Add flow to match to mark each packet with APN')
+    subcmd.add_argument('imsi', help='Subscriber ID')
+    subcmd.add_argument('ip', help='IP address allocated for the UE')
+    subcmd.add_argument('apn', help='APN UE connected to')
+    subcmd.set_defaults(func=delete_tagging_for_user)
+
+
 # --------------------------
 # Pipelined base CLI
 # --------------------------
@@ -335,6 +387,7 @@ def create_parser():
     create_ue_mac_parser(apps)
     create_check_flows_parser(apps)
     create_debug_parser(apps)
+    create_apn_app_parser(apps)
     return parser
 
 
