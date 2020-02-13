@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -17,6 +17,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import MarkSiteSurveyNeededMutation from '../../mutations/MarkSiteSurveyNeededMutation';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -35,11 +36,13 @@ class RequestSiteSurveyLocationButton extends React.Component<Props> {
     const {location} = this.props;
 
     return (
-      <Button onClick={this.requestSiteSurvey}>
-        {location.siteSurveyNeeded
-          ? 'Cancel Site Survey'
-          : 'Request Site Survey'}
-      </Button>
+      <FormAction>
+        <Button onClick={this.requestSiteSurvey}>
+          {location.siteSurveyNeeded
+            ? 'Cancel Site Survey'
+            : 'Request Site Survey'}
+        </Button>
+      </FormAction>
     );
   }
 

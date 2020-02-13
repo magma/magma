@@ -101,14 +101,14 @@ func (epdq *EquipmentPortDefinitionQuery) QueryEquipmentType() *EquipmentTypeQue
 	return query
 }
 
-// First returns the first EquipmentPortDefinition entity in the query. Returns *ErrNotFound when no equipmentportdefinition was found.
+// First returns the first EquipmentPortDefinition entity in the query. Returns *NotFoundError when no equipmentportdefinition was found.
 func (epdq *EquipmentPortDefinitionQuery) First(ctx context.Context) (*EquipmentPortDefinition, error) {
 	epds, err := epdq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(epds) == 0 {
-		return nil, &ErrNotFound{equipmentportdefinition.Label}
+		return nil, &NotFoundError{equipmentportdefinition.Label}
 	}
 	return epds[0], nil
 }
@@ -122,14 +122,14 @@ func (epdq *EquipmentPortDefinitionQuery) FirstX(ctx context.Context) *Equipment
 	return epd
 }
 
-// FirstID returns the first EquipmentPortDefinition id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first EquipmentPortDefinition id in the query. Returns *NotFoundError when no id was found.
 func (epdq *EquipmentPortDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = epdq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmentportdefinition.Label}
+		err = &NotFoundError{equipmentportdefinition.Label}
 		return
 	}
 	return ids[0], nil
@@ -154,9 +154,9 @@ func (epdq *EquipmentPortDefinitionQuery) Only(ctx context.Context) (*EquipmentP
 	case 1:
 		return epds[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmentportdefinition.Label}
+		return nil, &NotFoundError{equipmentportdefinition.Label}
 	default:
-		return nil, &ErrNotSingular{equipmentportdefinition.Label}
+		return nil, &NotSingularError{equipmentportdefinition.Label}
 	}
 }
 
@@ -179,9 +179,9 @@ func (epdq *EquipmentPortDefinitionQuery) OnlyID(ctx context.Context) (id string
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmentportdefinition.Label}
+		err = &NotFoundError{equipmentportdefinition.Label}
 	default:
-		err = &ErrNotSingular{equipmentportdefinition.Label}
+		err = &NotSingularError{equipmentportdefinition.Label}
 	}
 	return
 }
@@ -346,9 +346,14 @@ func (epdq *EquipmentPortDefinitionQuery) Select(field string, fields ...string)
 
 func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*EquipmentPortDefinition, error) {
 	var (
-		nodes   []*EquipmentPortDefinition
-		withFKs = epdq.withFKs
-		_spec   = epdq.querySpec()
+		nodes       = []*EquipmentPortDefinition{}
+		withFKs     = epdq.withFKs
+		_spec       = epdq.querySpec()
+		loadedTypes = [3]bool{
+			epdq.withEquipmentPortType != nil,
+			epdq.withPorts != nil,
+			epdq.withEquipmentType != nil,
+		}
 	)
 	if epdq.withEquipmentPortType != nil || epdq.withEquipmentType != nil {
 		withFKs = true
@@ -370,12 +375,12 @@ func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*Equipm
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, epdq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -384,7 +389,7 @@ func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*Equipm
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*EquipmentPortDefinition)
 		for i := range nodes {
-			if fk := nodes[i].equipment_port_type_id; fk != nil {
+			if fk := nodes[i].equipment_port_definition_equipment_port_type; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -397,7 +402,7 @@ func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*Equipm
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_definition_equipment_port_type" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.EquipmentPortType = n
@@ -425,13 +430,13 @@ func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*Equipm
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.definition_id
+			fk := n.equipment_port_definition
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "definition_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_port_definition" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "definition_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_port_definition" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Ports = append(node.Edges.Ports, n)
 		}
@@ -441,7 +446,7 @@ func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*Equipm
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*EquipmentPortDefinition)
 		for i := range nodes {
-			if fk := nodes[i].equipment_type_id; fk != nil {
+			if fk := nodes[i].equipment_type_port_definitions; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -454,7 +459,7 @@ func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*Equipm
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_port_definitions" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.EquipmentType = n

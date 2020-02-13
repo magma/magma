@@ -115,14 +115,14 @@ func (sqq *SurveyQuestionQuery) QueryPhotoData() *FileQuery {
 	return query
 }
 
-// First returns the first SurveyQuestion entity in the query. Returns *ErrNotFound when no surveyquestion was found.
+// First returns the first SurveyQuestion entity in the query. Returns *NotFoundError when no surveyquestion was found.
 func (sqq *SurveyQuestionQuery) First(ctx context.Context) (*SurveyQuestion, error) {
 	sqs, err := sqq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(sqs) == 0 {
-		return nil, &ErrNotFound{surveyquestion.Label}
+		return nil, &NotFoundError{surveyquestion.Label}
 	}
 	return sqs[0], nil
 }
@@ -136,14 +136,14 @@ func (sqq *SurveyQuestionQuery) FirstX(ctx context.Context) *SurveyQuestion {
 	return sq
 }
 
-// FirstID returns the first SurveyQuestion id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first SurveyQuestion id in the query. Returns *NotFoundError when no id was found.
 func (sqq *SurveyQuestionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = sqq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{surveyquestion.Label}
+		err = &NotFoundError{surveyquestion.Label}
 		return
 	}
 	return ids[0], nil
@@ -168,9 +168,9 @@ func (sqq *SurveyQuestionQuery) Only(ctx context.Context) (*SurveyQuestion, erro
 	case 1:
 		return sqs[0], nil
 	case 0:
-		return nil, &ErrNotFound{surveyquestion.Label}
+		return nil, &NotFoundError{surveyquestion.Label}
 	default:
-		return nil, &ErrNotSingular{surveyquestion.Label}
+		return nil, &NotSingularError{surveyquestion.Label}
 	}
 }
 
@@ -193,9 +193,9 @@ func (sqq *SurveyQuestionQuery) OnlyID(ctx context.Context) (id string, err erro
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{surveyquestion.Label}
+		err = &NotFoundError{surveyquestion.Label}
 	default:
-		err = &ErrNotSingular{surveyquestion.Label}
+		err = &NotSingularError{surveyquestion.Label}
 	}
 	return
 }
@@ -371,9 +371,15 @@ func (sqq *SurveyQuestionQuery) Select(field string, fields ...string) *SurveyQu
 
 func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, error) {
 	var (
-		nodes   []*SurveyQuestion
-		withFKs = sqq.withFKs
-		_spec   = sqq.querySpec()
+		nodes       = []*SurveyQuestion{}
+		withFKs     = sqq.withFKs
+		_spec       = sqq.querySpec()
+		loadedTypes = [4]bool{
+			sqq.withSurvey != nil,
+			sqq.withWifiScan != nil,
+			sqq.withCellScan != nil,
+			sqq.withPhotoData != nil,
+		}
 	)
 	if sqq.withSurvey != nil {
 		withFKs = true
@@ -395,12 +401,12 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, sqq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -409,7 +415,7 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyQuestion)
 		for i := range nodes {
-			if fk := nodes[i].survey_id; fk != nil {
+			if fk := nodes[i].survey_question_survey; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -422,7 +428,7 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_survey" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Survey = n
@@ -450,13 +456,13 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.survey_question_id
+			fk := n.survey_wi_fi_scan_survey_question
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "survey_question_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_wi_fi_scan_survey_question" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_wi_fi_scan_survey_question" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.WifiScan = append(node.Edges.WifiScan, n)
 		}
@@ -482,13 +488,13 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.survey_question_id
+			fk := n.survey_cell_scan_survey_question
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "survey_question_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_cell_scan_survey_question" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_cell_scan_survey_question" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CellScan = append(node.Edges.CellScan, n)
 		}
@@ -514,13 +520,13 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.survey_question_photo_datum_id
+			fk := n.survey_question_photo_data
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "survey_question_photo_datum_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_question_photo_data" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_photo_datum_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_photo_data" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PhotoData = append(node.Edges.PhotoData, n)
 		}

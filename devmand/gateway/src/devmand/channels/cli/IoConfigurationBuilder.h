@@ -36,6 +36,25 @@ static constexpr auto configMaxCommandTimeoutSeconds =
 static constexpr auto reconnectingQuietPeriodConfig = "reconnectingQuietPeriod";
 static constexpr auto sshConnectionTimeoutConfig = "sshConnectionTimeout";
 
+/*
+ * Responsible for creation of cli stack for single ssh connection.
+ * CLIs can be separated to two groups:
+ * - persistent CLIs, which provide high level functions like TCP connection
+ * error detection.
+ *   - KeepaliveCli - sends keepalive commands periodically
+ *   - ReconnectingCli - reestablishes inner layers upon connection error
+ * - inner CLIs. They are destroyed and recreated whenever TCP connection is
+ * reestablished.
+ *   - QueuedCli - orders commands so that only one command can be executed at a
+ * time
+ *   - LoggingCli - logs aggregated view of device and caching layers
+ *   - TimeoutTrackingCli - errors on exceeded timeout
+ *   - TreeCacheCli - maintain high level cache
+ *   - ReadCachingCli - maintains low level cache
+ *   - LoggingCli - logs communication with device
+ *   - PromptAwareCli + SshSessionAsync - lowest level, deals with ssh, prompt
+ * resolution
+ */
 class IoConfigurationBuilder {
  public:
   struct ConnectionParameters {
@@ -53,6 +72,7 @@ class IoConfigurationBuilder {
     shared_ptr<Executor> sshExecutor;
     shared_ptr<Executor> paExecutor;
     shared_ptr<Executor> rcExecutor;
+    shared_ptr<Executor> tcExecutor;
     shared_ptr<Executor> ttExecutor;
     shared_ptr<Executor> lExecutor;
     shared_ptr<Executor> qExecutor;

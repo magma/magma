@@ -83,6 +83,7 @@ export function getInitialFilterValue(
     operator,
     stringValue: null,
     idSet: null,
+    stringSet: null,
     boolValue: null,
     propertyValue: propertyType
       ? {
@@ -118,6 +119,7 @@ export function doesFilterHasValue(filterValue: FilterValue): boolean {
     !!filterValue.stringValue ||
     filterValue.boolValue != null ||
     (!!filterValue.idSet && filterValue.idSet.length > 0) ||
+    (!!filterValue.stringSet && filterValue.stringSet.length > 0) ||
     (!!propValue && !!getPropertyValue(propValue))
   );
 }

@@ -63,16 +63,6 @@ RUN apt-get -y update && apt-get -y install \
   redis-server \
   iptables
 
-# Install OVS via Magma bionic pkg repo
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ bionic main"
-
-RUN apt-get -y update && apt-get -y install \
-  libopenvswitch \
-  openvswitch-common \
-  openvswitch-switch \
-  python-openvswitch
-
 # Install orc8r python (magma.common required for lte python)
 COPY orc8r/gateway/python /tmp/orc8r
 RUN pip3 install /tmp/orc8r
@@ -89,3 +79,8 @@ COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
 COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 RUN mkdir -p /var/opt/magma/configs
+
+# Install OVS via Magma bionic pkg repo
+COPY cwf/gateway/deploy/roles/ovs/files/install_ovs.sh /tmp
+COPY cwf/gateway/deploy/roles/ovs/files/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch /tmp
+RUN bash /tmp/install_ovs.sh

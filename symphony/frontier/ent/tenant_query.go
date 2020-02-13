@@ -55,14 +55,14 @@ func (tq *TenantQuery) Order(o ...Order) *TenantQuery {
 	return tq
 }
 
-// First returns the first Tenant entity in the query. Returns *ErrNotFound when no tenant was found.
+// First returns the first Tenant entity in the query. Returns *NotFoundError when no tenant was found.
 func (tq *TenantQuery) First(ctx context.Context) (*Tenant, error) {
 	ts, err := tq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ts) == 0 {
-		return nil, &ErrNotFound{tenant.Label}
+		return nil, &NotFoundError{tenant.Label}
 	}
 	return ts[0], nil
 }
@@ -76,14 +76,14 @@ func (tq *TenantQuery) FirstX(ctx context.Context) *Tenant {
 	return t
 }
 
-// FirstID returns the first Tenant id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Tenant id in the query. Returns *NotFoundError when no id was found.
 func (tq *TenantQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{tenant.Label}
+		err = &NotFoundError{tenant.Label}
 		return
 	}
 	return ids[0], nil
@@ -108,9 +108,9 @@ func (tq *TenantQuery) Only(ctx context.Context) (*Tenant, error) {
 	case 1:
 		return ts[0], nil
 	case 0:
-		return nil, &ErrNotFound{tenant.Label}
+		return nil, &NotFoundError{tenant.Label}
 	default:
-		return nil, &ErrNotSingular{tenant.Label}
+		return nil, &NotSingularError{tenant.Label}
 	}
 }
 
@@ -133,9 +133,9 @@ func (tq *TenantQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{tenant.Label}
+		err = &NotFoundError{tenant.Label}
 	default:
-		err = &ErrNotSingular{tenant.Label}
+		err = &NotSingularError{tenant.Label}
 	}
 	return
 }
@@ -267,7 +267,7 @@ func (tq *TenantQuery) Select(field string, fields ...string) *TenantSelect {
 
 func (tq *TenantQuery) sqlAll(ctx context.Context) ([]*Tenant, error) {
 	var (
-		nodes []*Tenant
+		nodes = []*Tenant{}
 		_spec = tq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -286,7 +286,6 @@ func (tq *TenantQuery) sqlAll(ctx context.Context) ([]*Tenant, error) {
 	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

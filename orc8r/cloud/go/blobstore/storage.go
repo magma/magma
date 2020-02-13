@@ -52,7 +52,7 @@ type TransactionalBlobStorage interface {
 
 	// Get loads a specific blob from storage.
 	// If there is no blob matching the given ID, ErrNotFound from
-	// magma/orc8r/cloud/go/errors will be returned.
+	// magma/orc8r/lib/go/errors will be returned.
 	Get(networkID string, id storage.TypeAndKey) (Blob, error)
 
 	// Get loads and returns a collection of blobs matching the specified IDs.
@@ -77,6 +77,16 @@ type TransactionalBlobStorage interface {
 	// IncrementVersion is an atomic upsert (INSERT DO ON CONFLICT) that
 	// increments the version column or inserts 1 if it does not exist.
 	IncrementVersion(networkID string, id storage.TypeAndKey) error
+}
+
+// GetTKsFromKeys returns the passed keys mapped as TypeAndKey, with the passed
+// type applied to each.
+func GetTKsFromKeys(typ string, keys []string) []storage.TypeAndKey {
+	tks := make([]storage.TypeAndKey, 0, len(keys))
+	for _, k := range keys {
+		tks = append(tks, storage.TypeAndKey{Type: typ, Key: k})
+	}
+	return tks
 }
 
 // GetBlobsByTypeAndKey returns a computed view of a list of blobs as a map of

@@ -4,16 +4,20 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
+import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
+
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapButtonGroup from '@fbcnms/ui/components/map/MapButtonGroup';
 import MapIcon from '@material-ui/icons/Map';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles({
@@ -43,6 +47,7 @@ const useStyles = makeStyles({
   actionButtons: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   actionButton: {
     '&:not(:first-child)': {
@@ -60,6 +65,7 @@ export const DisplayOptions = {
 type ActionButtonProps = {
   title: string,
   action: () => void,
+  ...PermissionHandlingProps,
 };
 
 type Props = {
@@ -97,15 +103,21 @@ const InventoryViewHeader = (props: Props) => {
       <div className={classes.barRow}>
         <div className={classes.expandedBarPart}>{props.searchBar}</div>
         {!!props.actionButtons && (
-          <div className={classes.actionButtons}>
-            {props.actionButtons.map(actionButton => (
-              <Button
-                className={classes.actionButton}
-                onClick={actionButton.action}>
-                {actionButton.title}
-              </Button>
-            ))}
-          </div>
+          <FormValidationContextProvider>
+            <div className={classes.actionButtons}>
+              {props.actionButtons.map(actionButton => (
+                <FormAction
+                  ignorePermissions={actionButton.ignorePermissions}
+                  hideWhenDisabled={actionButton.hideWhenDisabled}>
+                  <Button
+                    className={classes.actionButton}
+                    onClick={actionButton.action}>
+                    {actionButton.title}
+                  </Button>
+                </FormAction>
+              ))}
+            </div>
+          </FormValidationContextProvider>
         )}
       </div>
     </div>

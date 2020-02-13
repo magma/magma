@@ -13,13 +13,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/security/cert"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/certifier/test_init"
-	"magma/orc8r/cloud/go/services/certifier/test_utils"
-
-	"github.com/stretchr/testify/assert"
+	"magma/orc8r/lib/go/security/cert"
+	"magma/orc8r/lib/go/security/csr"
 )
 
 // Starts certifier & adds a Gw Identities for Gateways with hwGwIds
@@ -31,7 +31,7 @@ func StartMockGwAccessControl(t *testing.T, hwGwIds []string) []string {
 	result := make([]string, len(hwGwIds))
 	for idx, hwId := range hwGwIds {
 		// create and sign Gw's csr
-		csrMsg, err := test_utils.CreateCSRForId(
+		csrMsg, err := csr.CreateCSRForId(
 			time.Duration(time.Hour*4), identity.NewGateway(hwId, "", ""))
 		assert.NoError(t, err)
 

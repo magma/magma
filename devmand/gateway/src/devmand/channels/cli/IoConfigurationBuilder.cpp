@@ -19,6 +19,7 @@
 #include <devmand/channels/cli/SshSession.h>
 #include <devmand/channels/cli/SshSocketReader.h>
 #include <devmand/channels/cli/TimeoutTrackingCli.h>
+#include <devmand/channels/cli/TreeCacheCli.h>
 #include <folly/Singleton.h>
 
 namespace devmand {
@@ -80,25 +81,31 @@ shared_ptr<Cli> IoConfigurationBuilder::createAllUsingFactory(
         return createPromptAwareCli(params).thenValue(
             [params, commandCache](shared_ptr<Cli> sshCli) -> shared_ptr<Cli> {
               MLOG(MDEBUG) << "[" << params->id << "] "
-                           << "Creating cli layers rcclli, ttcli, qcli";
-              // create caching cli
-              const shared_ptr<ReadCachingCli>& rccli =
+                           << "Creating cli layers up to qcli";
+              // create logging cache directly above ssh connection
+              shared_ptr<LoggingCli> lCli1 = make_shared<LoggingCli>(
+                  params->id + ".ssh", sshCli, params->lExecutor);
+              // create read caching cli
+              shared_ptr<ReadCachingCli> rcCli =
                   std::make_shared<ReadCachingCli>(
-                      params->id, sshCli, commandCache, params->rcExecutor);
+                      params->id, lCli1, commandCache, params->rcExecutor);
+              // create tree caching cli
+              shared_ptr<TreeCacheCli> tcCli = std::make_shared<TreeCacheCli>(
+                  params->id, rcCli, params->tcExecutor, params->flavour);
               // create timeout tracker
-              shared_ptr<TimeoutTrackingCli> ttcli = TimeoutTrackingCli::make(
+              shared_ptr<TimeoutTrackingCli> ttCli = TimeoutTrackingCli::make(
                   params->id,
-                  rccli,
+                  tcCli,
                   params->timekeeper,
                   params->ttExecutor,
                   params->cmdTimeout);
-              // create logging cli
-              shared_ptr<LoggingCli> lcli =
-                  make_shared<LoggingCli>(params->id, ttcli, params->lExecutor);
+              // create logging cli above the cache
+              shared_ptr<LoggingCli> lCli2 = make_shared<LoggingCli>(
+                  params->id + ".tt", ttCli, params->lExecutor);
               // create Queued cli
-              shared_ptr<QueuedCli> qcli =
-                  QueuedCli::make(params->id, lcli, params->qExecutor);
-              return qcli;
+              shared_ptr<QueuedCli> qCli =
+                  QueuedCli::make(params->id, lCli2, params->qExecutor);
+              return qCli;
             });
       };
 
@@ -216,6 +223,8 @@ IoConfigurationBuilder::makeConnectionParameters(
       engine.getExecutor(Engine::executorRequestType::paCli);
   connectionParameters->rcExecutor =
       engine.getExecutor(Engine::executorRequestType::rcCli);
+  connectionParameters->tcExecutor =
+      engine.getExecutor(Engine::executorRequestType::tcCli);
   connectionParameters->ttExecutor =
       engine.getExecutor(Engine::executorRequestType::ttCli);
   connectionParameters->lExecutor =

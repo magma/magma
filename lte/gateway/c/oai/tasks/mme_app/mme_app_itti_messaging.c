@@ -98,6 +98,8 @@ void mme_app_itti_ue_context_release(
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).enb_ue_s1ap_id =
     ue_context_p->enb_ue_s1ap_id;
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause = cause;
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -147,6 +149,8 @@ int mme_app_send_s11_release_access_bearers_req(
     pdn_connection->s_gw_address_s11_s4.address.ipv4_address;
 
   release_access_bearers_request_p->originating_node = NODE_TYPE_MME;
+
+  message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;
 
   rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -229,6 +233,8 @@ int mme_app_send_s11_create_session_req(
     (char*) (&session_request_p->imsi.digit),
     ue_mm_context->emm_context._imsi.length);
   session_request_p->imsi.length = ue_mm_context->emm_context._imsi.length;
+
+  message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;
 
   /*
    * Copy the MSISDN
@@ -483,6 +489,8 @@ void nas_itti_sgsap_uplink_unitdata(
     SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
       UPLINK_UNITDATA_ECGI_PARAMETER_PRESENT;
   }
+
+  IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
     != RETURNok) {
     OAILOG_ERROR(
@@ -531,6 +539,8 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
   memcpy(SGSAP_TMSI_REALLOC_COMP(message_p).imsi, imsi, imsi_len);
   SGSAP_TMSI_REALLOC_COMP(message_p).imsi[imsi_len] = '\0';
   SGSAP_TMSI_REALLOC_COMP(message_p).imsi_length = imsi_len;
+
+  IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
     != RETURNok) {
     OAILOG_ERROR(
@@ -578,6 +588,8 @@ void mme_app_itti_sgsap_ue_activity_ind(
   memcpy(SGSAP_UE_ACTIVITY_IND(message_p).imsi, imsi, imsi_len);
   SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
   SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
+
+  IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
     != RETURNok) {
     OAILOG_ERROR(

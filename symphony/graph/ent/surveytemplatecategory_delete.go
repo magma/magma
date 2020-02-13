@@ -74,7 +74,7 @@ func (stcdo *SurveyTemplateCategoryDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{surveytemplatecategory.Label}
+		return &NotFoundError{surveytemplatecategory.Label}
 	default:
 		return nil
 	}

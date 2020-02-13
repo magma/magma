@@ -15,14 +15,15 @@ import (
 	"magma/feg/cloud/go/feg"
 	fegModels "magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/services/health"
+	lteHandlers "magma/lte/cloud/go/plugin/handlers"
 	lteModels "magma/lte/cloud/go/plugin/models"
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
@@ -37,6 +38,8 @@ const (
 	ManageFegNetworkBaseNamesPath  = ManageFegNetworkSubscriberPath + obsidian.UrlSep + "base_names"
 	ManageFegNetworkRuleNamesPath  = ManageFegNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
 	ManageNetworkClusterStatusPath = ManageFegNetworkPath + obsidian.UrlSep + "cluster_status"
+	ManageFegNetworkBaseNamePath   = ManageFegNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
+	ManageFegNetworkRuleNamePath   = ManageFegNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
 
 	Gateways                      = "gateways"
 	ListGatewaysPath              = ManageFegNetworkPath + obsidian.UrlSep + Gateways
@@ -52,6 +55,8 @@ const (
 	ManageFegLteNetworkSubscriberPath = ManageFegLteNetworkPath + obsidian.UrlSep + "subscriber_config"
 	ManageFegLteNetworkBaseNamesPath  = ManageFegLteNetworkSubscriberPath + obsidian.UrlSep + "base_names"
 	ManageFegLteNetworkRuleNamesPath  = ManageFegLteNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
+	ManageFegLteNetworkBaseNamePath   = ManageFegLteNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
+	ManageFegLteNetworkRuleNamePath   = ManageFegLteNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -65,6 +70,15 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
 		{Path: ManageGatewayHealthStatusPath, Methods: obsidian.GET, HandlerFunc: getHealthStatusHandler},
+
+		{Path: ManageFegNetworkBaseNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberBaseName},
+		{Path: ManageFegNetworkRuleNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberRuleName},
+		{Path: ManageFegNetworkBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberRuleName},
+		{Path: ManageFegNetworkRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberBaseName},
+		{Path: ManageFegLteNetworkBaseNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberBaseName},
+		{Path: ManageFegLteNetworkRuleNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberRuleName},
+		{Path: ManageFegLteNetworkBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberRuleName},
+		{Path: ManageFegLteNetworkRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberBaseName},
 	}
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederationNetworkType, &fegModels.FegNetwork{})...)

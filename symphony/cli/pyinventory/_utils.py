@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # pyre-strict
 
+import warnings
 from datetime import date, datetime
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union, cast
 
 
 PROPERTY_TYPE_TO_FIELD_NAME = {
@@ -14,10 +15,11 @@ PROPERTY_TYPE_TO_FIELD_NAME = {
     "bool": "booleanValue",
 }
 
+ReturnType = TypeVar("ReturnType")
 PropertyValue = Union[date, float, int, str, bool, Tuple[float, float]]
 
 
-def _get_properties_to_add(
+def _get_graphql_properties(
     property_types: List[Dict[str, Any]], properties_dict: Dict[str, PropertyValue]
 ) -> List[Dict[str, PropertyValue]]:
     properties = []
@@ -25,7 +27,7 @@ def _get_properties_to_add(
         property_type_name = property_type["name"]
         property_type_id = property_type["id"]
         if property_type_name in properties_dict:
-            type = property_type["type"]
+            type = property_type["type"].value
             value = properties_dict[property_type_name]
             assert property_type[
                 "isInstanceProperty"
@@ -166,3 +168,18 @@ def _make_property_types(
         for i, arg in enumerate(properties)
     ]
     return property_types
+
+
+def deprecated(
+    deprecated_in: str, deprecated_by: str
+) -> Callable[[Callable[..., ReturnType]], Callable[..., ReturnType]]:
+    def wrapped(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
+        def wrapper(*args: str, **kwargs: int) -> Callable[..., ReturnType]:
+            func_name = func.__name__
+            message = f"{func_name} is deprecated in {deprecated_in}. Use the {deprecated_by} function instead."
+            warnings.warn(message, DeprecationWarning, stacklevel=2)
+            return cast(Callable[..., ReturnType], func(*args, **kwargs))
+
+        return cast(Callable[..., ReturnType], wrapper)
+
+    return wrapped

@@ -85,14 +85,14 @@ func (wodq *WorkOrderDefinitionQuery) QueryProjectType() *ProjectTypeQuery {
 	return query
 }
 
-// First returns the first WorkOrderDefinition entity in the query. Returns *ErrNotFound when no workorderdefinition was found.
+// First returns the first WorkOrderDefinition entity in the query. Returns *NotFoundError when no workorderdefinition was found.
 func (wodq *WorkOrderDefinitionQuery) First(ctx context.Context) (*WorkOrderDefinition, error) {
 	wods, err := wodq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(wods) == 0 {
-		return nil, &ErrNotFound{workorderdefinition.Label}
+		return nil, &NotFoundError{workorderdefinition.Label}
 	}
 	return wods[0], nil
 }
@@ -106,14 +106,14 @@ func (wodq *WorkOrderDefinitionQuery) FirstX(ctx context.Context) *WorkOrderDefi
 	return wod
 }
 
-// FirstID returns the first WorkOrderDefinition id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first WorkOrderDefinition id in the query. Returns *NotFoundError when no id was found.
 func (wodq *WorkOrderDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = wodq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{workorderdefinition.Label}
+		err = &NotFoundError{workorderdefinition.Label}
 		return
 	}
 	return ids[0], nil
@@ -138,9 +138,9 @@ func (wodq *WorkOrderDefinitionQuery) Only(ctx context.Context) (*WorkOrderDefin
 	case 1:
 		return wods[0], nil
 	case 0:
-		return nil, &ErrNotFound{workorderdefinition.Label}
+		return nil, &NotFoundError{workorderdefinition.Label}
 	default:
-		return nil, &ErrNotSingular{workorderdefinition.Label}
+		return nil, &NotSingularError{workorderdefinition.Label}
 	}
 }
 
@@ -163,9 +163,9 @@ func (wodq *WorkOrderDefinitionQuery) OnlyID(ctx context.Context) (id string, er
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{workorderdefinition.Label}
+		err = &NotFoundError{workorderdefinition.Label}
 	default:
-		err = &ErrNotSingular{workorderdefinition.Label}
+		err = &NotSingularError{workorderdefinition.Label}
 	}
 	return
 }
@@ -319,9 +319,13 @@ func (wodq *WorkOrderDefinitionQuery) Select(field string, fields ...string) *Wo
 
 func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderDefinition, error) {
 	var (
-		nodes   []*WorkOrderDefinition
-		withFKs = wodq.withFKs
-		_spec   = wodq.querySpec()
+		nodes       = []*WorkOrderDefinition{}
+		withFKs     = wodq.withFKs
+		_spec       = wodq.querySpec()
+		loadedTypes = [2]bool{
+			wodq.withType != nil,
+			wodq.withProjectType != nil,
+		}
 	)
 	if wodq.withType != nil || wodq.withProjectType != nil {
 		withFKs = true
@@ -343,12 +347,12 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, wodq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -357,7 +361,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*WorkOrderDefinition)
 		for i := range nodes {
-			if fk := nodes[i].type_id; fk != nil {
+			if fk := nodes[i].work_order_definition_type; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -370,7 +374,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_definition_type" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Type = n
@@ -382,7 +386,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*WorkOrderDefinition)
 		for i := range nodes {
-			if fk := nodes[i].project_type_id; fk != nil {
+			if fk := nodes[i].project_type_work_orders; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -395,7 +399,7 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "project_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "project_type_work_orders" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.ProjectType = n

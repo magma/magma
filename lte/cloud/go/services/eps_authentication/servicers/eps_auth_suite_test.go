@@ -15,12 +15,11 @@ import (
 	"magma/lte/cloud/go/plugin/models"
 	lteprotos "magma/lte/cloud/go/protos"
 	utils "magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
-	"magma/lte/cloud/go/services/subscriberdb/storage"
-	orc8rprotos "magma/orc8r/cloud/go/protos"
+	"magma/lte/cloud/go/services/eps_authentication/storage"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
-	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -47,8 +46,7 @@ func (suite *EpsAuthTestSuite) PurgeUE(purge *lteprotos.PurgeUERequest) (*ltepro
 }
 
 func (suite *EpsAuthTestSuite) SetupTest() {
-	store, err := storage.NewSubscriberDBStorage(test_utils.NewMockDatastore())
-	suite.NoError(err)
+	store := storage.NewSubscriberDBStorage()
 
 	for _, subscriber := range utils.GetTestSubscribers() {
 		_, err := store.AddSubscriber(subscriber)
@@ -60,7 +58,10 @@ func (suite *EpsAuthTestSuite) SetupTest() {
 	suite.Server = server
 }
 
+// DEPRECATED -- un-skip if service is un-deprecated
 func TestEpsAuthSuite(t *testing.T) {
+	t.Skip("eps_authentication service temporarily deprecated")
+
 	test_init.StartTestService(t)
 	err := serde.RegisterSerdes(configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &models.NetworkCellularConfigs{}))
 	assert.NoError(t, err)
@@ -97,5 +98,5 @@ func TestEpsAuthSuite(t *testing.T) {
 }
 
 func getTestContext() context.Context {
-	return orc8rprotos.NewGatewayIdentity("test", "test", "test").NewContextWithIdentity(context.Background())
+	return protos.NewGatewayIdentity("test", "test", "test").NewContextWithIdentity(context.Background())
 }

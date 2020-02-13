@@ -213,14 +213,14 @@ func (woq *WorkOrderQuery) QueryProject() *ProjectQuery {
 	return query
 }
 
-// First returns the first WorkOrder entity in the query. Returns *ErrNotFound when no workorder was found.
+// First returns the first WorkOrder entity in the query. Returns *NotFoundError when no workorder was found.
 func (woq *WorkOrderQuery) First(ctx context.Context) (*WorkOrder, error) {
 	wos, err := woq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(wos) == 0 {
-		return nil, &ErrNotFound{workorder.Label}
+		return nil, &NotFoundError{workorder.Label}
 	}
 	return wos[0], nil
 }
@@ -234,14 +234,14 @@ func (woq *WorkOrderQuery) FirstX(ctx context.Context) *WorkOrder {
 	return wo
 }
 
-// FirstID returns the first WorkOrder id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first WorkOrder id in the query. Returns *NotFoundError when no id was found.
 func (woq *WorkOrderQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = woq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{workorder.Label}
+		err = &NotFoundError{workorder.Label}
 		return
 	}
 	return ids[0], nil
@@ -266,9 +266,9 @@ func (woq *WorkOrderQuery) Only(ctx context.Context) (*WorkOrder, error) {
 	case 1:
 		return wos[0], nil
 	case 0:
-		return nil, &ErrNotFound{workorder.Label}
+		return nil, &NotFoundError{workorder.Label}
 	default:
-		return nil, &ErrNotSingular{workorder.Label}
+		return nil, &NotSingularError{workorder.Label}
 	}
 }
 
@@ -291,9 +291,9 @@ func (woq *WorkOrderQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{workorder.Label}
+		err = &NotFoundError{workorder.Label}
 	default:
-		err = &ErrNotSingular{workorder.Label}
+		err = &NotSingularError{workorder.Label}
 	}
 	return
 }
@@ -546,9 +546,22 @@ func (woq *WorkOrderQuery) Select(field string, fields ...string) *WorkOrderSele
 
 func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 	var (
-		nodes   []*WorkOrder
-		withFKs = woq.withFKs
-		_spec   = woq.querySpec()
+		nodes       = []*WorkOrder{}
+		withFKs     = woq.withFKs
+		_spec       = woq.querySpec()
+		loadedTypes = [11]bool{
+			woq.withType != nil,
+			woq.withEquipment != nil,
+			woq.withLinks != nil,
+			woq.withFiles != nil,
+			woq.withHyperlinks != nil,
+			woq.withLocation != nil,
+			woq.withComments != nil,
+			woq.withProperties != nil,
+			woq.withCheckListItems != nil,
+			woq.withTechnician != nil,
+			woq.withProject != nil,
+		}
 	)
 	if woq.withType != nil || woq.withLocation != nil || woq.withTechnician != nil || woq.withProject != nil {
 		withFKs = true
@@ -570,12 +583,12 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, woq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -584,7 +597,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*WorkOrder)
 		for i := range nodes {
-			if fk := nodes[i].type_id; fk != nil {
+			if fk := nodes[i].work_order_type; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -597,7 +610,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Type = n
@@ -625,13 +638,13 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_id
+			fk := n.equipment_work_order
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_work_order" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_work_order" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Equipment = append(node.Edges.Equipment, n)
 		}
@@ -657,13 +670,13 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_id
+			fk := n.link_work_order
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "link_work_order" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "link_work_order" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Links = append(node.Edges.Links, n)
 		}
@@ -689,13 +702,13 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_file_id
+			fk := n.work_order_files
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_file_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_files" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_file_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_files" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Files = append(node.Edges.Files, n)
 		}
@@ -721,13 +734,13 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_hyperlink_id
+			fk := n.work_order_hyperlinks
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_hyperlink_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_hyperlinks" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_hyperlink_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_hyperlinks" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Hyperlinks = append(node.Edges.Hyperlinks, n)
 		}
@@ -737,7 +750,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*WorkOrder)
 		for i := range nodes {
-			if fk := nodes[i].location_id; fk != nil {
+			if fk := nodes[i].work_order_location; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -750,7 +763,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_location" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Location = n
@@ -778,13 +791,13 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_comment_id
+			fk := n.work_order_comments
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_comment_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_comments" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_comment_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_comments" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Comments = append(node.Edges.Comments, n)
 		}
@@ -810,13 +823,13 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_id
+			fk := n.work_order_properties
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_properties" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_properties" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Properties = append(node.Edges.Properties, n)
 		}
@@ -842,13 +855,13 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_id
+			fk := n.work_order_check_list_items
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_check_list_items" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_check_list_items" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CheckListItems = append(node.Edges.CheckListItems, n)
 		}
@@ -858,7 +871,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*WorkOrder)
 		for i := range nodes {
-			if fk := nodes[i].technician_id; fk != nil {
+			if fk := nodes[i].work_order_technician; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -871,7 +884,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "technician_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_technician" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Technician = n
@@ -883,7 +896,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*WorkOrder)
 		for i := range nodes {
-			if fk := nodes[i].project_id; fk != nil {
+			if fk := nodes[i].project_work_orders; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -896,7 +909,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "project_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "project_work_orders" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Project = n

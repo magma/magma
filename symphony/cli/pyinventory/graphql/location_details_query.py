@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
@@ -32,8 +33,13 @@ class LocationDetailsQuery:
   location: node(id: $id) {
     ... on Location {
       id
-      externalId
       name
+      latitude
+      longitude
+      externalId
+      locationType {
+        name
+      }
     }
   }
 }
@@ -46,14 +52,22 @@ class LocationDetailsQuery:
         @dataclass_json
         @dataclass
         class Node:
+            @dataclass_json
+            @dataclass
+            class LocationType:
+                name: str
+
             id: str
             name: str
+            latitude: Number
+            longitude: Number
+            locationType: LocationType
             externalId: Optional[str] = None
 
         location: Optional[Node] = None
 
     data: Optional[LocationDetailsQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

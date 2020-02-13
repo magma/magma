@@ -619,11 +619,11 @@ var fileDescriptor_4b79271ac29ed95c = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // SctpdDownlinkClient is the client API for SctpdDownlink service.
 //
@@ -640,10 +640,10 @@ type SctpdDownlinkClient interface {
 }
 
 type sctpdDownlinkClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewSctpdDownlinkClient(cc *grpc.ClientConn) SctpdDownlinkClient {
+func NewSctpdDownlinkClient(cc grpc.ClientConnInterface) SctpdDownlinkClient {
 	return &sctpdDownlinkClient{cc}
 }
 
@@ -764,10 +764,10 @@ type SctpdUplinkClient interface {
 }
 
 type sctpdUplinkClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewSctpdUplinkClient(cc *grpc.ClientConn) SctpdUplinkClient {
+func NewSctpdUplinkClient(cc grpc.ClientConnInterface) SctpdUplinkClient {
 	return &sctpdUplinkClient{cc}
 }
 

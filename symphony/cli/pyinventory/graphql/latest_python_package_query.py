@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
@@ -63,7 +64,7 @@ class LatestPythonPackageQuery:
         latestPythonPackage: Optional[LatestPythonPackageResult] = None
 
     data: Optional[LatestPythonPackageQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

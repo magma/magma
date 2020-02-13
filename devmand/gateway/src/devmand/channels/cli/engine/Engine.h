@@ -11,7 +11,7 @@
 
 #include <devmand/channels/Engine.h>
 #include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
-#include <devmand/devices/cli/ModelRegistry.h>
+#include <devmand/devices/cli/schema/ModelRegistry.h>
 #include <folly/Executor.h>
 #include <folly/futures/ThreadWheelTimekeeper.h>
 #include <magma_logging.h>
@@ -55,6 +55,7 @@ class Engine : public channels::Engine {
     sshCli,
     paCli,
     rcCli,
+    tcCli,
     ttCli,
     lCli,
     qCli,
@@ -67,6 +68,9 @@ class Engine : public channels::Engine {
   shared_ptr<ModelRegistry> mreg;
 
  public:
+  /*
+   * Get executor for cli layer
+   */
   shared_ptr<folly::Executor> getExecutor(
       executorRequestType requestType) const;
 

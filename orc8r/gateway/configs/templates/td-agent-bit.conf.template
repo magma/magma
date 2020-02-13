@@ -43,6 +43,13 @@
     Port     5140
     Mode     tcp
 
+[INPUT]
+    Name        tcp
+    Listen      0.0.0.0
+    Port        5170
+    Format      json
+    Tag event_log
+
 {% for t,f in files %}
 [INPUT]
     Name tail
@@ -86,4 +93,7 @@
     tls.crt_file {{ certfile }}
     tls.key_file {{ keyfile }}
 
+[OUTPUT]
+    Name        stdout
+    Match       event_log
 

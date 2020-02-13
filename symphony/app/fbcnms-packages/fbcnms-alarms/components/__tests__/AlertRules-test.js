@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import 'jest-dom/extend-expect';
@@ -12,7 +12,8 @@ import * as React from 'react';
 import AlertRules from '../AlertRules';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../test/testHelpers';
-import {mockPrometheusRule} from '../../test/data';
+import {assertType} from '@fbcnms/util/assert';
+import {mockPrometheusRule} from '../../test/testData';
 
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 jest.mock('@fbcnms/ui/hooks/useRouter');
@@ -39,7 +40,7 @@ const useLoadRulesMock = jest
 // TextField select is difficult to test so replace it with an Input
 jest.mock('@material-ui/core/TextField', () => {
   const Input = require('@material-ui/core/Input').default;
-  return ({children: _, InputProps: __, label, ...props}) => (
+  return ({children: _, InputProps: __, select: _sel, label, ...props}) => (
     <label>
       {label}
       <Input {...props} />
@@ -125,7 +126,11 @@ test('clicking the "edit" button in the table menu opens AddEditAlert for that a
   act(() => {
     fireEvent.click(getByText(/edit/i));
   });
-  expect(getByLabelText(/rule name/i).value).toBe('<<test>>');
+  const ruleNameInput = assertType(
+    getByLabelText(/rule name/i),
+    HTMLInputElement,
+  );
+  expect(ruleNameInput.value).toBe('<<test>>');
 });
 
 /**

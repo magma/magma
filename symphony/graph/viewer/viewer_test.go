@@ -13,6 +13,9 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -104,8 +107,8 @@ type testExporter struct {
 	mock.Mock
 }
 
-func (e *testExporter) ExportSpan(s *trace.SpanData) {
-	e.Called(s)
+func (te *testExporter) ExportSpan(s *trace.SpanData) {
+	te.Called(s)
 }
 
 func TestViewerSpanAttributes(t *testing.T) {
@@ -116,18 +119,18 @@ func TestViewerSpanAttributes(t *testing.T) {
 		nil,
 	)
 	t.Run("WithSpan", func(t *testing.T) {
-		var e testExporter
-		trace.RegisterExporter(&e)
-		defer trace.UnregisterExporter(&e)
+		var te testExporter
+		trace.RegisterExporter(&te)
+		defer trace.UnregisterExporter(&te)
 
-		e.On("ExportSpan", mock.AnythingOfType("*trace.SpanData")).
+		te.On("ExportSpan", mock.AnythingOfType("*trace.SpanData")).
 			Run(func(args mock.Arguments) {
 				s := args.Get(0).(*trace.SpanData)
 				assert.Equal(t, "test", s.Attributes["viewer.tenant"])
 				assert.Equal(t, "test", s.Attributes["viewer.user"])
 			}).
 			Once()
-		defer e.AssertExpectations(t)
+		defer te.AssertExpectations(t)
 
 		ctx, span := trace.StartSpan(context.Background(), "test",
 			trace.WithSampler(trace.AlwaysSample()),
@@ -148,6 +151,52 @@ func TestViewerSpanAttributes(t *testing.T) {
 		assert.NotPanics(t, func() { h.ServeHTTP(rec, req) })
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
+}
+
+func TestViewerTags(t *testing.T) {
+	measure := stats.Int64("", "", stats.UnitDimensionless)
+	v := &view.View{
+		Name:        "viewer/test_tags",
+		TagKeys:     []tag.Key{KeyTenant, KeyUser, KeyRole},
+		Measure:     measure,
+		Aggregation: view.Count(),
+	}
+	err := view.Register(v)
+	require.NoError(t, err)
+	defer view.Unregister(v)
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.Header.Set(TenantHeader, "test-tenant")
+	req.Header.Set(UserHeader, "test-user")
+	req.Header.Set(ReadOnlyHeader, "true")
+	rec := httptest.NewRecorder()
+	TenancyHandler(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := stats.RecordWithTags(r.Context(), nil, measure.M(1))
+			require.NoError(t, err)
+			w.WriteHeader(http.StatusNoContent)
+		}),
+		nil,
+	).ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusNoContent, rec.Code)
+
+	rows, err := view.RetrieveData(v.Name)
+	require.NoError(t, err)
+	require.Len(t, rows, 1)
+
+	hasTag := func(key tag.Key, value string) assert.Comparison {
+		return func() bool {
+			for _, t := range rows[0].Tags {
+				if t.Key.Name() == key.Name() {
+					return t.Value == value
+				}
+			}
+			return false
+		}
+	}
+	assert.Condition(t, hasTag(KeyTenant, "test-tenant"))
+	assert.Condition(t, hasTag(KeyUser, "test-user"))
+	assert.Condition(t, hasTag(KeyRole, "readonly"))
 }
 
 func TestViewerTenancy(t *testing.T) {

@@ -92,8 +92,7 @@ func TestSecureRule(t *testing.T) {
 	err := alert.SecureRule(true, "tenantID", "test", &rule)
 	assert.NoError(t, err)
 
-	restrictorLabels := map[string]string{"tenantID": "test"}
-	queryRestrictor := restrictor.NewQueryRestrictor(restrictorLabels)
+	queryRestrictor := restrictor.NewQueryRestrictor(restrictor.DefaultOpts).AddMatcher("tenantID", "test")
 	expectedExpr, _ := queryRestrictor.RestrictQuery(sampleRule.Expr)
 
 	assert.Equal(t, expectedExpr, rule.Expr)

@@ -71,14 +71,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "surveyquestion" package.
 	SurveyQuestionInverseTable = "survey_questions"
 	// SurveyQuestionColumn is the table column denoting the survey_question relation/edge.
-	SurveyQuestionColumn = "survey_question_id"
+	SurveyQuestionColumn = "survey_cell_scan_survey_question"
 	// LocationTable is the table the holds the location relation/edge.
 	LocationTable = "survey_cell_scans"
 	// LocationInverseTable is the table name for the Location entity.
 	// It exists in this package in order to avoid circular dependency with the "location" package.
 	LocationInverseTable = "locations"
 	// LocationColumn is the table column denoting the location relation/edge.
-	LocationColumn = "location_id"
+	LocationColumn = "survey_cell_scan_location"
 )
 
 // Columns holds all SQL columns for surveycellscan fields.
@@ -110,8 +110,8 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the SurveyCellScan type.
 var ForeignKeys = []string{
-	"survey_question_id",
-	"location_id",
+	"survey_cell_scan_survey_question",
+	"survey_cell_scan_location",
 }
 
 var (

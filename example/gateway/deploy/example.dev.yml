@@ -13,6 +13,7 @@
     - role: gateway_dev
       vars:
         distribution: "xenial"
+        repo: "dev"
         config_dir: "example/gateway/configs"
     # Role for running the extra services for the example device.
     - role: example_services

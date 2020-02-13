@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
@@ -45,6 +46,11 @@ class SurveyStatus(Enum):
     PLANNED = "PLANNED"
     INPROGRESS = "INPROGRESS"
     COMPLETED = "COMPLETED"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 class SurveyQuestionType(Enum):
@@ -60,11 +66,21 @@ class SurveyQuestionType(Enum):
     FLOAT = "FLOAT"
     INTEGER = "INTEGER"
     DATE = "DATE"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 class FileType(Enum):
     IMAGE = "IMAGE"
     FILE = "FILE"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 class CellularNetworkType(Enum):
@@ -72,6 +88,11 @@ class CellularNetworkType(Enum):
     GSM = "GSM"
     LTE = "LTE"
     WCDMA = "WCDMA"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -103,8 +124,8 @@ class SurveyCreateData:
             band: Optional[str] = None
             channelWidth: Optional[int] = None
             capabilities: Optional[str] = None
-            latitude: Optional[float] = None
-            longitude: Optional[float] = None
+            latitude: Optional[Number] = None
+            longitude: Optional[Number] = None
 
         @dataclass_json
         @dataclass
@@ -127,8 +148,8 @@ class SurveyCreateData:
             timingAdvance: Optional[int] = None
             earfcn: Optional[int] = None
             uarfcn: Optional[int] = None
-            latitude: Optional[float] = None
-            longitude: Optional[float] = None
+            latitude: Optional[Number] = None
+            longitude: Optional[Number] = None
 
         formIndex: int
         questionText: str
@@ -140,13 +161,13 @@ class SurveyCreateData:
         questionFormat: Optional[SurveyQuestionType] = None
         boolData: Optional[bool] = None
         emailData: Optional[str] = None
-        latitude: Optional[float] = None
-        longitude: Optional[float] = None
-        locationAccuracy: Optional[float] = None
-        altitude: Optional[float] = None
+        latitude: Optional[Number] = None
+        longitude: Optional[Number] = None
+        locationAccuracy: Optional[Number] = None
+        altitude: Optional[Number] = None
         phoneData: Optional[str] = None
         textData: Optional[str] = None
-        floatData: Optional[float] = None
+        floatData: Optional[Number] = None
         intData: Optional[int] = None
         dateData: Optional[int] = None
         photoData: Optional[FileInput] = None
@@ -176,7 +197,7 @@ class CreateSurveyMutation:
         createSurvey: Optional[str] = None
 
     data: Optional[CreateSurveyMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

@@ -100,14 +100,14 @@ func (ltq *LocationTypeQuery) QuerySurveyTemplateCategories() *SurveyTemplateCat
 	return query
 }
 
-// First returns the first LocationType entity in the query. Returns *ErrNotFound when no locationtype was found.
+// First returns the first LocationType entity in the query. Returns *NotFoundError when no locationtype was found.
 func (ltq *LocationTypeQuery) First(ctx context.Context) (*LocationType, error) {
 	lts, err := ltq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(lts) == 0 {
-		return nil, &ErrNotFound{locationtype.Label}
+		return nil, &NotFoundError{locationtype.Label}
 	}
 	return lts[0], nil
 }
@@ -121,14 +121,14 @@ func (ltq *LocationTypeQuery) FirstX(ctx context.Context) *LocationType {
 	return lt
 }
 
-// FirstID returns the first LocationType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first LocationType id in the query. Returns *NotFoundError when no id was found.
 func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = ltq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{locationtype.Label}
+		err = &NotFoundError{locationtype.Label}
 		return
 	}
 	return ids[0], nil
@@ -153,9 +153,9 @@ func (ltq *LocationTypeQuery) Only(ctx context.Context) (*LocationType, error) {
 	case 1:
 		return lts[0], nil
 	case 0:
-		return nil, &ErrNotFound{locationtype.Label}
+		return nil, &NotFoundError{locationtype.Label}
 	default:
-		return nil, &ErrNotSingular{locationtype.Label}
+		return nil, &NotSingularError{locationtype.Label}
 	}
 }
 
@@ -178,9 +178,9 @@ func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id string, err error)
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{locationtype.Label}
+		err = &NotFoundError{locationtype.Label}
 	default:
-		err = &ErrNotSingular{locationtype.Label}
+		err = &NotSingularError{locationtype.Label}
 	}
 	return
 }
@@ -345,8 +345,13 @@ func (ltq *LocationTypeQuery) Select(field string, fields ...string) *LocationTy
 
 func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, error) {
 	var (
-		nodes []*LocationType
-		_spec = ltq.querySpec()
+		nodes       = []*LocationType{}
+		_spec       = ltq.querySpec()
+		loadedTypes = [3]bool{
+			ltq.withLocations != nil,
+			ltq.withPropertyTypes != nil,
+			ltq.withSurveyTemplateCategories != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &LocationType{config: ltq.config}
@@ -359,12 +364,12 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, ltq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -389,13 +394,13 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.location_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Locations = append(node.Edges.Locations, n)
 		}
@@ -421,13 +426,13 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_type_id
+			fk := n.location_type_property_types
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_type_property_types" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
 		}
@@ -453,13 +458,13 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_type_survey_template_category_id
+			fk := n.location_type_survey_template_categories
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_type_survey_template_category_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_type_survey_template_categories" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_type_survey_template_category_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_survey_template_categories" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.SurveyTemplateCategories = append(node.Edges.SurveyTemplateCategories, n)
 		}

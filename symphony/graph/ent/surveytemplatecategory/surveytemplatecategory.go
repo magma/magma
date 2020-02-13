@@ -35,7 +35,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "surveytemplatequestion" package.
 	SurveyTemplateQuestionsInverseTable = "survey_template_questions"
 	// SurveyTemplateQuestionsColumn is the table column denoting the survey_template_questions relation/edge.
-	SurveyTemplateQuestionsColumn = "category_id"
+	SurveyTemplateQuestionsColumn = "survey_template_category_survey_template_questions"
 )
 
 // Columns holds all SQL columns for surveytemplatecategory fields.
@@ -49,7 +49,7 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the SurveyTemplateCategory type.
 var ForeignKeys = []string{
-	"location_type_survey_template_category_id",
+	"location_type_survey_template_categories",
 }
 
 var (

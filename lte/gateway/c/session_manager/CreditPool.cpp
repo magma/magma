@@ -13,6 +13,35 @@
 
 namespace magma {
 
+std::unique_ptr<ChargingCreditPool> ChargingCreditPool::unmarshal(
+  const StoredChargingCreditPool &marshaled)
+{
+  auto pool = std::make_unique<ChargingCreditPool>(marshaled.imsi);
+  for (const auto& it : marshaled.credit_map) {
+    pool->credit_map_[it.first] =
+      SessionCredit::unmarshal(it.second, CHARGING);
+  }
+  return pool;
+}
+
+StoredChargingCreditPool ChargingCreditPool::marshal()
+{
+  StoredChargingCreditPool marshaled{};
+  marshaled.imsi = imsi_;
+  auto credit_map =
+    std::unordered_map<CreditKey, StoredSessionCredit,
+      decltype(&ccHash), decltype(&ccEqual)>(4, &ccHash, &ccEqual);
+  for (auto &credit_pair : credit_map_) {
+    auto key = CreditKey();
+    key.rating_group = credit_pair.first.rating_group;
+    key.service_identifier = credit_pair.first.service_identifier;
+    key.use_sid = credit_pair.first.use_sid;
+    credit_map[key] = credit_pair.second->marshal();
+  }
+  marshaled.credit_map = credit_map;
+  return marshaled;
+}
+
 ChargingCreditPool::ChargingCreditPool(const std::string &imsi):
   credit_map_(4, &ccHash, &ccEqual), imsi_(imsi) {}
 
@@ -74,7 +103,7 @@ static void populate_output_actions(
   KeyType key,
   SessionRules *session_rules,
   std::unique_ptr<ServiceAction> &action,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) // const
 {
   action->set_imsi(imsi);
   action->set_ip_addr(ip_addr);
@@ -87,7 +116,7 @@ void ChargingCreditPool::get_updates(
   std::string ip_addr,
   SessionRules *session_rules,
   std::vector<CreditUsage> *updates_out,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
   for (auto &credit_pair : credit_map_) {
     auto &credit = *(credit_pair.second);
@@ -123,7 +152,7 @@ void ChargingCreditPool::get_updates(
 }
 
 bool ChargingCreditPool::get_termination_updates(
-  SessionTerminateRequest *termination_out)
+  SessionTerminateRequest *termination_out) const
 {
   for (auto &credit_pair : credit_map_) {
     termination_out->mutable_credit_usages()->Add()->CopyFrom(
@@ -236,7 +265,7 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
   return true;
 }
 
-uint64_t ChargingCreditPool::get_credit(const CreditKey &key, Bucket bucket)
+uint64_t ChargingCreditPool::get_credit(const CreditKey &key, Bucket bucket) const
 {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
@@ -275,6 +304,39 @@ ChargingReAuthAnswer::Result ChargingCreditPool::reauth_all()
     }
   }
   return res;
+}
+
+std::unique_ptr<UsageMonitoringCreditPool> UsageMonitoringCreditPool::unmarshal(
+  const StoredUsageMonitoringCreditPool &marshaled)
+{
+  auto pool = std::make_unique<UsageMonitoringCreditPool>(marshaled.imsi);
+  pool->session_level_key_ = std::make_unique<std::string>(marshaled.session_level_key);
+  for (auto it : marshaled.monitor_map) {
+    Monitor monitor;
+    monitor.credit = *SessionCredit::unmarshal(it.second.credit, MONITORING);
+    monitor.level = it.second.level;
+
+    pool->monitor_map_[it.first] = std::make_unique<Monitor>(monitor);
+  }
+  return pool;
+}
+
+StoredUsageMonitoringCreditPool UsageMonitoringCreditPool::marshal()
+{
+  StoredUsageMonitoringCreditPool marshaled{};
+  marshaled.imsi = imsi_;
+  if (session_level_key_ != nullptr) {
+    marshaled.session_level_key = *session_level_key_;
+  } else {
+    marshaled.session_level_key = "";
+  }
+  for (auto& it : monitor_map_) {
+    StoredMonitor monitor{};
+    monitor.credit = it.second->credit.marshal();
+    monitor.level = it.second->level;
+    marshaled.monitor_map[it.first] = monitor;
+  }
+  return marshaled;
 }
 
 UsageMonitoringCreditPool::UsageMonitoringCreditPool(const std::string &imsi):
@@ -341,7 +403,7 @@ void UsageMonitoringCreditPool::get_updates(
   std::string ip_addr,
   SessionRules *session_rules,
   std::vector<UsageMonitorUpdate> *updates_out,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
   for (auto &monitor_pair : monitor_map_) {
     auto &credit = monitor_pair.second->credit;
@@ -370,7 +432,7 @@ void UsageMonitoringCreditPool::get_updates(
 }
 
 bool UsageMonitoringCreditPool::get_termination_updates(
-  SessionTerminateRequest *termination_out)
+  SessionTerminateRequest *termination_out) const
 {
   for (auto &credit_pair : monitor_map_) {
     termination_out->mutable_monitor_usages()->Add()->CopyFrom(
@@ -460,7 +522,7 @@ bool UsageMonitoringCreditPool::receive_credit(
 
 uint64_t UsageMonitoringCreditPool::get_credit(
   const std::string &key,
-  Bucket bucket)
+  Bucket bucket) const
 {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {

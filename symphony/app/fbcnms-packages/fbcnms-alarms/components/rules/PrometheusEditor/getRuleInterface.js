@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -14,7 +14,8 @@ import type {AlertConfig} from '../../AlarmAPIType';
 import type {ApiUtil} from '../../AlarmsApi';
 import type {GenericRule, RuleInterfaceMap} from '../../rules/RuleInterface';
 
-const PROMETHEUS_RULE_TYPE = 'prometheus';
+export const PROMETHEUS_RULE_TYPE = 'prometheus';
+
 export default function getPrometheusRuleInterface({
   apiUtil,
 }: {

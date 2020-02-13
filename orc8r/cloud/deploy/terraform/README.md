@@ -13,5 +13,4 @@ section of the docs: https://facebookincubator.github.io/magma.
 | region | The AWS region to provision the resources in | string | "eu-west-1" | no |
 | vpc_name | The name of the provisioned VPC | string | "orc8r-vpc" | no |
 | cluster_name | The name of the provisioned EKS cluster | string | "orc8r" | no |
-| map_users | Additional IAM users to add to the aws-auth configmap | list(map(string)) | [] | no |
-| map_users_count | How many users are in map_users | string | 0 | no
+| map_users | Additional IAM users to add to the aws-auth configmap | list(map(string)) | [] | no 

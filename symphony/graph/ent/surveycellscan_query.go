@@ -85,14 +85,14 @@ func (scsq *SurveyCellScanQuery) QueryLocation() *LocationQuery {
 	return query
 }
 
-// First returns the first SurveyCellScan entity in the query. Returns *ErrNotFound when no surveycellscan was found.
+// First returns the first SurveyCellScan entity in the query. Returns *NotFoundError when no surveycellscan was found.
 func (scsq *SurveyCellScanQuery) First(ctx context.Context) (*SurveyCellScan, error) {
 	scsSlice, err := scsq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(scsSlice) == 0 {
-		return nil, &ErrNotFound{surveycellscan.Label}
+		return nil, &NotFoundError{surveycellscan.Label}
 	}
 	return scsSlice[0], nil
 }
@@ -106,14 +106,14 @@ func (scsq *SurveyCellScanQuery) FirstX(ctx context.Context) *SurveyCellScan {
 	return scs
 }
 
-// FirstID returns the first SurveyCellScan id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first SurveyCellScan id in the query. Returns *NotFoundError when no id was found.
 func (scsq *SurveyCellScanQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = scsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{surveycellscan.Label}
+		err = &NotFoundError{surveycellscan.Label}
 		return
 	}
 	return ids[0], nil
@@ -138,9 +138,9 @@ func (scsq *SurveyCellScanQuery) Only(ctx context.Context) (*SurveyCellScan, err
 	case 1:
 		return scsSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{surveycellscan.Label}
+		return nil, &NotFoundError{surveycellscan.Label}
 	default:
-		return nil, &ErrNotSingular{surveycellscan.Label}
+		return nil, &NotSingularError{surveycellscan.Label}
 	}
 }
 
@@ -163,9 +163,9 @@ func (scsq *SurveyCellScanQuery) OnlyID(ctx context.Context) (id string, err err
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{surveycellscan.Label}
+		err = &NotFoundError{surveycellscan.Label}
 	default:
-		err = &ErrNotSingular{surveycellscan.Label}
+		err = &NotSingularError{surveycellscan.Label}
 	}
 	return
 }
@@ -319,9 +319,13 @@ func (scsq *SurveyCellScanQuery) Select(field string, fields ...string) *SurveyC
 
 func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan, error) {
 	var (
-		nodes   []*SurveyCellScan
-		withFKs = scsq.withFKs
-		_spec   = scsq.querySpec()
+		nodes       = []*SurveyCellScan{}
+		withFKs     = scsq.withFKs
+		_spec       = scsq.querySpec()
+		loadedTypes = [2]bool{
+			scsq.withSurveyQuestion != nil,
+			scsq.withLocation != nil,
+		}
 	)
 	if scsq.withSurveyQuestion != nil || scsq.withLocation != nil {
 		withFKs = true
@@ -343,12 +347,12 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, scsq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -357,7 +361,7 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyCellScan)
 		for i := range nodes {
-			if fk := nodes[i].survey_question_id; fk != nil {
+			if fk := nodes[i].survey_cell_scan_survey_question; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -370,7 +374,7 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_cell_scan_survey_question" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.SurveyQuestion = n
@@ -382,7 +386,7 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyCellScan)
 		for i := range nodes {
-			if fk := nodes[i].location_id; fk != nil {
+			if fk := nodes[i].survey_cell_scan_location; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -395,7 +399,7 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_cell_scan_location" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Location = n

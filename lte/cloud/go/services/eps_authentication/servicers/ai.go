@@ -150,7 +150,7 @@ func (srv *EPSAuthServer) setLteAuthNextSeq(subscriber *lteprotos.SubscriberData
 		return NewAuthDataUnavailableError("subscriber state was nil")
 	}
 	subscriber.State.LteAuthNextSeq = lteAuthNextSeq
-	_, err := srv.Store.UpdateSubscriber(subscriber)
+	_, err := srv.store.UpdateSubscriber(subscriber)
 	return err
 }
 

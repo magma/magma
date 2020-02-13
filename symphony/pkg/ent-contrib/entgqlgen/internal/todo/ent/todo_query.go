@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -27,6 +28,10 @@ type TodoQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Todo
+	// eager-loading edges.
+	withParent   *TodoQuery
+	withChildren *TodoQuery
+	withFKs      bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -55,14 +60,38 @@ func (tq *TodoQuery) Order(o ...Order) *TodoQuery {
 	return tq
 }
 
-// First returns the first Todo entity in the query. Returns *ErrNotFound when no todo was found.
+// QueryParent chains the current query on the parent edge.
+func (tq *TodoQuery) QueryParent() *TodoQuery {
+	query := &TodoQuery{config: tq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(todo.Table, todo.FieldID, tq.sqlQuery()),
+		sqlgraph.To(todo.Table, todo.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, todo.ParentTable, todo.ParentColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+	return query
+}
+
+// QueryChildren chains the current query on the children edge.
+func (tq *TodoQuery) QueryChildren() *TodoQuery {
+	query := &TodoQuery{config: tq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(todo.Table, todo.FieldID, tq.sqlQuery()),
+		sqlgraph.To(todo.Table, todo.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, todo.ChildrenTable, todo.ChildrenColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+	return query
+}
+
+// First returns the first Todo entity in the query. Returns *NotFoundError when no todo was found.
 func (tq *TodoQuery) First(ctx context.Context) (*Todo, error) {
 	ts, err := tq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ts) == 0 {
-		return nil, &ErrNotFound{todo.Label}
+		return nil, &NotFoundError{todo.Label}
 	}
 	return ts[0], nil
 }
@@ -76,14 +105,14 @@ func (tq *TodoQuery) FirstX(ctx context.Context) *Todo {
 	return t
 }
 
-// FirstID returns the first Todo id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Todo id in the query. Returns *NotFoundError when no id was found.
 func (tq *TodoQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{todo.Label}
+		err = &NotFoundError{todo.Label}
 		return
 	}
 	return ids[0], nil
@@ -108,9 +137,9 @@ func (tq *TodoQuery) Only(ctx context.Context) (*Todo, error) {
 	case 1:
 		return ts[0], nil
 	case 0:
-		return nil, &ErrNotFound{todo.Label}
+		return nil, &NotFoundError{todo.Label}
 	default:
-		return nil, &ErrNotSingular{todo.Label}
+		return nil, &NotSingularError{todo.Label}
 	}
 }
 
@@ -133,9 +162,9 @@ func (tq *TodoQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{todo.Label}
+		err = &NotFoundError{todo.Label}
 	default:
-		err = &ErrNotSingular{todo.Label}
+		err = &NotSingularError{todo.Label}
 	}
 	return
 }
@@ -224,6 +253,28 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 	}
 }
 
+//  WithParent tells the query-builder to eager-loads the nodes that are connected to
+// the "parent" edge. The optional arguments used to configure the query builder of the edge.
+func (tq *TodoQuery) WithParent(opts ...func(*TodoQuery)) *TodoQuery {
+	query := &TodoQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withParent = query
+	return tq
+}
+
+//  WithChildren tells the query-builder to eager-loads the nodes that are connected to
+// the "children" edge. The optional arguments used to configure the query builder of the edge.
+func (tq *TodoQuery) WithChildren(opts ...func(*TodoQuery)) *TodoQuery {
+	query := &TodoQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withChildren = query
+	return tq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -267,13 +318,27 @@ func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {
 
 func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 	var (
-		nodes []*Todo
-		_spec = tq.querySpec()
+		nodes       = []*Todo{}
+		withFKs     = tq.withFKs
+		_spec       = tq.querySpec()
+		loadedTypes = [2]bool{
+			tq.withParent != nil,
+			tq.withChildren != nil,
+		}
 	)
+	if tq.withParent != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, todo.ForeignKeys...)
+	}
 	_spec.ScanValues = func() []interface{} {
 		node := &Todo{config: tq.config}
 		nodes = append(nodes, node)
 		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
 		return values
 	}
 	_spec.Assign = func(values ...interface{}) error {
@@ -281,15 +346,69 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := tq.withParent; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Todo)
+		for i := range nodes {
+			if fk := nodes[i].parent_id; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(todo.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Parent = n
+			}
+		}
+	}
+
+	if query := tq.withChildren; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Todo)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Todo(func(s *sql.Selector) {
+			s.Where(sql.InValues(todo.ChildrenColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.parent_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "parent_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Children = append(node.Edges.Children, n)
+		}
+	}
+
 	return nodes, nil
 }
 

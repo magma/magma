@@ -39,10 +39,25 @@ type User struct {
 	Tabs []string `json:"tabs,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges struct {
-		// Tokens holds the value of the tokens edge.
-		Tokens []*Token
-	} `json:"edges"`
+	Edges UserEdges `json:"edges"`
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Tokens holds the value of the tokens edge.
+	Tokens []*Token
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TokensOrErr returns the Tokens value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TokensOrErr() ([]*Token, error) {
+	if e.loadedTypes[0] {
+		return e.Tokens, nil
+	}
+	return nil, &NotLoadedError{edge: "tokens"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

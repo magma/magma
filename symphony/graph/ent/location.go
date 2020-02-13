@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 )
 
 // Location is the model entity for the Location schema.
@@ -37,34 +38,158 @@ type Location struct {
 	SiteSurveyNeeded bool `json:"site_survey_needed,omitempty" gqlgen:"siteSurveyNeeded"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LocationQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *LocationType `gqlgen:"locationType"`
-		// Parent holds the value of the parent edge.
-		Parent *Location `gqlgen:"parent"`
-		// Children holds the value of the children edge.
-		Children []*Location `gqlgen:"children"`
-		// Files holds the value of the files edge.
-		Files []*File `gqlgen:"files,images"`
-		// Hyperlinks holds the value of the hyperlinks edge.
-		Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
-		// Equipment holds the value of the equipment edge.
-		Equipment []*Equipment `gqlgen:"equipments"`
-		// Properties holds the value of the properties edge.
-		Properties []*Property `gqlgen:"properties"`
-		// Survey holds the value of the survey edge.
-		Survey []*Survey `gqlgen:"surveys"`
-		// WifiScan holds the value of the wifi_scan edge.
-		WifiScan []*SurveyWiFiScan `gqlgen:"wifiData"`
-		// CellScan holds the value of the cell_scan edge.
-		CellScan []*SurveyCellScan `gqlgen:"cellData"`
-		// WorkOrders holds the value of the work_orders edge.
-		WorkOrders []*WorkOrder `gqlgen:"workOrders"`
-		// FloorPlans holds the value of the floor_plans edge.
-		FloorPlans []*FloorPlan `gqlgen:"floorPlans"`
-	} `json:"edges"`
-	type_id   *string
-	parent_id *string
+	Edges             LocationEdges `json:"edges"`
+	location_type     *string
+	location_children *string
+}
+
+// LocationEdges holds the relations/edges for other nodes in the graph.
+type LocationEdges struct {
+	// Type holds the value of the type edge.
+	Type *LocationType `gqlgen:"locationType"`
+	// Parent holds the value of the parent edge.
+	Parent *Location `gqlgen:"parentLocation"`
+	// Children holds the value of the children edge.
+	Children []*Location `gqlgen:"children"`
+	// Files holds the value of the files edge.
+	Files []*File `gqlgen:"files,images"`
+	// Hyperlinks holds the value of the hyperlinks edge.
+	Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
+	// Equipment holds the value of the equipment edge.
+	Equipment []*Equipment `gqlgen:"equipments"`
+	// Properties holds the value of the properties edge.
+	Properties []*Property `gqlgen:"properties"`
+	// Survey holds the value of the survey edge.
+	Survey []*Survey `gqlgen:"surveys"`
+	// WifiScan holds the value of the wifi_scan edge.
+	WifiScan []*SurveyWiFiScan `gqlgen:"wifiData"`
+	// CellScan holds the value of the cell_scan edge.
+	CellScan []*SurveyCellScan `gqlgen:"cellData"`
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder `gqlgen:"workOrders"`
+	// FloorPlans holds the value of the floor_plans edge.
+	FloorPlans []*FloorPlan `gqlgen:"floorPlans"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [12]bool
+}
+
+// TypeOrErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LocationEdges) TypeOrErr() (*LocationType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: locationtype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// ParentOrErr returns the Parent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LocationEdges) ParentOrErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Parent == nil {
+			// The edge parent was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Parent, nil
+	}
+	return nil, &NotLoadedError{edge: "parent"}
+}
+
+// ChildrenOrErr returns the Children value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) ChildrenOrErr() ([]*Location, error) {
+	if e.loadedTypes[2] {
+		return e.Children, nil
+	}
+	return nil, &NotLoadedError{edge: "children"}
+}
+
+// FilesOrErr returns the Files value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) FilesOrErr() ([]*File, error) {
+	if e.loadedTypes[3] {
+		return e.Files, nil
+	}
+	return nil, &NotLoadedError{edge: "files"}
+}
+
+// HyperlinksOrErr returns the Hyperlinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) HyperlinksOrErr() ([]*Hyperlink, error) {
+	if e.loadedTypes[4] {
+		return e.Hyperlinks, nil
+	}
+	return nil, &NotLoadedError{edge: "hyperlinks"}
+}
+
+// EquipmentOrErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) EquipmentOrErr() ([]*Equipment, error) {
+	if e.loadedTypes[5] {
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) PropertiesOrErr() ([]*Property, error) {
+	if e.loadedTypes[6] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// SurveyOrErr returns the Survey value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) SurveyOrErr() ([]*Survey, error) {
+	if e.loadedTypes[7] {
+		return e.Survey, nil
+	}
+	return nil, &NotLoadedError{edge: "survey"}
+}
+
+// WifiScanOrErr returns the WifiScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) WifiScanOrErr() ([]*SurveyWiFiScan, error) {
+	if e.loadedTypes[8] {
+		return e.WifiScan, nil
+	}
+	return nil, &NotLoadedError{edge: "wifi_scan"}
+}
+
+// CellScanOrErr returns the CellScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) CellScanOrErr() ([]*SurveyCellScan, error) {
+	if e.loadedTypes[9] {
+		return e.CellScan, nil
+	}
+	return nil, &NotLoadedError{edge: "cell_scan"}
+}
+
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) WorkOrdersOrErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[10] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
+}
+
+// FloorPlansOrErr returns the FloorPlans value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) FloorPlansOrErr() ([]*FloorPlan, error) {
+	if e.loadedTypes[11] {
+		return e.FloorPlans, nil
+	}
+	return nil, &NotLoadedError{edge: "floor_plans"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -84,8 +209,8 @@ func (*Location) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Location) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // type_id
-		&sql.NullInt64{}, // parent_id
+		&sql.NullInt64{}, // location_type
+		&sql.NullInt64{}, // location_children
 	}
 }
 
@@ -139,16 +264,16 @@ func (l *Location) assignValues(values ...interface{}) error {
 	values = values[7:]
 	if len(values) == len(location.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_type", value)
 		} else if value.Valid {
-			l.type_id = new(string)
-			*l.type_id = strconv.FormatInt(value.Int64, 10)
+			l.location_type = new(string)
+			*l.location_type = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field parent_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_children", value)
 		} else if value.Valid {
-			l.parent_id = new(string)
-			*l.parent_id = strconv.FormatInt(value.Int64, 10)
+			l.location_children = new(string)
+			*l.location_children = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

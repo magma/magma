@@ -71,14 +71,14 @@ func (clidq *CheckListItemDefinitionQuery) QueryWorkOrderType() *WorkOrderTypeQu
 	return query
 }
 
-// First returns the first CheckListItemDefinition entity in the query. Returns *ErrNotFound when no checklistitemdefinition was found.
+// First returns the first CheckListItemDefinition entity in the query. Returns *NotFoundError when no checklistitemdefinition was found.
 func (clidq *CheckListItemDefinitionQuery) First(ctx context.Context) (*CheckListItemDefinition, error) {
 	clids, err := clidq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(clids) == 0 {
-		return nil, &ErrNotFound{checklistitemdefinition.Label}
+		return nil, &NotFoundError{checklistitemdefinition.Label}
 	}
 	return clids[0], nil
 }
@@ -92,14 +92,14 @@ func (clidq *CheckListItemDefinitionQuery) FirstX(ctx context.Context) *CheckLis
 	return clid
 }
 
-// FirstID returns the first CheckListItemDefinition id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first CheckListItemDefinition id in the query. Returns *NotFoundError when no id was found.
 func (clidq *CheckListItemDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = clidq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{checklistitemdefinition.Label}
+		err = &NotFoundError{checklistitemdefinition.Label}
 		return
 	}
 	return ids[0], nil
@@ -124,9 +124,9 @@ func (clidq *CheckListItemDefinitionQuery) Only(ctx context.Context) (*CheckList
 	case 1:
 		return clids[0], nil
 	case 0:
-		return nil, &ErrNotFound{checklistitemdefinition.Label}
+		return nil, &NotFoundError{checklistitemdefinition.Label}
 	default:
-		return nil, &ErrNotSingular{checklistitemdefinition.Label}
+		return nil, &NotSingularError{checklistitemdefinition.Label}
 	}
 }
 
@@ -149,9 +149,9 @@ func (clidq *CheckListItemDefinitionQuery) OnlyID(ctx context.Context) (id strin
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{checklistitemdefinition.Label}
+		err = &NotFoundError{checklistitemdefinition.Label}
 	default:
-		err = &ErrNotSingular{checklistitemdefinition.Label}
+		err = &NotSingularError{checklistitemdefinition.Label}
 	}
 	return
 }
@@ -294,9 +294,12 @@ func (clidq *CheckListItemDefinitionQuery) Select(field string, fields ...string
 
 func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*CheckListItemDefinition, error) {
 	var (
-		nodes   []*CheckListItemDefinition
-		withFKs = clidq.withFKs
-		_spec   = clidq.querySpec()
+		nodes       = []*CheckListItemDefinition{}
+		withFKs     = clidq.withFKs
+		_spec       = clidq.querySpec()
+		loadedTypes = [1]bool{
+			clidq.withWorkOrderType != nil,
+		}
 	)
 	if clidq.withWorkOrderType != nil {
 		withFKs = true
@@ -318,12 +321,12 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, clidq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -332,7 +335,7 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*CheckListItemDefinition)
 		for i := range nodes {
-			if fk := nodes[i].work_order_type_id; fk != nil {
+			if fk := nodes[i].work_order_type_check_list_definitions; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -345,7 +348,7 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_check_list_definitions" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.WorkOrderType = n

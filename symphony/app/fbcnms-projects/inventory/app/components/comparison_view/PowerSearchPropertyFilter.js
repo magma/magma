@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -105,7 +105,10 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
               }
             }}
             onChange={newValue => {
-              if (propertyValue.type === 'enum') {
+              if (
+                propertyValue.type === 'enum' ||
+                propertyValue.type === 'bool'
+              ) {
                 onNewInputBlurred(onChange(newValue));
               } else {
                 onChange(newValue);

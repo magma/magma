@@ -12,7 +12,7 @@ import (
 	"context"
 
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 // MMInformationReq relays the MMInformationRequest sent from VLR->FeG->Access Gateway

@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -81,6 +81,11 @@ export const priorityValues = [
   },
 ];
 
+export const doneStatus = {
+  value: 'DONE',
+  label: 'Done',
+};
+
 export const statusValues = [
   {
     value: 'PLANNED',
@@ -90,10 +95,7 @@ export const statusValues = [
     value: 'PENDING',
     label: 'Pending',
   },
-  {
-    value: 'DONE',
-    label: 'Done',
-  },
+  doneStatus,
 ];
 
 export type FutureState = 'INSTALL' | 'REMOVE';

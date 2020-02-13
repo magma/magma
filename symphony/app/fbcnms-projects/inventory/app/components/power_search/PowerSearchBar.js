@@ -20,7 +20,6 @@ import CSVFileExport from '../CSVFileExport';
 import FiltersTypeahead from '../comparison_view/FiltersTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
-import nullthrows from '@fbcnms/util/nullthrows';
 import {useRef, useState} from 'react';
 
 import update from 'immutability-helper';
@@ -40,6 +39,7 @@ const useStyles = makeStyles(theme => ({
   searchBarContainer: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
     flexGrow: 1,
   },
   searchTypeahead: {
@@ -51,11 +51,15 @@ const useStyles = makeStyles(theme => ({
   },
   placeholder: {
     position: 'absolute',
+    top: '0px',
+    bottom: '0px',
     zIndex: 2,
     lineHeight: '36px',
     color: theme.palette.grey.A200,
     fontWeight: 'bold',
     pointerEvents: 'none',
+    alignItems: 'center',
+    display: 'flex',
   },
   filter: {
     marginRight: theme.spacing(),
@@ -64,7 +68,7 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   footer: {
-    padding: '8px 14px',
+    padding: '8px 4px',
     color: theme.palette.grey.A200,
     fontWeight: 'bold',
     pointerEvents: 'none',
@@ -109,6 +113,7 @@ const PowerSearchBar = (props: Props) => {
     exportPath,
   } = props;
   const [filterValues, setFilterValues] = useState(props.filterValues ?? []);
+
   const [editingFilterIndex, setEditingFilterIndex] = useState((null: ?number));
   const [isInputFocused, setIsInputFocused] = useState(false);
 
@@ -146,7 +151,6 @@ const PowerSearchBar = (props: Props) => {
     setFilterValues(newFilterValues);
     onFiltersChanged(newFilterValues);
   };
-
   return (
     <div className={classNames(classes.root, props.className)}>
       <div className={classes.headerContainer}>{header != null && header}</div>
@@ -158,9 +162,12 @@ const PowerSearchBar = (props: Props) => {
             </Text>
           )}
           {filterValues.map((filterValue, i) => {
-            const filterConfig = nullthrows(
-              filterConfigs.find(filter => filter.key === filterValue.key),
+            const filterConfig = filterConfigs.find(
+              filter => filter.key === filterValue.key,
             );
+            if (filterConfig == null) {
+              return null;
+            }
             const FilterComponent = filterConfig.component;
             return (
               <div className={classes.filter} key={filterValue.id}>
@@ -186,9 +193,12 @@ const PowerSearchBar = (props: Props) => {
             searchConfig={searchConfig}
             selectedFilters={filterValues.map(filter => filter.name)}
             onFilterSelected={filterOption => {
-              const filterConfig = nullthrows(
-                filterConfigs.find(filter => filter.key === filterOption.key),
+              const filterConfig = filterConfigs.find(
+                filter => filter.key === filterOption.key,
               );
+              if (filterConfig == null) {
+                return null;
+              }
               setIsInputFocused(false);
               setEditingFilterIndex(filterValues.length);
               setFilterValues([

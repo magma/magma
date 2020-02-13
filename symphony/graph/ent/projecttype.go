@@ -31,14 +31,47 @@ type ProjectType struct {
 	Description *string `json:"description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectTypeQuery when eager-loading is set.
-	Edges struct {
-		// Projects holds the value of the projects edge.
-		Projects []*Project
-		// Properties holds the value of the properties edge.
-		Properties []*PropertyType
-		// WorkOrders holds the value of the work_orders edge.
-		WorkOrders []*WorkOrderDefinition
-	} `json:"edges"`
+	Edges ProjectTypeEdges `json:"edges"`
+}
+
+// ProjectTypeEdges holds the relations/edges for other nodes in the graph.
+type ProjectTypeEdges struct {
+	// Projects holds the value of the projects edge.
+	Projects []*Project
+	// Properties holds the value of the properties edge.
+	Properties []*PropertyType
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrderDefinition
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// ProjectsOrErr returns the Projects value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectTypeEdges) ProjectsOrErr() ([]*Project, error) {
+	if e.loadedTypes[0] {
+		return e.Projects, nil
+	}
+	return nil, &NotLoadedError{edge: "projects"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectTypeEdges) PropertiesOrErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectTypeEdges) WorkOrdersOrErr() ([]*WorkOrderDefinition, error) {
+	if e.loadedTypes[2] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

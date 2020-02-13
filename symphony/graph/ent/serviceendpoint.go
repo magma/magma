@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 )
 
@@ -29,14 +31,48 @@ type ServiceEndpoint struct {
 	Role string `json:"role,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceEndpointQuery when eager-loading is set.
-	Edges struct {
-		// Port holds the value of the port edge.
-		Port *EquipmentPort
-		// Service holds the value of the service edge.
-		Service *Service
-	} `json:"edges"`
-	service_id *string
-	port_id    *string
+	Edges                 ServiceEndpointEdges `json:"edges"`
+	service_endpoints     *string
+	service_endpoint_port *string
+}
+
+// ServiceEndpointEdges holds the relations/edges for other nodes in the graph.
+type ServiceEndpointEdges struct {
+	// Port holds the value of the port edge.
+	Port *EquipmentPort
+	// Service holds the value of the service edge.
+	Service *Service
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// PortOrErr returns the Port value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEndpointEdges) PortOrErr() (*EquipmentPort, error) {
+	if e.loadedTypes[0] {
+		if e.Port == nil {
+			// The edge port was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentport.Label}
+		}
+		return e.Port, nil
+	}
+	return nil, &NotLoadedError{edge: "port"}
+}
+
+// ServiceOrErr returns the Service value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEndpointEdges) ServiceOrErr() (*Service, error) {
+	if e.loadedTypes[1] {
+		if e.Service == nil {
+			// The edge service was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: service.Label}
+		}
+		return e.Service, nil
+	}
+	return nil, &NotLoadedError{edge: "service"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -52,8 +88,8 @@ func (*ServiceEndpoint) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*ServiceEndpoint) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // service_id
-		&sql.NullInt64{}, // port_id
+		&sql.NullInt64{}, // service_endpoints
+		&sql.NullInt64{}, // service_endpoint_port
 	}
 }
 
@@ -87,16 +123,16 @@ func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
 	values = values[3:]
 	if len(values) == len(serviceendpoint.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field service_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field service_endpoints", value)
 		} else if value.Valid {
-			se.service_id = new(string)
-			*se.service_id = strconv.FormatInt(value.Int64, 10)
+			se.service_endpoints = new(string)
+			*se.service_endpoints = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field port_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field service_endpoint_port", value)
 		} else if value.Valid {
-			se.port_id = new(string)
-			*se.port_id = strconv.FormatInt(value.Int64, 10)
+			se.service_endpoint_port = new(string)
+			*se.service_endpoint_port = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

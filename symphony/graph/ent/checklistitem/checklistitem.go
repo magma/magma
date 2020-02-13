@@ -34,7 +34,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "workorder" package.
 	WorkOrderInverseTable = "work_orders"
 	// WorkOrderColumn is the table column denoting the work_order relation/edge.
-	WorkOrderColumn = "work_order_id"
+	WorkOrderColumn = "work_order_check_list_items"
 )
 
 // Columns holds all SQL columns for checklistitem fields.
@@ -51,5 +51,5 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the CheckListItem type.
 var ForeignKeys = []string{
-	"work_order_id",
+	"work_order_check_list_items",
 }

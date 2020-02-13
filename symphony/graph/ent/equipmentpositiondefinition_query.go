@@ -87,14 +87,14 @@ func (epdq *EquipmentPositionDefinitionQuery) QueryEquipmentType() *EquipmentTyp
 	return query
 }
 
-// First returns the first EquipmentPositionDefinition entity in the query. Returns *ErrNotFound when no equipmentpositiondefinition was found.
+// First returns the first EquipmentPositionDefinition entity in the query. Returns *NotFoundError when no equipmentpositiondefinition was found.
 func (epdq *EquipmentPositionDefinitionQuery) First(ctx context.Context) (*EquipmentPositionDefinition, error) {
 	epds, err := epdq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(epds) == 0 {
-		return nil, &ErrNotFound{equipmentpositiondefinition.Label}
+		return nil, &NotFoundError{equipmentpositiondefinition.Label}
 	}
 	return epds[0], nil
 }
@@ -108,14 +108,14 @@ func (epdq *EquipmentPositionDefinitionQuery) FirstX(ctx context.Context) *Equip
 	return epd
 }
 
-// FirstID returns the first EquipmentPositionDefinition id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first EquipmentPositionDefinition id in the query. Returns *NotFoundError when no id was found.
 func (epdq *EquipmentPositionDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = epdq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmentpositiondefinition.Label}
+		err = &NotFoundError{equipmentpositiondefinition.Label}
 		return
 	}
 	return ids[0], nil
@@ -140,9 +140,9 @@ func (epdq *EquipmentPositionDefinitionQuery) Only(ctx context.Context) (*Equipm
 	case 1:
 		return epds[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmentpositiondefinition.Label}
+		return nil, &NotFoundError{equipmentpositiondefinition.Label}
 	default:
-		return nil, &ErrNotSingular{equipmentpositiondefinition.Label}
+		return nil, &NotSingularError{equipmentpositiondefinition.Label}
 	}
 }
 
@@ -165,9 +165,9 @@ func (epdq *EquipmentPositionDefinitionQuery) OnlyID(ctx context.Context) (id st
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmentpositiondefinition.Label}
+		err = &NotFoundError{equipmentpositiondefinition.Label}
 	default:
-		err = &ErrNotSingular{equipmentpositiondefinition.Label}
+		err = &NotSingularError{equipmentpositiondefinition.Label}
 	}
 	return
 }
@@ -321,9 +321,13 @@ func (epdq *EquipmentPositionDefinitionQuery) Select(field string, fields ...str
 
 func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*EquipmentPositionDefinition, error) {
 	var (
-		nodes   []*EquipmentPositionDefinition
-		withFKs = epdq.withFKs
-		_spec   = epdq.querySpec()
+		nodes       = []*EquipmentPositionDefinition{}
+		withFKs     = epdq.withFKs
+		_spec       = epdq.querySpec()
+		loadedTypes = [2]bool{
+			epdq.withPositions != nil,
+			epdq.withEquipmentType != nil,
+		}
 	)
 	if epdq.withEquipmentType != nil {
 		withFKs = true
@@ -345,12 +349,12 @@ func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*Eq
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, epdq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -375,13 +379,13 @@ func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*Eq
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.definition_id
+			fk := n.equipment_position_definition
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "definition_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "equipment_position_definition" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "definition_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_position_definition" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Positions = append(node.Edges.Positions, n)
 		}
@@ -391,7 +395,7 @@ func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*Eq
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*EquipmentPositionDefinition)
 		for i := range nodes {
-			if fk := nodes[i].equipment_type_id; fk != nil {
+			if fk := nodes[i].equipment_type_position_definitions; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -404,7 +408,7 @@ func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*Eq
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_position_definitions" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.EquipmentType = n

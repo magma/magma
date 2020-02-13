@@ -11,8 +11,8 @@ package nghttpxlogger
 import (
 	"time"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/logger"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/hpcloud/tail"

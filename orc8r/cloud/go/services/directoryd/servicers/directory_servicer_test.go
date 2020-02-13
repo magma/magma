@@ -11,11 +11,11 @@ package servicers_test
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"

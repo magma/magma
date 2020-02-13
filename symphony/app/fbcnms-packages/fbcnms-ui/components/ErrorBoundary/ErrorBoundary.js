@@ -4,14 +4,14 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
 import type {WithStyles} from '@material-ui/core';
 
+import * as React from 'react';
 import ErrorIcon from '@material-ui/icons/Error';
-import React from 'react';
 import Text from '../design-system/Text';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -27,7 +27,7 @@ const styles = {
 };
 
 type Props = {
-  children: any,
+  children: React.Node,
   onError?: ?(error: Error) => void,
 } & WithStyles<typeof styles>;
 

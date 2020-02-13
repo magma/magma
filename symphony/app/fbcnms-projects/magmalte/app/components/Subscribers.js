@@ -4,13 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
 import type {subscriber} from '@fbcnms/magma-api';
 
 import AddEditSubscriberDialog from './lte/AddEditSubscriberDialog';
@@ -21,8 +19,9 @@ import IconButton from '@material-ui/core/IconButton';
 import ImportSubscribersDialog from './ImportSubscribersDialog';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
-import React from 'react';
+import React, {useState} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -32,12 +31,15 @@ import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
 
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {Route} from 'react-router-dom';
+import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   header: {
     margin: '10px',
     display: 'flex',
@@ -54,254 +56,190 @@ const styles = theme => ({
   importButton: {
     marginRight: '8px',
   },
-});
+}));
 
-type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
+function Subscribers() {
+  const classes = useStyles();
+  const {match, history, relativePath, relativeUrl} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
+  const {error, isLoading, response: subscribers} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdSubscribers,
+    {networkId: nullthrows(match.params.networkId)},
+    undefined,
+    lastRefreshTime,
+  );
 
-type State = {
-  subscribers: Array<subscriber>,
-  errorMessage: ?string,
-  loading: boolean,
-  showAddEditDialog: boolean,
-  showImportDialog: boolean,
-  editingSubscriber: ?subscriber,
-  subProfiles: Set<string>,
-};
+  const {isLoading: subProfilesLoading, response: epcConfigs} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdCellularEpc,
+    {networkId: nullthrows(match.params.networkId)},
+  );
 
-class Subscribers extends React.Component<Props, State> {
-  state = {
-    subscribers: [],
-    errorMessage: null,
-    loading: true,
-    showAddEditDialog: false,
-    showImportDialog: false,
-    editingSubscriber: null,
-    subProfiles: new Set(),
-  };
-
-  componentDidMount() {
-    const networkId = nullthrows(this.props.match.params.networkId);
-    Promise.all([
-      MagmaV1API.getLteByNetworkIdSubscribers({
-        networkId,
-      }),
-      MagmaV1API.getLteByNetworkIdCellularEpc({networkId}),
-    ])
-      .then(([subscribers, epcConfigs]) => {
-        const subProfiles = new Set(
-          Object.keys(epcConfigs.sub_profiles || {}),
-        ).add('default');
-
-        this.setState({
-          subscribers: map(subscribers, s =>
-            this._buildSubscriber(s, subProfiles),
-          ),
-          loading: false,
-          subProfiles,
-        });
-      })
-      .catch((error, _) =>
-        this.setState({
-          errorMessage: error.response.data.message.toString(),
-          loading: false,
-        }),
-      );
+  if (isLoading || subProfilesLoading) {
+    return <LoadingFiller />;
   }
 
-  render() {
-    const rows = this.state.subscribers.map(row => (
-      <SubscriberTableRow
-        key={row.id}
-        subscriber={row}
-        onEdit={this.editSubscriber}
-        onDelete={this.deleteSubscriber}
-      />
-    ));
+  const subProfiles = new Set(Object.keys(epcConfigs?.sub_profiles || {})).add(
+    'default',
+  );
 
-    return (
-      <div className={this.props.classes.paper}>
-        <div className={this.props.classes.header}>
-          <Text variant="h5">Subscribers</Text>
-          <div className={this.props.classes.buttons}>
-            <Button
-              className={this.props.classes.importButton}
-              onClick={this.showImportDialog}>
-              Import
-            </Button>
-            <Button onClick={this.showAddEditDialog}>Add Subscriber</Button>
-          </div>
+  const onSave = () => {
+    history.push(relativeUrl(''));
+    setLastRefreshTime(new Date().getTime());
+  };
+
+  const onError = reason => {
+    enqueueSnackbar(reason.response.data.message, {variant: 'error'});
+  };
+
+  const rows = map(subscribers, row => (
+    <SubscriberTableRow
+      key={row.id}
+      subscriber={row}
+      onSave={onSave}
+      subProfiles={subProfiles}
+    />
+  ));
+
+  return (
+    <div className={classes.paper}>
+      <div className={classes.header}>
+        <Text variant="h5">Subscribers</Text>
+        <div className={classes.buttons}>
+          <NestedRouteLink to="/import">
+            <Button className={classes.importButton}>Import</Button>
+          </NestedRouteLink>
+          <NestedRouteLink to="/add">
+            <Button>Add Subscriber</Button>
+          </NestedRouteLink>
         </div>
-        <Paper elevation={2}>
-          {this.state.loading ? (
-            <LoadingFiller />
-          ) : (
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>IMSI</TableCell>
-                  <TableCell>LTE Subscription State</TableCell>
-                  <TableCell>Data Plan</TableCell>
-                  <TableCell />
-                </TableRow>
-              </TableHead>
-              <TableBody>{rows}</TableBody>
-              <TableFooter
-                style={
-                  !this.state.loading &&
-                  this.state.subscribers.length === 0 &&
-                  this.state.errorMessage === null
-                    ? {}
-                    : {display: 'none'}
-                }>
-                <TableRow>
-                  <TableCell colSpan="3">No subscribers found</TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          )}
-        </Paper>
-        <div style={this.state.errorMessage !== null ? {} : {display: 'none'}}>
-          <Text color="error" variant="body2">
-            {this.state.errorMessage ?? ''}
-          </Text>
-        </div>
-        <AddEditSubscriberDialog
-          key={(this.state.editingSubscriber || {}).id || 'new'}
-          editingSubscriber={this.state.editingSubscriber}
-          open={this.state.showAddEditDialog}
-          onClose={this.hideDialogs}
-          onSave={this.onSaveSubscriber}
-          onSaveError={this.onSaveSubscriberError}
-          subProfiles={Array.from(this.state.subProfiles)}
-        />
-        <ImportSubscribersDialog
-          open={this.state.showImportDialog}
-          onClose={this.hideDialogs}
-          onSave={this.onBulkUpload}
-          onSaveError={this.onBulkUploadError}
-        />
       </div>
-    );
-  }
-
-  showAddEditDialog = () => this.setState({showAddEditDialog: true});
-  showImportDialog = () => this.setState({showImportDialog: true});
-  hideDialogs = () =>
-    this.setState({
-      showAddEditDialog: false,
-      showImportDialog: false,
-      editingSubscriber: null,
-    });
-
-  onSaveSubscriber = id => {
-    MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId({
-      networkId: nullthrows(this.props.match.params.networkId),
-      subscriberId: id,
-    })
-      .then(newSubscriber =>
-        this.setState(state => {
-          const subscribers = state.subscribers.slice(0);
-          if (state.editingSubscriber) {
-            const index = subscribers.indexOf(state.editingSubscriber);
-            subscribers[index] = this._buildSubscriber(newSubscriber);
-          } else {
-            subscribers.push(this._buildSubscriber(newSubscriber));
-          }
-          return {subscribers, showAddEditDialog: false};
-        }),
-      )
-      .catch(this.props.alert);
-  };
-
-  onSaveSubscriberError = (reason: any) => {
-    this.props.alert(reason.response.data.message);
-  };
-
-  onBulkUpload = async (subscriberIDs: Array<string>) => {
-    const results = await Promise.all(
-      subscriberIDs.map(id =>
-        MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId({
-          networkId: nullthrows(this.props.match.params.networkId),
-          subscriberId: id,
-        }),
-      ),
-    );
-    this.setState(state => {
-      const subscribers = [
-        ...state.subscribers,
-        ...results.map(subscriber => this._buildSubscriber(subscriber)),
-      ];
-      return {subscribers, showImportDialog: false};
-    });
-  };
-
-  onBulkUploadError = (failureIDs: Array<string>) => {
-    this.props.alert(
-      'Error adding the following subscribers: ' + failureIDs.join(', '),
-    );
-  };
-
-  editSubscriber = subscriber =>
-    this.setState({editingSubscriber: subscriber, showAddEditDialog: true});
-
-  deleteSubscriber = sub => {
-    this.props
-      .confirm(`Are you sure you want to delete subscriber ${sub.id}?`)
-      .then(confirmed => {
-        if (confirmed) {
-          MagmaV1API.deleteLteByNetworkIdSubscribersBySubscriberId({
-            networkId: this.props.match.params.networkId || '',
-            subscriberId: `IMSI${sub.id}`,
-          })
-            .then(_resp =>
-              this.setState({
-                subscribers: this.state.subscribers.filter(
-                  s => s.id !== sub.id,
-                ),
-              }),
-            )
-            .catch(this.props.alert);
-        }
-      });
-  };
-
-  _buildSubscriber(subscriber: subscriber, subProfiles?: Set<string>) {
-    subProfiles = subProfiles || this.state.subProfiles;
-    if (!subProfiles.has(subscriber.lte.sub_profile)) {
-      subscriber.lte.sub_profile = 'default';
-    }
-
-    subscriber.id = subscriber.id.replace(/^IMSI/, '');
-    return subscriber;
-  }
+      <Paper elevation={2}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>IMSI</TableCell>
+              <TableCell>LTE Subscription State</TableCell>
+              <TableCell>Data Plan</TableCell>
+              <TableCell />
+            </TableRow>
+          </TableHead>
+          <TableBody>{rows}</TableBody>
+          <TableFooter
+            style={
+              Object.keys(subscribers || {}).length === 0 && error === null
+                ? {}
+                : {display: 'none'}
+            }>
+            <TableRow>
+              <TableCell colSpan="3">No subscribers found</TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </Paper>
+      <div style={error !== null ? {} : {display: 'none'}}>
+        <Text color="error" variant="body2">
+          {error ?? ''}
+        </Text>
+      </div>
+      <Route
+        path={relativePath('/import')}
+        component={() => (
+          <ImportSubscribersDialog
+            open={true}
+            onClose={() => history.push(relativeUrl(''))}
+            onSave={onSave}
+            onSaveError={failureIDs => {
+              enqueueSnackbar(
+                'Error adding the following subscribers: ' +
+                  failureIDs.join(', '),
+                {variant: 'error'},
+              );
+            }}
+          />
+        )}
+      />
+      <Route
+        path={relativePath('/add')}
+        component={() => (
+          <AddEditSubscriberDialog
+            onClose={() => history.push(relativeUrl(''))}
+            onSave={onSave}
+            onSaveError={onError}
+            subProfiles={Array.from(subProfiles)}
+          />
+        )}
+      />
+    </div>
+  );
 }
 
-type Props2 = {
+type Props = WithAlert & {
   subscriber: subscriber,
-  onEdit: subscriber => void,
-  onDelete: subscriber => void,
+  subProfiles: Set<string>,
+  onSave: () => void,
 };
-class SubscriberTableRow extends React.Component<Props2> {
-  render() {
-    return (
+
+function SubscriberTableRowComponent(props: Props) {
+  const {match, history, relativePath, relativeUrl} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const {subscriber, subProfiles} = props;
+  const displayID = subscriber.id.replace(/^IMSI/, '');
+  const onDelete = async () => {
+    const confirmed = await props.confirm(
+      `Are you sure you want to delete subscriber ${displayID}?`,
+    );
+    if (confirmed) {
+      MagmaV1API.deleteLteByNetworkIdSubscribersBySubscriberId({
+        networkId: match.params.networkId || '',
+        subscriberId: subscriber.id,
+      })
+        .then(props.onSave)
+        .catch(error =>
+          enqueueSnackbar(error.response.data.message, {variant: 'error'}),
+        );
+    }
+  };
+
+  const subProfile = subProfiles.has(subscriber.lte.sub_profile)
+    ? subscriber.lte.sub_profile
+    : 'default';
+
+  return (
+    <>
       <TableRow>
-        <TableCell>{this.props.subscriber.id}</TableCell>
-        <TableCell>{this.props.subscriber.lte.state}</TableCell>
-        <TableCell>{this.props.subscriber.lte.sub_profile}</TableCell>
+        <TableCell>{displayID}</TableCell>
+        <TableCell>{subscriber.lte.state}</TableCell>
+        <TableCell>{subProfile}</TableCell>
         <TableCell>
-          <IconButton onClick={this.onEdit}>
-            <EditIcon />
-          </IconButton>
-          <IconButton onClick={this.onDelete}>
+          <NestedRouteLink to={`/edit/${subscriber.id}`}>
+            <IconButton>
+              <EditIcon />
+            </IconButton>
+          </NestedRouteLink>
+          <IconButton onClick={onDelete}>
             <DeleteIcon />
           </IconButton>
         </TableCell>
       </TableRow>
-    );
-  }
-
-  onEdit = () => this.props.onEdit(this.props.subscriber);
-  onDelete = () => this.props.onDelete(this.props.subscriber);
+      <Route
+        path={relativePath(`/edit/${subscriber.id}`)}
+        component={() => (
+          <AddEditSubscriberDialog
+            editingSubscriber={subscriber}
+            onClose={() => history.push(relativeUrl(''))}
+            onSave={props.onSave}
+            onSaveError={error => {
+              enqueueSnackbar(error.response.data.message, {variant: 'error'});
+            }}
+            subProfiles={Array.from(props.subProfiles)}
+          />
+        )}
+      />
+    </>
+  );
 }
 
-export default withStyles(styles)(withAlert(withRouter(Subscribers)));
+const SubscriberTableRow = withAlert(SubscriberTableRowComponent);
+
+export default Subscribers;

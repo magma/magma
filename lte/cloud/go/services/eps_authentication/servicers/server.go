@@ -12,32 +12,32 @@ import (
 	"fmt"
 
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/subscriberdb/storage"
-	orc8rprotos "magma/orc8r/cloud/go/protos"
+	"magma/lte/cloud/go/services/eps_authentication/storage"
+	"magma/orc8r/lib/go/protos"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type EPSAuthServer struct {
-	Store *storage.SubscriberDBStorage
+	store storage.SubscriberDBStorage
 }
 
 // NewEPSAuthServer returns a Server with the provided store.
-func NewEPSAuthServer(store *storage.SubscriberDBStorage) (*EPSAuthServer, error) {
+func NewEPSAuthServer(store storage.SubscriberDBStorage) (*EPSAuthServer, error) {
 	if store == nil {
 		return nil, fmt.Errorf("Cannot initialize eps authentication server with nil store")
 	}
-	return &EPSAuthServer{Store: store}, nil
+	return &EPSAuthServer{store: store}, nil
 }
 
 // lookupSubscriber returns a subscriber's data or an error.
 func (srv *EPSAuthServer) lookupSubscriber(userName, networkID string) (*lteprotos.SubscriberData, lteprotos.ErrorCode, error) {
 	lookup := &lteprotos.SubscriberLookup{
 		Sid:       &lteprotos.SubscriberID{Id: userName},
-		NetworkId: &orc8rprotos.NetworkID{Id: networkID},
+		NetworkId: &protos.NetworkID{Id: networkID},
 	}
-	subscriber, err := srv.Store.GetSubscriberData(lookup)
+	subscriber, err := srv.store.GetSubscriberData(lookup)
 	if err != nil {
 		if status.Convert(err).Code() == codes.NotFound {
 			return nil, lteprotos.ErrorCode_USER_UNKNOWN, err

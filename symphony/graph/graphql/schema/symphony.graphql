@@ -240,7 +240,7 @@ type Equipment implements Node {
 }
 
 type Device {
-  id: ID!
+  id: String!
   name: String!
   up: Boolean
 }
@@ -833,11 +833,13 @@ input AddLinkInput {
   sides: [LinkSide!]! @length(min: 2, max: 2)
   workOrder: ID
   properties: [PropertyInput!]
+  serviceIds: [ID!]
 }
 
 input EditLinkInput {
   id: ID!
   properties: [PropertyInput!]
+  serviceIds: [ID!]
 }
 
 type WorkOrderDefinition implements Node {
@@ -1021,6 +1023,7 @@ input AddProjectTypeInput {
   name: String! @length(min: 1)
   description: String
   properties: [PropertyTypeInput!]
+    @uniqueField(typ: "property type", field: "Name")
   workOrders: [WorkOrderDefinitionInput!]
 }
 
@@ -1029,6 +1032,7 @@ input EditProjectTypeInput {
   name: String! @length(min: 1)
   description: String
   properties: [PropertyTypeInput!]
+    @uniqueField(typ: "property type", field: "Name")
   workOrders: [WorkOrderDefinitionInput!]
 }
 
@@ -1132,6 +1136,7 @@ input EquipmentFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -1210,6 +1215,7 @@ input PortFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -1219,6 +1225,7 @@ input LinkFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -1229,6 +1236,7 @@ input LocationFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -1238,6 +1246,7 @@ input ServiceFilterInput {
   stringValue: String
   propertyValue: PropertyTypeInput
   idSet: [ID!]
+  stringSet: [String!]
   maxDepth: Int = 5
 }
 
@@ -1262,6 +1271,7 @@ input WorkOrderFilterInput {
   operator: FilterOperator!
   stringValue: String
   idSet: [ID!]
+  stringSet: [String!]
   propertyValue: PropertyTypeInput
   maxDepth: Int = 5
 }
@@ -1861,7 +1871,7 @@ type Query {
     before: Cursor
     last: Int
   ): ServiceTypeConnection
-  workOrder(id: ID!): WorkOrder
+  workOrder(id: ID!): WorkOrder @deprecated(reason: "Use `node` instead")
   workOrders(
     after: Cursor
     first: Int
@@ -1869,7 +1879,6 @@ type Query {
     last: Int
     showCompleted: Boolean
   ): WorkOrderConnection!
-  workOrderType(id: ID!): WorkOrderType
   workOrderTypes(
     after: Cursor
     first: Int
@@ -1911,10 +1920,6 @@ type Query {
   ): ServiceSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
-  findLocationWithDuplicateProperties(
-    locationTypeId: ID!
-    propertyName: String!
-  ): [ID!]!
   latestPythonPackage: LatestPythonPackageResult
   nearestSites(
     latitude: Float!
@@ -1922,15 +1927,12 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
-  projectType(id: ID!): ProjectType @deprecated(reason: "Use `node` instead")
   projectTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ProjectTypeConnection
-  project(id: ID!): Project @deprecated(reason: "Use `node` instead")
-  customer(id: ID!): Customer
   customers(
     after: Cursor
     first: Int
@@ -2109,4 +2111,9 @@ type Mutation {
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
   removeActionsRule(id: ID!): Boolean!
+  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
+}
+
+type Subscription {
+  workOrderAdded: WorkOrder
 }

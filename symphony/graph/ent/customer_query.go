@@ -72,14 +72,14 @@ func (cq *CustomerQuery) QueryServices() *ServiceQuery {
 	return query
 }
 
-// First returns the first Customer entity in the query. Returns *ErrNotFound when no customer was found.
+// First returns the first Customer entity in the query. Returns *NotFoundError when no customer was found.
 func (cq *CustomerQuery) First(ctx context.Context) (*Customer, error) {
 	cs, err := cq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(cs) == 0 {
-		return nil, &ErrNotFound{customer.Label}
+		return nil, &NotFoundError{customer.Label}
 	}
 	return cs[0], nil
 }
@@ -93,14 +93,14 @@ func (cq *CustomerQuery) FirstX(ctx context.Context) *Customer {
 	return c
 }
 
-// FirstID returns the first Customer id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Customer id in the query. Returns *NotFoundError when no id was found.
 func (cq *CustomerQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = cq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{customer.Label}
+		err = &NotFoundError{customer.Label}
 		return
 	}
 	return ids[0], nil
@@ -125,9 +125,9 @@ func (cq *CustomerQuery) Only(ctx context.Context) (*Customer, error) {
 	case 1:
 		return cs[0], nil
 	case 0:
-		return nil, &ErrNotFound{customer.Label}
+		return nil, &NotFoundError{customer.Label}
 	default:
-		return nil, &ErrNotSingular{customer.Label}
+		return nil, &NotSingularError{customer.Label}
 	}
 }
 
@@ -150,9 +150,9 @@ func (cq *CustomerQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{customer.Label}
+		err = &NotFoundError{customer.Label}
 	default:
-		err = &ErrNotSingular{customer.Label}
+		err = &NotSingularError{customer.Label}
 	}
 	return
 }
@@ -295,8 +295,11 @@ func (cq *CustomerQuery) Select(field string, fields ...string) *CustomerSelect 
 
 func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
 	var (
-		nodes []*Customer
-		_spec = cq.querySpec()
+		nodes       = []*Customer{}
+		_spec       = cq.querySpec()
+		loadedTypes = [1]bool{
+			cq.withServices != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &Customer{config: cq.config}
@@ -309,12 +312,12 @@ func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, cq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

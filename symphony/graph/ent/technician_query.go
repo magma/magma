@@ -72,14 +72,14 @@ func (tq *TechnicianQuery) QueryWorkOrders() *WorkOrderQuery {
 	return query
 }
 
-// First returns the first Technician entity in the query. Returns *ErrNotFound when no technician was found.
+// First returns the first Technician entity in the query. Returns *NotFoundError when no technician was found.
 func (tq *TechnicianQuery) First(ctx context.Context) (*Technician, error) {
 	ts, err := tq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ts) == 0 {
-		return nil, &ErrNotFound{technician.Label}
+		return nil, &NotFoundError{technician.Label}
 	}
 	return ts[0], nil
 }
@@ -93,14 +93,14 @@ func (tq *TechnicianQuery) FirstX(ctx context.Context) *Technician {
 	return t
 }
 
-// FirstID returns the first Technician id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Technician id in the query. Returns *NotFoundError when no id was found.
 func (tq *TechnicianQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{technician.Label}
+		err = &NotFoundError{technician.Label}
 		return
 	}
 	return ids[0], nil
@@ -125,9 +125,9 @@ func (tq *TechnicianQuery) Only(ctx context.Context) (*Technician, error) {
 	case 1:
 		return ts[0], nil
 	case 0:
-		return nil, &ErrNotFound{technician.Label}
+		return nil, &NotFoundError{technician.Label}
 	default:
-		return nil, &ErrNotSingular{technician.Label}
+		return nil, &NotSingularError{technician.Label}
 	}
 }
 
@@ -150,9 +150,9 @@ func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{technician.Label}
+		err = &NotFoundError{technician.Label}
 	default:
-		err = &ErrNotSingular{technician.Label}
+		err = &NotSingularError{technician.Label}
 	}
 	return
 }
@@ -295,8 +295,11 @@ func (tq *TechnicianQuery) Select(field string, fields ...string) *TechnicianSel
 
 func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 	var (
-		nodes []*Technician
-		_spec = tq.querySpec()
+		nodes       = []*Technician{}
+		_spec       = tq.querySpec()
+		loadedTypes = [1]bool{
+			tq.withWorkOrders != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &Technician{config: tq.config}
@@ -309,12 +312,12 @@ func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -339,13 +342,13 @@ func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.technician_id
+			fk := n.work_order_technician
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "technician_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_technician" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "technician_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_technician" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
 		}

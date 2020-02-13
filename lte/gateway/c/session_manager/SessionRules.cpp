@@ -7,17 +7,51 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 #include "SessionRules.h"
-
 namespace magma {
 
-SessionRules::SessionRules(StaticRuleStore &static_rule_ref):
+std::unique_ptr<SessionRules> SessionRules::unmarshal(
+  const StoredSessionRules& marshaled,
+  StaticRuleStore& static_rule_ref)
+{
+  return std::make_unique<SessionRules>(marshaled, static_rule_ref);
+}
+
+SessionRules::SessionRules(
+  const StoredSessionRules& marshaled,
+  StaticRuleStore& static_rule_ref):
+  static_rules_(static_rule_ref)
+{
+  for (const std::string& rule_id : marshaled.static_rule_ids)
+  {
+    active_static_rules_.push_back(rule_id);
+  }
+  for (auto& rule : marshaled.dynamic_rules)
+  {
+    dynamic_rules_.insert_rule(rule);
+  }
+}
+
+StoredSessionRules SessionRules::marshal()
+{
+  StoredSessionRules stored_rules;
+  for (auto& rule_id : active_static_rules_)
+  {
+    stored_rules.static_rule_ids.push_back(rule_id);
+  }
+  std::vector<PolicyRule> dynamic_rules;
+  dynamic_rules_.get_rules(dynamic_rules);
+  stored_rules.dynamic_rules = std::move(dynamic_rules);
+  return stored_rules;
+}
+
+SessionRules::SessionRules(StaticRuleStore& static_rule_ref):
   static_rules_(static_rule_ref)
 {
 }
 
 bool SessionRules::get_charging_key_for_rule_id(
-  const std::string &rule_id,
-  CreditKey *charging_key)
+  const std::string& rule_id,
+  CreditKey* charging_key)
 {
   // first check dynamic rules and then static rules
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, charging_key)) {
@@ -30,8 +64,8 @@ bool SessionRules::get_charging_key_for_rule_id(
 }
 
 bool SessionRules::get_monitoring_key_for_rule_id(
-  const std::string &rule_id,
-  std::string *monitoring_key)
+  const std::string& rule_id,
+  std::string* monitoring_key)
 {
   // first check dynamic rules and then static rules
   if (dynamic_rules_.get_monitoring_key_for_rule_id(rule_id, monitoring_key)) {
@@ -43,24 +77,24 @@ bool SessionRules::get_monitoring_key_for_rule_id(
   return false;
 }
 
-void SessionRules::insert_dynamic_rule(const PolicyRule &rule)
+void SessionRules::insert_dynamic_rule(const PolicyRule& rule)
 {
   dynamic_rules_.insert_rule(rule);
 }
 
-void SessionRules::activate_static_rule(const std::string &rule_id)
+void SessionRules::activate_static_rule(const std::string& rule_id)
 {
   active_static_rules_.push_back(rule_id);
 }
 
 bool SessionRules::remove_dynamic_rule(
-  const std::string &rule_id,
+  const std::string& rule_id,
   PolicyRule *rule_out)
 {
   return dynamic_rules_.remove_rule(rule_id, rule_out);
 }
 
-bool SessionRules::deactivate_static_rule(const std::string &rule_id)
+bool SessionRules::deactivate_static_rule(const std::string& rule_id)
 {
   auto it = std::find(active_static_rules_.begin(), active_static_rules_.end(),
                       rule_id);
@@ -75,8 +109,8 @@ bool SessionRules::deactivate_static_rule(const std::string &rule_id)
  * and the dynamic rule set
  */
 void SessionRules::add_rules_to_action(
-  ServiceAction &action,
-  const CreditKey &charging_key)
+  ServiceAction& action,
+  const CreditKey& charging_key)
 {
   static_rules_.get_rule_ids_for_charging_key(
     charging_key, *action.get_mutable_rule_ids());
@@ -85,7 +119,7 @@ void SessionRules::add_rules_to_action(
 }
 
 void SessionRules::add_rules_to_action(
-  ServiceAction &action,
+  ServiceAction& action,
   std::string monitoring_key)
 {
   static_rules_.get_rule_ids_for_monitoring_key(
@@ -94,14 +128,30 @@ void SessionRules::add_rules_to_action(
     monitoring_key, *action.get_mutable_rule_definitions());
 }
 
-std::vector<std::string> &SessionRules::get_static_rule_ids()
+std::vector<std::string>& SessionRules::get_static_rule_ids()
 {
   return active_static_rules_;
 }
 
-DynamicRuleStore &SessionRules::get_dynamic_rules()
+DynamicRuleStore& SessionRules::get_dynamic_rules()
 {
   return dynamic_rules_;
+}
+
+uint32_t SessionRules::total_monitored_rules_count()
+{
+  uint32_t monitored_dynamic_rules = dynamic_rules_.monitored_rules_count();
+  uint32_t monitored_static_rules = 0;
+  for (auto& rule_id : active_static_rules_)
+  {
+    std::string mkey; // ignore value
+    auto is_monitored = static_rules_.get_monitoring_key_for_rule_id(
+      rule_id,& mkey);
+    if (is_monitored) {
+      monitored_static_rules++;
+    }
+  }
+  return monitored_dynamic_rules + monitored_static_rules;
 }
 
 } // namespace magma

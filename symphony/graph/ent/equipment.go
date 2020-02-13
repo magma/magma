@@ -14,6 +14,10 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
+	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // Equipment is the model entity for the Equipment schema.
@@ -35,30 +39,137 @@ type Equipment struct {
 	ExternalID string `json:"external_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *EquipmentType
-		// Location holds the value of the location edge.
-		Location *Location
-		// ParentPosition holds the value of the parent_position edge.
-		ParentPosition *EquipmentPosition
-		// Positions holds the value of the positions edge.
-		Positions []*EquipmentPosition
-		// Ports holds the value of the ports edge.
-		Ports []*EquipmentPort
-		// WorkOrder holds the value of the work_order edge.
-		WorkOrder *WorkOrder
-		// Properties holds the value of the properties edge.
-		Properties []*Property
-		// Files holds the value of the files edge.
-		Files []*File
-		// Hyperlinks holds the value of the hyperlinks edge.
-		Hyperlinks []*Hyperlink
-	} `json:"edges"`
-	type_id            *string
-	work_order_id      *string
-	parent_position_id *string
-	location_id        *string
+	Edges                         EquipmentEdges `json:"edges"`
+	equipment_type                *string
+	equipment_work_order          *string
+	equipment_position_attachment *string
+	location_equipment            *string
+}
+
+// EquipmentEdges holds the relations/edges for other nodes in the graph.
+type EquipmentEdges struct {
+	// Type holds the value of the type edge.
+	Type *EquipmentType `gqlgen:"equipmentType"`
+	// Location holds the value of the location edge.
+	Location *Location `gqlgen:"parentLocation"`
+	// ParentPosition holds the value of the parent_position edge.
+	ParentPosition *EquipmentPosition `gqlgen:"parentPosition"`
+	// Positions holds the value of the positions edge.
+	Positions []*EquipmentPosition `gqlgen:"positions"`
+	// Ports holds the value of the ports edge.
+	Ports []*EquipmentPort `gqlgen:"ports"`
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder `gqlgen:"workOrder"`
+	// Properties holds the value of the properties edge.
+	Properties []*Property `gqlgen:"properties"`
+	// Files holds the value of the files edge.
+	Files []*File `gqlgen:"files"`
+	// Hyperlinks holds the value of the hyperlinks edge.
+	Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [9]bool
+}
+
+// TypeOrErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentEdges) TypeOrErr() (*EquipmentType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmenttype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// ParentPositionOrErr returns the ParentPosition value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentEdges) ParentPositionOrErr() (*EquipmentPosition, error) {
+	if e.loadedTypes[2] {
+		if e.ParentPosition == nil {
+			// The edge parent_position was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentposition.Label}
+		}
+		return e.ParentPosition, nil
+	}
+	return nil, &NotLoadedError{edge: "parent_position"}
+}
+
+// PositionsOrErr returns the Positions value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentEdges) PositionsOrErr() ([]*EquipmentPosition, error) {
+	if e.loadedTypes[3] {
+		return e.Positions, nil
+	}
+	return nil, &NotLoadedError{edge: "positions"}
+}
+
+// PortsOrErr returns the Ports value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentEdges) PortsOrErr() ([]*EquipmentPort, error) {
+	if e.loadedTypes[4] {
+		return e.Ports, nil
+	}
+	return nil, &NotLoadedError{edge: "ports"}
+}
+
+// WorkOrderOrErr returns the WorkOrder value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentEdges) WorkOrderOrErr() (*WorkOrder, error) {
+	if e.loadedTypes[5] {
+		if e.WorkOrder == nil {
+			// The edge work_order was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workorder.Label}
+		}
+		return e.WorkOrder, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentEdges) PropertiesOrErr() ([]*Property, error) {
+	if e.loadedTypes[6] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// FilesOrErr returns the Files value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentEdges) FilesOrErr() ([]*File, error) {
+	if e.loadedTypes[7] {
+		return e.Files, nil
+	}
+	return nil, &NotLoadedError{edge: "files"}
+}
+
+// HyperlinksOrErr returns the Hyperlinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentEdges) HyperlinksOrErr() ([]*Hyperlink, error) {
+	if e.loadedTypes[8] {
+		return e.Hyperlinks, nil
+	}
+	return nil, &NotLoadedError{edge: "hyperlinks"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -77,10 +188,10 @@ func (*Equipment) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Equipment) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // type_id
-		&sql.NullInt64{}, // work_order_id
-		&sql.NullInt64{}, // parent_position_id
-		&sql.NullInt64{}, // location_id
+		&sql.NullInt64{}, // equipment_type
+		&sql.NullInt64{}, // equipment_work_order
+		&sql.NullInt64{}, // equipment_position_attachment
+		&sql.NullInt64{}, // location_equipment
 	}
 }
 
@@ -129,28 +240,28 @@ func (e *Equipment) assignValues(values ...interface{}) error {
 	values = values[6:]
 	if len(values) == len(equipment.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_type", value)
 		} else if value.Valid {
-			e.type_id = new(string)
-			*e.type_id = strconv.FormatInt(value.Int64, 10)
+			e.equipment_type = new(string)
+			*e.equipment_type = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_work_order", value)
 		} else if value.Valid {
-			e.work_order_id = new(string)
-			*e.work_order_id = strconv.FormatInt(value.Int64, 10)
+			e.equipment_work_order = new(string)
+			*e.equipment_work_order = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field parent_position_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_position_attachment", value)
 		} else if value.Valid {
-			e.parent_position_id = new(string)
-			*e.parent_position_id = strconv.FormatInt(value.Int64, 10)
+			e.equipment_position_attachment = new(string)
+			*e.equipment_position_attachment = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_equipment", value)
 		} else if value.Valid {
-			e.location_id = new(string)
-			*e.location_id = strconv.FormatInt(value.Int64, 10)
+			e.location_equipment = new(string)
+			*e.location_equipment = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

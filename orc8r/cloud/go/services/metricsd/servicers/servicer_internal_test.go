@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/metrics"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	"magma/orc8r/lib/go/protos"
 
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
 

@@ -153,6 +153,12 @@ func TestBuilder_Build(t *testing.T) {
 			CloudDisconnectPeriodSecs: 10,
 			LocalDisconnectPeriodSecs: 1,
 		},
+
+		"csfb": &mconfig.CsfbConfig{LogLevel: 1,
+			Client: &mconfig.SCTPClientConfig{
+				LocalAddress:  "",
+				ServerAddress: ""},
+		},
 	}
 
 	err = builder.Build("n1", "gw1", graph, nw, actual)
@@ -258,6 +264,12 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		MinimumRequestThreshold:  1,
 		CPUUtilizationThreshold:  0.75,
 		MemoryAvailableThreshold: 0.90,
+	},
+	Csfb: &models.Csfb{
+		Client: &models.SctpClientConfigs{
+			LocalAddress:  "",
+			ServerAddress: "",
+		},
 	},
 }
 

@@ -114,14 +114,14 @@ func (wotq *WorkOrderTypeQuery) QueryCheckListDefinitions() *CheckListItemDefini
 	return query
 }
 
-// First returns the first WorkOrderType entity in the query. Returns *ErrNotFound when no workordertype was found.
+// First returns the first WorkOrderType entity in the query. Returns *NotFoundError when no workordertype was found.
 func (wotq *WorkOrderTypeQuery) First(ctx context.Context) (*WorkOrderType, error) {
 	wots, err := wotq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(wots) == 0 {
-		return nil, &ErrNotFound{workordertype.Label}
+		return nil, &NotFoundError{workordertype.Label}
 	}
 	return wots[0], nil
 }
@@ -135,14 +135,14 @@ func (wotq *WorkOrderTypeQuery) FirstX(ctx context.Context) *WorkOrderType {
 	return wot
 }
 
-// FirstID returns the first WorkOrderType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first WorkOrderType id in the query. Returns *NotFoundError when no id was found.
 func (wotq *WorkOrderTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = wotq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{workordertype.Label}
+		err = &NotFoundError{workordertype.Label}
 		return
 	}
 	return ids[0], nil
@@ -167,9 +167,9 @@ func (wotq *WorkOrderTypeQuery) Only(ctx context.Context) (*WorkOrderType, error
 	case 1:
 		return wots[0], nil
 	case 0:
-		return nil, &ErrNotFound{workordertype.Label}
+		return nil, &NotFoundError{workordertype.Label}
 	default:
-		return nil, &ErrNotSingular{workordertype.Label}
+		return nil, &NotSingularError{workordertype.Label}
 	}
 }
 
@@ -192,9 +192,9 @@ func (wotq *WorkOrderTypeQuery) OnlyID(ctx context.Context) (id string, err erro
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{workordertype.Label}
+		err = &NotFoundError{workordertype.Label}
 	default:
-		err = &ErrNotSingular{workordertype.Label}
+		err = &NotSingularError{workordertype.Label}
 	}
 	return
 }
@@ -370,8 +370,14 @@ func (wotq *WorkOrderTypeQuery) Select(field string, fields ...string) *WorkOrde
 
 func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, error) {
 	var (
-		nodes []*WorkOrderType
-		_spec = wotq.querySpec()
+		nodes       = []*WorkOrderType{}
+		_spec       = wotq.querySpec()
+		loadedTypes = [4]bool{
+			wotq.withWorkOrders != nil,
+			wotq.withPropertyTypes != nil,
+			wotq.withDefinitions != nil,
+			wotq.withCheckListDefinitions != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &WorkOrderType{config: wotq.config}
@@ -384,12 +390,12 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, wotq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -414,13 +420,13 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.work_order_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
 		}
@@ -446,13 +452,13 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_type_id
+			fk := n.work_order_type_property_types
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_type_property_types" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
 		}
@@ -478,13 +484,13 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.work_order_definition_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_definition_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_definition_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Definitions = append(node.Edges.Definitions, n)
 		}
@@ -510,13 +516,13 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.work_order_type_id
+			fk := n.work_order_type_check_list_definitions
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "work_order_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_type_check_list_definitions" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_type_check_list_definitions" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CheckListDefinitions = append(node.Edges.CheckListDefinitions, n)
 		}

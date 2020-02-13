@@ -141,12 +141,11 @@ message AccountRules {
 }
 
 message RuleDefinition {
-    string chargine_rule_name = 1;
+    string rule_name = 1;
 	uint32 rating_group = 2;
 	uint32 precedence = 3;
 	string monitoring_key = 4;
 	repeated string flow_descriptions = 5;
-	repeated string flow_informations = 6;
 	magma.lte.RedirectInformation redirect_information = 7;
 	magma.lte.FlowQos qos_information = 8;
 }

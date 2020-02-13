@@ -85,14 +85,14 @@ func (swfsq *SurveyWiFiScanQuery) QueryLocation() *LocationQuery {
 	return query
 }
 
-// First returns the first SurveyWiFiScan entity in the query. Returns *ErrNotFound when no surveywifiscan was found.
+// First returns the first SurveyWiFiScan entity in the query. Returns *NotFoundError when no surveywifiscan was found.
 func (swfsq *SurveyWiFiScanQuery) First(ctx context.Context) (*SurveyWiFiScan, error) {
 	swfsSlice, err := swfsq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(swfsSlice) == 0 {
-		return nil, &ErrNotFound{surveywifiscan.Label}
+		return nil, &NotFoundError{surveywifiscan.Label}
 	}
 	return swfsSlice[0], nil
 }
@@ -106,14 +106,14 @@ func (swfsq *SurveyWiFiScanQuery) FirstX(ctx context.Context) *SurveyWiFiScan {
 	return swfs
 }
 
-// FirstID returns the first SurveyWiFiScan id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first SurveyWiFiScan id in the query. Returns *NotFoundError when no id was found.
 func (swfsq *SurveyWiFiScanQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = swfsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{surveywifiscan.Label}
+		err = &NotFoundError{surveywifiscan.Label}
 		return
 	}
 	return ids[0], nil
@@ -138,9 +138,9 @@ func (swfsq *SurveyWiFiScanQuery) Only(ctx context.Context) (*SurveyWiFiScan, er
 	case 1:
 		return swfsSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{surveywifiscan.Label}
+		return nil, &NotFoundError{surveywifiscan.Label}
 	default:
-		return nil, &ErrNotSingular{surveywifiscan.Label}
+		return nil, &NotSingularError{surveywifiscan.Label}
 	}
 }
 
@@ -163,9 +163,9 @@ func (swfsq *SurveyWiFiScanQuery) OnlyID(ctx context.Context) (id string, err er
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{surveywifiscan.Label}
+		err = &NotFoundError{surveywifiscan.Label}
 	default:
-		err = &ErrNotSingular{surveywifiscan.Label}
+		err = &NotSingularError{surveywifiscan.Label}
 	}
 	return
 }
@@ -319,9 +319,13 @@ func (swfsq *SurveyWiFiScanQuery) Select(field string, fields ...string) *Survey
 
 func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan, error) {
 	var (
-		nodes   []*SurveyWiFiScan
-		withFKs = swfsq.withFKs
-		_spec   = swfsq.querySpec()
+		nodes       = []*SurveyWiFiScan{}
+		withFKs     = swfsq.withFKs
+		_spec       = swfsq.querySpec()
+		loadedTypes = [2]bool{
+			swfsq.withSurveyQuestion != nil,
+			swfsq.withLocation != nil,
+		}
 	)
 	if swfsq.withSurveyQuestion != nil || swfsq.withLocation != nil {
 		withFKs = true
@@ -343,12 +347,12 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, swfsq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -357,7 +361,7 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyWiFiScan)
 		for i := range nodes {
-			if fk := nodes[i].survey_question_id; fk != nil {
+			if fk := nodes[i].survey_wi_fi_scan_survey_question; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -370,7 +374,7 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_wi_fi_scan_survey_question" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.SurveyQuestion = n
@@ -382,7 +386,7 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*SurveyWiFiScan)
 		for i := range nodes {
-			if fk := nodes[i].location_id; fk != nil {
+			if fk := nodes[i].survey_wi_fi_scan_location; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -395,7 +399,7 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_wi_fi_scan_location" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Location = n

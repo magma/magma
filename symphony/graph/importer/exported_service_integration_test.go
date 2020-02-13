@@ -8,6 +8,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -15,12 +22,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/exporter"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
 
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -55,12 +56,16 @@ func editLine(line []string, index int) {
 	}
 }
 
-func writeModifiedCSV(t *testing.T, r *csv.Reader, method method) (*bytes.Buffer, string) {
+func writeModifiedCSV(t *testing.T, r *csv.Reader, method method, withVerify bool) (*bytes.Buffer, string) {
 	var newLine []string
 	var lines = make([][]string, 3)
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 
+	if withVerify {
+		err := bw.WriteField("verify_before_commit", "true")
+		require.NoError(t, err)
+	}
 	fileWriter, err := bw.CreateFormFile("file_0", "name1")
 	require.Nil(t, err)
 	for i := 0; ; i++ {
@@ -85,6 +90,16 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method) (*bytes.Buffer
 			editLine(newLine, i)
 			lines[i] = newLine
 		}
+	}
+
+	if withVerify {
+		failLine := make([]string, len(lines[1]))
+		copy(failLine, lines[1])
+		lines = append(lines, failLine)
+		lines[1][1] = "this"
+		lines[1][2] = "should"
+		lines[1][3] = "fail"
+
 	}
 	for _, l := range lines {
 		stringLine := strings.Join(l, ",")
@@ -176,9 +191,13 @@ func deleteServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 	require.NoError(t, err)
 }
 
-func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolver) {
-
+func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolver, withVerify bool) {
 	s1, err := r.client.Service.Query().Where(service.Name("newName")).Only(ctx)
+	if withVerify {
+		require.Error(t, err)
+		require.Nil(t, s1)
+		return
+	}
 	require.NoError(t, err)
 
 	require.Equal(t, "D243", *s1.ExternalID)
@@ -257,32 +276,30 @@ func importServiceExportedData(ctx context.Context, t *testing.T, organization s
 }
 
 func TestServiceImportDataAdd(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
-	ctx := newImportContext(viewertest.NewContext(r.client))
-	require.NoError(t, err)
-	prepareServiceData(ctx, t, r)
-	exportedData := exportServiceData(ctx, t, tenantHeader, r)
-	deleteServiceData(ctx, t, r)
-	readr := csv.NewReader(&exportedData)
-	modifiedExportedData, contentType := writeModifiedCSV(t, readr, MethodAdd)
-	code := importServiceExportedData(ctx, t, tenantHeader, *modifiedExportedData, contentType, r)
-	verifyServiceData(ctx, t, r)
-	require.Equal(t, http.StatusOK, code)
-	require.NoError(t, err)
+	for _, withVerify := range []bool{true, false} {
+		r := newImporterTestResolver(t)
+		ctx := newImportContext(viewertest.NewContext(r.client))
+		prepareServiceData(ctx, t, r)
+		exportedData := exportServiceData(ctx, t, tenantHeader, r)
+		deleteServiceData(ctx, t, r)
+		readr := csv.NewReader(&exportedData)
+		modifiedExportedData, contentType := writeModifiedCSV(t, readr, MethodAdd, withVerify)
+		code := importServiceExportedData(ctx, t, tenantHeader, *modifiedExportedData, contentType, r)
+		verifyServiceData(ctx, t, r, withVerify)
+		require.Equal(t, http.StatusOK, code)
+	}
 }
 
 func TestServiceImportDataEdit(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
-	ctx := newImportContext(viewertest.NewContext(r.client))
-	require.NoError(t, err)
-	prepareServiceData(ctx, t, r)
-	exportedData := exportServiceData(ctx, t, tenantHeader, r)
-	readr := csv.NewReader(&exportedData)
-	modifiedExportedData, contentType := writeModifiedCSV(t, readr, MethodEdit)
-	code := importServiceExportedData(ctx, t, tenantHeader, *modifiedExportedData, contentType, r)
-	verifyServiceData(ctx, t, r)
-	require.Equal(t, http.StatusOK, code)
-	require.NoError(t, err)
+	for _, withVerify := range []bool{true, false} {
+		r := newImporterTestResolver(t)
+		ctx := newImportContext(viewertest.NewContext(r.client))
+		prepareServiceData(ctx, t, r)
+		exportedData := exportServiceData(ctx, t, tenantHeader, r)
+		readr := csv.NewReader(&exportedData)
+		modifiedExportedData, contentType := writeModifiedCSV(t, readr, MethodEdit, withVerify)
+		code := importServiceExportedData(ctx, t, tenantHeader, *modifiedExportedData, contentType, r)
+		verifyServiceData(ctx, t, r, withVerify)
+		require.Equal(t, http.StatusOK, code)
+	}
 }

@@ -4,11 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-export type FiringAlarm = {
+export type FiringAlarm = {|
   annotations: Labels,
   endsAt: string,
   fingerprint: string,
@@ -18,7 +18,7 @@ export type FiringAlarm = {
   status: FiringAlarmStatus,
   updatedAt: string,
   generatorURL?: string,
-};
+|};
 
 type GettableReceiver = {
   name: string,

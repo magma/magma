@@ -63,6 +63,7 @@ message AccessControl {
     // Operator's Access Control List (map)
     message List {
         Identity operator = 1;
+        // Map entity's hash string -> entity
         map<string, Entity> entities = 2;
     }
 

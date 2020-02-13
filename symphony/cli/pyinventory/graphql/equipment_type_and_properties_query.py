@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
@@ -74,9 +75,9 @@ class EquipmentTypeAndPropertiesQuery:
                 stringValue: Optional[str] = None
                 intValue: Optional[int] = None
                 booleanValue: Optional[bool] = None
-                floatValue: Optional[float] = None
-                latitudeValue: Optional[float] = None
-                longitudeValue: Optional[float] = None
+                floatValue: Optional[Number] = None
+                latitudeValue: Optional[Number] = None
+                longitudeValue: Optional[Number] = None
 
             equipmentType: EquipmentType
             properties: List[Property]
@@ -84,7 +85,7 @@ class EquipmentTypeAndPropertiesQuery:
         equipment: Optional[Node] = None
 
     data: Optional[EquipmentTypeAndPropertiesQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

@@ -19,11 +19,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
-	"magma/orc8r/cloud/go/protos"
-	platform_registry "magma/orc8r/cloud/go/registry"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
+	"magma/orc8r/lib/go/protos"
+	platform_registry "magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 )
 
 const (

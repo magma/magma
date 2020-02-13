@@ -19,6 +19,64 @@ float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 
+std::unique_ptr<SessionCredit> SessionCredit::unmarshal(
+  const StoredSessionCredit &marshaled,
+  CreditType credit_type)
+{
+  auto session_credit = std::make_unique<SessionCredit>(credit_type);
+
+  session_credit->reporting_ = marshaled.reporting;
+  session_credit->is_final_ = marshaled.is_final;
+  session_credit->unlimited_quota_ = marshaled.unlimited_quota;
+
+  // FinalActionInfo
+  FinalActionInfo final_action_info;
+  final_action_info.final_action = marshaled.final_action_info.final_action;
+  final_action_info.redirect_server = marshaled.final_action_info.redirect_server;
+  session_credit->final_action_info_ = final_action_info;
+
+  session_credit->reauth_state_ = marshaled.reauth_state;
+  session_credit->service_state_ = marshaled.service_state;
+  session_credit->expiry_time_ = marshaled.expiry_time;
+
+  for ( int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++ )
+  {
+    Bucket bucket = static_cast<Bucket>(bucket_int);
+    if (marshaled.buckets.find(bucket) != marshaled.buckets.end()) {
+      session_credit->buckets_[bucket] = marshaled.buckets.find(bucket)->second;
+    }
+  }
+
+  session_credit->usage_reporting_limit_ = marshaled.usage_reporting_limit;
+
+  return session_credit;
+}
+
+StoredSessionCredit SessionCredit::marshal()
+{
+  StoredSessionCredit marshaled{};
+  marshaled.reporting = reporting_;
+  marshaled.is_final = is_final_;
+  marshaled.unlimited_quota = unlimited_quota_;
+
+  marshaled.final_action_info.final_action = final_action_info_.final_action;
+  marshaled.final_action_info.redirect_server = final_action_info_.redirect_server;
+
+  marshaled.reauth_state = reauth_state_;
+  marshaled.service_state = service_state_;
+  marshaled.expiry_time = expiry_time_;
+
+  for ( int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++ )
+  {
+    Bucket bucket = static_cast<Bucket>(bucket_int);
+    marshaled.buckets[bucket] = buckets_[bucket];
+  }
+
+  usage_reporting_limit_ = marshaled.usage_reporting_limit;
+
+  return marshaled;
+}
+
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state):
   credit_type_(credit_type),
   reporting_(false),

@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
@@ -34,6 +35,8 @@ class LocationChildrenQuery:
       children {
         id
         name
+        latitude
+        longitude
         externalId
         locationType {
           name
@@ -61,6 +64,8 @@ class LocationChildrenQuery:
 
                 id: str
                 name: str
+                latitude: Number
+                longitude: Number
                 locationType: LocationType
                 externalId: Optional[str] = None
 
@@ -69,7 +74,7 @@ class LocationChildrenQuery:
         location: Optional[Node] = None
 
     data: Optional[LocationChildrenQueryData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

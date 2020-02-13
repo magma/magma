@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0f16ba268f65b7c8cf55bdb34c84aa87
+ * @relayHash 849b0f73f666d3d6b782aab622a4e0c2
  */
 
 /* eslint-disable */
@@ -22,6 +22,7 @@ export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added va
 export type EditLinkInput = {|
   id: string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
+  serviceIds?: ?$ReadOnlyArray<string>,
 |};
 export type PropertyInput = {|
   id?: ?string,

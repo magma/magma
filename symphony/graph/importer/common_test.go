@@ -7,17 +7,27 @@ package importer
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
-
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 
 	"github.com/stretchr/testify/require"
+	"gocloud.dev/pubsub"
+	"gocloud.dev/pubsub/mempubsub"
+)
+
+const (
+	svcName  = "serviceName"
+	svc2Name = "serviceName2"
+	svc3Name = "serviceName3"
+	svc4Name = "serviceName4"
 )
 
 type TestImporterResolver struct {
@@ -26,19 +36,55 @@ type TestImporterResolver struct {
 	importer importer
 }
 
-func newImporterTestResolver(t *testing.T) (*TestImporterResolver, error) {
+func newImporterTestResolver(t *testing.T) *TestImporterResolver {
 	db, name, err := testdb.Open()
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
 	return newResolver(t, sql.OpenDB(name, db))
 }
 
-func newResolver(t *testing.T, drv dialect.Driver) (*TestImporterResolver, error) {
+func newResolver(t *testing.T, drv dialect.Driver) *TestImporterResolver {
 	client := ent.NewClient(ent.Driver(drv))
-	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
-	r, err := resolver.New(logtest.NewTestLogger(t))
+	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
 	require.NoError(t, err)
 
-	i := newImporter(logtest.NewTestLogger(t), r)
-	return &TestImporterResolver{drv, client, *i}, nil
+	topic := mempubsub.NewTopic()
+	r := resolver.New(resolver.Config{
+		Logger: logtest.NewTestLogger(t),
+		Topic:  topic,
+		Subscribe: func(context.Context) (*pubsub.Subscription, error) {
+			return mempubsub.NewSubscription(topic, time.Second), nil
+		},
+	})
+	return &TestImporterResolver{
+		drv:    drv,
+		client: client,
+		importer: importer{
+			logger: logtest.NewTestLogger(t),
+			r:      r,
+		},
+	}
+}
+
+func prepareSvcData(ctx context.Context, t *testing.T, r TestImporterResolver) {
+	mr := r.importer.r.Mutation()
+	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
+	_, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          svcName,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          svc2Name,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          svc3Name,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
 }

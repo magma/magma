@@ -22,6 +22,8 @@ message SetupFlowsRequest {
   repeated ActivateFlowsRequest requests = 1;
   // epoch to prevent outdated setup calls
   uint64 epoch = 2;
+  // List of subscriber quota updates
+  UpdateSubscriberQuotaStateRequest quota_updates = 3;
 }
 
 message SetupFlowsResult {
@@ -90,6 +92,14 @@ message UEMacFlowRequest {
 
   // UE MAC address
   string mac_addr = 2;
+
+  string msisdn = 3;
+
+  // AP MAC address
+  string ap_mac_addr = 4;
+
+  // AP Name
+  string ap_name = 5;
 }
 
 message SubscriberQuotaUpdate{
@@ -102,6 +112,10 @@ message SubscriberQuotaUpdate{
   // UE MAC address
   string mac_addr = 2;
   Type update_type = 3;
+}
+
+message UpdateSubscriberQuotaStateRequest {
+  repeated SubscriberQuotaUpdate updates = 1;
 }
 
 message TableAssignment {
@@ -165,7 +179,7 @@ service Pipelined {
   // ----------------
 
   // Synchronize subscribers quota check flows
-  rpc UpdateSubscriberQuotaState (SubscriberQuotaUpdate) returns (FlowResponse) {}
+  rpc UpdateSubscriberQuotaState (UpdateSubscriberQuotaStateRequest) returns (FlowResponse) {}
 
   // -----------
   // UE MAC App:
@@ -174,6 +188,8 @@ service Pipelined {
   // Add a flow for a subscriber by matching the provided UE MAC address
   rpc AddUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
+  // Delete a flow for a subscriber by matching the provided UE MAC address
+  rpc DeleteUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
   // --------
   // Debugging:

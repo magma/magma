@@ -47,7 +47,8 @@
 #include "log.h"
 #include "service303.h"
 
-#define MAX_GUMMEI 2
+/* Currently supporting max 5 GUMMEI's in the mme configuration */
+#define MAX_GUMMEI 5
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"

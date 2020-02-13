@@ -56,14 +56,14 @@ func (hq *HyperlinkQuery) Order(o ...Order) *HyperlinkQuery {
 	return hq
 }
 
-// First returns the first Hyperlink entity in the query. Returns *ErrNotFound when no hyperlink was found.
+// First returns the first Hyperlink entity in the query. Returns *NotFoundError when no hyperlink was found.
 func (hq *HyperlinkQuery) First(ctx context.Context) (*Hyperlink, error) {
 	hs, err := hq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(hs) == 0 {
-		return nil, &ErrNotFound{hyperlink.Label}
+		return nil, &NotFoundError{hyperlink.Label}
 	}
 	return hs[0], nil
 }
@@ -77,14 +77,14 @@ func (hq *HyperlinkQuery) FirstX(ctx context.Context) *Hyperlink {
 	return h
 }
 
-// FirstID returns the first Hyperlink id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Hyperlink id in the query. Returns *NotFoundError when no id was found.
 func (hq *HyperlinkQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = hq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{hyperlink.Label}
+		err = &NotFoundError{hyperlink.Label}
 		return
 	}
 	return ids[0], nil
@@ -109,9 +109,9 @@ func (hq *HyperlinkQuery) Only(ctx context.Context) (*Hyperlink, error) {
 	case 1:
 		return hs[0], nil
 	case 0:
-		return nil, &ErrNotFound{hyperlink.Label}
+		return nil, &NotFoundError{hyperlink.Label}
 	default:
-		return nil, &ErrNotSingular{hyperlink.Label}
+		return nil, &NotSingularError{hyperlink.Label}
 	}
 }
 
@@ -134,9 +134,9 @@ func (hq *HyperlinkQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{hyperlink.Label}
+		err = &NotFoundError{hyperlink.Label}
 	default:
-		err = &ErrNotSingular{hyperlink.Label}
+		err = &NotSingularError{hyperlink.Label}
 	}
 	return
 }
@@ -268,7 +268,7 @@ func (hq *HyperlinkQuery) Select(field string, fields ...string) *HyperlinkSelec
 
 func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 	var (
-		nodes   []*Hyperlink
+		nodes   = []*Hyperlink{}
 		withFKs = hq.withFKs
 		_spec   = hq.querySpec()
 	)
@@ -294,7 +294,6 @@ func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 	if err := sqlgraph.QueryNodes(ctx, hq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

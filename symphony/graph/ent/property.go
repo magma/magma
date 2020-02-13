@@ -13,7 +13,15 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/link"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // Property is the model entity for the Property schema.
@@ -43,41 +51,201 @@ type Property struct {
 	StringVal string `json:"string_val,omitempty" gqlgen:"stringValue"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PropertyQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *PropertyType
-		// Location holds the value of the location edge.
-		Location *Location
-		// Equipment holds the value of the equipment edge.
-		Equipment *Equipment
-		// Service holds the value of the service edge.
-		Service *Service
-		// EquipmentPort holds the value of the equipment_port edge.
-		EquipmentPort *EquipmentPort
-		// Link holds the value of the link edge.
-		Link *Link
-		// WorkOrder holds the value of the work_order edge.
-		WorkOrder *WorkOrder
-		// Project holds the value of the project edge.
-		Project *Project
-		// EquipmentValue holds the value of the equipment_value edge.
-		EquipmentValue *Equipment
-		// LocationValue holds the value of the location_value edge.
-		LocationValue *Location
-		// ServiceValue holds the value of the service_value edge.
-		ServiceValue *Service
-	} `json:"edges"`
-	equipment_id                *string
-	equipment_port_id           *string
-	link_id                     *string
-	location_id                 *string
-	project_id                  *string
-	type_id                     *string
-	property_equipment_value_id *string
-	property_location_value_id  *string
-	property_service_value_id   *string
-	service_id                  *string
-	work_order_id               *string
+	Edges                     PropertyEdges `json:"edges"`
+	equipment_properties      *string
+	equipment_port_properties *string
+	link_properties           *string
+	location_properties       *string
+	project_properties        *string
+	property_type             *string
+	property_equipment_value  *string
+	property_location_value   *string
+	property_service_value    *string
+	service_properties        *string
+	work_order_properties     *string
+}
+
+// PropertyEdges holds the relations/edges for other nodes in the graph.
+type PropertyEdges struct {
+	// Type holds the value of the type edge.
+	Type *PropertyType `gqlgen:"propertyType"`
+	// Location holds the value of the location edge.
+	Location *Location `gqlgen:"locationValue"`
+	// Equipment holds the value of the equipment edge.
+	Equipment *Equipment `gqlgen:"equipmentValue"`
+	// Service holds the value of the service edge.
+	Service *Service `gqlgen:"serviceValue"`
+	// EquipmentPort holds the value of the equipment_port edge.
+	EquipmentPort *EquipmentPort
+	// Link holds the value of the link edge.
+	Link *Link
+	// WorkOrder holds the value of the work_order edge.
+	WorkOrder *WorkOrder
+	// Project holds the value of the project edge.
+	Project *Project
+	// EquipmentValue holds the value of the equipment_value edge.
+	EquipmentValue *Equipment
+	// LocationValue holds the value of the location_value edge.
+	LocationValue *Location
+	// ServiceValue holds the value of the service_value edge.
+	ServiceValue *Service
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [11]bool
+}
+
+// TypeOrErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) TypeOrErr() (*PropertyType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: propertytype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// EquipmentOrErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) EquipmentOrErr() (*Equipment, error) {
+	if e.loadedTypes[2] {
+		if e.Equipment == nil {
+			// The edge equipment was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipment.Label}
+		}
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
+}
+
+// ServiceOrErr returns the Service value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) ServiceOrErr() (*Service, error) {
+	if e.loadedTypes[3] {
+		if e.Service == nil {
+			// The edge service was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: service.Label}
+		}
+		return e.Service, nil
+	}
+	return nil, &NotLoadedError{edge: "service"}
+}
+
+// EquipmentPortOrErr returns the EquipmentPort value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) EquipmentPortOrErr() (*EquipmentPort, error) {
+	if e.loadedTypes[4] {
+		if e.EquipmentPort == nil {
+			// The edge equipment_port was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentport.Label}
+		}
+		return e.EquipmentPort, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment_port"}
+}
+
+// LinkOrErr returns the Link value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) LinkOrErr() (*Link, error) {
+	if e.loadedTypes[5] {
+		if e.Link == nil {
+			// The edge link was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: link.Label}
+		}
+		return e.Link, nil
+	}
+	return nil, &NotLoadedError{edge: "link"}
+}
+
+// WorkOrderOrErr returns the WorkOrder value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) WorkOrderOrErr() (*WorkOrder, error) {
+	if e.loadedTypes[6] {
+		if e.WorkOrder == nil {
+			// The edge work_order was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workorder.Label}
+		}
+		return e.WorkOrder, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order"}
+}
+
+// ProjectOrErr returns the Project value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) ProjectOrErr() (*Project, error) {
+	if e.loadedTypes[7] {
+		if e.Project == nil {
+			// The edge project was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: project.Label}
+		}
+		return e.Project, nil
+	}
+	return nil, &NotLoadedError{edge: "project"}
+}
+
+// EquipmentValueOrErr returns the EquipmentValue value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) EquipmentValueOrErr() (*Equipment, error) {
+	if e.loadedTypes[8] {
+		if e.EquipmentValue == nil {
+			// The edge equipment_value was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipment.Label}
+		}
+		return e.EquipmentValue, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment_value"}
+}
+
+// LocationValueOrErr returns the LocationValue value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) LocationValueOrErr() (*Location, error) {
+	if e.loadedTypes[9] {
+		if e.LocationValue == nil {
+			// The edge location_value was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.LocationValue, nil
+	}
+	return nil, &NotLoadedError{edge: "location_value"}
+}
+
+// ServiceValueOrErr returns the ServiceValue value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) ServiceValueOrErr() (*Service, error) {
+	if e.loadedTypes[10] {
+		if e.ServiceValue == nil {
+			// The edge service_value was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: service.Label}
+		}
+		return e.ServiceValue, nil
+	}
+	return nil, &NotLoadedError{edge: "service_value"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -100,17 +268,17 @@ func (*Property) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Property) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // equipment_id
-		&sql.NullInt64{}, // equipment_port_id
-		&sql.NullInt64{}, // link_id
-		&sql.NullInt64{}, // location_id
-		&sql.NullInt64{}, // project_id
-		&sql.NullInt64{}, // type_id
-		&sql.NullInt64{}, // property_equipment_value_id
-		&sql.NullInt64{}, // property_location_value_id
-		&sql.NullInt64{}, // property_service_value_id
-		&sql.NullInt64{}, // service_id
-		&sql.NullInt64{}, // work_order_id
+		&sql.NullInt64{}, // equipment_properties
+		&sql.NullInt64{}, // equipment_port_properties
+		&sql.NullInt64{}, // link_properties
+		&sql.NullInt64{}, // location_properties
+		&sql.NullInt64{}, // project_properties
+		&sql.NullInt64{}, // property_type
+		&sql.NullInt64{}, // property_equipment_value
+		&sql.NullInt64{}, // property_location_value
+		&sql.NullInt64{}, // property_service_value
+		&sql.NullInt64{}, // service_properties
+		&sql.NullInt64{}, // work_order_properties
 	}
 }
 
@@ -179,70 +347,70 @@ func (pr *Property) assignValues(values ...interface{}) error {
 	values = values[10:]
 	if len(values) == len(property.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_properties", value)
 		} else if value.Valid {
-			pr.equipment_id = new(string)
-			*pr.equipment_id = strconv.FormatInt(value.Int64, 10)
+			pr.equipment_properties = new(string)
+			*pr.equipment_properties = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_port_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_port_properties", value)
 		} else if value.Valid {
-			pr.equipment_port_id = new(string)
-			*pr.equipment_port_id = strconv.FormatInt(value.Int64, 10)
+			pr.equipment_port_properties = new(string)
+			*pr.equipment_port_properties = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field link_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field link_properties", value)
 		} else if value.Valid {
-			pr.link_id = new(string)
-			*pr.link_id = strconv.FormatInt(value.Int64, 10)
+			pr.link_properties = new(string)
+			*pr.link_properties = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_properties", value)
 		} else if value.Valid {
-			pr.location_id = new(string)
-			*pr.location_id = strconv.FormatInt(value.Int64, 10)
+			pr.location_properties = new(string)
+			*pr.location_properties = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[4].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field project_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field project_properties", value)
 		} else if value.Valid {
-			pr.project_id = new(string)
-			*pr.project_id = strconv.FormatInt(value.Int64, 10)
+			pr.project_properties = new(string)
+			*pr.project_properties = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[5].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field property_type", value)
 		} else if value.Valid {
-			pr.type_id = new(string)
-			*pr.type_id = strconv.FormatInt(value.Int64, 10)
+			pr.property_type = new(string)
+			*pr.property_type = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[6].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field property_equipment_value_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field property_equipment_value", value)
 		} else if value.Valid {
-			pr.property_equipment_value_id = new(string)
-			*pr.property_equipment_value_id = strconv.FormatInt(value.Int64, 10)
+			pr.property_equipment_value = new(string)
+			*pr.property_equipment_value = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[7].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field property_location_value_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field property_location_value", value)
 		} else if value.Valid {
-			pr.property_location_value_id = new(string)
-			*pr.property_location_value_id = strconv.FormatInt(value.Int64, 10)
+			pr.property_location_value = new(string)
+			*pr.property_location_value = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[8].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field property_service_value_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field property_service_value", value)
 		} else if value.Valid {
-			pr.property_service_value_id = new(string)
-			*pr.property_service_value_id = strconv.FormatInt(value.Int64, 10)
+			pr.property_service_value = new(string)
+			*pr.property_service_value = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[9].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field service_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field service_properties", value)
 		} else if value.Valid {
-			pr.service_id = new(string)
-			*pr.service_id = strconv.FormatInt(value.Int64, 10)
+			pr.service_properties = new(string)
+			*pr.service_properties = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[10].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field work_order_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_properties", value)
 		} else if value.Valid {
-			pr.work_order_id = new(string)
-			*pr.work_order_id = strconv.FormatInt(value.Int64, 10)
+			pr.work_order_properties = new(string)
+			*pr.work_order_properties = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

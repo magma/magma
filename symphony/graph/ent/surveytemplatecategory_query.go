@@ -73,14 +73,14 @@ func (stcq *SurveyTemplateCategoryQuery) QuerySurveyTemplateQuestions() *SurveyT
 	return query
 }
 
-// First returns the first SurveyTemplateCategory entity in the query. Returns *ErrNotFound when no surveytemplatecategory was found.
+// First returns the first SurveyTemplateCategory entity in the query. Returns *NotFoundError when no surveytemplatecategory was found.
 func (stcq *SurveyTemplateCategoryQuery) First(ctx context.Context) (*SurveyTemplateCategory, error) {
 	stcs, err := stcq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(stcs) == 0 {
-		return nil, &ErrNotFound{surveytemplatecategory.Label}
+		return nil, &NotFoundError{surveytemplatecategory.Label}
 	}
 	return stcs[0], nil
 }
@@ -94,14 +94,14 @@ func (stcq *SurveyTemplateCategoryQuery) FirstX(ctx context.Context) *SurveyTemp
 	return stc
 }
 
-// FirstID returns the first SurveyTemplateCategory id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first SurveyTemplateCategory id in the query. Returns *NotFoundError when no id was found.
 func (stcq *SurveyTemplateCategoryQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = stcq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{surveytemplatecategory.Label}
+		err = &NotFoundError{surveytemplatecategory.Label}
 		return
 	}
 	return ids[0], nil
@@ -126,9 +126,9 @@ func (stcq *SurveyTemplateCategoryQuery) Only(ctx context.Context) (*SurveyTempl
 	case 1:
 		return stcs[0], nil
 	case 0:
-		return nil, &ErrNotFound{surveytemplatecategory.Label}
+		return nil, &NotFoundError{surveytemplatecategory.Label}
 	default:
-		return nil, &ErrNotSingular{surveytemplatecategory.Label}
+		return nil, &NotSingularError{surveytemplatecategory.Label}
 	}
 }
 
@@ -151,9 +151,9 @@ func (stcq *SurveyTemplateCategoryQuery) OnlyID(ctx context.Context) (id string,
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{surveytemplatecategory.Label}
+		err = &NotFoundError{surveytemplatecategory.Label}
 	default:
-		err = &ErrNotSingular{surveytemplatecategory.Label}
+		err = &NotSingularError{surveytemplatecategory.Label}
 	}
 	return
 }
@@ -296,9 +296,12 @@ func (stcq *SurveyTemplateCategoryQuery) Select(field string, fields ...string) 
 
 func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyTemplateCategory, error) {
 	var (
-		nodes   []*SurveyTemplateCategory
-		withFKs = stcq.withFKs
-		_spec   = stcq.querySpec()
+		nodes       = []*SurveyTemplateCategory{}
+		withFKs     = stcq.withFKs
+		_spec       = stcq.querySpec()
+		loadedTypes = [1]bool{
+			stcq.withSurveyTemplateQuestions != nil,
+		}
 	)
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, surveytemplatecategory.ForeignKeys...)
@@ -317,12 +320,12 @@ func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyT
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, stcq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -347,13 +350,13 @@ func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyT
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.category_id
+			fk := n.survey_template_category_survey_template_questions
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "category_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_template_category_survey_template_questions" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_template_category_survey_template_questions" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.SurveyTemplateQuestions = append(node.Edges.SurveyTemplateQuestions, n)
 		}

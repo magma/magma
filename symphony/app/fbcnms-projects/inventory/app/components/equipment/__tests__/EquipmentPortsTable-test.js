@@ -13,6 +13,7 @@ import EquipmentPortsTable from '../EquipmentPortsTable';
 import React from 'react';
 import TestWrapper from '../../../common/TestWrapper';
 import emptyFunction from '@fbcnms/util/emptyFunction';
+import nullthrows from '@fbcnms/util/nullthrows';
 import shortid from 'shortid';
 import {cleanup, render, wait} from '@testing-library/react';
 
@@ -98,7 +99,9 @@ describe('<EquipmentPortsTable />', () => {
       </TestWrapper>,
     );
 
-    expect(container.querySelector('tbody').children).toHaveLength(6);
+    expect(nullthrows(container.querySelector('tbody')).children).toHaveLength(
+      6,
+    );
 
     await wait();
   });

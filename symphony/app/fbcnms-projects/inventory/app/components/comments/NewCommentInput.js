@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -14,6 +14,7 @@ import type {
 } from '../../mutations/__generated__/AddCommentMutation.graphql';
 
 import AddCommentMutation from '../../mutations/AddCommentMutation';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import React, {useState} from 'react';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import classNames from 'classnames';
@@ -71,15 +72,17 @@ const NewCommentInput = (props: Props) => {
 
   return (
     <div className={classNames(className, classes.newCommentBox)}>
-      <TextInput
-        className={classes.newCommentInput}
-        type="string"
-        placeholder="Write a comment..."
-        hint="Press Enter to send"
-        onChange={({target}) => setComposedComment(target.value)}
-        onEnterPressed={onSubmit}
-        value={composedCommentText}
-      />
+      <FormField>
+        <TextInput
+          className={classes.newCommentInput}
+          type="string"
+          placeholder="Write a comment..."
+          hint="Press Enter to send"
+          onChange={({target}) => setComposedComment(target.value)}
+          onEnterPressed={onSubmit}
+          value={composedCommentText}
+        />
+      </FormField>
     </div>
   );
 };

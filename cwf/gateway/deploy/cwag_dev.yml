@@ -1,9 +1,10 @@
+---
 # Copyright (c) Facebook, Inc. and its affiliates.
 # All rights reserved.
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 #
----
+
 - name: Set up Carrier WiFi Access Gateway for development
   hosts: cwag
   become: yes
@@ -12,10 +13,20 @@
     - user: "{{ ansible_user }}"
     - full_provision: true
   roles:
+    - role: distro_snapshot
+      vars:
+        distro: bionic
+        distro_root: "{{ lookup('env', 'CWAG_DISTRO_ARCHIVE') | regex_replace('(^.*/+|)([^/]+)\\.tar\\.gz$', '\\2') }}"
+        distro_archive: "{{ lookup('env', 'CWAG_DISTRO_ARCHIVE') }}"
+        distro_sha256: "{{ lookup('env', 'CWAG_DISTRO_SHA256') }}"
+    - role: resolv_conf
+      vars:
+        override_nameserver: 8.8.8.8
     - role: apt_cache
     - role: pkgrepo
       vars:
         distribution: "bionic"
+        repo: "test"
     - role: test_certs
     - role: ovs
     - role: golang

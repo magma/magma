@@ -11,6 +11,7 @@
 #include "CreditKey.h"
 #include "RuleStore.h"
 #include "ServiceAction.h"
+#include "StoredState.h"
 
 namespace magma {
 
@@ -19,33 +20,48 @@ namespace magma {
  */
 class SessionRules {
  public:
-  SessionRules(StaticRuleStore &static_rule_ref);
+  static std::unique_ptr<SessionRules> unmarshal(
+    const StoredSessionRules& marshaled,
+    StaticRuleStore& static_rule_ref);
+
+  StoredSessionRules marshal();
+
+  SessionRules(StaticRuleStore& static_rule_ref);
+
+  SessionRules(
+    const StoredSessionRules& marshaled,
+    StaticRuleStore& static_rule_ref);
 
   bool get_charging_key_for_rule_id(
-    const std::string &rule_id,
-    CreditKey *charging_key);
+    const std::string& rule_id,
+    CreditKey* charging_key);
 
   bool get_monitoring_key_for_rule_id(
-    const std::string &rule_id,
-    std::string *monitoring_key);
+    const std::string& rule_id,
+    std::string* monitoring_key);
 
-  void insert_dynamic_rule(const PolicyRule &rule);
+  void insert_dynamic_rule(const PolicyRule& rule);
 
-  void activate_static_rule(const std::string &rule_id);
+  void activate_static_rule(const std::string& rule_id);
 
-  bool remove_dynamic_rule(const std::string &rule_id, PolicyRule *rule_out);
+  bool remove_dynamic_rule(const std::string& rule_id, PolicyRule *rule_out);
 
-  bool deactivate_static_rule(const std::string &rule_id);
+  bool deactivate_static_rule(const std::string& rule_id);
 
-  void add_rules_to_action(ServiceAction &action, const CreditKey &charging_key);
-  void add_rules_to_action(ServiceAction &action, std::string monitoring_key);
+  void add_rules_to_action(ServiceAction& action, const CreditKey& charging_key);
+  void add_rules_to_action(ServiceAction& action, std::string monitoring_key);
 
-  std::vector<std::string> &get_static_rule_ids();
-  DynamicRuleStore &get_dynamic_rules();
+  uint32_t total_monitored_rules_count();
+
+  std::vector<std::string>& get_static_rule_ids();
+  DynamicRuleStore& get_dynamic_rules();
 
  private:
-  StaticRuleStore &static_rules_;
+  // All static rules synced from policy DB
+  StaticRuleStore& static_rules_;
+  // Static rules that are currently installed for the session
   std::vector<std::string> active_static_rules_;
+  // Dynamic rules that are currently installed for the session
   DynamicRuleStore dynamic_rules_;
 };
 

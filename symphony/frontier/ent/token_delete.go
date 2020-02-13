@@ -74,7 +74,7 @@ func (tdo *TokenDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{token.Label}
+		return &NotFoundError{token.Label}
 	default:
 		return nil
 	}

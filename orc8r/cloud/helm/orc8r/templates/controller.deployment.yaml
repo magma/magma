@@ -25,6 +25,10 @@ spec:
       labels:
         app.kubernetes.io/component: controller
 {{ include "selector-labels" . | indent 8 }}
+      annotations:
+        {{- with .Values.controller.podAnnotations }}
+{{ toYaml . | indent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.controller.nodeSelector }}
       nodeSelector:

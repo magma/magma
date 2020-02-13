@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 )
 
@@ -63,17 +64,64 @@ type SurveyQuestion struct {
 	DateData time.Time `json:"date_data,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuestionQuery when eager-loading is set.
-	Edges struct {
-		// Survey holds the value of the survey edge.
-		Survey *Survey
-		// WifiScan holds the value of the wifi_scan edge.
-		WifiScan []*SurveyWiFiScan
-		// CellScan holds the value of the cell_scan edge.
-		CellScan []*SurveyCellScan
-		// PhotoData holds the value of the photo_data edge.
-		PhotoData []*File
-	} `json:"edges"`
-	survey_id *string
+	Edges                  SurveyQuestionEdges `json:"edges"`
+	survey_question_survey *string
+}
+
+// SurveyQuestionEdges holds the relations/edges for other nodes in the graph.
+type SurveyQuestionEdges struct {
+	// Survey holds the value of the survey edge.
+	Survey *Survey
+	// WifiScan holds the value of the wifi_scan edge.
+	WifiScan []*SurveyWiFiScan
+	// CellScan holds the value of the cell_scan edge.
+	CellScan []*SurveyCellScan
+	// PhotoData holds the value of the photo_data edge.
+	PhotoData []*File
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// SurveyOrErr returns the Survey value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyQuestionEdges) SurveyOrErr() (*Survey, error) {
+	if e.loadedTypes[0] {
+		if e.Survey == nil {
+			// The edge survey was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: survey.Label}
+		}
+		return e.Survey, nil
+	}
+	return nil, &NotLoadedError{edge: "survey"}
+}
+
+// WifiScanOrErr returns the WifiScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) WifiScanOrErr() ([]*SurveyWiFiScan, error) {
+	if e.loadedTypes[1] {
+		return e.WifiScan, nil
+	}
+	return nil, &NotLoadedError{edge: "wifi_scan"}
+}
+
+// CellScanOrErr returns the CellScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) CellScanOrErr() ([]*SurveyCellScan, error) {
+	if e.loadedTypes[2] {
+		return e.CellScan, nil
+	}
+	return nil, &NotLoadedError{edge: "cell_scan"}
+}
+
+// PhotoDataOrErr returns the PhotoData value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) PhotoDataOrErr() ([]*File, error) {
+	if e.loadedTypes[3] {
+		return e.PhotoData, nil
+	}
+	return nil, &NotLoadedError{edge: "photo_data"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -106,7 +154,7 @@ func (*SurveyQuestion) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*SurveyQuestion) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // survey_id
+		&sql.NullInt64{}, // survey_question_survey
 	}
 }
 
@@ -225,10 +273,10 @@ func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
 	values = values[20:]
 	if len(values) == len(surveyquestion.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field survey_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_survey", value)
 		} else if value.Valid {
-			sq.survey_id = new(string)
-			*sq.survey_id = strconv.FormatInt(value.Int64, 10)
+			sq.survey_question_survey = new(string)
+			*sq.survey_question_survey = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

@@ -52,7 +52,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		ID:     t.ID,
 		Type:   "Todo",
 		Fields: make([]*Field, 1),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(t.Text); err != nil {
@@ -62,6 +62,29 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "Text",
 		Value: string(buf),
+	}
+	var ids []int
+	ids, err = t.QueryParent().
+		Select(todo.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "Todo",
+		Name: "Parent",
+	}
+	ids, err = t.QueryChildren().
+		Select(todo.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "Todo",
+		Name: "Children",
 	}
 	return node, nil
 }
@@ -81,7 +104,7 @@ func (c *Client) Noder(ctx context.Context, id int) (Noder, error) {
 	}
 	idx := id / (1<<32 - 1)
 	if idx < 0 || idx >= len(tables) {
-		return nil, fmt.Errorf("cannot resolve table from id %v: %w", id, &ErrNotFound{"invalid/unknown"})
+		return nil, fmt.Errorf("cannot resolve table from id %v: %w", id, &NotFoundError{"invalid/unknown"})
 	}
 	return c.noder(ctx, tables[idx], id)
 }
@@ -89,13 +112,16 @@ func (c *Client) Noder(ctx context.Context, id int) (Noder, error) {
 func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 	switch tbl {
 	case todo.Table:
-		n, err := c.Todo.Get(ctx, id)
+		n, err := c.Todo.Query().
+			Where(todo.ID(id)).
+			CollectFields(ctx, "Todo").
+			Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	default:
-		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", tbl, &ErrNotFound{"invalid/unknown"})
+		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", tbl, &NotFoundError{"invalid/unknown"})
 	}
 }
 

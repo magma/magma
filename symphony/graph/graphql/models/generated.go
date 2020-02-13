@@ -138,6 +138,7 @@ type AddLinkInput struct {
 	Sides      []*LinkSide      `json:"sides"`
 	WorkOrder  *string          `json:"workOrder"`
 	Properties []*PropertyInput `json:"properties"`
+	ServiceIds []string         `json:"serviceIds"`
 }
 
 type AddLocationInput struct {
@@ -266,6 +267,7 @@ type EditEquipmentTypeInput struct {
 type EditLinkInput struct {
 	ID         string           `json:"id"`
 	Properties []*PropertyInput `json:"properties"`
+	ServiceIds []string         `json:"serviceIds"`
 }
 
 type EditLocationInput struct {
@@ -334,6 +336,7 @@ type EquipmentFilterInput struct {
 	StringValue   *string             `json:"stringValue"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
 	IDSet         []string            `json:"idSet"`
+	StringSet     []string            `json:"stringSet"`
 	MaxDepth      *int                `json:"maxDepth"`
 }
 
@@ -379,6 +382,7 @@ type LinkFilterInput struct {
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 	IDSet         []string           `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
 
@@ -399,6 +403,7 @@ type LocationFilterInput struct {
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 	IDSet         []string           `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
 
@@ -424,6 +429,7 @@ type PortFilterInput struct {
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 	IDSet         []string           `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
 
@@ -533,6 +539,7 @@ type ServiceFilterInput struct {
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 	IDSet         []string           `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
 
@@ -670,6 +677,7 @@ type WorkOrderFilterInput struct {
 	Operator      FilterOperator      `json:"operator"`
 	StringValue   *string             `json:"stringValue"`
 	IDSet         []string            `json:"idSet"`
+	StringSet     []string            `json:"stringSet"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                `json:"maxDepth"`
 }

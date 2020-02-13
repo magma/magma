@@ -31,11 +31,26 @@ type SurveyTemplateCategory struct {
 	CategoryDescription string `json:"category_description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyTemplateCategoryQuery when eager-loading is set.
-	Edges struct {
-		// SurveyTemplateQuestions holds the value of the survey_template_questions edge.
-		SurveyTemplateQuestions []*SurveyTemplateQuestion
-	} `json:"edges"`
-	location_type_survey_template_category_id *string
+	Edges                                    SurveyTemplateCategoryEdges `json:"edges"`
+	location_type_survey_template_categories *string
+}
+
+// SurveyTemplateCategoryEdges holds the relations/edges for other nodes in the graph.
+type SurveyTemplateCategoryEdges struct {
+	// SurveyTemplateQuestions holds the value of the survey_template_questions edge.
+	SurveyTemplateQuestions []*SurveyTemplateQuestion
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// SurveyTemplateQuestionsOrErr returns the SurveyTemplateQuestions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyTemplateCategoryEdges) SurveyTemplateQuestionsOrErr() ([]*SurveyTemplateQuestion, error) {
+	if e.loadedTypes[0] {
+		return e.SurveyTemplateQuestions, nil
+	}
+	return nil, &NotLoadedError{edge: "survey_template_questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -52,7 +67,7 @@ func (*SurveyTemplateCategory) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*SurveyTemplateCategory) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // location_type_survey_template_category_id
+		&sql.NullInt64{}, // location_type_survey_template_categories
 	}
 }
 
@@ -91,10 +106,10 @@ func (stc *SurveyTemplateCategory) assignValues(values ...interface{}) error {
 	values = values[4:]
 	if len(values) == len(surveytemplatecategory.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_type_survey_template_category_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_type_survey_template_categories", value)
 		} else if value.Valid {
-			stc.location_type_survey_template_category_id = new(string)
-			*stc.location_type_survey_template_category_id = strconv.FormatInt(value.Int64, 10)
+			stc.location_type_survey_template_categories = new(string)
+			*stc.location_type_survey_template_categories = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

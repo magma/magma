@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
@@ -55,6 +56,11 @@ class PropertyKind(Enum):
     location = "location"
     service = "service"
     datetime_local = "datetime_local"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -89,11 +95,11 @@ class EditEquipmentTypeInput:
         stringValue: Optional[str] = None
         intValue: Optional[int] = None
         booleanValue: Optional[bool] = None
-        floatValue: Optional[float] = None
-        latitudeValue: Optional[float] = None
-        longitudeValue: Optional[float] = None
-        rangeFromValue: Optional[float] = None
-        rangeToValue: Optional[float] = None
+        floatValue: Optional[Number] = None
+        latitudeValue: Optional[Number] = None
+        longitudeValue: Optional[Number] = None
+        rangeFromValue: Optional[Number] = None
+        rangeToValue: Optional[Number] = None
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
         isMandatory: Optional[bool] = None
@@ -163,9 +169,9 @@ class EditEquipmentTypeMutation:
                 stringValue: Optional[str] = None
                 intValue: Optional[int] = None
                 booleanValue: Optional[bool] = None
-                floatValue: Optional[float] = None
-                latitudeValue: Optional[float] = None
-                longitudeValue: Optional[float] = None
+                floatValue: Optional[Number] = None
+                latitudeValue: Optional[Number] = None
+                longitudeValue: Optional[Number] = None
                 isEditable: Optional[bool] = None
                 isInstanceProperty: Optional[bool] = None
 
@@ -195,7 +201,7 @@ class EditEquipmentTypeMutation:
         editEquipmentType: Optional[EquipmentType] = None
 
     data: Optional[EditEquipmentTypeMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

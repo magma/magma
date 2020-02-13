@@ -129,14 +129,14 @@ func (pq *ProjectQuery) QueryProperties() *PropertyQuery {
 	return query
 }
 
-// First returns the first Project entity in the query. Returns *ErrNotFound when no project was found.
+// First returns the first Project entity in the query. Returns *NotFoundError when no project was found.
 func (pq *ProjectQuery) First(ctx context.Context) (*Project, error) {
 	prs, err := pq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(prs) == 0 {
-		return nil, &ErrNotFound{project.Label}
+		return nil, &NotFoundError{project.Label}
 	}
 	return prs[0], nil
 }
@@ -150,14 +150,14 @@ func (pq *ProjectQuery) FirstX(ctx context.Context) *Project {
 	return pr
 }
 
-// FirstID returns the first Project id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Project id in the query. Returns *NotFoundError when no id was found.
 func (pq *ProjectQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{project.Label}
+		err = &NotFoundError{project.Label}
 		return
 	}
 	return ids[0], nil
@@ -182,9 +182,9 @@ func (pq *ProjectQuery) Only(ctx context.Context) (*Project, error) {
 	case 1:
 		return prs[0], nil
 	case 0:
-		return nil, &ErrNotFound{project.Label}
+		return nil, &NotFoundError{project.Label}
 	default:
-		return nil, &ErrNotSingular{project.Label}
+		return nil, &NotSingularError{project.Label}
 	}
 }
 
@@ -207,9 +207,9 @@ func (pq *ProjectQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{project.Label}
+		err = &NotFoundError{project.Label}
 	default:
-		err = &ErrNotSingular{project.Label}
+		err = &NotSingularError{project.Label}
 	}
 	return
 }
@@ -396,9 +396,16 @@ func (pq *ProjectQuery) Select(field string, fields ...string) *ProjectSelect {
 
 func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 	var (
-		nodes   []*Project
-		withFKs = pq.withFKs
-		_spec   = pq.querySpec()
+		nodes       = []*Project{}
+		withFKs     = pq.withFKs
+		_spec       = pq.querySpec()
+		loadedTypes = [5]bool{
+			pq.withType != nil,
+			pq.withLocation != nil,
+			pq.withComments != nil,
+			pq.withWorkOrders != nil,
+			pq.withProperties != nil,
+		}
 	)
 	if pq.withType != nil || pq.withLocation != nil {
 		withFKs = true
@@ -420,12 +427,12 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -434,7 +441,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*Project)
 		for i := range nodes {
-			if fk := nodes[i].type_id; fk != nil {
+			if fk := nodes[i].project_type_projects; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -447,7 +454,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "project_type_projects" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Type = n
@@ -459,7 +466,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*Project)
 		for i := range nodes {
-			if fk := nodes[i].project_location_id; fk != nil {
+			if fk := nodes[i].project_location; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -472,7 +479,7 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "project_location_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "project_location" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Location = n
@@ -500,13 +507,13 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.project_comment_id
+			fk := n.project_comments
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "project_comment_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "project_comments" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "project_comment_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "project_comments" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Comments = append(node.Edges.Comments, n)
 		}
@@ -532,13 +539,13 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.project_id
+			fk := n.project_work_orders
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "project_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "project_work_orders" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "project_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "project_work_orders" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
 		}
@@ -564,13 +571,13 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.project_id
+			fk := n.project_properties
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "project_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "project_properties" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "project_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "project_properties" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Properties = append(node.Edges.Properties, n)
 		}

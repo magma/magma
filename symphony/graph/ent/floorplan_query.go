@@ -113,14 +113,14 @@ func (fpq *FloorPlanQuery) QueryImage() *FileQuery {
 	return query
 }
 
-// First returns the first FloorPlan entity in the query. Returns *ErrNotFound when no floorplan was found.
+// First returns the first FloorPlan entity in the query. Returns *NotFoundError when no floorplan was found.
 func (fpq *FloorPlanQuery) First(ctx context.Context) (*FloorPlan, error) {
 	fps, err := fpq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(fps) == 0 {
-		return nil, &ErrNotFound{floorplan.Label}
+		return nil, &NotFoundError{floorplan.Label}
 	}
 	return fps[0], nil
 }
@@ -134,14 +134,14 @@ func (fpq *FloorPlanQuery) FirstX(ctx context.Context) *FloorPlan {
 	return fp
 }
 
-// FirstID returns the first FloorPlan id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first FloorPlan id in the query. Returns *NotFoundError when no id was found.
 func (fpq *FloorPlanQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = fpq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{floorplan.Label}
+		err = &NotFoundError{floorplan.Label}
 		return
 	}
 	return ids[0], nil
@@ -166,9 +166,9 @@ func (fpq *FloorPlanQuery) Only(ctx context.Context) (*FloorPlan, error) {
 	case 1:
 		return fps[0], nil
 	case 0:
-		return nil, &ErrNotFound{floorplan.Label}
+		return nil, &NotFoundError{floorplan.Label}
 	default:
-		return nil, &ErrNotSingular{floorplan.Label}
+		return nil, &NotSingularError{floorplan.Label}
 	}
 }
 
@@ -191,9 +191,9 @@ func (fpq *FloorPlanQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{floorplan.Label}
+		err = &NotFoundError{floorplan.Label}
 	default:
-		err = &ErrNotSingular{floorplan.Label}
+		err = &NotSingularError{floorplan.Label}
 	}
 	return
 }
@@ -369,9 +369,15 @@ func (fpq *FloorPlanQuery) Select(field string, fields ...string) *FloorPlanSele
 
 func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 	var (
-		nodes   []*FloorPlan
-		withFKs = fpq.withFKs
-		_spec   = fpq.querySpec()
+		nodes       = []*FloorPlan{}
+		withFKs     = fpq.withFKs
+		_spec       = fpq.querySpec()
+		loadedTypes = [4]bool{
+			fpq.withLocation != nil,
+			fpq.withReferencePoint != nil,
+			fpq.withScale != nil,
+			fpq.withImage != nil,
+		}
 	)
 	if fpq.withLocation != nil || fpq.withReferencePoint != nil || fpq.withScale != nil || fpq.withImage != nil {
 		withFKs = true
@@ -393,12 +399,12 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, fpq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -407,7 +413,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*FloorPlan)
 		for i := range nodes {
-			if fk := nodes[i].location_id; fk != nil {
+			if fk := nodes[i].floor_plan_location; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -420,7 +426,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_location" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Location = n
@@ -432,7 +438,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*FloorPlan)
 		for i := range nodes {
-			if fk := nodes[i].floor_plan_reference_point_id; fk != nil {
+			if fk := nodes[i].floor_plan_reference_point; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -445,7 +451,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_reference_point_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_reference_point" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.ReferencePoint = n
@@ -457,7 +463,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*FloorPlan)
 		for i := range nodes {
-			if fk := nodes[i].floor_plan_scale_id; fk != nil {
+			if fk := nodes[i].floor_plan_scale; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -470,7 +476,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_scale_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_scale" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Scale = n
@@ -482,7 +488,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*FloorPlan)
 		for i := range nodes {
-			if fk := nodes[i].floor_plan_image_id; fk != nil {
+			if fk := nodes[i].floor_plan_image; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -495,7 +501,7 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_image_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_image" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Image = n

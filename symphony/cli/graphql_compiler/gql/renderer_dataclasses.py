@@ -22,6 +22,7 @@ class DataclassesRenderer:
         buffer.write("from datetime import datetime")
         buffer.write("from enum import Enum")
         buffer.write("from functools import partial")
+        buffer.write("from numbers import Number")
         buffer.write("from typing import Any, Callable, List, Mapping, Optional")
         buffer.write("")
         buffer.write("from dataclasses_json import dataclass_json")
@@ -127,7 +128,7 @@ class DataclassesRenderer:
 
             # operation fields
             buffer.write(f'data: Optional[{parsed_op.name}Data] = None')
-            buffer.write('errors: Any = None')
+            buffer.write('errors: Optional[Any] = None')
             buffer.write('')
 
             # Execution functions
@@ -190,12 +191,17 @@ class DataclassesRenderer:
             buffer.write(f'{field.name}: {field_type}{suffix}')
 
     @staticmethod
-    def __render_enum(buffer: CodeChunk, enum: ParsedEnum):
+    def __render_enum(buffer: CodeChunk, enum: ParsedEnum) -> None:
         with buffer.write_block(f'class {enum.name}(Enum):'):
             for value_name, value in enum.values.items():
                 if isinstance(value, str):
                     value = f'"{value}"'
 
                 buffer.write(f'{value_name} = {value}')
+            buffer.write('MISSING_ENUM = ""')
+            buffer.write('')
+            buffer.write('@classmethod')
+            with buffer.write_block('def _missing_(cls, value):'):
+                buffer.write('return cls.MISSING_ENUM')
 
         buffer.write('')

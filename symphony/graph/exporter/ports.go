@@ -10,8 +10,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/AlekSi/pointer"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
@@ -19,15 +17,18 @@ import (
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/log"
+
+	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
-type portfilterInput struct {
+type portFilterInput struct {
 	Name          models.EquipmentFilterType `json:"name"`
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
 	IDSet         []string                   `json:"idSet"`
+	StringSet     []string                   `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
 	BoolValue     bool                       `json:"boolValue"`
 }
@@ -37,9 +38,8 @@ type portsRower struct {
 }
 
 func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
-	log := er.log.For(ctx)
-
 	var (
+		logger         = er.log.For(ctx)
 		err            error
 		filterInput    []*models.PortFilterInput
 		portDataHeader = [...]string{bom + "Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
@@ -51,7 +51,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	if filtersParam != "" {
 		filterInput, err = paramToPortFilterInput(filtersParam)
 		if err != nil {
-			log.Error("cannot filter ports", zap.Error(err))
+			logger.Error("cannot filter ports", zap.Error(err))
 			return nil, errors.Wrap(err, "cannot filter ports")
 		}
 	}
@@ -59,7 +59,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 
 	ports, err := resolverutil.PortSearch(ctx, client, filterInput, nil)
 	if err != nil {
-		log.Error("cannot query ports", zap.Error(err))
+		logger.Error("cannot query ports", zap.Error(err))
 		return nil, errors.Wrap(err, "cannot query ports")
 	}
 	cg := ctxgroup.WithContext(ctx, ctxgroup.MaxConcurrency(32))
@@ -71,7 +71,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	cg.Go(func(ctx context.Context) error {
 		orderedLocTypes, err = locationTypeHierarchy(ctx, client)
 		if err != nil {
-			log.Error("cannot query location types", zap.Error(err))
+			logger.Error("cannot query location types", zap.Error(err))
 			return errors.Wrap(err, "cannot query location types")
 		}
 		return nil
@@ -83,7 +83,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		}
 		propertyTypes, err = propertyTypesSlice(ctx, portIDs, client, models.PropertyEntityPort)
 		if err != nil {
-			log.Error("cannot query property types", zap.Error(err))
+			logger.Error("cannot query property types", zap.Error(err))
 			return errors.Wrap(err, "cannot query property types")
 		}
 		return nil
@@ -112,7 +112,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		})
 	}
 	if err := cg.Wait(); err != nil {
-		log.Error("error in wait", zap.Error(err))
+		logger.Error("error in wait", zap.Error(err))
 		return nil, errors.WithMessage(err, "error in wait")
 	}
 	return allrows, nil
@@ -228,27 +228,26 @@ func getServicesOfPortAsEndpoint(ctx context.Context, port *ent.EquipmentPort, r
 }
 
 func paramToPortFilterInput(params string) ([]*models.PortFilterInput, error) {
-	var ret []*models.PortFilterInput
-	var inputs []portfilterInput
+	var inputs []portFilterInput
 	err := json.Unmarshal([]byte(params), &inputs)
 	if err != nil {
 		return nil, err
 	}
 
+	ret := make([]*models.PortFilterInput, 0, len(inputs))
 	for _, f := range inputs {
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
-		StringVal := f.StringValue
-		propVal := f.PropertyValue
-		maxDepth := 5
+		propertyValue := f.PropertyValue
 		inp := models.PortFilterInput{
 			FilterType:    models.PortFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
-			StringValue:   &StringVal,
-			PropertyValue: &propVal,
+			StringValue:   pointer.ToString(f.StringValue),
+			PropertyValue: &propertyValue,
 			BoolValue:     pointer.ToBool(f.BoolValue),
 			IDSet:         f.IDSet,
-			MaxDepth:      &maxDepth,
+			StringSet:     f.StringSet,
+			MaxDepth:      pointer.ToInt(5),
 		}
 		ret = append(ret, &inp)
 	}

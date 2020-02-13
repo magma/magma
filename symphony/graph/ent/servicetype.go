@@ -31,12 +31,36 @@ type ServiceType struct {
 	HasCustomer bool `json:"has_customer,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceTypeQuery when eager-loading is set.
-	Edges struct {
-		// Services holds the value of the services edge.
-		Services []*Service
-		// PropertyTypes holds the value of the property_types edge.
-		PropertyTypes []*PropertyType
-	} `json:"edges"`
+	Edges ServiceTypeEdges `json:"edges"`
+}
+
+// ServiceTypeEdges holds the relations/edges for other nodes in the graph.
+type ServiceTypeEdges struct {
+	// Services holds the value of the services edge.
+	Services []*Service
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// ServicesOrErr returns the Services value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceTypeEdges) ServicesOrErr() ([]*Service, error) {
+	if e.loadedTypes[0] {
+		return e.Services, nil
+	}
+	return nil, &NotLoadedError{edge: "services"}
+}
+
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.PropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "property_types"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

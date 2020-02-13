@@ -20,9 +20,9 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/servicers"
+	"magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/gateway/mconfig"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
@@ -67,11 +67,10 @@ type MockPolicyDBClient struct {
 	mock.Mock
 }
 
-func (client *MockPolicyDBClient) GetChargingKeysForRules(
-	ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]policydb.ChargingKey, error) {
+func (client *MockPolicyDBClient) GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) []policydb.ChargingKey {
 
 	args := client.Called(ruleIDs)
-	return args.Get(0).([]policydb.ChargingKey), args.Error(1)
+	return args.Get(0).([]policydb.ChargingKey)
 }
 
 func (client *MockPolicyDBClient) GetRuleIDsForBaseNames(baseNames []string) []string {
@@ -223,6 +222,9 @@ func TestStartSessionGyFail(t *testing.T) {
 
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
+	// no omnipresent rules
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Send back DIAMETER_RATING_FAILED (5031) from gy
 	mocks.gy.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -331,7 +333,7 @@ func standardUsageTest(
 			policydb.ChargingKey{RatingGroup: 21}}, nil).Once()
 	// no omnipresent rules
 	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
-	mocks.policydb.On("GetRuleIDsForBaseNames", []string{}).Return([]string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 	multiReqType := credit_control.CRTInit // type of CCR sent to get credits
 	if initMethod == gy.PerSessionInit {
 		mocks.gy.On(
@@ -1160,13 +1162,12 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		gx:       &MockPolicyClient{},
 		policydb: &MockPolicyDBClient{},
 	}
-
+	activationTime := time.Unix(1, 0)
+	deactivationTime := time.Unix(2, 0)
 	// send static rules back
 	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		done := args.Get(1).(chan interface{})
 		request := args.Get(2).(*gx.CreditControlRequest)
-		activationTime := time.Unix(1, 0)
-		deactivationTime := time.Unix(2, 0)
 		ruleInstalls := []*gx.RuleInstallAVP{
 			&gx.RuleInstallAVP{
 				RuleNames:            []string{"static_rule_1"},
@@ -1185,6 +1186,8 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 3}}, nil).Once()
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{"omnipresent_1"}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", []string{}).Return([]string{}).Once()
 
 	mocks.gy.On(
 		"SendCreditControlRequest",
@@ -1202,7 +1205,7 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		cfg,
 	)
 	ctx := context.Background()
-	_, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
+	res, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
 			Id: IMSI1,
 		},
@@ -1210,6 +1213,12 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 	})
 	mocks.gx.AssertExpectations(t)
 	assert.NoError(t, err)
+	expectedStaticRule1 := &protos.StaticRuleInstall{
+		RuleId:           "static_rule_1",
+		ActivationTime:   gx.ConvertToProtoTimestamp(&activationTime),
+		DeactivationTime: gx.ConvertToProtoTimestamp(&deactivationTime),
+	}
+	assert.ElementsMatch(t, []*protos.StaticRuleInstall{{RuleId: "omnipresent_1"}, expectedStaticRule1}, res.StaticRules)
 }
 
 func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
@@ -1240,6 +1249,9 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 	}).Once()
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
+	// no omnipresent rule
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocks.gy.On(
@@ -1308,6 +1320,9 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 	}).Once()
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
+	// no omnipresent rule
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocks.gy.On(
@@ -1381,6 +1396,9 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 	}).Once()
 	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
+	// no omnipresent rule
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mocks.policydb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocks.gy.On(
@@ -1424,4 +1442,114 @@ func returnGySuccessSubscriberBarred(args mock.Arguments) {
 		RequestNumber: request.RequestNumber,
 		Credits:       credits,
 	}
+}
+
+func returnGxSuccessRevalidationTimer(args mock.Arguments) {
+	done := args.Get(1).(chan interface{})
+	request := args.Get(2).(*gx.CreditControlRequest)
+	ruleInstalls := []*gx.RuleInstallAVP{
+		&gx.RuleInstallAVP{
+			RuleNames: []string{"static_rule_1"},
+		},
+	}
+	mkey := []byte("key")
+	totalOctets := uint64(2048)
+	monitors := []*gx.UsageMonitoringInfo{
+		{
+			MonitoringKey:      mkey,
+			GrantedServiceUnit: &credit_control.GrantedServiceUnit{TotalOctets: &totalOctets},
+		},
+	}
+	revalidationTime := time.Unix(1, 0)
+	eventTrigger := []gx.EventTrigger{gx.RevalidationTimeout}
+
+	done <- &gx.CreditControlAnswer{
+		ResultCode:       uint32(diameter.SuccessCode),
+		SessionID:        request.SessionID,
+		RequestNumber:    request.RequestNumber,
+		RuleInstallAVP:   ruleInstalls,
+		UsageMonitors:    monitors,
+		EventTriggers:    eventTrigger,
+		RevalidationTime: &revalidationTime,
+	}
+}
+
+func revalidationTimerTest(
+	t *testing.T,
+	srv *servicers.CentralSessionController,
+	mocks *sessionMocks,
+	useGyForAuthOnly bool) {
+
+	ctx := context.Background()
+	mocks.gx.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTInit)),
+	).Return(nil).Run(returnGxSuccessRevalidationTimer).Once()
+
+	mocks.policydb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
+	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
+	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
+
+	if useGyForAuthOnly {
+		mocks.gy.On(
+			"SendCreditControlRequest",
+			mock.Anything,
+			mock.Anything,
+			mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+		).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
+	}
+
+	createResponse, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
+		Subscriber: &protos.SubscriberID{
+			Id: IMSI1,
+		},
+		SessionId: "00101-1234",
+	})
+
+	mocks.gx.AssertExpectations(t)
+	mocks.gy.AssertExpectations(t)
+	mocks.policydb.AssertExpectations(t)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(createResponse.UsageMonitors))
+
+	for _, monitor := range createResponse.GetUsageMonitors() {
+		assert.Equal(t, &timestamp.Timestamp{Seconds: 1}, monitor.GetRevalidationTime())
+		assert.ElementsMatch(t, monitor.GetEventTriggers(), []protos.EventTrigger{protos.EventTrigger_REVALIDATION_TIMEOUT})
+	}
+}
+
+func TestSessionControllerRevalidationTimerUsed(t *testing.T) {
+	mocks := &sessionMocks{
+		gy:       &MockCreditClient{},
+		gx:       &MockPolicyClient{},
+		policydb: &MockPolicyDBClient{},
+	}
+
+	srv := servicers.NewCentralSessionController(
+		mocks.gy,
+		mocks.gx,
+		mocks.policydb,
+		getTestConfig(gy.PerKeyInit),
+	)
+	revalidationTimerTest(t, srv, mocks, false)
+}
+
+func TestSessionControllerUseGyForAuthOnlyRevalidationTimerUsed(t *testing.T) {
+	mocks := &sessionMocks{
+		gy:       &MockCreditClient{},
+		gx:       &MockPolicyClient{},
+		policydb: &MockPolicyDBClient{},
+	}
+
+	cfg := getTestConfig(gy.PerKeyInit)
+	cfg.UseGyForAuthOnly = true
+	srv := servicers.NewCentralSessionController(
+		mocks.gy,
+		mocks.gx,
+		mocks.policydb,
+		cfg,
+	)
+	revalidationTimerTest(t, srv, mocks, cfg.UseGyForAuthOnly)
 }

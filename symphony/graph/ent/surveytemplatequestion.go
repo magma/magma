@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 )
 
@@ -35,11 +36,31 @@ type SurveyTemplateQuestion struct {
 	Index int `json:"index,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyTemplateQuestionQuery when eager-loading is set.
-	Edges struct {
-		// Category holds the value of the category edge.
-		Category *SurveyTemplateCategory
-	} `json:"edges"`
-	category_id *string
+	Edges                                              SurveyTemplateQuestionEdges `json:"edges"`
+	survey_template_category_survey_template_questions *string
+}
+
+// SurveyTemplateQuestionEdges holds the relations/edges for other nodes in the graph.
+type SurveyTemplateQuestionEdges struct {
+	// Category holds the value of the category edge.
+	Category *SurveyTemplateCategory
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// CategoryOrErr returns the Category value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyTemplateQuestionEdges) CategoryOrErr() (*SurveyTemplateCategory, error) {
+	if e.loadedTypes[0] {
+		if e.Category == nil {
+			// The edge category was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: surveytemplatecategory.Label}
+		}
+		return e.Category, nil
+	}
+	return nil, &NotLoadedError{edge: "category"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -58,7 +79,7 @@ func (*SurveyTemplateQuestion) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*SurveyTemplateQuestion) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // category_id
+		&sql.NullInt64{}, // survey_template_category_survey_template_questions
 	}
 }
 
@@ -107,10 +128,10 @@ func (stq *SurveyTemplateQuestion) assignValues(values ...interface{}) error {
 	values = values[6:]
 	if len(values) == len(surveytemplatequestion.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field category_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field survey_template_category_survey_template_questions", value)
 		} else if value.Valid {
-			stq.category_id = new(string)
-			*stq.category_id = strconv.FormatInt(value.Int64, 10)
+			stq.survey_template_category_survey_template_questions = new(string)
+			*stq.survey_template_category_survey_template_questions = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

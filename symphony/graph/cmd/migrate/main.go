@@ -31,7 +31,7 @@ func main() {
 	tenantName := flag.String("tenant", "", "target specific tenant")
 	flag.Parse()
 
-	logger, _ := log.Config{Format: "console"}.Build()
+	logger, _, _ := log.New(log.Config{Format: "console"})
 	driver, err := sql.Open(*drv, *dsn)
 	if err != nil {
 		logger.Background().Fatal("opening database", zap.Error(err))
@@ -54,8 +54,8 @@ func main() {
 	}
 
 	cfg := migrate.MigratorConfig{
-		Driver: driver,
 		Logger: logger,
+		Driver: dialect.Debug(driver),
 		Options: []schema.MigrateOption{
 			schema.WithDropColumn(*dropColumn),
 			schema.WithDropIndex(*dropIndex),

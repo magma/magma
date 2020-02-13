@@ -4,8 +4,6 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * A material-ui Typography component which also handles translation and key
- * extraction.
  * @flow
  * @format
  */
@@ -15,7 +13,7 @@ import Typography from '@material-ui/core/Typography';
 import {Trans} from 'react-i18next';
 
 type Props = {
-  children: any,
+  children: React.Node,
 } & TypographyProps &
   TransProps;
 
@@ -27,6 +25,10 @@ type TransProps = {
   values?: Object,
 };
 
+/**
+ * A material-ui Typography component which also handles translation and key
+ * extraction.
+ */
 export default function Text(props: Props) {
   const {i18nKey, count, values, children, ...typographyProps} = props;
   return (

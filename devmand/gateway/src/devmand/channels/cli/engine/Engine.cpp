@@ -57,7 +57,15 @@ void Engine::initLogging(uint32_t verbosity, bool callInitMlog) {
 }
 
 static uint CPU_CORES = std::max(uint(4), std::thread::hardware_concurrency());
-
+/*
+ * Keep alive cli layer needs separate executor for protecting against resource
+ * starvation - connection failures should always be detected.
+ * SSH cli (SshSessionAsync) - separate executor for ssh layer.
+ * All other layers share common threadpool executor.
+ * All executors are cpu threadpool executors, to mitigate possible deadlocks,
+ * such as when cli destructor calls destroy.get() - this would block forever on
+ * IO threadpool executor.
+ */
 Engine::Engine()
     : channels::Engine("Cli"),
       timekeeper(make_shared<CliThreadWheelTimekeeper>()),

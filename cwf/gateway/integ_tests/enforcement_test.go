@@ -16,6 +16,7 @@ import (
 
 	"fbc/lib/go/radius/rfc2869"
 	"magma/feg/gateway/services/eap"
+	"magma/lte/cloud/go/plugin/models"
 
 	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,7 @@ const (
 )
 
 func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
+	fmt.Printf("Running TestAuthenticateUplinkTrafficWithEnforcement...\n")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -41,7 +43,7 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	// 3. Install a dynamic rule that points to the static rule above
 	err = ruleManager.AddUsageMonitor(imsi, "mkey1", 1000*KiloBytes, 250*KiloBytes)
 	assert.NoError(t, err)
-	err = ruleManager.AddStaticPassAll("static-pass-all", "mkey1")
+	err = ruleManager.AddStaticPassAll("static-pass-all", "mkey1", models.PolicyRuleTrackingTypeONLYPCRF)
 	assert.NoError(t, err)
 	err = ruleManager.AddDynamicRules(imsi, []string{"static-pass-all"}, nil)
 	assert.NoError(t, err)
@@ -74,7 +76,9 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
 	assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 	// TODO Talk to PCRF and verify appropriate CCRs propagate up
-
+	_, err = tr.Disconnect(imsi)
+	assert.NoError(t, err)
+	time.Sleep(3 * time.Second)
 	// Clear hss, ocs, and pcrf
 	assert.NoError(t, ruleManager.RemoveInstalledRules())
 	assert.NoError(t, tr.CleanUp())

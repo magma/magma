@@ -17,10 +17,18 @@
     full_provision: true
 
   roles:
-    - role: stretch_snapshot
+    # This role is commented out for now because as it turns out, it's very
+    # difficult to install Debian on a box without also installing packages
+    # from an upstream mirror. Even if we pin a snapshot to before the 4.9.0-11
+    # cutover, a freshly installed box will still end up with some packages
+    # from after the cutover (e.g. libsystemd0). Pinning to the snapshot
+    # repository after these packages are installed will result in a situation
+    # where it's impossible to proceed with provisioning.
+    #- role: stretch_snapshot
     - role: gateway_dev
       vars:
         distribution: "stretch"
+        repo: "dev"
         config_dir: "lte/gateway/configs"
     - role: python_dev
     - role: dev_common

@@ -17,9 +17,9 @@ import (
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
+	"magma/gateway/mconfig"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/gateway/mconfig"
 )
 
 func StartTestService(t *testing.T) (*service.Service, error) {

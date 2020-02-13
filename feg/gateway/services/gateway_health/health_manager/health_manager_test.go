@@ -17,9 +17,9 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/gateway_health/health_manager"
 	"magma/feg/gateway/services/session_proxy/relay/mocks"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	"magma/gateway/mconfig"
 	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/gateway/mconfig"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

@@ -82,7 +82,7 @@ func getCCRInitRequest(
 	}
 }
 
-// getCCRInitialUpdateRequest creates the first update requess to send to the
+// getCCRInitialUpdateRequest creates the first update request to send to the
 // OCS when a session is established.
 func getCCRInitialCreditRequest(
 	imsi string,
@@ -194,7 +194,7 @@ loop:
 				metrics.GyResultCodes.WithLabelValues(strconv.FormatUint(uint64(ans.ResultCode), 10)).Inc()
 				metrics.UpdateGyRecentRequestMetrics(nil)
 				key := credit_control.GetRequestKey(credit_control.Gy, ans.SessionID, ans.RequestNumber)
-				newResponse := getSingleCreditResponsesFromCCA(ans, requestMap[key])
+				newResponse := getSingleCreditResponseFromCCA(ans, requestMap[key])
 				responses = append(responses, newResponse)
 				// satisfied request, remove
 				delete(requestMap, key)
@@ -258,8 +258,8 @@ func addMissingResponses(
 	return responses
 }
 
-// getSingleCreditResponsesFromCCA creates a CreditUpdateResponse proto from a CCA
-func getSingleCreditResponsesFromCCA(
+// getSingleCreditResponseFromCCA creates a CreditUpdateResponse proto from a CCA
+func getSingleCreditResponseFromCCA(
 	answer *gy.CreditControlAnswer,
 	request *gy.CreditControlRequest,
 ) *protos.CreditUpdateResponse {
@@ -273,23 +273,36 @@ func getSingleCreditResponsesFromCCA(
 	}
 	receivedCredit := answer.Credits[0]
 	msccSuccess := receivedCredit.ResultCode == diameter.SuccessCode || receivedCredit.ResultCode == 0 // 0: not set
+	tgppCtx := request.TgppCtx
+	if len(answer.OriginHost) > 0 {
+		if tgppCtx == nil {
+			tgppCtx = new(protos.TgppContext)
+		}
+		tgppCtx.GyDestHost = answer.OriginHost
+	}
 	res := &protos.CreditUpdateResponse{
 		Success:     success && msccSuccess,
 		Sid:         imsi,
 		ChargingKey: receivedCredit.RatingGroup,
 		Credit:      getSingleChargingCreditFromCCA(receivedCredit),
+		TgppCtx:     tgppCtx,
 	}
+
 	if receivedCredit.ServiceIdentifier != nil {
 		res.ServiceIdentifier = &protos.ServiceIdentifier{Value: *receivedCredit.ServiceIdentifier}
 	}
 	return res
 }
 
-func getInitialCreditResponsesFromCCA(
-	answer *gy.CreditControlAnswer,
-	request *gy.CreditControlRequest,
-) []*protos.CreditUpdateResponse {
+func getInitialCreditResponsesFromCCA(request *gy.CreditControlRequest, answer *gy.CreditControlAnswer) []*protos.CreditUpdateResponse {
 	responses := make([]*protos.CreditUpdateResponse, 0, len(answer.Credits))
+	tgppCtx := request.TgppCtx
+	if len(answer.OriginHost) > 0 {
+		if tgppCtx == nil {
+			tgppCtx = new(protos.TgppContext)
+		}
+		tgppCtx.GyDestHost = answer.OriginHost
+	}
 	for _, credit := range answer.Credits {
 		success := credit.ResultCode == diameter.SuccessCode || credit.ResultCode == 0
 		response := &protos.CreditUpdateResponse{
@@ -298,6 +311,7 @@ func getInitialCreditResponsesFromCCA(
 			ChargingKey: credit.RatingGroup,
 			Credit:      getSingleChargingCreditFromCCA(credit),
 			ResultCode:  credit.ResultCode,
+			TgppCtx:     tgppCtx,
 		}
 		if credit.ServiceIdentifier != nil {
 			response.ServiceIdentifier = &protos.ServiceIdentifier{Value: *credit.ServiceIdentifier}
@@ -346,6 +360,7 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 				Type:         gy.UsedCreditsType(update.Usage.Type),
 			}},
 			RatType: gy.GetRATType(update.GetRatType()),
+			TgppCtx: update.GetTgppCtx(),
 		})
 	}
 	return requests
@@ -371,6 +386,7 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 		UserLocation:  termination.UserLocation,
 		Type:          credit_control.CRTTerminate,
 		RatType:       gy.GetRATType(termination.GetRatType()),
+		TgppCtx:       termination.GetTgppCtx(),
 	}
 }
 

@@ -26,7 +26,7 @@ func (r *resolvers) Node(ctx context.Context, id int) (ent.Noder, error) {
 	if err == nil {
 		return node, nil
 	}
-	var e *ent.ErrNotFound
+	var e *ent.NotFoundError
 	if errors.As(err, &e) {
 		err = nil
 	}
@@ -42,6 +42,7 @@ func (r *resolvers) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, 
 	return r.client.Todo.
 		Create().
 		SetText(todo.Text).
+		SetNillableParentID(todo.Parent).
 		Save(ctx)
 }
 
@@ -51,5 +52,15 @@ func (r *resolvers) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
+func (r *resolvers) Parent(_ context.Context, todo *ent.Todo) (*ent.Todo, error) {
+	parent, err := todo.Edges.ParentOrErr()
+	return parent, ent.MaskNotFound(err)
+}
+
+func (r *resolvers) Children(_ context.Context, todo *ent.Todo) ([]*ent.Todo, error) {
+	return todo.Edges.ChildrenOrErr()
+}
+
 func (r *resolvers) Query() QueryResolver       { return r }
 func (r *resolvers) Mutation() MutationResolver { return r }
+func (r *resolvers) Todo() TodoResolver         { return r }

@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -12,6 +12,7 @@ import type {Service} from '../../common/Service';
 
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import React, {useContext} from 'react';
 import ServiceDeleteButton from './ServiceDeleteButton';
@@ -68,11 +69,13 @@ const ServiceHeader = (props: Props) => {
           size="large"
         />
       </div>
-      <ServiceDeleteButton
-        className={classes.deleteButton}
-        service={service}
-        onServiceRemoved={onServiceRemoved}
-      />
+      <FormAction>
+        <ServiceDeleteButton
+          className={classes.deleteButton}
+          service={service}
+          onServiceRemoved={onServiceRemoved}
+        />
+      </FormAction>
       <Button
         onClick={onBackClicked}
         disabled={validationContext.error.detected}>

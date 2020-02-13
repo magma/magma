@@ -55,14 +55,14 @@ func (alq *AuditLogQuery) Order(o ...Order) *AuditLogQuery {
 	return alq
 }
 
-// First returns the first AuditLog entity in the query. Returns *ErrNotFound when no auditlog was found.
+// First returns the first AuditLog entity in the query. Returns *NotFoundError when no auditlog was found.
 func (alq *AuditLogQuery) First(ctx context.Context) (*AuditLog, error) {
 	als, err := alq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(als) == 0 {
-		return nil, &ErrNotFound{auditlog.Label}
+		return nil, &NotFoundError{auditlog.Label}
 	}
 	return als[0], nil
 }
@@ -76,14 +76,14 @@ func (alq *AuditLogQuery) FirstX(ctx context.Context) *AuditLog {
 	return al
 }
 
-// FirstID returns the first AuditLog id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first AuditLog id in the query. Returns *NotFoundError when no id was found.
 func (alq *AuditLogQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = alq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{auditlog.Label}
+		err = &NotFoundError{auditlog.Label}
 		return
 	}
 	return ids[0], nil
@@ -108,9 +108,9 @@ func (alq *AuditLogQuery) Only(ctx context.Context) (*AuditLog, error) {
 	case 1:
 		return als[0], nil
 	case 0:
-		return nil, &ErrNotFound{auditlog.Label}
+		return nil, &NotFoundError{auditlog.Label}
 	default:
-		return nil, &ErrNotSingular{auditlog.Label}
+		return nil, &NotSingularError{auditlog.Label}
 	}
 }
 
@@ -133,9 +133,9 @@ func (alq *AuditLogQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{auditlog.Label}
+		err = &NotFoundError{auditlog.Label}
 	default:
-		err = &ErrNotSingular{auditlog.Label}
+		err = &NotSingularError{auditlog.Label}
 	}
 	return
 }
@@ -267,7 +267,7 @@ func (alq *AuditLogQuery) Select(field string, fields ...string) *AuditLogSelect
 
 func (alq *AuditLogQuery) sqlAll(ctx context.Context) ([]*AuditLog, error) {
 	var (
-		nodes []*AuditLog
+		nodes = []*AuditLog{}
 		_spec = alq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -286,7 +286,6 @@ func (alq *AuditLogQuery) sqlAll(ctx context.Context) ([]*AuditLog, error) {
 	if err := sqlgraph.QueryNodes(ctx, alq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}

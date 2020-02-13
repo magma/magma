@@ -13,7 +13,11 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/project"
+	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // WorkOrder is the model entity for the WorkOrder schema.
@@ -45,34 +49,159 @@ type WorkOrder struct {
 	Index int `json:"index,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderQuery when eager-loading is set.
-	Edges struct {
-		// Type holds the value of the type edge.
-		Type *WorkOrderType
-		// Equipment holds the value of the equipment edge.
-		Equipment []*Equipment
-		// Links holds the value of the links edge.
-		Links []*Link
-		// Files holds the value of the files edge.
-		Files []*File
-		// Hyperlinks holds the value of the hyperlinks edge.
-		Hyperlinks []*Hyperlink
-		// Location holds the value of the location edge.
-		Location *Location
-		// Comments holds the value of the comments edge.
-		Comments []*Comment
-		// Properties holds the value of the properties edge.
-		Properties []*Property
-		// CheckListItems holds the value of the check_list_items edge.
-		CheckListItems []*CheckListItem
-		// Technician holds the value of the technician edge.
-		Technician *Technician
-		// Project holds the value of the project edge.
-		Project *Project
-	} `json:"edges"`
-	project_id    *string
-	type_id       *string
-	location_id   *string
-	technician_id *string
+	Edges                 WorkOrderEdges `json:"edges"`
+	project_work_orders   *string
+	work_order_type       *string
+	work_order_location   *string
+	work_order_technician *string
+}
+
+// WorkOrderEdges holds the relations/edges for other nodes in the graph.
+type WorkOrderEdges struct {
+	// Type holds the value of the type edge.
+	Type *WorkOrderType
+	// Equipment holds the value of the equipment edge.
+	Equipment []*Equipment
+	// Links holds the value of the links edge.
+	Links []*Link
+	// Files holds the value of the files edge.
+	Files []*File
+	// Hyperlinks holds the value of the hyperlinks edge.
+	Hyperlinks []*Hyperlink
+	// Location holds the value of the location edge.
+	Location *Location
+	// Comments holds the value of the comments edge.
+	Comments []*Comment
+	// Properties holds the value of the properties edge.
+	Properties []*Property
+	// CheckListItems holds the value of the check_list_items edge.
+	CheckListItems []*CheckListItem
+	// Technician holds the value of the technician edge.
+	Technician *Technician
+	// Project holds the value of the project edge.
+	Project *Project
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [11]bool
+}
+
+// TypeOrErr returns the Type value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) TypeOrErr() (*WorkOrderType, error) {
+	if e.loadedTypes[0] {
+		if e.Type == nil {
+			// The edge type was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workordertype.Label}
+		}
+		return e.Type, nil
+	}
+	return nil, &NotLoadedError{edge: "type"}
+}
+
+// EquipmentOrErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) EquipmentOrErr() ([]*Equipment, error) {
+	if e.loadedTypes[1] {
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
+}
+
+// LinksOrErr returns the Links value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) LinksOrErr() ([]*Link, error) {
+	if e.loadedTypes[2] {
+		return e.Links, nil
+	}
+	return nil, &NotLoadedError{edge: "links"}
+}
+
+// FilesOrErr returns the Files value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) FilesOrErr() ([]*File, error) {
+	if e.loadedTypes[3] {
+		return e.Files, nil
+	}
+	return nil, &NotLoadedError{edge: "files"}
+}
+
+// HyperlinksOrErr returns the Hyperlinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) HyperlinksOrErr() ([]*Hyperlink, error) {
+	if e.loadedTypes[4] {
+		return e.Hyperlinks, nil
+	}
+	return nil, &NotLoadedError{edge: "hyperlinks"}
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[5] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// CommentsOrErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) CommentsOrErr() ([]*Comment, error) {
+	if e.loadedTypes[6] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) PropertiesOrErr() ([]*Property, error) {
+	if e.loadedTypes[7] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// CheckListItemsOrErr returns the CheckListItems value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) CheckListItemsOrErr() ([]*CheckListItem, error) {
+	if e.loadedTypes[8] {
+		return e.CheckListItems, nil
+	}
+	return nil, &NotLoadedError{edge: "check_list_items"}
+}
+
+// TechnicianOrErr returns the Technician value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) TechnicianOrErr() (*Technician, error) {
+	if e.loadedTypes[9] {
+		if e.Technician == nil {
+			// The edge technician was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: technician.Label}
+		}
+		return e.Technician, nil
+	}
+	return nil, &NotLoadedError{edge: "technician"}
+}
+
+// ProjectOrErr returns the Project value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) ProjectOrErr() (*Project, error) {
+	if e.loadedTypes[10] {
+		if e.Project == nil {
+			// The edge project was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: project.Label}
+		}
+		return e.Project, nil
+	}
+	return nil, &NotLoadedError{edge: "project"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -96,10 +225,10 @@ func (*WorkOrder) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*WorkOrder) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // project_id
-		&sql.NullInt64{}, // type_id
-		&sql.NullInt64{}, // location_id
-		&sql.NullInt64{}, // technician_id
+		&sql.NullInt64{}, // project_work_orders
+		&sql.NullInt64{}, // work_order_type
+		&sql.NullInt64{}, // work_order_location
+		&sql.NullInt64{}, // work_order_technician
 	}
 }
 
@@ -173,28 +302,28 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 	values = values[11:]
 	if len(values) == len(workorder.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field project_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field project_work_orders", value)
 		} else if value.Valid {
-			wo.project_id = new(string)
-			*wo.project_id = strconv.FormatInt(value.Int64, 10)
+			wo.project_work_orders = new(string)
+			*wo.project_work_orders = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field type_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_type", value)
 		} else if value.Valid {
-			wo.type_id = new(string)
-			*wo.type_id = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_type = new(string)
+			*wo.work_order_type = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_location", value)
 		} else if value.Valid {
-			wo.location_id = new(string)
-			*wo.location_id = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_location = new(string)
+			*wo.work_order_location = strconv.FormatInt(value.Int64, 10)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field technician_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field work_order_technician", value)
 		} else if value.Valid {
-			wo.technician_id = new(string)
-			*wo.technician_id = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_technician = new(string)
+			*wo.work_order_technician = strconv.FormatInt(value.Int64, 10)
 		}
 	}
 	return nil

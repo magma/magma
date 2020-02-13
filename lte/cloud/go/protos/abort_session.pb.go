@@ -187,11 +187,11 @@ var fileDescriptor_80dacefcd8bf4976 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // AbortSessionResponderClient is the client API for AbortSessionResponder service.
 //
@@ -201,10 +201,10 @@ type AbortSessionResponderClient interface {
 }
 
 type abortSessionResponderClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewAbortSessionResponderClient(cc *grpc.ClientConn) AbortSessionResponderClient {
+func NewAbortSessionResponderClient(cc grpc.ClientConnInterface) AbortSessionResponderClient {
 	return &abortSessionResponderClient{cc}
 }
 

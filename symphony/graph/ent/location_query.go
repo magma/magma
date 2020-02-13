@@ -225,14 +225,14 @@ func (lq *LocationQuery) QueryFloorPlans() *FloorPlanQuery {
 	return query
 }
 
-// First returns the first Location entity in the query. Returns *ErrNotFound when no location was found.
+// First returns the first Location entity in the query. Returns *NotFoundError when no location was found.
 func (lq *LocationQuery) First(ctx context.Context) (*Location, error) {
 	ls, err := lq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ls) == 0 {
-		return nil, &ErrNotFound{location.Label}
+		return nil, &NotFoundError{location.Label}
 	}
 	return ls[0], nil
 }
@@ -246,14 +246,14 @@ func (lq *LocationQuery) FirstX(ctx context.Context) *Location {
 	return l
 }
 
-// FirstID returns the first Location id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first Location id in the query. Returns *NotFoundError when no id was found.
 func (lq *LocationQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = lq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{location.Label}
+		err = &NotFoundError{location.Label}
 		return
 	}
 	return ids[0], nil
@@ -278,9 +278,9 @@ func (lq *LocationQuery) Only(ctx context.Context) (*Location, error) {
 	case 1:
 		return ls[0], nil
 	case 0:
-		return nil, &ErrNotFound{location.Label}
+		return nil, &NotFoundError{location.Label}
 	default:
-		return nil, &ErrNotSingular{location.Label}
+		return nil, &NotSingularError{location.Label}
 	}
 }
 
@@ -303,9 +303,9 @@ func (lq *LocationQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{location.Label}
+		err = &NotFoundError{location.Label}
 	default:
-		err = &ErrNotSingular{location.Label}
+		err = &NotSingularError{location.Label}
 	}
 	return
 }
@@ -569,9 +569,23 @@ func (lq *LocationQuery) Select(field string, fields ...string) *LocationSelect 
 
 func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 	var (
-		nodes   []*Location
-		withFKs = lq.withFKs
-		_spec   = lq.querySpec()
+		nodes       = []*Location{}
+		withFKs     = lq.withFKs
+		_spec       = lq.querySpec()
+		loadedTypes = [12]bool{
+			lq.withType != nil,
+			lq.withParent != nil,
+			lq.withChildren != nil,
+			lq.withFiles != nil,
+			lq.withHyperlinks != nil,
+			lq.withEquipment != nil,
+			lq.withProperties != nil,
+			lq.withSurvey != nil,
+			lq.withWifiScan != nil,
+			lq.withCellScan != nil,
+			lq.withWorkOrders != nil,
+			lq.withFloorPlans != nil,
+		}
 	)
 	if lq.withType != nil || lq.withParent != nil {
 		withFKs = true
@@ -593,12 +607,12 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, lq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -607,7 +621,7 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*Location)
 		for i := range nodes {
-			if fk := nodes[i].type_id; fk != nil {
+			if fk := nodes[i].location_type; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -620,7 +634,7 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Type = n
@@ -632,7 +646,7 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*Location)
 		for i := range nodes {
-			if fk := nodes[i].parent_id; fk != nil {
+			if fk := nodes[i].location_children; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -645,7 +659,7 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_children" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Parent = n
@@ -673,13 +687,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.parent_id
+			fk := n.location_children
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "parent_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_children" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_children" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Children = append(node.Edges.Children, n)
 		}
@@ -705,13 +719,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_file_id
+			fk := n.location_files
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_file_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_files" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_file_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_files" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Files = append(node.Edges.Files, n)
 		}
@@ -737,13 +751,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_hyperlink_id
+			fk := n.location_hyperlinks
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_hyperlink_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_hyperlinks" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_hyperlink_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_hyperlinks" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Hyperlinks = append(node.Edges.Hyperlinks, n)
 		}
@@ -769,13 +783,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_id
+			fk := n.location_equipment
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_equipment" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_equipment" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Equipment = append(node.Edges.Equipment, n)
 		}
@@ -801,13 +815,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_id
+			fk := n.location_properties
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "location_properties" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "location_properties" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Properties = append(node.Edges.Properties, n)
 		}
@@ -833,13 +847,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_id
+			fk := n.survey_location
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_location" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_location" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Survey = append(node.Edges.Survey, n)
 		}
@@ -865,13 +879,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_id
+			fk := n.survey_wi_fi_scan_location
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_wi_fi_scan_location" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_wi_fi_scan_location" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.WifiScan = append(node.Edges.WifiScan, n)
 		}
@@ -897,13 +911,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_id
+			fk := n.survey_cell_scan_location
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "survey_cell_scan_location" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_cell_scan_location" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CellScan = append(node.Edges.CellScan, n)
 		}
@@ -929,13 +943,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_id
+			fk := n.work_order_location
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "work_order_location" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_location" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
 		}
@@ -961,13 +975,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.location_id
+			fk := n.floor_plan_location
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "location_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "floor_plan_location" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "location_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "floor_plan_location" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.FloorPlans = append(node.Edges.FloorPlans, n)
 		}

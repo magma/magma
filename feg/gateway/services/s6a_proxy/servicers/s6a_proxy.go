@@ -17,7 +17,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/metrics"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"

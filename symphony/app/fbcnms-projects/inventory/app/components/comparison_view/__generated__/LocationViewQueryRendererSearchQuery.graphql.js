@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b1e3c8d017515cf7ccc201e8e5d60db2
+ * @relayHash a323ea73d724af52e171808fb66ad0c5
  */
 
 /* eslint-disable */
@@ -26,6 +26,7 @@ export type LocationFilterInput = {|
   stringValue?: ?string,
   propertyValue?: ?PropertyTypeInput,
   idSet?: ?$ReadOnlyArray<string>,
+  stringSet?: ?$ReadOnlyArray<string>,
   maxDepth?: ?number,
 |};
 export type PropertyTypeInput = {|

@@ -29,10 +29,25 @@ type EquipmentCategory struct {
 	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentCategoryQuery when eager-loading is set.
-	Edges struct {
-		// Types holds the value of the types edge.
-		Types []*EquipmentType
-	} `json:"edges"`
+	Edges EquipmentCategoryEdges `json:"edges"`
+}
+
+// EquipmentCategoryEdges holds the relations/edges for other nodes in the graph.
+type EquipmentCategoryEdges struct {
+	// Types holds the value of the types edge.
+	Types []*EquipmentType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TypesOrErr returns the Types value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentCategoryEdges) TypesOrErr() ([]*EquipmentType, error) {
+	if e.loadedTypes[0] {
+		return e.Types, nil
+	}
+	return nil, &NotLoadedError{edge: "types"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

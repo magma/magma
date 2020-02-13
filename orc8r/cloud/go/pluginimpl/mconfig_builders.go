@@ -9,12 +9,12 @@
 package pluginimpl
 
 import (
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/protos/mconfig"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -55,7 +55,7 @@ func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string,
 			FeatureFlags:            magmadGatewayConfig.FeatureFlags,
 		}
 
-		mconfigOut["td-agent-bit"] = getFluentbitMconfig(networkID, gatewayID, magmadGatewayConfig)
+		mconfigOut["td-agent-bit"] = getFluentBitMconfig(networkID, gatewayID, magmadGatewayConfig)
 	}
 	mconfigOut["control_proxy"] = &mconfig.ControlProxy{LogLevel: protos.LogLevel_INFO}
 	mconfigOut["metricsd"] = &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO}
@@ -80,11 +80,7 @@ func getPackageVersionAndImages(magmadGateway configurator.NetworkEntity, graph 
 	return tierConfig.Version.ToString(), retImages, nil
 }
 
-func getFluentbitMconfig(networkID string, gatewayID string, mdGw *models.MagmadGatewayConfigs) *mconfig.FluentBit {
-	// TODO: wire through throttle config to REST API
-	// For now, set throttle rate based on the following calculations:
-	// Average per-line payload 200B, 1000 messages/minute gives a rough
-	// data usage of 10GB/month for log data.
+func getFluentBitMconfig(networkID string, gatewayID string, mdGw *models.MagmadGatewayConfigs) *mconfig.FluentBit {
 	ret := &mconfig.FluentBit{
 		ExtraTags: map[string]string{
 			"network_id": networkID,
@@ -97,7 +93,17 @@ func getFluentbitMconfig(networkID string, gatewayID string, mdGw *models.Magmad
 
 	if mdGw.Logging != nil && mdGw.Logging.Aggregation != nil {
 		ret.FilesByTag = mdGw.Logging.Aggregation.TargetFilesByTag
+		if mdGw.Logging.Aggregation.ThrottleRate != nil {
+			ret.ThrottleRate = *mdGw.Logging.Aggregation.ThrottleRate
+		}
+		if mdGw.Logging.Aggregation.ThrottleWindow != nil {
+			ret.ThrottleWindow = *mdGw.Logging.Aggregation.ThrottleWindow
+		}
+		if mdGw.Logging.Aggregation.ThrottleInterval != nil {
+			ret.ThrottleInterval = *mdGw.Logging.Aggregation.ThrottleInterval
+		}
 	}
+
 	return ret
 }
 

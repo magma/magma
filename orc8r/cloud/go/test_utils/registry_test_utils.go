@@ -12,7 +12,7 @@ import (
 	"context"
 	"time"
 
-	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/lib/go/registry"
 
 	"google.golang.org/grpc"
 )

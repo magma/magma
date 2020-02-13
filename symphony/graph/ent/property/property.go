@@ -47,77 +47,77 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "propertytype" package.
 	TypeInverseTable = "property_types"
 	// TypeColumn is the table column denoting the type relation/edge.
-	TypeColumn = "type_id"
+	TypeColumn = "property_type"
 	// LocationTable is the table the holds the location relation/edge.
 	LocationTable = "properties"
 	// LocationInverseTable is the table name for the Location entity.
 	// It exists in this package in order to avoid circular dependency with the "location" package.
 	LocationInverseTable = "locations"
 	// LocationColumn is the table column denoting the location relation/edge.
-	LocationColumn = "location_id"
+	LocationColumn = "location_properties"
 	// EquipmentTable is the table the holds the equipment relation/edge.
 	EquipmentTable = "properties"
 	// EquipmentInverseTable is the table name for the Equipment entity.
 	// It exists in this package in order to avoid circular dependency with the "equipment" package.
 	EquipmentInverseTable = "equipment"
 	// EquipmentColumn is the table column denoting the equipment relation/edge.
-	EquipmentColumn = "equipment_id"
+	EquipmentColumn = "equipment_properties"
 	// ServiceTable is the table the holds the service relation/edge.
 	ServiceTable = "properties"
 	// ServiceInverseTable is the table name for the Service entity.
 	// It exists in this package in order to avoid circular dependency with the "service" package.
 	ServiceInverseTable = "services"
 	// ServiceColumn is the table column denoting the service relation/edge.
-	ServiceColumn = "service_id"
+	ServiceColumn = "service_properties"
 	// EquipmentPortTable is the table the holds the equipment_port relation/edge.
 	EquipmentPortTable = "properties"
 	// EquipmentPortInverseTable is the table name for the EquipmentPort entity.
 	// It exists in this package in order to avoid circular dependency with the "equipmentport" package.
 	EquipmentPortInverseTable = "equipment_ports"
 	// EquipmentPortColumn is the table column denoting the equipment_port relation/edge.
-	EquipmentPortColumn = "equipment_port_id"
+	EquipmentPortColumn = "equipment_port_properties"
 	// LinkTable is the table the holds the link relation/edge.
 	LinkTable = "properties"
 	// LinkInverseTable is the table name for the Link entity.
 	// It exists in this package in order to avoid circular dependency with the "link" package.
 	LinkInverseTable = "links"
 	// LinkColumn is the table column denoting the link relation/edge.
-	LinkColumn = "link_id"
+	LinkColumn = "link_properties"
 	// WorkOrderTable is the table the holds the work_order relation/edge.
 	WorkOrderTable = "properties"
 	// WorkOrderInverseTable is the table name for the WorkOrder entity.
 	// It exists in this package in order to avoid circular dependency with the "workorder" package.
 	WorkOrderInverseTable = "work_orders"
 	// WorkOrderColumn is the table column denoting the work_order relation/edge.
-	WorkOrderColumn = "work_order_id"
+	WorkOrderColumn = "work_order_properties"
 	// ProjectTable is the table the holds the project relation/edge.
 	ProjectTable = "properties"
 	// ProjectInverseTable is the table name for the Project entity.
 	// It exists in this package in order to avoid circular dependency with the "project" package.
 	ProjectInverseTable = "projects"
 	// ProjectColumn is the table column denoting the project relation/edge.
-	ProjectColumn = "project_id"
+	ProjectColumn = "project_properties"
 	// EquipmentValueTable is the table the holds the equipment_value relation/edge.
 	EquipmentValueTable = "properties"
 	// EquipmentValueInverseTable is the table name for the Equipment entity.
 	// It exists in this package in order to avoid circular dependency with the "equipment" package.
 	EquipmentValueInverseTable = "equipment"
 	// EquipmentValueColumn is the table column denoting the equipment_value relation/edge.
-	EquipmentValueColumn = "property_equipment_value_id"
+	EquipmentValueColumn = "property_equipment_value"
 	// LocationValueTable is the table the holds the location_value relation/edge.
 	LocationValueTable = "properties"
 	// LocationValueInverseTable is the table name for the Location entity.
 	// It exists in this package in order to avoid circular dependency with the "location" package.
 	LocationValueInverseTable = "locations"
 	// LocationValueColumn is the table column denoting the location_value relation/edge.
-	LocationValueColumn = "property_location_value_id"
+	LocationValueColumn = "property_location_value"
 	// ServiceValueTable is the table the holds the service_value relation/edge.
 	ServiceValueTable = "properties"
 	// ServiceValueInverseTable is the table name for the Service entity.
 	// It exists in this package in order to avoid circular dependency with the "service" package.
 	ServiceValueInverseTable = "services"
 	// ServiceValueColumn is the table column denoting the service_value relation/edge.
-	ServiceValueColumn = "property_service_value_id"
+	ServiceValueColumn = "property_service_value"
 )
 
 // Columns holds all SQL columns for property fields.
@@ -137,17 +137,17 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Property type.
 var ForeignKeys = []string{
-	"equipment_id",
-	"equipment_port_id",
-	"link_id",
-	"location_id",
-	"project_id",
-	"type_id",
-	"property_equipment_value_id",
-	"property_location_value_id",
-	"property_service_value_id",
-	"service_id",
-	"work_order_id",
+	"equipment_properties",
+	"equipment_port_properties",
+	"link_properties",
+	"location_properties",
+	"project_properties",
+	"property_type",
+	"property_equipment_value",
+	"property_location_value",
+	"property_service_value",
+	"service_properties",
+	"work_order_properties",
 }
 
 var (

@@ -16,8 +16,8 @@ import (
 	"magma/cwf/cloud/go/cwf"
 	cwfModels "magma/cwf/cloud/go/plugin/models"
 	fegModels "magma/feg/cloud/go/plugin/models"
+	lteHandlers "magma/lte/cloud/go/plugin/handlers"
 	lteModels "magma/lte/cloud/go/plugin/models"
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -27,6 +27,7 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
@@ -45,6 +46,8 @@ const (
 	ManageNetworkSubscriberPath  = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
 	ManageNetworkBaseNamesPath   = ManageNetworkSubscriberPath + obsidian.UrlSep + "base_names"
 	ManageNetworkRuleNamesPath   = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
+	ManageNetworkBaseNamePath    = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
+	ManageNetworkRuleNamePath    = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
 
 	Gateways                     = "gateways"
 	ListGatewaysPath             = ManageNetworkPath + obsidian.UrlSep + Gateways
@@ -72,6 +75,11 @@ func GetHandlers() []obsidian.Handler {
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 		{Path: SubscriberDirectoryRecordPath, Methods: obsidian.GET, HandlerFunc: getSubscriberDirectoryHandler},
+
+		{Path: ManageNetworkBaseNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberBaseName},
+		{Path: ManageNetworkRuleNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberRuleName},
+		{Path: ManageNetworkBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberRuleName},
+		{Path: ManageNetworkRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberBaseName},
 	}
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, cwf.CwfNetworkType, &cwfModels.CwfNetwork{})...)

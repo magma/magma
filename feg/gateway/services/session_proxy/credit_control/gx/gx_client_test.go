@@ -44,15 +44,18 @@ var (
 
 // TestGxClient tests CCR init and terminate messages using a fake PCRF
 func TestGxClient(t *testing.T) {
-	serverConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 		Addr:     "127.0.0.1:3898",
 		Protocol: "tcp"},
 	}
+	serverConfig1 := serverConfig
+	serverConfig2 := serverConfig
 	clientConfig := getClientConfig()
-	startServer(clientConfig, serverConfig)
+	startServer(clientConfig, &serverConfig1)
+
 	gxClient := gx.NewGxClient(
 		clientConfig,
-		serverConfig,
+		&serverConfig2,
 		getMockReAuthHandler(),
 		nil,
 	)
@@ -68,7 +71,7 @@ func TestGxClient(t *testing.T) {
 	}
 	done := make(chan interface{}, 1000)
 
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	answer := gx.GetAnswer(done)
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
@@ -107,7 +110,7 @@ func TestGxClient(t *testing.T) {
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
 	}
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrTerminate))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrTerminate))
 	terminate := gx.GetAnswer(done)
 	assert.Equal(t, ccrTerminate.SessionID, terminate.SessionID)
 	assert.Equal(t, ccrTerminate.RequestNumber, terminate.RequestNumber)
@@ -122,7 +125,7 @@ func TestGxClient(t *testing.T) {
 		IPAddr:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
 	}
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	answer = gx.GetAnswer(done)
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
@@ -153,7 +156,7 @@ func TestGxClient(t *testing.T) {
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
 	}
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrTerminate))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrTerminate))
 	terminate = gx.GetAnswer(done)
 	assert.Equal(t, ccrTerminate.SessionID, terminate.SessionID)
 	assert.Equal(t, ccrTerminate.RequestNumber, terminate.RequestNumber)
@@ -161,11 +164,11 @@ func TestGxClient(t *testing.T) {
 
 	// Connection Disabling should cause CCR to fail
 	gxClient.DisableConnections(10 * time.Second)
-	assert.Error(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.Error(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 
 	// CCR Success after Enabling
 	gxClient.EnableConnections()
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 
 	hwaddr, err := net.ParseMAC("00:00:5e:00:53:01")
 	assert.NoError(t, err)
@@ -177,15 +180,17 @@ func TestGxClient(t *testing.T) {
 }
 
 func TestGxClientUsageMonitoring(t *testing.T) {
-	serverConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 		Addr:     "127.0.0.1:3899",
 		Protocol: "tcp"},
 	}
+	serverConfig1 := serverConfig
+	serverConfig2 := serverConfig
 	clientConfig := getClientConfig()
-	startServer(clientConfig, serverConfig)
+	startServer(clientConfig, &serverConfig1)
 	gxClient := gx.NewGxClient(
 		clientConfig,
-		serverConfig,
+		&serverConfig2,
 		getMockReAuthHandler(),
 		nil,
 	)
@@ -201,7 +206,7 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 		SpgwIPV4:      "10.10.10.10",
 	}
 
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, init))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, init))
 	initAnswer := gx.GetAnswer(done)
 	assert.Equal(t, init.SessionID, initAnswer.SessionID)
 	assert.Equal(t, init.RequestNumber, initAnswer.RequestNumber)
@@ -241,7 +246,7 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 			},
 		},
 	}
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, update))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, update))
 	updateAnswer := gx.GetAnswer(done)
 	assert.Equal(t, update.SessionID, updateAnswer.SessionID)
 	assert.Equal(t, update.RequestNumber, updateAnswer.RequestNumber)
@@ -318,11 +323,11 @@ func startServer(
 				RuleBaseNames: imsi1BaseRules,
 				RuleDefinitions: []*fegprotos.RuleDefinition{
 					{
-						ChargineRuleName: "dynrule1",
-						RatingGroup:      rg1,
-						Precedence:       100,
-						MonitoringKey:    monitoringKey,
-						QosInformation:   qos,
+						RuleName:       "dynrule1",
+						RatingGroup:    rg1,
+						Precedence:     100,
+						MonitoringKey:  monitoringKey,
+						QosInformation: qos,
 					},
 				},
 			},
@@ -342,7 +347,7 @@ func startServer(
 				RuleBaseNames: imsi3BaseRules,
 				RuleDefinitions: []*fegprotos.RuleDefinition{
 					{
-						ChargineRuleName:    "dynrule3",
+						RuleName:            "dynrule3",
 						RatingGroup:         rg3,
 						Precedence:          300,
 						MonitoringKey:       monitoringKey3,
@@ -357,14 +362,14 @@ func startServer(
 				Imsi: testIMSI4,
 				RuleDefinitions: []*fegprotos.RuleDefinition{
 					{
-						ChargineRuleName: "dynrule4",
-						Precedence:       300,
-						MonitoringKey:    monitoringKey,
+						RuleName:      "dynrule4",
+						Precedence:    300,
+						MonitoringKey: monitoringKey,
 					},
 					{
-						ChargineRuleName: "dynrule5",
-						RatingGroup:      rg5,
-						Precedence:       100,
+						RuleName:    "dynrule5",
+						RatingGroup: rg5,
+						Precedence:  100,
 					},
 				},
 			},

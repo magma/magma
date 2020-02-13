@@ -137,8 +137,7 @@ func prepareBasicData(ctx context.Context, t *testing.T, r TestImporterResolver)
 }
 
 func TestTitleLocationTypeInputValidation(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 
@@ -150,7 +149,7 @@ func TestTitleLocationTypeInputValidation(t *testing.T) {
 	)
 	locTypeIDS := prepareBasicData(ctx, t, *r)
 
-	err = importer.inputValidations(ctx, NewImportHeader([]string{"aa"}, ImportEntityEquipment))
+	err := importer.inputValidations(ctx, NewImportHeader([]string{"aa"}, ImportEntityEquipment))
 	require.Error(t, err)
 	err = importer.inputValidations(ctx, NewImportHeader(equipDataHeader[:], ImportEntityEquipment))
 	require.Error(t, err)
@@ -170,8 +169,7 @@ func TestTitleLocationTypeInputValidation(t *testing.T) {
 }
 
 func TestTitleEquipmentTypeInputValidation(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 
@@ -191,7 +189,7 @@ func TestTitleEquipmentTypeInputValidation(t *testing.T) {
 		propNameToIndex
 		equipmentTypeIDToProperties
 	*/
-	err = importer.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(titleWithProperties, ImportEntityEquipment), true)
+	err := importer.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(titleWithProperties, ImportEntityEquipment), true)
 	require.NoError(t, err)
 	require.EqualValues(t, ic.equipmentTypeNameToID, map[string]string{
 		equipmentTypeName:  ids.equipTypeID,
@@ -219,8 +217,7 @@ func TestTitleEquipmentTypeInputValidation(t *testing.T) {
 }
 
 func TestLocationHierarchy(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 	ctx := newImportContext(viewertest.NewContext(r.client))
@@ -236,22 +233,22 @@ func TestLocationHierarchy(t *testing.T) {
 	)
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
 	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
-	err = importer.inputValidations(ctx, title)
+	err := importer.inputValidations(ctx, title)
 	require.NoError(t, err)
 
-	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test1, title))
+	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test1, title), true)
 	require.NoError(t, err)
 	require.Equal(t, loc.Name, "locNameL")
 	require.Equal(t, loc.QueryType().OnlyXID(ctx), ids.locTypeIDL)
 	require.False(t, loc.QueryChildren().ExistX(ctx))
 
-	loc2, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test2, title))
+	loc2, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test2, title), true)
 	require.NoError(t, err)
 	require.Equal(t, loc2.Name, "locNameS")
 	require.Equal(t, loc2.QueryType().OnlyXID(ctx), ids.locTypeIDS)
 	require.Equal(t, loc2.QueryParent().OnlyX(ctx).Name, "locNameM")
 
-	loc3, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test3, title))
+	loc3, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test3, title), true)
 	require.NoError(t, err)
 	require.Equal(t, loc3.Name, "locNameM")
 	require.Equal(t, loc3.QueryType().OnlyXID(ctx), ids.locTypeIDM)
@@ -259,8 +256,7 @@ func TestLocationHierarchy(t *testing.T) {
 }
 
 func TestPosition(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 	ctx := newImportContext(viewertest.NewContext(r.client))
@@ -269,7 +265,6 @@ func TestPosition(t *testing.T) {
 	pos1 := models.EquipmentPositionInput{
 		Name: "pos1",
 	}
-	require.NoError(t, err)
 	var (
 		equipDataHeader = [...]string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
 		parentsHeader   = [...]string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}
@@ -281,9 +276,9 @@ func TestPosition(t *testing.T) {
 	)
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
 	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
-	err = importer.inputValidations(ctx, title)
+	err := importer.inputValidations(ctx, title)
 	require.NoError(t, err)
-	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title))
+	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title), true)
 	require.NoError(t, err)
 	equipmentType, err := importer.r.Mutation().AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:      "type1",
@@ -318,8 +313,7 @@ func TestPosition(t *testing.T) {
 }
 
 func TestValidatePropertiesForType(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	q := r.importer.r.Query()
 	defer r.drv.Close()
@@ -337,7 +331,7 @@ func TestValidatePropertiesForType(t *testing.T) {
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
 	finalFirstRow := append(locationTypeInOrder, propName1, propName2, propName3, propName4, propName5, propName6)
 	fl := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
-	err = importer.inputValidations(ctx, fl)
+	err := importer.inputValidations(ctx, fl)
 	require.NoError(t, err)
 
 	fl = NewImportHeader(finalFirstRow, ImportEntityEquipment)
@@ -410,8 +404,7 @@ func TestValidatePropertiesForType(t *testing.T) {
 }
 
 func TestValidateForExistingEquipment(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 	ctx := newImportContext(viewertest.NewContext(r.client))
@@ -430,9 +423,9 @@ func TestValidateForExistingEquipment(t *testing.T) {
 	)
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
 	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
-	err = importer.inputValidations(ctx, title)
+	err := importer.inputValidations(ctx, title)
 	require.NoError(t, err)
-	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title))
+	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title), true)
 	require.NoError(t, err)
 	equipmentType, err := importer.r.Mutation().AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:      "type1",

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b17ed1a6bb6f3102fa19753cffa502b0
+ * @relayHash 3a266e39bf608a984ed6190af1e94f7b
  */
 
 /* eslint-disable */
@@ -24,6 +24,7 @@ export type ServiceFilterInput = {|
   stringValue?: ?string,
   propertyValue?: ?PropertyTypeInput,
   idSet?: ?$ReadOnlyArray<string>,
+  stringSet?: ?$ReadOnlyArray<string>,
   maxDepth?: ?number,
 |};
 export type PropertyTypeInput = {|

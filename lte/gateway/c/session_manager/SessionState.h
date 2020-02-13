@@ -14,6 +14,7 @@
 
 #include "RuleStore.h"
 #include "SessionRules.h"
+#include "StoredState.h"
 #include "CreditPool.h"
 
 namespace magma {
@@ -58,7 +59,18 @@ class SessionState {
     const std::string& session_id,
     const std::string& core_session_id,
     const SessionState::Config& cfg,
-    StaticRuleStore& rule_store);
+    StaticRuleStore& rule_store,
+    const magma::lte::TgppContext& tgpp_context);
+
+  SessionState(
+    const StoredSessionState &marshaled,
+    StaticRuleStore &rule_store);
+
+  static std::unique_ptr<SessionState> unmarshal(
+    const StoredSessionState &marshaled,
+    StaticRuleStore &rule_store);
+
+  StoredSessionState marshal();
 
   /**
    * new_report sets the state of terminating session to aggregating, to tell if
@@ -160,6 +172,15 @@ class SessionState {
 
   bool qos_enabled();
 
+  void set_tgpp_context(const magma::lte::TgppContext& tgpp_context);
+
+  void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context);
+
+  void set_monitoring_quota_state(
+    const magma::lte::SubscriberQuotaUpdate_Type state);
+
+  bool active_monitored_rules_exist();
+
  private:
   /**
    * State transitions of a session:
@@ -198,13 +219,31 @@ class SessionState {
   SessionRules session_rules_;
   SessionState::State curr_state_;
   SessionState::Config config_;
+  // Used to keep track of whether there are monitoring quotas.
+  // (only used for CWF at the moment)
+  magma::lte::SubscriberQuotaUpdate_Type monitoring_quota_state_;
+  magma::lte::TgppContext tgpp_context_;
   std::function<void(SessionTerminateRequest)> on_termination_callback_;
 
  private:
+  /**
+   * For this session, add the CreditUsageUpdate to the UpdateSessionRequest.
+   * Also
+   *
+   * @param update_request_out Modified with added CreditUsageUpdate
+   * @param actions_out Modified with additional actions to take on session
+   */
   void get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out);
 
+  /**
+   * For this session, add the UsageMonitoringUpdateRequest to the
+   * UpdateSessionRequest.
+   *
+   * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
+   * @param actions_out Modified with additional actions to take on session.
+   */
   void get_updates_from_monitor_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out);

@@ -27,6 +27,7 @@ var eventTriggerConversionMap = map[EventTrigger]protos.EventTrigger{
 
 func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMonitoringUpdateRequest) *CreditControlRequest {
 	ccr.SessionID = update.SessionId
+	ccr.TgppCtx = update.GetTgppCtx()
 	ccr.RequestNumber = update.RequestNumber
 	ccr.Type = credit_control.CRTUpdate
 	ccr.IMSI = credit_control.RemoveIMSIPrefix(update.Sid)

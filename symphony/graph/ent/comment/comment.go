@@ -42,8 +42,8 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Comment type.
 var ForeignKeys = []string{
-	"project_comment_id",
-	"work_order_comment_id",
+	"project_comments",
+	"work_order_comments",
 }
 
 var (

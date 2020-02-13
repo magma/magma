@@ -16,6 +16,7 @@ import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import PowerSearchEquipmentResultsTable from './PowerSearchEquipmentResultsTable';
 import React from 'react';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 
 import {graphql} from 'relay-runtime';
@@ -63,6 +64,7 @@ const EquipmentViewQueryRenderer = (props: Props) => {
           stringValue: f.stringValue,
           propertyValue: f.propertyValue,
           idSet: f.idSet,
+          stringSet: f.stringSet,
         })),
       }}
       render={(props: EquipmentViewQueryRendererSearchQueryResponse) => {
@@ -79,10 +81,10 @@ const EquipmentViewQueryRenderer = (props: Props) => {
                 ServerLogger.info(
                   LogEvents.EQUIPMENT_COMPARISON_VIEW_EQUIPMENT_CLICKED,
                 );
-                history.replace(`inventory?equipment=${equipment.id}`);
+                history.replace(InventoryAPIUrls.equipment(equipment.id));
               }}
               onWorkOrderSelected={workOrderId =>
-                history.replace(`inventory?workorder=${workOrderId}`)
+                history.replace(InventoryAPIUrls.workorder(workOrderId))
               }
             />
           </div>

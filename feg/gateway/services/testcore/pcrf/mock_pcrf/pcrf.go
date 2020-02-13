@@ -20,7 +20,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	lteprotos "magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
@@ -408,7 +408,7 @@ func getQosAVP(qos *lteprotos.FlowQos) *diam.AVP {
 
 func getRuleDefinitionAVP(rule *protos.RuleDefinition) *diam.AVP {
 	installAVPs := []*diam.AVP{
-		diam.NewAVP(avp.ChargingRuleName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(rule.ChargineRuleName)),
+		diam.NewAVP(avp.ChargingRuleName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(rule.RuleName)),
 		diam.NewAVP(avp.Precedence, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(rule.Precedence)),
 	}
 	if rule.RatingGroup != 0 {

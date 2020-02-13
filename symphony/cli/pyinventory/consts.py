@@ -8,7 +8,7 @@ from typing import Any, Dict, List, NamedTuple, Optional
 from .reporter import DummyReporter
 
 
-__version__ = "2.3.5"
+__version__ = "2.4.0"
 
 DUMMY_REPORTER = DummyReporter()
 
@@ -57,7 +57,10 @@ class LocationType(NamedTuple):
 class Location(NamedTuple):
     name: str
     id: str
+    latitude: float
+    longitude: float
     externalId: Optional[str]
+    locationTypeName: str
 
 
 class EquipmentType(NamedTuple):
@@ -67,6 +70,11 @@ class EquipmentType(NamedTuple):
     propertyTypes: List[Dict[str, Any]]
     positionDefinitions: List[Dict[str, Any]]
     portDefinitions: List[Dict[str, Any]]
+
+
+class EquipmentPortType(NamedTuple):
+    id: str
+    name: str
 
 
 class Equipment(NamedTuple):
@@ -125,3 +133,4 @@ class Document(NamedTuple):
     name: str
     parentId: str
     parentEntity: ImageEntity
+    category: Optional[str]

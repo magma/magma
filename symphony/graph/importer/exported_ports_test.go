@@ -39,11 +39,6 @@ const (
 	locationL    = "locationL"
 	locationM    = "locationM"
 	locationS    = "locationS"
-
-	svcName  = "serviceName"
-	svc2Name = "serviceName2"
-	svc3Name = "serviceName3"
-	svc4Name = "serviceName4"
 )
 
 type portData struct {
@@ -222,32 +217,8 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 	}
 }
 
-func prepareSvcData(ctx context.Context, t *testing.T, r TestImporterResolver) {
-	mr := r.importer.r.Mutation()
-	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
-	_, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svcName,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svc2Name,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svc3Name,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-}
-
 func TestPortTitleInputValidation(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 
@@ -260,7 +231,7 @@ func TestPortTitleInputValidation(t *testing.T) {
 	)
 	prepareBasicData(ctx, t, *r)
 
-	err = importer.inputValidationsPorts(ctx, NewImportHeader([]string{"aa"}, ImportEntityPort))
+	err := importer.inputValidationsPorts(ctx, NewImportHeader([]string{"aa"}, ImportEntityPort))
 	require.Error(t, err)
 	err = importer.inputValidationsPorts(ctx, NewImportHeader(portDataHeader[:], ImportEntityPort))
 	require.Error(t, err)
@@ -277,8 +248,7 @@ func TestPortTitleInputValidation(t *testing.T) {
 }
 
 func TestGeneralPortsImport(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 
@@ -312,11 +282,10 @@ func TestGeneralPortsImport(t *testing.T) {
 	titleWithProperties := append(locationTypeInOrder, propNameStr, propNameInt, propNameDate, propNameBool)
 
 	fl := NewImportHeader(titleWithProperties, ImportEntityPort)
-	err = importer.inputValidationsPorts(ctx, fl)
+	err := importer.inputValidationsPorts(ctx, fl)
 	require.NoError(t, err)
 
 	r1 := NewImportRecord(row1, fl)
-
 	port1, err := importer.validateLineForExistingPort(ctx, ids.parentPortInst1, r1)
 	require.NoError(t, err)
 	ptypes, err := importer.validatePropertiesForPortType(ctx, r1, port1.QueryDefinition().QueryEquipmentPortType().OnlyX(ctx), ImportEntityPort)

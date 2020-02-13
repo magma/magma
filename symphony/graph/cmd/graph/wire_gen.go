@@ -10,23 +10,27 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/server"
-	"github.com/pkg/errors"
+	"gocloud.dev/pubsub"
 	"google.golang.org/grpc"
 )
 
 import (
 	_ "github.com/go-sql-driver/mysql"
+	_ "gocloud.dev/pubsub/awssnssqs"
+	_ "gocloud.dev/pubsub/mempubsub"
 )
 
 // Injectors from wire.go:
 
-func NewApplication(flags *cliFlags) (*application, func(), error) {
+func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	config := flags.Log
 	logger, cleanup, err := log.New(config)
 	if err != nil {
@@ -38,16 +42,25 @@ func NewApplication(flags *cliFlags) (*application, func(), error) {
 		cleanup()
 		return nil, nil, err
 	}
+	topic, cleanup2, err := newTopic(ctx, flags)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	v := newSubscribeFunc(flags)
 	options := flags.Census
 	orc8rConfig := flags.Orc8r
 	graphhttpConfig := graphhttp.Config{
-		Tenancy: mySQLTenancy,
-		Logger:  logger,
-		Census:  options,
-		Orc8r:   orc8rConfig,
+		Tenancy:   mySQLTenancy,
+		Topic:     topic,
+		Subscribe: v,
+		Logger:    logger,
+		Census:    options,
+		Orc8r:     orc8rConfig,
 	}
-	server, cleanup2, err := graphhttp.NewServer(graphhttpConfig)
+	server, cleanup3, err := graphhttp.NewServer(graphhttpConfig)
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
@@ -58,14 +71,16 @@ func NewApplication(flags *cliFlags) (*application, func(), error) {
 		Orc8r:   orc8rConfig,
 		Tenancy: mySQLTenancy,
 	}
-	grpcServer, cleanup3, err := graphgrpc.NewServer(graphgrpcConfig)
+	grpcServer, cleanup4, err := graphgrpc.NewServer(graphgrpcConfig)
 	if err != nil {
+		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	mainApplication := newApplication(logger, server, grpcServer, flags)
 	return mainApplication, func() {
+		cleanup4()
 		cleanup3()
 		cleanup2()
 		cleanup()
@@ -74,12 +89,12 @@ func NewApplication(flags *cliFlags) (*application, func(), error) {
 
 // wire.go:
 
-func newApplication(logger log.Logger, httpserver *server.Server, grpcserver *grpc.Server, flags *cliFlags) *application {
+func newApplication(logger log.Logger, httpServer *server.Server, grpcServer *grpc.Server, flags *cliFlags) *application {
 	var app application
 	app.Logger = logger.Background()
-	app.http.Server = httpserver
+	app.http.Server = httpServer
 	app.http.addr = flags.HTTPAddress
-	app.grpc.Server = grpcserver
+	app.grpc.Server = grpcServer
 	app.grpc.addr = flags.GRPCAddress
 	return &app
 }
@@ -87,8 +102,26 @@ func newApplication(logger log.Logger, httpserver *server.Server, grpcserver *gr
 func newTenancy(logger log.Logger, dsn string) (*viewer.MySQLTenancy, error) {
 	tenancy, err := viewer.NewMySQLTenancy(dsn)
 	if err != nil {
-		return nil, errors.WithMessage(err, "creating mysql tenancy")
+		return nil, fmt.Errorf("creating mysql tenancy: %w", err)
 	}
 	mysql.SetLogger(logger)
 	return tenancy, nil
+}
+
+func newTopic(ctx context.Context, flags *cliFlags) (*pubsub.Topic, func(), error) {
+	topic, err := pubsub.OpenTopic(ctx, flags.PubSubURL)
+	if err != nil {
+		return nil, nil, fmt.Errorf("opening events topic: %w", err)
+	}
+	return topic, func() { topic.Shutdown(ctx) }, nil
+}
+
+func newSubscribeFunc(flags *cliFlags) func(context.Context) (*pubsub.Subscription, error) {
+	return func(ctx context.Context) (*pubsub.Subscription, error) {
+		subscription, err := pubsub.OpenSubscription(ctx, flags.PubSubURL)
+		if err != nil {
+			return nil, fmt.Errorf("opening events subscription: %w", err)
+		}
+		return subscription, nil
+	}
 }

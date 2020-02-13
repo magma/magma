@@ -20,11 +20,11 @@ import (
 	"strings"
 
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/security/cert"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
+	"magma/orc8r/lib/go/security/cert"
 )
 
 // Add-existing command - Creates a new Operator and its ACL from specified

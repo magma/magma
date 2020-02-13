@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"os"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/jsonpb"

@@ -18,9 +18,9 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/logger/nghttpxlogger"
 	"magma/orc8r/cloud/go/services/logger/test_init"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

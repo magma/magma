@@ -86,14 +86,14 @@ func (stq *ServiceTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	return query
 }
 
-// First returns the first ServiceType entity in the query. Returns *ErrNotFound when no servicetype was found.
+// First returns the first ServiceType entity in the query. Returns *NotFoundError when no servicetype was found.
 func (stq *ServiceTypeQuery) First(ctx context.Context) (*ServiceType, error) {
 	sts, err := stq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(sts) == 0 {
-		return nil, &ErrNotFound{servicetype.Label}
+		return nil, &NotFoundError{servicetype.Label}
 	}
 	return sts[0], nil
 }
@@ -107,14 +107,14 @@ func (stq *ServiceTypeQuery) FirstX(ctx context.Context) *ServiceType {
 	return st
 }
 
-// FirstID returns the first ServiceType id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first ServiceType id in the query. Returns *NotFoundError when no id was found.
 func (stq *ServiceTypeQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = stq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{servicetype.Label}
+		err = &NotFoundError{servicetype.Label}
 		return
 	}
 	return ids[0], nil
@@ -139,9 +139,9 @@ func (stq *ServiceTypeQuery) Only(ctx context.Context) (*ServiceType, error) {
 	case 1:
 		return sts[0], nil
 	case 0:
-		return nil, &ErrNotFound{servicetype.Label}
+		return nil, &NotFoundError{servicetype.Label}
 	default:
-		return nil, &ErrNotSingular{servicetype.Label}
+		return nil, &NotSingularError{servicetype.Label}
 	}
 }
 
@@ -164,9 +164,9 @@ func (stq *ServiceTypeQuery) OnlyID(ctx context.Context) (id string, err error) 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{servicetype.Label}
+		err = &NotFoundError{servicetype.Label}
 	default:
-		err = &ErrNotSingular{servicetype.Label}
+		err = &NotSingularError{servicetype.Label}
 	}
 	return
 }
@@ -320,8 +320,12 @@ func (stq *ServiceTypeQuery) Select(field string, fields ...string) *ServiceType
 
 func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error) {
 	var (
-		nodes []*ServiceType
-		_spec = stq.querySpec()
+		nodes       = []*ServiceType{}
+		_spec       = stq.querySpec()
+		loadedTypes = [2]bool{
+			stq.withServices != nil,
+			stq.withPropertyTypes != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &ServiceType{config: stq.config}
@@ -334,12 +338,12 @@ func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error)
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, stq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -364,13 +368,13 @@ func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error)
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.type_id
+			fk := n.service_type
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "service_type" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Services = append(node.Edges.Services, n)
 		}
@@ -396,13 +400,13 @@ func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error)
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.service_type_id
+			fk := n.service_type_property_types
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "service_type_id" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "service_type_property_types" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "service_type_id" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type_property_types" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
 		}

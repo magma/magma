@@ -7,12 +7,13 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from typing import Optional, Any, Callable, Dict, List, Type
+from typing import Any, Callable, Dict, List, Optional, Type
+
 from magma.common.service import MagmaService
-from magma.enodebd.data_models.data_model import TrParam, DataModel
+from magma.enodebd.data_models import transform_for_enb, transform_for_magma
+from magma.enodebd.data_models.data_model import DataModel, TrParam
 from magma.enodebd.data_models.data_model_parameters import ParameterName, \
     TrParameterType
-from magma.enodebd.data_models import transform_for_magma, transform_for_enb
 from magma.enodebd.device_config.enodeb_config_postprocessor import \
     EnodebConfigurationPostProcessor
 from magma.enodebd.device_config.enodeb_configuration import \
@@ -23,13 +24,12 @@ from magma.enodebd.devices.baicells_qafb import \
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_states import \
-    WaitInformState, SendGetTransientParametersState, \
-    GetParametersState, WaitGetParametersState, DeleteObjectsState, \
-    AddObjectsState, SetParameterValuesState, WaitSetParameterValuesState, \
-    WaitRebootResponseState, WaitInformMRebootState, EnodebAcsState, \
-    WaitEmptyMessageState, ErrorState, \
-    EndSessionState, BaicellsSendRebootState, GetRPCMethodsState
+from magma.enodebd.state_machines.enb_acs_states import AddObjectsState, \
+    BaicellsSendRebootState, DeleteObjectsState, EndSessionState, \
+    EnodebAcsState, ErrorState, GetParametersState, GetRPCMethodsState, \
+    SendGetTransientParametersState, SetParameterValuesState, \
+    WaitEmptyMessageState, WaitGetParametersState, WaitInformMRebootState, \
+    WaitInformState, WaitRebootResponseState, WaitSetParameterValuesState
 
 
 class BaicellsQAFAHandler(BasicEnodebAcsStateMachine):
@@ -69,7 +69,7 @@ class BaicellsQAFAHandler(BasicEnodebAcsStateMachine):
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty', when_timeout='wait_inform'),
             # The states below are entered when an unexpected message type is
             # received
-            'unexpected_fault': ErrorState(self),
+            'unexpected_fault': ErrorState(self, inform_transition_target='wait_inform'),
         }
 
     @property

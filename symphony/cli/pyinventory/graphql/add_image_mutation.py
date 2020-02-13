@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
@@ -46,6 +47,11 @@ class ImageEntity(Enum):
     WORK_ORDER = "WORK_ORDER"
     SITE_SURVEY = "SITE_SURVEY"
     EQUIPMENT = "EQUIPMENT"
+    MISSING_ENUM = ""
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.MISSING_ENUM
 
 
 @dataclass_json
@@ -86,7 +92,7 @@ class AddImageMutation:
         addImage: Optional[File] = None
 
     data: Optional[AddImageMutationData] = None
-    errors: Any = None
+    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

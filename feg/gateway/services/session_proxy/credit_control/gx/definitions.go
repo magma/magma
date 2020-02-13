@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"magma/feg/gateway/services/session_proxy/credit_control"
+	"magma/lte/cloud/go/protos"
 )
 
 type MonitoringLevel uint8
@@ -48,6 +49,7 @@ type CreditControlRequest struct {
 	HardwareAddr  []byte
 	IPCANType     credit_control.IPCANType
 	RATType       credit_control.RATType
+	TgppCtx       *protos.TgppContext
 }
 
 type QosRequestInfo struct {
@@ -64,6 +66,7 @@ type CreditControlAnswer struct {
 	ResultCode             uint32
 	ExperimentalResultCode uint32
 	SessionID              string
+	OriginHost             string
 	RequestNumber          uint32
 	RuleInstallAVP         []*RuleInstallAVP
 	RuleRemoveAVP          []*RuleRemoveAVP
@@ -148,6 +151,7 @@ type CCADiameterMessage struct {
 	SessionID          string `avp:"Session-Id"`
 	RequestNumber      uint32 `avp:"CC-Request-Number"`
 	ResultCode         uint32 `avp:"Result-Code"`
+	OriginHost         string `avp:"Origin-Host"`
 	ExperimentalResult struct {
 		VendorId               uint32 `avp:"Vendor-Id"`
 		ExperimentalResultCode uint32 `avp:"Experimental-Result-Code"`
@@ -191,6 +195,7 @@ type CCADiameterMessage struct {
 //					*[ AVP ]
 type ReAuthRequest struct {
 	SessionID        string                 `avp:"Session-Id"`
+	OriginHost       string                 `avp:"Origin-Host"`
 	RulesToRemove    []*RuleRemoveAVP       `avp:"Charging-Rule-Remove"`
 	RulesToInstall   []*RuleInstallAVP      `avp:"Charging-Rule-Install"`
 	Qos              *QosInformation        `avp:"QoS-Information"`

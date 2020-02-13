@@ -306,7 +306,7 @@ func (m *importer) newReader(key string, req *http.Request) ([]string, *reader, 
 	}
 	r, err := m.charsetReader(f, hdr.Header, textproto.MIMEHeader(req.Header))
 	if err != nil {
-		m.log.For(req.Context()).Warn("cannot detect mime charset", zap.Error(err))
+		m.logger.For(req.Context()).Warn("cannot detect mime charset", zap.Error(err))
 		r, err = charset.NewReader(f, req.Header.Get("Content-Type"))
 	}
 	if err != nil {
@@ -360,18 +360,6 @@ func (m *importer) getOrCreatePropTypeForEquipment(ctx context.Context, eTypeID 
 			Save(ctx)
 	}
 	return ptype, err
-}
-
-// nolint: unparam
-func (m *importer) updateMapTypeForLocationType(ctx context.Context, lTypeID string, mapType string, zoomLvl int) error {
-	lt, err := m.ClientFrom(ctx).LocationType.Query().
-		Where(locationtype.ID(lTypeID)).
-		Only(ctx)
-	if !ent.IsNotFound(err) {
-		_, err = m.ClientFrom(ctx).LocationType.UpdateOne(lt).SetMapType(mapType).SetMapZoomLevel(zoomLvl).
-			Save(ctx)
-	}
-	return err
 }
 
 func (m *importer) trimLine(line []string) []string {

@@ -15,12 +15,88 @@
 
 namespace magma {
 
+std::unique_ptr<SessionState> SessionState::unmarshal(
+  const StoredSessionState &marshaled, StaticRuleStore &rule_store)
+{
+  return std::make_unique<SessionState>(marshaled, rule_store);
+}
+
+StoredSessionState SessionState::marshal()
+{
+  StoredSessionState marshaled{};
+
+  StoredSessionConfig config{};
+  config.ue_ipv4 = config_.ue_ipv4;
+  config.spgw_ipv4 = config_.spgw_ipv4;
+  config.msisdn = config_.msisdn;
+  config.apn = config_.apn;
+  config.imei = config_.apn;
+  config.plmn_id = config_.plmn_id;
+  config.imsi_plmn_id = config_.imsi_plmn_id;
+  config.user_location = config_.user_location;
+  config.rat_type = config_.rat_type;
+  config.mac_addr = config_.mac_addr; // MAC Address for WLAN
+  config.hardware_addr = config_.hardware_addr; // MAC Address for WLAN (binary)
+  config.radius_session_id = config_.radius_session_id;
+  config.bearer_id = config_.bearer_id;
+  StoredQoSInfo qos_info{};
+  qos_info.enabled = config_.qos_info.enabled;
+  qos_info.qci = config_.qos_info.qci;
+  config.qos_info = qos_info;
+
+  marshaled.config = config;
+  marshaled.rules = session_rules_.marshal();
+  marshaled.charging_pool = charging_pool_.marshal();
+  marshaled.monitor_pool = monitor_pool_.marshal();
+  marshaled.imsi = imsi_;
+  marshaled.session_id = session_id_;
+  marshaled.core_session_id = core_session_id_;
+
+  return marshaled;
+}
+
+SessionState::SessionState(
+  const StoredSessionState &marshaled,
+  StaticRuleStore &rule_store):
+  request_number_(2),
+  curr_state_(SESSION_ACTIVE),
+  session_rules_(marshaled.rules, rule_store),
+  charging_pool_(std::move(*ChargingCreditPool::unmarshal(marshaled.charging_pool))),
+  monitor_pool_(std::move(*UsageMonitoringCreditPool::unmarshal(marshaled.monitor_pool)))
+{
+SessionState::Config cfg{};
+  StoredSessionConfig marshaled_cfg = marshaled.config;
+  cfg.ue_ipv4 = marshaled_cfg.ue_ipv4;
+  cfg.spgw_ipv4 = marshaled_cfg.spgw_ipv4;
+  cfg.msisdn = marshaled_cfg.msisdn;
+  cfg.apn = marshaled_cfg.apn;
+  cfg.imei = marshaled_cfg.apn;
+  cfg.plmn_id = marshaled_cfg.plmn_id;
+  cfg.imsi_plmn_id = marshaled_cfg.imsi_plmn_id;
+  cfg.user_location = marshaled_cfg.user_location;
+  cfg.rat_type = marshaled_cfg.rat_type;
+  cfg.mac_addr = marshaled_cfg.mac_addr; // MAC Address for WLAN
+  cfg.hardware_addr = marshaled_cfg.hardware_addr; // MAC Address for WLAN (binary)
+  cfg.radius_session_id = marshaled_cfg.radius_session_id;
+  cfg.bearer_id = marshaled_cfg.bearer_id;
+  SessionState::QoSInfo qos_info{};
+  qos_info.enabled = marshaled_cfg.qos_info.enabled;
+  qos_info.qci = marshaled_cfg.qos_info.qci;
+  cfg.qos_info = qos_info;
+  config_ = cfg;
+
+  imsi_ = marshaled.imsi;
+  session_id_ = marshaled.session_id;
+  core_session_id_ = marshaled.core_session_id;
+}
+
 SessionState::SessionState(
   const std::string& imsi,
   const std::string& session_id,
   const std::string& core_session_id,
   const SessionState::Config& cfg,
-  StaticRuleStore& rule_store):
+  StaticRuleStore& rule_store,
+  const magma::lte::TgppContext& tgpp_context):
   imsi_(imsi),
   session_id_(session_id),
   core_session_id_(core_session_id),
@@ -30,7 +106,8 @@ SessionState::SessionState(
   curr_state_(SESSION_ACTIVE),
   session_rules_(rule_store),
   charging_pool_(imsi),
-  monitor_pool_(imsi)
+  monitor_pool_(imsi),
+  tgpp_context_(tgpp_context)
 {
 }
 
@@ -78,6 +155,17 @@ void SessionState::add_used_credit(
   }
 }
 
+void SessionState::set_monitoring_quota_state(
+    const magma::lte::SubscriberQuotaUpdate_Type state)
+{
+  monitoring_quota_state_ = state;
+}
+
+bool SessionState::active_monitored_rules_exist()
+{
+  return session_rules_.total_monitored_rules_count() > 0;
+}
+
 void SessionState::get_updates_from_charging_pool(
   UpdateSessionRequest& update_request_out,
   std::vector<std::unique_ptr<ServiceAction>>* actions_out)
@@ -101,6 +189,7 @@ void SessionState::get_updates_from_charging_pool(
     new_req->set_user_location(config_.user_location);
     new_req->set_hardware_addr(config_.hardware_addr);
     new_req->set_rat_type(config_.rat_type);
+    fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
     new_req->mutable_usage()->CopyFrom(update);
     request_number_++;
   }
@@ -122,6 +211,7 @@ void SessionState::get_updates_from_monitor_pool(
     new_req->set_ue_ipv4(config_.ue_ipv4);
     new_req->set_hardware_addr(config_.hardware_addr);
     new_req->set_rat_type(config_.rat_type);
+    fill_protos_tgpp_context(new_req->mutable_tgpp_ctx());
     new_req->mutable_update()->CopyFrom(update);
     request_number_++;
   }
@@ -177,6 +267,7 @@ void SessionState::complete_termination()
   termination.set_user_location(config_.user_location);
   termination.set_hardware_addr(config_.hardware_addr);
   termination.set_rat_type(config_.rat_type);
+  fill_protos_tgpp_context(termination.mutable_tgpp_ctx());
   monitor_pool_.get_termination_updates(&termination);
   charging_pool_.get_termination_updates(&termination);
   try {
@@ -291,6 +382,16 @@ uint32_t SessionState::get_bearer_id()
 bool SessionState::qos_enabled()
 {
   return config_.qos_info.enabled;
+}
+
+void SessionState::set_tgpp_context(const magma::lte::TgppContext& tgpp_context)
+{
+  tgpp_context_ = tgpp_context;
+}
+
+void SessionState::fill_protos_tgpp_context(
+  magma::lte::TgppContext* tgpp_context) {
+  *tgpp_context = tgpp_context_;
 }
 
 } // namespace magma

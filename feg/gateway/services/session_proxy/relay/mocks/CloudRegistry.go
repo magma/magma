@@ -14,7 +14,7 @@ import (
 	"log"
 	"time"
 
-	"magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/lib/go/service/config"
 
 	"google.golang.org/grpc"
 )

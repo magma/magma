@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.1" />
+<meta name="generator" content="pdoc 0.7.2" />
 <title>pyinventory.consts API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -61,13 +61,17 @@
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Document(id, name, parentId, parentEntity)</p></section>
+<section class="desc"><p>Document(id, name, parentId, parentEntity, category)</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="pyinventory.consts.Document.category"><code class="name">var <span class="ident">category</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 4</p></section>
+</dd>
 <dt id="pyinventory.consts.Document.id"><code class="name">var <span class="ident">id</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 0</p></section>
@@ -123,6 +127,28 @@
 <dt id="pyinventory.consts.EquipmentPort.id"><code class="name">var <span class="ident">id</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 0</p></section>
+</dd>
+</dl>
+</dd>
+<dt id="pyinventory.consts.EquipmentPortType"><code class="flex name class">
+<span>class <span class="ident">EquipmentPortType</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>EquipmentPortType(id, name)</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.tuple</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pyinventory.consts.EquipmentPortType.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 0</p></section>
+</dd>
+<dt id="pyinventory.consts.EquipmentPortType.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 1</p></section>
 </dd>
 </dl>
 </dd>
@@ -217,7 +243,7 @@
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Location(name, id, externalId)</p></section>
+<section class="desc"><p>Location(name, id, latitude, longitude, externalId, locationTypeName)</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
@@ -226,11 +252,23 @@
 <dl>
 <dt id="pyinventory.consts.Location.externalId"><code class="name">var <span class="ident">externalId</span></code></dt>
 <dd>
-<section class="desc"><p>Alias for field number 2</p></section>
+<section class="desc"><p>Alias for field number 4</p></section>
 </dd>
 <dt id="pyinventory.consts.Location.id"><code class="name">var <span class="ident">id</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 1</p></section>
+</dd>
+<dt id="pyinventory.consts.Location.latitude"><code class="name">var <span class="ident">latitude</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 2</p></section>
+</dd>
+<dt id="pyinventory.consts.Location.locationTypeName"><code class="name">var <span class="ident">locationTypeName</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 5</p></section>
+</dd>
+<dt id="pyinventory.consts.Location.longitude"><code class="name">var <span class="ident">longitude</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 3</p></section>
 </dd>
 <dt id="pyinventory.consts.Location.name"><code class="name">var <span class="ident">name</span></code></dt>
 <dd>
@@ -449,6 +487,7 @@
 <li>
 <h4><code><a title="pyinventory.consts.Document" href="#pyinventory.consts.Document">Document</a></code></h4>
 <ul class="">
+<li><code><a title="pyinventory.consts.Document.category" href="#pyinventory.consts.Document.category">category</a></code></li>
 <li><code><a title="pyinventory.consts.Document.id" href="#pyinventory.consts.Document.id">id</a></code></li>
 <li><code><a title="pyinventory.consts.Document.name" href="#pyinventory.consts.Document.name">name</a></code></li>
 <li><code><a title="pyinventory.consts.Document.parentEntity" href="#pyinventory.consts.Document.parentEntity">parentEntity</a></code></li>
@@ -466,6 +505,13 @@
 <h4><code><a title="pyinventory.consts.EquipmentPort" href="#pyinventory.consts.EquipmentPort">EquipmentPort</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.consts.EquipmentPort.id" href="#pyinventory.consts.EquipmentPort.id">id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyinventory.consts.EquipmentPortType" href="#pyinventory.consts.EquipmentPortType">EquipmentPortType</a></code></h4>
+<ul class="">
+<li><code><a title="pyinventory.consts.EquipmentPortType.id" href="#pyinventory.consts.EquipmentPortType.id">id</a></code></li>
+<li><code><a title="pyinventory.consts.EquipmentPortType.name" href="#pyinventory.consts.EquipmentPortType.name">name</a></code></li>
 </ul>
 </li>
 <li>
@@ -496,9 +542,12 @@
 </li>
 <li>
 <h4><code><a title="pyinventory.consts.Location" href="#pyinventory.consts.Location">Location</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="pyinventory.consts.Location.externalId" href="#pyinventory.consts.Location.externalId">externalId</a></code></li>
 <li><code><a title="pyinventory.consts.Location.id" href="#pyinventory.consts.Location.id">id</a></code></li>
+<li><code><a title="pyinventory.consts.Location.latitude" href="#pyinventory.consts.Location.latitude">latitude</a></code></li>
+<li><code><a title="pyinventory.consts.Location.locationTypeName" href="#pyinventory.consts.Location.locationTypeName">locationTypeName</a></code></li>
+<li><code><a title="pyinventory.consts.Location.longitude" href="#pyinventory.consts.Location.longitude">longitude</a></code></li>
 <li><code><a title="pyinventory.consts.Location.name" href="#pyinventory.consts.Location.name">name</a></code></li>
 </ul>
 </li>
@@ -563,7 +612,7 @@
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>

@@ -7,12 +7,13 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from typing import Optional, Callable, Any, Dict, List, Type
+from typing import Any, Callable, Dict, List, Optional, Type
+
 from magma.common.service import MagmaService
-from magma.enodebd.data_models.data_model import TrParam, DataModel
+from magma.enodebd.data_models import transform_for_enb, transform_for_magma
+from magma.enodebd.data_models.data_model import DataModel, TrParam
 from magma.enodebd.data_models.data_model_parameters import ParameterName, \
     TrParameterType
-from magma.enodebd.data_models import transform_for_magma, transform_for_enb
 from magma.enodebd.device_config.enodeb_config_postprocessor import \
     EnodebConfigurationPostProcessor
 from magma.enodebd.device_config.enodeb_configuration import \
@@ -20,15 +21,15 @@ from magma.enodebd.device_config.enodeb_configuration import \
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_states import EnodebAcsState, \
-    WaitInformState, SendGetTransientParametersState, \
-    WaitGetTransientParametersState, GetParametersState, \
-    WaitGetParametersState, GetObjectParametersState, \
-    WaitGetObjectParametersState, DeleteObjectsState, AddObjectsState, \
-    SetParameterValuesState, WaitSetParameterValuesState, \
-    BaicellsSendRebootState, WaitRebootResponseState, WaitInformMRebootState, \
-    CheckOptionalParamsState, WaitEmptyMessageState, ErrorState, \
-    EndSessionState, BaicellsRemWaitState
+from magma.enodebd.state_machines.enb_acs_states import AddObjectsState, \
+    BaicellsRemWaitState, BaicellsSendRebootState, CheckOptionalParamsState, \
+    DeleteObjectsState, EndSessionState, EnodebAcsState, ErrorState, \
+    GetObjectParametersState, GetParametersState, \
+    SendGetTransientParametersState, SetParameterValuesState, \
+    WaitEmptyMessageState, WaitGetObjectParametersState, \
+    WaitGetParametersState, WaitGetTransientParametersState, \
+    WaitInformMRebootState, WaitInformState, WaitRebootResponseState, \
+    WaitSetParameterValuesState
 
 
 class BaicellsHandler(BasicEnodebAcsStateMachine):
@@ -73,7 +74,7 @@ class BaicellsHandler(BasicEnodebAcsStateMachine):
             'wait_empty_post_reboot': WaitEmptyMessageState(self, when_done='get_transient_params', when_missing='check_optional_params'),
             # The states below are entered when an unexpected message type is
             # received
-            'unexpected_fault': ErrorState(self),
+            'unexpected_fault': ErrorState(self, inform_transition_target='wait_inform'),
         }
 
     @property

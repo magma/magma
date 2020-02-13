@@ -91,7 +91,7 @@ typedef volatile enum task_state_s {
 
 /* This list acts as a FIFO of messages received by tasks (RRC, NAS, ...) */
 typedef struct message_list_s {
-  MessageDef *msg; ///< Pointer to the message
+  MessageDef* msg; ///< Pointer to the message
 
   message_number_t message_number; ///< Unique message number
   uint32_t message_priority;       ///< Message priority
@@ -120,12 +120,12 @@ typedef struct task_desc_s {
    */
   struct lfds710_queue_bmm_state message_queue
     __attribute__((aligned(LFDS710_PAL_ATOMIC_ISOLATION_IN_BYTES)));
-  struct lfds710_queue_bmm_element *qbmme;
+  struct lfds710_queue_bmm_element* qbmme;
 } task_desc_t;
 
 typedef struct itti_desc_s {
-  thread_desc_t *threads;
-  task_desc_t *tasks;
+  thread_desc_t* threads;
+  task_desc_t* tasks;
 
   /*
    * Current message number. Incremented every call to send_msg_to_task
@@ -139,8 +139,8 @@ typedef struct itti_desc_s {
   bool thread_handling_signals;
   pthread_t thread_ref;
 
-  const task_info_t *tasks_info;
-  const message_info_t *messages_info;
+  const task_info_t* tasks_info;
+  const message_info_t* messages_info;
 
   int running;
 
@@ -158,7 +158,7 @@ static itti_desc_t itti_desc;
  * \param size size of the payload to send
  * @returns NULL in case of failure or newly allocated mesage ref
  **/
-MessageDef *itti_alloc_new_message_sized(
+MessageDef* itti_alloc_new_message_sized(
   task_id_t origin_task_id,
   MessagesIds message_id,
   MessageHeaderSize size);
@@ -167,23 +167,23 @@ MessageDef *itti_alloc_new_message_sized(
  \param message_p Pointer to the message to send
  @returns < 0 on failure, 0 otherwise
  **/
-int itti_send_broadcast_message(MessageDef *message_p);
+int itti_send_broadcast_message(MessageDef* message_p);
 
-void *itti_malloc(
+void* itti_malloc(
   task_id_t origin_task_id,
   task_id_t destination_task_id,
   ssize_t size)
 {
-  void *ptr = NULL;
+  void* ptr = NULL;
 
   ptr = memory_pools_allocate(
     itti_desc.memory_pools_handle, size, origin_task_id, destination_task_id);
 
   if (ptr == NULL) {
-    char *statistics = memory_pools_statistics(itti_desc.memory_pools_handle);
+    char* statistics = memory_pools_statistics(itti_desc.memory_pools_handle);
 
     OAILOG_ERROR(LOG_ITTI, " Memory pools statistics:\n%s", statistics);
-    free_wrapper((void **) &statistics);
+    free_wrapper((void**) &statistics);
 
     Fatal(
       "Memory allocation of %d bytes failed (%d -> %d)!\n",
@@ -195,7 +195,7 @@ void *itti_malloc(
   return ptr;
 }
 
-void itti_free(task_id_t task_id, void *ptr)
+void itti_free(task_id_t task_id, void* ptr)
 {
   int rc = EXIT_SUCCESS;
 
@@ -227,7 +227,7 @@ static inline uint32_t itti_get_message_priority(MessagesIds message_id)
   return (itti_desc.messages_info[message_id].priority);
 }
 
-const char *itti_get_message_name(MessagesIds message_id)
+const char* itti_get_message_name(MessagesIds message_id)
 {
   AssertFatal(
     message_id < itti_desc.messages_id_max,
@@ -237,7 +237,7 @@ const char *itti_get_message_name(MessagesIds message_id)
   return (itti_desc.messages_info[message_id].name);
 }
 
-const char *itti_get_task_name(task_id_t task_id)
+const char* itti_get_task_name(task_id_t task_id)
 {
   if (itti_desc.task_max > 0) {
     AssertFatal(
@@ -269,7 +269,7 @@ static task_id_t itti_get_current_task_id(void)
   return TASK_UNKNOWN;
 }
 
-int itti_send_broadcast_message(MessageDef *message_p)
+int itti_send_broadcast_message(MessageDef* message_p)
 {
   task_id_t destination_task_id;
   task_id_t origin_task_id;
@@ -285,7 +285,7 @@ int itti_send_broadcast_message(MessageDef *message_p)
 
   for (thread_id = THREAD_FIRST; thread_id < itti_desc.thread_max;
        thread_id++) {
-    MessageDef *new_message_p;
+    MessageDef* new_message_p;
 
     while (thread_id != TASK_GET_THREAD_ID(destination_task_id)) {
       destination_task_id++;
@@ -322,12 +322,12 @@ int itti_send_broadcast_message(MessageDef *message_p)
   return ret;
 }
 
-MessageDef *itti_alloc_new_message_sized(
+MessageDef* itti_alloc_new_message_sized(
   task_id_t origin_task_id,
   MessagesIds message_id,
   MessageHeaderSize size)
 {
-  MessageDef *new_msg = NULL;
+  MessageDef* new_msg = NULL;
 
   AssertFatal(
     message_id < itti_desc.messages_id_max,
@@ -355,7 +355,7 @@ MessageDef *itti_alloc_new_message_sized(
   return new_msg;
 }
 
-MessageDef *itti_alloc_new_message(
+MessageDef* itti_alloc_new_message(
   task_id_t origin_task_id,
   MessagesIds message_id)
 {
@@ -366,11 +366,11 @@ MessageDef *itti_alloc_new_message(
 int itti_send_msg_to_task(
   task_id_t destination_task_id,
   instance_t instance,
-  MessageDef *message)
+  MessageDef* message)
 {
   thread_id_t destination_thread_id;
   task_id_t origin_task_id;
-  message_list_t *new;
+  message_list_t* new;
   uint32_t priority;
   message_number_t message_number;
   uint32_t message_id;
@@ -433,7 +433,7 @@ int itti_send_msg_to_task(
       /*
        * Allocate new list element
        */
-      new = (message_list_t *) itti_malloc(
+      new = (message_list_t*) itti_malloc(
         origin_task_id, destination_task_id, sizeof(struct message_list_s));
       /*
        * Fill in members
@@ -490,10 +490,10 @@ int itti_send_msg_to_task(
   return 0;
 }
 
-void itti_receive_msg(task_id_t task_id, MessageDef **received_msg)
+void itti_receive_msg(task_id_t task_id, MessageDef** received_msg)
 {
   thread_id_t thread_id;
-  struct message_list_s *message = NULL;
+  struct message_list_s* message = NULL;
   eventfd_t sem_counter;
   ssize_t n_read;
 
@@ -520,8 +520,9 @@ void itti_receive_msg(task_id_t task_id, MessageDef **received_msg)
 
   if (
     lfds710_queue_bmm_dequeue(
-      &itti_desc.tasks[task_id].message_queue, NULL, (void **) &message) == 0) {
-    OAILOG_WARNING(LOG_ITTI,
+      &itti_desc.tasks[task_id].message_queue, NULL, (void**) &message) == 0) {
+    OAILOG_WARNING(
+      LOG_ITTI,
       "No message in queue for task %d while there are %zu and some "
       "for the messages queue!\n",
       task_id,
@@ -537,8 +538,8 @@ void itti_receive_msg(task_id_t task_id, MessageDef **received_msg)
 
 int itti_create_task(
   task_id_t task_id,
-  void *(*start_routine)(void *),
-  void *args_p)
+  void* (*start_routine)(void*),
+  void* args_p)
 {
   thread_id_t thread_id = TASK_GET_THREAD_ID(task_id);
   int result = 0;
@@ -618,10 +619,10 @@ int itti_init(
   task_id_t task_max,
   thread_id_t thread_max,
   MessagesIds messages_id_max,
-  const task_info_t *tasks_info,
-  const message_info_t *messages_info,
-  const char *const messages_definition_xml,
-  const char *const dump_file_name)
+  const task_info_t* tasks_info,
+  const message_info_t* messages_info,
+  const char* const messages_definition_xml,
+  const char* const dump_file_name)
 {
   task_id_t task_id;
   thread_id_t thread_id;
@@ -721,11 +722,11 @@ int itti_init(
   memory_pools_add_pool(itti_desc.memory_pools_handle, 400, 20050);
   memory_pools_add_pool(itti_desc.memory_pools_handle, 100, 30050);
   {
-    char *statistics = memory_pools_statistics(itti_desc.memory_pools_handle);
+    char* statistics = memory_pools_statistics(itti_desc.memory_pools_handle);
 
     ITTI_DEBUG(
       ITTI_DEBUG_MP_STATISTICS, " Memory pools statistics:\n%s", statistics);
-    free_wrapper((void **) &statistics);
+    free_wrapper((void**) &statistics);
   }
 
   CHECK_INIT_RETURN(timer_init());
@@ -733,6 +734,20 @@ int itti_init(
   shared_log_itti_connect();
   OAILOG_ITTI_CONNECT();
   return 0;
+}
+
+imsi64_t itti_get_associated_imsi(MessageDef* msg)
+{
+  if (msg->ittiMsgHeader.imsi == 0) {
+    OAILOG_DEBUG(
+      LOG_ITTI,
+      "IMSI associated to msg: %d, origin task id: %d, dest task id: %d is not "
+      "set",
+      msg->ittiMsgHeader.messageId,
+      msg->ittiMsgHeader.originTaskId,
+      msg->ittiMsgHeader.destinationTaskId);
+  }
+  return msg->ittiMsgHeader.imsi;
 }
 
 void itti_wait_tasks_end(void)
@@ -801,19 +816,19 @@ void itti_wait_tasks_end(void)
   OAILOG_INFO(LOG_ITTI, "ready_tasks %d", ready_tasks);
   itti_desc.running = 0;
   {
-    char *statistics = memory_pools_statistics(itti_desc.memory_pools_handle);
+    char* statistics = memory_pools_statistics(itti_desc.memory_pools_handle);
 
     ITTI_DEBUG(
       ITTI_DEBUG_MP_STATISTICS, " Memory pools statistics:\n%s\n", statistics);
-    free_wrapper((void **) &statistics);
+    free_wrapper((void**) &statistics);
   }
 
   for (task_id = TASK_FIRST; task_id < itti_desc.task_max; task_id++) {
-    free_wrapper((void **) &itti_desc.tasks[task_id].qbmme);
+    free_wrapper((void**) &itti_desc.tasks[task_id].qbmme);
   }
 
-  free_wrapper((void **) &itti_desc.tasks);
-  free_wrapper((void **) &itti_desc.threads);
+  free_wrapper((void**) &itti_desc.tasks);
+  free_wrapper((void**) &itti_desc.threads);
 
   if (ready_tasks > 0) {
     ITTI_DEBUG(
@@ -824,7 +839,7 @@ void itti_wait_tasks_end(void)
 
 void itti_send_terminate_message(task_id_t task_id)
 {
-  MessageDef *terminate_message_p;
+  MessageDef* terminate_message_p;
 
   terminate_message_p = itti_alloc_new_message(task_id, TERMINATE_MESSAGE);
   itti_send_broadcast_message(terminate_message_p);

@@ -52,7 +52,9 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
                 ") ***",
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value)
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            )
             print(
                 "*** Authentication Request Message Received (",
                 str(i + 1),
@@ -84,8 +86,8 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
                 ") ***",
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(
-                response, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
             )
             print(
                 "*** Security Mode Command Message Received (",
@@ -112,9 +114,18 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
             print(
                 "*** Waiting for Attach Accept Message (", str(i + 1), ") ***",
             )
+            # Attach accept will be sent in ICSR only for the first time
+            # Re-transmitted Attach Accept will be sent in DL NAS transport
+            if i < 1:
+                response = self._s1ap_wrapper.s1_util.get_response()
+                self.assertEqual(
+                    response.msg_type,
+                    s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+                )
+
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(
-                response, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
             )
             print(
                 "*** Attach Accept Message Received (", str(i + 1), ") ***",

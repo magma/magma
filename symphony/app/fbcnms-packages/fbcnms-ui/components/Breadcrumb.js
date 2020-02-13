@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -57,7 +57,7 @@ export type BreadcrumbData = {
   id: string,
   name: string,
   subtext?: ?string | React.Node,
-  onClick?: ?(id: string) => void,
+  onClick?: ?(id: string, target: HTMLElement) => void,
 };
 
 type Props = {
@@ -109,7 +109,7 @@ const Breadcrumb = (props: Props) => {
           <Text
             variant={textVariant}
             className={classes.breadcrumbName}
-            onClick={() => onClick && onClick(id)}>
+            onClick={e => onClick && onClick(id, e.currentTarget)}>
             {name}
           </Text>
         </div>

@@ -34,7 +34,7 @@ func (k ChargingKey) String() string {
 
 // PolicyDBClient defines interactions with the stored policy rules
 type PolicyDBClient interface {
-	GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]ChargingKey, error)
+	GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) []ChargingKey
 	GetPolicyRuleByID(id string) (*protos.PolicyRule, error)
 	GetRuleIDsForBaseNames(baseNames []string) []string
 	// This gets a list of rules that should be active for all subscribers in the network
@@ -106,9 +106,7 @@ func (client *RedisPolicyDBClient) GetPolicyRuleByID(id string) (*protos.PolicyR
 
 // GetChargingKeysForRules retrieves the charging keys associated with the given
 // rule names from redis.
-func (client *RedisPolicyDBClient) GetChargingKeysForRules(
-	staticRuleIDs []string, dynamicRuleDefs []*protos.PolicyRule) ([]ChargingKey, error) {
-
+func (client *RedisPolicyDBClient) GetChargingKeysForRules(staticRuleIDs []string, dynamicRuleDefs []*protos.PolicyRule) []ChargingKey {
 	keys := []ChargingKey{}
 	for _, id := range staticRuleIDs {
 		policy, err := client.GetPolicyRuleByID(id)
@@ -125,7 +123,7 @@ func (client *RedisPolicyDBClient) GetChargingKeysForRules(
 			keys = append(keys, CreateChargingKey(policy))
 		}
 	}
-	return keys, nil
+	return keys
 }
 
 func (client *RedisPolicyDBClient) GetOmnipresentRules() ([]string, []string) {

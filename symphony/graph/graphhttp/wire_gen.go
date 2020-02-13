@@ -10,6 +10,7 @@
 package graphhttp
 
 import (
+	"context"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions/action/magmarebootnode"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
@@ -19,23 +20,24 @@ import (
 	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
+	"gocloud.dev/pubsub"
 	"gocloud.dev/server/health"
-	"net/http"
 )
 
 // Injectors from wire.go:
 
 func NewServer(cfg Config) (*server.Server, func(), error) {
-	mySQLTenancy := cfg.Tenancy
-	logger := cfg.Logger
-	config := cfg.Orc8r
-	client := newOrc8rClient(config)
-	registry := newActionsRegistry(client)
-	router, err := newRouter(mySQLTenancy, logger, client, registry)
+	graphhttpRouterConfig, err := newRouterConfig(cfg)
 	if err != nil {
 		return nil, nil, err
 	}
+	router, err := newRouter(graphhttpRouterConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	logger := cfg.Logger
 	zapLogger := xserver.NewRequestLogger(logger)
+	mySQLTenancy := cfg.Tenancy
 	v := newHealthChecker(mySQLTenancy)
 	v2 := xserver.DefaultViews()
 	exporter, err := xserver.NewPrometheusExporter(logger)
@@ -78,24 +80,34 @@ var (
 
 // Config defines the http server config.
 type Config struct {
-	Tenancy *viewer.MySQLTenancy
-	Logger  log.Logger
-	Census  oc.Options
-	Orc8r   orc8r.Config
+	Tenancy   *viewer.MySQLTenancy
+	Topic     *pubsub.Topic
+	Subscribe func(context.Context) (*pubsub.Subscription, error)
+	Logger    log.Logger
+	Census    oc.Options
+	Orc8r     orc8r.Config
 }
 
 func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
 }
 
-func newOrc8rClient(config orc8r.Config) *http.Client {
-	client, _ := orc8r.NewClient(config)
-	return client
-}
-
-func newActionsRegistry(orc8rClient *http.Client) *executor.Registry {
+func newRouterConfig(config Config) (cfg routerConfig, err error) {
+	client, _ := orc8r.NewClient(config.Orc8r)
 	registry := executor.NewRegistry()
-	registry.MustRegisterTrigger(magmaalert.New())
-	registry.MustRegisterAction(magmarebootnode.New(orc8rClient))
-	return registry
+	if err = registry.RegisterTrigger(magmaalert.New()); err != nil {
+		return
+	}
+	if err = registry.RegisterAction(magmarebootnode.New(client)); err != nil {
+		return
+	}
+	cfg = routerConfig{
+		tenancy: config.Tenancy,
+		logger:  config.Logger,
+	}
+	cfg.events.topic = config.Topic
+	cfg.events.subscribe = config.Subscribe
+	cfg.orc8r.client = client
+	cfg.actions.registry = registry
+	return cfg, nil
 }

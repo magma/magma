@@ -10,7 +10,7 @@ package test_utils
 
 import (
 	"magma/lte/cloud/go/protos"
-	orc8rprotos "magma/orc8r/cloud/go/protos"
+	orc8rprotos "magma/orc8r/lib/go/protos"
 )
 
 const (

@@ -31,10 +31,25 @@ type Technician struct {
 	Email string `json:"email,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TechnicianQuery when eager-loading is set.
-	Edges struct {
-		// WorkOrders holds the value of the work_orders edge.
-		WorkOrders []*WorkOrder
-	} `json:"edges"`
+	Edges TechnicianEdges `json:"edges"`
+}
+
+// TechnicianEdges holds the relations/edges for other nodes in the graph.
+type TechnicianEdges struct {
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e TechnicianEdges) WorkOrdersOrErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[0] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

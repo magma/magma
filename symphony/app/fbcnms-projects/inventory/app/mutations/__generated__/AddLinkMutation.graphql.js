@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 8123e0da6c809f1ee0e2d2eb06792355
+ * @relayHash 31840493312fa8fea53e96d631d045fe
  */
 
 /* eslint-disable */
@@ -23,6 +23,7 @@ export type AddLinkInput = {|
   sides: $ReadOnlyArray<LinkSide>,
   workOrder?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
+  serviceIds?: ?$ReadOnlyArray<string>,
 |};
 export type LinkSide = {|
   equipment: string,

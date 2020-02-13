@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  *
  * Base component for rule editors to render. Handles rendering common elements
@@ -19,7 +19,7 @@ import Editor from '../common/Editor';
 import Grid from '@material-ui/core/Grid';
 import LabelsEditor from './LabelsEditor';
 import RuleContext from './RuleContext';
-import SelectReceiver from '../prometheus/Receivers/SelectReceiver';
+import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
 import SelectRuleType from './SelectRuleType';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';

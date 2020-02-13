@@ -4,12 +4,13 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
+import FormAction from '../../../../../fbcnms-packages/fbcnms-ui/components/design-system/Form/FormAction';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import React, {useCallback, useContext} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -121,12 +122,11 @@ const WorkOrderSaveButton = (props: Props) => {
   const validationContext = useContext(FormValidationContext);
 
   return (
-    <Button
-      disabled={validationContext.error.detected}
-      tooltip={validationContext.error.message}
-      onClick={saveWorkOrder}>
-      Save
-    </Button>
+    <FormAction disabled={validationContext.error.detected}>
+      <Button tooltip={validationContext.error.message} onClick={saveWorkOrder}>
+        Save
+      </Button>
+    </FormAction>
   );
 };
 

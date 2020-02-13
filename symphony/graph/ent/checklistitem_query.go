@@ -71,14 +71,14 @@ func (cliq *CheckListItemQuery) QueryWorkOrder() *WorkOrderQuery {
 	return query
 }
 
-// First returns the first CheckListItem entity in the query. Returns *ErrNotFound when no checklistitem was found.
+// First returns the first CheckListItem entity in the query. Returns *NotFoundError when no checklistitem was found.
 func (cliq *CheckListItemQuery) First(ctx context.Context) (*CheckListItem, error) {
 	clis, err := cliq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(clis) == 0 {
-		return nil, &ErrNotFound{checklistitem.Label}
+		return nil, &NotFoundError{checklistitem.Label}
 	}
 	return clis[0], nil
 }
@@ -92,14 +92,14 @@ func (cliq *CheckListItemQuery) FirstX(ctx context.Context) *CheckListItem {
 	return cli
 }
 
-// FirstID returns the first CheckListItem id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first CheckListItem id in the query. Returns *NotFoundError when no id was found.
 func (cliq *CheckListItemQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
 	if ids, err = cliq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{checklistitem.Label}
+		err = &NotFoundError{checklistitem.Label}
 		return
 	}
 	return ids[0], nil
@@ -124,9 +124,9 @@ func (cliq *CheckListItemQuery) Only(ctx context.Context) (*CheckListItem, error
 	case 1:
 		return clis[0], nil
 	case 0:
-		return nil, &ErrNotFound{checklistitem.Label}
+		return nil, &NotFoundError{checklistitem.Label}
 	default:
-		return nil, &ErrNotSingular{checklistitem.Label}
+		return nil, &NotSingularError{checklistitem.Label}
 	}
 }
 
@@ -149,9 +149,9 @@ func (cliq *CheckListItemQuery) OnlyID(ctx context.Context) (id string, err erro
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{checklistitem.Label}
+		err = &NotFoundError{checklistitem.Label}
 	default:
-		err = &ErrNotSingular{checklistitem.Label}
+		err = &NotSingularError{checklistitem.Label}
 	}
 	return
 }
@@ -294,9 +294,12 @@ func (cliq *CheckListItemQuery) Select(field string, fields ...string) *CheckLis
 
 func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, error) {
 	var (
-		nodes   []*CheckListItem
-		withFKs = cliq.withFKs
-		_spec   = cliq.querySpec()
+		nodes       = []*CheckListItem{}
+		withFKs     = cliq.withFKs
+		_spec       = cliq.querySpec()
+		loadedTypes = [1]bool{
+			cliq.withWorkOrder != nil,
+		}
 	)
 	if cliq.withWorkOrder != nil {
 		withFKs = true
@@ -318,12 +321,12 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, cliq.driver, _spec); err != nil {
 		return nil, err
 	}
-
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
@@ -332,7 +335,7 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 		ids := make([]string, 0, len(nodes))
 		nodeids := make(map[string][]*CheckListItem)
 		for i := range nodes {
-			if fk := nodes[i].work_order_id; fk != nil {
+			if fk := nodes[i].work_order_check_list_items; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -345,7 +348,7 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "work_order_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_check_list_items" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.WorkOrder = n

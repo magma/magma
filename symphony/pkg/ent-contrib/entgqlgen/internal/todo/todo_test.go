@@ -11,8 +11,10 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/handler"
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/migrate"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/suite"
 )
@@ -48,23 +50,36 @@ func (s *todoTestSuite) SetupTest() {
 	db.SetMaxOpenConns(1)
 
 	ec := ent.NewClient(ent.Driver(sql.OpenDB(name, db)))
-	err = ec.Schema.Create(context.Background())
+	err = ec.Schema.Create(
+		context.Background(),
+		migrate.WithGlobalUniqueID(true),
+	)
 	s.Require().NoError(err)
-
 	s.Client = client.New(handler.GraphQL(
 		NewExecutableSchema(New(ec)),
 	))
 
-	var rsp struct {
-		CreateTodo struct {
-			ID string
+	var (
+		rsp struct {
+			CreateTodo struct {
+				ID string
+			}
 		}
-	}
+		root = 1
+	)
 	for i := 1; i <= maxTodos; i++ {
 		id := strconv.Itoa(i)
 		err := s.Post(
-			`mutation($text: String!) { createTodo(todo:{text: $text}) { id } }`,
-			&rsp, client.Var("text", id),
+			`mutation($text: String!, $parent: ID) { createTodo(todo:{text: $text, parent: $parent}) { id } }`,
+			&rsp, client.Var("text", id), client.Var("parent", func() *int {
+				if i == root {
+					return nil
+				}
+				if i%2 != 0 {
+					return pointer.ToInt(i - 2)
+				}
+				return &root
+			}()),
 		)
 		s.Require().NoError(err)
 		s.Require().Equal(id, rsp.CreateTodo.ID)
@@ -270,4 +285,133 @@ func (s *todoTestSuite) TestPageBackwards() {
 	s.Assert().Empty(rsp.Todos.Edges)
 	s.Assert().Empty(rsp.Todos.PageInfo.StartCursor)
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
+}
+
+func (s *todoTestSuite) TestNodeCollection() {
+	const (
+		query = `query($id: ID!) {
+			todo: node(id: $id) {
+				... on Todo {
+					parent {
+						text
+						parent {
+							text
+						}
+					}
+					children {
+						text
+						children {
+							text
+						}
+					}
+				}
+			}
+		}`
+	)
+	var rsp struct {
+		Todo struct {
+			Parent *struct {
+				Text   string
+				Parent *struct {
+					Text string
+				}
+			}
+			Children []struct {
+				Text     string
+				Children []struct {
+					Text string
+				}
+			}
+		}
+	}
+	err := s.Post(query, &rsp, client.Var("id", 1))
+	s.Require().NoError(err)
+	s.Assert().Nil(rsp.Todo.Parent)
+	s.Assert().Len(rsp.Todo.Children, maxTodos/2+1)
+	s.Assert().Condition(func() bool {
+		for _, child := range rsp.Todo.Children {
+			if child.Text == "3" {
+				s.Require().Len(child.Children, 1)
+				s.Assert().Equal("5", child.Children[0].Text)
+				return true
+			}
+		}
+		return false
+	})
+
+	err = s.Post(query, &rsp, client.Var("id", 4))
+	s.Require().NoError(err)
+	s.Require().NotNil(rsp.Todo.Parent)
+	s.Assert().Equal("1", rsp.Todo.Parent.Text)
+	s.Assert().Empty(rsp.Todo.Children)
+
+	err = s.Post(query, &rsp, client.Var("id", 5))
+	s.Require().NoError(err)
+	s.Require().NotNil(rsp.Todo.Parent)
+	s.Assert().Equal("3", rsp.Todo.Parent.Text)
+	s.Require().NotNil(rsp.Todo.Parent.Parent)
+	s.Assert().Equal("1", rsp.Todo.Parent.Parent.Text)
+	s.Require().Len(rsp.Todo.Children, 1)
+	s.Assert().Equal("7", rsp.Todo.Children[0].Text)
+}
+
+func (s *todoTestSuite) TestConnCollection() {
+	const (
+		query = `query {
+			todos {
+				edges {
+					node {
+						id
+						parent {
+							id
+						}
+						children {
+							id
+						}
+					}
+				}
+			}
+		}`
+	)
+	var rsp struct {
+		Todos struct {
+			Edges []struct {
+				Node struct {
+					ID     string
+					Parent *struct {
+						ID string
+					}
+					Children []struct {
+						ID string
+					}
+				}
+			}
+		}
+	}
+
+	err := s.Post(query, &rsp)
+	s.Require().NoError(err)
+	s.Require().Len(rsp.Todos.Edges, maxTodos)
+
+	for i, edge := range rsp.Todos.Edges {
+		switch {
+		case i == 0:
+			s.Assert().Nil(edge.Node.Parent)
+			s.Assert().Len(edge.Node.Children, maxTodos/2+1)
+		case i%2 == 0:
+			s.Require().NotNil(edge.Node.Parent)
+			id, err := strconv.Atoi(edge.Node.Parent.ID)
+			s.Require().NoError(err)
+			s.Assert().Equal(i-1, id)
+			if i < len(rsp.Todos.Edges)-2 {
+				s.Assert().Len(edge.Node.Children, 1)
+			} else {
+				s.Assert().Empty(edge.Node.Children)
+			}
+		case i%2 != 0:
+			s.Require().NotNil(edge.Node.Parent)
+			s.Assert().Equal("1", edge.Node.Parent.ID)
+			s.Assert().Empty(edge.Node.Children)
+		}
+	}
 }

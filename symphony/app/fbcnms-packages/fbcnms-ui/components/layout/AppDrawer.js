@@ -4,20 +4,20 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
 import type {ProjectLink} from './AppDrawerProjectNavigation';
 import type {TopBarContextType} from './TopBarContext';
 
+import * as React from 'react';
 import AppDrawerProjectNavigation from './AppDrawerProjectNavigation';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import Collapse from '@material-ui/core/Collapse';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import IconButton from '@material-ui/core/IconButton';
-import React, {useContext} from 'react';
 import TopBarContext from './TopBarContext';
 
 import classNames from 'classnames';
@@ -55,13 +55,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  children: any,
+  children: React.Node,
   projects?: ProjectLink[],
 };
 
 export default function AppDrawer(props: Props) {
   const classes = useStyles();
-  const topbarContext = useContext<TopBarContextType>(TopBarContext);
+  const topbarContext = React.useContext<TopBarContextType>(TopBarContext);
   const projects = props.projects || [];
 
   return (

@@ -111,9 +111,7 @@ class UbntFakeCli : public Cli {
              "Bits Per Second Received....................... 38272\n"
              "Bits Per Second Transmitted.................... 4552\n"
              "Packets Per Second Received.................... 14\n"
-             "Packets Per Second Transmitted................. 1\n"
-             "\n"
-             "Time Since Counters Last Cleared............... 7 day 1 hr 24 min 53 sec";
+             "Packets Per Second Transmitted................. 1\n";
     } else if (cmd.raw() == "show interfaces description") {
       return "\n"
              "Interface  Admin      Link    Description\n"
@@ -158,7 +156,6 @@ static const string EXPECTED_OUTPUT =
     "            \"out-errors\": 0,\n"
     "            \"out-discards\": 0,\n"
     "            \"out-broadcast-pkts\": 7628,\n"
-    "            \"last-clear\": \" 7 day 1 hr 24 min 53 sec\",\n"
     "            \"in-unicast-pkts\": 293117,\n"
     "            \"in-octets\": 427066814515,\n"
     "            \"in-multicast-pkts\": 5769311,\n"
@@ -191,7 +188,6 @@ static const string EXPECTED_OUTPUT =
     "            \"out-errors\": 0,\n"
     "            \"out-discards\": 0,\n"
     "            \"out-broadcast-pkts\": 7628,\n"
-    "            \"last-clear\": \" 7 day 1 hr 24 min 53 sec\",\n"
     "            \"in-unicast-pkts\": 293117,\n"
     "            \"in-octets\": 427066814515,\n"
     "            \"in-multicast-pkts\": 5769311,\n"
@@ -224,7 +220,6 @@ static const string EXPECTED_OUTPUT =
     "            \"out-errors\": 0,\n"
     "            \"out-discards\": 0,\n"
     "            \"out-broadcast-pkts\": 7628,\n"
-    "            \"last-clear\": \" 7 day 1 hr 24 min 53 sec\",\n"
     "            \"in-unicast-pkts\": 293117,\n"
     "            \"in-octets\": 427066814515,\n"
     "            \"in-multicast-pkts\": 5769311,\n"
@@ -257,7 +252,6 @@ static const string EXPECTED_OUTPUT =
     "            \"out-errors\": 0,\n"
     "            \"out-discards\": 0,\n"
     "            \"out-broadcast-pkts\": 7628,\n"
-    "            \"last-clear\": \" 7 day 1 hr 24 min 53 sec\",\n"
     "            \"in-unicast-pkts\": 293117,\n"
     "            \"in-octets\": 427066814515,\n"
     "            \"in-multicast-pkts\": 5769311,\n"
@@ -290,7 +284,6 @@ static const string EXPECTED_OUTPUT =
     "            \"out-errors\": 0,\n"
     "            \"out-discards\": 0,\n"
     "            \"out-broadcast-pkts\": 7628,\n"
-    "            \"last-clear\": \" 7 day 1 hr 24 min 53 sec\",\n"
     "            \"in-unicast-pkts\": 293117,\n"
     "            \"in-octets\": 427066814515,\n"
     "            \"in-multicast-pkts\": 5769311,\n"
@@ -323,7 +316,6 @@ static const string EXPECTED_OUTPUT =
     "            \"out-errors\": 0,\n"
     "            \"out-discards\": 0,\n"
     "            \"out-broadcast-pkts\": 7628,\n"
-    "            \"last-clear\": \" 7 day 1 hr 24 min 53 sec\",\n"
     "            \"in-unicast-pkts\": 293117,\n"
     "            \"in-octets\": 427066814515,\n"
     "            \"in-multicast-pkts\": 5769311,\n"
@@ -356,7 +348,6 @@ static const string EXPECTED_OUTPUT =
     "            \"out-errors\": 0,\n"
     "            \"out-discards\": 0,\n"
     "            \"out-broadcast-pkts\": 7628,\n"
-    "            \"last-clear\": \" 7 day 1 hr 24 min 53 sec\",\n"
     "            \"in-unicast-pkts\": 293117,\n"
     "            \"in-octets\": 427066814515,\n"
     "            \"in-multicast-pkts\": 5769311,\n"
@@ -389,7 +380,6 @@ static const string EXPECTED_OUTPUT =
     "            \"out-errors\": 0,\n"
     "            \"out-discards\": 0,\n"
     "            \"out-broadcast-pkts\": 7628,\n"
-    "            \"last-clear\": \" 7 day 1 hr 24 min 53 sec\",\n"
     "            \"in-unicast-pkts\": 293117,\n"
     "            \"in-octets\": 427066814515,\n"
     "            \"in-multicast-pkts\": 5769311,\n"
@@ -422,7 +412,7 @@ static const string EXPECTED_OUTPUT =
     "  }"
     "}";
 
-TEST_F(StructuredUbntDeviceTest, DISABLED_getOperationalDatastore) {
+TEST_F(StructuredUbntDeviceTest, getOperationalDatastore) {
   devmand::Application app;
   // app.init(); <-- without this app is not properly initialized
 

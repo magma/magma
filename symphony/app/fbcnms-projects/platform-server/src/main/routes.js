@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
@@ -46,6 +46,7 @@ const handleReact = tab =>
                 tenant: organization?.name,
                 email: req.user.email,
                 isSuperUser: req.user.isSuperUser,
+                isReadOnlyUser: req.user.isReadOnlyUser,
               }
             : null,
           enabledFeatures: await getEnabledFeatures(req, organization?.name),

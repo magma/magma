@@ -7,14 +7,14 @@ from itertools import combinations
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from dacite import from_dict
+from dacite import Config, from_dict
 from gql.gql.client import OperationException
 from xlsxwriter.format import Format
 from xlsxwriter.utility import xl_col_to_name
 from xlsxwriter.workbook import Workbook
 from xlsxwriter.worksheet import Worksheet
 
-from ._image import add_site_survey_image, delete_site_survey_image
+from .api.file import add_site_survey_image, delete_site_survey_image
 from .consts import Location, SiteSurvey
 from .graphql.create_survey_mutation import (
     CreateSurveyMutation,
@@ -752,7 +752,9 @@ def upload_site_survey(
         "surveyResponses": _get_survey_reponses(excel_file_path, json_file_path),
     }
     create_survey_variables = {
-        "data": from_dict(data_class=SurveyCreateData, data=data_variables)
+        "data": from_dict(
+            data_class=SurveyCreateData, data=data_variables, config=Config(strict=True)
+        )
     }
 
     try:

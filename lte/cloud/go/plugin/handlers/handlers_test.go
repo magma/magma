@@ -26,8 +26,6 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/security/key"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
@@ -37,6 +35,8 @@ import (
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/security/key"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -793,7 +793,7 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
-func Test_PutNetworkSubscriberConfigHandlers(t *testing.T) {
+func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
@@ -807,22 +807,50 @@ func Test_PutNetworkSubscriberConfigHandlers(t *testing.T) {
 	putSubscriberConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config", obsidian.PUT).HandlerFunc
 	putRuleNames := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/rule_names", obsidian.PUT).HandlerFunc
 	putBaseNames := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/base_names", obsidian.PUT).HandlerFunc
+	postRuleName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/rule_names/:rule_id", obsidian.POST).HandlerFunc
+	postBaseName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/base_names/:base_name", obsidian.POST).HandlerFunc
+	deleteRuleName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/rule_names/:rule_id", obsidian.DELETE).HandlerFunc
+	deleteBaseName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/base_names/:base_name", obsidian.DELETE).HandlerFunc
 
 	subscriberConfig := &lteModels.NetworkSubscriberConfig{
 		NetworkWideBaseNames: []lteModels.BaseName{"base1"},
 		NetworkWideRuleNames: []string{"rule1"},
 	}
 
-	// 404
+	// non-existent network id
 	tc := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/", testURLRoot, "n32"),
+		Payload:        tests.JSONMarshaler(subscriberConfig.NetworkWideBaseNames),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n32"},
+		Handler:        putBaseNames,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/rule_names/", testURLRoot, "n32"),
+		Payload:        tests.JSONMarshaler(subscriberConfig.NetworkWideRuleNames),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n32"},
+		Handler:        putRuleNames,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// add to non existent config
+	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/", testURLRoot, "n1"),
 		Payload:        tests.JSONMarshaler(subscriberConfig.NetworkWideBaseNames),
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        putBaseNames,
-		ExpectedStatus: 400,
-		ExpectedError:  "No Subscriber Config registered for this network",
+		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
 	tc = tests.Test{
@@ -832,12 +860,12 @@ func Test_PutNetworkSubscriberConfigHandlers(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        putRuleNames,
-		ExpectedStatus: 400,
-		ExpectedError:  "No Subscriber Config registered for this network",
+		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-
-	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, subscriberConfig))
+	iSubscriberConfig, err := configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	assert.NoError(t, err)
+	assert.Equal(t, subscriberConfig, iSubscriberConfig.(*lteModels.NetworkSubscriberConfig))
 
 	newRuleNames := []string{"rule2"}
 	// happy case
@@ -867,7 +895,7 @@ func Test_PutNetworkSubscriberConfigHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	iSubscriberConfig, err := configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
 	assert.NoError(t, err)
 	actualSubscriberConfig := iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
 
@@ -895,6 +923,72 @@ func Test_PutNetworkSubscriberConfigHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	actualSubscriberConfig = iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
 
+	assert.Equal(t, newSubscriberConfig, actualSubscriberConfig)
+
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/rule_names/%s", testURLRoot, "n1", "rule4"),
+		Payload:        tests.JSONMarshaler(newSubscriberConfig),
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "rule4"},
+		Handler:        postRuleName,
+		ExpectedStatus: 201,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/%s", testURLRoot, "n1", "base4"),
+		Payload:        tests.JSONMarshaler(newSubscriberConfig),
+		ParamNames:     []string{"network_id", "base_name"},
+		ParamValues:    []string{"n1", "base4"},
+		Handler:        postBaseName,
+		ExpectedStatus: 201,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	newSubscriberConfig = &lteModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []lteModels.BaseName{"base3", "base4"},
+		NetworkWideRuleNames: []string{"rule3", "rule4"},
+	}
+	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	assert.NoError(t, err)
+	actualSubscriberConfig = iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+	assert.Equal(t, newSubscriberConfig, actualSubscriberConfig)
+
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/rule_names/%s", testURLRoot, "n1", "rule4"),
+		Payload:        tests.JSONMarshaler(newSubscriberConfig),
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "rule4"},
+		Handler:        deleteRuleName,
+		ExpectedStatus: 204,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/%s", testURLRoot, "n1", "base4"),
+		Payload:        tests.JSONMarshaler(newSubscriberConfig),
+		ParamNames:     []string{"network_id", "base_name"},
+		ParamValues:    []string{"n1", "base4"},
+		Handler:        deleteBaseName,
+		ExpectedStatus: 204,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	newSubscriberConfig = &lteModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []lteModels.BaseName{"base3"},
+		NetworkWideRuleNames: []string{"rule3"},
+	}
+	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	assert.NoError(t, err)
+	actualSubscriberConfig = iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
 	assert.Equal(t, newSubscriberConfig, actualSubscriberConfig)
 }
 

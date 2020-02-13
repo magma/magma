@@ -9,8 +9,8 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher/broker"
+	"magma/orc8r/lib/go/protos"
 )
 
 // A little Go "polymorphism" magic for testing

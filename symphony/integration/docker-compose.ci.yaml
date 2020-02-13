@@ -53,7 +53,7 @@ services:
   graph:
     image: ${DOCKER_REGISTRY}/graph:${TAG}
     environment:
-      MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true
+      MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true&interpolateParams=true
     env_file: *env_file
     depends_on:
       - mysql
@@ -73,7 +73,8 @@ services:
     restart: on-failure
 
   mysql:
-    image: mysql:5.7
+    image: mysql:8.0.18
+    command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: auth
@@ -81,7 +82,7 @@ services:
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: mysqladmin ping -proot
-    restart: on-failure
+    restart: always
 
   minio:
     image: minio/minio

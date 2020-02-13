@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash f5b1748a95e53583f1f6f2ec59d0cfef
+ * @relayHash 1a3e933bcb237418193525a8665479d1
  */
 
 /* eslint-disable */
@@ -24,6 +24,7 @@ export type EquipmentFilterInput = {|
   stringValue?: ?string,
   propertyValue?: ?PropertyTypeInput,
   idSet?: ?$ReadOnlyArray<string>,
+  stringSet?: ?$ReadOnlyArray<string>,
   maxDepth?: ?number,
 |};
 export type PropertyTypeInput = {|

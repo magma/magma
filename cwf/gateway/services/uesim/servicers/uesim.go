@@ -15,7 +15,7 @@ import (
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
@@ -39,17 +39,18 @@ type UESimServer struct {
 }
 
 type UESimConfig struct {
-	op            []byte
-	amf           []byte
-	radiusAddress string
-	radiusSecret  string
-	brMac         string
+	op                []byte
+	amf               []byte
+	radiusAuthAddress string
+	radiusAcctAddress string
+	radiusSecret      string
+	brMac             string
 }
 
 // NewUESimServer initializes a UESimServer with an empty store map.
 // Output: a new UESimServer
 func NewUESimServer(factory blobstore.BlobStorageFactory) (*UESimServer, error) {
-	config, err := GetUESimConfig()
+	config, err := getUESimConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -104,27 +105,27 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaIDReq, err := radius.Exchange(context.Background(), &eapIDResp, srv.cfg.radiusAddress)
+	akaIDReq, err := radius.Exchange(context.Background(), eapIDResp, srv.cfg.radiusAuthAddress)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaIDResp, err := srv.HandleRadius(id.GetImsi(), radius.Packet(*akaIDReq))
+	akaIDResp, err := srv.HandleRadius(id.GetImsi(), akaIDReq)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaChalReq, err := radius.Exchange(context.Background(), &akaIDResp, srv.cfg.radiusAddress)
+	akaChalReq, err := radius.Exchange(context.Background(), akaIDResp, srv.cfg.radiusAuthAddress)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaChalResp, err := srv.HandleRadius(id.GetImsi(), radius.Packet(*akaChalReq))
+	akaChalResp, err := srv.HandleRadius(id.GetImsi(), akaChalReq)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	result, err := radius.Exchange(context.Background(), &akaChalResp, srv.cfg.radiusAddress)
+	result, err := radius.Exchange(context.Background(), akaChalResp, srv.cfg.radiusAuthAddress)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
@@ -136,6 +137,22 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 	radiusPacket := &cwfprotos.AuthenticateResponse{RadiusPacket: resultBytes}
 
 	return radiusPacket, nil
+}
+
+func (srv *UESimServer) Disconnect(ctx context.Context, id *cwfprotos.DisconnectRequest) (*cwfprotos.DisconnectResponse, error) {
+	radiusP, err := srv.MakeAccountingStopRequest()
+	if err != nil {
+		return nil, errors.Wrap(err, "Error making Accounting Stop Radius message")
+	}
+	response, err := radius.Exchange(context.Background(), radiusP, srv.cfg.radiusAcctAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error exchanging Radius message")
+	}
+	encoded, err := response.Encode()
+	if err != nil {
+		return nil, errors.Wrap(err, "Error encoding Radius packet")
+	}
+	return &cwfprotos.DisconnectResponse{RadiusPacket: encoded}, nil
 }
 
 func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTrafficRequest) (*protos.Void, error) {

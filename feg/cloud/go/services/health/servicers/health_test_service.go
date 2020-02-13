@@ -13,7 +13,7 @@ import (
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/feg/cloud/go/services/health/test_utils"
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"golang.org/x/net/context"
 )

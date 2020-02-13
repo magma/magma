@@ -4,27 +4,31 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import * as React from 'react';
 import AddEditRule from './rules/AddEditRule';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import SimpleTable from './SimpleTable';
-import TableActionDialog from './TableActionDialog';
-import TableAddButton from './common/TableAddButton';
+import SimpleTable from './table/SimpleTable';
+import TableActionDialog from './table/TableActionDialog';
+import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from './AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useLoadRules} from './hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
-import type {ColumnData} from './SimpleTable';
+import type {ColumnData} from './table/SimpleTable';
 import type {GenericRule} from './rules/RuleInterface';
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    padding: theme.spacing(4),
+  },
   addButton: {
     position: 'fixed',
     bottom: 0,
@@ -192,7 +196,7 @@ export default function AlertRules<TRuleUnion>() {
   }
 
   return (
-    <>
+    <Grid className={classes.root}>
       <SimpleTable
         columnStruct={columnStruct}
         tableData={rules || []}
@@ -247,6 +251,6 @@ export default function AlertRules<TRuleUnion>() {
         label="Add Alert"
         data-testid="add-edit-alert-button"
       />
-    </>
+    </Grid>
   );
 }

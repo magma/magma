@@ -235,6 +235,32 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /feg/{network_id}/subscriber_config/rule_names/{rule_id}:
+    post:
+      summary: Add a network-wide rule name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide rule name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /feg/{network_id}/subscriber_config/base_names:
     get:
       summary: Get network-wide base names
@@ -261,6 +287,32 @@ paths:
           required: true
           schema:
             $ref: './lte-swagger.yml#/definitions/base_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/subscriber_config/base_names/{base_name}:
+    post:
+      summary: Add a network-wide base name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide base name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
       responses:
         '204':
           description: Success
@@ -544,7 +596,7 @@ paths:
         description: Updated config
         required: true
         schema:
-          $ref: '#/definitions/network_federation_configs'
+          $ref: '#/definitions/federated_network_configs'
       responses:
         '200':
           description: Success
@@ -626,6 +678,32 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /feg_lte/{network_id}/subscriber_config/rule_names/{rule_id}:
+    post:
+      summary: Add a network-wide rule name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide rule name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /feg_lte/{network_id}/subscriber_config/base_names:
     get:
       summary: Get network-wide base names
@@ -658,7 +736,31 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-
+  /feg_lte/{network_id}/subscriber_config/base_names/{base_name}:
+    post:
+      summary: Add a network-wide base name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide base name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 definitions:
   feg_network:
     type: object
@@ -893,6 +995,12 @@ definitions:
         example: 0.75
     x-go-custom-tag: 'magma_alt_name:"HEALTH"'
 
+  csfb:
+    type: object
+    description: csfb configuration
+    properties:
+      client:
+        $ref: '#/definitions/sctp_client_configs'
 
   network_federation_configs:
     description: Federation configuration for a network
@@ -908,6 +1016,7 @@ definitions:
       - aaa_server
       - served_network_ids
       - health
+      - csfb
     properties:
       s6a:
         $ref: '#/definitions/s6a'
@@ -927,6 +1036,8 @@ definitions:
         $ref: '#/definitions/served_network_ids'
       health:
         $ref: '#/definitions/health'
+      csfb:
+        $ref: '#/definitions/csfb'
 
   eap_aka_timeouts:
     type: object
@@ -1026,6 +1137,11 @@ definitions:
         x-nullable: false
         example: false
         default: false
+      overwrite_dest_host:
+        type: boolean
+        x-nullable: false
+        example: false
+        default: false
 
   diameter_server_configs:
     description: Diameter Configuration of The Server
@@ -1061,6 +1177,21 @@ definitions:
       dest_host:
         type: string
         example: "magma-fedgw.magma.com"
+        x-nullable: false
+
+  sctp_client_configs:
+    description: SCTP Configuration of the CSFB service
+    type: object
+    properties:
+      server_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+      local_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: ":56789"
         x-nullable: false
 
   subscription_profile:
@@ -1149,6 +1280,7 @@ definitions:
       - aaa_server
       - served_network_ids
       - health
+      - csfb
     properties:
       s6a:
         $ref: '#/definitions/s6a'
@@ -1168,6 +1300,8 @@ definitions:
         $ref: '#/definitions/served_network_ids'
       health:
         $ref: '#/definitions/health'
+      csfb:
+        $ref: '#/definitions/csfb'
 
   federated_network_configs:
     description: Configs for networks that are federated
