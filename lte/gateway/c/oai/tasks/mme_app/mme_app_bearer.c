@@ -1047,7 +1047,7 @@ int mme_app_handle_create_sess_resp(
   //---------------------------------------------------------
   // Process itti_sgw_create_session_response_t.bearer_context_created
   //---------------------------------------------------------
-  uint_8 num_successful_bearers = 0;
+  int num_successful_bearers = 0;
   for (int i = 0;
        i < create_sess_resp_pP->bearer_contexts_created.num_bearer_context;
        i++) {
