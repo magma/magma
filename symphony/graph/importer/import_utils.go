@@ -32,7 +32,7 @@ func pointerToServiceStatus(status models.ServiceStatus) *models.ServiceStatus {
 }
 
 func (m *importer) getOrCreateEquipmentType(ctx context.Context, name string, positionsCount int, positionPrefix string, portsCount int, props []*models.PropertyTypeInput) *ent.EquipmentType {
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
 
 	equipmentType, err := client.EquipmentType.Query().Where(equipmenttype.Name(name)).Only(ctx)
@@ -91,7 +91,7 @@ func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name strin
 }
 
 func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool) {
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	l, err := m.queryLocationForTypeAndParent(ctx, name, locType, parentID)
 	if l != nil {
 		return l, false
@@ -116,7 +116,7 @@ func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitud
 }
 
 func (m *importer) getEquipmentIfExist(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, error) {
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.EquipmentType.Query().
 		Where(equipmenttype.ID(equipType.ID)).
@@ -147,7 +147,7 @@ func (m *importer) getEquipmentIfExist(ctx context.Context, mr generated.Mutatio
 }
 
 func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	eq, err := m.getEquipmentIfExist(ctx, mr, name, equipType, externalID, loc, position, props)
 	if err != nil || eq != nil {
 		return eq, false, err
@@ -183,7 +183,7 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 }
 
 func (m *importer) getServiceIfExist(ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, error) {
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.ServiceType.Query().
 		Where(servicetype.ID(serviceType.ID)).
@@ -207,7 +207,7 @@ func (m *importer) getServiceIfExist(ctx context.Context, mr generated.MutationR
 
 func (m *importer) getOrCreateService(
 	ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, bool, error) {
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	service, err := m.getServiceIfExist(ctx, mr, name, serviceType, props, customerID, externalID, status)
 
 	if err != nil || service != nil {
@@ -232,7 +232,7 @@ func (m *importer) getOrCreateService(
 }
 
 func (m *importer) getCustomerIfExist(ctx context.Context, name string) (*ent.Customer, error) {
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
 	customer, err := client.Customer.Query().Where(customer.Name(name)).First(ctx)
 	if customer != nil {
@@ -248,7 +248,7 @@ func (m *importer) getCustomerIfExist(ctx context.Context, name string) (*ent.Cu
 }
 
 func (m *importer) getOrCreateCustomer(ctx context.Context, mr generated.MutationResolver, name string, externalID string) (*ent.Customer, error) {
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	_, err := m.getCustomerIfExist(ctx, name)
 	if err != nil {
 		return nil, err
@@ -289,7 +289,7 @@ func (m *importer) getOrCreateEquipmentLocationByFullPath(ctx context.Context, l
 		}
 		resLocation = q.FirstX(ctx)
 		if resLocation == nil {
-			m.log.For(ctx).Debug("didn't find parent- creating a new location", zap.String("name", name))
+			m.logger.For(ctx).Debug("didn't find parent- creating a new location", zap.String("name", name))
 			locationTypeID := indexToLocationTypeID[i]
 			var pinputs []*models.PropertyInput
 

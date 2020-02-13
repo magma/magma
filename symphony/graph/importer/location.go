@@ -25,7 +25,7 @@ import (
 // nolint: staticcheck
 func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
 
 	log.Debug("Locations- started")

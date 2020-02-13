@@ -31,6 +31,7 @@ class GraphqlClient:
     locationTypes: Dict[str, Any] = {}
     equipmentTypes: Dict[str, Any] = {}
     serviceTypes: Dict[str, Any] = {}
+    portTypes: Dict[str, Any] = {}
 
     def __init__(
         self,

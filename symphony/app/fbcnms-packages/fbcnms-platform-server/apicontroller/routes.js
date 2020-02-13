@@ -47,21 +47,18 @@ const PROXY_OPTIONS = {
 };
 
 export async function networkIdFilter(req: FBCNMSRequest): Promise<boolean> {
-  // If not using organizations, always allow
-  if (!req.organization) {
-    return true;
-  }
+  if (req.organization) {
+    const organization = await req.organization();
 
-  const organization = await req.organization();
-
-  // If the request isn't an organization network, block
-  // the request
-  const isOrganizationAllowed = containsNetworkID(
-    organization.networkIDs,
-    req.params.networkID,
-  );
-  if (!isOrganizationAllowed) {
-    return false;
+    // If the request isn't an organization network, block
+    // the request
+    const isOrganizationAllowed = containsNetworkID(
+      organization.networkIDs,
+      req.params.networkID,
+    );
+    if (!isOrganizationAllowed) {
+      return false;
+    }
   }
 
   // super users on standalone deployments

@@ -11,7 +11,7 @@ from datetime import datetime
 from distutils.version import LooseVersion
 
 from pyinventory import InventoryClient
-from pyinventory._image import delete_file, store_file
+from pyinventory.api.file import delete_file, store_file
 
 GRAPHQL_PYINVENORY_CONTENT = \
     """// Copyright (c) 2004-present Facebook All rights reserved.

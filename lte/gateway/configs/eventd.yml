@@ -8,4 +8,5 @@
 ## of patent rights can be found in the PATENTS file in the same directory.
 
 log_level: INFO
-
+fluent_bit_port: 5170
+tcp_timeout: 5

@@ -84,7 +84,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Get our prepackaged box from the atlas cloud
     magma_test.vm.box = "fbcmagma/magma_test"
     magma_test.vm.hostname = "magma-test"
-    magma_test.vm.box_version = "1.0.1551391604"
+    magma_test.vm.box_version = "1.0.1581466527"
     magma_test.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine

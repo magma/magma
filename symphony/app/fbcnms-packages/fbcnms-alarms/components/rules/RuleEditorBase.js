@@ -19,7 +19,7 @@ import Editor from '../common/Editor';
 import Grid from '@material-ui/core/Grid';
 import LabelsEditor from './LabelsEditor';
 import RuleContext from './RuleContext';
-import SelectReceiver from '../prometheus/Receivers/SelectReceiver';
+import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
 import SelectRuleType from './SelectRuleType';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';

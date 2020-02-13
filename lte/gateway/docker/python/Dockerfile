@@ -82,5 +82,5 @@ RUN mkdir -p /var/opt/magma/configs
 
 # Install OVS via Magma bionic pkg repo
 COPY cwf/gateway/deploy/roles/ovs/files/install_ovs.sh /tmp
-COPY cwf/gateway/deploy/roles/ovs/files/v2.12.0_ipfix_custom_fields.patch /tmp
+COPY cwf/gateway/deploy/roles/ovs/files/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch /tmp
 RUN bash /tmp/install_ovs.sh

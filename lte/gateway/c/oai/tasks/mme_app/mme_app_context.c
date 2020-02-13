@@ -413,6 +413,7 @@ struct ue_mm_context_s *mme_ue_context_exists_s11_teid(
   hashtable_rc_t h_rc = HASH_TABLE_OK;
   uint64_t mme_ue_s1ap_id64 = 0;
 
+  // TODO: Update once SPGW is indexed by IMSI
   h_rc = hashtable_uint64_ts_get(
     mme_ue_context_p->tun11_ue_context_htbl,
     (const hash_key_t) teid,
@@ -479,7 +480,6 @@ void mme_ue_context_update_coll_keys(
   const guti_t* const guti_p) //  never NULL, if none put &ue_context_p->guti
 {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
-
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   OAILOG_TRACE(
