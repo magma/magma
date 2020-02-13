@@ -12,7 +12,7 @@ from abc import ABCMeta, abstractmethod
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult, \
-    ActivateFlowsResult, ActivateFlowsRequest
+    ActivateFlowsResult, ActivateFlowsRequest, SubscriberQuotaUpdate
 from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -42,7 +42,9 @@ class PolicyMixin(metaclass=ABCMeta):
             self.logger.info('Relay mode is not enabled, init finished')
             self.init_finished = True
 
+    # pylint:disable=unused-argument
     def setup(self, requests: List[ActivateFlowsRequest],
+              quota_updates: List[SubscriberQuotaUpdate],
               startup_flows: List[OFPFlowStats]) -> SetupFlowsResult:
         """
         Setup flows for subscribers, used on restart.
