@@ -90,6 +90,11 @@ void *mme_app_thread(void *args)
         TASK_MME_APP, "Received an invalid Message from ITTI message queue\n");
       continue;
     }
+
+    imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+    OAILOG_DEBUG(
+      LOG_MME_APP, "Received message with imsi: " IMSI_64_FMT, imsi64);
+
     OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
     mme_app_desc_p = get_locked_mme_nas_state(false);
 
@@ -152,11 +157,10 @@ void *mme_app_thread(void *args)
             TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
-          if (ue_context_p->path_switch_req != true) {
+          if (!ue_context_p->path_switch_req) {
             /* Updating statistics */
             update_mme_app_stats_s1u_bearer_add();
-          }
-          if (ue_context_p->path_switch_req == true) {
+          } else {
             mme_app_handle_path_switch_req_ack(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
