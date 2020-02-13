@@ -15,12 +15,14 @@ const express = require('express');
 const proxy = require('express-http-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
 const url = require('url');
-const {apiCredentials, API_HOST, NETWORK_FALLBACK} = require('../config');
+const {apiCredentials, API_HOST} = require('../config');
 import auditLoggingDecorator from './auditLoggingDecorator';
 
 import {intersection} from 'lodash';
 
 const router = express.Router();
+
+const PROXY_TIMEOUT_MS = 30000;
 
 let agent = null;
 if (process.env.HTTPS_PROXY) {
@@ -30,7 +32,7 @@ if (process.env.HTTPS_PROXY) {
 const PROXY_OPTIONS = {
   https: true,
   memoizeHost: false,
-  timeout: 5000,
+  timeout: PROXY_TIMEOUT_MS,
   proxyReqOptDecorator: (proxyReqOpts, _originalReq) => {
     return {
       ...proxyReqOpts,
@@ -45,21 +47,18 @@ const PROXY_OPTIONS = {
 };
 
 export async function networkIdFilter(req: FBCNMSRequest): Promise<boolean> {
-  // If not using organizations, always allow
-  if (!req.organization) {
-    return true;
-  }
+  if (req.organization) {
+    const organization = await req.organization();
 
-  const organization = await req.organization();
-
-  // If the request isn't an organization network, block
-  // the request
-  const isOrganizationAllowed = containsNetworkID(
-    organization.networkIDs,
-    req.params.networkID,
-  );
-  if (!isOrganizationAllowed) {
-    return false;
+    // If the request isn't an organization network, block
+    // the request
+    const isOrganizationAllowed = containsNetworkID(
+      organization.networkIDs,
+      req.params.networkID,
+    );
+    if (!isOrganizationAllowed) {
+      return false;
+    }
   }
 
   // super users on standalone deployments
@@ -72,36 +71,21 @@ export async function networkIdFilter(req: FBCNMSRequest): Promise<boolean> {
 }
 
 export async function networksResponseDecorator(
-  proxyRes: ExpressResponse,
+  _proxyRes: ExpressResponse,
   proxyResData: Buffer,
   userReq: FBCNMSRequest,
-  userRes: ExpressResponse,
+  _userRes: ExpressResponse,
 ) {
-  let networkIds;
-  if (
-    (proxyRes.statusCode === 403 || proxyRes.statusCode === 401) &&
-    NETWORK_FALLBACK.length > 0
-  ) {
-    // Temporary hack -- if you don't have a root magma cert,
-    // it will return a 403.
-    userRes.statusCode = 200;
-    networkIds = NETWORK_FALLBACK;
-  } else {
-    networkIds = JSON.parse(proxyResData.toString('utf8'));
-  }
-
-  let result = networkIds;
+  let result = JSON.parse(proxyResData.toString('utf8'));
   if (userReq.organization) {
     const organization = await userReq.organization();
-    result = intersection(organization.networkIDs, networkIds);
+    result = intersection(result, organization.networkIDs);
   }
-
   if (!userReq.user.isSuperUser) {
     // the list of networks is further restricted to what the user
     // is allowed to see
     result = intersection(result, userReq.user.networkIDs);
   }
-
   return JSON.stringify(result);
 }
 
@@ -129,28 +113,10 @@ const proxyErrorHandler = (err, res, next) => {
 };
 
 router.use(
-  /^\/magma\/networks$/,
-  proxy(API_HOST, {
-    ...PROXY_OPTIONS,
-    userResDecorator: networksResponseDecorator,
-  }),
-);
-
-router.use(
   /^\/magma\/v1\/networks$/,
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     userResDecorator: networksResponseDecorator,
-    proxyErrorHandler,
-  }),
-);
-
-router.use(
-  '/magma/networks/:networkID',
-  proxy(API_HOST, {
-    ...PROXY_OPTIONS,
-    filter: networkIdFilter,
-    userResDecorator: auditLoggingDecorator,
     proxyErrorHandler,
   }),
 );
@@ -165,18 +131,9 @@ router.use(
   }),
 );
 
+const networkTypeRegex = '(cwf|feg|lte|symphony|wifi)';
 router.use(
-  '/magma/v1/lte/:networkID',
-  proxy(API_HOST, {
-    ...PROXY_OPTIONS,
-    filter: networkIdFilter,
-    userResDecorator: auditLoggingDecorator,
-    proxyErrorHandler,
-  }),
-);
-
-router.use(
-  '/magma/v1/cwf/:networkID',
+  `/magma/v1/:networkType(${networkTypeRegex})/:networkID`,
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     filter: networkIdFilter,

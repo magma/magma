@@ -8,16 +8,21 @@
  * @format
  */
 
+jest.mock('@fbcnms/sequelize-models');
+
 import OrganizationLocalStrategy from '@fbcnms/auth/strategies/OrganizationLocalStrategy';
 
 import bodyParser from 'body-parser';
 import express from 'express';
 import fbcPassport from '../passport';
+import nock from 'nock';
 import passport from 'passport';
 import request from 'supertest';
+import routes from '@fbcnms/platform-server/apicontroller/routes';
 import userMiddleware from '../express';
+import {API_HOST} from '../../fbcnms-platform-server/config';
 import {USERS, USERS_EXPECTED} from '../test/UserModel';
-import {User, sequelize} from '@fbcnms/sequelize-models';
+import {User} from '@fbcnms/sequelize-models';
 
 import {configureAccess} from '../access';
 
@@ -79,14 +84,11 @@ function getApp(orgName: string, loggedInEmail: ?string) {
       loginSuccessUrl: '/success',
     }),
   );
+  app.use('/nms/apicontroller', routes);
   return app;
 }
 
 describe('user tests', () => {
-  beforeAll(async () => {
-    await sequelize.sync({force: true});
-  });
-
   beforeEach(async () => {
     USERS.forEach(async user => await User.create(user));
   });
@@ -196,6 +198,7 @@ describe('user tests', () => {
       networkIDs: [],
       superUser: false,
       verificationType: 0,
+      role: 0,
     };
 
     describe('as superuser', () => {
@@ -210,12 +213,13 @@ describe('user tests', () => {
           .expect(stripDates)
           .expect({
             user: {
-              id: 4,
               isSuperUser: false,
+              isReadOnlyUser: false,
               email: params.email,
               organization: 'validorg',
               networkIDs: params.networkIDs,
               role: 0,
+              id: 5,
               tabs: [],
             },
           });
@@ -320,6 +324,74 @@ describe('user tests', () => {
       await request(app)
         .delete('/user/async/1/')
         .expect(302);
+    });
+  });
+});
+
+describe('magma api proxy tests', () => {
+  const allNetworks = ['network1', 'network2'];
+
+  beforeEach(() => {
+    USERS.forEach(async user => await User.create(user));
+    nock('https://' + API_HOST)
+      .get('/magma/v1/networks')
+      .reply(200, new Buffer(JSON.stringify(allNetworks), 'utf8'));
+    nock('https://' + API_HOST)
+      .get('/magma/v1/networks/network1')
+      .reply(200);
+    nock('https://' + API_HOST)
+      .get('/magma/v1/networks/network2')
+      .reply(200);
+  });
+
+  afterEach(async () => {
+    await User.destroy({where: {}, truncate: true});
+    nock.cleanAll();
+  });
+
+  describe('get all networks no organization', () => {
+    it('as normal user, can only see own networks', async () => {
+      const app = getApp('', 'valid@123.com');
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks')
+        .expect(200)
+        .expect(res =>
+          expect(JSON.parse(res.body.toString('utf8'))).toStrictEqual([
+            'network1',
+          ]),
+        );
+    });
+    it('as super user, can see all networks', async () => {
+      const app = getApp('', 'superuser@123.com');
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks')
+        .expect(200)
+        .expect(res =>
+          expect(JSON.parse(res.body.toString('utf8'))).toStrictEqual(
+            allNetworks,
+          ),
+        );
+    });
+  });
+
+  describe('get one network no organization', () => {
+    it('as normal user, can only get own networks', async () => {
+      const app = getApp('', 'valid@123.com');
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks/network1')
+        .expect(200);
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks/network2')
+        .expect(404);
+    });
+    it('as super user, can get all networks', async () => {
+      const app = getApp('', 'superuser@123.com');
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks/network1')
+        .expect(200);
+      await request(app)
+        .get('/nms/apicontroller/magma/v1/networks/network2')
+        .expect(200);
     });
   });
 });
