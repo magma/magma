@@ -107,8 +107,6 @@ module.exports = Object.assign({}, fbStrict, {
     'import/namespace': 2,
     'import/no-unresolved': 2,
 
-    'lint/componentscript-jsx-pragma': 'off',
-    'lint/componentscript-no-fancy-fbt': 'off',
     'lint/cs-intent-use-injected-props': 'off',
     'lint/duplicate-class-function': 'off',
     'lint/flow-exact-props': 'off',
