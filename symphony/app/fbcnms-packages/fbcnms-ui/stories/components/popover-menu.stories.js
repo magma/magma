@@ -16,7 +16,7 @@ import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     width: '100%',
     display: 'flex',
@@ -30,7 +30,7 @@ const useStyles = makeStyles({
     borderRadius: '100%',
     cursor: 'pointer',
   },
-});
+}));
 
 const OPTIONS = [
   {

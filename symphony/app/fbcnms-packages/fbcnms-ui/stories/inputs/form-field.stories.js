@@ -71,12 +71,7 @@ const FormFieldsRoot = () => {
         className={classes.field}
         hasError
         errorText="Error Message">
-        <TextInput
-          className={classes.input}
-          type="string"
-          placeholder="Placeholder"
-          value="Bad Value"
-        />
+        <TextInput type="string" placeholder="Placeholder" value="Bad Value" />
       </FormField>
     </div>
   );

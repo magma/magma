@@ -19,7 +19,7 @@ import classNames from 'classnames';
 import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   headerRoot: {
     paddingBottom: '20px',
     display: 'flex',
@@ -31,7 +31,7 @@ const useStyles = makeStyles({
   actionButton: {
     marginLeft: '8px',
   },
-});
+}));
 
 export type DisplayOptionTypes = 'table' | 'map';
 export const DisplayOptions = {

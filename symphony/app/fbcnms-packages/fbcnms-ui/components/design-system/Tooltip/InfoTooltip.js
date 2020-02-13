@@ -15,7 +15,7 @@ import Text from '../Text';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   tooltip: {
     borderRadius: '2px',
     backgroundColor: symphony.palette.secondary,
@@ -44,7 +44,7 @@ const useStyles = makeStyles({
       zIndex: 10,
     },
   },
-});
+}));
 
 type Props = {
   description: React.Node,

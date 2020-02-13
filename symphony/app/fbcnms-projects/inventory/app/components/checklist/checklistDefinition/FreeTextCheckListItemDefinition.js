@@ -23,7 +23,7 @@ type Props = {
   ) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -39,7 +39,7 @@ const useStyles = makeStyles({
       marginRight: '8px',
     },
   },
-});
+}));
 
 const FreeTextCheckListItemDefinition = (props: Props) => {
   const {item, onChange} = props;

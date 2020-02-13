@@ -19,7 +19,7 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     flexGrow: 1,
     padding: '24px 16px',
@@ -61,7 +61,7 @@ const useStyles = makeStyles({
       flexBasis: '100%', // 1 card
     },
   },
-});
+}));
 
 const projectTypesQuery = graphql`
   query WorkOrderProjectTypesQuery {

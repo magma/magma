@@ -20,12 +20,12 @@ import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   linkDetails: {
     margin: '8px',
     whiteSpace: 'nowrap',
   },
-});
+}));
 
 type Props = {
   features: ?Array<MagmaConnectionFeature>,
@@ -63,7 +63,7 @@ export default function WifiMapFeatureDetail(props: Props) {
         <br />
       </Typography>
 
-      <Table className={classes.table}>
+      <Table>
         <TableHead>
           <TableRow>
             <TableCell />

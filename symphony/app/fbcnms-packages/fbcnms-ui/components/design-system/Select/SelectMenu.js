@@ -19,7 +19,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useMenuContext} from './MenuContext';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     backgroundColor: symphony.palette.white,
     boxShadow: symphony.shadows.DP1,
@@ -32,7 +32,7 @@ const useStyles = makeStyles({
   normalWidth: {
     width: '236px',
   },
-});
+}));
 
 export type OptionProps<TValue> = {|
   label: React.Node,

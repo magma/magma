@@ -29,7 +29,7 @@ type Props = {
   onChecklistChanged?: (updatedList: CheckListTableFilling_list) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     maxWidth: '1366px',
     overflowX: 'auto',
@@ -49,7 +49,7 @@ const useStyles = makeStyles({
   iconCell: {
     width: '20px',
   },
-});
+}));
 
 const CheckListTableFilling = (props: Props) => {
   const {list, onChecklistChanged} = props;

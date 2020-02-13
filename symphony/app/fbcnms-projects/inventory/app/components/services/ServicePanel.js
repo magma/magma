@@ -59,7 +59,7 @@ type Props = {
   onOpenDetailsPanel: () => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     overflowY: 'auto',
     height: '100%',
@@ -128,7 +128,7 @@ const useStyles = makeStyles({
   detailsPanel: {
     padding: '0px',
   },
-});
+}));
 
 /* $FlowFixMe - Flow doesn't support typing when using forwardRef on a
  * funcional component

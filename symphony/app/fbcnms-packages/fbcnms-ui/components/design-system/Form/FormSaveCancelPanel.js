@@ -15,11 +15,11 @@ import React, {useContext} from 'react';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   cancelButton: {
     marginRight: '8px',
   },
-});
+}));
 
 type Props = {
   isDisabled?: boolean,

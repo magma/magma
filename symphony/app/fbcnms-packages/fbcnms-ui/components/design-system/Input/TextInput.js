@@ -28,7 +28,7 @@ export const KEYBOARD_KEYS = {
   },
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -102,7 +102,7 @@ const useStyles = makeStyles({
     marginRight: '-2px',
     marginLeft: '8px',
   },
-});
+}));
 
 export type FocusEvent<T> = {
   target: T,

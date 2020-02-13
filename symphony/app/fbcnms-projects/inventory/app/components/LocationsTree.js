@@ -21,7 +21,7 @@ import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexGrow: 1,
@@ -40,7 +40,7 @@ const useStyles = makeStyles({
     minWidth: '25%',
     flexGrow: 0,
   },
-});
+}));
 
 type Props = {
   selectedLocationId: ?string,

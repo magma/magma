@@ -19,7 +19,7 @@ import classNames from 'classnames';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     justifyContent: 'flex-start',
     padding: '4px',
@@ -33,7 +33,7 @@ const useStyles = makeStyles({
   label: {
     fontWeight: 400,
   },
-});
+}));
 
 type Props<TValue> = {
   className?: string,

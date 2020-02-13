@@ -16,7 +16,7 @@ type Props = {
   children: React.Node,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   content: {
     flexGrow: 1,
     height: '100vh',
@@ -24,7 +24,7 @@ const useStyles = makeStyles({
     overflowX: 'hidden',
     backgroundColor: gray7,
   },
-});
+}));
 
 export default function AppContent(props: Props) {
   const classes = useStyles();

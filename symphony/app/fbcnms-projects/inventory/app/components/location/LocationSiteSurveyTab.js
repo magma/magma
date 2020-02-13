@@ -45,7 +45,7 @@ const styles = {
     marginBottom: '0px',
   },
 };
-const useStyles = makeStyles(styles);
+const useStyles = makeStyles(() => styles);
 
 function LocationSiteSurveyTab(props: Props) {
   const {location} = props;

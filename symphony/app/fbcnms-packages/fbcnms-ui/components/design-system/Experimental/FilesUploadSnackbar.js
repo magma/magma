@@ -21,7 +21,7 @@ import useVerticalScrollingEffect from '../hooks/useVerticalScrollingEffect';
 import {makeStyles} from '@material-ui/styles';
 import {useRef} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     position: 'absolute',
     zIndex: 1200,
@@ -54,7 +54,7 @@ const useStyles = makeStyles({
     maxHeight: '270px',
     overflowY: 'auto',
   },
-});
+}));
 
 export type FileItem = {
   id: string,

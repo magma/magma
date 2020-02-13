@@ -97,7 +97,7 @@ const CellScanPopout = (props: Props) => {
   );
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     marginTop: '8px',
     maxWidth: '600px',
@@ -113,6 +113,6 @@ const useStyles = makeStyles({
   body: {
     display: 'inline',
   },
-});
+}));
 
 export default CellScanPopout;

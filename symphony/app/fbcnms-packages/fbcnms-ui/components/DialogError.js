@@ -15,7 +15,7 @@ import classNames from 'classnames';
 import symphony from '../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'row',
@@ -40,7 +40,7 @@ const useStyles = makeStyles({
     margin: '2px 8px',
     color: symphony.palette.Y600,
   },
-});
+}));
 
 type Props = {
   message: ?string,
