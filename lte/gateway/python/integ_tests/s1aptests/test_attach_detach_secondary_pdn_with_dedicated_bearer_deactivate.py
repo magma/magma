@@ -28,13 +28,26 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
         Request + add dedicated bearer to each default bearer + deactivate
         dedicated bearers + detach"""
         num_ues = 1
-        apn = ["ims"]
-        # qci 5-ims
-        qci = [5]
-        self._s1ap_wrapper.configUEDeviceWithAPN(num_ues, apn, qci)
+        self._s1ap_wrapper.configUEDevice(num_ues)
+        req = self._s1ap_wrapper.ue_req
+
+        # APN details to be configured
+        ims = [
+            "ims",  # APN-name
+            5,  # qci
+            15,  # priority
+            0,  # preemption-capability
+            0,  # preemption-vulnerability
+            200000000,  # MBR UL
+            100000000,  # MBR DL
+        ]
+
+        apn_list = [ims]
+        self._s1ap_wrapper.configAPN(
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+        )
 
         for i in range(num_ues):
-            req = self._s1ap_wrapper.ue_req
             ue_id = req.ue_id
             print(
                 "********************* Running End to End attach for UE id ",

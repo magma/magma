@@ -116,6 +116,43 @@ class BaseStore(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def add_apn_config(self, subscriber_data):
+        """
+        Method that should add the subscriber.
+
+        Args:
+            subscriber_data - SubscriberData protobuf message
+        Raises:
+            DuplicateApnError if the subscriber is already present
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    @contextmanager
+    def edit_apn_config(self, subscriber_id):
+        """
+        Context Manager to update the subscriber data.
+        Provides the subscriber data as the context, and the underlying
+        store guarantees the update to be atomic (by doing the
+        necessary locking).
+
+        Args:
+            subscriber_id - unique identifier for the subscriber
+        Raises:
+             ApnNotFoundError if the subscriber is not present
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def delete_apn_config(self, subscriber_id):
+        """
+        Method that should delete a subscriber, if present.
+
+        Args:
+            subscriber_id - unique identifier for the subscriber
+        """
+        raise NotImplementedError()
 
 class SubscriberNotFoundError(Exception):
     """
@@ -131,4 +168,22 @@ class DuplicateSubscriberError(Exception):
     and the subscriber is already present. The application can choose
     to delete the old subscriber and add, or declare an error.
     """
+    pass
+
+
+class DuplicateApnError(Exception):
+    """
+    Exception thrown when APN is requested to be added to the store,
+    and the APN is already present.
+    """
+
+    pass
+
+
+class ApnNotFoundError(Exception):
+    """
+    Exception thrown when APN is not present in the store
+    when a query is requested for that APN
+    """
+
     pass

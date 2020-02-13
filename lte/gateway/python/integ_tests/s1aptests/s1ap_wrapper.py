@@ -174,26 +174,9 @@ class TestWrapper(object):
             self._configuredUes.append(reqs[i])
         self.check_gw_health_after_ue_load()
 
-    def configUEDeviceWithAPN(self, num_ues, apn, qci):
-        """ Configure the device on the UE side """
-        assert len(apn) == len(qci)
-        reqs = self._sub_util.add_sub_with_apn(num_ues, apn, qci)
-        for idx in range(num_ues):
-            print(
-                "************************* UE device config for ue_id ",
-                reqs[idx].ue_id,
-            )
-            assert (
-                self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[idx])
-                == 0
-            )
-            response = self._s1_util.get_response()
-            assert (
-                s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value
-                == response.msg_type
-            )
-            self._configuredUes.append(reqs[idx])
-        self.check_gw_health_after_ue_load()
+    def configAPN(self, imsi, apn):
+        """ Configure the APN """
+        self._sub_util.add_apn_data(imsi, apn)
 
     def configUEDevice_ues_same_imsi(self, num_ues):
         """ Configure the device on the UE side with same IMSI and

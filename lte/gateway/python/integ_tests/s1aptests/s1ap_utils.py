@@ -297,16 +297,10 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
         return subscribers
 
-    def add_sub_with_apn(self, num_ues, apn, qci):
-        """ Add subscribers to the EPC, is blocking """
-        # Add the default IMSI used for the tests
-        subscribers = []
-        for _ in range(num_ues):
-            sid = self._gen_next_sid()
-            self._subscriber_client.add_subscriber_with_apn(sid, apn, qci)
-            subscribers.append(self._get_s1ap_sub(sid))
-        self._subscriber_client.wait_for_changes()
-        return subscribers
+    def add_apn_data(self, imsi, apn):
+        """ Add APN details """
+        sid = SIDUtils.to_pb(imsi)
+        self._subscriber_client.add_apn_details(sid, apn)
 
     def cleanup(self):
         """ Cleanup added subscriber from subscriberdb """

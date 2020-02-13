@@ -26,11 +26,37 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
         num_pdns = 2
         bearer_ids = []
         apn = ["ims", "internet"]
-        qci = [5, 9]
         num_ue = 1
-        self._s1ap_wrapper.configUEDeviceWithAPN(num_ue, apn, qci)
+        self._s1ap_wrapper.configUEDevice(num_ue)
 
+        # APN details to be configured
+        # ims apn
+        ims = [
+            "ims",  # APN-name
+            5,  # qci
+            15,  # priority
+            0,  # preemption-capability
+            0,  # preemption-vulnerability
+            200000000,  # MBR UL
+            100000000,  # MBR DL
+        ]
+
+        # internet APN
+        internet = [
+            "internet",  # APN-name
+            9,  # qci
+            15,  # priority
+            0,  # preemption-capability
+            0,  # preemption-vulnerability
+            250000000,  # MBR UL
+            150000000,  # MBR DL
+        ]
+
+        apn_list = [ims, internet]
         req = self._s1ap_wrapper.ue_req
+        self._s1ap_wrapper.configAPN(
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+        )
         ue_id = req.ue_id
         print(
             "*********************** Running End to End attach for UE id ",

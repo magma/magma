@@ -104,7 +104,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
 
         apn = ula.apn.add()
         apn.context_id = 0
-        apn.service_selection = 'oai.ipv4'
+        apn.service_selection = "oai.ipv4"
         apn.qos_profile.class_id = 9
         apn.qos_profile.priority_level = 15
         apn.qos_profile.preemption_capability = 1
@@ -125,12 +125,22 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             sec_apn.qos_profile.class_id = sub_data.non_3gpp.apn_config[
                 idx
             ].qos_profile.class_id
-            sec_apn.qos_profile.priority_level = 15
-            sec_apn.qos_profile.preemption_capability = 1
-            sec_apn.qos_profile.preemption_vulnerability = 0
+            sec_apn.qos_profile.priority_level = sub_data.non_3gpp.apn_config[
+                idx
+            ].qos_profile.priority_level
+            sec_apn.qos_profile.preemption_capability = \
+                sub_data.non_3gpp.apn_config[idx].qos_profile.\
+                preemption_capability
+            sec_apn.qos_profile.preemption_vulnerability = \
+                sub_data.non_3gpp.apn_config[idx].qos_profile.\
+                preemption_vulnerability
 
-            sec_apn.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
-            sec_apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
+            sec_apn.ambr.max_bandwidth_ul = sub_data.non_3gpp.apn_config[
+                idx
+            ].ambr.max_bandwidth_ul
+            sec_apn.ambr.max_bandwidth_dl = sub_data.non_3gpp.apn_config[
+                idx
+            ].ambr.max_bandwidth_dl
             sec_apn.pdn = (
                 s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
             )
