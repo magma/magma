@@ -42,6 +42,7 @@ from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.access_control import AccessControlController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
+from magma.pipelined.app.apn import APNController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
@@ -241,6 +242,7 @@ class ServiceManager:
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
     TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
+    APN_SERVICE_NAME = 'apn'
     VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
     IPFIX_SERVICE_NAME = 'ipfix'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
@@ -296,6 +298,12 @@ class ServiceManager:
                 type=TunnelLearnController.APP_TYPE,
                 order_priority=300),
         ],
+        APN_SERVICE_NAME: [
+            App(name=APNController.APP_NAME,
+                module=APNController.__module__,
+                type=APNController.APP_TYPE)
+        ],
+
         VLAN_LEARN_SERVICE_NAME: [
             App(name=VlanLearnController.APP_NAME,
                 module=VlanLearnController.__module__,

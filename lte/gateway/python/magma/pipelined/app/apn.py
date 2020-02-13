@@ -30,9 +30,10 @@ class APNController(MagmaController):
 
     def __init__(self, *args, **kwargs):
         super(APNController, self).__init__(*args, **kwargs)
-        self._clean_start = True # get from config file
+        self._clean_start = False # get from config file
         self._datapath = None
 
+        # TODO(119vik): check how tables are allocated ??
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
             self._service_manager.get_next_table_num(self.APP_NAME)
@@ -50,9 +51,8 @@ class APNController(MagmaController):
         self._datapath = datapath
         self.delete_all_flows(datapath)
         # In case wee need to clean all existing  buggy / orphaned flows before start the controller
-        # if self._clean_start
-        #   self.delete_existing_flows()
-        pass
+        if self._clean_start:
+          self.delete_existing_flows()
 
     def add_apn_flow_for_ue(self, ue_ip_addr, apn):
         """ Add flow which match all IN traffic with specified UE_IP and set APN hash in to register.
@@ -61,14 +61,14 @@ class APNController(MagmaController):
             ue_ip_addr: ip addr allocated for the UE in scope of connection to specific APN
             apn: APN UE is connected to with specified IP addr
         """
-        # TODO(119vik): same IP is reused for several bearers connected to the same APN - take care about duplications
-
+        #TODO(119vik): same IP is reused for several bearers connected to the same APN - take care about duplications
         parser = self._datapath.ofproto_parser
 
-        # Tag all downlink traffic
-        outbound_match = MagmaMatch(direction=Direction.OUT, ipv4_dst=ue_ip_addr)
+        encoded_apn = encode_apn(apn)
+        # Tag all Uplink traffic
+        outbound_match = MagmaMatch(direction=Direction.OUT, ipv4_src=ue_ip_addr)
         actions = [
-            parser.NXActionRegLoad2(dst=APN_TAG_REG, value=encode_apn(apn)),
+            parser.NXActionRegLoad2(dst=APN_TAG_REG, value=encoded_apn),
             parser.NXActionResubmitTable(table_id=self.apn_tagging_scratch)
         ]
         flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
@@ -76,10 +76,10 @@ class APNController(MagmaController):
                                              priority=flows.MINIMUM_PRIORITY,
                                              resubmit_table=self.next_table)
 
-        # Tag all uplink traffic
-        inbound_match = MagmaMatch(direction=Direction.IN, ipv4_src=ue_ip_addr)
+        # Tag all downlink traffic
+        inbound_match = MagmaMatch(direction=Direction.IN, ipv4_dst=ue_ip_addr)
         actions = [
-            parser.NXActionRegLoad2(dst=APN_TAG_REG, value=encode_apn(apn)),
+            parser.NXActionRegLoad2(dst=APN_TAG_REG, value=encoded_apn),
             parser.NXActionResubmitTable(table_id=self.apn_tagging_scratch)
         ]
         flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
@@ -95,8 +95,24 @@ class APNController(MagmaController):
             apn: APN UE is connected to with specified IP addr
         """
         # TODO(119vik): same IP is reused for several bearers connected to the same APN - take care about duplications
-        # flow delete
-        pass
+        parser = self._datapath.ofproto_parser
+
+        encoded_apn = encode_apn(apn)
+        # Tag all Uplink traffic
+        outbound_match = MagmaMatch(direction=Direction.OUT, ipv4_src=ue_ip_addr)
+        actions = [
+            parser.NXActionRegLoad2(dst=APN_TAG_REG, value=encoded_apn),
+            parser.NXActionResubmitTable(table_id=self.apn_tagging_scratch)
+        ]
+        flows.delete_flow(self._datapath, self.tbl_num, outbound_match, actions)
+
+        # Tag all downlink traffic
+        inbound_match = MagmaMatch(direction=Direction.IN, ipv4_dst=ue_ip_addr)
+        actions = [
+            parser.NXActionRegLoad2(dst=APN_TAG_REG, value=encoded_apn),
+            parser.NXActionResubmitTable(table_id=self.apn_tagging_scratch)
+        ]
+        flows.delete_flow(self._datapath, self.tbl_num, inbound_match, actions)
 
     def cleanup_on_disconnect(self, datapath):
         """
