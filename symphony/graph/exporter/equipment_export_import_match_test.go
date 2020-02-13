@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -27,6 +28,8 @@ import (
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
 	"github.com/stretchr/testify/require"
+	"gocloud.dev/pubsub"
+	"gocloud.dev/pubsub/mempubsub"
 )
 
 // TODO (T59270743): Move this file to importer folder and refactor similar code with exported_service_integration_test.go
@@ -97,7 +100,16 @@ func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	readr := csv.NewReader(r)
 	buf, contentType := writeModifiedCSV(t, readr, method, withVerify)
 
-	h, _ := importer.NewHandler(logtest.NewTestLogger(t))
+	topic := mempubsub.NewTopic()
+	h, _ := importer.NewHandler(
+		importer.Config{
+			Logger: logtest.NewTestLogger(t),
+			Topic:  topic,
+			Subscribe: func(context.Context) (*pubsub.Subscription, error) {
+				return mempubsub.NewSubscription(topic, time.Second), nil
+			},
+		},
+	)
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
 	server := httptest.NewServer(th)
 	defer server.Close()

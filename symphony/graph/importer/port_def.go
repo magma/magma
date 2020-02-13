@@ -20,7 +20,7 @@ import (
 
 // processPortDefinitionsCSV imports port types and assign them to equipments (from CSV file to DB)
 func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Request) {
-	log := m.log.For(r.Context())
+	log := m.logger.For(r.Context())
 	log.Debug("PortDefinitions- started")
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
 		log.Warn("parsing multipart form", zap.Error(err))

@@ -8,7 +8,6 @@ refs:
 
 orbs:
   artifactory: circleci/artifactory@0.0.7
-
   build:
     commands:
       determinator:
@@ -31,11 +30,263 @@ orbs:
                 echo "No changes in [$paths]"
                 circleci step halt
 
+commands:
+  run-with-retry:
+    description: Run command with retry
+    parameters:
+      command:
+        description: Command to run
+        type: string
+      workdir:
+        description: Path to cd into
+        type: string
+      retry-count:
+        description: Number of retry
+        type: integer
+        default: 3
+      sleep:
+        description: Wait duration until next retry
+        type: integer
+        default: 5
+    steps:
+      - run: |
+          retry() {
+             MAX_RETRY=<< parameters.retry-count >>
+             n=0
+             until [ $n -ge $MAX_RETRY ]
+             do
+                "$@" && break
+                n=$[$n+1]
+                sleep << parameters.sleep >>
+             done
+             if [ $n -ge $MAX_RETRY ]; then
+               echo "failed: ${@}" >&2
+               exit 1
+             fi
+          }
+          cd << parameters.workdir >>
+          retry << parameters.command >>
+
 jobs:
+  feg-precommit:
+    docker:
+      - image: circleci/golang:1.13-stretch-node-browsers-legacy
+    environment:
+      - GO111MODULE=on
+    steps:
+      - checkout
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: ./circleci/golang_before_install.sh
+      - run-with-retry:
+         command: go mod download
+         workdir: ${MAGMA_ROOT}/cwf/gateway
+      - run:
+          name: make feg precommit
+          command: |
+            cd ${MAGMA_ROOT}/feg/gateway
+            make -C ${MAGMA_ROOT}/feg/gateway precommit
+
+  cwag-precommit:
+    docker:
+      - image: circleci/golang:1.13-buster-node-browsers-legacy
+    environment:
+      - GO111MODULE=on
+      - GOPROXY=https://proxy.golang.org
+    steps:
+      - checkout
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: ./circleci/golang_before_install.sh
+      - run-with-retry:
+         command: go mod download
+         workdir: ${MAGMA_ROOT}/cwf/gateway
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/cwf/gateway
+            make -C ${MAGMA_ROOT}/cwf/gateway precommit
+
+  cloud-test:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            sudo mv /tmp/docker/* /usr/bin
+      - run:
+          name: Install Docker Compose
+          command: |
+            sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+            sudo chmod +x ~/docker-compose
+            sudo mv ~/docker-compose /usr/local/bin/docker-compose
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run:
+          name: "Set Python Version"
+          command: pyenv global 3.7.0
+      - run: pip3 install PyYAML
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py -t
+
+  orc8r-gateway-test:
+    docker:
+      - image: circleci/golang:1.12-buster-node-browsers-legacy
+    environment:
+      - GO111MODULE=on
+      - GOPROXY=https://proxy.golang.org
+    steps:
+      - checkout
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run-with-retry:
+         command: go mod download
+         workdir: ${MAGMA_ROOT}/cwf/gateway
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/gateway/go
+            go test ./...
+            go vet ./...
+
+  lte-test:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      - PYTHON_BUILD=${MAGMA_ROOT}/build
+      - PIP_CACHE_HOME=${MAGMA_ROOT}/.pipcache
+      - MAGMA_DEV_MODE=1
+      - SKIP_SUDO_TESTS=1
+      - CODEGEN_ROOT=/home/circleci/project/.codegen
+      - SWAGGER_CODEGEN_JAR=/home/circleci/project/.codegen/swagger-codegen-cli.jar
+    steps:
+      - checkout
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: echo $MAGMA_ROOT
+      - run: sudo apt-get update -y
+      - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
+      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      - run:
+          command: |
+            sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+            sudo unzip protoc3.zip -d protoc3
+            sudo mv protoc3/bin/protoc /bin/protoc
+            sudo chmod a+rx /bin/protoc
+            sudo mv protoc3/include/google /usr/include/
+            sudo chmod -R a+Xr /usr/include/google
+            sudo rm -rf protoc3.zip protoc3
+            mkdir ${CODEGEN_ROOT}
+            wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
+            make -C $MAGMA_ROOT/lte/gateway/python test_all
+
+  insync-checkin:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: /tmp/magma
+    environment:
+      - MAGMA_ROOT=/tmp/magma
+      - MAGMA_MODULES_FILE=/tmp/magma/circleci/modules.yml
+    steps:
+      - checkout
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            sudo mv /tmp/docker/* /usr/bin
+      - run:
+          name: Install Docker Compose
+          command: |
+            sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+            sudo chmod +x ~/docker-compose
+            sudo mv ~/docker-compose /usr/local/bin/docker-compose
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: sudo apt-get update
+      - run:
+          name: "Set Python Version"
+          command: pyenv global 3.7.0
+      - run: pip3 install PyYAML
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py -g
+      - run: git add .
+      - run: git status
+      - run: git diff-index --quiet HEAD
+
+  orc8r-core-build:
+    docker:
+      - image: facebookconnectivity-ci.jfrog.io/builder:latest
+        auth:
+          username: $JFROG_LOGIN
+          password: $JFROG_PASSWORD
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            pip3 install PyYAML
+            python3 build.py -nc
+
+  orc8r-noncore-build:
+    docker:
+      - image: facebookconnectivity-ci.jfrog.io/builder:latest
+        auth:
+          username: $JFROG_LOGIN
+          password: $JFROG_PASSWORD
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: pip3 install PyYAML
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py -nc
+
+  nms-build:
+    docker:
+      - image: facebookconnectivity-ci.jfrog.io/builder:latest
+        auth:
+          username: $JFROG_LOGIN
+          password: $JFROG_PASSWORD
+    environment:
+      - NMS_ROOT=${MAGMA_ROOT}/symphony/app/fbcnms-projects/magmalte
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/symphony/app/fbcnms-projects/magmalte
+            docker-compose build magmalte
+
+  fossa-analyze:
+    docker:
+      - image: ubuntu:xenial
+    working_directory: /tmp/magma
+    environment:
+      - MAGMA_ROOT=/tmp/magma
+    steps:
+      - checkout
+      - run: apt update
+      - run: apt install -y wget
+      - run: wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
+      - run: bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
+      - run: rm -f /tmp/magma/fossa
+      - run: tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
+      - run: cp /tmp/magma/fossa /usr/local/bin/
+      - run: ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
+
   docusaurus_build_and_deploy:
     docker:
       - image: circleci/node:8.11.1
-
     steps:
       - checkout
       - run:
@@ -182,6 +433,28 @@ jobs:
 workflows:
   version: 2.1
 
+  magma:
+    jobs:
+      - feg-precommit
+      - cwag-precommit
+      - cloud-test
+      - orc8r-gateway-test
+      - lte-test
+      - insync-checkin
+      - orc8r-core-build:
+          requires:
+            - cloud-test
+            - orc8r-gateway-test
+      - orc8r-noncore-build:
+          requires:
+            - cloud-test
+            - orc8r-gateway-test
+      - nms-build:
+          requires:
+              - cloud-test
+              - orc8r-gateway-test
+      - fossa-analyze
+
   docusaurus_build_and_deploy:
     jobs:
       - docusaurus_build_and_deploy:
@@ -189,16 +462,16 @@ workflows:
 
   southpoll_test_and_publish:
     jobs:
-      - southpoll_thirdparty
-      - southpoll_firstparty
+      # - southpoll_thirdparty
+      # - southpoll_firstparty
       - southpoll_lint
-      - southpoll_test
-      - southpoll_publish_dev:
-          requires:
-            - southpoll_lint
-            - southpoll_test
-      - southpoll_publish_prod:
-          requires:
-            - southpoll_lint
-            - southpoll_test
-          <<: *only_master
+      # - southpoll_test
+      # - southpoll_publish_dev:
+      #     requires:
+      #       - southpoll_lint
+      #       - southpoll_test
+      # - southpoll_publish_prod:
+      #     requires:
+      #       - southpoll_lint
+      #       - southpoll_test
+      #     <<: *only_master

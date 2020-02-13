@@ -13,7 +13,7 @@ import AlertRules from '../AlertRules';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../test/testHelpers';
 import {assertType} from '@fbcnms/util/assert';
-import {mockPrometheusRule} from '../../test/data';
+import {mockPrometheusRule} from '../../test/testData';
 
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 jest.mock('@fbcnms/ui/hooks/useRouter');
@@ -40,7 +40,7 @@ const useLoadRulesMock = jest
 // TextField select is difficult to test so replace it with an Input
 jest.mock('@material-ui/core/TextField', () => {
   const Input = require('@material-ui/core/Input').default;
-  return ({children: _, InputProps: __, label, ...props}) => (
+  return ({children: _, InputProps: __, select: _sel, label, ...props}) => (
     <label>
       {label}
       <Input {...props} />

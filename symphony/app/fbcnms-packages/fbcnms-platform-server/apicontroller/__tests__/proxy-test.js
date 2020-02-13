@@ -88,6 +88,18 @@ describe('Proxy test', () => {
       expect(isAllowed).toBe(true);
     });
 
+    it('allows superuser access no org', async () => {
+      const req = {
+        params,
+        user: {
+          isSuperUser: true,
+          networkIDs: [],
+        },
+      };
+      const isAllowed = await testNetworkIdFilter(req);
+      expect(isAllowed).toBe(true);
+    });
+
     it('disallows superuser access to non-org network', async () => {
       const req = {
         params,
@@ -118,6 +130,18 @@ describe('Proxy test', () => {
       expect(isAllowed).toBe(true);
     });
 
+    it('allows user with access to network no org', async () => {
+      const req = {
+        params,
+        user: {
+          isSuperUser: false,
+          networkIDs: ['test'],
+        },
+      };
+      const isAllowed = await testNetworkIdFilter(req);
+      expect(isAllowed).toBe(true);
+    });
+
     it('disallows user with access to network but not org', async () => {
       const req = {
         params,
@@ -139,6 +163,18 @@ describe('Proxy test', () => {
         organization: () => ({
           networkIDs: ['test', 'not-test'],
         }),
+        user: {
+          isSuperUser: false,
+          networkIDs: ['not-test'],
+        },
+      };
+      const isAllowed = await testNetworkIdFilter(req);
+      expect(isAllowed).toBe(false);
+    });
+
+    it('disallows user without access to network no org', async () => {
+      const req = {
+        params,
         user: {
           isSuperUser: false,
           networkIDs: ['not-test'],

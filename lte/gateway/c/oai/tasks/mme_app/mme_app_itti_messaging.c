@@ -98,6 +98,8 @@ void mme_app_itti_ue_context_release(
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).enb_ue_s1ap_id =
     ue_context_p->enb_ue_s1ap_id;
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause = cause;
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -487,6 +489,8 @@ void nas_itti_sgsap_uplink_unitdata(
     SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
       UPLINK_UNITDATA_ECGI_PARAMETER_PRESENT;
   }
+
+  IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
     != RETURNok) {
     OAILOG_ERROR(
@@ -535,6 +539,8 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
   memcpy(SGSAP_TMSI_REALLOC_COMP(message_p).imsi, imsi, imsi_len);
   SGSAP_TMSI_REALLOC_COMP(message_p).imsi[imsi_len] = '\0';
   SGSAP_TMSI_REALLOC_COMP(message_p).imsi_length = imsi_len;
+
+  IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
     != RETURNok) {
     OAILOG_ERROR(
@@ -582,6 +588,8 @@ void mme_app_itti_sgsap_ue_activity_ind(
   memcpy(SGSAP_UE_ACTIVITY_IND(message_p).imsi, imsi, imsi_len);
   SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
   SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
+
+  IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
     != RETURNok) {
     OAILOG_ERROR(

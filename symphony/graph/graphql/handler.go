@@ -11,34 +11,46 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NYTimes/gziphandler"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/graph/graphql/tracer"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/gorilla/websocket"
 
 	gqlprometheus "github.com/99designs/gqlgen-contrib/prometheus"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
+	"github.com/NYTimes/gziphandler"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	"github.com/vektah/gqlparser/gqlerror"
 	"go.opencensus.io/plugin/ochttp"
 	"go.uber.org/zap"
+	"gocloud.dev/pubsub"
 )
+
+// HandlerConfig configures graphql handler.
+type HandlerConfig struct {
+	Logger      log.Logger
+	Topic       *pubsub.Topic
+	Subscribe   func(context.Context) (*pubsub.Subscription, error)
+	Orc8rClient *http.Client
+}
 
 func init() { gqlprometheus.Register() }
 
 // NewHandler creates a graphql http handler.
-func NewHandler(logger log.Logger, orc8rClient *http.Client) (http.Handler, error) {
+func NewHandler(cfg HandlerConfig) (http.Handler, error) {
 	rsv := resolver.New(
-		resolver.ResolveConfig{
-			Logger: logger,
-			// TODO: add events topic
+		resolver.Config{
+			Logger:    cfg.Logger,
+			Topic:     cfg.Topic,
+			Subscribe: cfg.Subscribe,
 		},
-		resolver.WithOrc8rClient(orc8rClient),
+		resolver.WithOrc8rClient(
+			cfg.Orc8rClient,
+		),
 	)
 
 	router := mux.NewRouter()
@@ -69,26 +81,30 @@ func NewHandler(logger log.Logger, orc8rClient *http.Client) (http.Handler, erro
 					generated.NewExecutableSchema(
 						generated.Config{
 							Resolvers:  rsv,
-							Directives: directive.New(logger),
+							Directives: directive.New(cfg.Logger),
 						},
 					),
 					handler.RequestMiddleware(gqlprometheus.RequestMiddleware()),
 					handler.ResolverMiddleware(gqlprometheus.ResolverMiddleware()),
 					handler.Tracer(tracer.New()),
-					handler.ErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
-						gqlerr := graphql.DefaultErrorPresenter(ctx, err)
-						if strings.Contains(err.Error(), ent.ErrReadOnly.Error()) {
-							gqlerr.Message = "Permission denied"
-						} else if _, ok := err.(*gqlerror.Error); !ok {
-							logger.For(ctx).Error("graphql internal error", zap.Error(err))
-							gqlerr.Message = "Sorry, something went wrong"
-						}
-						return gqlerr
-					}),
+					handler.ErrorPresenter(errorPresenter(cfg.Logger)),
 				),
 			),
 			"query",
 		))
 
 	return router, nil
+}
+
+func errorPresenter(logger log.Logger) graphql.ErrorPresenterFunc {
+	return func(ctx context.Context, err error) *gqlerror.Error {
+		gqlerr := graphql.DefaultErrorPresenter(ctx, err)
+		if strings.Contains(err.Error(), ent.ErrReadOnly.Error()) {
+			gqlerr.Message = "Permission denied"
+		} else if _, ok := err.(*gqlerror.Error); !ok {
+			logger.For(ctx).Error("graphql internal error", zap.Error(err))
+			gqlerr.Message = "Sorry, something went wrong"
+		}
+		return gqlerr
+	}
 }

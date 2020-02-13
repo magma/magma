@@ -1608,7 +1608,8 @@ int sgw_handle_release_access_bearers_request(
 }
 
 //-------------------------------------------------------------------------
-void handle_s5_create_session_response(s5_create_session_response_t bearer_resp)
+void handle_s5_create_session_response(
+  s5_create_session_response_t session_resp)
 {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   spgw_state_t* spgw_state_p = NULL;
@@ -1623,10 +1624,10 @@ void handle_s5_create_session_response(s5_create_session_response_t bearer_resp)
     LOG_SPGW_APP,
     "Handle s5_create_session_response, for Context SGW S11 teid, " TEID_FMT
     "EPS bearer id %u\n",
-    bearer_resp.context_teid,
-    bearer_resp.eps_bearer_id);
+    session_resp.context_teid,
+    session_resp.eps_bearer_id);
 
-  sgi_create_endpoint_resp = bearer_resp.sgi_create_endpoint_resp;
+  sgi_create_endpoint_resp = session_resp.sgi_create_endpoint_resp;
 
   OAILOG_DEBUG(
     LOG_SPGW_APP,
@@ -1636,7 +1637,7 @@ void handle_s5_create_session_response(s5_create_session_response_t bearer_resp)
 
   hashtable_ts_get(
     spgw_state_p->sgw_state.s11_bearer_context_information,
-    bearer_resp.context_teid,
+    session_resp.context_teid,
     (void**) &new_bearer_ctxt_info_p);
 
   /* Since bearer context is not found, can not get mme_s11_teid, imsi64,
@@ -1646,11 +1647,11 @@ void handle_s5_create_session_response(s5_create_session_response_t bearer_resp)
     OAILOG_ERROR(
       LOG_SPGW_APP,
       "Failed to fetch sgw bearer context from sgw s11 teid: " TEID_FMT "\n",
-      bearer_resp.context_teid);
+      session_resp.context_teid);
     OAILOG_FUNC_OUT(LOG_SPGW_APP);
   }
 
-  if (bearer_resp.failure_cause == S5_OK) {
+  if (session_resp.failure_cause == S5_OK) {
     switch (sgi_create_endpoint_resp.status) {
       case SGI_STATUS_OK:
         // Send Create Session Response with ack
@@ -1715,7 +1716,7 @@ void handle_s5_create_session_response(s5_create_session_response_t bearer_resp)
 
         break;
     }
-  } else if (bearer_resp.failure_cause == PCEF_FAILURE) {
+  } else if (session_resp.failure_cause == PCEF_FAILURE) {
     cause = SERVICE_DENIED;
   }
   // Send Create Session Response with Nack
@@ -1753,7 +1754,7 @@ void handle_s5_create_session_response(s5_create_session_response_t bearer_resp)
     &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection,
     sgi_create_endpoint_resp.eps_bearer_id);
   sgw_cm_remove_bearer_context_information(
-    spgw_state_p, bearer_resp.context_teid);
+    spgw_state_p, session_resp.context_teid);
   OAILOG_INFO(
     LOG_SPGW_APP,
     "Deleted default bearer context with SGW C-plane TEID = %u "

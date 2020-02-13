@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <conversions.h>
 
 #include "assertions.h"
 #include "intertask_interface.h"
@@ -144,6 +145,9 @@ int s6a_clr_cb(
       s6a_cancel_location_req_p->imsi_length = imsi_len;
       s6a_cancel_location_req_p->cancellation_type = SUBSCRIPTION_WITHDRAWL;
       s6a_cancel_location_req_p->msg_cla_p = msg_p;
+      IMSI_STRING_TO_IMSI64(
+        (char*) s6a_cancel_location_req_p->imsi,
+        &message_p->ittiMsgHeader.imsi);
       itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
       OAILOG_DEBUG(
         LOG_S6A, "Sending S6A_CANCEL_LOCATION_REQ to task MME_APP\n");

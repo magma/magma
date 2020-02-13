@@ -158,26 +158,29 @@ func (c *Connection) getDiamConnection() (diam.Conn, *smpeer.Metadata, error) {
 // If the passed diam connection is not the same, this probably means another go routine
 // already created a new connection - just try to close it and return.
 func (c *Connection) destroyConnection(conn diam.Conn) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
 	if conn == nil {
 		return
 	}
-	conn.Close()
+	c.mutex.Lock()
 	if conn == c.conn {
 		c.conn = nil
 		c.metadata = nil
 	}
+	c.mutex.Unlock()
+	conn.Close()
 }
 
 // cleanupConnection is similar to destroyConnection, but it closes & cleans up connection unconditionally
 func (c *Connection) cleanupConnection() {
 	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	if c.conn != nil {
-		c.conn.Close()
+	conn := c.conn
+	if conn != nil {
 		c.conn = nil
 		c.metadata = nil
+		c.mutex.Unlock()
+		conn.Close()
+	} else {
+		c.mutex.Unlock()
 	}
 }
 

@@ -219,9 +219,9 @@ void handle_s5_create_session_request(
   }
   if (sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
     // create session in PCEF and return
-    s5_create_session_request_t bearer_req = {0};
-    bearer_req.context_teid = context_teid;
-    bearer_req.eps_bearer_id = eps_bearer_id;
+    s5_create_session_request_t session_req = {0};
+    session_req.context_teid = context_teid;
+    session_req.eps_bearer_id = eps_bearer_id;
     char ip_str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(inaddr.s_addr), ip_str, INET_ADDRSTRLEN);
     struct pcef_create_session_data session_data;
@@ -230,7 +230,7 @@ void handle_s5_create_session_request(
       &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
       &session_data);
     pcef_create_session(
-      imsi, ip_str, &session_data, sgi_create_endpoint_resp, bearer_req);
+      imsi, ip_str, &session_data, sgi_create_endpoint_resp, session_req);
     OAILOG_FUNC_OUT(LOG_PGW_APP);
   }
 err:

@@ -14,7 +14,8 @@ import type {AlertConfig} from '../../AlarmAPIType';
 import type {ApiUtil} from '../../AlarmsApi';
 import type {GenericRule, RuleInterfaceMap} from '../../rules/RuleInterface';
 
-const PROMETHEUS_RULE_TYPE = 'prometheus';
+export const PROMETHEUS_RULE_TYPE = 'prometheus';
+
 export default function getPrometheusRuleInterface({
   apiUtil,
 }: {

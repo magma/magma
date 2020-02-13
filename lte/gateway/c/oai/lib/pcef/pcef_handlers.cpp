@@ -42,12 +42,12 @@ static void create_session_response(
   const std::string& imsi,
   const std::string& apn,
   itti_sgi_create_end_point_response_t sgi_response,
-  s5_create_session_request_t bearer_request,
+  s5_create_session_request_t session_request,
   const grpc::Status& status)
 {
   s5_create_session_response_t s5_response = {0};
-  s5_response.context_teid = bearer_request.context_teid;
-  s5_response.eps_bearer_id = bearer_request.eps_bearer_id;
+  s5_response.context_teid = session_request.context_teid;
+  s5_response.eps_bearer_id = session_request.eps_bearer_id;
   s5_response.sgi_create_endpoint_resp = sgi_response;
   s5_response.failure_cause = S5_OK;
 
@@ -94,7 +94,7 @@ void pcef_create_session(
   char* ip,
   const pcef_create_session_data* session_data,
   itti_sgi_create_end_point_response_t sgi_response,
-  s5_create_session_request_t bearer_request)
+  s5_create_session_request_t session_request)
 {
   auto imsi_str = std::string(imsi);
   auto ip_str = std::string(ip);
@@ -104,17 +104,17 @@ void pcef_create_session(
   sreq.mutable_sid()->set_id("IMSI" + imsi_str);
   sreq.set_rat_type(magma::RATType::TGPP_LTE);
   sreq.set_ue_ipv4(ip_str);
-  sreq.set_bearer_id(bearer_request.eps_bearer_id);
+  sreq.set_bearer_id(session_request.eps_bearer_id);
   pcef_fill_create_session_req(session_data, &sreq);
 
   auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
     sreq,
-    [imsi_str, apn, sgi_response, bearer_request](
+    [imsi_str, apn, sgi_response, session_request](
       grpc::Status status, magma::LocalCreateSessionResponse response) {
-      create_session_response(imsi_str, apn, sgi_response, bearer_request,
-                              status);
+      create_session_response(
+        imsi_str, apn, sgi_response, session_request, status);
     });
 }
 

@@ -63,6 +63,10 @@
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
+<dt id="pyinventory.graphql.create_survey_mutation.CellularNetworkType.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 <dt id="pyinventory.graphql.create_survey_mutation.CellularNetworkType.WCDMA"><code class="name">var <span class="ident">WCDMA</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -74,7 +78,7 @@
 <span>(</span><span>data=None, errors=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>CreateSurveyMutation(data: Union[pyinventory.graphql.create_survey_mutation.CreateSurveyMutation.CreateSurveyMutationData, NoneType] = None, errors: Any = None)</p></section>
+<section class="desc"><p>CreateSurveyMutation(data: Union[pyinventory.graphql.create_survey_mutation.CreateSurveyMutation.CreateSurveyMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.create_survey_mutation.CreateSurveyMutation.CreateSurveyMutationData"><code class="name">var <span class="ident">CreateSurveyMutationData</span></code></dt>
@@ -153,6 +157,10 @@
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
+<dt id="pyinventory.graphql.create_survey_mutation.FileType.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 </dl>
 </dd>
 <dt id="pyinventory.graphql.create_survey_mutation.SurveyCreateData"><code class="flex name class">
@@ -165,7 +173,7 @@
 <dl>
 <dt id="pyinventory.graphql.create_survey_mutation.SurveyCreateData.SurveyQuestionResponse"><code class="name">var <span class="ident">SurveyQuestionResponse</span></code></dt>
 <dd>
-<section class="desc"><p>SurveyQuestionResponse(formIndex: int, questionText: str, questionIndex: int, wifiData: List[pyinventory.graphql.create_survey_mutation.SurveyCreateData.SurveyQuestionResponse.SurveyWiFiScanData], cellData: List[pyinventory.graphql.create_survey_mutation.SurveyCreateData.SurveyQuestionResponse.SurveyCellScanData], formName: Union[str, NoneType] = None, formDescription: Union[str, NoneType] = None, questionFormat: Union[pyinventory.graphql.create_survey_mutation.SurveyQuestionType, NoneType] = None, boolData: Union[bool, NoneType] = None, emailData: Union[str, NoneType] = None, latitude: Union[float, NoneType] = None, longitude: Union[float, NoneType] = None, locationAccuracy: Union[float, NoneType] = None, altitude: Union[float, NoneType] = None, phoneData: Union[str, NoneType] = None, textData: Union[str, NoneType] = None, floatData: Union[float, NoneType] = None, intData: Union[int, NoneType] = None, dateData: Union[int, NoneType] = None, photoData: Union[pyinventory.graphql.create_survey_mutation.SurveyCreateData.SurveyQuestionResponse.FileInput, NoneType] = None)</p></section>
+<section class="desc"><p>SurveyQuestionResponse(formIndex: int, questionText: str, questionIndex: int, wifiData: List[pyinventory.graphql.create_survey_mutation.SurveyCreateData.SurveyQuestionResponse.SurveyWiFiScanData], cellData: List[pyinventory.graphql.create_survey_mutation.SurveyCreateData.SurveyQuestionResponse.SurveyCellScanData], formName: Union[str, NoneType] = None, formDescription: Union[str, NoneType] = None, questionFormat: Union[pyinventory.graphql.create_survey_mutation.SurveyQuestionType, NoneType] = None, boolData: Union[bool, NoneType] = None, emailData: Union[str, NoneType] = None, latitude: Union[numbers.Number, NoneType] = None, longitude: Union[numbers.Number, NoneType] = None, locationAccuracy: Union[numbers.Number, NoneType] = None, altitude: Union[numbers.Number, NoneType] = None, phoneData: Union[str, NoneType] = None, textData: Union[str, NoneType] = None, floatData: Union[numbers.Number, NoneType] = None, intData: Union[int, NoneType] = None, dateData: Union[int, NoneType] = None, photoData: Union[pyinventory.graphql.create_survey_mutation.SurveyCreateData.SurveyQuestionResponse.FileInput, NoneType] = None)</p></section>
 </dd>
 <dt id="pyinventory.graphql.create_survey_mutation.SurveyCreateData.creationTimestamp"><code class="name">var <span class="ident">creationTimestamp</span></code></dt>
 <dd>
@@ -257,6 +265,10 @@
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
+<dt id="pyinventory.graphql.create_survey_mutation.SurveyQuestionType.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 <dt id="pyinventory.graphql.create_survey_mutation.SurveyQuestionType.PHONE"><code class="name">var <span class="ident">PHONE</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -299,6 +311,10 @@
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
+<dt id="pyinventory.graphql.create_survey_mutation.SurveyStatus.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
 <dt id="pyinventory.graphql.create_survey_mutation.SurveyStatus.PLANNED"><code class="name">var <span class="ident">PLANNED</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -332,6 +348,7 @@
 <li><code><a title="pyinventory.graphql.create_survey_mutation.CellularNetworkType.CDMA" href="#pyinventory.graphql.create_survey_mutation.CellularNetworkType.CDMA">CDMA</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.CellularNetworkType.GSM" href="#pyinventory.graphql.create_survey_mutation.CellularNetworkType.GSM">GSM</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.CellularNetworkType.LTE" href="#pyinventory.graphql.create_survey_mutation.CellularNetworkType.LTE">LTE</a></code></li>
+<li><code><a title="pyinventory.graphql.create_survey_mutation.CellularNetworkType.MISSING_ENUM" href="#pyinventory.graphql.create_survey_mutation.CellularNetworkType.MISSING_ENUM">MISSING_ENUM</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.CellularNetworkType.WCDMA" href="#pyinventory.graphql.create_survey_mutation.CellularNetworkType.WCDMA">WCDMA</a></code></li>
 </ul>
 </li>
@@ -354,6 +371,7 @@
 <ul class="">
 <li><code><a title="pyinventory.graphql.create_survey_mutation.FileType.FILE" href="#pyinventory.graphql.create_survey_mutation.FileType.FILE">FILE</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.FileType.IMAGE" href="#pyinventory.graphql.create_survey_mutation.FileType.IMAGE">IMAGE</a></code></li>
+<li><code><a title="pyinventory.graphql.create_survey_mutation.FileType.MISSING_ENUM" href="#pyinventory.graphql.create_survey_mutation.FileType.MISSING_ENUM">MISSING_ENUM</a></code></li>
 </ul>
 </li>
 <li>
@@ -380,6 +398,7 @@
 <li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyQuestionType.EMAIL" href="#pyinventory.graphql.create_survey_mutation.SurveyQuestionType.EMAIL">EMAIL</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyQuestionType.FLOAT" href="#pyinventory.graphql.create_survey_mutation.SurveyQuestionType.FLOAT">FLOAT</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyQuestionType.INTEGER" href="#pyinventory.graphql.create_survey_mutation.SurveyQuestionType.INTEGER">INTEGER</a></code></li>
+<li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyQuestionType.MISSING_ENUM" href="#pyinventory.graphql.create_survey_mutation.SurveyQuestionType.MISSING_ENUM">MISSING_ENUM</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyQuestionType.PHONE" href="#pyinventory.graphql.create_survey_mutation.SurveyQuestionType.PHONE">PHONE</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyQuestionType.PHOTO" href="#pyinventory.graphql.create_survey_mutation.SurveyQuestionType.PHOTO">PHOTO</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyQuestionType.TEXT" href="#pyinventory.graphql.create_survey_mutation.SurveyQuestionType.TEXT">TEXT</a></code></li>
@@ -392,6 +411,7 @@
 <ul class="">
 <li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyStatus.COMPLETED" href="#pyinventory.graphql.create_survey_mutation.SurveyStatus.COMPLETED">COMPLETED</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyStatus.INPROGRESS" href="#pyinventory.graphql.create_survey_mutation.SurveyStatus.INPROGRESS">INPROGRESS</a></code></li>
+<li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyStatus.MISSING_ENUM" href="#pyinventory.graphql.create_survey_mutation.SurveyStatus.MISSING_ENUM">MISSING_ENUM</a></code></li>
 <li><code><a title="pyinventory.graphql.create_survey_mutation.SurveyStatus.PLANNED" href="#pyinventory.graphql.create_survey_mutation.SurveyStatus.PLANNED">PLANNED</a></code></li>
 </ul>
 </li>

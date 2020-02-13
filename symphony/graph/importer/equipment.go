@@ -18,7 +18,7 @@ import (
 
 // processEquipmentCSV  imports equipment from CSV file to DB
 func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
-	log := m.log.For(r.Context())
+	log := m.logger.For(r.Context())
 	log.Debug("Equipment- started")
 	instance := true
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
