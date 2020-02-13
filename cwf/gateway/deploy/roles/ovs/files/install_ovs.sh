@@ -13,7 +13,7 @@ apt-get -y update
 git clone https://github.com/openvswitch/ovs.git
 cd ovs/ || exit
 git checkout v2.12.0
-git apply /tmp/v2.12.0_ipfix_custom_fields.patch
+git apply /tmp/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch
 ./boot.sh
 ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc --with-linux=/lib/modules/"$(uname -r)"/build
 make
