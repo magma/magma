@@ -10,6 +10,7 @@ Description=Magma eventd service
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
+ExecStartPre=/usr/sbin/ntpdate 1.ntp.vip.facebook.com
 ExecStart=/usr/bin/env python3 -m magma.eventd.main
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py eventd
 StandardOutput=syslog

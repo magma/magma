@@ -86,12 +86,6 @@ static void *pgw_intertask_interface(void *args_p)
           imsi64);
       } break;
 
-      case S5_CREATE_BEARER_REQUEST: {
-        pgw_handle_create_bearer_request(
-          spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_request,
-          imsi64);
-      } break;
-
       case S5_NW_INITIATED_ACTIVATE_BEARER_RESP: {
         pgw_handle_nw_init_activate_bearer_rsp(
           &received_message_p->ittiMsg.s5_nw_init_actv_bearer_response);

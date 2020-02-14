@@ -23,6 +23,7 @@ fi
 
 echo "Making sure $MAGMA_USER user is sudoers"
 if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
+  apt install -y sudo
   adduser $MAGMA_USER sudo
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 fi
@@ -58,11 +59,11 @@ if [ "$KVERS" != "4.9.0-9-amd64" ]; then
   fi
   apt update
   # Installing prerequesites, Kvers, headers
-  apt install -y sudo python-minimal aptitude linux-image-4.9.0-9-amd64 linux-headers-4.9.0-9-amd64
+  apt install -y python-minimal aptitude linux-image-4.9.0-9-amd64 linux-headers-4.9.0-9-amd64
   # Removing dev repository snapshot from source.list
   sed -i '/20190801T025637Z/d' /etc/apt/sources.list
   # Removing incompatible Kernel version
-  DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-"$KVERS"-amd64
+  DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-"$KVERS"
   # Setting REBOOT flag to 1 because we need to boot with the right Kernel version
   NEED_REBOOT=1
 fi
