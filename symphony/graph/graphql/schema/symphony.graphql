@@ -427,7 +427,7 @@ input EquipmentPortInput {
   name: String!
   index: Int
   visibleLabel: String
-  portTypeID: String
+  portTypeID: ID
   bandwidth: String
 }
 

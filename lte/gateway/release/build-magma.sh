@@ -107,6 +107,7 @@ MAGMA_DEPS=(
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
     "td-agent-bit >= 1.3.2" # fluent-bit
+    "ntpdate" # required for eventd time synchronization
     )
 
 # OAI runtime dependencies

@@ -24,7 +24,8 @@ from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.metrics import OPENFLOW_ERROR_MSG
 from magma.pipelined.openflow.exceptions import MagmaOFError
-from lte.protos.pipelined_pb2 import SetupFlowsResult, ActivateFlowsRequest
+from lte.protos.pipelined_pb2 import SetupFlowsResult, ActivateFlowsRequest, \
+    SubscriberQuotaUpdate
 
 
 global_epoch = int(time.time())
@@ -152,7 +153,8 @@ class MagmaController(app_manager.RyuApp):
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
         return SetupFlowsResult(
-            result=self.setup(request.requests, startup_flows)
+            result=self.setup(request.requests, request.quota_updates.updates,
+                              startup_flows)
         )
 
     def initialize_on_connect(self, datapath):
@@ -172,12 +174,14 @@ class MagmaController(app_manager.RyuApp):
         pass
 
     def setup(self, requests: List[ActivateFlowsRequest],
+              quota_updates: List[SubscriberQuotaUpdate],
               startup_flows: List[OFPFlowStats]) -> SetupFlowsResult:
         """
         Setup flows for a controller.
 
         Args:
             requests (List[ActivateFlowsRequest]): list of ActivateFlow requests
+            quota_updates (List[SubscriberQuotaUpdate]): subcribers quota info
             startup_flows (List[OFPFlowStats]): list of current flows
         """
         pass

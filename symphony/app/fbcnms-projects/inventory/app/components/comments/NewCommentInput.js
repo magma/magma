@@ -26,7 +26,7 @@ type Props = {
   className?: string,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   newCommentBox: {
     width: '100%',
     padding: '8px 0px',
@@ -34,7 +34,7 @@ const useStyles = makeStyles({
   newCommentInput: {
     width: '100%',
   },
-});
+}));
 
 const onAddComment = (entityId, entityType: CommentEntity, commentText) => {
   const variables: AddCommentMutationVariables = {

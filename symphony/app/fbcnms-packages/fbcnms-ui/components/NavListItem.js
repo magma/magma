@@ -17,7 +17,7 @@ import {Link} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   icon: {
     color: symphony.palette.D300,
     display: 'flex',
@@ -69,7 +69,7 @@ const useStyles = makeStyles({
       fontWeight: 'bold',
     },
   },
-});
+}));
 
 type Props = {
   path: string,
@@ -113,7 +113,6 @@ export default function NavListItem(props: Props) {
         }
         classes={{
           tooltip: classes.tooltip,
-          popper: classes.arrowPopper,
           tooltipPlacementLeft: classes.bootstrapPlacementLeft,
         }}
         PopperProps={{

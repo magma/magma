@@ -32,11 +32,11 @@ import {setLoggerUser} from '../common/LoggingUtils';
 import {shouldShowSettings} from '@fbcnms/magmalte/app/components/Settings';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
   },
-});
+}));
 
 function Index() {
   const classes = useStyles();

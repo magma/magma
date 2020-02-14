@@ -13,7 +13,7 @@ import TextField from '@material-ui/core/TextField';
 
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     margin: '5px 0',
     width: '100%',
@@ -21,7 +21,7 @@ const useStyles = makeStyles({
   inputRow: {
     margin: 0,
   },
-});
+}));
 
 export type DeviceConfig = {
   id: string,

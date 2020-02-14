@@ -12,10 +12,12 @@ from ryu.lib.packet import ether_types
 from ryu.ofproto.inet import IPPROTO_TCP
 from ryu.controller.controller import Datapath
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
+from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
-from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate
+from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate, \
+    ActivateFlowsRequest, SetupFlowsResult
 from magma.pipelined.app.base import MagmaController, ControllerType
-from magma.pipelined.app.inout import INGRESS
+from magma.pipelined.app.inout import INGRESS, EGRESS
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -47,6 +49,8 @@ class CheckQuotaController(MagmaController):
             self.APP_NAME)
         self.next_table = \
             self._service_manager.get_table_num(INGRESS)
+        self.egress_table = self._service_manager.get_table_num(EGRESS)
+        self._clean_restart = kwargs['config']['clean_restart']
         self._datapath = None
 
     def _get_config(self, config_dict: Dict) -> NamedTuple:
@@ -61,6 +65,21 @@ class CheckQuotaController(MagmaController):
             no_quota_port=config_dict['no_quota_port'],
             cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
         )
+
+    # pylint:disable=unused-argument
+    def setup(self, requests: List[ActivateFlowsRequest],
+              quota_updates: List[SubscriberQuotaUpdate],
+              startup_flows: List[OFPFlowStats]) -> SetupFlowsResult:
+        """
+        Setup current check quota flows.
+        """
+        # TODO Potentially we can run a diff logic but I don't think there is
+        # benefit(we don't need stats here)
+        self._delete_all_flows(self._datapath)
+        self.update_subscriber_quota_state(quota_updates)
+        self._install_default_flows(self._datapath)
+
+        return SetupFlowsResult.SUCCESS
 
     def initialize_on_connect(self, datapath: Datapath):
         self._datapath = datapath
@@ -121,7 +140,7 @@ class CheckQuotaController(MagmaController):
         flows.add_resubmit_next_service_flow(
             self._datapath, self.tbl_num, match, actions,
             priority=flows.DEFAULT_PRIORITY,
-            resubmit_table=self.next_main_table
+            resubmit_table=self.egress_table
         )
 
     def _remove_subscriber_flow(self, imsi: str):
@@ -137,7 +156,6 @@ class CheckQuotaController(MagmaController):
             ip_proto=IPPROTO_TCP, direction=Direction.IN,
             ipv4_src=self.config.bridge_ip)
         flows.delete_flow(self._datapath, self.tbl_num, match)
-
 
     def _install_default_flows(self, datapath: Datapath):
         """

@@ -17,13 +17,13 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     height: '100vh',
     transform: 'translateZ(0)',
   },
-});
+}));
 
 export default function WorkOrderConfigure() {
   const {location, history, relativeUrl} = useRouter();

@@ -163,7 +163,7 @@ export default function OrganizationEdit() {
       <Grid item xs={6}>
         <Paper className={classes.root} elevation={1}>
           <Text variant="h6">Basic Info</Text>
-          <form className={classes.container} noValidate autoComplete="off">
+          <form noValidate autoComplete="off">
             <FormGroup>
               <TextField
                 label="Name"
@@ -239,7 +239,7 @@ export default function OrganizationEdit() {
         </Paper>
         <Paper className={classes.root} elevation={1}>
           <Text variant="h6">Advanced Settings</Text>
-          <form className={classes.container} noValidate autoComplete="off">
+          <form noValidate autoComplete="off">
             <FormGroup>
               <TextField
                 label="CSV Charset (default: utf-8)"
@@ -253,7 +253,7 @@ export default function OrganizationEdit() {
         </Paper>
         <Paper className={classes.root} elevation={1}>
           <Text variant="h6">Single Sign-On</Text>
-          <form className={classes.container} noValidate autoComplete="off">
+          <form noValidate autoComplete="off">
             <FormGroup>
               <TextField
                 label="Issuer"

@@ -11,13 +11,13 @@
 import type {TextVariant} from '../../theme/symphony';
 
 import React from 'react';
-import SymphonyTheme from '../../theme/symphony';
 import Text from '../../components/design-system/Text';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
 
-const useStyles = makeStyles(({symphony}) => {
+const useStyles = makeStyles(() => {
   return {
     root: {
       padding: '52px',
@@ -41,7 +41,7 @@ const TypographyBlock = (props: {variant: TextVariant}) => {
   const {variant} = props;
   const classes = useStyles();
 
-  const variantObject = SymphonyTheme.typography[variant];
+  const variantObject = symphony.typography[variant];
   const getVariantName = (variant: string) => {
     if (variantObject.textTransform === 'uppercase') {
       return variant;
@@ -51,7 +51,7 @@ const TypographyBlock = (props: {variant: TextVariant}) => {
   };
 
   const getHumanReadableFontWeight = (variant: TextVariant) => {
-    switch (SymphonyTheme.typography[variant].fontWeight) {
+    switch (symphony.typography[variant].fontWeight) {
       case 300:
         return 'Light';
       case 400:
@@ -96,7 +96,7 @@ const TypographyRoot = () => {
   const classes = useStyles();
   return (
     <div className={classes.root}>
-      {Object.keys(SymphonyTheme.typography).map(variant => (
+      {Object.keys(symphony.typography).map(variant => (
         <TypographyBlock key={variant} variant={variant} />
       ))}
     </div>

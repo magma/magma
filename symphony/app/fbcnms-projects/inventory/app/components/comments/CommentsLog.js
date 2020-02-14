@@ -26,7 +26,7 @@ type Props = {
   postClassName?: string,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   commentsLog: {
     flexGrow: 1,
     marginBottom: '8px',
@@ -39,7 +39,7 @@ const useStyles = makeStyles({
   singleComment: {
     flexBasis: 'auto',
   },
-});
+}));
 
 const CommentsLog = (props: Props) => {
   const classes = useStyles();

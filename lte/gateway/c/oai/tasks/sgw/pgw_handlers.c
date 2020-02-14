@@ -428,16 +428,15 @@ static void get_session_req_data(
 //-----------------------------------------------------------------------------
 
 uint32_t pgw_handle_nw_initiated_bearer_actv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p,
+  spgw_state_t* spgw_state,
+  const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
   imsi64_t imsi64)
 {
   OAILOG_FUNC_IN(LOG_PGW_APP);
-  MessageDef *message_p = NULL;
   uint32_t rc = RETURNok;
   hash_table_ts_t *hashtblP = NULL;
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
-  itti_s5_nw_init_actv_bearer_request_t *itti_s5_actv_bearer_req = NULL;
+  s5_nw_init_actv_bearer_request_t s5_actv_bearer_req = NULL;
   bool is_teid_found = false;
   bool is_lbi_found = false;
 
@@ -445,33 +444,19 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     LOG_PGW_APP,
     "Received Create Bearer Req from PCRF with IMSI " IMSI_64_FMT, imsi64);
 
-  message_p =
-    itti_alloc_new_message(TASK_SPGW_APP, S5_NW_INITIATED_ACTIVATE_BEARER_REQ);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-      LOG_PGW_APP,
-      "itti_alloc_new_message failed for"
-      "S5_NW_INITIATED_ACTIVATE_DEDICATED_BEARER_REQ\n");
-    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
-  }
-  itti_s5_actv_bearer_req = &message_p->ittiMsg.s5_nw_init_actv_bearer_request;
-  // Send ITTI message to SGW
-  memset(
-    itti_s5_actv_bearer_req, 0, sizeof(itti_s5_nw_init_actv_bearer_request_t));
-
   // Copy Bearer QoS
   memcpy(
-    &itti_s5_actv_bearer_req->eps_bearer_qos,
+    &s5_actv_bearer_req.eps_bearer_qos,
     &bearer_req_p->eps_bearer_qos,
     sizeof(bearer_qos_t));
   //Copy UL TFT to be sent to UE
   memcpy(
-    &itti_s5_actv_bearer_req->ul_tft,
+    &s5_actv_bearer_req.ul_tft,
     &bearer_req_p->ul_tft,
     sizeof(traffic_flow_template_t));
   //Copy DL TFT. SGW creates a temporary bearer ctx and stores the DL TFT
   memcpy(
-    &itti_s5_actv_bearer_req->dl_tft,
+    &s5_actv_bearer_req.dl_tft,
     &bearer_req_p->dl_tft,
     sizeof(traffic_flow_template_t));
 
@@ -487,7 +472,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     imsi_map->imsi_teid5_htbl, (const hash_key_t) imsi64, &local_teid);
   OAILOG_DEBUG(
     LOG_SPGW_APP,
-    "Got imsi" IMSI_64_FMT " with local_teid %lu",
+    "Using imsi" IMSI_64_FMT " got local_teid " TEID_FMT "\n",
     imsi64,
     local_teid);
 
@@ -499,10 +484,10 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
       spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
         .default_bearer == bearer_req_p->lbi) {
       is_lbi_found = true;
-      itti_s5_actv_bearer_req->lbi = bearer_req_p->lbi;
-      itti_s5_actv_bearer_req->mme_teid_S11 =
+      s5_actv_bearer_req.lbi = bearer_req_p->lbi;
+      s5_actv_bearer_req.mme_teid_S11 =
         spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
-      itti_s5_actv_bearer_req->s_gw_teid_S11_S4 =
+      s5_actv_bearer_req.s_gw_teid_S11_S4 =
         spgw_ctxt_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4;
     }
   }
@@ -523,19 +508,15 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
 
-  // Send S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW APP
   OAILOG_INFO(
     LOG_PGW_APP,
     "LBI for the received Create Bearer Req %d\n",
     itti_s5_actv_bearer_req->lbi);
-  OAILOG_INFO(
-    LOG_PGW_APP,
-    "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",
-    itti_s5_actv_bearer_req->mme_teid_S11);
-
-  message_p->ittiMsgHeader.imsi = imsi64;
-
-  rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+  rc = sgw_handle_nw_initiated_actv_bearer_req(
+    spgw_state, itti_s5_actv_bearer_req);
+  if (rc != RETURNok) {
+    OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
+  }
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 

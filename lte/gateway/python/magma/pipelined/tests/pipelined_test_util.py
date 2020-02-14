@@ -20,7 +20,8 @@ from unittest.mock import MagicMock
 from ryu.lib import hub
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupFlowsRequest
+from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupFlowsRequest, \
+    UpdateSubscriberQuotaStateRequest
 from magma.pipelined.app.meter_stats import UsageRecord, MeterStatsController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import ServiceManager
@@ -236,7 +237,10 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
     flag is not set fail the test case.
     """
     if setup_flows_request is None:
-        setup_flows_request = SetupFlowsRequest(requests=[], epoch=global_epoch)
+        setup_flows_request = SetupFlowsRequest(
+            requests=[], epoch=global_epoch,
+            quota_updates=UpdateSubscriberQuotaStateRequest(updates=[])
+        )
     enf_controller.init_finished = False
     if startup_flow_controller:
         startup_flow_controller._flows_received = False

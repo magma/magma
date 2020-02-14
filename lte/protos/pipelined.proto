@@ -22,6 +22,8 @@ message SetupFlowsRequest {
   repeated ActivateFlowsRequest requests = 1;
   // epoch to prevent outdated setup calls
   uint64 epoch = 2;
+  // List of subscriber quota updates
+  UpdateSubscriberQuotaStateRequest quota_updates = 3;
 }
 
 message SetupFlowsResult {

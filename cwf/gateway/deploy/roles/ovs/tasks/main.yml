@@ -29,7 +29,7 @@
       - build-essential
       - fakeroot
 
-- name: Install OVS v2.8.1 from Magma's pkgrepo
+- name: Install patched OVS v2.12.0 from Magma's pkgrepo
   apt:
      state: present
      pkg:

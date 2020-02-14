@@ -332,7 +332,7 @@ jobs:
       - run:
           name: Run python tests
           command:
-            docker-compose run --use-aliases pytests
+            docker-compose run --use-aliases -e XML_OUTPUT_DIRECTORY=. pytests
       - run:
           name: Collect tests results
           command: |

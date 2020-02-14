@@ -28,12 +28,12 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   appBar: {
     backgroundColor: '#f5f5f5',
     marginBottom: '20px',
   },
-});
+}));
 
 type Props = {
   onClose: () => void,
