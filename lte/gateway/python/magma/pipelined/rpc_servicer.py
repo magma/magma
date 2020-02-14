@@ -418,6 +418,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         #     self._apn_app.add_apn_flow_for_ue, request.ip_addr, request.ap_name)
         # )
         # TODO(119vik): add async handlers
+        logging.debug('New APN flow is requested with params %s, %s %s ', request.sid, request.ip_addr, request.ap_name)
         resp = APNTaggingResponse()
         return resp
 
@@ -428,6 +429,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         #     self._apn_app.delete_apn_flow_for_ue, request.ip_addr, request.ap_name)
         # )
         # TODO(119vik): add async handlers
+        logging.debug('APN flow deletion is requested with params %s, %s %s ', request.sid, request.ip_addr, request.ap_name)
         resp = APNTaggingResponse()
         return resp
 
