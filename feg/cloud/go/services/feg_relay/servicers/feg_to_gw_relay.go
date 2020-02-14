@@ -16,7 +16,9 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/services/feg_relay/utils"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -48,7 +50,7 @@ func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
 		return "", err
 	}
 	for _, nid := range servedIds {
-		hwId, err := directoryd.GetHardwareIdByIMSI(imsi, nid)
+		hwId, err := getHwid(imsi, nid)
 		if err == nil && len(hwId) != 0 {
 			glog.V(2).Infof("IMSI to send is %v\n", imsi)
 			return hwId, nil
@@ -136,4 +138,18 @@ func getFegServedIds(networkId string) ([]string, error) {
 		return []string{}, fmt.Errorf("invalid federation network config found for network: %s", networkId)
 	}
 	return networkFegConfigs.ServedNetworkIds, nil
+}
+
+func getHwid(nid, imsi string) (string, error) {
+	st, err := state.GetState(nid, orc8r.DirectoryRecordType, imsi)
+	if err != nil {
+		return "", err
+	}
+
+	record, ok := st.ReportedState.(*directoryd.DirectoryRecord)
+	if !ok || len(record.LocationHistory) == 0 {
+		return "", err
+	}
+
+	return record.LocationHistory[0], nil
 }
