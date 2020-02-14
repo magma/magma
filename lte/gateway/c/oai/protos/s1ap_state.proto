@@ -41,3 +41,7 @@ message S1apState {
   map<uint32, uint32> mmeid2associd = 2; // mmeueid -> ue associd
   uint32 num_enbs = 3;
 }
+
+message S1apImsiMap {
+  map<uint64, uint64> mme_ue_id_imsi_map = 1; // mme_s1ap_ue_id => IMSI64
+}
