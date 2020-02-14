@@ -48,7 +48,9 @@
 #include "service303.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
+#define MIN_GUMMEI 1
 #define MAX_GUMMEI 5
+#define MIN_TAI_SUPPORTED 1
 #define MAX_TAI_SUPPORTED 16
 #define MAX_MCC_LENGTH 3
 #define MAX_MNC_LENGTH 3

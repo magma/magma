@@ -660,6 +660,15 @@ int mme_config_parse_file(mme_config_t *config_pP)
       config_setting_get_member(setting_mme, MME_CONFIG_STRING_TAI_LIST);
     if (setting != NULL) {
       num = config_setting_length(setting);
+      OAILOG_INFO(LOG_MME_APP, "Number of TAIs configured: %d\n", num);
+      AssertFatal(
+        num >= MIN_TAI_SUPPORTED,
+        "Not even one TAI is configured, configure minimum one TAI\n");
+      AssertFatal(
+        num <= MAX_TAI_SUPPORTED,
+        "Too many TAIs configured: %d (Maximum supported: %d)",
+        num,
+        MAX_TAI_SUPPORTED);
 
       if (config_pP->served_tai.nb_tai != num) {
         if (config_pP->served_tai.plmn_mcc != NULL)
@@ -685,11 +694,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
       }
 
       config_pP->served_tai.nb_tai = num;
-      AssertFatal(
-        num <= MAX_TAI_SUPPORTED,
-        "Too many TAIs configured: %d (Maximum supported: %d)",
-        num,
-        MAX_TAI_SUPPORTED);
 
       for (i = 0; i < num; i++) {
         sub2setting = config_setting_get_elem(setting, i);
@@ -811,10 +815,10 @@ int mme_config_parse_file(mme_config_t *config_pP)
       num = config_setting_length(setting);
       OAILOG_INFO(LOG_MME_APP, "Number of GUMMEIs configured =%d\n", num);
       AssertFatal(
-        num >= 1,
+        num >= MIN_GUMMEI,
         "Not even one GUMMEI is configured, configure minimum one GUMMEI \n");
       AssertFatal(
-        num < MAX_GUMMEI,
+        num <= MAX_GUMMEI,
         "Number of GUMMEIs configured:%d exceeds number of GUMMEIs supported "
         ":%d \n",
         num,
@@ -902,7 +906,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
         struct bstrList *list = bsplit(cidr, '/');
         AssertFatal(
           list->qty == CIDR_SPLIT_LIST_COUNT,
-          "Bad CIDR address %s",
+          "Bad S1-MME CIDR address: %s",
           bdata(cidr));
         address = list->entry[0];
         mask = list->entry[1];
@@ -927,7 +931,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
         list = bsplit(cidr, '/');
         AssertFatal(
           list->qty == CIDR_SPLIT_LIST_COUNT,
-          "Bad CIDR address %s",
+          "Bad MME S11 CIDR address: %s",
           bdata(cidr));
         address = list->entry[0];
         mask = list->entry[1];
@@ -1195,7 +1199,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
           struct bstrList *list = bsplit(cidr, '/');
           AssertFatal(
             list->qty == CIDR_SPLIT_LIST_COUNT,
-            "Bad CIDR address %s",
+            "Bad SGW S11 CIDR address: %s",
             bdata(cidr));
           address = list->entry[0];
           IPV4_STR_ADDR_TO_INADDR(
@@ -1399,8 +1403,7 @@ void mme_config_display(mme_config_t *config_pP)
       OAILOG_INFO(LOG_CONFIG, "- TAI list type multiple PLMNs\n");
       break;
     default:
-      AssertFatal(
-        0,
+      Fatal(
         "Invalid served TAI list type (%u) configured\n",
         config_pP->served_tai.list_type);
       break;
