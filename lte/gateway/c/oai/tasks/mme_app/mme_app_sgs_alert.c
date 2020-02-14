@@ -166,8 +166,7 @@ static int _mme_app_send_sgsap_alert_reject(
   if (!message_p) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Failed to allocate memory for SGSAP_ALERT_REJECT for IMSI: " IMSI_64_FMT
-      "\n",
+      "Failed to allocate memory: SGSAP_ALERT_REJECT, IMSI: " IMSI_64_FMT "\n",
       imsi64);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
@@ -214,8 +213,7 @@ static int _mme_app_send_sgsap_alert_ack(
   if (!message_p) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Failed to allocate memory for SGSAP_ALERT_ACK for IMSI: " IMSI_64_FMT
-      "\n",
+      "Failed to allocate memory for SGSAP_ALERT_ACK, IMSI: " IMSI_64_FMT "\n",
       imsi64);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }

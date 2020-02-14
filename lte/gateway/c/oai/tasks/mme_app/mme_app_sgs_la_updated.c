@@ -76,7 +76,7 @@ int sgs_la_update_requested_handler(const sgs_fsm_t* evt)
   if (sgs_fsm_get_status(evt->ue_id, evt->ctx) != SGS_LA_UPDATE_REQUESTED) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "SGS is not in the SGS_LA_UPDATE_REQUESTED state for UE "
+      "SGS not in the SGS_LA_UPDATE_REQUESTED state for UE "
       "Id: " MME_UE_S1AP_ID_FMT "\n",
       evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);

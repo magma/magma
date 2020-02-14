@@ -76,8 +76,7 @@ int sgs_associated_handler(const sgs_fsm_t* evt)
   if (sgs_fsm_get_status(evt->ue_id, evt->ctx) != SGS_ASSOCIATED) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "SGS is not in the SGS_Associated state for UE Id: " MME_UE_S1AP_ID_FMT
-      "\n",
+      "SGS not in the SGS_Associated state, UE Id: " MME_UE_S1AP_ID_FMT "\n",
       evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
