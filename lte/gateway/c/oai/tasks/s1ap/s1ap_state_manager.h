@@ -74,6 +74,16 @@ class S1apStateManager :
    */
   void free_state() override;
 
+  /**
+   * Serializes s1ap_imsi_map to proto and saves it into data store
+   */
+  void put_s1ap_imsi_map();
+
+  /**
+   * Returns a pointer to s1ap_imsi_map
+   */
+  s1ap_imsi_map_t* get_s1ap_imsi_map();
+
  private:
   S1apStateManager();
   ~S1apStateManager();
@@ -83,8 +93,12 @@ class S1apStateManager :
    */
   void create_state() override;
 
+  void create_s1ap_imsi_map();
+  void clear_s1ap_imsi_map();
+
   uint32_t max_ues_;
   uint32_t max_enbs_;
+  s1ap_imsi_map_t* s1ap_imsi_map_;
 };
 } // namespace lte
 } // namespace magma

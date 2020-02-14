@@ -63,6 +63,11 @@ MAGMA_GITHUB_URL="{{ .Values.feg.repo.url }}"
 git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
 source /opt/magma/env/.env
+if [[ $IMAGE_VERSION == *"|"* ]]; then
+  GIT_HASH=$(cut -d'|' -f2 <<< "$IMAGE_VERSION")
+  IMAGE_VERSION=$(cut -d'|' -f1 <<< "$IMAGE_VERSION")
+fi
+
 if [ "$IMAGE_VERSION" != "latest" ]; then
     git -C $INSTALL_DIR/magma checkout {{ .Values.feg.repo.branch }}
 fi
