@@ -606,9 +606,10 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
         initial_pP->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
         if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
           /*
-           * Ideally this should never happen. When UE move to IDLE this key is set to INVALID.
-           * Note - This can happen if eNB detects RLF late and by that time UE sends Initial NAS message via new RRC
-           * connection
+           * Ideally this should never happen. When UE moves to IDLE,
+           * this key is set to INVALID.
+           * Note - This can happen if eNB detects RLF late and by that time
+           * UE sends Initial NAS message via new RRC connection.
            * However if this key is valid, remove the key from the hashtable.
            */
 
@@ -617,7 +618,7 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
             "MME_APP_INITAIL_UE_MESSAGE: enb_s1ap_id_key %ld has "
             "valid value \n",
             ue_context_p->enb_s1ap_id_key);
-          //inform s1ap to do local cleanup of enb_ue_s1ap_id from the ue context
+          // Inform s1ap for local cleanup of enb_ue_s1ap_id from ue context
           ue_context_p->ue_context_rel_cause = S1AP_INVALID_ENB_ID;
           OAILOG_ERROR(
             LOG_MME_APP,
@@ -712,15 +713,15 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
       RETURNok) {
       OAILOG_ERROR(
         LOG_MME_APP,
-        "Failed to insert UE context for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
-        "\n",
+        "Failed to insert UE contxt, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
   }
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
   ue_context_p->e_utran_cgi = initial_pP->ecgi;
-  // Notify S1AP about the mapping between mme_ue_s1ap_id and sctp assoc id + enb_ue_s1ap_id
+  // Notify S1AP about the mapping between mme_ue_s1ap_id and
+  // sctp assoc id + enb_ue_s1ap_id
   notify_s1ap_new_ue_mme_s1ap_id_association(ue_context_p);
   s_tmsi_t s_tmsi = {0};
   if (initial_pP->is_s_tmsi_valid) {
@@ -749,8 +750,11 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
     initial_pP->rrc_establishment_cause,
     s_tmsi,
     &initial_pP->nas);
-  //   s1ap_initial_ue_message_t transparent; may be needed :
-  // OLD CODE memcpy (&message_p->ittiMsg.nas_initial_ue_message.transparent, (const void*)&initial_pP->transparent, sizeof (message_p->ittiMsg.nas_initial_ue_message.transparent));
+  // s1ap_initial_ue_message_t transparent; may be needed :
+  // OLD CODE memcpy (
+  //   &message_p->ittiMsg.nas_initial_ue_message.transparent,
+  //   (const void*)&initial_pP->transparent,
+  //   sizeof (message_p->ittiMsg.nas_initial_ue_message.transparent));
 
   initial_pP->nas = NULL;
 
@@ -1023,12 +1027,15 @@ int mme_app_handle_create_sess_resp(
   proc_tid_t transaction_identifier = 0;
   pdn_cid_t pdn_cx_id = 0;
 
-  /* Whether SGW has created the session (IP address allocation, local GTP-U end point creation etc.)
-   * successfully or not , it is indicated by cause value in create session response message.
-   * If cause value is not equal to "REQUEST_ACCEPTED" then this implies that SGW could not allocate the resources for
-   * the requested session. In this case, MME-APP sends PDN Connectivity fail message to NAS-ESM with the "cause" received
-   * in S11 Session Create Response message.
-   * NAS-ESM maps this "S11 cause" to "ESM cause" and sends it in PDN Connectivity Reject message to the UE.
+  /* Whether SGW has created the session (IP address allocation, local GTP-U
+   * end point creation etc.) successfully or not, it is indicated by cause
+   * value in create session response message.
+   * If cause value is not equal to "REQUEST_ACCEPTED" then this implies that
+   * SGW could not allocate the resources for the requested session. In this
+   * case, MME-APP sends PDN Connectivity fail message to NAS-ESM with the
+   * "cause" received in S11 Create Session Response message.
+   * NAS-ESM maps this "S11 cause" to "ESM cause" and sends it in PDN
+   * Connectivity Reject message to the UE.
    */
 
   emm_cn_ula_or_csrsp_fail_t create_session_response_fail = {0};
@@ -1704,8 +1711,7 @@ void mme_app_handle_mobile_reachability_timer_expiry(void* args)
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Invalid UE context received for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
-      "\n",
+      "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
       mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1755,8 +1761,7 @@ void mme_app_handle_implicit_detach_timer_expiry(void* args)
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Invalid UE context received for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
-      "\n",
+      "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
       mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1777,8 +1782,7 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(void* args)
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Invalid UE context received for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
-      "\n",
+      "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
       mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -2458,8 +2462,7 @@ void mme_app_handle_ue_context_modification_timer_expiry(void* args)
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Invalid UE context received for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
-      "\n",
+      "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
       mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
