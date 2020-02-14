@@ -39,7 +39,7 @@ type Props = {
   onChecklistChanged?: (updatedList: CheckListTableDefinition_list) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     maxWidth: '1366px',
     overflowX: 'auto',
@@ -74,7 +74,7 @@ const useStyles = makeStyles({
       backgroundColor: symphony.palette.B50,
     },
   },
-});
+}));
 
 const CheckListTableDefinition = (props: Props) => {
   const {list, onChecklistChanged} = props;

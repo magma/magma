@@ -29,12 +29,12 @@ type Props = {
   newCommentInputClass?: string,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'column',
   },
-});
+}));
 
 const CommentsBox = (props: Props) => {
   const classes = useStyles();

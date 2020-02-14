@@ -50,6 +50,7 @@ class CheckQuotaController(MagmaController):
         self.next_table = \
             self._service_manager.get_table_num(INGRESS)
         self.egress_table = self._service_manager.get_table_num(EGRESS)
+        self._clean_restart = kwargs['config']['clean_restart']
         self._datapath = None
 
     def _get_config(self, config_dict: Dict) -> NamedTuple:
@@ -76,6 +77,7 @@ class CheckQuotaController(MagmaController):
         # benefit(we don't need stats here)
         self._delete_all_flows(self._datapath)
         self.update_subscriber_quota_state(quota_updates)
+        self._install_default_flows(self._datapath)
 
         return SetupFlowsResult.SUCCESS
 

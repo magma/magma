@@ -14,7 +14,7 @@ import classNames from 'classnames';
 import symphony from '../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     backgroundColor: symphony.palette.white,
     width: '234px',
@@ -36,7 +36,7 @@ const useStyles = makeStyles({
   itemText: {
     lineHeight: '20px',
   },
-});
+}));
 
 type NavigationItem = {
   key: string,

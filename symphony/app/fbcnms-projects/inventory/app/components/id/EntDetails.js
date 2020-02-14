@@ -108,7 +108,7 @@ const EntDetails = (_props: Props) => {
         if (!props) {
           return (
             <div className={classes.progressContainer}>
-              <CircularProgress className={classes.progress} />
+              <CircularProgress />
             </div>
           );
         }

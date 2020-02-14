@@ -21,13 +21,13 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
     width: '100%',
   },
-});
+}));
 
 type Props = {
   onClose: () => void,

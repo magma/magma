@@ -16,7 +16,7 @@ type Props = {
   isActive: boolean,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   status: {
     width: '10px',
     height: '10px',
@@ -28,7 +28,7 @@ const useStyles = makeStyles({
     fontWeight: 'bold',
     marginRight: '5px',
   },
-});
+}));
 
 export default function DeviceStatusCircle(props: Props) {
   const classes = useStyles();

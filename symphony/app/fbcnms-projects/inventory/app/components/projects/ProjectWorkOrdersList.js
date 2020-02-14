@@ -52,7 +52,7 @@ const ProjectWorkOrdersList = (props: Props) => {
   const {onNavigateToWorkOrder, workOrders} = props;
 
   return workOrders.length > 0 ? (
-    <Table className={classes.table}>
+    <Table>
       <TableHead>
         <TableRow>
           <TableCell>Name</TableCell>

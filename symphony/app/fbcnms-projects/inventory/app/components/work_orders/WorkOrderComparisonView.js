@@ -18,7 +18,6 @@ import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useMemo, useState} from 'react';
 import WorkOrderCard from './WorkOrderCard';
 import WorkOrderComparisonViewQueryRenderer from './WorkOrderComparisonViewQueryRenderer';
-import classNames from 'classnames';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
@@ -27,7 +26,7 @@ import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 import {getInitialFilterValue} from '../comparison_view/FilterUtils';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -43,7 +42,7 @@ const useStyles = makeStyles({
     flexGrow: 1,
     paddingTop: '8px',
   },
-});
+}));
 
 const WorkOrderComparisonView = () => {
   const [filters, setFilters] = useState([]);
@@ -147,10 +146,6 @@ const WorkOrderComparisonView = () => {
         />
         <div className={classes.searchResults}>
           <WorkOrderComparisonViewQueryRenderer
-            className={classNames({
-              [classes.comparisionViewTable]:
-                resultsDisplayMode === DisplayOptions.table,
-            })}
             limit={50}
             filters={filters}
             onWorkOrderSelected={selectedWorkOrderCardId =>

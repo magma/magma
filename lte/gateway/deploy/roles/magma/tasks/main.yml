@@ -15,6 +15,7 @@
     - magmad
     - mobilityd
     - dnsd
+    - eventd
     # Magma OAI services
     - mme
     # Magma third-party services
@@ -149,6 +150,8 @@
       - redis-server
       - python-redis
       - magma-cpp-redis
+      # Time synchronization with NTP for eventd
+      - ntpdate
   retries: 5
   when: preburn
 

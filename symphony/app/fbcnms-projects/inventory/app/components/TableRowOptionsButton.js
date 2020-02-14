@@ -30,7 +30,7 @@ type Props = {
   className?: ?string,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   menu: {
     width: 'auto',
   },
@@ -46,7 +46,7 @@ const useStyles = makeStyles({
     opacity: 0.5,
     cursor: 'default',
   },
-});
+}));
 
 const TableRowOptionsButton = (props: Props) => {
   const {options, menuIcon, className} = props;

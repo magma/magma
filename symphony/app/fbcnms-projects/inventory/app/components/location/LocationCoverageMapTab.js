@@ -232,7 +232,7 @@ function generateColorStops(
   }));
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     height: '100%',
   },
@@ -246,6 +246,6 @@ const useStyles = makeStyles({
     width: '100%',
     textAlign: 'center',
   },
-});
+}));
 
 export default LocationCoverageMapTab;

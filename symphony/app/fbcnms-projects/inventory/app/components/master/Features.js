@@ -78,7 +78,7 @@ export default function Features() {
 
   return (
     <div className={classes.paper}>
-      <Paper className={classes.tableRoot} elevation={2}>
+      <Paper elevation={2}>
         <Table>
           <TableHead>
             <TableRow>

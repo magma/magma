@@ -32,13 +32,13 @@ type Props = {
   workOrders: Array<WorkOrder>,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   workOrderPopover: {
     marginTop: '8px',
     minWidth: '410px',
     maxWidth: '50vw',
   },
-});
+}));
 
 const LOCATIONS_DISTRIBUTION_FACTOR = 0.01;
 

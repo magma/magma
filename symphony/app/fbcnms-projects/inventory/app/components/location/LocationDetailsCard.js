@@ -19,7 +19,7 @@ import LocationMapSnippet from './LocationMapSnippet';
 import React, {useContext} from 'react';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   detailsHeaderContainer: {
     display: 'flex',
     flexDirection: 'row',
@@ -30,7 +30,7 @@ const useStyles = makeStyles({
   map: {
     minHeight: '232px',
   },
-});
+}));
 
 type Props = {
   className?: string,

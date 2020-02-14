@@ -117,7 +117,6 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
                 component={Link}
                 to={makeTabLink({keyName, match})}
                 key={keyName}
-                className={classes.selectedTab}
                 label={TABS[keyName].name}
                 value={keyName}
               />

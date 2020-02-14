@@ -14,7 +14,7 @@ import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     backgroundColor: symphony.palette.white,
     borderRadius: '4px',
@@ -59,7 +59,7 @@ const useStyles = makeStyles({
       color: symphony.palette.primary,
     },
   },
-});
+}));
 
 export type ButtonItem = {
   id: string,

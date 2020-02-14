@@ -20,7 +20,7 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -34,7 +34,7 @@ const useStyles = makeStyles({
     paddingLeft: '24px',
     paddingRight: '24px',
   },
-});
+}));
 
 const ProjectComparisonView = () => {
   const classes = useStyles();
