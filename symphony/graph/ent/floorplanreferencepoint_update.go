@@ -220,7 +220,9 @@ func (fprpu *FloorPlanReferencePointUpdate) sqlSave(ctx context.Context) (n int,
 		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fprpu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{floorplanreferencepoint.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -422,7 +424,9 @@ func (fprpuo *FloorPlanReferencePointUpdateOne) sqlSave(ctx context.Context) (fp
 	_spec.Assign = fprp.assignValues
 	_spec.ScanValues = fprp.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, fprpuo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{floorplanreferencepoint.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
