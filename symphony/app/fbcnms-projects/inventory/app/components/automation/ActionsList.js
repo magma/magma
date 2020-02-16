@@ -14,9 +14,8 @@ import ActionsListCard from './ActionsListCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Grid from '@material-ui/core/Grid';
 import Text from '@fbcnms/ui/components/design-system/Text';
-
-import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {makeStyles} from '@material-ui/styles';
+import {useHistory} from 'react-router';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -32,7 +31,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function ActionsList() {
   const classes = useStyles();
-  const {history} = useRouter();
+  const history = useHistory();
 
   return (
     <div className={classes.root}>

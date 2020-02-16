@@ -20,7 +20,7 @@ import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {formatMultiSelectValue} from '@fbcnms/ui/utils/displayUtils';
 import {statusValues} from '../../common/WorkOrder';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useHistory} from 'react-router';
 
 type Props = {
   workOrder: WorkOrdersView_workOrder,
@@ -32,7 +32,7 @@ const WorkOrdersView = (props: Props) => {
   const {className, workOrder, onWorkOrderSelected} = props;
   const [sortDirection, setSortDirection] = useState('desc');
   const [sortColumn, setSortColumn] = useState('name');
-  const {history} = useRouter();
+  const history = useHistory();
 
   const sortedWorkOrders = useMemo(
     () =>

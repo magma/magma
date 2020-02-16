@@ -15,9 +15,9 @@ import EquipmentComparisonViewQueryRenderer from './EquipmentComparisonViewQuery
 import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
 import PowerSearchEquipmentResultsTable from './PowerSearchEquipmentResultsTable';
 import React, {useContext} from 'react';
-import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useHistory} from 'react-router';
 
 const QUERY_LIMIT = 50;
 
@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const EquipmentComparisonView = () => {
-  const {history} = useRouter();
+  const history = useHistory();
   const classes = useStyles();
   const equipmentExportEnabled = useContext(AppContext).isFeatureEnabled(
     'equipment_export',

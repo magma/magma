@@ -18,7 +18,7 @@ import Text from './design-system/Text';
 import classNames from 'classnames';
 import {Events, GeneralLogger} from '@fbcnms/ui/utils/Logging';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useHistory} from 'react-router';
 
 const useStyles = makeStyles(theme => ({
   accountButton: {
@@ -76,7 +76,7 @@ type Props = {
 const ProfileButton = (props: Props) => {
   const {user} = props;
   const {email} = user;
-  const {history} = useRouter();
+  const history = useHistory();
   const classes = useStyles();
   const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
   const showDocs = useContext(AppContext).isFeatureEnabled('documents_site');

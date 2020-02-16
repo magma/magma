@@ -22,10 +22,9 @@ import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
 import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
 import Text from '@fbcnms/ui/components/design-system/Text';
-
-import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
+import {useHistory} from 'react-router';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -58,7 +57,7 @@ export default function Actions() {
     triggerToAdd,
     setTriggerToAdd,
   ] = useState<?ActionsAddDialog_triggerData$key>(null);
-  const {history} = useRouter();
+  const history = useHistory();
   const data: Actions_ActionsQueryResponse = useLazyLoadQuery<Actions_ActionsQuery>(
     query,
   );
