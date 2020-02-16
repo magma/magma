@@ -9,6 +9,7 @@ import sys
 import time
 from datetime import datetime
 from distutils.version import LooseVersion
+from utils import archive_zip, extract_zip
 
 from pyinventory import InventoryClient
 from pyinventory.api.file import delete_file, store_file
@@ -113,6 +114,10 @@ def export(email, password, useLocally, replaceLatestVersion, hasBreakingChange)
 
     pyinventory_module = pdoc.Module("pyinventory")
     write_files(pyinventory_module, '../docs/website/static', show_source_code=False)
+
+    schemas = extract_zip('graphql_schema_versions/old_schemas.zip')
+    schemas[version] = open('../graph/graphql/schema/symphony.graphql').read()
+    archive_zip('graphql_schema_versions/old_schemas.zip', schemas)
 
 
 if __name__ == "__main__":
