@@ -52,11 +52,6 @@ class LatestPythonPackageQuery:
             class PythonPackage:
                 version: str
 
-            @dataclass_json
-            @dataclass
-            class PythonPackage:
-                version: str
-
             lastPythonPackage: Optional[PythonPackage] = None
             lastBreakingPythonPackage: Optional[PythonPackage] = None
 

@@ -128,8 +128,11 @@ class DataclassesRenderer:
         buffer.write('@dataclass')
         with buffer.write_block(f'class {obj.name}{class_parents}:'):
             # render child objects
+            children_names = set()
             for child_object in obj.children:
-                self.__render_object(parsed_query, buffer, child_object)
+                if child_object.name not in children_names:
+                    self.__render_object(parsed_query, buffer, child_object)
+                children_names.add(child_object.name)
 
             # render fields
             sorted_fields = sorted(obj.fields, key=lambda f: 1 if f.nullable else 0)
