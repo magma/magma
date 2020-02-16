@@ -6,6 +6,7 @@ from graphql.language.parser import parse
 from fbc.symphony.cli.graphql_compiler.gql.query_parser import QueryParser
 from fbc.symphony.cli.graphql_compiler.gql.renderer_dataclasses \
     import DataclassesRenderer
+from fbc.symphony.cli.graphql_compiler.gql.utils_codegen import get_enum_filename
 from libfb.py import testutil
 import mock
 import pkg_resources
@@ -17,7 +18,7 @@ class PyinventoryGraphqlCompilationTest(testutil.BaseFacebookTestCase):
             self,
             filename: str,
             parser: QueryParser,
-            renderer: DataclassesRenderer):
+            renderer: DataclassesRenderer) -> None:
         root, _s = os.path.splitext(filename)
         target_filename = root + '.py'
 
@@ -28,6 +29,15 @@ class PyinventoryGraphqlCompilationTest(testutil.BaseFacebookTestCase):
             assert rendered == open(target_filename, 'r').read(), \
                 f"Generated file name {target_filename} does " \
                 "not match compilation result"
+            enums = renderer.render_enums(parsed)
+            for enum, code in enums.items():
+                target_enum_filename = os.path.join(
+                    os.path.dirname(target_filename),
+                    "".join([get_enum_filename(enum), '.py'])
+                )
+                assert code == open(target_enum_filename, 'r').read(), \
+                        f"Generated file name {target_enum_filename} does " \
+                        "not match compilation result"
 
     @mock.patch("os.path.exists", return_value=True)
     @mock.patch("subprocess.Popen")
