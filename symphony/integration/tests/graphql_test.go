@@ -380,11 +380,12 @@ func (c *client) executeWorkOrder(workorder *addWorkOrderResponse) error {
 			ID graphql.ID
 		} `graphql:"editWorkOrder(input: $input)"`
 	}
+	owner := string(workorder.Owner)
 	vars := map[string]interface{}{
 		"input": models.EditWorkOrderInput{
 			ID:        workorder.ID.(string),
 			Name:      string(workorder.Name),
-			OwnerName: string(workorder.Owner),
+			OwnerName: &owner,
 			Status:    models.WorkOrderStatusDone,
 			Priority:  models.WorkOrderPriorityNone,
 		},

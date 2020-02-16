@@ -139,7 +139,7 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 	_, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          wo1.ID,
 		Name:        wo1.Name,
-		OwnerName:   owner,
+		OwnerName:   &owner,
 		InstallDate: &installDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityHigh,

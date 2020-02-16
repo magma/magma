@@ -80,7 +80,7 @@ func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationRe
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   workOrder.OwnerName,
+		OwnerName:   &workOrder.OwnerName,
 		InstallDate: &workOrder.InstallDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityNone,
@@ -178,7 +178,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   workOrder.OwnerName,
+		OwnerName:   &workOrder.OwnerName,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityNone,
 		Assignee:    &assignee,
@@ -274,7 +274,7 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   workOrder.OwnerName,
+		OwnerName:   &workOrder.OwnerName,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityHigh,
 		Index:       pointer.ToInt(42),
@@ -334,7 +334,7 @@ func TestAddWorkOrderWithProject(t *testing.T) {
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:        workOrder.ID,
 		Name:      workOrder.Name,
-		OwnerName: workOrder.OwnerName,
+		OwnerName: &workOrder.OwnerName,
 	})
 	require.NoError(t, err)
 	fetchProject, err := workOrder.QueryProject().Only(ctx)

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash e3360d1fe670c91753bdba3d4e5dd07a
+ * @relayHash 6fe3b0c2a6019ed79b4acd66bdafcd81
  */
 
 /* eslint-disable */
@@ -26,6 +26,7 @@ export type AddWorkOrderInput = {|
   projectId?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
   checkList?: ?$ReadOnlyArray<CheckListItemInput>,
+  ownerName?: ?string,
   assignee?: ?string,
   index?: ?number,
   status?: ?WorkOrderStatus,

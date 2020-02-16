@@ -130,7 +130,6 @@ func (r mutationResolver) AddWorkOrder(
 		SetNillableProjectID(input.ProjectID).
 		SetNillableLocationID(input.LocationID).
 		SetNillableDescription(input.Description).
-		SetOwnerName(r.Me(ctx).User).
 		SetCreationDate(time.Now()).
 		SetNillableAssignee(input.Assignee).
 		SetNillableIndex(input.Index)
@@ -139,6 +138,11 @@ func (r mutationResolver) AddWorkOrder(
 	}
 	if input.Priority != nil {
 		mutation.SetPriority(input.Priority.String())
+	}
+	if input.OwnerName != nil {
+		mutation.SetOwnerName(*input.OwnerName)
+	} else {
+		mutation.SetOwnerName(r.Me(ctx).User)
 	}
 	wo, err := mutation.Save(ctx)
 	if err != nil {
@@ -183,10 +187,12 @@ func (r mutationResolver) EditWorkOrder(
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetNillableAssignee(input.Assignee).
-		SetOwnerName(input.OwnerName).
 		SetStatus(input.Status.String()).
 		SetPriority(input.Priority.String()).
 		SetNillableIndex(input.Index)
+	if input.OwnerName != nil {
+		mutation.SetOwnerName(*input.OwnerName)
+	}
 	if input.InstallDate != nil {
 		mutation.SetInstallDate(*input.InstallDate)
 	} else {
