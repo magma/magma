@@ -694,6 +694,11 @@ type WorkOrderFilterInput struct {
 	MaxDepth      *int                `json:"maxDepth"`
 }
 
+type WorkOrderSearchResult struct {
+	WorkOrders []*ent.WorkOrder `json:"workOrders"`
+	Count      int              `json:"count"`
+}
+
 type CellularNetworkType string
 
 const (

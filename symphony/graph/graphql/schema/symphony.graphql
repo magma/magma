@@ -1181,6 +1181,11 @@ type ServiceSearchResult {
   count: Int!
 }
 
+type WorkOrderSearchResult {
+  workOrders: [WorkOrder]!
+  count: Int!
+}
+
 """
 what filters should we apply on ports
 """
@@ -1920,7 +1925,7 @@ type Query {
   workOrderSearch(
     filters: [WorkOrderFilterInput!]!
     limit: Int = 500
-  ): [WorkOrder]!
+  ): WorkOrderSearchResult!
   linkSearch(filters: [LinkFilterInput!]!, limit: Int = 500): LinkSearchResult!
   portSearch(filters: [PortFilterInput!]!, limit: Int = 500): PortSearchResult!
   locationSearch(

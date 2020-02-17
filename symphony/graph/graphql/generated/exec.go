@@ -885,6 +885,11 @@ type ComplexityRoot struct {
 		Name             func(childComplexity int) int
 	}
 
+	WorkOrderSearchResult struct {
+		Count      func(childComplexity int) int
+		WorkOrders func(childComplexity int) int
+	}
+
 	WorkOrderType struct {
 		CheckListCategories  func(childComplexity int) int
 		CheckListDefinitions func(childComplexity int) int
@@ -1130,7 +1135,7 @@ type QueryResolver interface {
 	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
 	SearchForEntity(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchEntriesConnection, error)
 	EquipmentSearch(ctx context.Context, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error)
-	WorkOrderSearch(ctx context.Context, filters []*models.WorkOrderFilterInput, limit *int) ([]*ent.WorkOrder, error)
+	WorkOrderSearch(ctx context.Context, filters []*models.WorkOrderFilterInput, limit *int) (*models.WorkOrderSearchResult, error)
 	LinkSearch(ctx context.Context, filters []*models.LinkFilterInput, limit *int) (*models.LinkSearchResult, error)
 	PortSearch(ctx context.Context, filters []*models.PortFilterInput, limit *int) (*models.PortSearchResult, error)
 	LocationSearch(ctx context.Context, filters []*models.LocationFilterInput, limit *int) (*models.LocationSearchResult, error)
@@ -5508,6 +5513,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkOrderExecutionResult.Name(childComplexity), true
 
+	case "WorkOrderSearchResult.count":
+		if e.complexity.WorkOrderSearchResult.Count == nil {
+			break
+		}
+
+		return e.complexity.WorkOrderSearchResult.Count(childComplexity), true
+
+	case "WorkOrderSearchResult.workOrders":
+		if e.complexity.WorkOrderSearchResult.WorkOrders == nil {
+			break
+		}
+
+		return e.complexity.WorkOrderSearchResult.WorkOrders(childComplexity), true
+
 	case "WorkOrderType.checkListCategories":
 		if e.complexity.WorkOrderType.CheckListCategories == nil {
 			break
@@ -6859,6 +6878,11 @@ type ServiceSearchResult {
   count: Int!
 }
 
+type WorkOrderSearchResult {
+  workOrders: [WorkOrder]!
+  count: Int!
+}
+
 """
 what filters should we apply on ports
 """
@@ -7598,7 +7622,7 @@ type Query {
   workOrderSearch(
     filters: [WorkOrderFilterInput!]!
     limit: Int = 500
-  ): [WorkOrder]!
+  ): WorkOrderSearchResult!
   linkSearch(filters: [LinkFilterInput!]!, limit: Int = 500): LinkSearchResult!
   portSearch(filters: [PortFilterInput!]!, limit: Int = 500): PortSearchResult!
   locationSearch(
@@ -23604,10 +23628,10 @@ func (ec *executionContext) _Query_workOrderSearch(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.WorkOrder)
+	res := resTmp.(*models.WorkOrderSearchResult)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNWorkOrder2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderSearchResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_linkSearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -29938,6 +29962,80 @@ func (ec *executionContext) _WorkOrderExecutionResult_linkRemoved(ctx context.Co
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrderSearchResult_workOrders(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderSearchResult) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkOrderSearchResult",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WorkOrders, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.WorkOrder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNWorkOrder2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrderSearchResult_count(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderSearchResult) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkOrderSearchResult",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderType_id(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderType) (ret graphql.Marshaler) {
@@ -40619,6 +40717,38 @@ func (ec *executionContext) _WorkOrderExecutionResult(ctx context.Context, sel a
 	return out
 }
 
+var workOrderSearchResultImplementors = []string{"WorkOrderSearchResult"}
+
+func (ec *executionContext) _WorkOrderSearchResult(ctx context.Context, sel ast.SelectionSet, obj *models.WorkOrderSearchResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, workOrderSearchResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WorkOrderSearchResult")
+		case "workOrders":
+			out.Values[i] = ec._WorkOrderSearchResult_workOrders(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+			out.Values[i] = ec._WorkOrderSearchResult_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var workOrderTypeImplementors = []string{"WorkOrderType", "Node"}
 
 func (ec *executionContext) _WorkOrderType(ctx context.Context, sel ast.SelectionSet, obj *ent.WorkOrderType) graphql.Marshaler {
@@ -44880,6 +45010,20 @@ func (ec *executionContext) unmarshalNWorkOrderPriority2githubᚗcomᚋfacebooki
 
 func (ec *executionContext) marshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderPriority) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNWorkOrderSearchResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderSearchResult(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderSearchResult) graphql.Marshaler {
+	return ec._WorkOrderSearchResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWorkOrderSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderSearchResult(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderSearchResult) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._WorkOrderSearchResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, v interface{}) (models.WorkOrderStatus, error) {

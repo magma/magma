@@ -18,6 +18,7 @@ import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useMemo, useState} from 'react';
 import WorkOrderCard from './WorkOrderCard';
 import WorkOrderComparisonViewQueryRenderer from './WorkOrderComparisonViewQueryRenderer';
+import fbt from 'fbt';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
@@ -44,6 +45,8 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+const QUERY_LIMIT = 100;
+
 const WorkOrderComparisonView = () => {
   const [filters, setFilters] = useState([]);
   const [dialogKey, setDialogKey] = useState(1);
@@ -52,6 +55,7 @@ const WorkOrderComparisonView = () => {
   const [resultsDisplayMode, setResultsDisplayMode] = useState(
     DisplayOptions.table,
   );
+  const [count, setCount] = useState((0: number));
   const {match, history, location} = useRouter();
   const classes = useStyles();
 
@@ -134,6 +138,23 @@ const WorkOrderComparisonView = () => {
                   )
                 }
                 onFiltersChanged={filters => setFilters(filters)}
+                footer={
+                  count !== 0
+                    ? count > QUERY_LIMIT
+                      ? fbt(
+                          '1 to ' +
+                            fbt.param('size of page', QUERY_LIMIT) +
+                            ' of ' +
+                            fbt.param('total number possible rows', count),
+                          'header to indicate partial results',
+                        )
+                      : fbt(
+                          '1 to ' +
+                            fbt.param('number of results in page', count),
+                          'header to indicate number of results',
+                        )
+                    : null
+                }
               />
             </div>
           }
@@ -157,6 +178,7 @@ const WorkOrderComparisonView = () => {
                 ? DisplayOptions.map
                 : DisplayOptions.table
             }
+            onQueryReturn={c => setCount(c)}
           />
         </div>
       </div>

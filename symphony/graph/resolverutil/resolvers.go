@@ -12,6 +12,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
 )
 
@@ -238,4 +239,43 @@ func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.Se
 		Services: services,
 		Count:    count,
 	}, nil
+}
+
+func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.WorkOrderFilterInput, limit *int) (*models.WorkOrderSearchResult, error) {
+	var (
+		query = client.WorkOrder.Query()
+		err   error
+	)
+	for _, f := range filters {
+		switch {
+		case strings.HasPrefix(f.FilterType.String(), "WORK_ORDER_"):
+			if query, err = handleWorkOrderFilter(query, f); err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
+			if query, err = handleWOLocationFilter(query, f); err != nil {
+				return nil, err
+			}
+		}
+	}
+	var woResult models.WorkOrderSearchResult
+	for _, field := range graphql.CollectAllFields(ctx) {
+		switch field {
+		case "count":
+			woResult.Count, err = query.Clone().Count(ctx)
+			if err != nil {
+				return nil, errors.Wrapf(err, "Count query failed")
+			}
+		case "workOrders":
+			if limit != nil {
+				query.Limit(*limit)
+			}
+			woResult.WorkOrders, err = query.All(ctx)
+			if err != nil {
+				return nil, errors.Wrapf(err, "Querying work orders failed")
+			}
+		}
+
+	}
+	return &woResult, nil
 }

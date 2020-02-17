@@ -228,7 +228,9 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, clcu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{checklistcategory.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -436,7 +438,9 @@ func (clcuo *CheckListCategoryUpdateOne) sqlSave(ctx context.Context) (clc *Chec
 	_spec.Assign = clc.assignValues
 	_spec.ScanValues = clc.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, clcuo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{checklistcategory.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
