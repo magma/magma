@@ -1,0 +1,6 @@
+################################################################
+# S6A LAYER OPTIONS
+################################################################
+add_boolean_option(S6A_OVER_GRPC                   True     "S6a messages sent over gRPC")
+add_boolean_option(EMBEDDED_SGW                    True     "S11/GTPV2-C interface not present")
+
