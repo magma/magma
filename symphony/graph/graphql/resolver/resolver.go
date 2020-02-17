@@ -193,6 +193,10 @@ func (resolver) ProjectType() generated.ProjectTypeResolver {
 	return projectTypeResolver{}
 }
 
+func (resolver) CheckListCategory() generated.CheckListCategoryResolver {
+	return checkListCategoryResolver{}
+}
+
 func (resolver) CheckListItem() generated.CheckListItemResolver {
 	return checkListItemResolver{}
 }

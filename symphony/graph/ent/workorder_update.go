@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -35,44 +36,46 @@ import (
 type WorkOrderUpdate struct {
 	config
 
-	update_time           *time.Time
-	name                  *string
-	status                *string
-	priority              *string
-	description           *string
-	cleardescription      bool
-	owner_name            *string
-	install_date          *time.Time
-	clearinstall_date     bool
-	creation_date         *time.Time
-	assignee              *string
-	clearassignee         bool
-	index                 *int
-	addindex              *int
-	clearindex            bool
-	_type                 map[string]struct{}
-	equipment             map[string]struct{}
-	links                 map[string]struct{}
-	files                 map[string]struct{}
-	hyperlinks            map[string]struct{}
-	location              map[string]struct{}
-	comments              map[string]struct{}
-	properties            map[string]struct{}
-	check_list_items      map[string]struct{}
-	technician            map[string]struct{}
-	project               map[string]struct{}
-	clearedType           bool
-	removedEquipment      map[string]struct{}
-	removedLinks          map[string]struct{}
-	removedFiles          map[string]struct{}
-	removedHyperlinks     map[string]struct{}
-	clearedLocation       bool
-	removedComments       map[string]struct{}
-	removedProperties     map[string]struct{}
-	removedCheckListItems map[string]struct{}
-	clearedTechnician     bool
-	clearedProject        bool
-	predicates            []predicate.WorkOrder
+	update_time                *time.Time
+	name                       *string
+	status                     *string
+	priority                   *string
+	description                *string
+	cleardescription           bool
+	owner_name                 *string
+	install_date               *time.Time
+	clearinstall_date          bool
+	creation_date              *time.Time
+	assignee                   *string
+	clearassignee              bool
+	index                      *int
+	addindex                   *int
+	clearindex                 bool
+	_type                      map[string]struct{}
+	equipment                  map[string]struct{}
+	links                      map[string]struct{}
+	files                      map[string]struct{}
+	hyperlinks                 map[string]struct{}
+	location                   map[string]struct{}
+	comments                   map[string]struct{}
+	properties                 map[string]struct{}
+	check_list_categories      map[string]struct{}
+	check_list_items           map[string]struct{}
+	technician                 map[string]struct{}
+	project                    map[string]struct{}
+	clearedType                bool
+	removedEquipment           map[string]struct{}
+	removedLinks               map[string]struct{}
+	removedFiles               map[string]struct{}
+	removedHyperlinks          map[string]struct{}
+	clearedLocation            bool
+	removedComments            map[string]struct{}
+	removedProperties          map[string]struct{}
+	removedCheckListCategories map[string]struct{}
+	removedCheckListItems      map[string]struct{}
+	clearedTechnician          bool
+	clearedProject             bool
+	predicates                 []predicate.WorkOrder
 }
 
 // Where adds a new predicate for the builder.
@@ -386,6 +389,26 @@ func (wou *WorkOrderUpdate) AddProperties(p ...*Property) *WorkOrderUpdate {
 	return wou.AddPropertyIDs(ids...)
 }
 
+// AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
+func (wou *WorkOrderUpdate) AddCheckListCategoryIDs(ids ...string) *WorkOrderUpdate {
+	if wou.check_list_categories == nil {
+		wou.check_list_categories = make(map[string]struct{})
+	}
+	for i := range ids {
+		wou.check_list_categories[ids[i]] = struct{}{}
+	}
+	return wou
+}
+
+// AddCheckListCategories adds the check_list_categories edges to CheckListCategory.
+func (wou *WorkOrderUpdate) AddCheckListCategories(c ...*CheckListCategory) *WorkOrderUpdate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wou.AddCheckListCategoryIDs(ids...)
+}
+
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
 func (wou *WorkOrderUpdate) AddCheckListItemIDs(ids ...string) *WorkOrderUpdate {
 	if wou.check_list_items == nil {
@@ -580,6 +603,26 @@ func (wou *WorkOrderUpdate) RemoveProperties(p ...*Property) *WorkOrderUpdate {
 		ids[i] = p[i].ID
 	}
 	return wou.RemovePropertyIDs(ids...)
+}
+
+// RemoveCheckListCategoryIDs removes the check_list_categories edge to CheckListCategory by ids.
+func (wou *WorkOrderUpdate) RemoveCheckListCategoryIDs(ids ...string) *WorkOrderUpdate {
+	if wou.removedCheckListCategories == nil {
+		wou.removedCheckListCategories = make(map[string]struct{})
+	}
+	for i := range ids {
+		wou.removedCheckListCategories[ids[i]] = struct{}{}
+	}
+	return wou
+}
+
+// RemoveCheckListCategories removes check_list_categories edges to CheckListCategory.
+func (wou *WorkOrderUpdate) RemoveCheckListCategories(c ...*CheckListCategory) *WorkOrderUpdate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wou.RemoveCheckListCategoryIDs(ids...)
 }
 
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
@@ -1135,6 +1178,52 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := wou.removedCheckListCategories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.CheckListCategoriesTable,
+			Columns: []string{workorder.CheckListCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistcategory.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wou.check_list_categories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.CheckListCategoriesTable,
+			Columns: []string{workorder.CheckListCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistcategory.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if nodes := wou.removedCheckListItems; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1275,43 +1364,45 @@ type WorkOrderUpdateOne struct {
 	config
 	id string
 
-	update_time           *time.Time
-	name                  *string
-	status                *string
-	priority              *string
-	description           *string
-	cleardescription      bool
-	owner_name            *string
-	install_date          *time.Time
-	clearinstall_date     bool
-	creation_date         *time.Time
-	assignee              *string
-	clearassignee         bool
-	index                 *int
-	addindex              *int
-	clearindex            bool
-	_type                 map[string]struct{}
-	equipment             map[string]struct{}
-	links                 map[string]struct{}
-	files                 map[string]struct{}
-	hyperlinks            map[string]struct{}
-	location              map[string]struct{}
-	comments              map[string]struct{}
-	properties            map[string]struct{}
-	check_list_items      map[string]struct{}
-	technician            map[string]struct{}
-	project               map[string]struct{}
-	clearedType           bool
-	removedEquipment      map[string]struct{}
-	removedLinks          map[string]struct{}
-	removedFiles          map[string]struct{}
-	removedHyperlinks     map[string]struct{}
-	clearedLocation       bool
-	removedComments       map[string]struct{}
-	removedProperties     map[string]struct{}
-	removedCheckListItems map[string]struct{}
-	clearedTechnician     bool
-	clearedProject        bool
+	update_time                *time.Time
+	name                       *string
+	status                     *string
+	priority                   *string
+	description                *string
+	cleardescription           bool
+	owner_name                 *string
+	install_date               *time.Time
+	clearinstall_date          bool
+	creation_date              *time.Time
+	assignee                   *string
+	clearassignee              bool
+	index                      *int
+	addindex                   *int
+	clearindex                 bool
+	_type                      map[string]struct{}
+	equipment                  map[string]struct{}
+	links                      map[string]struct{}
+	files                      map[string]struct{}
+	hyperlinks                 map[string]struct{}
+	location                   map[string]struct{}
+	comments                   map[string]struct{}
+	properties                 map[string]struct{}
+	check_list_categories      map[string]struct{}
+	check_list_items           map[string]struct{}
+	technician                 map[string]struct{}
+	project                    map[string]struct{}
+	clearedType                bool
+	removedEquipment           map[string]struct{}
+	removedLinks               map[string]struct{}
+	removedFiles               map[string]struct{}
+	removedHyperlinks          map[string]struct{}
+	clearedLocation            bool
+	removedComments            map[string]struct{}
+	removedProperties          map[string]struct{}
+	removedCheckListCategories map[string]struct{}
+	removedCheckListItems      map[string]struct{}
+	clearedTechnician          bool
+	clearedProject             bool
 }
 
 // SetName sets the name field.
@@ -1619,6 +1710,26 @@ func (wouo *WorkOrderUpdateOne) AddProperties(p ...*Property) *WorkOrderUpdateOn
 	return wouo.AddPropertyIDs(ids...)
 }
 
+// AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
+func (wouo *WorkOrderUpdateOne) AddCheckListCategoryIDs(ids ...string) *WorkOrderUpdateOne {
+	if wouo.check_list_categories == nil {
+		wouo.check_list_categories = make(map[string]struct{})
+	}
+	for i := range ids {
+		wouo.check_list_categories[ids[i]] = struct{}{}
+	}
+	return wouo
+}
+
+// AddCheckListCategories adds the check_list_categories edges to CheckListCategory.
+func (wouo *WorkOrderUpdateOne) AddCheckListCategories(c ...*CheckListCategory) *WorkOrderUpdateOne {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wouo.AddCheckListCategoryIDs(ids...)
+}
+
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
 func (wouo *WorkOrderUpdateOne) AddCheckListItemIDs(ids ...string) *WorkOrderUpdateOne {
 	if wouo.check_list_items == nil {
@@ -1813,6 +1924,26 @@ func (wouo *WorkOrderUpdateOne) RemoveProperties(p ...*Property) *WorkOrderUpdat
 		ids[i] = p[i].ID
 	}
 	return wouo.RemovePropertyIDs(ids...)
+}
+
+// RemoveCheckListCategoryIDs removes the check_list_categories edge to CheckListCategory by ids.
+func (wouo *WorkOrderUpdateOne) RemoveCheckListCategoryIDs(ids ...string) *WorkOrderUpdateOne {
+	if wouo.removedCheckListCategories == nil {
+		wouo.removedCheckListCategories = make(map[string]struct{})
+	}
+	for i := range ids {
+		wouo.removedCheckListCategories[ids[i]] = struct{}{}
+	}
+	return wouo
+}
+
+// RemoveCheckListCategories removes check_list_categories edges to CheckListCategory.
+func (wouo *WorkOrderUpdateOne) RemoveCheckListCategories(c ...*CheckListCategory) *WorkOrderUpdateOne {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wouo.RemoveCheckListCategoryIDs(ids...)
 }
 
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
@@ -2350,6 +2481,52 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := wouo.removedCheckListCategories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.CheckListCategoriesTable,
+			Columns: []string{workorder.CheckListCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistcategory.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wouo.check_list_categories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.CheckListCategoriesTable,
+			Columns: []string{workorder.CheckListCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistcategory.FieldID,
 				},
 			},
 		}

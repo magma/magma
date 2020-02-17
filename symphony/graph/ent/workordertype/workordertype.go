@@ -50,6 +50,13 @@ const (
 	DefinitionsInverseTable = "work_order_definitions"
 	// DefinitionsColumn is the table column denoting the definitions relation/edge.
 	DefinitionsColumn = "work_order_definition_type"
+	// CheckListCategoriesTable is the table the holds the check_list_categories relation/edge.
+	CheckListCategoriesTable = "check_list_categories"
+	// CheckListCategoriesInverseTable is the table name for the CheckListCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "checklistcategory" package.
+	CheckListCategoriesInverseTable = "check_list_categories"
+	// CheckListCategoriesColumn is the table column denoting the check_list_categories relation/edge.
+	CheckListCategoriesColumn = "work_order_type_check_list_categories"
 	// CheckListDefinitionsTable is the table the holds the check_list_definitions relation/edge.
 	CheckListDefinitionsTable = "check_list_item_definitions"
 	// CheckListDefinitionsInverseTable is the table name for the CheckListItemDefinition entity.

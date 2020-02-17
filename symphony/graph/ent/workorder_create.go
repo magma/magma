@@ -15,6 +15,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -32,28 +33,29 @@ import (
 // WorkOrderCreate is the builder for creating a WorkOrder entity.
 type WorkOrderCreate struct {
 	config
-	create_time      *time.Time
-	update_time      *time.Time
-	name             *string
-	status           *string
-	priority         *string
-	description      *string
-	owner_name       *string
-	install_date     *time.Time
-	creation_date    *time.Time
-	assignee         *string
-	index            *int
-	_type            map[string]struct{}
-	equipment        map[string]struct{}
-	links            map[string]struct{}
-	files            map[string]struct{}
-	hyperlinks       map[string]struct{}
-	location         map[string]struct{}
-	comments         map[string]struct{}
-	properties       map[string]struct{}
-	check_list_items map[string]struct{}
-	technician       map[string]struct{}
-	project          map[string]struct{}
+	create_time           *time.Time
+	update_time           *time.Time
+	name                  *string
+	status                *string
+	priority              *string
+	description           *string
+	owner_name            *string
+	install_date          *time.Time
+	creation_date         *time.Time
+	assignee              *string
+	index                 *int
+	_type                 map[string]struct{}
+	equipment             map[string]struct{}
+	links                 map[string]struct{}
+	files                 map[string]struct{}
+	hyperlinks            map[string]struct{}
+	location              map[string]struct{}
+	comments              map[string]struct{}
+	properties            map[string]struct{}
+	check_list_categories map[string]struct{}
+	check_list_items      map[string]struct{}
+	technician            map[string]struct{}
+	project               map[string]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -348,6 +350,26 @@ func (woc *WorkOrderCreate) AddProperties(p ...*Property) *WorkOrderCreate {
 		ids[i] = p[i].ID
 	}
 	return woc.AddPropertyIDs(ids...)
+}
+
+// AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
+func (woc *WorkOrderCreate) AddCheckListCategoryIDs(ids ...string) *WorkOrderCreate {
+	if woc.check_list_categories == nil {
+		woc.check_list_categories = make(map[string]struct{})
+	}
+	for i := range ids {
+		woc.check_list_categories[ids[i]] = struct{}{}
+	}
+	return woc
+}
+
+// AddCheckListCategories adds the check_list_categories edges to CheckListCategory.
+func (woc *WorkOrderCreate) AddCheckListCategories(c ...*CheckListCategory) *WorkOrderCreate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return woc.AddCheckListCategoryIDs(ids...)
 }
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
@@ -739,6 +761,29 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := woc.check_list_categories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workorder.CheckListCategoriesTable,
+			Columns: []string{workorder.CheckListCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistcategory.FieldID,
 				},
 			},
 		}

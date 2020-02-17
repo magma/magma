@@ -257,12 +257,12 @@ func (clidq *CheckListItemDefinitionQuery) WithWorkOrderType(opts ...func(*WorkO
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.CheckListItemDefinition.Query().
-//		GroupBy(checklistitemdefinition.FieldTitle).
+//		GroupBy(checklistitemdefinition.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -278,11 +278,11 @@ func (clidq *CheckListItemDefinitionQuery) GroupBy(field string, fields ...strin
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.CheckListItemDefinition.Query().
-//		Select(checklistitemdefinition.FieldTitle).
+//		Select(checklistitemdefinition.FieldCreateTime).
 //		Scan(ctx, &v)
 //
 func (clidq *CheckListItemDefinitionQuery) Select(field string, fields ...string) *CheckListItemDefinitionSelect {

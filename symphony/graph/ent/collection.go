@@ -25,6 +25,18 @@ func (ar *ActionsRuleQuery) collectField(reqctx *graphql.RequestContext, field g
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (clc *CheckListCategoryQuery) CollectFields(ctx context.Context, satisfies ...string) *CheckListCategoryQuery {
+	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
+		clc = clc.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)
+	}
+	return clc
+}
+
+func (clc *CheckListCategoryQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *CheckListCategoryQuery {
+	return clc
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (cli *CheckListItemQuery) CollectFields(ctx context.Context, satisfies ...string) *CheckListItemQuery {
 	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
 		cli = cli.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)

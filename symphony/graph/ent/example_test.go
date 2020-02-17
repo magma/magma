@@ -49,6 +49,50 @@ func ExampleActionsRule() {
 
 	// Output:
 }
+func ExampleCheckListCategory() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the checklistcategory's edges.
+	cli0 := client.CheckListItem.
+		Create().
+		SetTitle("string").
+		SetType("string").
+		SetIndex(1).
+		SetChecked(true).
+		SetStringVal("string").
+		SetEnumValues("string").
+		SetHelpText("string").
+		SaveX(ctx)
+	log.Println("checklistitem created:", cli0)
+
+	// create checklistcategory vertex with its edges.
+	clc := client.CheckListCategory.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetTitle("string").
+		SetDescription("string").
+		AddCheckListItems(cli0).
+		SaveX(ctx)
+	log.Println("checklistcategory created:", clc)
+
+	// query edges.
+	cli0, err = clc.QueryCheckListItems().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying check_list_items: %v", err)
+	}
+	log.Println("check_list_items found:", cli0)
+
+	// Output:
+}
 func ExampleCheckListItem() {
 	if dsn == "" {
 		return
@@ -95,6 +139,8 @@ func ExampleCheckListItemDefinition() {
 	// create checklistitemdefinition vertex with its edges.
 	clid := client.CheckListItemDefinition.
 		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
 		SetTitle("string").
 		SetType("string").
 		SetIndex(1).
@@ -2281,7 +2327,15 @@ func ExampleWorkOrder() {
 		SetStringVal("string").
 		SaveX(ctx)
 	log.Println("property created:", pr7)
-	cli8 := client.CheckListItem.
+	clc8 := client.CheckListCategory.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetTitle("string").
+		SetDescription("string").
+		SaveX(ctx)
+	log.Println("checklistcategory created:", clc8)
+	cli9 := client.CheckListItem.
 		Create().
 		SetTitle("string").
 		SetType("string").
@@ -2291,15 +2345,15 @@ func ExampleWorkOrder() {
 		SetEnumValues("string").
 		SetHelpText("string").
 		SaveX(ctx)
-	log.Println("checklistitem created:", cli8)
-	t9 := client.Technician.
+	log.Println("checklistitem created:", cli9)
+	t10 := client.Technician.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetName("string").
 		SetEmail("string").
 		SaveX(ctx)
-	log.Println("technician created:", t9)
+	log.Println("technician created:", t10)
 
 	// create workorder vertex with its edges.
 	wo := client.WorkOrder.
@@ -2321,8 +2375,9 @@ func ExampleWorkOrder() {
 		SetLocation(l5).
 		AddComments(c6).
 		AddProperties(pr7).
-		AddCheckListItems(cli8).
-		SetTechnician(t9).
+		AddCheckListCategories(clc8).
+		AddCheckListItems(cli9).
+		SetTechnician(t10).
 		SaveX(ctx)
 	log.Println("workorder created:", wo)
 
@@ -2363,17 +2418,23 @@ func ExampleWorkOrder() {
 	}
 	log.Println("properties found:", pr7)
 
-	cli8, err = wo.QueryCheckListItems().First(ctx)
+	clc8, err = wo.QueryCheckListCategories().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying check_list_categories: %v", err)
+	}
+	log.Println("check_list_categories found:", clc8)
+
+	cli9, err = wo.QueryCheckListItems().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying check_list_items: %v", err)
 	}
-	log.Println("check_list_items found:", cli8)
+	log.Println("check_list_items found:", cli9)
 
-	t9, err = wo.QueryTechnician().First(ctx)
+	t10, err = wo.QueryTechnician().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying technician: %v", err)
 	}
-	log.Println("technician found:", t9)
+	log.Println("technician found:", t10)
 
 	// Output:
 }
@@ -2451,15 +2512,25 @@ func ExampleWorkOrderType() {
 		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
-	clid3 := client.CheckListItemDefinition.
+	clc3 := client.CheckListCategory.
 		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetTitle("string").
+		SetDescription("string").
+		SaveX(ctx)
+	log.Println("checklistcategory created:", clc3)
+	clid4 := client.CheckListItemDefinition.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
 		SetTitle("string").
 		SetType("string").
 		SetIndex(1).
 		SetEnumValues("string").
 		SetHelpText("string").
 		SaveX(ctx)
-	log.Println("checklistitemdefinition created:", clid3)
+	log.Println("checklistitemdefinition created:", clid4)
 
 	// create workordertype vertex with its edges.
 	wot := client.WorkOrderType.
@@ -2469,7 +2540,8 @@ func ExampleWorkOrderType() {
 		SetName("string").
 		SetDescription("string").
 		AddPropertyTypes(pt1).
-		AddCheckListDefinitions(clid3).
+		AddCheckListCategories(clc3).
+		AddCheckListDefinitions(clid4).
 		SaveX(ctx)
 	log.Println("workordertype created:", wot)
 
@@ -2481,11 +2553,17 @@ func ExampleWorkOrderType() {
 	}
 	log.Println("property_types found:", pt1)
 
-	clid3, err = wot.QueryCheckListDefinitions().First(ctx)
+	clc3, err = wot.QueryCheckListCategories().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying check_list_categories: %v", err)
+	}
+	log.Println("check_list_categories found:", clc3)
+
+	clid4, err = wot.QueryCheckListDefinitions().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying check_list_definitions: %v", err)
 	}
-	log.Println("check_list_definitions found:", clid3)
+	log.Println("check_list_definitions found:", clid4)
 
 	// Output:
 }

@@ -4,7 +4,7 @@
 
 // Code generated (@generated) by entc, DO NOT EDIT.
 
-package checklistitemdefinition
+package checklistcategory
 
 import (
 	"time"
@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	// Label holds the string label denoting the checklistitemdefinition type in the database.
-	Label = "check_list_item_definition"
+	// Label holds the string label denoting the checklistcategory type in the database.
+	Label = "check_list_category"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
 	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
@@ -24,49 +24,41 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldTitle holds the string denoting the title vertex property in the database.
 	FieldTitle = "title"
-	// FieldType holds the string denoting the type vertex property in the database.
-	FieldType = "type"
-	// FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex = "index"
-	// FieldEnumValues holds the string denoting the enum_values vertex property in the database.
-	FieldEnumValues = "enum_values"
-	// FieldHelpText holds the string denoting the help_text vertex property in the database.
-	FieldHelpText = "help_text"
+	// FieldDescription holds the string denoting the description vertex property in the database.
+	FieldDescription = "description"
 
-	// Table holds the table name of the checklistitemdefinition in the database.
-	Table = "check_list_item_definitions"
-	// WorkOrderTypeTable is the table the holds the work_order_type relation/edge.
-	WorkOrderTypeTable = "check_list_item_definitions"
-	// WorkOrderTypeInverseTable is the table name for the WorkOrderType entity.
-	// It exists in this package in order to avoid circular dependency with the "workordertype" package.
-	WorkOrderTypeInverseTable = "work_order_types"
-	// WorkOrderTypeColumn is the table column denoting the work_order_type relation/edge.
-	WorkOrderTypeColumn = "work_order_type_check_list_definitions"
+	// Table holds the table name of the checklistcategory in the database.
+	Table = "check_list_categories"
+	// CheckListItemsTable is the table the holds the check_list_items relation/edge.
+	CheckListItemsTable = "check_list_items"
+	// CheckListItemsInverseTable is the table name for the CheckListItem entity.
+	// It exists in this package in order to avoid circular dependency with the "checklistitem" package.
+	CheckListItemsInverseTable = "check_list_items"
+	// CheckListItemsColumn is the table column denoting the check_list_items relation/edge.
+	CheckListItemsColumn = "check_list_category_check_list_items"
 )
 
-// Columns holds all SQL columns for checklistitemdefinition fields.
+// Columns holds all SQL columns for checklistcategory fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldTitle,
-	FieldType,
-	FieldIndex,
-	FieldEnumValues,
-	FieldHelpText,
+	FieldDescription,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the CheckListItemDefinition type.
+// ForeignKeys holds the SQL foreign-keys that are owned by the CheckListCategory type.
 var ForeignKeys = []string{
-	"work_order_type_check_list_definitions",
+	"work_order_check_list_categories",
+	"work_order_type_check_list_categories",
 }
 
 var (
-	mixin       = schema.CheckListItemDefinition{}.Mixin()
+	mixin       = schema.CheckListCategory{}.Mixin()
 	mixinFields = [...][]ent.Field{
 		mixin[0].Fields(),
 	}
-	fields = schema.CheckListItemDefinition{}.Fields()
+	fields = schema.CheckListCategory{}.Fields()
 
 	// descCreateTime is the schema descriptor for create_time field.
 	descCreateTime = mixinFields[0][0].Descriptor()

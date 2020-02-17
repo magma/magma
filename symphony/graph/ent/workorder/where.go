@@ -1508,6 +1508,34 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.WorkOrder {
 	})
 }
 
+// HasCheckListCategories applies the HasEdge predicate on the "check_list_categories" edge.
+func HasCheckListCategories() predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CheckListCategoriesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CheckListCategoriesTable, CheckListCategoriesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCheckListCategoriesWith applies the HasEdge predicate on the "check_list_categories" edge with a given conditions (other predicates).
+func HasCheckListCategoriesWith(preds ...predicate.CheckListCategory) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CheckListCategoriesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CheckListCategoriesTable, CheckListCategoriesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasCheckListItems applies the HasEdge predicate on the "check_list_items" edge.
 func HasCheckListItems() predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {

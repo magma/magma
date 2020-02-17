@@ -730,6 +730,10 @@ export default withRouter(
               checkList {
                 ...CheckListTable_list @relay(mask: false)
               }
+              checkListCategories {
+                title
+                description
+              }
             }
           `,
         }),

@@ -112,6 +112,10 @@ export type WorkOrderDetails_workOrder = {|
     +checked: ?boolean,
     +$fragmentRefs: CheckListItem_item$ref,
   |}>,
+  +checkListCategories: $ReadOnlyArray<{|
+    +title: string,
+    +description: ?string,
+  |}>,
   +$fragmentRefs: WorkOrderDetailsPane_workOrder$ref,
   +$refType: WorkOrderDetails_workOrder$ref,
 |};
@@ -142,28 +146,42 @@ v1 = {
 v2 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "type",
+  "name": "description",
   "args": null,
   "storageKey": null
 },
 v3 = {
   "kind": "ScalarField",
   "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v4 = {
+  "kind": "ScalarField",
+  "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v4 = [
+v5 = [
   (v0/*: any*/),
   (v1/*: any*/)
 ],
-v5 = [
+v6 = [
   {
     "kind": "FragmentSpread",
     "name": "EntityDocumentsTable_files",
     "args": null
   }
-];
+],
+v7 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "title",
+  "args": null,
+  "storageKey": null
+};
 return {
   "kind": "Fragment",
   "name": "WorkOrderDetails_workOrder",
@@ -173,13 +191,7 @@ return {
   "selections": [
     (v0/*: any*/),
     (v1/*: any*/),
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "description",
-      "args": null,
-      "storageKey": null
-    },
+    (v2/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -313,7 +325,7 @@ return {
           "selections": [
             (v0/*: any*/),
             (v1/*: any*/),
-            (v2/*: any*/),
+            (v3/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -335,10 +347,10 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v3/*: any*/)
+            (v4/*: any*/)
           ]
         },
-        (v3/*: any*/),
+        (v4/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -396,7 +408,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": (v4/*: any*/)
+          "selections": (v5/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -406,7 +418,7 @@ return {
           "args": null,
           "concreteType": "Location",
           "plural": false,
-          "selections": (v4/*: any*/)
+          "selections": (v5/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -416,7 +428,7 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": false,
-          "selections": (v4/*: any*/)
+          "selections": (v5/*: any*/)
         }
       ]
     },
@@ -428,7 +440,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v5/*: any*/)
+      "selections": (v6/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -438,7 +450,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v5/*: any*/)
+      "selections": (v6/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -491,7 +503,7 @@ return {
           "args": null,
           "concreteType": "ProjectType",
           "plural": false,
-          "selections": (v4/*: any*/)
+          "selections": (v5/*: any*/)
         }
       ]
     },
@@ -512,14 +524,8 @@ return {
           "args": null,
           "storageKey": null
         },
-        (v2/*: any*/),
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "title",
-          "args": null,
-          "storageKey": null
-        },
+        (v3/*: any*/),
+        (v7/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -535,6 +541,19 @@ return {
       ]
     },
     {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "checkListCategories",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "CheckListCategory",
+      "plural": true,
+      "selections": [
+        (v7/*: any*/),
+        (v2/*: any*/)
+      ]
+    },
+    {
       "kind": "FragmentSpread",
       "name": "WorkOrderDetailsPane_workOrder",
       "args": null
@@ -543,5 +562,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b6efe5a6c650b662c2cd23f4c0c72d07';
+(node/*: any*/).hash = '706cbfafa5df7e6c467b5a88bf810908';
 module.exports = node;
