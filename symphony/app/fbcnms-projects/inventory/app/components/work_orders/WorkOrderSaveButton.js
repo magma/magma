@@ -90,6 +90,18 @@ const WorkOrderSaveButton = (props: Props) => {
           id: item.id,
           title: item.title,
           description: item.description,
+          checkList: removeTempIDs(item.checkList).map(item => {
+            return {
+              id: item.id,
+              title: item.title,
+              type: item.type,
+              index: item.index,
+              helpText: item.helpText,
+              enumValues: item.enumValues,
+              stringValue: item.stringValue,
+              checked: item.checked,
+            };
+          }),
         })),
         checkList: removeTempIDs(checklist).map(item => {
           return {

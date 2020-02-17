@@ -13,6 +13,7 @@ import type {CheckListCategoryTable_list} from './__generated__/CheckListCategor
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CheckListCategoryContext from './CheckListCategoryContext';
+import CheckListCategoryItemsDialog from './CheckListCategoryItemsDialog';
 import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
 import React, {
   useCallback,
@@ -38,6 +39,10 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  addItemsButton: {
+    width: '100%',
+    maxWidth: '160px',
+  },
   deleteButton: {
     float: 'right',
     visibility: 'hidden',
@@ -45,22 +50,34 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  list: ?CheckListCategoryTable_list,
+  list: CheckListCategoryTable_list,
   onListChanged?: (updatedList: CheckListCategoryTable_list) => void,
 };
 
 const CheckListCategoryTable = (props: Props) => {
   const classes = useStyles();
-  const {list: propsList = [], onListChanged} = props;
+  const {list: propsList, onListChanged} = props;
   const list = useMemo(() => {
-    const itemsList = propsList ?? [];
-    return [...itemsList].map((item, index) => ({
+    return propsList.map((item, index) => ({
       index,
-      key: item.id,
+      key: item.id || `@key${index}`,
       value: item,
+      responsesCount: item.checkList.reduce(
+        (responsesCount, clItem) =>
+          clItem.checked ? responsesCount + 1 : responsesCount,
+        0,
+      ),
     }));
   }, [propsList]);
+  const [
+    browsedCheckListCategory,
+    setBrowsedCheckListCategory,
+  ] = useState<?number>(null);
   const [nextNewItemTempId, setNextNewItemTempId] = useState(list.length + 1);
+  const defaultCategoryName = `${fbt(
+    'New Category',
+    'Default name for checklist category',
+  )}`;
   const _updateList = useCallback(
     (updatedList: CheckListCategoryTable_list) => {
       if (!onListChanged) {
@@ -70,29 +87,24 @@ const CheckListCategoryTable = (props: Props) => {
     },
     [onListChanged],
   );
-
   // eslint-disable-next-line flowtype/no-weak-types
   const _createNewItem: () => any = useCallback(() => {
     const newId = nextNewItemTempId;
     setNextNewItemTempId(newId + 1);
     return {
-      id: `@tmp${newId}`,
-      title: '',
+      title: defaultCategoryName,
       description: '',
       checkList: [],
     };
-  }, [nextNewItemTempId]);
-
+  }, [defaultCategoryName, nextNewItemTempId]);
   const _updateCheckListCategory = useCallback(
     // eslint-disable-next-line flowtype/no-weak-types
     (updatedItem: any, index) =>
-      (propsList &&
-        _updateList([
-          ...propsList.slice(0, index),
-          updatedItem,
-          ...propsList.slice(index + 1, propsList.length),
-        ])) ??
-      undefined,
+      _updateList([
+        ...propsList.slice(0, index),
+        updatedItem,
+        ...propsList.slice(index + 1, propsList.length),
+      ]),
     [_updateList, propsList],
   );
 
@@ -117,87 +129,133 @@ const CheckListCategoryTable = (props: Props) => {
     context.override.addNewCategory(_addCheckListCategory);
   }, [_addCheckListCategory, context.override]);
   return list.length === 0 ? null : (
-    <Table
-      variant="embedded"
-      dataRowsSeparator="border"
-      dataRowClassName={classes.categoryRow}
-      data={list}
-      columns={[
-        {
-          key: '0',
-          title: (
-            <fbt desc="Category Name column header @ Checklist categories table">
-              Category Name
-            </fbt>
-          ),
-          render: row => (
-            <TextInput
-              id="title"
-              variant="outlined"
-              value={row.value.title}
-              placeholder={`${fbt(
-                'Name of the category',
-                'hint text for checklist category name field',
-              )}`}
-              onChange={e => {
-                _updateCheckListCategory(
-                  Object.assign({}, row.value, {title: e.target.value}),
-                  row.index,
-                );
-              }}
-            />
-          ),
-        },
-        {
-          key: '1',
-          title: (
-            <fbt desc="Category Description column header @ Checklist categories table">
-              Category Description
-            </fbt>
-          ),
-          render: row => (
-            <TextInput
-              id="description"
-              variant="outlined"
-              value={row.value.description || ''}
-              placeholder={`${fbt(
-                'Short description of category (optional)',
-                'hint text for optional checklist category description field',
-              )}`}
-              onChange={e => {
-                _updateCheckListCategory(
-                  Object.assign({}, row.value, {
-                    description: e.target.value,
-                  }),
-                  row.index,
-                );
-              }}
-            />
-          ),
-        },
-        {
-          key: '2',
-          title: (
-            <fbt desc="Items (number of questions in category) column header @ Checklist categories table">
-              Items
-            </fbt>
-          ),
-          render: row => (
-            <div className={classes.itemsCell}>
-              <Button disabled={true} skin="gray">
-                {`0/${row.value.checkList.length}`}
+    <>
+      <Table
+        variant="embedded"
+        dataRowsSeparator="border"
+        dataRowClassName={classes.categoryRow}
+        data={list}
+        columns={[
+          {
+            key: '0',
+            title: (
+              <fbt desc="Category Name column header @ Checklist categories table">
+                Category Name
+              </fbt>
+            ),
+            render: row => (
+              <TextInput
+                id="title"
+                variant="outlined"
+                value={row.value.title}
+                autoFocus={true}
+                placeholder={`${fbt(
+                  'Name of the category',
+                  'hint text for checklist category name field',
+                )}`}
+                onChange={e => {
+                  _updateCheckListCategory(
+                    Object.assign({}, row.value, {
+                      title: e.target.value,
+                    }),
+                    row.index,
+                  );
+                }}
+                onBlur={() => {
+                  if (!row.value.title) {
+                    _updateCheckListCategory(
+                      Object.assign({}, row.value, {
+                        title: defaultCategoryName,
+                      }),
+                      row.index,
+                    );
+                  }
+                }}
+              />
+            ),
+          },
+          {
+            key: '1',
+            title: (
+              <fbt desc="Category Description column header @ Checklist categories table">
+                Category Description
+              </fbt>
+            ),
+            render: row => (
+              <TextInput
+                id="description"
+                variant="outlined"
+                value={row.value.description || ''}
+                placeholder={`${fbt(
+                  'Short description of category (optional)',
+                  'hint text for optional checklist category description field',
+                )}`}
+                onChange={e => {
+                  _updateCheckListCategory(
+                    Object.assign({}, row.value, {
+                      description: e.target.value,
+                    }),
+                    row.index,
+                  );
+                }}
+              />
+            ),
+          },
+          {
+            key: '2',
+            title: !!list.find(row => row.value.checkList.length > 0) ? (
+              <fbt desc="Completed Items (number of filled questions in category) column header @ Checklist categories table">
+                Completed Items
+              </fbt>
+            ) : (
+              <fbt desc="Items (number of questions in category) column header @ Checklist categories table">
+                Items
+              </fbt>
+            ),
+            render: row => (
+              <Button
+                skin="gray"
+                className={classes.addItemsButton}
+                onClick={() => setBrowsedCheckListCategory(row.index)}>
+                {row.value.checkList.length > 0 ? (
+                  `${row.responsesCount}/${row.value.checkList.length}`
+                ) : (
+                  <fbt desc="Add checklist items button caption">Add Items</fbt>
+                )}
               </Button>
+            ),
+          },
+          {
+            key: '3',
+            title: '',
+            render: row => (
               <Button
                 variant="text"
                 className={classes.deleteButton}
                 onClick={() => _removeCheckListCategory(row.index)}>
                 <DeleteIcon color="gray" />
               </Button>
-            </div>
-          ),
-        },
-      ]}
-    />
+            ),
+          },
+        ]}
+      />
+
+      {browsedCheckListCategory != null && (
+        <CheckListCategoryItemsDialog
+          items={list[browsedCheckListCategory]?.value.checkList}
+          categoryTitle={list[browsedCheckListCategory]?.value.title}
+          onChecklistChanged={updatedList =>
+            _updateCheckListCategory(
+              Object.assign({}, list[browsedCheckListCategory].value, {
+                checkList: updatedList,
+              }),
+              browsedCheckListCategory,
+            )
+          }
+          onClose={() => setBrowsedCheckListCategory(null)}
+        />
+      )}
+    </>
   );
 };
 
@@ -209,7 +267,15 @@ export default createFragmentContainer(CheckListCategoryTable, {
       title
       description
       checkList {
+        ...CheckListCategoryItemsDialog_items
         id
+        title
+        type
+        index
+        helpText
+        enumValues
+        stringValue
+        checked
       }
     }
   `,

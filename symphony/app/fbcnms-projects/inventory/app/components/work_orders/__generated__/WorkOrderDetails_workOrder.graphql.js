@@ -14,6 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
+type CheckListCategoryItemsDialog_items$ref = any;
 type CheckListCategoryTable_list$ref = any;
 type CheckListItem_item$ref = any;
 type CommentsBox_comments$ref = any;
@@ -114,7 +115,13 @@ export type WorkOrderDetails_workOrder = {|
     +$fragmentRefs: CheckListItem_item$ref,
   |}>,
   +checkListCategories: $ReadOnlyArray<{|
-    +$fragmentRefs: CheckListCategoryTable_list$ref
+    +id: string,
+    +title: string,
+    +description: ?string,
+    +checkList: $ReadOnlyArray<{|
+      +$fragmentRefs: CheckListCategoryItemsDialog_items$ref
+    |}>,
+    +$fragmentRefs: CheckListCategoryTable_list$ref,
   |}>,
   +$fragmentRefs: WorkOrderDetailsPane_workOrder$ref,
   +$refType: WorkOrderDetails_workOrder$ref,
@@ -146,28 +153,42 @@ v1 = {
 v2 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "type",
+  "name": "description",
   "args": null,
   "storageKey": null
 },
 v3 = {
   "kind": "ScalarField",
   "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v4 = {
+  "kind": "ScalarField",
+  "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v4 = [
+v5 = [
   (v0/*: any*/),
   (v1/*: any*/)
 ],
-v5 = [
+v6 = [
   {
     "kind": "FragmentSpread",
     "name": "EntityDocumentsTable_files",
     "args": null
   }
-];
+],
+v7 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "title",
+  "args": null,
+  "storageKey": null
+};
 return {
   "kind": "Fragment",
   "name": "WorkOrderDetails_workOrder",
@@ -177,13 +198,7 @@ return {
   "selections": [
     (v0/*: any*/),
     (v1/*: any*/),
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "description",
-      "args": null,
-      "storageKey": null
-    },
+    (v2/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -317,7 +332,7 @@ return {
           "selections": [
             (v0/*: any*/),
             (v1/*: any*/),
-            (v2/*: any*/),
+            (v3/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -339,10 +354,10 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v3/*: any*/)
+            (v4/*: any*/)
           ]
         },
-        (v3/*: any*/),
+        (v4/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -400,7 +415,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": (v4/*: any*/)
+          "selections": (v5/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -410,7 +425,7 @@ return {
           "args": null,
           "concreteType": "Location",
           "plural": false,
-          "selections": (v4/*: any*/)
+          "selections": (v5/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -420,7 +435,7 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": false,
-          "selections": (v4/*: any*/)
+          "selections": (v5/*: any*/)
         }
       ]
     },
@@ -432,7 +447,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v5/*: any*/)
+      "selections": (v6/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -442,7 +457,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v5/*: any*/)
+      "selections": (v6/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -495,7 +510,7 @@ return {
           "args": null,
           "concreteType": "ProjectType",
           "plural": false,
-          "selections": (v4/*: any*/)
+          "selections": (v5/*: any*/)
         }
       ]
     },
@@ -516,14 +531,8 @@ return {
           "args": null,
           "storageKey": null
         },
-        (v2/*: any*/),
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "title",
-          "args": null,
-          "storageKey": null
-        },
+        (v3/*: any*/),
+        (v7/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -547,6 +556,25 @@ return {
       "concreteType": "CheckListCategory",
       "plural": true,
       "selections": [
+        (v0/*: any*/),
+        (v7/*: any*/),
+        (v2/*: any*/),
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "checkList",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "CheckListItem",
+          "plural": true,
+          "selections": [
+            {
+              "kind": "FragmentSpread",
+              "name": "CheckListCategoryItemsDialog_items",
+              "args": null
+            }
+          ]
+        },
         {
           "kind": "FragmentSpread",
           "name": "CheckListCategoryTable_list",
@@ -563,5 +591,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '63d5110b07ee5ed6499de2954273f6f6';
+(node/*: any*/).hash = 'ae895067b71f1cac6d5d7e3070e4453c';
 module.exports = node;

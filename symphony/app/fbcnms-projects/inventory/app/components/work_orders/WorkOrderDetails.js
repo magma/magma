@@ -196,7 +196,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
       showChecklistDesignMode,
     } = this.state;
     const {location} = workOrder;
-    const hasCheckListCategories = !!checkListCategories?.length;
+    const hasCheckListCategories = checkListCategories.length > 0;
     const actionsEnabled = this.context.isFeatureEnabled('planned_equipment');
     return (
       <div className={classes.root}>
@@ -685,11 +685,9 @@ class WorkOrderDetails extends React.Component<Props, State> {
   };
 
   _checklistChangedHandler = updatedChecklist => {
-    this.setState(() => {
-      return {
-        checklist: updatedChecklist,
-      };
-    });
+    this.setState(() => ({
+      checklist: updatedChecklist,
+    }));
   };
 
   _setWorkOrderDetail = (
@@ -790,6 +788,12 @@ export default withRouter(
               }
               checkListCategories {
                 ...CheckListCategoryTable_list
+                id
+                title
+                description
+                checkList {
+                  ...CheckListCategoryItemsDialog_items
+                }
               }
             }
           `,

@@ -20,6 +20,7 @@ const Strings = {
       'Unassigned',
       'Text to be displayed in case an assignable item was not assigned yet',
     )}`,
+    closeButton: `${fbt('Close', 'Text for button closing message dialog')}`,
     okButton: `${fbt(
       'OK',
       'Text for button approving message or dialog content',
