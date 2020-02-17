@@ -17,7 +17,7 @@ import Typography from '@material-ui/core/Typography';
 import {QueryRenderer} from 'react-relay';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useHistory} from 'react-router';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -92,7 +92,7 @@ type Props = {
 
 const GraphVertexDetails = ({vertexId}: Props) => {
   const classes = useStyles();
-  const {history} = useRouter();
+  const history = useHistory();
   return (
     <div className={classes.root}>
       <div className={classes.detailsContainer}>

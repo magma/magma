@@ -27,6 +27,7 @@ func main() {
 	dsn := flag.String("db-dsn", "", "data source name")
 	dropColumn := flag.Bool("drop-column", false, "enable column drop")
 	dropIndex := flag.Bool("drop-index", false, "enable index drop")
+	fixture := flag.Bool("fixture", false, "run ent@v0.1.0 migrate fixture")
 	dryRun := flag.Bool("dry-run", false, "run in dry run mode")
 	tenantName := flag.String("tenant", "", "target specific tenant")
 	flag.Parse()
@@ -57,6 +58,7 @@ func main() {
 		Logger: logger,
 		Driver: dialect.Debug(driver),
 		Options: []schema.MigrateOption{
+			schema.WithFixture(*fixture),
 			schema.WithDropColumn(*dropColumn),
 			schema.WithDropIndex(*dropIndex),
 		},

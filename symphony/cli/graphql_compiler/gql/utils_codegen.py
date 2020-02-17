@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 import os
+import re
 
 SPACES = ' ' * 4
+
+
+def get_enum_filename(enum_name):
+    return '_'.join([re.sub(r'(?<!^)(?=[A-Z])', '_', enum_name).lower(), 'enum'])
 
 
 class CodeChunk:

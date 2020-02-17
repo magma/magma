@@ -24,236 +24,12 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type TableID int32
-
-const (
-	TableID_IMSI_TO_HWID     TableID = 0
-	TableID_HWID_TO_HOSTNAME TableID = 1
-)
-
-var TableID_name = map[int32]string{
-	0: "IMSI_TO_HWID",
-	1: "HWID_TO_HOSTNAME",
-}
-
-var TableID_value = map[string]int32{
-	"IMSI_TO_HWID":     0,
-	"HWID_TO_HOSTNAME": 1,
-}
-
-func (x TableID) String() string {
-	return proto.EnumName(TableID_name, int32(x))
-}
-
-func (TableID) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{0}
-}
-
-type GetLocationRequest struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Table                TableID  `protobuf:"varint,2,opt,name=table,proto3,enum=magma.orc8r.TableID" json:"table,omitempty"`
-	NetworkID            string   `protobuf:"bytes,3,opt,name=networkID,proto3" json:"networkID,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetLocationRequest) Reset()         { *m = GetLocationRequest{} }
-func (m *GetLocationRequest) String() string { return proto.CompactTextString(m) }
-func (*GetLocationRequest) ProtoMessage()    {}
-func (*GetLocationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{0}
-}
-
-func (m *GetLocationRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetLocationRequest.Unmarshal(m, b)
-}
-func (m *GetLocationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetLocationRequest.Marshal(b, m, deterministic)
-}
-func (m *GetLocationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetLocationRequest.Merge(m, src)
-}
-func (m *GetLocationRequest) XXX_Size() int {
-	return xxx_messageInfo_GetLocationRequest.Size(m)
-}
-func (m *GetLocationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetLocationRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetLocationRequest proto.InternalMessageInfo
-
-func (m *GetLocationRequest) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
-}
-
-func (m *GetLocationRequest) GetTable() TableID {
-	if m != nil {
-		return m.Table
-	}
-	return TableID_IMSI_TO_HWID
-}
-
-func (m *GetLocationRequest) GetNetworkID() string {
-	if m != nil {
-		return m.NetworkID
-	}
-	return ""
-}
-
-type DeleteLocationRequest struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Table                TableID  `protobuf:"varint,2,opt,name=table,proto3,enum=magma.orc8r.TableID" json:"table,omitempty"`
-	NetworkID            string   `protobuf:"bytes,3,opt,name=networkID,proto3" json:"networkID,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DeleteLocationRequest) Reset()         { *m = DeleteLocationRequest{} }
-func (m *DeleteLocationRequest) String() string { return proto.CompactTextString(m) }
-func (*DeleteLocationRequest) ProtoMessage()    {}
-func (*DeleteLocationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{1}
-}
-
-func (m *DeleteLocationRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteLocationRequest.Unmarshal(m, b)
-}
-func (m *DeleteLocationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteLocationRequest.Marshal(b, m, deterministic)
-}
-func (m *DeleteLocationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteLocationRequest.Merge(m, src)
-}
-func (m *DeleteLocationRequest) XXX_Size() int {
-	return xxx_messageInfo_DeleteLocationRequest.Size(m)
-}
-func (m *DeleteLocationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteLocationRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DeleteLocationRequest proto.InternalMessageInfo
-
-func (m *DeleteLocationRequest) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
-}
-
-func (m *DeleteLocationRequest) GetTable() TableID {
-	if m != nil {
-		return m.Table
-	}
-	return TableID_IMSI_TO_HWID
-}
-
-func (m *DeleteLocationRequest) GetNetworkID() string {
-	if m != nil {
-		return m.NetworkID
-	}
-	return ""
-}
-
-type LocationRecord struct {
-	// Object location. Client is responsible for location encoding and decoding
-	Location             string   `protobuf:"bytes,1,opt,name=location,proto3" json:"location,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *LocationRecord) Reset()         { *m = LocationRecord{} }
-func (m *LocationRecord) String() string { return proto.CompactTextString(m) }
-func (*LocationRecord) ProtoMessage()    {}
-func (*LocationRecord) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{2}
-}
-
-func (m *LocationRecord) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_LocationRecord.Unmarshal(m, b)
-}
-func (m *LocationRecord) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_LocationRecord.Marshal(b, m, deterministic)
-}
-func (m *LocationRecord) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LocationRecord.Merge(m, src)
-}
-func (m *LocationRecord) XXX_Size() int {
-	return xxx_messageInfo_LocationRecord.Size(m)
-}
-func (m *LocationRecord) XXX_DiscardUnknown() {
-	xxx_messageInfo_LocationRecord.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_LocationRecord proto.InternalMessageInfo
-
-func (m *LocationRecord) GetLocation() string {
-	if m != nil {
-		return m.Location
-	}
-	return ""
-}
-
-type UpdateDirectoryLocationRequest struct {
-	Id                   string          `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Record               *LocationRecord `protobuf:"bytes,2,opt,name=record,proto3" json:"record,omitempty"`
-	Table                TableID         `protobuf:"varint,3,opt,name=table,proto3,enum=magma.orc8r.TableID" json:"table,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_unrecognized     []byte          `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
-}
-
-func (m *UpdateDirectoryLocationRequest) Reset()         { *m = UpdateDirectoryLocationRequest{} }
-func (m *UpdateDirectoryLocationRequest) String() string { return proto.CompactTextString(m) }
-func (*UpdateDirectoryLocationRequest) ProtoMessage()    {}
-func (*UpdateDirectoryLocationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{3}
-}
-
-func (m *UpdateDirectoryLocationRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateDirectoryLocationRequest.Unmarshal(m, b)
-}
-func (m *UpdateDirectoryLocationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateDirectoryLocationRequest.Marshal(b, m, deterministic)
-}
-func (m *UpdateDirectoryLocationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateDirectoryLocationRequest.Merge(m, src)
-}
-func (m *UpdateDirectoryLocationRequest) XXX_Size() int {
-	return xxx_messageInfo_UpdateDirectoryLocationRequest.Size(m)
-}
-func (m *UpdateDirectoryLocationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateDirectoryLocationRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateDirectoryLocationRequest proto.InternalMessageInfo
-
-func (m *UpdateDirectoryLocationRequest) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
-}
-
-func (m *UpdateDirectoryLocationRequest) GetRecord() *LocationRecord {
-	if m != nil {
-		return m.Record
-	}
-	return nil
-}
-
-func (m *UpdateDirectoryLocationRequest) GetTable() TableID {
-	if m != nil {
-		return m.Table
-	}
-	return TableID_IMSI_TO_HWID
-}
-
+// --------------------------------------------------------------------------
+// Directory Service
+//
+//
+//
+// --------------------------------------------------------------------------
 type UpdateRecordRequest struct {
 	Id                   string            `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Location             string            `protobuf:"bytes,2,opt,name=location,proto3" json:"location,omitempty"`
@@ -267,7 +43,7 @@ func (m *UpdateRecordRequest) Reset()         { *m = UpdateRecordRequest{} }
 func (m *UpdateRecordRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateRecordRequest) ProtoMessage()    {}
 func (*UpdateRecordRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{4}
+	return fileDescriptor_f02336ef077163fd, []int{0}
 }
 
 func (m *UpdateRecordRequest) XXX_Unmarshal(b []byte) error {
@@ -321,7 +97,7 @@ func (m *DirectoryField) Reset()         { *m = DirectoryField{} }
 func (m *DirectoryField) String() string { return proto.CompactTextString(m) }
 func (*DirectoryField) ProtoMessage()    {}
 func (*DirectoryField) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{5}
+	return fileDescriptor_f02336ef077163fd, []int{1}
 }
 
 func (m *DirectoryField) XXX_Unmarshal(b []byte) error {
@@ -367,7 +143,7 @@ func (m *DeleteRecordRequest) Reset()         { *m = DeleteRecordRequest{} }
 func (m *DeleteRecordRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteRecordRequest) ProtoMessage()    {}
 func (*DeleteRecordRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{6}
+	return fileDescriptor_f02336ef077163fd, []int{2}
 }
 
 func (m *DeleteRecordRequest) XXX_Unmarshal(b []byte) error {
@@ -407,7 +183,7 @@ func (m *GetDirectoryFieldRequest) Reset()         { *m = GetDirectoryFieldReque
 func (m *GetDirectoryFieldRequest) String() string { return proto.CompactTextString(m) }
 func (*GetDirectoryFieldRequest) ProtoMessage()    {}
 func (*GetDirectoryFieldRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{7}
+	return fileDescriptor_f02336ef077163fd, []int{3}
 }
 
 func (m *GetDirectoryFieldRequest) XXX_Unmarshal(b []byte) error {
@@ -455,7 +231,7 @@ func (m *DirectoryRecord) Reset()         { *m = DirectoryRecord{} }
 func (m *DirectoryRecord) String() string { return proto.CompactTextString(m) }
 func (*DirectoryRecord) ProtoMessage()    {}
 func (*DirectoryRecord) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{8}
+	return fileDescriptor_f02336ef077163fd, []int{4}
 }
 
 func (m *DirectoryRecord) XXX_Unmarshal(b []byte) error {
@@ -508,7 +284,7 @@ func (m *AllDirectoryRecords) Reset()         { *m = AllDirectoryRecords{} }
 func (m *AllDirectoryRecords) String() string { return proto.CompactTextString(m) }
 func (*AllDirectoryRecords) ProtoMessage()    {}
 func (*AllDirectoryRecords) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{9}
+	return fileDescriptor_f02336ef077163fd, []int{5}
 }
 
 func (m *AllDirectoryRecords) XXX_Unmarshal(b []byte) error {
@@ -537,11 +313,6 @@ func (m *AllDirectoryRecords) GetRecords() []*DirectoryRecord {
 }
 
 func init() {
-	proto.RegisterEnum("magma.orc8r.TableID", TableID_name, TableID_value)
-	proto.RegisterType((*GetLocationRequest)(nil), "magma.orc8r.GetLocationRequest")
-	proto.RegisterType((*DeleteLocationRequest)(nil), "magma.orc8r.DeleteLocationRequest")
-	proto.RegisterType((*LocationRecord)(nil), "magma.orc8r.LocationRecord")
-	proto.RegisterType((*UpdateDirectoryLocationRequest)(nil), "magma.orc8r.UpdateDirectoryLocationRequest")
 	proto.RegisterType((*UpdateRecordRequest)(nil), "magma.orc8r.UpdateRecordRequest")
 	proto.RegisterMapType((map[string]string)(nil), "magma.orc8r.UpdateRecordRequest.FieldsEntry")
 	proto.RegisterType((*DirectoryField)(nil), "magma.orc8r.DirectoryField")
@@ -555,47 +326,34 @@ func init() {
 func init() { proto.RegisterFile("orc8r/protos/directoryd.proto", fileDescriptor_f02336ef077163fd) }
 
 var fileDescriptor_f02336ef077163fd = []byte{
-	// 628 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x55, 0x41, 0x6f, 0xd3, 0x4c,
-	0x10, 0x8d, 0x6d, 0xb5, 0xfd, 0x32, 0xa9, 0x5c, 0x77, 0xdb, 0x0f, 0x5c, 0xb7, 0x40, 0xb4, 0x52,
-	0xa5, 0x50, 0xaa, 0x44, 0xa4, 0x12, 0x2a, 0x9c, 0x28, 0x72, 0x48, 0x2d, 0x08, 0x95, 0xdc, 0x00,
-	0x82, 0x4b, 0xe4, 0xd8, 0x4b, 0xb1, 0xea, 0x64, 0x5b, 0x7b, 0xdb, 0x2a, 0x37, 0xfe, 0x02, 0x7f,
-	0x89, 0x1b, 0x67, 0xfe, 0x10, 0xf2, 0xda, 0x49, 0xbc, 0x8e, 0x93, 0x70, 0x40, 0x9c, 0x62, 0x4f,
-	0x9e, 0xdf, 0x7b, 0xf3, 0x3c, 0xb3, 0x86, 0x07, 0x34, 0x74, 0x8f, 0xc3, 0xc6, 0x55, 0x48, 0x19,
-	0x8d, 0x1a, 0x9e, 0x1f, 0x12, 0x97, 0xd1, 0x70, 0xe4, 0xd5, 0x79, 0x05, 0x55, 0x06, 0xce, 0xc5,
-	0xc0, 0xa9, 0x73, 0x90, 0xb1, 0x23, 0x60, 0x5d, 0x3a, 0x18, 0xd0, 0x61, 0x82, 0xc3, 0x43, 0x40,
-	0x6d, 0xc2, 0xde, 0x52, 0xd7, 0x61, 0x3e, 0x1d, 0xda, 0xe4, 0xfa, 0x86, 0x44, 0x0c, 0xa9, 0x20,
-	0xfb, 0x9e, 0x2e, 0x55, 0xa5, 0x5a, 0xd9, 0x96, 0x7d, 0x0f, 0x1d, 0xc0, 0x0a, 0x73, 0xfa, 0x01,
-	0xd1, 0xe5, 0xaa, 0x54, 0x53, 0x9b, 0xdb, 0xf5, 0x0c, 0x7b, 0xbd, 0x1b, 0xff, 0x63, 0x99, 0x76,
-	0x02, 0x41, 0x7b, 0x50, 0x1e, 0x12, 0x76, 0x47, 0xc3, 0x4b, 0xcb, 0xd4, 0x15, 0x4e, 0x31, 0x2d,
-	0xe0, 0x6b, 0xf8, 0xdf, 0x24, 0x01, 0x61, 0xe4, 0xdf, 0x49, 0x1e, 0x82, 0x3a, 0x15, 0x73, 0x69,
-	0xe8, 0x21, 0x03, 0xfe, 0x0b, 0xd2, 0x4a, 0xaa, 0x38, 0xb9, 0xc7, 0xdf, 0x25, 0x78, 0xf8, 0xfe,
-	0xca, 0x73, 0x18, 0x31, 0xc7, 0x99, 0x2e, 0xb3, 0x7a, 0x04, 0xab, 0x21, 0x27, 0xe6, 0x5e, 0x2b,
-	0xcd, 0x5d, 0xc1, 0xab, 0xa8, 0x6d, 0xa7, 0xd0, 0x69, 0x7f, 0xca, 0xd2, 0xfe, 0xf0, 0x0f, 0x09,
-	0xb6, 0x12, 0x4f, 0x29, 0xc9, 0x1c, 0x23, 0xd9, 0xbe, 0x64, 0xb1, 0x2f, 0x64, 0xc2, 0xea, 0x17,
-	0x9f, 0x04, 0x5e, 0xa4, 0x2b, 0x55, 0xa5, 0x56, 0x69, 0x1e, 0x0a, 0x82, 0x05, 0xec, 0xf5, 0xd7,
-	0x1c, 0xde, 0x1a, 0xb2, 0x70, 0x64, 0xa7, 0xcf, 0x1a, 0xcf, 0xa1, 0x92, 0x29, 0x23, 0x0d, 0x94,
-	0x4b, 0x32, 0x4a, 0x1d, 0xc4, 0x97, 0x68, 0x1b, 0x56, 0x6e, 0x9d, 0xe0, 0x86, 0xa4, 0xfa, 0xc9,
-	0xcd, 0x0b, 0xf9, 0x58, 0xc2, 0xc7, 0xa0, 0x4e, 0x12, 0xe5, 0x1c, 0x7f, 0xfa, 0x34, 0xde, 0x87,
-	0xad, 0x64, 0x66, 0x16, 0x76, 0x8f, 0xdb, 0xa0, 0xb7, 0x09, 0x13, 0x35, 0xe6, 0x25, 0xb5, 0x0b,
-	0x65, 0xde, 0x51, 0x2f, 0x36, 0x90, 0x46, 0xc5, 0x0b, 0x6f, 0xc8, 0x08, 0xff, 0x94, 0x60, 0x63,
-	0x42, 0x93, 0x8e, 0x4c, 0x9e, 0xe0, 0x31, 0x68, 0xe3, 0x68, 0x7b, 0x5f, 0xfd, 0x28, 0x46, 0xea,
-	0x72, 0x55, 0xa9, 0x95, 0xed, 0x8d, 0x71, 0xfd, 0x34, 0x29, 0xa3, 0x97, 0xb9, 0xe4, 0x6b, 0x42,
-	0xf2, 0x39, 0xa1, 0xbf, 0x9d, 0x7a, 0x07, 0xb6, 0x4e, 0x82, 0x20, 0x27, 0x12, 0xa1, 0x67, 0xb0,
-	0x96, 0xcc, 0x61, 0xa4, 0x4b, 0xdc, 0xd4, 0xde, 0x22, 0x53, 0xf6, 0x18, 0x7c, 0xf0, 0x14, 0xd6,
-	0xd2, 0xd9, 0x44, 0x1a, 0xac, 0x5b, 0x9d, 0x73, 0xab, 0xd7, 0x3d, 0xeb, 0x9d, 0x7e, 0xb4, 0x4c,
-	0xad, 0x84, 0xb6, 0x41, 0x8b, 0xaf, 0x78, 0xe5, 0xec, 0xbc, 0xfb, 0xee, 0xa4, 0xd3, 0xd2, 0xa4,
-	0xe6, 0x37, 0x19, 0xb4, 0x09, 0xdf, 0x39, 0x09, 0x6f, 0x7d, 0x97, 0xa0, 0x0e, 0x54, 0x32, 0xc7,
-	0x0e, 0x7a, 0x24, 0xa8, 0xcf, 0x1e, 0x48, 0xc6, 0xa2, 0x95, 0xc2, 0x25, 0x64, 0x83, 0x9a, 0x4c,
-	0xf0, 0x84, 0xf1, 0x49, 0xc1, 0x78, 0xcf, 0x5b, 0x68, 0x63, 0x53, 0x00, 0x7f, 0xa0, 0x7e, 0xcc,
-	0x69, 0x81, 0x2a, 0x9e, 0x54, 0x08, 0x8b, 0x19, 0x15, 0x1d, 0x63, 0x85, 0x54, 0xcd, 0x5f, 0x32,
-	0xdc, 0x6f, 0x3b, 0x8c, 0xdc, 0x39, 0xa3, 0x99, 0x24, 0x5a, 0xb0, 0x9e, 0x5d, 0x3e, 0x54, 0x5d,
-	0xb6, 0x97, 0xc5, 0x6e, 0x5b, 0xb0, 0x9e, 0xdd, 0x91, 0x1c, 0x4d, 0xc1, 0xfa, 0x14, 0xd3, 0x7c,
-	0x82, 0xcd, 0x99, 0x1d, 0x42, 0xfb, 0xf9, 0xb7, 0x53, 0xb8, 0x63, 0xb9, 0x77, 0x24, 0x62, 0x70,
-	0x09, 0x9d, 0xc1, 0xbd, 0x36, 0x61, 0x45, 0xc3, 0x38, 0xeb, 0xc4, 0x10, 0xed, 0x17, 0x3c, 0x84,
-	0x4b, 0xaf, 0x76, 0x3f, 0xef, 0x70, 0x50, 0x23, 0xf9, 0xba, 0x05, 0x7e, 0xbf, 0x71, 0x41, 0xd3,
-	0x8f, 0x5c, 0x7f, 0x95, 0xff, 0x1e, 0xfd, 0x0e, 0x00, 0x00, 0xff, 0xff, 0x70, 0x3c, 0x17, 0x73,
-	0x27, 0x07, 0x00, 0x00,
+	// 432 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcf, 0x8b, 0xd3, 0x40,
+	0x18, 0x6d, 0x12, 0x5c, 0xed, 0x57, 0xd9, 0x1f, 0x53, 0xd1, 0x6c, 0xaa, 0x10, 0x06, 0x16, 0x22,
+	0x48, 0x02, 0x2b, 0x48, 0xf5, 0xa4, 0xd2, 0x35, 0x82, 0x88, 0x10, 0x51, 0xd0, 0xcb, 0x92, 0xcd,
+	0x7c, 0xae, 0x83, 0x49, 0x67, 0x9d, 0xcc, 0x56, 0xf2, 0xef, 0x79, 0xf3, 0xec, 0x3f, 0x24, 0x99,
+	0x24, 0x25, 0x49, 0x53, 0xeb, 0xc1, 0x53, 0x66, 0x1e, 0x6f, 0xde, 0x7b, 0xf3, 0xf2, 0x31, 0xf0,
+	0x40, 0xc8, 0x64, 0x2e, 0x83, 0x2b, 0x29, 0x94, 0xc8, 0x03, 0xc6, 0x25, 0x26, 0x4a, 0xc8, 0x82,
+	0xf9, 0x1a, 0x21, 0x93, 0x2c, 0xbe, 0xcc, 0x62, 0x5f, 0x93, 0x9c, 0xe3, 0x0e, 0x37, 0x11, 0x59,
+	0x26, 0x96, 0x15, 0x8f, 0xfe, 0x34, 0x60, 0xfa, 0xe1, 0x8a, 0xc5, 0x0a, 0x23, 0x4c, 0x84, 0x64,
+	0x11, 0x7e, 0xbf, 0xc6, 0x5c, 0x91, 0x7d, 0x30, 0x39, 0xb3, 0x0d, 0xd7, 0xf0, 0xc6, 0x91, 0xc9,
+	0x19, 0x71, 0xe0, 0x56, 0x2a, 0x92, 0x58, 0x71, 0xb1, 0xb4, 0x4d, 0x8d, 0xae, 0xf7, 0x64, 0x01,
+	0x7b, 0x5f, 0x38, 0xa6, 0x2c, 0xb7, 0x2d, 0xd7, 0xf2, 0x26, 0xa7, 0x8f, 0xfc, 0x96, 0xb9, 0x3f,
+	0xa0, 0xee, 0xbf, 0xd2, 0xf4, 0xb3, 0xa5, 0x92, 0x45, 0x54, 0x9f, 0x75, 0x9e, 0xc2, 0xa4, 0x05,
+	0x93, 0x43, 0xb0, 0xbe, 0x61, 0x51, 0x27, 0x28, 0x97, 0xe4, 0x0e, 0xdc, 0x58, 0xc5, 0xe9, 0x35,
+	0xd6, 0xfe, 0xd5, 0xe6, 0x99, 0x39, 0x37, 0xe8, 0x1c, 0xf6, 0x17, 0x4d, 0x01, 0x5a, 0xe3, 0x5f,
+	0x4f, 0xd3, 0x13, 0x98, 0x2e, 0x30, 0xc5, 0x1d, 0xb7, 0xa7, 0x21, 0xd8, 0x21, 0xaa, 0xae, 0xc7,
+	0xb6, 0xa6, 0x66, 0x30, 0xd6, 0x37, 0x3a, 0x2f, 0x03, 0xd4, 0x55, 0x69, 0xe0, 0x0d, 0x16, 0xf4,
+	0x97, 0x01, 0x07, 0x6b, 0x99, 0xca, 0x73, 0x43, 0xe0, 0x21, 0x1c, 0x36, 0xd5, 0x9e, 0x7f, 0xe5,
+	0x79, 0xc9, 0xb4, 0x4d, 0xd7, 0xf2, 0xc6, 0xd1, 0x41, 0x83, 0xbf, 0xae, 0x60, 0xf2, 0xbc, 0xd7,
+	0xbc, 0xd7, 0x69, 0xbe, 0x67, 0xf4, 0xbf, 0x5b, 0x7f, 0x0b, 0xd3, 0x17, 0x69, 0xda, 0x33, 0xc9,
+	0xc9, 0x13, 0xb8, 0x29, 0xab, 0xa5, 0x6d, 0xe8, 0x50, 0xf7, 0xff, 0x16, 0x2a, 0x6a, 0xc8, 0xa7,
+	0xbf, 0x4d, 0xb8, 0x17, 0xc6, 0x0a, 0x7f, 0xc4, 0xc5, 0x9a, 0xf3, 0x1e, 0xe5, 0x8a, 0x27, 0x48,
+	0xce, 0xe0, 0x76, 0x7b, 0x8c, 0x88, 0xbb, 0x6b, 0xc2, 0x9c, 0xa3, 0x0e, 0xe3, 0xa3, 0xe0, 0x8c,
+	0x8e, 0x4a, 0x99, 0xf6, 0xdf, 0xee, 0xc9, 0x0c, 0x0c, 0xc2, 0xb0, 0xcc, 0x27, 0x38, 0xda, 0x98,
+	0x06, 0x72, 0xd2, 0x61, 0x6e, 0x9b, 0x16, 0x67, 0x36, 0x5c, 0x86, 0xe6, 0xd0, 0x11, 0x79, 0x07,
+	0x77, 0x43, 0x54, 0x43, 0xb5, 0x6e, 0x26, 0x71, 0xba, 0xf1, 0x07, 0x0e, 0xd1, 0xd1, 0xcb, 0xd9,
+	0xe7, 0x63, 0x4d, 0x0a, 0xaa, 0x27, 0x20, 0xe5, 0x17, 0xc1, 0xa5, 0xa8, 0x5f, 0x82, 0x8b, 0x3d,
+	0xfd, 0x7d, 0xfc, 0x27, 0x00, 0x00, 0xff, 0xff, 0xf9, 0xc6, 0x90, 0xb8, 0x4c, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -605,160 +363,6 @@ var _ grpc.ClientConnInterface
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion6
-
-// DirectoryServiceClient is the client API for DirectoryService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type DirectoryServiceClient interface {
-	// Get location of an object from the directory service
-	// Throws UNKNOWN if object ID does not exist
-	GetLocation(ctx context.Context, in *GetLocationRequest, opts ...grpc.CallOption) (*LocationRecord, error)
-	// Update the location record of an object in the directory service
-	UpdateLocation(ctx context.Context, in *UpdateDirectoryLocationRequest, opts ...grpc.CallOption) (*Void, error)
-	// Delete location record of an object from the directory service
-	// Throws UNKNOWN if object ID does not exist
-	DeleteLocation(ctx context.Context, in *DeleteLocationRequest, opts ...grpc.CallOption) (*Void, error)
-}
-
-type directoryServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewDirectoryServiceClient(cc grpc.ClientConnInterface) DirectoryServiceClient {
-	return &directoryServiceClient{cc}
-}
-
-func (c *directoryServiceClient) GetLocation(ctx context.Context, in *GetLocationRequest, opts ...grpc.CallOption) (*LocationRecord, error) {
-	out := new(LocationRecord)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryService/GetLocation", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *directoryServiceClient) UpdateLocation(ctx context.Context, in *UpdateDirectoryLocationRequest, opts ...grpc.CallOption) (*Void, error) {
-	out := new(Void)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryService/UpdateLocation", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *directoryServiceClient) DeleteLocation(ctx context.Context, in *DeleteLocationRequest, opts ...grpc.CallOption) (*Void, error) {
-	out := new(Void)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryService/DeleteLocation", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// DirectoryServiceServer is the server API for DirectoryService service.
-type DirectoryServiceServer interface {
-	// Get location of an object from the directory service
-	// Throws UNKNOWN if object ID does not exist
-	GetLocation(context.Context, *GetLocationRequest) (*LocationRecord, error)
-	// Update the location record of an object in the directory service
-	UpdateLocation(context.Context, *UpdateDirectoryLocationRequest) (*Void, error)
-	// Delete location record of an object from the directory service
-	// Throws UNKNOWN if object ID does not exist
-	DeleteLocation(context.Context, *DeleteLocationRequest) (*Void, error)
-}
-
-// UnimplementedDirectoryServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedDirectoryServiceServer struct {
-}
-
-func (*UnimplementedDirectoryServiceServer) GetLocation(ctx context.Context, req *GetLocationRequest) (*LocationRecord, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLocation not implemented")
-}
-func (*UnimplementedDirectoryServiceServer) UpdateLocation(ctx context.Context, req *UpdateDirectoryLocationRequest) (*Void, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateLocation not implemented")
-}
-func (*UnimplementedDirectoryServiceServer) DeleteLocation(ctx context.Context, req *DeleteLocationRequest) (*Void, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteLocation not implemented")
-}
-
-func RegisterDirectoryServiceServer(s *grpc.Server, srv DirectoryServiceServer) {
-	s.RegisterService(&_DirectoryService_serviceDesc, srv)
-}
-
-func _DirectoryService_GetLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetLocationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DirectoryServiceServer).GetLocation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.orc8r.DirectoryService/GetLocation",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DirectoryServiceServer).GetLocation(ctx, req.(*GetLocationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DirectoryService_UpdateLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateDirectoryLocationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DirectoryServiceServer).UpdateLocation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.orc8r.DirectoryService/UpdateLocation",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DirectoryServiceServer).UpdateLocation(ctx, req.(*UpdateDirectoryLocationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DirectoryService_DeleteLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteLocationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DirectoryServiceServer).DeleteLocation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.orc8r.DirectoryService/DeleteLocation",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DirectoryServiceServer).DeleteLocation(ctx, req.(*DeleteLocationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _DirectoryService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.orc8r.DirectoryService",
-	HandlerType: (*DirectoryServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetLocation",
-			Handler:    _DirectoryService_GetLocation_Handler,
-		},
-		{
-			MethodName: "UpdateLocation",
-			Handler:    _DirectoryService_UpdateLocation_Handler,
-		},
-		{
-			MethodName: "DeleteLocation",
-			Handler:    _DirectoryService_DeleteLocation_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "orc8r/protos/directoryd.proto",
-}
 
 // GatewayDirectoryServiceClient is the client API for GatewayDirectoryService service.
 //

@@ -13,8 +13,6 @@ from typing import Dict, List
 
 from orc8r.protos.directoryd_pb2 import DirectoryField, AllDirectoryRecords
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceServicer, \
-    DirectoryServiceServicer, DirectoryServiceStub, \
-    add_DirectoryServiceServicer_to_server, \
     add_GatewayDirectoryServiceServicer_to_server
 from magma.common.misc_utils import get_gateway_hwid
 from magma.common.rpc_utils import return_void
@@ -22,7 +20,6 @@ from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict
 from magma.common.redis.serializers import RedisSerde, get_json_serializer, \
     get_json_deserializer
-from magma.common.service_registry import ServiceRegistry
 
 DIRECTORYD_REDIS_TYPE = "directory_record"
 LOCATION_MAX_LEN = 5
@@ -38,53 +35,6 @@ class DirectoryRecord:
     def __init__(self, location_history: List[str], identifiers: Dict[str, str]):
         self.location_history = location_history
         self.identifiers = identifiers
-
-class DirectoryServiceRpcServicer(DirectoryServiceServicer):
-    """ gRPC based server for the Directoryd. """
-
-    def __init__(self, mconfig, config):
-        pass
-
-    def add_to_server(self, server):
-        """ Add the servicer to a gRPC server """
-        add_DirectoryServiceServicer_to_server(self, server)
-
-    def GetLocation(self, request, context):
-        """ Get the location record of an object
-
-        Args:
-            request (GetLocationRequest): get location request
-
-        Returns:
-            LocationRecord: location record
-        """
-        location_record = self._get_grpc_client().GetLocation(request)
-        return location_record
-
-    @return_void
-    def UpdateLocation(self, request, context):
-        """ Update the location record of an object
-
-        Args:
-            request (UpdateLocationRequest): update location
-            request
-        """
-        self._get_grpc_client().UpdateLocation(request)
-
-    @return_void
-    def DeleteLocation(self, request, context):
-        """ Delete the location record of an object
-
-        Args:
-            request (DeleteLocationRequest): delete location
-            request
-        """
-        self._get_grpc_client().DeleteLocation(request)
-
-    def _get_grpc_client(self):
-        chan = ServiceRegistry.get_rpc_channel(
-            'directoryd', ServiceRegistry.CLOUD)
-        return DirectoryServiceStub(chan)
 
 
 class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):

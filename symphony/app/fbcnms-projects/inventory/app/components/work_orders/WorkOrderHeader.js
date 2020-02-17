@@ -8,6 +8,12 @@
  * @format
  */
 
+import type {
+  ChecklistViewer_checkListItems,
+  WorkOrderDetails_workOrder,
+} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+import type {Property} from '../../common/Property';
+
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import React from 'react';
@@ -16,12 +22,7 @@ import WorkOrderSaveButton from './WorkOrderSaveButton';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
-import type {
-  ChecklistViewer_checkListItems,
-  WorkOrderDetails_workOrder,
-} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
-import type {Property} from '../../common/Property';
+import {useHistory} from 'react-router';
 
 const useStyles = makeStyles(_theme => ({
   nameHeader: {
@@ -60,7 +61,7 @@ type Props = {
 
 const WorkOrderHeader = (props: Props) => {
   const classes = useStyles();
-  const {history} = useRouter();
+  const history = useHistory();
   const {
     workOrderName,
     workOrder,

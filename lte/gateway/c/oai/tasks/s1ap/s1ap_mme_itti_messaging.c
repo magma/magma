@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <mme_app_ue_context.h>
+#include <mme_app_state.h>
 
 #include "bstrlib.h"
 #include "log.h"
@@ -64,6 +66,7 @@ int s1ap_mme_itti_send_sctp_request(
   SCTP_DATA_REQ(message_p).assoc_id = assoc_id;
   SCTP_DATA_REQ(message_p).stream = stream;
   SCTP_DATA_REQ(message_p).mme_ue_s1ap_id = ue_id;
+
   return itti_send_msg_to_task(TASK_SCTP, INSTANCE_DEFAULT, message_p);
 }
 
@@ -75,6 +78,11 @@ int s1ap_mme_itti_nas_uplink_ind(
   const ecgi_t const* cgi)
 {
   MessageDef* message_p = NULL;
+  imsi64_t imsi64 = INVALID_IMSI64;
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, &imsi64);
 
   OAILOG_INFO(
     LOG_S1AP,
@@ -94,6 +102,7 @@ int s1ap_mme_itti_nas_uplink_ind(
   MME_APP_UL_DATA_IND(message_p).tai = *tai;
   MME_APP_UL_DATA_IND(message_p).cgi = *cgi;
 
+  message_p->ittiMsgHeader.imsi = imsi64;
   return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
@@ -103,6 +112,7 @@ int s1ap_mme_itti_nas_downlink_cnf(
   const bool is_success)
 {
   MessageDef* message_p = NULL;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   if (ue_id == INVALID_MME_UE_S1AP_ID) {
     if (!is_success) {
@@ -115,6 +125,10 @@ int s1ap_mme_itti_nas_downlink_cnf(
     // Drop this cnf message here since this is related to connection less S1AP message hence no need to send it to NAS module
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, &imsi64);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
   if (message_p == NULL) {
     OAILOG_ERROR(
@@ -133,6 +147,7 @@ int s1ap_mme_itti_nas_downlink_cnf(
       "ERROR: Failed to send S1AP message to eNB. mme_ue_s1ap_id =  %d \n",
       ue_id);
   }
+  message_p->ittiMsgHeader.imsi = imsi64;
   return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
@@ -245,7 +260,8 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   const mme_ue_s1ap_id_t ue_id,
   uint8_t* const nas_msg,
   const size_t nas_msg_length,
-  const S1ap_Cause_t* const cause)
+  const S1ap_Cause_t* const cause,
+  const imsi64_t imsi64)
 {
   MessageDef* message_p = NULL;
   // TODO translate, insert, cause in message
@@ -267,6 +283,8 @@ void s1ap_mme_itti_nas_non_delivery_ind(
 
   // should be sent to MME_APP, but this one would forward it to NAS_MME, so send it directly to NAS_MME
   // but let's see
+
+  message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
@@ -282,7 +300,8 @@ int s1ap_mme_itti_s1ap_path_switch_request(
   const ecgi_t const* ecgi,
   const tai_t const* tai,
   const uint16_t encryption_algorithm_capabilities,
-  const uint16_t integrity_algorithm_capabilities)
+  const uint16_t integrity_algorithm_capabilities,
+  const imsi64_t imsi64)
 {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
@@ -308,6 +327,7 @@ int s1ap_mme_itti_s1ap_path_switch_request(
     "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n",
     mme_ue_s1ap_id);
 
+  message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }

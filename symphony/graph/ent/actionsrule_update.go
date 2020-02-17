@@ -145,7 +145,9 @@ func (aru *ActionsRuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, aru.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{actionsrule.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -271,7 +273,9 @@ func (aruo *ActionsRuleUpdateOne) sqlSave(ctx context.Context) (ar *ActionsRule,
 	_spec.Assign = ar.assignValues
 	_spec.ScanValues = ar.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, aruo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{actionsrule.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

@@ -357,6 +357,7 @@ input AddWorkOrderInput {
   projectId: ID
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
+  ownerName: String
   assignee: String
   index: Int
   status: WorkOrderStatus
@@ -367,7 +368,7 @@ input EditWorkOrderInput {
   id: ID!
   name: String!
   description: String
-  ownerName: String!
+  ownerName: String
   installDate: Time
   assignee: String
   index: Int

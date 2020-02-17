@@ -190,6 +190,7 @@ type AddWorkOrderInput struct {
 	ProjectID       *string               `json:"projectId"`
 	Properties      []*PropertyInput      `json:"properties"`
 	CheckList       []*CheckListItemInput `json:"checkList"`
+	OwnerName       *string               `json:"ownerName"`
 	Assignee        *string               `json:"assignee"`
 	Index           *int                  `json:"index"`
 	Status          *WorkOrderStatus      `json:"status"`
@@ -310,7 +311,7 @@ type EditWorkOrderInput struct {
 	ID          string                `json:"id"`
 	Name        string                `json:"name"`
 	Description *string               `json:"description"`
-	OwnerName   string                `json:"ownerName"`
+	OwnerName   *string               `json:"ownerName"`
 	InstallDate *time.Time            `json:"installDate"`
 	Assignee    *string               `json:"assignee"`
 	Index       *int                  `json:"index"`

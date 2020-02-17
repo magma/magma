@@ -13,7 +13,6 @@ from ..exceptions import EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_mutation import (
     AddEquipmentTypeInput,
     AddEquipmentTypeMutation,
-    PropertyKind,
 )
 from ..graphql.edit_equipment_type_mutation import (
     EditEquipmentTypeInput,
@@ -22,6 +21,7 @@ from ..graphql.edit_equipment_type_mutation import (
 from ..graphql.equipment_port_types import EquipmentPortTypesQuery
 from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
 from ..graphql.equipment_types_query import EquipmentTypesQuery
+from ..graphql.property_kind_enum import PropertyKind
 from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
 from ..graphql_client import GraphqlClient
 from ..reporter import FailedOperationException

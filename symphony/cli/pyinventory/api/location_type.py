@@ -12,10 +12,10 @@ from ..consts import Location, LocationType
 from ..graphql.add_location_type_mutation import (
     AddLocationTypeInput,
     AddLocationTypeMutation,
-    PropertyKind,
 )
 from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
 from ..graphql.location_types_query import LocationTypesQuery
+from ..graphql.property_kind_enum import PropertyKind
 from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
 from ..graphql_client import GraphqlClient
 from ..reporter import FailedOperationException

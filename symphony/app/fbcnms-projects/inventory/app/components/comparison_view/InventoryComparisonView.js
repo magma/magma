@@ -18,7 +18,7 @@ import React, {useState} from 'react';
 import {EntityTypeMap} from './ComparisonViewTypes';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useHistory} from 'react-router';
 
 import {makeStyles} from '@material-ui/styles';
 
@@ -59,6 +59,7 @@ const QUERY_LIMIT = 100;
 const InventoryComparisonView = () => {
   const classes = useStyles();
   const [count, setCount] = useState((0: number));
+  const history = useHistory();
 
   const onSubjectChange = subject => {
     ServerLogger.info(LogEvents.COMPARISON_VIEW_SUBJECT_CHANGED, {
@@ -113,13 +114,9 @@ const InventoryComparisonView = () => {
   const getSubject = (): ?EntityType => {
     const path = history.location.pathname;
     const subj = path.split(InventoryAPIUrls.search + '/')[1];
-    if (Object.keys(EntityTypeMap).includes(subj)) {
-      return subj;
-    }
-    return null;
+    return EntityTypeMap[subj] ?? null;
   };
 
-  const {history} = useRouter();
   const filters = getFiltersFromURL();
   const subject = getSubjectFromURL();
   return (

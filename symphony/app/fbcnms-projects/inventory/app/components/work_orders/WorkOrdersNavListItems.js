@@ -36,7 +36,7 @@ export const WorkOrdersNavListItems = () => {
     />,
     <NavListItem
       key={3}
-      label="Configure"
+      label="Templates"
       path={relativeUrl('/configure')}
       icon={<AssignmentIcon />}
       onClick={() =>

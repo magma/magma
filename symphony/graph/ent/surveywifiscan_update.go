@@ -636,7 +636,9 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, swfsu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{surveywifiscan.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -1250,7 +1252,9 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 	_spec.Assign = swfs.assignValues
 	_spec.ScanValues = swfs.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, swfsuo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{surveywifiscan.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

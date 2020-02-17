@@ -4,7 +4,7 @@
 # license that can be found in the LICENSE file.
 
 
-from pyinventory.consts import ServiceEndpointRole
+from pyinventory.graphql.service_endpoint_role_enum import ServiceEndpointRole
 from utils.base_test import BaseTest
 
 

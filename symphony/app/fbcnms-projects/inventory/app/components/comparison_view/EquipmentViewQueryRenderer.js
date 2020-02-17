@@ -15,9 +15,9 @@ import ComparisonViewNoResults from './ComparisonViewNoResults';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import PowerSearchEquipmentResultsTable from './PowerSearchEquipmentResultsTable';
 import React from 'react';
-import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {useHistory} from 'react-router';
 
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
@@ -51,7 +51,7 @@ const equipmentSearchQuery = graphql`
 const EquipmentViewQueryRenderer = (props: Props) => {
   const classes = useStyles();
   const {limit, filters, onQueryReturn} = props;
-  const {history} = useRouter();
+  const history = useHistory();
 
   return (
     <InventoryQueryRenderer

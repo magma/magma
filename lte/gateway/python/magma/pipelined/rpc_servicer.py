@@ -104,7 +104,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_res = self._enforcer_app.setup_flows(request)
         # TODO check enf_stats result
         self._enforcement_stats.setup_flows(request)
-        self._check_quota_app.setup_flows(request)
+        if self._service_manager.is_app_enabled(CheckQuotaController.APP_NAME):
+            self._check_quota_app.setup_flows(request)
         fut.set_result(enforcement_res)
 
     def ActivateFlows(self, request, context):

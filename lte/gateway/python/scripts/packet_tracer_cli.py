@@ -29,7 +29,8 @@ def _get_common_args(args):
         common_args.append('in_port=%d' % args.in_port)
         common_args.append('tun_src=%s' % args.tun_src)
         common_args.append('tun_dst=%s' % args.tun_dst)
-        common_args.append('tun_id=%s' % args.tun_id)
+        if args.tun_id:
+            common_args.append('tun_id=%s' % args.tun_id)
         common_args.append('dl_src=%s' % args.ue_mac)
         common_args.append('dl_dst=%s' % args.uplink_mac)
         common_args.append('ip_src=%s' % args.ue_ip_addr)
@@ -44,8 +45,13 @@ def _get_common_args(args):
 
 
 def _trace(bridge_name, pkt_args):
+    cmd = ['find', '/var/run/openvswitch/', '-name', 'ovs-vswitchd*.ctl']
+    output = subprocess.check_output(cmd)
+    ovs_ctl_str = str(output, 'utf-8').strip()
+
     pkt_args_string = ','.join(pkt_args)
-    cmd = ["sudo", "ovs-appctl", "ofproto/trace", bridge_name, pkt_args_string]
+    cmd = ["ovs-appctl", '-t', ovs_ctl_str, "ofproto/trace", bridge_name,
+           pkt_args_string]
     output = subprocess.check_output(cmd)
     output_str = str(output, 'utf-8').strip()
     print("Executing:")
@@ -97,16 +103,18 @@ def create_parser():
                         help='In port name')
 
     uplink.add_argument('tun_src', help='Tunnel src ip', default='')
-    uplink.add_argument('tun_dst', help='Tunnel dst ip', default='')
-    uplink.add_argument('tun_id', help='Tunnel id(key)', default='')
+    uplink.add_argument('-tun_dst', help='Tunnel dst ip',
+                        default='192.168.128.1')
+    uplink.add_argument('-tun_id', help='Tunnel id(key)', default='')
     uplink.set_defaults(direction='OUT')
     dlink.set_defaults(direction='IN')
 
     for dir_p in [uplink, dlink]:
         dir_p.add_argument('ue_mac', help='UE mac address(unused in LTE)',
                            default='0a:00:27:00:00:03')
-        dir_p.add_argument('ue_ip_addr', help='UE IP address', default='')
-        dir_p.add_argument('uplink_mac', help='UPLINK mac address',
+        dir_p.add_argument('-ue_ip_addr', help='UE IP address',
+                           default='172.168.10.13')
+        dir_p.add_argument('-uplink_mac', help='UPLINK mac address',
                            default='00:27:12:00:33:00')
         dir_p.add_argument('--uplink_ip_addr', help='UPLINK IP address',
                            default='104.28.26.94')

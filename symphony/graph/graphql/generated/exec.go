@@ -5978,6 +5978,7 @@ input AddWorkOrderInput {
   projectId: ID
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
+  ownerName: String
   assignee: String
   index: Int
   status: WorkOrderStatus
@@ -5988,7 +5989,7 @@ input EditWorkOrderInput {
   id: ID!
   name: String!
   description: String
-  ownerName: String!
+  ownerName: String
   installDate: Time
   assignee: String
   index: Int
@@ -32116,6 +32117,12 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "ownerName":
+			var err error
+			it.OwnerName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "assignee":
 			var err error
 			it.Assignee, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -32913,7 +32920,7 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			}
 		case "ownerName":
 			var err error
-			it.OwnerName, err = ec.unmarshalNString2string(ctx, v)
+			it.OwnerName, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -32,6 +32,7 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
 
@@ -94,6 +95,7 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 		magmadh.GetObsidianHandlers(),
 		metricsdh.GetObsidianHandlers(metricsConfig),
 		handlers.GetObsidianHandlers(),
+		tenantsh.GetObsidianHandlers(),
 		[]obsidian.Handler{{
 			Path:    "/",
 			Methods: obsidian.GET,

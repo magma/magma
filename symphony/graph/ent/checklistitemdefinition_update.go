@@ -304,7 +304,9 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, clidu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{checklistitemdefinition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -588,7 +590,9 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 	_spec.Assign = clid.assignValues
 	_spec.ScanValues = clid.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, cliduo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{checklistitemdefinition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

@@ -2,9 +2,9 @@
 # pyre-strict
 
 from datetime import datetime
-from enum import Enum
 from typing import Any, Dict, List, NamedTuple, Optional
 
+from .graphql.image_entity_enum import ImageEntity
 from .reporter import DummyReporter
 
 
@@ -34,18 +34,6 @@ PROPERTY_VALUES = """stringValue
     floatValue
     latitudeValue
     longitudeValue"""
-
-
-class ImageEntity(Enum):
-    LOCATION = "LOCATION"
-    WORK_ORDER = "WORK_ORDER"
-    SITE_SURVEY = "SITE_SURVEY"
-    EQUIPMENT = "EQUIPMENT"
-
-
-class ServiceEndpointRole(Enum):
-    CONSUMER = "CONSUMER"
-    PROVIDER = "PROVIDER"
 
 
 class LocationType(NamedTuple):

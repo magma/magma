@@ -63,6 +63,12 @@ func TestSyncRPC(t *testing.T) {
 	conn, err := registry.GetConnection(dispatcher.ServiceName)
 	assert.NoError(t, err)
 	syncRPCClient := protos.NewSyncRPCServiceClient(conn)
+
+	// Test GetHostnameForHwid -- values seeded during dispatcher test service init
+	hostname, err := syncRPCClient.GetHostnameForHwid(context.Background(), &protos.HardwareID{Hwid: "some_hwid_0"})
+	assert.NoError(t, err)
+	assert.Equal(t, "some_hostname_0", hostname.Name)
+
 	stream, err := syncRPCClient.EstablishSyncRPCStream(context.Background())
 	assert.NoError(t, err)
 	waitc := make(chan struct{})

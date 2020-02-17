@@ -10,6 +10,8 @@
 
 import {useContext, useEffect, useState} from 'react';
 
+// eslint-disable-next-line no-warning-comments
+// $FlowFixMe - use react-router hooks
 import {__RouterContext as RouterContext} from 'react-router';
 
 const useRouter = () => {
