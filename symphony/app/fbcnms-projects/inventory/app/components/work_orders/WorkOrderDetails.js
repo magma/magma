@@ -198,6 +198,9 @@ class WorkOrderDetails extends React.Component<Props, State> {
     const {location} = workOrder;
     const hasCheckListCategories = checkListCategories.length > 0;
     const actionsEnabled = this.context.isFeatureEnabled('planned_equipment');
+    const categoriesEnabled = this.context.isFeatureEnabled(
+      'checklistcategories',
+    );
     return (
       <div className={classes.root}>
         <FormValidationContextProvider>
@@ -508,37 +511,39 @@ class WorkOrderDetails extends React.Component<Props, State> {
                           </ExpandingPanel>
                           <CheckListCategoryContextProvider>
                             <CheckListCategoryContext.Consumer>
-                              {categoryContext => (
-                                <ExpandingPanel
-                                  allowExpandCollapse={hasCheckListCategories}
-                                  title={fbt(
-                                    'Checklist Categories',
-                                    'Checklist section header',
-                                  )}
-                                  rightContent={
-                                    <Button
-                                      variant="text"
-                                      onClick={() =>
-                                        categoryContext.call.addNewCategory()
-                                      }>
-                                      {hasCheckListCategories ? (
-                                        fbt(
-                                          'Add category',
-                                          'Add checklist category button text',
-                                        )
-                                      ) : (
-                                        <AddIcon color="primary" />
-                                      )}
-                                    </Button>
-                                  }>
-                                  <CheckListCategoryTable
-                                    list={checkListCategories}
-                                    onListChanged={
-                                      this._checkListCategoryChangedHandler
-                                    }
-                                  />
-                                </ExpandingPanel>
-                              )}
+                              {categoryContext =>
+                                categoriesEnabled && (
+                                  <ExpandingPanel
+                                    allowExpandCollapse={hasCheckListCategories}
+                                    title={fbt(
+                                      'Checklist Categories',
+                                      'Checklist section header',
+                                    )}
+                                    rightContent={
+                                      <Button
+                                        variant="text"
+                                        onClick={() =>
+                                          categoryContext.call.addNewCategory()
+                                        }>
+                                        {hasCheckListCategories ? (
+                                          fbt(
+                                            'Add category',
+                                            'Add checklist category button text',
+                                          )
+                                        ) : (
+                                          <AddIcon color="primary" />
+                                        )}
+                                      </Button>
+                                    }>
+                                    <CheckListCategoryTable
+                                      list={checkListCategories}
+                                      onListChanged={
+                                        this._checkListCategoryChangedHandler
+                                      }
+                                    />
+                                  </ExpandingPanel>
+                                )
+                              }
                             </CheckListCategoryContext.Consumer>
                           </CheckListCategoryContextProvider>
                         </Grid>

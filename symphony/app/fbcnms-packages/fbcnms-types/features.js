@@ -33,4 +33,5 @@ export type FeatureID =
   | 'equipment_live_status'
   | 'logged_out_alert'
   | 'deprecated_imports'
-  | 'external_id';
+  | 'external_id'
+  | 'checklistcategories';
