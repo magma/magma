@@ -43,7 +43,11 @@ type HandlerConfig struct {
 
 func init() {
 	for _, v := range ocgql.DefaultServerViews {
-		v.TagKeys = append(v.TagKeys, viewer.KeyTenant, viewer.KeyUser)
+		v.TagKeys = append(v.TagKeys,
+			viewer.KeyTenant,
+			viewer.KeyUser,
+			viewer.KeyUserAgent,
+		)
 	}
 }
 
