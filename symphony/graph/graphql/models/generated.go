@@ -207,9 +207,10 @@ type AddWorkOrderTypeInput struct {
 }
 
 type CheckListCategoryInput struct {
-	ID          *string `json:"id"`
-	Title       string  `json:"title"`
-	Description *string `json:"description"`
+	ID          *string               `json:"id"`
+	Title       string                `json:"title"`
+	Description *string               `json:"description"`
+	CheckList   []*CheckListItemInput `json:"checkList"`
 }
 
 type CheckListDefinitionInput struct {

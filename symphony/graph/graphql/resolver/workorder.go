@@ -310,54 +310,83 @@ func (r mutationResolver) createOrUpdateCheckListCategory(
 	clInput *models.CheckListCategoryInput) (*ent.CheckListCategory, error) {
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListCategory
+	var clc *ent.CheckListCategory
+	var err error
 	if clInput.ID == nil {
-		cli, err := cl.Create().
+		clc, err = cl.Create().
 			SetTitle(clInput.Title).
 			SetNillableDescription(clInput.Description).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list category")
 		}
-		return cli, nil
+	} else {
+		clc, err = cl.UpdateOneID(*clInput.ID).
+			SetTitle(clInput.Title).
+			SetNillableDescription(clInput.Description).
+			Save(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "updating check list category")
+		}
 	}
-	cli, err := cl.UpdateOneID(*clInput.ID).
-		SetTitle(clInput.Title).
-		SetNillableDescription(clInput.Description).
-		Save(ctx)
+	mutation := cl.UpdateOneID(clc.ID)
+	addedCLIds, deletedCLIds, err := r.createOrUpdateCheckListItems(ctx, clc, clInput.CheckList)
 	if err != nil {
-		return nil, errors.Wrap(err, "updating check list category")
+		return nil, errors.Wrap(err, "updating check list category items")
 	}
-	return cli, nil
+	return mutation.
+		RemoveCheckListItemIDs(deletedCLIds...).
+		AddCheckListItemIDs(addedCLIds...).
+		Save(ctx)
+}
+
+func (r mutationResolver) createOrUpdateCheckListItems(
+	ctx context.Context,
+	clc *ent.CheckListCategory,
+	inputs []*models.CheckListItemInput) ([]string, []string, error) {
+	ids := make([]string, 0, len(inputs))
+	for _, input := range inputs {
+		cli, err := r.createOrUpdateCheckListItem(ctx, input)
+		if err != nil {
+			return nil, nil, err
+		}
+		if cli != nil {
+			ids = append(ids, cli.ID)
+		}
+	}
+	currentCLIds := clc.QueryCheckListItems().IDsX(ctx)
+	addedCLIds, deletedCLIds := resolverutil.GetDifferenceBetweenSlices(currentCLIds, ids)
+	return addedCLIds, deletedCLIds, nil
 }
 
 func (r mutationResolver) createOrUpdateCheckListItem(
 	ctx context.Context,
-	clInput *models.CheckListItemInput) (*ent.CheckListItem, error) {
+	input *models.CheckListItemInput) (*ent.CheckListItem, error) {
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListItem
-	if clInput.ID == nil {
+	if input.ID == nil {
 		cli, err := cl.Create().
-			SetTitle(clInput.Title).
-			SetType(clInput.Type.String()).
-			SetNillableIndex(clInput.Index).
-			SetNillableEnumValues(clInput.EnumValues).
-			SetNillableHelpText(clInput.HelpText).
-			SetNillableChecked(clInput.Checked).
-			SetNillableStringVal(clInput.StringValue).
+			SetTitle(input.Title).
+			SetType(input.Type.String()).
+			SetNillableIndex(input.Index).
+			SetNillableEnumValues(input.EnumValues).
+			SetNillableHelpText(input.HelpText).
+			SetNillableChecked(input.Checked).
+			SetNillableStringVal(input.StringValue).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
 		}
 		return cli, nil
 	}
-	cli, err := cl.UpdateOneID(*clInput.ID).
-		SetTitle(clInput.Title).
-		SetType(clInput.Type.String()).
-		SetNillableIndex(clInput.Index).
-		SetNillableEnumValues(clInput.EnumValues).
-		SetNillableHelpText(clInput.HelpText).
-		SetNillableChecked(clInput.Checked).
-		SetNillableStringVal(clInput.StringValue).
+	cli, err := cl.UpdateOneID(*input.ID).
+		SetTitle(input.Title).
+		SetType(input.Type.String()).
+		SetNillableIndex(input.Index).
+		SetNillableEnumValues(input.EnumValues).
+		SetNillableHelpText(input.HelpText).
+		SetNillableChecked(input.Checked).
+		SetNillableStringVal(input.StringValue).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating check list item")

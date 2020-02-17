@@ -6583,6 +6583,7 @@ input CheckListCategoryInput {
   id: ID
   title: String!
   description: String
+  checkList: [CheckListItemInput!]
 }
 
 input CheckListItemInput {
@@ -32563,6 +32564,12 @@ func (ec *executionContext) unmarshalInputCheckListCategoryInput(ctx context.Con
 		case "description":
 			var err error
 			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "checkList":
+			var err error
+			it.CheckList, err = ec.unmarshalOCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

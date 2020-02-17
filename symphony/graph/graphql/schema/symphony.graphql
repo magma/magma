@@ -905,6 +905,7 @@ input CheckListCategoryInput {
   id: ID
   title: String!
   description: String
+  checkList: [CheckListItemInput!]
 }
 
 input CheckListItemInput {

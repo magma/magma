@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 40fb4ddbd363aadf9a4c7d32823a4994
+ * @relayHash ce7b6daced485d38a4c50140340fde1c
  */
 
 /* eslint-disable */
@@ -67,6 +67,7 @@ export type CheckListCategoryInput = {|
   id?: ?string,
   title: string,
   description?: ?string,
+  checkList?: ?$ReadOnlyArray<CheckListItemInput>,
 |};
 export type EditWorkOrderMutationVariables = {|
   input: EditWorkOrderInput
