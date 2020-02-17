@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {RowsSeparationTypes} from './TableContent';
 import type {SelectionType} from '../Checkbox/Checkbox';
 
 import * as React from 'react';
@@ -20,13 +21,26 @@ import {TableSelectionContextProvider} from './TableSelectionContext';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo} from 'react';
 
-const useStyles = makeStyles(_theme => ({
+const useStyles = makeStyles(() => ({
   table: {
     width: '100%',
-    boxShadow: SymphonyTheme.shadows.DP1,
-    borderRadius: '4px',
     borderCollapse: 'collapse',
   },
+  standalone: {
+    boxShadow: SymphonyTheme.shadows.DP1,
+    borderRadius: '4px',
+  },
+  embedded: {
+    '& $cell': {
+      '&:first-child': {
+        paddingLeft: '0px',
+      },
+      '&:last-child': {
+        paddingRight: '0px',
+      },
+    },
+  },
+  cell: {},
 }));
 
 export type TableRowDataType<T> = {key?: string} & T;
@@ -52,6 +66,8 @@ type Props<T> = {
   columns: Array<TableColumnType<T>>,
   showSelection?: boolean,
   className?: string,
+  variant?: 'standalone' | 'embedded',
+  dataRowsSeparator?: RowsSeparationTypes,
   dataRowClassName?: string,
   selectedIds?: Array<string | number>,
   onSelectionChanged?: SelectionCallbackType,
@@ -61,22 +77,31 @@ type Props<T> = {
 const Table = <T>(props: Props<T>) => {
   const {
     className,
+    variant = 'standalone',
     data,
     selectedIds,
     showSelection,
     onSelectionChanged,
     columns,
     onSortClicked,
+    dataRowClassName,
+    dataRowsSeparator,
   } = props;
   const classes = useStyles();
 
   const renderChildren = () => (
-    <table className={classNames(classes.table, className)}>
-      <TableHeader columns={columns} onSortClicked={onSortClicked} />
+    <table className={classNames(classes.table, className, classes[variant])}>
+      <TableHeader
+        columns={columns}
+        onSortClicked={onSortClicked}
+        cellClassName={classes.cell}
+      />
       <TableContent
         columns={columns}
         data={data}
-        dataRowClassName={props.dataRowClassName}
+        dataRowClassName={dataRowClassName}
+        rowsSeparator={dataRowsSeparator}
+        cellClassName={classes.cell}
       />
     </table>
   );

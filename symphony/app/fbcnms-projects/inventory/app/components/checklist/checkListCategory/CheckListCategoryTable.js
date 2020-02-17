@@ -77,8 +77,8 @@ const CheckListCategoryTable = (props: Props) => {
     setNextNewItemTempId(newId + 1);
     return {
       id: `@tmp${newId}`,
-      title: `this is my title - ${newId}`,
-      description: 'very nice description',
+      title: '',
+      description: '',
       checkList: [],
     };
   }, [nextNewItemTempId]);
@@ -118,6 +118,8 @@ const CheckListCategoryTable = (props: Props) => {
   }, [_addCheckListCategory, context.override]);
   return list.length === 0 ? null : (
     <Table
+      variant="embedded"
+      dataRowsSeparator="border"
       dataRowClassName={classes.categoryRow}
       data={list}
       columns={[
@@ -133,6 +135,10 @@ const CheckListCategoryTable = (props: Props) => {
               id="title"
               variant="outlined"
               value={row.value.title}
+              placeholder={`${fbt(
+                'Name of the category',
+                'hint text for checklist category name field',
+              )}`}
               onChange={e => {
                 _updateCheckListCategory(
                   Object.assign({}, row.value, {title: e.target.value}),
@@ -154,6 +160,10 @@ const CheckListCategoryTable = (props: Props) => {
               id="description"
               variant="outlined"
               value={row.value.description || ''}
+              placeholder={`${fbt(
+                'Short description of category (optional)',
+                'hint text for optional checklist category description field',
+              )}`}
               onChange={e => {
                 _updateCheckListCategory(
                   Object.assign({}, row.value, {
