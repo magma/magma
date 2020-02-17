@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -51,6 +52,40 @@ func index(a []string, x string) int {
 		}
 	}
 	return -1
+}
+
+func getQueryFields(e ExportEntity) []string {
+	var v reflect.Value
+	switch e {
+	case ExportEntityWorkOrders:
+		model := models.WorkOrderSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityLocation:
+		model := models.LocationSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityPort:
+		model := models.PortSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityEquipment:
+		model := models.EquipmentSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityLink:
+		model := models.LinkSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityService:
+		model := models.ServiceSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	default:
+		return []string{}
+	}
+
+	fields := make([]string, v.NumField())
+	for i := 0; i < v.NumField(); i++ {
+		a := []rune(v.Type().Field(i).Name)
+		a[0] = unicode.ToLower(a[0])
+		fields[i] = string(a)
+	}
+	return fields
 }
 
 func locationTypeHierarchy(ctx context.Context, c *ent.Client) ([]string, error) {

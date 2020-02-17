@@ -7,6 +7,8 @@ package resolver
 import (
 	"context"
 
+	"github.com/99designs/gqlgen/graphql"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
@@ -18,7 +20,7 @@ func (r queryResolver) EquipmentSearch(ctx context.Context, filters []*models.Eq
 }
 
 func (r queryResolver) WorkOrderSearch(ctx context.Context, filters []*models.WorkOrderFilterInput, limit *int) (*models.WorkOrderSearchResult, error) {
-	return resolverutil.WorkOrderSearch(ctx, r.ClientFrom(ctx), filters, limit)
+	return resolverutil.WorkOrderSearch(ctx, r.ClientFrom(ctx), filters, limit, graphql.CollectAllFields(ctx))
 }
 
 func (r queryResolver) LinkSearch(ctx context.Context, filters []*models.LinkFilterInput, limit *int) (*models.LinkSearchResult, error) {

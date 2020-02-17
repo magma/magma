@@ -37,12 +37,13 @@ type woRower struct {
 	log log.Logger
 }
 
+var woDataHeader = []string{bom + "Work Order ID", "Work Order Name", "Project Name", "Status", "Assignee", "Owner", "Priority", "Created date", "Target date", "Location"}
+
 func (er woRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
 	var (
-		logger       = er.log.For(ctx)
-		err          error
-		filterInput  []*models.WorkOrderFilterInput
-		woDataHeader = [...]string{bom + "Work Order ID", "Work Order Name", "Project Name", "Status", "Assignee", "Owner", "Priority", "Created date", "Target date", "Location"}
+		logger      = er.log.For(ctx)
+		err         error
+		filterInput []*models.WorkOrderFilterInput
 	)
 	filtersParam := url.Query().Get("filters")
 	if filtersParam != "" {
@@ -53,8 +54,8 @@ func (er woRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
 		}
 	}
 	client := ent.FromContext(ctx)
-
-	searchResult, err := resolverutil.WorkOrderSearch(ctx, client, filterInput, nil)
+	fields := getQueryFields(ExportEntityWorkOrders)
+	searchResult, err := resolverutil.WorkOrderSearch(ctx, client, filterInput, nil, fields)
 	if err != nil {
 		logger.Error("cannot query work orders", zap.Error(err))
 		return nil, errors.Wrap(err, "cannot query work orders")
@@ -73,7 +74,7 @@ func (er woRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
 		return nil, errors.Wrap(err, "cannot query property types")
 	}
 
-	title := append(woDataHeader[:], propertyTypes...)
+	title := append(woDataHeader, propertyTypes...)
 
 	allrows[0] = title
 	cg := ctxgroup.WithContext(ctx, ctxgroup.MaxConcurrency(32))

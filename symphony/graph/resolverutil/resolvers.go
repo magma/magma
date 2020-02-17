@@ -12,7 +12,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
 )
 
@@ -241,7 +240,7 @@ func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.Se
 	}, nil
 }
 
-func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.WorkOrderFilterInput, limit *int) (*models.WorkOrderSearchResult, error) {
+func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.WorkOrderFilterInput, limit *int, fields []string) (*models.WorkOrderSearchResult, error) {
 	var (
 		query = client.WorkOrder.Query()
 		err   error
@@ -258,8 +257,9 @@ func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.
 			}
 		}
 	}
+
 	var woResult models.WorkOrderSearchResult
-	for _, field := range graphql.CollectAllFields(ctx) {
+	for _, field := range fields {
 		switch field {
 		case "count":
 			woResult.Count, err = query.Clone().Count(ctx)
