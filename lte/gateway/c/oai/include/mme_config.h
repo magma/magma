@@ -87,9 +87,6 @@
 #define MME_CONFIG_STRING_S6A_CONFIG "S6A"
 #define MME_CONFIG_STRING_S6A_CONF_FILE_PATH "S6A_CONF"
 #define MME_CONFIG_STRING_S6A_HSS_HOSTNAME "HSS_HOSTNAME"
-#define MME_CONFIG_STRING_S6A_PROTOCOL "PROTOCOL"
-#define MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_GRPC "grpc"
-#define MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_FD "free-diameter"
 
 #define MME_CONFIG_STRING_SCTP_CONFIG "SCTP"
 #define MME_CONFIG_STRING_SCTP_INSTREAMS "SCTP_INSTREAMS"
@@ -204,15 +201,9 @@ typedef struct ipv4_s {
   uint16_t port_s11;
 } ipv4_t;
 
-typedef enum {
-  S6A_OVER_GRPC_E = 0, // S6A_OVER_GRPC is actually already defined for pre-processing
-  S6A_OVER_FREE_DIAMETER = 1
-} s6a_iface_type_e;
-
 typedef struct s6a_config_s {
   bstring conf_file;
   bstring hss_host_name;
-  int s6a_iface_type;
 } s6a_config_t;
 
 typedef struct itti_config_s {

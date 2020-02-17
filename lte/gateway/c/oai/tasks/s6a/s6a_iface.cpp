@@ -31,8 +31,11 @@ extern "C" {
 }
 #endif
 
-#include "s6a_fd_iface.h"
+#if S6A_OVER_GRPC
 #include "s6a_grpc_iface.h"
+#else
+#include "s6a_fd_iface.h"
+#endif
 
 #include <new>
 #include <exception>
@@ -44,23 +47,11 @@ S6aViface * s6a_interface = nullptr;
 bool s6a_viface_open(const s6a_config_t *config)
 {
   if (! s6a_interface) {
-    switch (config->s6a_iface_type) {
-    case S6A_OVER_GRPC_E:
-      s6a_interface = new S6aGrpcIface();
-      return true;
-      break;
-    case S6A_OVER_FREE_DIAMETER:
-      try {
-        s6a_interface = new S6aFdIface(config);
-      } catch (const std::exception& e) {
-        return false;
-      }
-      return true;
-      break;
-    default:
-      return false;
-    }
-    return false;
+#if S6A_OVER_GRPC
+    s6a_interface = new S6aGrpcIface();
+#else
+    s6a_interface = new S6aFdIface(config);
+#endif
   }
   return true;
 }

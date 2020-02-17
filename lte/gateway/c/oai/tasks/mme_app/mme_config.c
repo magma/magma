@@ -172,7 +172,6 @@ void s6a_config_init(s6a_config_t *s6a_conf)
 {
   s6a_conf->hss_host_name = NULL;
   s6a_conf->conf_file = bfromcstr(S6A_CONF_FILE);
-  s6a_conf->s6a_iface_type = S6A_OVER_GRPC_E; //default
 }
 
 void itti_config_init(itti_config_t *itti_conf)
@@ -584,6 +583,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->itti_config.queue_size = (uint32_t) aint;
       }
     }
+#if !S6A_OVER_GRPC
     // S6A SETTING
     setting =
       config_setting_get_member(setting_mme, MME_CONFIG_STRING_S6A_CONFIG);
@@ -618,27 +618,8 @@ int mme_config_parse_file(mme_config_t *config_pP)
             "You have to provide a valid HSS hostname %s=...\n",
             MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
       }
-
-      if ((config_setting_lookup_string(
-            setting,
-            MME_CONFIG_STRING_S6A_PROTOCOL,
-            (const char **) &astring))) {
-        if (astring != NULL) {
-          if ( 0 == strcasecmp(
-              (const char *) astring, MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_GRPC)) {
-            config_pP->s6a_config.s6a_iface_type = S6A_OVER_GRPC_E;
-          } else if ( 0 == strcasecmp(
-              (const char *) astring, MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_FD)) {
-            config_pP->s6a_config.s6a_iface_type = S6A_OVER_FREE_DIAMETER;
-          } else
-          AssertFatal(
-            1 == 0,
-            "You have to provide a valid S6A over protocol %s=...\n",
-            MME_CONFIG_STRING_S6A_PROTOCOL);
-        }
-      }
     }
-
+#endif /* !S6A_OVER_GRPC */
     // SCTP SETTING
     setting =
       config_setting_get_member(setting_mme, MME_CONFIG_STRING_SCTP_CONFIG);
@@ -1200,6 +1181,16 @@ void mme_config_display(mme_config_t *config_pP)
 
   OAILOG_INFO(
     LOG_CONFIG, "==== EURECOM %s v%s ====\n", PACKAGE_NAME, PACKAGE_VERSION);
+  OAILOG_DEBUG(
+    LOG_CONFIG,
+    "Built with EMBEDDED_SGW .................: %d\n", EMBEDDED_SGW);
+  OAILOG_DEBUG(
+    LOG_CONFIG,
+    "Built with ENABLE_OPENFLOW ..............: %d\n", ENABLE_OPENFLOW);
+  OAILOG_DEBUG(
+    LOG_CONFIG,
+    "Built with S6A_OVER_GRPC .....................: %d\n", S6A_OVER_GRPC);
+
 #if DEBUG_IS_ON
   OAILOG_DEBUG(
     LOG_CONFIG,
@@ -1446,15 +1437,17 @@ void mme_config_display(mme_config_t *config_pP)
     (config_pP->nas_config.disable_esm_information) ? "true" : "false");
 
   OAILOG_INFO(LOG_CONFIG, "- S6A:\n");
+#if S6A_OVER_GRPC
+  OAILOG_INFO(
+    LOG_CONFIG, "    protocol .........: gRPC\n");
+#else
+  OAILOG_INFO(
+    LOG_CONFIG, "    protocol .........: diameter\n");
   OAILOG_INFO(
     LOG_CONFIG,
     "    conf file ........: %s\n",
     bdata(config_pP->s6a_config.conf_file));
-  OAILOG_INFO(
-    LOG_CONFIG,
-    "    protocol .........: %s\n",
-    (config_pP->s6a_config.s6a_iface_type == S6A_OVER_GRPC_E) ? MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_GRPC :
-    (config_pP->s6a_config.s6a_iface_type == S6A_OVER_FREE_DIAMETER) ? MME_CONFIG_STRING_S6A_PROTOCOL_CHOICE_FD : "unknown");
+#endif
   OAILOG_INFO(LOG_CONFIG, "- Service303:\n");
   OAILOG_INFO(
     LOG_CONFIG,

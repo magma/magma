@@ -80,7 +80,11 @@ add_boolean_option(ENABLE_OPENFLOW                 False    "Openflow based data
 add_boolean_option(EMBEDDED_SGW                    False    "Add the SPGW task to the MME binary")
 add_boolean_option(LINK_GCOV                       False    "Whether to link gcov")
 
-add_boolean_option(S6A_OVER_GRPC                   True     "S6a messages sent over gRPC")
+if (EMBEDDED_SGW)
+include(CMakeAgwOptions.txt)
+else (EMBEDDED_SGW)
+include(CMakeMmeOptions.txt)
+endif (EMBEDDED_SGW)
 
 ################################################################
 # Include CMake modules to find other library
