@@ -34,7 +34,6 @@ type cliFlags struct {
 	GRPCAddress string       `env:"GRPC_ADDRESS" long:"grpc-address" default:":https" description:"the grpc address to listen on"`
 	MySQL       string       `env:"MYSQL_DSN" long:"mysql-dsn" description:"connection string to mysql"`
 	PubSubURL   string       `env:"PUBSUB_URL" long:"pubsub-url" default:"mem://events" description:"events pubsub topic"`
-	AuthURL     string       `env:"AUTH_URL" long:"auth-url" description:"websocket authentication url"`
 	Log         log.Config   `group:"log" namespace:"log" env-namespace:"LOG"`
 	Census      oc.Options   `group:"oc" namespace:"oc" env-namespace:"OC"`
 	Orc8r       orc8r.Config `group:"orc8r" namespace:"orc8r" env-namespace:"ORC8R"`

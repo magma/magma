@@ -4980,11 +4980,6 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
-coexist-parser-proxy@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/coexist-parser-proxy/-/coexist-parser-proxy-1.0.4.tgz#80e2aacf35ee215a9ed6528ab0f5d1d7dcc0a7c3"
-  integrity sha512-naBAZ/KrnoYBCCAObRmRJmIbWleLBdxNwWZd2nyQY93sumpSowksOhwp7qE1ixQ0/Gj0YCnhvIATAAx+dEeqrw==
-
 collection-visit@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/collection-visit/-/collection-visit-1.0.0.tgz#4bc0373c164bc3291b4d368c829cf1a80a59dca0"
@@ -8840,16 +8835,6 @@ http-proxy-middleware@0.19.1:
     is-glob "^4.0.0"
     lodash "^4.17.11"
     micromatch "^3.1.10"
-
-http-proxy-middleware@^0.20.0:
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/http-proxy-middleware/-/http-proxy-middleware-0.20.0.tgz#5b128f7207985c4ea91b53fab8ad897a48c690d6"
-  integrity sha512-dNJAk71nEJhPiAczQH9hGvE/MT9kEs+zn2Dh+Hi94PGZe1GluQirC7mw5rdREUtWx6qGS1Gu0bZd4qEAg+REgw==
-  dependencies:
-    http-proxy "^1.17.0"
-    is-glob "^4.0.1"
-    lodash "^4.17.14"
-    micromatch "^4.0.2"
 
 http-proxy@^1.17.0:
   version "1.18.0"

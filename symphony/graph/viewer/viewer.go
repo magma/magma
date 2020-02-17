@@ -6,14 +6,12 @@ package viewer
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
 
-	"github.com/gorilla/websocket"
-	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/tag"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
@@ -25,8 +23,8 @@ const (
 	TenantHeader = "x-auth-organization"
 	// UserHeader is the http user header.
 	UserHeader = "x-auth-user-email"
-	// RoleHeader is the http role header.
-	RoleHeader = "x-auth-user-role"
+	// ReadOnlyHeader is the http readonly permission header.
+	ReadOnlyHeader = "x-auth-user-readonly"
 )
 
 // Attributes recorded on the span of the requests.
@@ -47,9 +45,9 @@ var (
 
 // Viewer holds additional per request information.
 type Viewer struct {
-	Tenant string `json:"organization"`
-	User   string `json:"email"`
-	Role   string `json:"role"`
+	Tenant string
+	User   string
+	Role   string
 }
 
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
@@ -77,55 +75,6 @@ func (v *Viewer) tags(r *http.Request) []tag.Mutator {
 	}
 }
 
-// WebSocketUpgradeHandler authenticates websocket upgrade requests.
-func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
-	client := &http.Client{
-		Transport: &ochttp.Transport{
-			FormatSpanName: func(*http.Request) string {
-				return "viewer.authenticate"
-			},
-		},
-	}
-	authenticate := func(r *http.Request) *http.Request {
-		if !websocket.IsWebSocketUpgrade(r) || r.Header.Get(TenantHeader) != "" {
-			return r
-		}
-		req, err := http.NewRequestWithContext(
-			r.Context(), http.MethodGet, authurl, nil,
-		)
-		if err != nil {
-			return r
-		}
-		if username, password, ok := r.BasicAuth(); ok {
-			req.SetBasicAuth(username, password)
-		}
-		for _, c := range r.Cookies() {
-			req.AddCookie(c)
-		}
-
-		rsp, err := client.Do(req)
-		if err != nil {
-			return r
-		}
-		defer rsp.Body.Close()
-		if rsp.StatusCode != http.StatusOK {
-			return r
-		}
-
-		var v Viewer
-		if err := json.NewDecoder(rsp.Body).Decode(&v); err == nil {
-			r.Header.Set(TenantHeader, v.Tenant)
-			r.Header.Set(UserHeader, v.User)
-			r.Header.Set(RoleHeader, v.Role)
-		}
-		return r
-	}
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, authenticate(r))
-	})
-}
-
 // TenancyHandler adds viewer / tenancy into incoming requests.
 func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -135,10 +84,9 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 			return
 		}
 
-		v := &Viewer{
-			Tenant: tenant,
-			User:   r.Header.Get(UserHeader),
-			Role:   r.Header.Get(RoleHeader),
+		v := &Viewer{Tenant: tenant, User: r.Header.Get(UserHeader)}
+		if ro, err := strconv.ParseBool(r.Header.Get(ReadOnlyHeader)); ro && err == nil {
+			v.Role = "readonly"
 		}
 
 		ctx := log.NewFieldsContext(r.Context(), zap.Object("viewer", v))

@@ -19,11 +19,11 @@ import (
 )
 
 func TestRouter(t *testing.T) {
-	cfg := routerConfig{logger: logtest.NewTestLogger(t)}
-	cfg.viewer.tenancy = viewer.NewFixedTenancy(&ent.Client{})
-	router, cleanup, err := newRouter(cfg)
+	router, _, err := newRouter(routerConfig{
+		tenancy: viewer.NewFixedTenancy(&ent.Client{}),
+		logger:  logtest.NewTestLogger(t),
+	})
 	require.NoError(t, err)
-	defer cleanup()
 
 	tests := []struct {
 		target, name string

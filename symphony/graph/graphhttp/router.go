@@ -22,12 +22,9 @@ import (
 )
 
 type routerConfig struct {
-	viewer struct {
-		tenancy viewer.Tenancy
-		authurl string
-	}
-	logger log.Logger
-	events struct {
+	tenancy viewer.Tenancy
+	logger  log.Logger
+	events  struct {
 		topic     *pubsub.Topic
 		subscribe func(context.Context) (*pubsub.Subscription, error)
 	}
@@ -39,10 +36,7 @@ func newRouter(cfg routerConfig) (*mux.Router, func(), error) {
 	router := mux.NewRouter()
 	router.Use(
 		func(h http.Handler) http.Handler {
-			return viewer.WebSocketUpgradeHandler(h, cfg.viewer.authurl)
-		},
-		func(h http.Handler) http.Handler {
-			return viewer.TenancyHandler(h, cfg.viewer.tenancy)
+			return viewer.TenancyHandler(h, cfg.tenancy)
 		},
 		func(h http.Handler) http.Handler {
 			return actions.Handler(h, cfg.logger, cfg.actions.registry)

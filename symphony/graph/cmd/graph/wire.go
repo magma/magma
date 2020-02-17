@@ -9,7 +9,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/url"
 
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
@@ -29,10 +28,9 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		wire.FieldsOf(new(*cliFlags), "Log", "Census", "MySQL", "Orc8r"),
 		log.Set,
 		newApplication,
-		newTenancy,
-		newAuthURL,
 		newTopic,
 		newSubscribeFunc,
+		newTenancy,
 		mysql.Open,
 		graphhttp.NewServer,
 		wire.Struct(new(graphhttp.Config), "*"),
@@ -59,14 +57,6 @@ func newTenancy(logger log.Logger, dsn string) (*viewer.MySQLTenancy, error) {
 	}
 	mysql.SetLogger(logger)
 	return tenancy, nil
-}
-
-func newAuthURL(flags *cliFlags) (*url.URL, error) {
-	u, err := url.Parse(flags.AuthURL)
-	if err != nil {
-		return nil, fmt.Errorf("parsing auth url: %w", err)
-	}
-	return u, nil
 }
 
 func newTopic(ctx context.Context, flags *cliFlags) (*pubsub.Topic, func(), error) {

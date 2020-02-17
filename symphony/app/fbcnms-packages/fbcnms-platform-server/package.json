@@ -19,7 +19,6 @@
     "express-http-proxy": "^1.5.1",
     "express-session": "^1.15.6",
     "express-ws": "^2.0.0",
-    "http-proxy-middleware": "^0.20.0",
     "https-proxy-agent": "^2.2.1",
     "immutability-helper": "^2.9.0",
     "lodash": "^4.17.11",

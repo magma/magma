@@ -14,7 +14,7 @@ import expressOnboarding from './expressOnboarding';
 import logging from '@fbcnms/logging';
 import passport from 'passport';
 import staticDist from 'fbcnms-webpack-config/staticDist';
-import {AccessRoles, accessRoleToString} from './roles';
+import {AccessRoles} from './roles';
 import {User} from '@fbcnms/sequelize-models';
 import {access} from './access';
 import {
@@ -157,20 +157,6 @@ function userMiddleware(options: Options): express.Router {
       } catch (error) {
         res.status(400).send({error: error.toString()});
       }
-    },
-  );
-
-  // Current User Details
-  router.get(
-    '/me',
-    passport.authenticate(['basic_local', 'session'], {session: false}),
-    access(AccessRoles.USER),
-    (req: FBCNMSRequest, res: ExpressResponse): void => {
-      res.status(200).send({
-        organization: req.user.organization,
-        email: req.user.email,
-        role: accessRoleToString(req.user.role),
-      });
     },
   );
 

@@ -7,36 +7,45 @@
  * @flow
  * @format
  */
-const express = require('express');
-const proxy = require('http-proxy-middleware');
-const {GRAPH_HOST} = require('../config');
-import {accessRoleToString} from '@fbcnms/auth/roles';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
+
+const express = require('express');
+const proxy = require('express-http-proxy');
+import {AccessRoles} from '@fbcnms/auth/roles';
+
+const {GRAPH_HOST} = require('../config');
 
 const router = express.Router();
 
-router.use(
-  '/',
-  proxy({
-    // hostname to the target server
-    target: 'http://' + GRAPH_HOST,
+const proxyMiddleware = () => {
+  return function(req: FBCNMSRequest, res, next) {
+    let reqAsBuffer = false;
+    let reqBodyEncoding = true;
+    let parseReqBody = true;
+    const contentType = req.headers['content-type'];
+    if (contentType && contentType.indexOf('multipart') != -1) {
+      reqAsBuffer = true;
+      reqBodyEncoding = null;
+      parseReqBody = false;
+    }
+    return proxy(GRAPH_HOST, {
+      reqAsBuffer,
+      reqBodyEncoding,
+      parseReqBody,
+      proxyReqPathResolver: req => req.originalUrl.replace(/^\/graph/, ''),
+      proxyReqOptDecorator: async function(proxyReqOpts, srcReq) {
+        const organization = await srcReq.organization();
+        proxyReqOpts.headers['x-auth-organization'] = organization.name;
+        proxyReqOpts.headers['x-auth-user-email'] = srcReq.user.email;
+        proxyReqOpts.headers['x-auth-user-readonly'] =
+          srcReq.user.role === AccessRoles.READ_ONLY_USER ? 'TRUE' : 'FALSE';
 
-    // enable websocket proxying
-    ws: true,
+        return proxyReqOpts;
+      },
+    })(req, res, next);
+  };
+};
 
-    // needed for virtual hosted sites
-    changeOrigin: true,
-
-    // rewrite paths
-    pathRewrite: (path: string): string => path.replace(/^\/graph/, ''),
-
-    // subscribe to http-proxy's proxyReq event
-    onProxyReq: (proxyReq, req: FBCNMSRequest): void => {
-      proxyReq.setHeader('x-auth-organization', req.user.organization);
-      proxyReq.setHeader('x-auth-user-email', req.user.email);
-      proxyReq.setHeader('x-auth-user-role', accessRoleToString(req.user.role));
-    },
-  }),
-);
+router.use('/', proxyMiddleware());
 
 module.exports = router;
