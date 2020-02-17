@@ -20,6 +20,7 @@ import {removeTempIDs} from '../../common/EntUtils';
 import {toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import type {
+  CheckListCategoryTable_list,
   ChecklistViewer_checkListItems,
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';
@@ -34,11 +35,18 @@ type Props = {
   workOrder: WorkOrderDetails_workOrder,
   properties: Array<Property>,
   checklist: ChecklistViewer_checkListItems,
+  checkListCategories: CheckListCategoryTable_list,
   locationId: ?string,
 };
 
 const WorkOrderSaveButton = (props: Props) => {
-  const {workOrder, properties, checklist, locationId} = props;
+  const {
+    workOrder,
+    properties,
+    checklist,
+    checkListCategories,
+    locationId,
+  } = props;
   const enqueueSnackbar = useEnqueueSnackbar();
   const {history, match} = useRouter();
 
@@ -78,6 +86,11 @@ const WorkOrderSaveButton = (props: Props) => {
         projectId: project?.id,
         properties: toPropertyInput(properties),
         locationId,
+        checkListCategories: removeTempIDs(checkListCategories).map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+        })),
         checkList: removeTempIDs(checklist).map(item => {
           return {
             id: item.id,
@@ -113,6 +126,7 @@ const WorkOrderSaveButton = (props: Props) => {
     workOrder,
     properties,
     locationId,
+    checkListCategories,
     checklist,
     enqueueError,
     history,

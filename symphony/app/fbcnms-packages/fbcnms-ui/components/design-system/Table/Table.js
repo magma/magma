@@ -52,6 +52,7 @@ type Props<T> = {
   columns: Array<TableColumnType<T>>,
   showSelection?: boolean,
   className?: string,
+  dataRowClassName?: string,
   selectedIds?: Array<string | number>,
   onSelectionChanged?: SelectionCallbackType,
   onSortClicked?: (colKey: string) => void,
@@ -72,7 +73,11 @@ const Table = <T>(props: Props<T>) => {
   const renderChildren = () => (
     <table className={classNames(classes.table, className)}>
       <TableHeader columns={columns} onSortClicked={onSortClicked} />
-      <TableContent columns={columns} data={data} />
+      <TableContent
+        columns={columns}
+        data={data}
+        dataRowClassName={props.dataRowClassName}
+      />
     </table>
   );
 

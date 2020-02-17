@@ -14,6 +14,7 @@ import React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
 import TableRowCheckbox from './TableRowCheckbox';
 import Text from '../Text';
+import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {useTable} from './TableContext';
 
@@ -38,17 +39,20 @@ const useStyles = makeStyles(_theme => ({
 type Props<T> = {
   data: Array<TableRowDataType<T>>,
   columns: Array<TableColumnType<T>>,
+  dataRowClassName?: string,
 };
 
 const TableContent = <T>(props: Props<T>) => {
-  const {data, columns} = props;
+  const {data, columns, dataRowClassName} = props;
   const classes = useStyles();
   const {showSelection} = useTable();
 
   return (
     <tbody>
       {data.map((d, rowIndex) => (
-        <tr key={`row_${rowIndex}`} className={classes.row}>
+        <tr
+          key={`row_${rowIndex}`}
+          className={classNames(classes.row, dataRowClassName)}>
           {showSelection && (
             <td className={classes.checkBox}>
               <TableRowCheckbox id={d.key ?? rowIndex} />
