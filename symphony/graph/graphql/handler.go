@@ -6,6 +6,7 @@ package graphql
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -16,9 +17,10 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/graph/graphql/tracer"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/oc/ocgql"
 
-	gqlprometheus "github.com/99designs/gqlgen-contrib/prometheus"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/NYTimes/gziphandler"
@@ -26,6 +28,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/vektah/gqlparser/gqlerror"
 	"go.opencensus.io/plugin/ochttp"
+	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
 	"gocloud.dev/pubsub"
 )
@@ -38,10 +41,14 @@ type HandlerConfig struct {
 	Orc8rClient *http.Client
 }
 
-func init() { gqlprometheus.Register() }
+func init() {
+	for _, v := range ocgql.DefaultServerViews {
+		v.TagKeys = append(v.TagKeys, viewer.KeyTenant, viewer.KeyUser)
+	}
+}
 
 // NewHandler creates a graphql http handler.
-func NewHandler(cfg HandlerConfig) (http.Handler, error) {
+func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 	rsv := resolver.New(
 		resolver.Config{
 			Logger:    cfg.Logger,
@@ -52,6 +59,11 @@ func NewHandler(cfg HandlerConfig) (http.Handler, error) {
 			cfg.Orc8rClient,
 		),
 	)
+
+	if err := view.Register(ocgql.DefaultServerViews...); err != nil {
+		return nil, nil, fmt.Errorf("registering views: %w", err)
+	}
+	closer := func() { view.Unregister(ocgql.DefaultServerViews...) }
 
 	router := mux.NewRouter()
 	router.Use(func(handler http.Handler) http.Handler {
@@ -84,8 +96,8 @@ func NewHandler(cfg HandlerConfig) (http.Handler, error) {
 							Directives: directive.New(cfg.Logger),
 						},
 					),
-					handler.RequestMiddleware(gqlprometheus.RequestMiddleware()),
-					handler.ResolverMiddleware(gqlprometheus.ResolverMiddleware()),
+					ocgql.RequestMiddleware(),
+					ocgql.ResolverMiddleware(),
 					handler.Tracer(tracer.New()),
 					handler.ErrorPresenter(errorPresenter(cfg.Logger)),
 				),
@@ -93,7 +105,7 @@ func NewHandler(cfg HandlerConfig) (http.Handler, error) {
 			"query",
 		))
 
-	return router, nil
+	return router, closer, nil
 }
 
 func errorPresenter(logger log.Logger) graphql.ErrorPresenterFunc {
