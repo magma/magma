@@ -24,8 +24,13 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
 import AddHyperlinkButton from '../AddHyperlinkButton';
+import AddIcon from '@fbcnms/ui/components/design-system/Icons/Actions/AddIcon';
 import AddImageMutation from '../../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import CheckListCategoryContext, {
+  CheckListCategoryContextProvider,
+} from '../checklist/checkListCategory/CheckListCategoryContext';
 import CheckListCategoryTable from '../checklist/checkListCategory/CheckListCategoryTable';
 import CheckListTable from '../checklist/CheckListTable';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -191,6 +196,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
       showChecklistDesignMode,
     } = this.state;
     const {location} = workOrder;
+    const hasCheckListCategories = !!checkListCategories?.length;
     const actionsEnabled = this.context.isFeatureEnabled('planned_equipment');
     return (
       <div className={classes.root}>
@@ -358,7 +364,10 @@ class WorkOrderDetails extends React.Component<Props, State> {
                                     margin="dense"
                                     selectedLocation={
                                       location
-                                        ? {id: location.id, name: location.name}
+                                        ? {
+                                            id: location.id,
+                                            name: location.name,
+                                          }
                                         : null
                                     }
                                     onLocationSelection={location =>
@@ -497,18 +506,41 @@ class WorkOrderDetails extends React.Component<Props, State> {
                               onDesignMode={this.state.showChecklistDesignMode}
                             />
                           </ExpandingPanel>
-                          <ExpandingPanel
-                            title={fbt(
-                              'Checklist Categories',
-                              'Checklist section header',
-                            )}>
-                            <CheckListCategoryTable
-                              list={checkListCategories}
-                              onListChanged={
-                                this._checkListCategoryChangedHandler
-                              }
-                            />
-                          </ExpandingPanel>
+                          <CheckListCategoryContextProvider>
+                            <CheckListCategoryContext.Consumer>
+                              {categoryContext => (
+                                <ExpandingPanel
+                                  allowExpandCollapse={hasCheckListCategories}
+                                  title={fbt(
+                                    'Checklist Categories',
+                                    'Checklist section header',
+                                  )}
+                                  rightContent={
+                                    <Button
+                                      variant="text"
+                                      onClick={() =>
+                                        categoryContext.call.addNewCategory()
+                                      }>
+                                      {hasCheckListCategories ? (
+                                        fbt(
+                                          'Add category',
+                                          'Add checklist category button text',
+                                        )
+                                      ) : (
+                                        <AddIcon color="primary" />
+                                      )}
+                                    </Button>
+                                  }>
+                                  <CheckListCategoryTable
+                                    list={checkListCategories}
+                                    onListChanged={
+                                      this._checkListCategoryChangedHandler
+                                    }
+                                  />
+                                </ExpandingPanel>
+                              )}
+                            </CheckListCategoryContext.Consumer>
+                          </CheckListCategoryContextProvider>
                         </Grid>
                         <Grid item xs={4} sm={4} lg={4} xl={4}>
                           <ExpandingPanel title="Team" className={classes.card}>

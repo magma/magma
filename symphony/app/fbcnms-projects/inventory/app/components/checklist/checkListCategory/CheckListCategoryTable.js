@@ -11,10 +11,16 @@
 // import type {CheckListCategoryInput} from '../../../mutations/__generated__/AddWorkOrderMutation.graphql';
 import type {CheckListCategoryTable_list} from './__generated__/CheckListCategoryTable_list.graphql';
 
-import AddIcon from '@fbcnms/ui/components/design-system/Icons/Actions/AddIcon';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import CheckListCategoryContext from './CheckListCategoryContext';
 import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
@@ -106,85 +112,82 @@ const CheckListCategoryTable = (props: Props) => {
       (propsList && _updateList([...propsList, _createNewItem()])) ?? undefined,
     [_createNewItem, _updateList, propsList],
   );
-  return (
-    <>
-      {list.length === 0 ? null : (
-        <Table
-          dataRowClassName={classes.categoryRow}
-          data={list}
-          columns={[
-            {
-              key: '0',
-              title: (
-                <fbt desc="Category Name column header @ Checklist categories table">
-                  Category Name
-                </fbt>
-              ),
-              render: row => (
-                <TextInput
-                  id="title"
-                  variant="outlined"
-                  value={row.value.title}
-                  onChange={e => {
-                    _updateCheckListCategory(
-                      Object.assign({}, row.value, {title: e.target.value}),
-                      row.index,
-                    );
-                  }}
-                />
-              ),
-            },
-            {
-              key: '1',
-              title: (
-                <fbt desc="Category Description column header @ Checklist categories table">
-                  Category Description
-                </fbt>
-              ),
-              render: row => (
-                <TextInput
-                  id="description"
-                  variant="outlined"
-                  value={row.value.description || ''}
-                  onChange={e => {
-                    _updateCheckListCategory(
-                      Object.assign({}, row.value, {
-                        description: e.target.value,
-                      }),
-                      row.index,
-                    );
-                  }}
-                />
-              ),
-            },
-            {
-              key: '2',
-              title: (
-                <fbt desc="Items (number of questions in category) column header @ Checklist categories table">
-                  Items
-                </fbt>
-              ),
-              render: row => (
-                <div className={classes.itemsCell}>
-                  <Button disabled={true} skin="gray">
-                    {`0/${row.value.checkList.length}`}
-                  </Button>
-                  <Button
-                    variant="text"
-                    className={classes.deleteButton}
-                    onClick={() => _removeCheckListCategory(row.index)}>
-                    <DeleteIcon color="gray" />
-                  </Button>
-                </div>
-              ),
-            },
-          ]}
-        />
-      )}
-      <Button variant="text" onClick={_addCheckListCategory}>
-        <AddIcon color="primary" />
-      </Button>
-    </>
+  const context = useContext(CheckListCategoryContext);
+  useEffect(() => {
+    context.override.addNewCategory(_addCheckListCategory);
+  }, [_addCheckListCategory, context.override]);
+  return list.length === 0 ? null : (
+    <Table
+      dataRowClassName={classes.categoryRow}
+      data={list}
+      columns={[
+        {
+          key: '0',
+          title: (
+            <fbt desc="Category Name column header @ Checklist categories table">
+              Category Name
+            </fbt>
+          ),
+          render: row => (
+            <TextInput
+              id="title"
+              variant="outlined"
+              value={row.value.title}
+              onChange={e => {
+                _updateCheckListCategory(
+                  Object.assign({}, row.value, {title: e.target.value}),
+                  row.index,
+                );
+              }}
+            />
+          ),
+        },
+        {
+          key: '1',
+          title: (
+            <fbt desc="Category Description column header @ Checklist categories table">
+              Category Description
+            </fbt>
+          ),
+          render: row => (
+            <TextInput
+              id="description"
+              variant="outlined"
+              value={row.value.description || ''}
+              onChange={e => {
+                _updateCheckListCategory(
+                  Object.assign({}, row.value, {
+                    description: e.target.value,
+                  }),
+                  row.index,
+                );
+              }}
+            />
+          ),
+        },
+        {
+          key: '2',
+          title: (
+            <fbt desc="Items (number of questions in category) column header @ Checklist categories table">
+              Items
+            </fbt>
+          ),
+          render: row => (
+            <div className={classes.itemsCell}>
+              <Button disabled={true} skin="gray">
+                {`0/${row.value.checkList.length}`}
+              </Button>
+              <Button
+                variant="text"
+                className={classes.deleteButton}
+                onClick={() => _removeCheckListCategory(row.index)}>
+                <DeleteIcon color="gray" />
+              </Button>
+            </div>
+          ),
+        },
+      ]}
+    />
   );
 };
 
