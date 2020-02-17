@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/server"
 	"gocloud.dev/pubsub"
 	"google.golang.org/grpc"
+	"net/url"
 )
 
 import (
@@ -42,6 +43,11 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
+	url, err := newAuthURL(flags)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	topic, cleanup2, err := newTopic(ctx, flags)
 	if err != nil {
 		cleanup()
@@ -52,6 +58,7 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 	orc8rConfig := flags.Orc8r
 	graphhttpConfig := graphhttp.Config{
 		Tenancy:   mySQLTenancy,
+		AuthURL:   url,
 		Topic:     topic,
 		Subscribe: v,
 		Logger:    logger,
@@ -106,6 +113,14 @@ func newTenancy(logger log.Logger, dsn string) (*viewer.MySQLTenancy, error) {
 	}
 	mysql.SetLogger(logger)
 	return tenancy, nil
+}
+
+func newAuthURL(flags *cliFlags) (*url.URL, error) {
+	u, err := url.Parse(flags.AuthURL)
+	if err != nil {
+		return nil, fmt.Errorf("parsing auth url: %w", err)
+	}
+	return u, nil
 }
 
 func newTopic(ctx context.Context, flags *cliFlags) (*pubsub.Topic, func(), error) {

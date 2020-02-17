@@ -6,13 +6,17 @@ package viewer
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/gorilla/websocket"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -52,7 +56,7 @@ func TestViewerHandler(t *testing.T) {
 			name: "ReadOnlyUser",
 			prepare: func(req *http.Request) {
 				req.Header.Set(TenantHeader, "test")
-				req.Header.Set(ReadOnlyHeader, "true")
+				req.Header.Set(RoleHeader, "readonly")
 			},
 			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusOK, rec.Code)
@@ -68,7 +72,7 @@ func TestViewerHandler(t *testing.T) {
 			require.NotNil(t, viewer)
 			assert.NotNil(t, log.FieldsFromContext(ctx))
 			_, _ = io.WriteString(w, viewer.Tenant)
-			if r.Header.Get(ReadOnlyHeader) != "" {
+			if r.Header.Get(RoleHeader) == "readonly" {
 				_, err := ent.FromContext(ctx).Tx(ctx)
 				require.EqualError(t, err, "ent: starting a transaction: permission denied: read-only user")
 			}
@@ -87,6 +91,111 @@ func TestViewerHandler(t *testing.T) {
 			tc.expect(t, rec)
 		})
 	}
+}
+
+func TestWebSocketUpgradeHandler(t *testing.T) {
+	var upgrader websocket.Upgrader
+	srv := httptest.NewServer(
+		WebSocketUpgradeHandler(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if websocket.IsWebSocketUpgrade(r) {
+					conn, err := upgrader.Upgrade(w, r, nil)
+					require.NoError(t, err)
+					defer conn.Close()
+					for {
+						if _, _, err := conn.ReadMessage(); err != nil {
+							return
+						}
+					}
+				}
+				w.WriteHeader(http.StatusOK)
+			}),
+			"",
+		),
+	)
+	defer srv.Close()
+
+	t.Run("NoUpgrade", func(t *testing.T) {
+		rsp, err := srv.Client().Get(srv.URL)
+		require.NoError(t, err)
+		defer rsp.Body.Close()
+		assert.Equal(t, http.StatusOK, rsp.StatusCode)
+	})
+	t.Run("AuthenticatedUpgrade", func(t *testing.T) {
+		header := http.Header{}
+		header.Set(TenantHeader, "test")
+		u, _ := url.Parse(srv.URL)
+		u.Scheme = "ws"
+		conn, rsp, err := websocket.DefaultDialer.DialContext(
+			context.Background(), u.String(), header,
+		)
+		require.NoError(t, err)
+		rsp.Body.Close()
+		conn.Close()
+	})
+
+	authenticator := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if username, _, ok := r.BasicAuth(); ok {
+				err := json.NewEncoder(w).Encode(&Viewer{
+					Tenant: "test",
+					User:   username,
+					Role:   "user",
+				})
+				require.NoError(t, err)
+			} else if cookie, err := r.Cookie("Viewer"); err == nil {
+				data, err := base64.StdEncoding.DecodeString(cookie.Value)
+				require.NoError(t, err)
+				_, err = w.Write(data)
+				require.NoError(t, err)
+			} else {
+				w.WriteHeader(http.StatusForbidden)
+			}
+		}),
+	)
+	defer authenticator.Close()
+
+	t.Run("Auth", func(t *testing.T) {
+		authenticate := func(t *testing.T, authReq func(*http.Request)) {
+			var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set(TenantHeader, r.Header.Get(TenantHeader))
+				w.Header().Set(UserHeader, r.Header.Get(UserHeader))
+				w.Header().Set(RoleHeader, r.Header.Get(RoleHeader))
+				w.WriteHeader(http.StatusOK)
+			})
+			handler = WebSocketUpgradeHandler(handler, authenticator.URL)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			authReq(req)
+			req.Header.Set("Connection", "upgrade")
+			req.Header.Set("Upgrade", "websocket")
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+			require.Equal(t, http.StatusOK, rec.Code)
+			assert.Equal(t, "test", rec.Header().Get(TenantHeader))
+			assert.Equal(t, "tester", rec.Header().Get(UserHeader))
+			assert.Equal(t, "user", rec.Header().Get(RoleHeader))
+		}
+
+		t.Run("Basic", func(t *testing.T) {
+			authenticate(t, func(req *http.Request) {
+				req.SetBasicAuth("tester", "tester")
+			})
+		})
+		t.Run("Session", func(t *testing.T) {
+			data, err := json.Marshal(&Viewer{
+				Tenant: "test",
+				User:   "tester",
+				Role:   "user",
+			})
+			require.NoError(t, err)
+			authenticate(t, func(req *http.Request) {
+				req.AddCookie(&http.Cookie{
+					Name:  "Viewer",
+					Value: base64.StdEncoding.EncodeToString(data),
+				})
+			})
+		})
+	})
 }
 
 func TestViewerMarshalLog(t *testing.T) {
@@ -168,7 +277,7 @@ func TestViewerTags(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/", nil)
 	req.Header.Set(TenantHeader, "test-tenant")
 	req.Header.Set(UserHeader, "test-user")
-	req.Header.Set(ReadOnlyHeader, "true")
+	req.Header.Set(RoleHeader, "readonly")
 	rec := httptest.NewRecorder()
 	TenancyHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

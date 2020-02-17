@@ -9,6 +9,7 @@
  */
 
 import bodyParser from 'body-parser';
+import coexist from 'coexist-parser-proxy';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express from 'express';
@@ -24,6 +25,8 @@ export default function appMiddleware(): Middleware {
   const router = express.Router();
   [
     helmet(),
+    // resolve the coexistent fault between body-parser and http-proxy
+    coexist,
     // parse json. Strict disabled because magma wants gateway name update
     // to be just a string (e.g. "name") which is not actually legit
     bodyParser.json({limit: '1mb', strict: false}),
