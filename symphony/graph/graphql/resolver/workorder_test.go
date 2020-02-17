@@ -1355,6 +1355,53 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 	require.Error(t, err, "Adding work order instance with invalid lat-long prop")
 }
 
+func TestAddWorkOrderWithCheckListCategory(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, wr := r.Mutation(), r.WorkOrder()
+	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "example_type_a",
+	})
+	require.NoError(t, err)
+
+	indexValue := 1
+	fooCL := models.CheckListItemInput{
+		Title: "Foo",
+		Type:  "simple",
+		Index: &indexValue,
+	}
+	clInputs := []*models.CheckListItemInput{&fooCL}
+
+	barCLC := models.CheckListCategoryInput{
+		Title:     "Bar",
+		CheckList: clInputs,
+	}
+
+	clcInputs := []*models.CheckListCategoryInput{&barCLC}
+	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:                longWorkOrderName,
+		WorkOrderTypeID:     woType.ID,
+		CheckListCategories: clcInputs,
+	})
+	require.NoError(t, err)
+	cls := workOrder.QueryCheckListCategories().AllX(ctx)
+	require.Len(t, cls, 1)
+
+	barCLCFetched := workOrder.QueryCheckListCategories().Where(checklistcategory.Title("Bar")).OnlyX(ctx)
+	fooCLFetched := barCLCFetched.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
+	require.Equal(t, "Foo", fooCLFetched.Title, "verifying checklist name")
+
+	clcs, err := wr.CheckListCategories(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, clcs, 1)
+
+	clcr := r.CheckListCategory()
+	cl, err := clcr.CheckList(ctx, barCLCFetched)
+	require.NoError(t, err)
+	require.Len(t, cl, 1)
+}
+
 func TestEditWorkOrderWithCheckListCategory(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
@@ -1394,7 +1441,7 @@ func TestEditWorkOrderWithCheckListCategory(t *testing.T) {
 
 	barCLCFetched := workOrder.QueryCheckListCategories().Where(checklistcategory.Title("Bar")).OnlyX(ctx)
 	fooCLFetched := barCLCFetched.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
-	require.Equal(t, "Foo", fooCLFetched.Title, "verifying check list name")
+	require.Equal(t, "Foo", fooCLFetched.Title, "verifying checklist name")
 
 	clcs, err := wr.CheckListCategories(ctx, workOrder)
 	require.NoError(t, err)

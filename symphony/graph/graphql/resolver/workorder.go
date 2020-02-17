@@ -153,10 +153,7 @@ func (r mutationResolver) AddWorkOrder(
 		mutation.SetOwnerName(r.Me(ctx).User)
 	}
 	for _, clInput := range input.CheckListCategories {
-		checkListCategory, err := c.CheckListCategory.Create().
-			SetTitle(clInput.Title).
-			SetNillableDescription(clInput.Description).
-			Save(ctx)
+		checkListCategory, err := r.createOrUpdateCheckListCategory(ctx, clInput)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list category")
 		}
