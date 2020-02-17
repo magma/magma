@@ -15,7 +15,6 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type CheckListCategoryItemsDialog_items$ref = any;
-export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type CheckListCategoryTable_list$ref: FragmentReference;
 declare export opaque type CheckListCategoryTable_list$fragmentType: CheckListCategoryTable_list$ref;
@@ -24,13 +23,6 @@ export type CheckListCategoryTable_list = $ReadOnlyArray<{|
   +title: string,
   +description: ?string,
   +checkList: $ReadOnlyArray<{|
-    +id: string,
-    +title: string,
-    +type: CheckListItemType,
-    +index: ?number,
-    +helpText: ?string,
-    +enumValues: ?string,
-    +stringValue: ?string,
     +checked: ?boolean,
     +$fragmentRefs: CheckListCategoryItemsDialog_items$ref,
   |}>,
@@ -45,22 +37,7 @@ export type CheckListCategoryTable_list$key = $ReadOnlyArray<{
 */
 
 
-const node/*: ReaderFragment*/ = (function(){
-var v0 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "id",
-  "args": null,
-  "storageKey": null
-},
-v1 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "title",
-  "args": null,
-  "storageKey": null
-};
-return {
+const node/*: ReaderFragment*/ = {
   "kind": "Fragment",
   "name": "CheckListCategoryTable_list",
   "type": "CheckListCategory",
@@ -69,8 +46,20 @@ return {
   },
   "argumentDefinitions": [],
   "selections": [
-    (v0/*: any*/),
-    (v1/*: any*/),
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "id",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "title",
+      "args": null,
+      "storageKey": null
+    },
     {
       "kind": "ScalarField",
       "alias": null,
@@ -87,43 +76,6 @@ return {
       "concreteType": "CheckListItem",
       "plural": true,
       "selections": [
-        (v0/*: any*/),
-        (v1/*: any*/),
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "type",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "index",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "helpText",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "enumValues",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "stringValue",
-          "args": null,
-          "storageKey": null
-        },
         {
           "kind": "ScalarField",
           "alias": null,
@@ -140,7 +92,6 @@ return {
     }
   ]
 };
-})();
 // prettier-ignore
-(node/*: any*/).hash = 'f061bb5f566a2141726de2fc6642f89c';
+(node/*: any*/).hash = '5e0f7a136c99c45462629626f1c9088a';
 module.exports = node;

@@ -15,6 +15,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CheckListCategoryContext from './CheckListCategoryContext';
 import CheckListCategoryItemsDialog from './CheckListCategoryItemsDialog';
 import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import React, {
   useCallback,
   useContext,
@@ -49,14 +50,15 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props = {
+type CheckListCategoryTableProps = {
   list: CheckListCategoryTable_list,
   onListChanged?: (updatedList: CheckListCategoryTable_list) => void,
 };
 
-const CheckListCategoryTable = (props: Props) => {
+const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
   const classes = useStyles();
   const {list: propsList, onListChanged} = props;
+  const formValidationContext = useContext(FormValidationContext);
   const list = useMemo(() => {
     return propsList.map((item, index) => ({
       index,
@@ -147,6 +149,7 @@ const CheckListCategoryTable = (props: Props) => {
               <TextInput
                 id="title"
                 variant="outlined"
+                disabled={formValidationContext.editLock.detected}
                 value={row.value.title}
                 autoFocus={true}
                 placeholder={`${fbt(
@@ -185,6 +188,7 @@ const CheckListCategoryTable = (props: Props) => {
               <TextInput
                 id="description"
                 variant="outlined"
+                disabled={formValidationContext.editLock.detected}
                 value={row.value.description || ''}
                 placeholder={`${fbt(
                   'Short description of category (optional)',
@@ -215,6 +219,7 @@ const CheckListCategoryTable = (props: Props) => {
             render: row => (
               <Button
                 skin="gray"
+                disabled={formValidationContext.editLock.detected}
                 className={classes.addItemsButton}
                 onClick={() => setBrowsedCheckListCategory(row.index)}>
                 {row.value.checkList.length > 0 ? (
@@ -228,14 +233,15 @@ const CheckListCategoryTable = (props: Props) => {
           {
             key: '3',
             title: '',
-            render: row => (
-              <Button
-                variant="text"
-                className={classes.deleteButton}
-                onClick={() => _removeCheckListCategory(row.index)}>
-                <DeleteIcon color="gray" />
-              </Button>
-            ),
+            render: row =>
+              formValidationContext.editLock.detected ? null : (
+                <Button
+                  variant="text"
+                  className={classes.deleteButton}
+                  onClick={() => _removeCheckListCategory(row.index)}>
+                  <DeleteIcon color="gray" />
+                </Button>
+              ),
           },
         ]}
       />
@@ -268,13 +274,6 @@ export default createFragmentContainer(CheckListCategoryTable, {
       description
       checkList {
         ...CheckListCategoryItemsDialog_items
-        id
-        title
-        type
-        index
-        helpText
-        enumValues
-        stringValue
         checked
       }
     }

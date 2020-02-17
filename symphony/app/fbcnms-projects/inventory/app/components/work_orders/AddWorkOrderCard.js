@@ -10,6 +10,7 @@
 
 import AddWorkOrderMutation from '../../mutations/AddWorkOrderMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
 import CheckListTable from '../checklist/CheckListTable';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import EditToggleButton from '@fbcnms/ui/components/design-system/toggles/EditToggleButton/EditToggleButton';
@@ -43,8 +44,10 @@ import {withStyles} from '@material-ui/core/styles';
 import type {
   AddWorkOrderMutationResponse,
   AddWorkOrderMutationVariables,
+  CheckListCategoryInput,
   ChecklistItemInput,
 } from '../../mutations/__generated__/AddWorkOrderMutation.graphql';
+import type {CheckListCategoryTable_list} from '../checklist/checkListCategory/__generated__/CheckListCategoryTable_list.graphql';
 import type {CheckListTable_list} from '../checklist/__generated__/CheckListTable_list.graphql';
 import type {ContextRouter} from 'react-router-dom';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
@@ -385,6 +388,10 @@ class AddWorkOrderCard extends React.Component<Props, State> {
                             onDesignMode={this.state.showChecklistDesignMode}
                           />
                         </ExpandingPanel>
+                        <CheckListCategoryExpandingPanel
+                          list={workOrder.checkListCategories}
+                          onListChanged={this._checkListCategoryChangedHandler}
+                        />
                       </Grid>
                       <Grid item xs={4} sm={4} lg={4} xl={4}>
                         <ExpandingPanel title="Team">
@@ -429,6 +436,7 @@ class AddWorkOrderCard extends React.Component<Props, State> {
         ...checkListItem,
       };
     });
+    const initialChecklistCategories: CheckListCategoryTable_list = [];
     return {
       id: 'workOrder@tmp',
       workOrderType: workOrderType,
@@ -453,6 +461,7 @@ class AddWorkOrderCard extends React.Component<Props, State> {
       assignee: '',
       projectId: null,
       checkList: initialChecklist,
+      checkListCategories: initialChecklistCategories,
     };
   }
 
@@ -467,9 +476,17 @@ class AddWorkOrderCard extends React.Component<Props, State> {
       priority,
       properties,
       checkList,
+      checkListCategories,
     } = nullthrows(this.state.workOrder);
     const workOrderTypeId = nullthrows(this.state.workOrder?.workOrderTypeId);
     const updatedChecklist: ChecklistItemInput = removeTempIDs(checkList || []);
+    const updatedChecklistCategories: CheckListCategoryInput[] = (
+      checkListCategories || []
+    ).map(category => ({
+      title: category.title,
+      description: category.description,
+      checkList: removeTempIDs(category.checkList || []),
+    }));
     const variables: AddWorkOrderMutationVariables = {
       input: {
         name,
@@ -482,6 +499,7 @@ class AddWorkOrderCard extends React.Component<Props, State> {
         priority,
         properties: toPropertyInput(properties),
         checkList: updatedChecklist,
+        checkListCategories: updatedChecklistCategories,
       },
     };
 
@@ -541,13 +559,27 @@ class AddWorkOrderCard extends React.Component<Props, State> {
     });
 
   _checklistChangedHandler = updatedChecklist => {
-    this.setState(prevState => {
-      return {
-        workOrder: update(prevState.workOrder, {
-          checkList: {$set: updatedChecklist},
-        }),
-      };
-    });
+    this.setState(
+      prevState =>
+        prevState.workOrder && {
+          workOrder: {
+            ...prevState.workOrder,
+            checkList: updatedChecklist,
+          },
+        },
+    );
+  };
+
+  _checkListCategoryChangedHandler = updatedCategories => {
+    this.setState(
+      prevState =>
+        prevState.workOrder && {
+          workOrder: {
+            ...prevState.workOrder,
+            checkListCategories: updatedCategories,
+          },
+        },
+    );
   };
 
   navigateToMainPage = () => {
