@@ -12,6 +12,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
+
 	"github.com/facebookincubator/symphony/graph/ent/location"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -310,6 +314,14 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 				}
 			}
 		}
+	case models.PropertyEntityWorkOrders:
+		typs, err := c.PropertyType.Query().
+			Where(propertytype.HasPropertiesWith(property.HasWorkOrderWith(workorder.IDIn(ids...)))).
+			GroupBy(propertytype.FieldName).Strings(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return typs, nil
 	default:
 		return nil, errors.Errorf("entity not supported %s", entity)
 	}
@@ -384,6 +396,13 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		props, err = entity.QueryProperties().All(ctx)
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying location properties (id=%s)", entity.ID)
+		}
+	case models.PropertyEntityWorkOrders:
+		entity := instance.(*ent.WorkOrder)
+		var err error
+		props, err = entity.QueryProperties().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying property types for work order %s (id=%s)", entity.Name, entity.ID)
 		}
 	default:
 		return nil, errors.Errorf("entityType not supported %s", entityType)

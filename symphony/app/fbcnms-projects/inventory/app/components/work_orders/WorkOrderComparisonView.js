@@ -138,6 +138,7 @@ const WorkOrderComparisonView = () => {
                   )
                 }
                 onFiltersChanged={filters => setFilters(filters)}
+                exportPath={'/work_orders'}
                 footer={
                   count !== 0
                     ? count > QUERY_LIMIT

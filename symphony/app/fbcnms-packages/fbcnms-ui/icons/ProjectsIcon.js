@@ -21,10 +21,10 @@ const ProjectsIcon = (props: Props) => (
     width="22px"
     height="19px"
     className={props.className}>
-    <g transform="translate(-1 -2)" fill="none" fill-rule="evenodd">
+    <g transform="translate(-1 -2)" fill="none" fillRule="evenodd">
       <rect
         stroke="currentColor"
-        stroke-width="2"
+        strokeWidth="2"
         x="10"
         y="3"
         width="4"
@@ -33,7 +33,7 @@ const ProjectsIcon = (props: Props) => (
       />
       <rect
         stroke="currentColor"
-        stroke-width="2"
+        strokeWidth="2"
         x="10"
         y="16"
         width="4"
@@ -42,7 +42,7 @@ const ProjectsIcon = (props: Props) => (
       />
       <rect
         stroke="currentColor"
-        stroke-width="2"
+        strokeWidth="2"
         x="18"
         y="16"
         width="4"
@@ -51,7 +51,7 @@ const ProjectsIcon = (props: Props) => (
       />
       <rect
         stroke="currentColor"
-        stroke-width="2"
+        strokeWidth="2"
         x="2"
         y="16"
         width="4"

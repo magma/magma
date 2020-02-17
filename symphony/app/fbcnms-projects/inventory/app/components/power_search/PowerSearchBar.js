@@ -219,7 +219,7 @@ const PowerSearchBar = (props: Props) => {
           <CSVFileExport
             title="Export"
             exportPath={exportPath}
-            filters={props.filterValues}
+            filters={filterValues}
           />
         )}
       </div>
