@@ -49,7 +49,7 @@ target_link_libraries(mme
         ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
-    ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls fdproto fdcore ${SERVICE303_LIB}
+    ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls ${SERVICE303_LIB}
     prometheus-cpp grpc grpc++
 )
 
@@ -58,3 +58,8 @@ if ( NOT EMBEDDED_SGW )
 elseif ( EMBEDDED_SGW )
     target_link_libraries(mme TASK_SGW)
 endif ( NOT EMBEDDED_SGW )
+
+if ( NOT S6A_OVER_GRPC )
+    target_link_libraries(mme fdproto fdcore)
+endif ( NOT S6A_OVER_GRPC )
+
