@@ -25,10 +25,10 @@
 #include "messages_types.h"
 
 /*
- * Sends a PGW_NW_INITIATED_ACTIVATE_BEARER_REQ message to PGW.
+ * Sends a SPGW_NW_INITIATED_ACTIVATE_BEARER_REQ message to SPGW.
  */
 int send_activate_bearer_request_itti(
-  itti_pgw_nw_init_actv_bearer_request_t *itti_msg);
+  itti_spgw_nw_init_actv_bearer_request_t* itti_msg);
 /*
  * Sends a PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ message to PGW.
  */

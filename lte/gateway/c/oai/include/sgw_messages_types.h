@@ -39,19 +39,19 @@
 #ifndef FILE_SGW_MESSAGES_TYPES_SEEN
 #define FILE_SGW_MESSAGES_TYPES_SEEN
 
-#define PGW_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                           \
-  (mSGpTR)->ittiMsg.pgw_nw_init_actv_bearer_request
+#define SPGW_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                          \
+  (mSGpTR)->ittiMsg.spgw_nw_init_actv_bearer_request
 #define PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ(mSGpTR)                         \
   (mSGpTR)->ittiMsg.pgw_nw_init_deactv_bearer_request
 
-typedef struct itti_pgw_nw_init_actv_bearer_request_s {
+typedef struct itti_spgw_nw_init_actv_bearer_request_s {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   uint8_t imsi_length;
   ebi_t lbi;
   traffic_flow_template_t ul_tft;
   traffic_flow_template_t dl_tft;
   bearer_qos_t eps_bearer_qos;
-} itti_pgw_nw_init_actv_bearer_request_t;
+} itti_spgw_nw_init_actv_bearer_request_t;
 
 typedef struct itti_pgw_nw_init_deactv_bearer_request_s {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];

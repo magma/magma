@@ -152,26 +152,6 @@ static void* sgw_intertask_interface(void* args_p)
           &received_message_p->ittiMsg.sgi_update_end_point_response, imsi64);
       } break;
 
-      case S5_NW_INITIATED_ACTIVATE_BEARER_REQ: {
-        //Handle Dedicated bearer activation from PCRF
-        if (
-          sgw_handle_nw_initiated_actv_bearer_req(
-            spgw_state_p,
-            &received_message_p->ittiMsg.s5_nw_init_actv_bearer_request,
-            imsi64) != RETURNok) {
-          // If request handling fails send reject to PGW
-          send_activate_dedicated_bearer_rsp_to_pgw(
-            spgw_state_p,
-            REQUEST_REJECTED /*Cause*/,
-            received_message_p->ittiMsg.s5_nw_init_actv_bearer_request
-              .s_gw_teid_S11_S4, /*SGW C-plane teid to fetch spgw context*/
-            0 /*EBI*/,
-            0 /*enb teid*/,
-            0 /*sgw teid*/,
-            imsi64);
-        }
-      } break;
-
       case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
         //Handle Dedicated bearer Activation Rsp from MME
         sgw_handle_nw_initiated_actv_bearer_rsp(
@@ -192,6 +172,13 @@ static void* sgw_intertask_interface(void* args_p)
         sgw_handle_nw_initiated_deactv_bearer_rsp(
           spgw_state_p,
           &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp,
+          imsi64);
+      } break;
+
+      case SPGW_NW_INITIATED_ACTIVATE_BEARER_REQ: {
+        spgw_handle_nw_initiated_bearer_actv_req(
+          spgw_state_p,
+          &received_message_p->ittiMsg.spgw_nw_init_actv_bearer_request,
           imsi64);
       } break;
 

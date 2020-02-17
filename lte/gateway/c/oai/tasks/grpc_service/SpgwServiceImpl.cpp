@@ -53,7 +53,7 @@ Status SpgwServiceImpl::CreateBearer(
   CreateBearerResult* response)
 {
   OAILOG_INFO(LOG_UTIL, "Received CreateBearer GRPC request\n");
-  itti_pgw_nw_init_actv_bearer_request_t itti_msg;
+  itti_spgw_nw_init_actv_bearer_request_t itti_msg;
   std::string imsi = request->sid().id();
   // If north bound is sessiond itself, IMSI prefix is used;
   // in S1AP tests, IMSI prefix is not used

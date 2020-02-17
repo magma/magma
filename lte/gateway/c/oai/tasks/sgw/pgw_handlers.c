@@ -425,103 +425,7 @@ static void get_session_req_data(
   data->qci = qos->qci;
 }
 
-//-----------------------------------------------------------------------------
-
-uint32_t pgw_handle_nw_initiated_bearer_actv_req(
-  spgw_state_t* spgw_state,
-  const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
-  imsi64_t imsi64)
-{
-  OAILOG_FUNC_IN(LOG_PGW_APP);
-  uint32_t rc = RETURNok;
-  hash_table_ts_t *hashtblP = NULL;
-  s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
-  s5_nw_init_actv_bearer_request_t s5_actv_bearer_req = NULL;
-  bool is_teid_found = false;
-  bool is_lbi_found = false;
-
-  OAILOG_INFO(
-    LOG_PGW_APP,
-    "Received Create Bearer Req from PCRF with IMSI " IMSI_64_FMT, imsi64);
-
-  // Copy Bearer QoS
-  memcpy(
-    &s5_actv_bearer_req.eps_bearer_qos,
-    &bearer_req_p->eps_bearer_qos,
-    sizeof(bearer_qos_t));
-  //Copy UL TFT to be sent to UE
-  memcpy(
-    &s5_actv_bearer_req.ul_tft,
-    &bearer_req_p->ul_tft,
-    sizeof(traffic_flow_template_t));
-  //Copy DL TFT. SGW creates a temporary bearer ctx and stores the DL TFT
-  memcpy(
-    &s5_actv_bearer_req.dl_tft,
-    &bearer_req_p->dl_tft,
-    sizeof(traffic_flow_template_t));
-
-  hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
-  if (!hashtblP) {
-    OAILOG_ERROR(LOG_PGW_APP, "There is no UE Context in the SGW context \n");
-    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
-  }
-
-  spgw_imsi_map_t* imsi_map = get_spgw_imsi_map();
-  uint64_t local_teid;
-  hashtable_uint64_ts_get(
-    imsi_map->imsi_teid5_htbl, (const hash_key_t) imsi64, &local_teid);
-  OAILOG_DEBUG(
-    LOG_SPGW_APP,
-    "Using imsi" IMSI_64_FMT " got local_teid " TEID_FMT "\n",
-    imsi64,
-    local_teid);
-
-  hashtable_ts_get(
-    hashtblP, (const hash_key_t) local_teid, (void**) &spgw_ctxt_p);
-  if (spgw_ctxt_p != NULL) {
-    is_teid_found = true;
-    if (
-      spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
-        .default_bearer == bearer_req_p->lbi) {
-      is_lbi_found = true;
-      s5_actv_bearer_req.lbi = bearer_req_p->lbi;
-      s5_actv_bearer_req.mme_teid_S11 =
-        spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
-      s5_actv_bearer_req.s_gw_teid_S11_S4 =
-        spgw_ctxt_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4;
-    }
-  }
-
-  if ((!is_teid_found) || (!is_lbi_found)) {
-    OAILOG_INFO(
-      LOG_PGW_APP,
-      "is_teid_found (%d), is_lbi_found (%d)\n",
-      is_teid_found, is_lbi_found);
-    OAILOG_ERROR(
-      LOG_PGW_APP,
-      "Sending dedicated_bearer_actv_rsp with REQUEST_REJECTED "
-      "cause to NW\n");
-    // Send Reject to PCRF
-    // TODO-Uncomment once implemented at PCRF
-    /* rc = send_dedicated_bearer_actv_rsp(bearer_req_p->lbi,
-         REQUEST_REJECTED);*/
-    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
-  }
-
-  OAILOG_INFO(
-    LOG_PGW_APP,
-    "LBI for the received Create Bearer Req %d\n",
-    itti_s5_actv_bearer_req->lbi);
-  rc = sgw_handle_nw_initiated_actv_bearer_req(
-    spgw_state, itti_s5_actv_bearer_req);
-  if (rc != RETURNok) {
-    OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
-  }
-  OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
-}
-
 //------------------------------------------------------------------------------
-
 uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   spgw_state_t *spgw_state,
   const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p,
@@ -659,8 +563,10 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
 
 //------------------------------------------------------------------------------
 
-uint32_t pgw_handle_nw_init_activate_bearer_rsp(
-  const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp)
+int spgw_send_nw_init_activate_bearer_rsp(
+  gtpv2c_cause_value_t cause,
+  Imsi_t imsi,
+  uint8_t eps_bearer_id)
 {
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
@@ -668,7 +574,7 @@ uint32_t pgw_handle_nw_init_activate_bearer_rsp(
   OAILOG_INFO(
     LOG_PGW_APP,
     "Sending Create Bearer Rsp to PCRF with EBI %d\n",
-    act_ded_bearer_rsp->ebi);
+    eps_bearer_id);
   // Send Create Bearer Rsp to PCRF
   // TODO-Uncomment once implemented at PCRF
   /* rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi,
