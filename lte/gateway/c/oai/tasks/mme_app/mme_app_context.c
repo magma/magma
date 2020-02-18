@@ -42,7 +42,6 @@
 #include <time.h>
 
 #include "dynamic_memory_check.h"
-#include "assertions.h"
 #include "log.h"
 #include "common_types.h"
 #include "conversions.h"
@@ -162,7 +161,13 @@ void mme_app_ue_sgs_context_free_content(
   sgs_context_t *const sgs_context_p,
   imsi64_t imsi)
 {
-  DevAssert(sgs_context_p != NULL);
+  if (sgs_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid SGS context received for IMSI: " IMSI_64_FMT "\n",
+      imsi);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   // Stop SGS Location update timer if running
   if (sgs_context_p->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
     if (timer_remove(sgs_context_p->ts6_1_timer.id, NULL)) {
@@ -716,8 +721,14 @@ int mme_insert_ue_context(
   hashtable_rc_t h_rc = HASH_TABLE_OK;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(mme_ue_context_p);
-  DevAssert(ue_context_p);
+  if (mme_ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid MME UE context received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   // filled ENB UE S1AP ID
   h_rc = hashtable_uint64_ts_is_key_exists(
@@ -856,8 +867,14 @@ void mme_notify_ue_context_released(
   struct ue_mm_context_s *ue_context_p)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(mme_ue_context_p);
-  DevAssert(ue_context_p);
+  if (mme_ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid MME UE context received\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   // TODO HERE free resources
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -871,15 +888,11 @@ void mme_remove_ue_context(
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
 
   if (!mme_ue_context_p) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "mme_ue_context_p is NULL !! \n");
+    OAILOG_ERROR(LOG_MME_APP, "Invalid MME UE context received\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (!ue_context_p) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "ue_context_p is NULL !! \n");
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -1584,14 +1597,21 @@ void mme_app_dump_pdn_context(
       // should be equal to bindex if valid
       int bcindex = pdn_context->bearer_contexts[bindex];
       if ((0 <= bcindex) && (BEARERS_PER_UE > bcindex)) {
-        AssertFatal(
-          bindex == bcindex,
-          "Mismatch in configuration bearer index pdn %i != %i\n",
-          bindex,
-          bcindex);
+        if (bindex != bcindex) {
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            "Mismatch in configuration. PDN index (%i) != Bearer index (%i)\n",
+            bindex,
+            bcindex);
+          OAILOG_FUNC_OUT(LOG_MME_APP);
+        }
 
         bearer_context_t *bc = ue_mm_context->bearer_contexts[bcindex];
-        AssertFatal(bc, "Mismatch in configuration bearer context NULL\n");
+        if (!bc) {
+          OAILOG_ERROR(
+            LOG_MME_APP, "Mismatch in configuration. Bearer context is NULL\n");
+          OAILOG_FUNC_OUT(LOG_MME_APP);
+        }
         bformata(bstr_dump, "%*s - Bearer item ----------------------------\n");
         mme_app_dump_bearer_context(bc, indent_spaces + 4, bstr_dump);
       }
@@ -1609,8 +1629,14 @@ void mme_ue_context_update_ue_sig_connection_state(
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(mme_ue_context_p);
-  DevAssert(ue_context_p);
+  if (mme_ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid MME UE context received\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   if (new_ecm_state == ECM_IDLE) {
     hash_rc = hashtable_uint64_ts_remove(
       mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
@@ -2047,7 +2073,11 @@ void mme_app_handle_enb_reset_req(
     " eNB Reset request received. eNB id = %d, reset_type  %d \n ",
     enb_reset_req->enb_id,
     enb_reset_req->s1ap_reset_type);
-  DevAssert(enb_reset_req->ue_to_reset_list != NULL);
+  if (enb_reset_req->ue_to_reset_list == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP, "Invalid UE list received in eNB Reset Request\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
 
   for (int i = 0; i < enb_reset_req->num_ue; i++) {
     _mme_app_handle_s1ap_ue_context_release(
