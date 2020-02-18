@@ -26,9 +26,6 @@ router.use(
     // enable websocket proxying
     ws: true,
 
-    // needed for virtual hosted sites
-    changeOrigin: true,
-
     // rewrite paths
     pathRewrite: (path: string): string => path.replace(/^\/graph/, ''),
 

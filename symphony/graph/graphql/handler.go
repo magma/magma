@@ -104,13 +104,6 @@ func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 					ocgql.ResolverMiddleware(),
 					handler.Tracer(tracer.New()),
 					handler.ErrorPresenter(errorPresenter(cfg.Logger)),
-					handler.WebsocketUpgrader(websocket.Upgrader{
-						CheckOrigin: func(*http.Request) bool {
-							return true
-						},
-						ReadBufferSize:  1024,
-						WriteBufferSize: 1024,
-					}),
 				),
 			),
 			"query",
