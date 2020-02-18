@@ -17,7 +17,13 @@ TEST_PACKET_REG = 'reg5'
 PASSTHROUGH_REG = 'reg6'
 VLAN_TAG_REG = 'reg7'
 
-APN_TAG_REG = 'xxreg0'
+# xxreg3 allow us to specify 16 bytes vakue to describe APN
+# according to http://man7.org/linux/man-pages/man7/ovs-fields.7.html xxreg3 will allocate 
+# [xreg2, xreg3] or [reg12, reg13, reg14, reg15] under the hood
+APN_TAG_REG = 'xxreg3' 
+APN_TAG_MAP = {
+    'xxreg3': ['reg12', 'reg13', 'reg14', 'reg15']
+}
 
 # Local scratch registers (These registers are reset when submitting to
 # another app):
