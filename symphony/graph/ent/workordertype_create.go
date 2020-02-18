@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -31,6 +32,7 @@ type WorkOrderTypeCreate struct {
 	work_orders            map[string]struct{}
 	property_types         map[string]struct{}
 	definitions            map[string]struct{}
+	check_list_categories  map[string]struct{}
 	check_list_definitions map[string]struct{}
 }
 
@@ -140,6 +142,26 @@ func (wotc *WorkOrderTypeCreate) AddDefinitions(w ...*WorkOrderDefinition) *Work
 		ids[i] = w[i].ID
 	}
 	return wotc.AddDefinitionIDs(ids...)
+}
+
+// AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
+func (wotc *WorkOrderTypeCreate) AddCheckListCategoryIDs(ids ...string) *WorkOrderTypeCreate {
+	if wotc.check_list_categories == nil {
+		wotc.check_list_categories = make(map[string]struct{})
+	}
+	for i := range ids {
+		wotc.check_list_categories[ids[i]] = struct{}{}
+	}
+	return wotc
+}
+
+// AddCheckListCategories adds the check_list_categories edges to CheckListCategory.
+func (wotc *WorkOrderTypeCreate) AddCheckListCategories(c ...*CheckListCategory) *WorkOrderTypeCreate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wotc.AddCheckListCategoryIDs(ids...)
 }
 
 // AddCheckListDefinitionIDs adds the check_list_definitions edge to CheckListItemDefinition by ids.
@@ -287,6 +309,29 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: workorderdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wotc.check_list_categories; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   workordertype.CheckListCategoriesTable,
+			Columns: []string{workordertype.CheckListCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: checklistcategory.FieldID,
 				},
 			},
 		}

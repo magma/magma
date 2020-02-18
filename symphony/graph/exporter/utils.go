@@ -11,6 +11,11 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
+
+	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 
 	"github.com/facebookincubator/symphony/graph/ent/location"
 
@@ -47,6 +52,40 @@ func index(a []string, x string) int {
 		}
 	}
 	return -1
+}
+
+func getQueryFields(e ExportEntity) []string {
+	var v reflect.Value
+	switch e {
+	case ExportEntityWorkOrders:
+		model := models.WorkOrderSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityLocation:
+		model := models.LocationSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityPort:
+		model := models.PortSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityEquipment:
+		model := models.EquipmentSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityLink:
+		model := models.LinkSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityService:
+		model := models.ServiceSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	default:
+		return []string{}
+	}
+
+	fields := make([]string, v.NumField())
+	for i := 0; i < v.NumField(); i++ {
+		a := []rune(v.Type().Field(i).Name)
+		a[0] = unicode.ToLower(a[0])
+		fields[i] = string(a)
+	}
+	return fields
 }
 
 func locationTypeHierarchy(ctx context.Context, c *ent.Client) ([]string, error) {
@@ -310,6 +349,14 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 				}
 			}
 		}
+	case models.PropertyEntityWorkOrders:
+		typs, err := c.PropertyType.Query().
+			Where(propertytype.HasPropertiesWith(property.HasWorkOrderWith(workorder.IDIn(ids...)))).
+			GroupBy(propertytype.FieldName).Strings(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return typs, nil
 	default:
 		return nil, errors.Errorf("entity not supported %s", entity)
 	}
@@ -384,6 +431,13 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		props, err = entity.QueryProperties().All(ctx)
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying location properties (id=%s)", entity.ID)
+		}
+	case models.PropertyEntityWorkOrders:
+		entity := instance.(*ent.WorkOrder)
+		var err error
+		props, err = entity.QueryProperties().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying property types for work order %s (id=%s)", entity.Name, entity.ID)
 		}
 	default:
 		return nil, errors.Errorf("entityType not supported %s", entityType)

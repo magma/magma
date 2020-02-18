@@ -11,44 +11,66 @@
 import type {TableColumnType, TableRowDataType} from './Table';
 
 import React from 'react';
-import SymphonyTheme from '../../../theme/symphony';
 import TableRowCheckbox from './TableRowCheckbox';
 import Text from '../Text';
+import classNames from 'classnames';
+import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 import {useTable} from './TableContext';
+import {useTableCommonStyles} from './TableCommons';
 
-const useStyles = makeStyles(_theme => ({
+const useStyles = makeStyles(() => ({
   row: {
-    backgroundColor: SymphonyTheme.palette.background,
-    '&:nth-child(even)': {
-      backgroundColor: SymphonyTheme.palette.white,
+    backgroundColor: symphony.palette.white,
+    '&$bands:nth-child(odd)': {
+      backgroundColor: symphony.palette.background,
+    },
+    '&$border': {
+      borderTop: '1px solid',
+      borderColor: symphony.palette.separatorLight,
     },
   },
-  cell: {
-    padding: '4px 8px 4px 16px',
-    minHeight: '40px',
-    height: '40px',
-  },
+  bands: {},
+  border: {},
+  none: {},
   checkBox: {
     width: '24px',
     paddingLeft: '8px',
   },
 }));
 
+export type RowsSeparationTypes = 'bands' | 'border' | 'none';
+
 type Props<T> = {
   data: Array<TableRowDataType<T>>,
   columns: Array<TableColumnType<T>>,
+  rowsSeparator?: RowsSeparationTypes,
+  dataRowClassName?: string,
+  cellClassName?: string,
 };
 
 const TableContent = <T>(props: Props<T>) => {
-  const {data, columns} = props;
+  const {
+    data,
+    columns,
+    dataRowClassName,
+    cellClassName,
+    rowsSeparator = 'bands',
+  } = props;
   const classes = useStyles();
+  const commonClasses = useTableCommonStyles();
   const {showSelection} = useTable();
 
   return (
     <tbody>
       {data.map((d, rowIndex) => (
-        <tr key={`row_${rowIndex}`} className={classes.row}>
+        <tr
+          key={`row_${rowIndex}`}
+          className={classNames(
+            classes.row,
+            dataRowClassName,
+            classes[rowsSeparator],
+          )}>
           {showSelection && (
             <td className={classes.checkBox}>
               <TableRowCheckbox id={d.key ?? rowIndex} />
@@ -59,7 +81,7 @@ const TableContent = <T>(props: Props<T>) => {
             return (
               <td
                 key={`col_${colIndex}_${d.key ?? rowIndex}`}
-                className={classes.cell}>
+                className={classNames(commonClasses.cell, cellClassName)}>
                 {typeof renderedCol === 'string' ? (
                   <Text variant="body2">{renderedCol}</Text>
                 ) : (

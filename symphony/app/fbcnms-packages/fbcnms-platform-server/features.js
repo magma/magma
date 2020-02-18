@@ -168,6 +168,11 @@ const arrayConfigs = [
     title: 'External ID',
     enabledByDefault: true,
   },
+  {
+    id: 'checklistcategories',
+    title: 'Site Surveys - Work Order Checklist Categories',
+    enabledByDefault: false,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};
@@ -204,12 +209,10 @@ export async function getEnabledFeatures(
   organization: ?string,
 ): Promise<FeatureID[]> {
   const results = await Promise.all(
-    arrayConfigs.map(
-      async (config): Promise<?FeatureID> => {
-        const enabled = await isFeatureEnabled(req, config.id, organization);
-        return enabled ? config.id : null;
-      },
-    ),
+    arrayConfigs.map(async (config): Promise<?FeatureID> => {
+      const enabled = await isFeatureEnabled(req, config.id, organization);
+      return enabled ? config.id : null;
+    }),
   );
 
   return results.filter(Boolean);

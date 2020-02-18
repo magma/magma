@@ -337,6 +337,7 @@ input AddWorkOrderTypeInput {
     @uniqueField(typ: "property type", field: "Name")
   checkList: [CheckListDefinitionInput]
     @uniqueField(typ: "check list definition", field: "Name")
+  checkListCategories: [CheckListCategoryInput!]
 }
 
 input EditWorkOrderTypeInput {
@@ -347,6 +348,7 @@ input EditWorkOrderTypeInput {
     @uniqueField(typ: "property type", field: "Name")
   checkList: [CheckListDefinitionInput]
     @uniqueField(typ: "check list definition", field: "Name")
+  checkListCategories: [CheckListCategoryInput!]
 }
 
 input AddWorkOrderInput {
@@ -358,6 +360,7 @@ input AddWorkOrderInput {
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
   ownerName: String
+  checkListCategories: [CheckListCategoryInput!]
   assignee: String
   index: Int
   status: WorkOrderStatus
@@ -377,6 +380,7 @@ input EditWorkOrderInput {
   projectId: ID
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
+  checkListCategories: [CheckListCategoryInput!]
   locationId: ID
 }
 
@@ -879,7 +883,14 @@ input CheckListDefinitionInput {
   helpText: String
 }
 
-type CheckListItem {
+type CheckListCategory implements Node {
+  id: ID!
+  title: String!
+  description: String
+  checkList: [CheckListItem!]!
+}
+
+type CheckListItem implements Node {
   id: ID!
   title: String!
   type: CheckListItemType!
@@ -888,6 +899,13 @@ type CheckListItem {
   enumValues: String
   stringValue: String
   checked: Boolean
+}
+
+input CheckListCategoryInput {
+  id: ID
+  title: String!
+  description: String
+  checkList: [CheckListItemInput!]
 }
 
 input CheckListItemInput {
@@ -902,7 +920,7 @@ input CheckListItemInput {
 }
 
 """
-Work Order type schema: e.g. constrcution work.
+Work Order type schema: e.g. construction work.
 """
 type WorkOrderType implements Node {
   id: ID!
@@ -911,6 +929,7 @@ type WorkOrderType implements Node {
   propertyTypes: [PropertyType]!
   numberOfWorkOrders: Int!
   checkListDefinitions: [CheckListItemDefinition]!
+  checkListCategories: [CheckListCategory!]!
 }
 
 """
@@ -939,6 +958,7 @@ type WorkOrder implements Node {
   properties: [Property]!
   project: Project
   checkList: [CheckListItem]!
+  checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
 }
 
@@ -1158,6 +1178,11 @@ type LocationSearchResult {
 
 type ServiceSearchResult {
   services: [Service]!
+  count: Int!
+}
+
+type WorkOrderSearchResult {
+  workOrders: [WorkOrder]!
   count: Int!
 }
 
@@ -1900,7 +1925,7 @@ type Query {
   workOrderSearch(
     filters: [WorkOrderFilterInput!]!
     limit: Int = 500
-  ): [WorkOrder]!
+  ): WorkOrderSearchResult!
   linkSearch(filters: [LinkFilterInput!]!, limit: Int = 500): LinkSearchResult!
   portSearch(filters: [PortFilterInput!]!, limit: Int = 500): PortSearchResult!
   locationSearch(

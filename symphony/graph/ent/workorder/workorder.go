@@ -99,6 +99,13 @@ const (
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
 	PropertiesColumn = "work_order_properties"
+	// CheckListCategoriesTable is the table the holds the check_list_categories relation/edge.
+	CheckListCategoriesTable = "check_list_categories"
+	// CheckListCategoriesInverseTable is the table name for the CheckListCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "checklistcategory" package.
+	CheckListCategoriesInverseTable = "check_list_categories"
+	// CheckListCategoriesColumn is the table column denoting the check_list_categories relation/edge.
+	CheckListCategoriesColumn = "work_order_check_list_categories"
 	// CheckListItemsTable is the table the holds the check_list_items relation/edge.
 	CheckListItemsTable = "check_list_items"
 	// CheckListItemsInverseTable is the table name for the CheckListItem entity.

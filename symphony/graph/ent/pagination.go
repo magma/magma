@@ -16,6 +16,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
@@ -191,6 +192,98 @@ func (ar *ActionsRuleQuery) collectConnectionFields(ctx context.Context) *Action
 		ar = ar.collectField(graphql.GetRequestContext(ctx), *field)
 	}
 	return ar
+}
+
+// CheckListCategoryEdge is the edge representation of CheckListCategory.
+type CheckListCategoryEdge struct {
+	Node   *CheckListCategory `json:"node"`
+	Cursor Cursor             `json:"cursor"`
+}
+
+// CheckListCategoryConnection is the connection containing edges to CheckListCategory.
+type CheckListCategoryConnection struct {
+	Edges    []*CheckListCategoryEdge `json:"edges"`
+	PageInfo PageInfo                 `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CheckListCategory.
+func (clc *CheckListCategoryQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*CheckListCategoryConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &CheckListCategoryConnection{
+				Edges: []*CheckListCategoryEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &CheckListCategoryConnection{
+				Edges: []*CheckListCategoryEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		clc = clc.Where(checklistcategory.IDGT(after.ID))
+	}
+	if before != nil {
+		clc = clc.Where(checklistcategory.IDLT(before.ID))
+	}
+	if first != nil {
+		clc = clc.Order(Asc(checklistcategory.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		clc = clc.Order(Desc(checklistcategory.FieldID)).Limit(*last + 1)
+	}
+	clc = clc.collectConnectionFields(ctx)
+
+	nodes, err := clc.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &CheckListCategoryConnection{
+			Edges: []*CheckListCategoryEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn CheckListCategoryConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*CheckListCategoryEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &CheckListCategoryEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+func (clc *CheckListCategoryQuery) collectConnectionFields(ctx context.Context) *CheckListCategoryQuery {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		clc = clc.collectField(graphql.GetRequestContext(ctx), *field)
+	}
+	return clc
 }
 
 // CheckListItemEdge is the edge representation of CheckListItem.

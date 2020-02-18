@@ -29,16 +29,18 @@ const (
 
 // Attributes recorded on the span of the requests.
 const (
-	TenantAttribute = "viewer.tenant"
-	UserAttribute   = "viewer.user"
-	RoleAttribute   = "viewer.role"
+	TenantAttribute    = "viewer.tenant"
+	UserAttribute      = "viewer.user"
+	RoleAttribute      = "viewer.role"
+	UserAgentAttribute = "viewer.user_agent"
 )
 
 // The following tags are applied to context recorded by this package.
 var (
-	KeyTenant = tag.MustNewKey(TenantAttribute)
-	KeyUser   = tag.MustNewKey(UserAttribute)
-	KeyRole   = tag.MustNewKey(RoleAttribute)
+	KeyTenant    = tag.MustNewKey(TenantAttribute)
+	KeyUser      = tag.MustNewKey(UserAttribute)
+	KeyRole      = tag.MustNewKey(RoleAttribute)
+	KeyUserAgent = tag.MustNewKey(UserAgentAttribute)
 )
 
 // Viewer holds additional per request information.
@@ -64,11 +66,12 @@ func (v *Viewer) traceAttrs() []trace.Attribute {
 	}
 }
 
-func (v *Viewer) tags() []tag.Mutator {
+func (v *Viewer) tags(r *http.Request) []tag.Mutator {
 	return []tag.Mutator{
 		tag.Upsert(KeyTenant, v.Tenant),
 		tag.Upsert(KeyUser, v.User),
 		tag.Upsert(KeyRole, v.Role),
+		tag.Upsert(KeyUserAgent, r.UserAgent()),
 	}
 }
 
@@ -88,7 +91,7 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 
 		ctx := log.NewFieldsContext(r.Context(), zap.Object("viewer", v))
 		trace.FromContext(ctx).AddAttributes(v.traceAttrs()...)
-		ctx, _ = tag.New(ctx, v.tags()...)
+		ctx, _ = tag.New(ctx, v.tags(r)...)
 
 		ctx = NewContext(ctx, v)
 		if tenancy != nil {

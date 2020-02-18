@@ -19,7 +19,7 @@ import (
 )
 
 func TestRouter(t *testing.T) {
-	router, err := newRouter(routerConfig{
+	router, _, err := newRouter(routerConfig{
 		tenancy: viewer.NewFixedTenancy(&ent.Client{}),
 		logger:  logtest.NewTestLogger(t),
 	})

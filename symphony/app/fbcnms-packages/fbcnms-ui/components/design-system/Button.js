@@ -171,12 +171,12 @@ const useStyles = makeStyles(_theme => ({
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
-          opacity: 0.75,
+          color: symphony.palette.B700,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
-          opacity: 0.75,
+          color: symphony.palette.B700,
         },
       },
     },
@@ -217,17 +217,17 @@ const useStyles = makeStyles(_theme => ({
     '&$graySkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.D400,
+          color: symphony.palette.D500,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
-          opacity: 0.75,
+          color: symphony.palette.primary,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
-          opacity: 0.75,
+          color: symphony.palette.primary,
         },
       },
     },

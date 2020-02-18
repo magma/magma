@@ -107,6 +107,7 @@ const InventoryViewHeader = (props: Props) => {
             <div className={classes.actionButtons}>
               {props.actionButtons.map(actionButton => (
                 <FormAction
+                  key={actionButton.title}
                   ignorePermissions={actionButton.ignorePermissions}
                   hideWhenDisabled={actionButton.hideWhenDisabled}>
                   <Button

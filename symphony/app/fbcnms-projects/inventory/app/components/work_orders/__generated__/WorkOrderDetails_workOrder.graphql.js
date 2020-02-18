@@ -14,6 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
+type CheckListCategoryExpandingPanel_list$ref = any;
 type CheckListItem_item$ref = any;
 type CommentsBox_comments$ref = any;
 type EntityDocumentsTable_files$ref = any;
@@ -111,6 +112,9 @@ export type WorkOrderDetails_workOrder = {|
     +title: string,
     +checked: ?boolean,
     +$fragmentRefs: CheckListItem_item$ref,
+  |}>,
+  +checkListCategories: $ReadOnlyArray<{|
+    +$fragmentRefs: CheckListCategoryExpandingPanel_list$ref
   |}>,
   +$fragmentRefs: WorkOrderDetailsPane_workOrder$ref,
   +$refType: WorkOrderDetails_workOrder$ref,
@@ -535,6 +539,22 @@ return {
       ]
     },
     {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "checkListCategories",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "CheckListCategory",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "FragmentSpread",
+          "name": "CheckListCategoryExpandingPanel_list",
+          "args": null
+        }
+      ]
+    },
+    {
       "kind": "FragmentSpread",
       "name": "WorkOrderDetailsPane_workOrder",
       "args": null
@@ -543,5 +563,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b6efe5a6c650b662c2cd23f4c0c72d07';
+(node/*: any*/).hash = 'c5daafb721cc42d1008ef55eb03befef';
 module.exports = node;

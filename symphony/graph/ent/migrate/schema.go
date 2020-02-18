@@ -35,6 +35,38 @@ var (
 		PrimaryKey:  []*schema.Column{ActionsRulesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// CheckListCategoriesColumns holds the columns for the "check_list_categories" table.
+	CheckListCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "work_order_check_list_categories", Type: field.TypeInt, Nullable: true},
+		{Name: "work_order_type_check_list_categories", Type: field.TypeInt, Nullable: true},
+	}
+	// CheckListCategoriesTable holds the schema information for the "check_list_categories" table.
+	CheckListCategoriesTable = &schema.Table{
+		Name:       "check_list_categories",
+		Columns:    CheckListCategoriesColumns,
+		PrimaryKey: []*schema.Column{CheckListCategoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "check_list_categories_work_orders_check_list_categories",
+				Columns: []*schema.Column{CheckListCategoriesColumns[5]},
+
+				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "check_list_categories_work_order_types_check_list_categories",
+				Columns: []*schema.Column{CheckListCategoriesColumns[6]},
+
+				RefColumns: []*schema.Column{WorkOrderTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CheckListItemsColumns holds the columns for the "check_list_items" table.
 	CheckListItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -45,6 +77,7 @@ var (
 		{Name: "string_val", Type: field.TypeString, Nullable: true},
 		{Name: "enum_values", Type: field.TypeString, Nullable: true},
 		{Name: "help_text", Type: field.TypeString, Nullable: true},
+		{Name: "check_list_category_check_list_items", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_check_list_items", Type: field.TypeInt, Nullable: true},
 	}
 	// CheckListItemsTable holds the schema information for the "check_list_items" table.
@@ -54,8 +87,15 @@ var (
 		PrimaryKey: []*schema.Column{CheckListItemsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "check_list_items_work_orders_check_list_items",
+				Symbol:  "check_list_items_check_list_categories_check_list_items",
 				Columns: []*schema.Column{CheckListItemsColumns[8]},
+
+				RefColumns: []*schema.Column{CheckListCategoriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "check_list_items_work_orders_check_list_items",
+				Columns: []*schema.Column{CheckListItemsColumns[9]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -65,13 +105,15 @@ var (
 			{
 				Name:    "checklistitem_title_work_order_check_list_items",
 				Unique:  true,
-				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[8]},
+				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[9]},
 			},
 		},
 	}
 	// CheckListItemDefinitionsColumns holds the columns for the "check_list_item_definitions" table.
 	CheckListItemDefinitionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "title", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
 		{Name: "index", Type: field.TypeInt, Nullable: true},
@@ -87,7 +129,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "check_list_item_definitions_work_order_types_check_list_definitions",
-				Columns: []*schema.Column{CheckListItemDefinitionsColumns[6]},
+				Columns: []*schema.Column{CheckListItemDefinitionsColumns[8]},
 
 				RefColumns: []*schema.Column{WorkOrderTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -97,7 +139,7 @@ var (
 			{
 				Name:    "checklistitemdefinition_title_work_order_type_check_list_definitions",
 				Unique:  true,
-				Columns: []*schema.Column{CheckListItemDefinitionsColumns[1], CheckListItemDefinitionsColumns[6]},
+				Columns: []*schema.Column{CheckListItemDefinitionsColumns[3], CheckListItemDefinitionsColumns[8]},
 			},
 		},
 	}
@@ -1421,6 +1463,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ActionsRulesTable,
+		CheckListCategoriesTable,
 		CheckListItemsTable,
 		CheckListItemDefinitionsTable,
 		CommentsTable,
@@ -1465,7 +1508,10 @@ var (
 )
 
 func init() {
-	CheckListItemsTable.ForeignKeys[0].RefTable = WorkOrdersTable
+	CheckListCategoriesTable.ForeignKeys[0].RefTable = WorkOrdersTable
+	CheckListCategoriesTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
+	CheckListItemsTable.ForeignKeys[0].RefTable = CheckListCategoriesTable
+	CheckListItemsTable.ForeignKeys[1].RefTable = WorkOrdersTable
 	CheckListItemDefinitionsTable.ForeignKeys[0].RefTable = WorkOrderTypesTable
 	CommentsTable.ForeignKeys[0].RefTable = ProjectsTable
 	CommentsTable.ForeignKeys[1].RefTable = WorkOrdersTable

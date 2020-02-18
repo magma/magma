@@ -22,7 +22,7 @@ import (
 
 const nameTitle = "Equipment Name"
 
-func TestEmptyDataExport(t *testing.T) {
+func TestEmptyWOExport(t *testing.T) {
 	r, err := newExporterTestResolver(t)
 	log := r.exporter.log
 	require.NoError(t, err)

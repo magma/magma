@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package resolver
+package resolverutil
 
 import (
 	"strconv"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -17,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (r *queryResolver) handleWorkOrderFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
+func handleWorkOrderFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderName {
 		return nameFilter(q, filter)
 	}
@@ -125,6 +126,27 @@ func locationInstFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInp
 func priorityFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
 		return q.Where(workorder.PriorityIn(filter.StringSet...)), nil
+	}
+	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
+}
+
+func handleWOLocationFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
+	if filter.FilterType == models.WorkOrderFilterTypeLocationInst {
+		return woLocationFilter(q, filter)
+	}
+	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
+}
+
+func woLocationFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
+	if filter.Operator == models.FilterOperatorIsOneOf {
+		if filter.MaxDepth == nil {
+			return nil, errors.New("max depth not supplied to location filter")
+		}
+		var ps []predicate.WorkOrder
+		for _, lid := range filter.IDSet {
+			ps = append(ps, workorder.HasLocationWith(BuildLocationAncestorFilter(lid, 1, *filter.MaxDepth)))
+		}
+		return q.Where(workorder.Or(ps...)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

@@ -31,7 +31,7 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	router, err := newRouter(graphhttpRouterConfig)
+	router, cleanup, err := newRouter(graphhttpRouterConfig)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -42,12 +42,14 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	v2 := xserver.DefaultViews()
 	exporter, err := xserver.NewPrometheusExporter(logger)
 	if err != nil {
+		cleanup()
 		return nil, nil, err
 	}
 	options := cfg.Census
 	jaegerOptions := oc.JaegerOptions(options)
-	traceExporter, cleanup, err := xserver.NewJaegerExporter(logger, jaegerOptions)
+	traceExporter, cleanup2, err := xserver.NewJaegerExporter(logger, jaegerOptions)
 	if err != nil {
+		cleanup()
 		return nil, nil, err
 	}
 	profilingEnabler := _wireProfilingEnablerValue
@@ -67,6 +69,7 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	}
 	serverServer := server.New(router, serverOptions)
 	return serverServer, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }
