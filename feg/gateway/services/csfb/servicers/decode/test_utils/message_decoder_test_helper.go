@@ -124,6 +124,14 @@ func ConstructDefaultSGsCause() []byte {
 	return cause
 }
 
+func DefaultVal(lengthIndicator int) []byte {
+	var chunk []byte
+	for i := 0; i < lengthIndicator; i += 1 {
+		chunk = append(chunk, byte(0x11))
+	}
+	return chunk
+}
+
 func ConstructDefaultIE(iei decode.InformationElementIdentifier, lengthIndicator int) []byte {
 	var chunk []byte
 	chunk = append(chunk, byte(iei))
