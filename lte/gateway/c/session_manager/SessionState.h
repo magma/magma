@@ -184,10 +184,16 @@ class SessionState {
  private:
   /**
    * State transitions of a session:
-   * SESSION_ACTIVE
-   *       |
-   *       | (start_termination)
-   *       V
+   * SESSION_ACTIVE  ---------
+   *       |                  \
+   *       |                   \
+   *       |                    \
+   *       |                     \
+   *       | (start_termination)  SESSION_TERMINATION_SCHEDULED
+   *       |                      /
+   *       |                     /
+   *       |                    /
+   *       V                   V
    * SESSION_TERMINATING_FLOW_ACTIVE <----------
    *       |                                   |
    *       | (new_report)                      | (add_used_credit)
@@ -207,7 +213,9 @@ class SessionState {
     SESSION_TERMINATING_FLOW_ACTIVE = 1,
     SESSION_TERMINATING_AGGREGATING_STATS = 2,
     SESSION_TERMINATING_FLOW_DELETED = 3,
-    SESSION_TERMINATED = 4
+    SESSION_TERMINATED = 4,
+    // TODO All sessions in this state should be terminated on sessiond restart
+    SESSION_TERMINATION_SCHEDULED = 5
   };
 
   std::string imsi_;
