@@ -13,21 +13,49 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/golang/glog"
+
+	mconfProtos "magma/feg/cloud/go/protos/mconfig"
+	utilsDiammeter "magma/feg/gateway/diameter"
 	fegMconfig "magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos/mconfig"
-
-	"github.com/golang/glog"
 )
 
 const (
-	DefaultMMEName = ".mmec01.mmegi0001.mme.epc.mnc001.mcc001.3gppnetwork.org"
-	MMECLength     = 2
-	MMEGILength    = 4
-	MNCLength      = 3
-	MCCLength      = 3
-	MMEServiceName = "mme"
+	DefaultMMEName  = ".mmec01.mmegi0001.mme.epc.mnc001.mcc001.3gppnetwork.org"
+	MMECLength      = 2
+	MMEGILength     = 4
+	MNCLength       = 3
+	MCCLength       = 3
+	MMEServiceName  = "mme"
+	CsfbServiceName = "csfb"
 )
 
+func GetCsfbConfig() *mconfProtos.CsfbConfig {
+	config := &mconfProtos.CsfbConfig{}
+	err := fegMconfig.GetServiceConfigs(CsfbServiceName, config)
+	if err != nil || config.Client == nil {
+		glog.V(2).Infof("%s Managed Configs Load Error: %v", CsfbServiceName, err)
+		return envOrDefaultConfig()
+	}
+	glog.V(2).Infof("Loaded %s configs: %+v", CsfbServiceName, *config)
+	return config
+}
+
+func envOrDefaultConfig() *mconfProtos.CsfbConfig {
+	defaultVlrIpAndPort := fmt.Sprintf("%s:%d", DefaultVLRIPAddress, DefaultVLRPort)
+	defaultLocalIpAndPort := fmt.Sprintf("%s:%d", LocalIPAddress, LocalPort)
+
+	// TODO: move GetValueOrEnv out of diameter. It should belong to some kind of utils module
+	return &mconfProtos.CsfbConfig{
+		Client: &mconfProtos.SCTPClientConfig{
+			ServerAddress: utilsDiammeter.GetValueOrEnv("", VLRAddrEnv, defaultVlrIpAndPort),
+			LocalAddress:  utilsDiammeter.GetValueOrEnv("", LocalAddrEnv, defaultLocalIpAndPort),
+		},
+	}
+}
+
+// TODO: MME should be gathered from the gRPC request not hardcoded/fixed per feg
 // ConstructMMEName constructs MME name from mconfig
 func ConstructMMEName() (string, error) {
 	mmeConfig, err := getMMEConfig()
