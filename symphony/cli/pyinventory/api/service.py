@@ -2,11 +2,11 @@
 # pyre-strict
 
 from dataclasses import asdict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 from dacite import Config, from_dict
 
-from .._utils import PropertyValue, _get_graphql_properties, _make_property_types
+from .._utils import PropertyValue, _get_graphql_properties, format_properties
 from ..consts import (
     Customer,
     EquipmentPort,
@@ -25,7 +25,6 @@ from ..graphql.add_service_type_mutation import (
     AddServiceTypeMutation,
     ServiceTypeCreateData,
 )
-from ..graphql.property_kind_enum import PropertyKind
 from ..graphql.remove_service_mutation import RemoveServiceMutation
 from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
 from ..graphql.service_details_query import ServiceDetailsQuery
@@ -54,17 +53,8 @@ def add_service_type(
     hasCustomer: bool,
     properties: List[Tuple[str, str, PropertyValue, bool]],
 ) -> ServiceType:
-    property_types = _make_property_types(properties)
 
-    def property_type_to_kind(
-        key: str, value: Union[str, int, float, bool]
-    ) -> Union[str, int, float, bool, PropertyKind]:
-        return value if key != "type" else PropertyKind(value)
-
-    new_property_types = [
-        {k: property_type_to_kind(k, v) for k, v in property_type.items()}
-        for property_type in property_types
-    ]
+    new_property_types = format_properties(properties)
     result = AddServiceTypeMutation.execute(
         client,
         data=ServiceTypeCreateData(
