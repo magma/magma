@@ -28,7 +28,6 @@ services:
       MYSQL_DB: auth
       MYSQL_USER: root
       MYSQL_PASS: root
-      SESSION_TOKEN: bgnllrfbcldunrbefllrnegehrflvlvn
       FB_TEST_USER: fbuser@fb.com
     depends_on:
       - mysql
@@ -74,13 +73,15 @@ services:
     restart: on-failure
 
   mysql:
-    image: mysql:8.0.18
+    image: mysql
     command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: auth
     volumes:
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    security_opt:
+      - seccomp:unconfined
     healthcheck:
       test: mysqladmin ping -proot
     restart: always
