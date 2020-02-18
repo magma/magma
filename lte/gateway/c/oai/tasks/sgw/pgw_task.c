@@ -72,13 +72,6 @@ static void *pgw_intertask_interface(void *args_p)
     }
 
     switch (ITTI_MSG_ID(received_message_p)) {
-      case PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
-        pgw_handle_nw_initiated_bearer_deactv_req(
-          spgw_state_p,
-          &received_message_p->ittiMsg.pgw_nw_init_deactv_bearer_request,
-          imsi64);
-      } break;
-
       case S5_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
         pgw_handle_nw_init_deactivate_bearer_rsp(
           &received_message_p->ittiMsg.s5_nw_init_deactv_bearer_response);

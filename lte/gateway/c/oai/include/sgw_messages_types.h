@@ -41,7 +41,7 @@
 
 #define SPGW_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                          \
   (mSGpTR)->ittiMsg.spgw_nw_init_actv_bearer_request
-#define PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ(mSGpTR)                         \
+#define SPGW_NW_INITIATED_DEACTIVATE_BEARER_REQ(mSGpTR)                        \
   (mSGpTR)->ittiMsg.pgw_nw_init_deactv_bearer_request
 
 typedef struct itti_spgw_nw_init_actv_bearer_request_s {
@@ -53,12 +53,12 @@ typedef struct itti_spgw_nw_init_actv_bearer_request_s {
   bearer_qos_t eps_bearer_qos;
 } itti_spgw_nw_init_actv_bearer_request_t;
 
-typedef struct itti_pgw_nw_init_deactv_bearer_request_s {
+typedef struct itti_spgw_nw_init_deactv_bearer_request_s {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   uint8_t imsi_length;
   uint32_t no_of_bearers;
   ebi_t lbi;
   ebi_t ebi[BEARERS_PER_UE];
-} itti_pgw_nw_init_deactv_bearer_request_t;
+} itti_spgw_nw_init_deactv_bearer_request_t;
 
 #endif /* FILE_SGW_MESSAGES_TYPES_SEEN */

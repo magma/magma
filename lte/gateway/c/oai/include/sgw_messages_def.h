@@ -34,7 +34,7 @@ MESSAGE_DEF(
   spgw_nw_init_actv_bearer_request)
 
 MESSAGE_DEF(
-  PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ,
+  SPGW_NW_INITIATED_DEACTIVATE_BEARER_REQ,
   MESSAGE_PRIORITY_MED,
-  itti_pgw_nw_init_deactv_bearer_request_t,
-  pgw_nw_init_deactv_bearer_request)
+  itti_spgw_nw_init_deactv_bearer_request_t,
+  spgw_nw_init_deactv_bearer_request)

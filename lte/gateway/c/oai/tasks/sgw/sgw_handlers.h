@@ -86,13 +86,14 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   spgw_state_t *state,
   const itti_s11_nw_init_actv_bearer_rsp_t *const s11_actv_bearer_rsp,
   imsi64_t imsi64);
-uint32_t sgw_handle_nw_initiated_deactv_bearer_req(
-  const itti_s5_nw_init_deactv_bearer_request_t
-    *const itti_s5_deactiv_ded_bearer_req, imsi64_t imsi64);
 int sgw_handle_nw_initiated_deactv_bearer_rsp(
   spgw_state_t *state,
   const itti_s11_nw_init_deactv_bearer_rsp_t
     *const s11_pcrf_ded_bearer_deactv_rsp,
     imsi64_t imsi64);
 bool is_enb_ip_address_same(const fteid_t *fte_p, ip_address_t *ip_p);
+int32_t spgw_handle_nw_initiated_bearer_deactv_req(
+  spgw_state_t* spgw_state,
+  const itti_spgw_nw_init_deactv_bearer_request_t* const bearer_req_p,
+  imsi64_t imsi64);
 #endif /* FILE_SGW_HANDLERS_SEEN */

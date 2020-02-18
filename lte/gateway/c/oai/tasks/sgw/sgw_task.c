@@ -160,13 +160,6 @@ static void* sgw_intertask_interface(void* args_p)
           imsi64);
       } break;
 
-      case S5_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
-        //Handle Dedicated bearer Deactivation Req from PGW
-        sgw_handle_nw_initiated_deactv_bearer_req(
-          &received_message_p->ittiMsg.s5_nw_init_deactv_bearer_request,
-          imsi64);
-      } break;
-
       case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
         //Handle Dedicated bearer deactivation Rsp from MME
         sgw_handle_nw_initiated_deactv_bearer_rsp(
@@ -180,6 +173,23 @@ static void* sgw_intertask_interface(void* args_p)
           spgw_state_p,
           &received_message_p->ittiMsg.spgw_nw_init_actv_bearer_request,
           imsi64);
+      } break;
+
+      case SPGW_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
+        int32_t rc = spgw_handle_nw_initiated_bearer_deactv_req(
+          spgw_state_p,
+          &received_message_p->ittiMsg.spgw_nw_init_deactv_bearer_request,
+          imsi64);
+        if (rc != RETURNok) {
+          OAILOG_ERROR(
+            LOG_PGW_APP,
+            "Failed to handle NW_INITIATED_DEACTIVATE_BEARER_REQ for imsi:%ld, "
+            "send bearer deactivation reject to SPGW service \n",
+            imsi64);
+          // TODO-Uncomment once implemented at PCRF
+          /* rc = send_dedicated_bearer_deactv_rsp(invalid_bearer_id,REQUEST_REJECTED);
+           */
+        }
       } break;
 
       case TERMINATE_MESSAGE: {

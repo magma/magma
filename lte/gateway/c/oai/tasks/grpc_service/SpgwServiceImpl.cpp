@@ -184,7 +184,7 @@ Status SpgwServiceImpl::DeleteBearer(
   DeleteBearerResult* response)
 {
   OAILOG_INFO(LOG_UTIL, "Received DeleteBearer GRPC request\n");
-  itti_pgw_nw_init_deactv_bearer_request_t itti_msg;
+  itti_spgw_nw_init_deactv_bearer_request_t itti_msg;
   itti_msg.imsi_length = request->sid().id().size();
   strcpy(itti_msg.imsi, request->sid().id().c_str());
   itti_msg.lbi = request->link_bearer_id();
