@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pyre-strict
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
@@ -10,9 +11,14 @@ from gql.gql.client import OperationException
 
 from .._utils import PropertyValue, format_properties
 from ..consts import EquipmentPortType
+from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_port_type_mutation import (
     AddEquipmentPortTypeInput,
     AddEquipmentPortTypeMutation,
+)
+from ..graphql.equipment_port_type_query import EquipmentPortTypeQuery
+from ..graphql.remove_equipment_port_type_mutation import (
+    RemoveEquipmentPortTypeMutation,
 )
 from ..graphql_client import GraphqlClient
 from ..reporter import FailedOperationException
@@ -58,13 +64,12 @@ def add_equipment_port_type(
             )
     """
 
-    formated_property_types = format_properties(properties)
-    formated_link_property_types = format_properties(link_properties)
-
+    new_property_types = format_properties(properties)
+    new_link_property_types = format_properties(link_properties)
     add_equipment_port_type_input = {
         "name": name,
-        "properties": formated_property_types,
-        "linkProperties": formated_link_property_types,
+        "properties": new_property_types,
+        "linkProperties": new_link_property_types,
     }
 
     try:
@@ -78,7 +83,7 @@ def add_equipment_port_type(
                         data=p,
                         config=Config(strict=True),
                     )
-                    for p in formated_property_types
+                    for p in new_property_types
                 ],
                 linkProperties=[
                     from_dict(
@@ -86,7 +91,7 @@ def add_equipment_port_type(
                         data=p,
                         config=Config(strict=True),
                     )
-                    for p in formated_link_property_types
+                    for p in new_link_property_types
                 ],
             ),
         ).__dict__[ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME]
@@ -102,3 +107,44 @@ def add_equipment_port_type(
             add_equipment_port_type_input,
         )
     return EquipmentPortType(id=result.id, name=result.name)
+
+
+def get_equipment_port_type(
+    client: GraphqlClient, equipment_port_type_id: str
+) -> EquipmentPortType:
+    """This function returns an equipment port type.
+        It can get only the requested equipment port type ID
+
+        Args:
+            equipment_port_type_id (str): equipment port type ID
+
+        Returns: 
+            EquipmentPortType object
+
+        Raises: 
+            EntityNotFoundError for not found entity
+
+        Example:
+            port_type = self.client.get_equipment_port_type(self.port_type1.id)
+    """
+    result = EquipmentPortTypeQuery.execute(client, id=equipment_port_type_id).port_type
+    if not result:
+        raise EntityNotFoundError(
+            entity="Equipment Port Type", entity_id=equipment_port_type_id
+        )
+    return EquipmentPortType(id=result.id, name=result.name)
+
+
+def delete_equipment_port_type(
+    client: GraphqlClient, equipment_port_type_id: str
+) -> None:
+    """This function deletes an equipment port type.
+        It can get only the requested equipment port type ID
+
+        Args:
+            equipment_port_type_id (str): equipment port type ID
+
+        Example:
+            client.delete_equipment_port_type(self.port_type1.id)
+    """
+    RemoveEquipmentPortTypeMutation.execute(client, id=equipment_port_type_id)

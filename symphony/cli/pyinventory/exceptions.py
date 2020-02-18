@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # pyre-strict
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import Optional
 
@@ -21,6 +24,26 @@ def get_location_id_msg(
     if external_id:
         msg = msg + f" with external id {external_id}"
     return msg
+
+
+class EntityNotFoundError(Exception):
+    def __init__(
+        self,
+        entity: str,
+        entity_id: Optional[str] = None,
+        entity_name: Optional[str] = None,
+    ) -> None:
+        self.entity: str = entity
+        self.entity_id: Optional[str] = entity_id
+        self.entity_name: Optional[str] = entity_name
+
+    def __str__(self) -> str:
+        message = f"{self.entity} entity"
+        if self.entity_name:
+            message = " ".join([message, f"<enitity_name: {self.entity_name}>"])
+        if self.entity_id:
+            message = " ".join([message, f"<entity_id: {self.entity_id}>"])
+        return " ".join([message, "does not found in inventory"])
 
 
 class LocationNotFoundException(CustomException):
