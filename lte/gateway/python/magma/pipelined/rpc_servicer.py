@@ -412,26 +412,26 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # --------------------------
 
     def AddAPNFlowForUser(self, request: ActivateAPNTaggingFlowsForUserRequest, context) -> APNTaggingResponse:
+        # TODO(119vik): add async response handling
         # if app is not enabled
         #     return None
-        # self._loop.call_soon_threadsafe(
-        #     self._apn_app.add_apn_flow_for_ue, request.ip_addr, request.ap_name)
-        # )
-        # TODO(119vik): add async handlers
-        logging.debug('New APN flow is requested with params %s, %s %s ', request.sid, request.ip_addr, request.ap_name)
+        self._loop.call_soon_threadsafe(self._add_apn_flows_async, request)
         resp = APNTaggingResponse()
         return resp
+    
+    def _add_apn_flows_async(self, request):
+        self._apn_app.add_apn_flow_for_ue(
+            imsi=request.sid.id,
+            ue_ip_addr=request.ip_addr, 
+            apn=request.ap_name)
+        
+        return True
 
     def DeleteAPNFlowForUser(self, request: DeactivateAPNTaggingFlowsForUserRequest, context) -> APNTaggingResponse:
+        # TODO(119vik): add real implementation
         # if app is not enabled
         #     return None
-        # self._loop.call_soon_threadsafe(
-        #     self._apn_app.delete_apn_flow_for_ue, request.ip_addr, request.ap_name)
-        # )
-        # TODO(119vik): add async handlers
-        logging.debug('APN flow deletion is requested with params %s, %s %s ', request.sid, request.ip_addr, request.ap_name)
-        resp = APNTaggingResponse()
-        return resp
+        return APNTaggingResponse()
 
     # --------------------------
     # Debugging

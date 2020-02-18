@@ -16,5 +16,13 @@ def encode_apn(apn):
         apn: APN string
     """
     md_hasher = hashlib.md5()
-    md_hasher.update(bytearray(apn))
-    return md_hasher.digest()
+    md_hasher.update(bytearray(apn, 'utf-8'))
+    return md_hasher.hexdigest()
+
+def split_apn(encoded_apn):
+    """ 
+        Splits 16 bytes hash which represents encoded APN into 4 x 4bytes hashes which can 
+        be pushed to low level registers. 
+    """
+    return [encoded_apn[i:i+8] for i in range(0,32,8)]
+

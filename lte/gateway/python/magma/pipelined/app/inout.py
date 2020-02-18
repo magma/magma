@@ -139,13 +139,14 @@ class InOutController(MagmaController):
                               output_port=self._uplink_port)
 
         # Add default flows for APN
-        # for apn, routing_config in self.config.apn_routing:
-            # add flow with priority higher then default
-            # For all packets with:
-            #   registers.APN_TAG_REG == encode_apn(apn)
-            # set :
-            #   VLAN to routing_config.get("vlan")
-            #   outport to routing_config.get("outport", "LOCAL")
+        # if APN app is enabled:
+        #   for apn, routing_config in self.config.apn_routing:
+        #      RYU is not able to set double extended registers - however should be able to match so following should work
+        #       matcher = MagmaMatch(xxreg3=encodedencode_apn(apn))       
+        #       add flow with priority higher then default
+        #       set :
+        #           VLAN to routing_config.get("vlan")
+        #           outport to routing_config.get("outport", "LOCAL")
 
 
 
