@@ -234,7 +234,7 @@ void SessionState::start_termination(
   on_termination_callback_ = on_termination_callback;
 }
 
-bool SessionState::can_complete_termination()
+bool SessionState::can_complete_termination() const
 {
   return curr_state_ == SESSION_TERMINATING_FLOW_DELETED;
 }
@@ -311,7 +311,7 @@ UsageMonitoringCreditPool& SessionState::get_monitor_pool()
   return monitor_pool_;
 }
 
-bool SessionState::is_same_config(const Config& new_config)
+bool SessionState::is_same_config(const Config& new_config) const
 {
   return config_.ue_ipv4.compare(new_config.ue_ipv4) == 0 &&
          config_.spgw_ipv4.compare(new_config.spgw_ipv4) == 0 &&
@@ -327,32 +327,32 @@ bool SessionState::is_same_config(const Config& new_config)
          config_.bearer_id == new_config.bearer_id;
 }
 
-std::string SessionState::get_session_id()
+std::string SessionState::get_session_id() const
 {
   return session_id_;
 }
 
-std::string SessionState::get_subscriber_ip_addr()
+std::string SessionState::get_subscriber_ip_addr() const
 {
   return config_.ue_ipv4;
 }
 
-std::string SessionState::get_mac_addr()
+std::string SessionState::get_mac_addr() const
 {
   return config_.mac_addr;
 }
 
-std::string SessionState::get_apn()
+std::string SessionState::get_apn() const
 {
   return config_.apn;
 }
 
-bool SessionState::is_radius_cwf_session()
+bool SessionState::is_radius_cwf_session() const
 {
   return (config_.rat_type == RATType::TGPP_WLAN);
 }
 
-std::string SessionState::get_radius_session_id()
+std::string SessionState::get_radius_session_id() const
 {
   return config_.radius_session_id;
 }
@@ -365,7 +365,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info)
   info.static_rules = session_rules_.get_static_rule_ids();
 }
 
-uint32_t SessionState::get_qci()
+uint32_t SessionState::get_qci() const
 {
   if (!config_.qos_info.enabled) {
     MLOG(MWARNING) << "QoS is not enabled.";
@@ -374,12 +374,12 @@ uint32_t SessionState::get_qci()
   return config_.qos_info.qci;
 }
 
-uint32_t SessionState::get_bearer_id()
+uint32_t SessionState::get_bearer_id() const
 {
   return config_.bearer_id;
 }
 
-bool SessionState::qos_enabled()
+bool SessionState::qos_enabled() const
 {
   return config_.qos_info.enabled;
 }
@@ -390,7 +390,8 @@ void SessionState::set_tgpp_context(const magma::lte::TgppContext& tgpp_context)
 }
 
 void SessionState::fill_protos_tgpp_context(
-  magma::lte::TgppContext* tgpp_context) {
+  magma::lte::TgppContext* tgpp_context) const
+{
   *tgpp_context = tgpp_context_;
 }
 
