@@ -7,45 +7,60 @@
  * @flow
  * @format
  */
-import type {FBCNMSRequest} from '@fbcnms/auth/access';
-
 const express = require('express');
-const proxy = require('express-http-proxy');
-import {AccessRoles} from '@fbcnms/auth/roles';
-
+const querystring = require('querystring');
+const proxy = require('http-proxy-middleware');
 const {GRAPH_HOST} = require('../config');
+import {accessRoleToString} from '@fbcnms/auth/roles';
+import type {ClientRequest} from 'http';
+import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 const router = express.Router();
 
-const proxyMiddleware = () => {
-  return function(req: FBCNMSRequest, res, next) {
-    let reqAsBuffer = false;
-    let reqBodyEncoding = true;
-    let parseReqBody = true;
-    const contentType = req.headers['content-type'];
-    if (contentType && contentType.indexOf('multipart') != -1) {
-      reqAsBuffer = true;
-      reqBodyEncoding = null;
-      parseReqBody = false;
-    }
-    return proxy(GRAPH_HOST, {
-      reqAsBuffer,
-      reqBodyEncoding,
-      parseReqBody,
-      proxyReqPathResolver: req => req.originalUrl.replace(/^\/graph/, ''),
-      proxyReqOptDecorator: async function(proxyReqOpts, srcReq) {
-        const organization = await srcReq.organization();
-        proxyReqOpts.headers['x-auth-organization'] = organization.name;
-        proxyReqOpts.headers['x-auth-user-email'] = srcReq.user.email;
-        proxyReqOpts.headers['x-auth-user-readonly'] =
-          srcReq.user.role === AccessRoles.READ_ONLY_USER ? 'TRUE' : 'FALSE';
+router.use(
+  '/',
+  proxy({
+    // hostname to the target server
+    target: 'http://' + GRAPH_HOST,
 
-        return proxyReqOpts;
-      },
-    })(req, res, next);
-  };
-};
+    // enable websocket proxying
+    ws: true,
 
-router.use('/', proxyMiddleware());
+    // needed for virtual hosted sites
+    changeOrigin: true,
+
+    // rewrite paths
+    pathRewrite: (path: string): string => path.replace(/^\/graph/, ''),
+
+    // subscribe to http-proxy's proxyReq event
+    onProxyReq: (proxyReq: ClientRequest, req: FBCNMSRequest): void => {
+      if (req.user.organization) {
+        proxyReq.setHeader('x-auth-organization', req.user.organization);
+      }
+      proxyReq.setHeader('x-auth-user-email', req.user.email);
+      proxyReq.setHeader('x-auth-user-role', accessRoleToString(req.user.role));
+
+      if (!req.body || !Object.keys(req.body).length) {
+        return;
+      }
+
+      const writeBody = (body: string) => {
+        proxyReq.setHeader(
+          'Content-Length',
+          Buffer.byteLength(body).toString(),
+        );
+        proxyReq.write(body);
+        proxyReq.end();
+      };
+
+      const contentType = proxyReq.getHeader('Content-Type');
+      if (contentType.includes('application/json')) {
+        writeBody(JSON.stringify(req.body));
+      } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        writeBody(querystring.stringify(req.body));
+      }
+    },
+  }),
+);
 
 module.exports = router;

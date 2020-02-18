@@ -63,6 +63,7 @@ services:
   store:
     image: ${DOCKER_REGISTRY}/store:${TAG}
     environment:
+      AUTH_URL: http://platform-server/user/me
       S3_ENDPOINT: fb-test.thesymphony.cloud:9000
       S3_BUCKET: store.blobs
       S3_REGION: us-east-1
