@@ -117,6 +117,12 @@ class SessionState {
     std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   /**
+   * mark_as_awaiting_termination transitions the session state from
+   * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
+   */
+  void mark_as_awaiting_termination();
+
+  /**
    * can_complete_termination returns whether the termination for the session
    * can be completed.
    * For this to be true, start_termination needs to be called for the session,
@@ -177,7 +183,7 @@ class SessionState {
 
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
-  void set_monitoring_quota_state(
+  void set_subscriber_quota_state(
     const magma::lte::SubscriberQuotaUpdate_Type state);
 
   bool active_monitored_rules_exist();
@@ -228,9 +234,9 @@ class SessionState {
   SessionRules session_rules_;
   SessionState::State curr_state_;
   SessionState::Config config_;
-  // Used to keep track of whether there are monitoring quotas.
+  // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
-  magma::lte::SubscriberQuotaUpdate_Type monitoring_quota_state_;
+  magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;
   magma::lte::TgppContext tgpp_context_;
   std::function<void(SessionTerminateRequest)> on_termination_callback_;
 

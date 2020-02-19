@@ -155,10 +155,10 @@ void SessionState::add_used_credit(
   }
 }
 
-void SessionState::set_monitoring_quota_state(
+void SessionState::set_subscriber_quota_state(
     const magma::lte::SubscriberQuotaUpdate_Type state)
 {
-  monitoring_quota_state_ = state;
+  subscriber_quota_state_ = state;
 }
 
 bool SessionState::active_monitored_rules_exist()
@@ -237,6 +237,11 @@ void SessionState::start_termination(
 bool SessionState::can_complete_termination() const
 {
   return curr_state_ == SESSION_TERMINATING_FLOW_DELETED;
+}
+
+void SessionState::mark_as_awaiting_termination()
+{
+  curr_state_ = SESSION_TERMINATION_SCHEDULED;
 }
 
 void SessionState::complete_termination()

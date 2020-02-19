@@ -31,3 +31,8 @@ session_force_termination_timeout_ms: 5000
 
 # Set to true to enable sessiond support of carrier wifi
 support_carrier_wifi: true
+
+# CWF only
+# Number of ms before sessiond terminates a session when it is started without
+# quota.
+cwf_quota_exhaustion_termination_on_init_ms: 30000

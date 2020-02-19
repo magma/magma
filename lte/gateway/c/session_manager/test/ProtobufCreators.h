@@ -9,6 +9,7 @@
 #pragma once
 
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/pipelined.grpc.pb.h>
 
 namespace magma {
 using namespace lte;
@@ -80,4 +81,10 @@ void create_tgpp_context(
   const std::string& gx_dest_host,
   const std::string& gy_dest_host,
   TgppContext* context);
+
+void create_subscriber_quota_update(
+  const std::string& imsi,
+  const std::string& ue_mac_addr,
+  const SubscriberQuotaUpdate_Type state,
+  SubscriberQuotaUpdate* update);
 } // namespace magma

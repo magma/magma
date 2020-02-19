@@ -43,6 +43,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
                 directoryd_client,
                 spgw_client,
                 aaa_client,
+                0,
                 0);
         evb = folly::EventBaseManager::get()->getEventBase();
         local_enforcer->attachEventBase(evb);
