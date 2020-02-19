@@ -44,6 +44,7 @@
 #include "itti_free_defined_msg.h"
 #include "sgw_defs.h"
 #include "sgw_handlers.h"
+#include "pgw_handlers.h"
 #include "sgw_config.h"
 #include "sgw_context_manager.h"
 #include "pgw_ue_ip_address_alloc.h"

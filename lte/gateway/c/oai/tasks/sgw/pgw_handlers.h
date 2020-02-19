@@ -38,4 +38,13 @@ void handle_s5_create_session_request(
 uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(
   gtpv2c_cause_t cause,
   ebi_t lbi);
+int spgw_handle_nw_initiated_bearer_actv_req(
+  spgw_state_t* state,
+  const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
+  imsi64_t imsi64);
+
+int32_t spgw_handle_nw_initiated_bearer_deactv_req(
+  spgw_state_t* spgw_state,
+  const itti_spgw_nw_init_deactv_bearer_request_t* const bearer_req_p,
+  imsi64_t imsi64);
 #endif /* FILE_PGW_HANDLERS_SEEN */
