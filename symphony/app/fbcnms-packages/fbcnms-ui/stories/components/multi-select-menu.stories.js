@@ -25,42 +25,52 @@ const useStyles = makeStyles(_theme => ({
 
 const INITIAL_OPTIONS = [
   {
+    key: 'option_1',
     label: 'Option 1',
     value: '1',
   },
   {
+    key: 'option_2',
     label: 'Option 2',
     value: '2',
   },
   {
+    key: 'option_3',
     label: 'Option 3',
     value: '3',
   },
   {
+    key: 'option_4',
     label: 'Option 4',
     value: '4',
   },
   {
+    key: 'option_5',
     label: 'Option 5',
     value: '5',
   },
   {
+    key: 'option_6',
     label: 'Option 6',
     value: '6',
   },
   {
+    key: 'option_7',
     label: 'Option 7',
     value: '7',
   },
   {
+    key: 'option_8',
     label: 'Option 8',
     value: '8',
   },
   {
+    key: 'option_9',
     label: 'Option 9',
     value: '9',
   },
   {
+    key: 'option_10',
     label: 'Option 10',
     value: '10',
   },

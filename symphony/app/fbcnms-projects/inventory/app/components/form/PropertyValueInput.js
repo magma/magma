@@ -254,10 +254,12 @@ class PropertyValueInput extends React.Component<Props> {
             }
             options={[
               {
+                key: 'true',
                 value: true,
                 label: 'True',
               },
               {
+                key: 'false',
                 value: false,
                 label: 'False',
               },

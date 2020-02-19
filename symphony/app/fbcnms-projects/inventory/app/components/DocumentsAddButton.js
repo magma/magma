@@ -78,6 +78,7 @@ class DocumentsAddButton extends React.Component<Props, State> {
             skin="primary"
             menuDockRight={true}
             options={Strings.documents.categories.map(category => ({
+              key: category,
               label: (
                 <FileUpload
                   className={classes.uploadCategoryButton}

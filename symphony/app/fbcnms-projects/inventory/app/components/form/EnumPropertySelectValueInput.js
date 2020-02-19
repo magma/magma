@@ -56,6 +56,7 @@ class EnumPropertySelectValueInput extends React.Component<Props> {
       <Select
         className={classNames(classes.input, className)}
         options={optionsArr.map(stringVal => ({
+          key: stringVal,
           value: stringVal,
           label: stringVal,
         }))}

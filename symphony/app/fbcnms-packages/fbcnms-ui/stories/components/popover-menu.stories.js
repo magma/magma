@@ -34,14 +34,17 @@ const useStyles = makeStyles(() => ({
 
 const OPTIONS = [
   {
+    key: 'option_1',
     label: 'Option 1',
     value: '1',
   },
   {
+    key: 'option_2',
     label: 'Option 2',
     value: '2',
   },
   {
+    key: 'option_3',
     label: 'Option 3',
     value: '3',
   },
@@ -58,10 +61,12 @@ const PopoverMenuRoot = () => {
         variant="text"
         options={[
           {
+            key: 'option_1',
             label: 'Option 1',
             value: '1',
           },
           {
+            key: 'option_2',
             label: 'Option 2',
             value: '2',
           },
@@ -73,10 +78,12 @@ const PopoverMenuRoot = () => {
         className={classes.popoverMenu}
         options={[
           {
+            key: 'option_1',
             label: 'Option 1',
             value: '1',
           },
           {
+            key: 'option_2',
             label: 'Option 2',
             value: '2',
           },

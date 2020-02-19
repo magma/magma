@@ -159,14 +159,17 @@ export default function EditUserDialog(props: Props) {
           label="Role"
           options={[
             {
+              key: 'user',
               label: 'User',
               value: UserRoles.USER,
             },
             {
+              key: 'read_only_user',
               label: 'Read Only User',
               value: UserRoles.READ_ONLY_USER,
             },
             {
+              key: 'super_user',
               label: 'Super User',
               value: UserRoles.SUPERUSER,
             },
