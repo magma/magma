@@ -51,7 +51,8 @@ StoredSessionState SessionState::marshal()
   marshaled.imsi = imsi_;
   marshaled.session_id = session_id_;
   marshaled.core_session_id = core_session_id_;
-
+  marshaled.subscriber_quota_state = subscriber_quota_state_;
+  marshaled.tgpp_context = tgpp_context_;
   return marshaled;
 }
 
@@ -88,6 +89,8 @@ SessionState::Config cfg{};
   imsi_ = marshaled.imsi;
   session_id_ = marshaled.session_id;
   core_session_id_ = marshaled.core_session_id;
+  subscriber_quota_state_ = marshaled.subscriber_quota_state;
+  tgpp_context_ = marshaled.tgpp_context;
 }
 
 SessionState::SessionState(
