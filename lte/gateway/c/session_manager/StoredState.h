@@ -11,11 +11,11 @@
 #include <functional>
 
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/pipelined.grpc.pb.h>
 
 #include "CreditKey.h"
 
 namespace magma {
-
 struct StoredQoSInfo {
   bool enabled;
   uint32_t qci;
@@ -120,6 +120,8 @@ struct StoredSessionState {
   std::string imsi;
   std::string session_id;
   std::string core_session_id;
+  magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
+  magma::lte::TgppContext tgpp_context;
 };
 
 }; // namespace magma
