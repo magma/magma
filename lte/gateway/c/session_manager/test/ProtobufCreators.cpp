@@ -177,4 +177,25 @@ void create_subscriber_quota_update(
   update->set_update_type(state);
 }
 
+void create_cwf_session_create_response(
+  const std::string& imsi,
+  const std::string& monitoring_key,
+  std::vector<std::string>& static_rules,
+  CreateSessionResponse* response)
+{
+  create_monitor_update_response(
+    imsi,
+    monitoring_key,
+    MonitoringLevel::PCC_RULE_LEVEL,
+    2048,
+    response->mutable_usage_monitors()->Add());
+
+  for (auto& rule_id : static_rules) {
+    // insert into create session response
+    StaticRuleInstall rule_install;
+    rule_install.set_rule_id(rule_id);
+    response->mutable_static_rules()->Add()->CopyFrom(rule_install);
+  }
+}
+
 } // namespace magma

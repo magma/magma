@@ -941,6 +941,12 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         MLOG(MERROR) << "Could not activate flows for IMSI "
                      << imsi << "during update";
       }
+
+      // CWF ONLY: terminate sessions with no monitoring quota
+      if (session->is_radius_cwf_session()
+        && !session->active_monitored_rules_exist()) {
+        subscribers_to_terminate.insert(imsi);
+      }
     }
   }
 }
@@ -948,8 +954,9 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 void LocalEnforcer::update_session_credits_and_rules(
   const UpdateSessionResponse& response)
 {
-  // If any update responses return with a permanent error code, we
-  // will terminate the session associated to that subscriber
+  // These subscribers will include any subscriber that received a permanent
+  // diameter error code. Additionally, it will also include CWF sessions that
+  // have run out of monitoring quota.
   std::unordered_set<std::string> subscribers_to_terminate;
 
   update_charging_credits(response, subscribers_to_terminate);
@@ -1188,11 +1195,18 @@ void LocalEnforcer::init_policy_reauth_for_session(
       request.imsi(), ip_addr, rules_to_activate.static_rules,
       rules_to_activate.dynamic_rules);
   }
-  // todo update monitoring quota if all monitoring rules are gone
+
+  // [CWF-ONLY] terminate sessions with no monitoring quota
+  if (session->is_radius_cwf_session()
+    && !session->active_monitored_rules_exist()) {
+          RulesToProcess rules;
+    populate_rules_from_session_to_remove(imsi, session, rules);
+    terminate_service(imsi, rules.static_rules, rules.dynamic_rules);
+    return;
+  }
 
   create_bearer(
     activate_success, session, request, rules_to_activate.dynamic_rules);
-
 }
 
 void LocalEnforcer::receive_monitoring_credit_from_rar(

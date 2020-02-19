@@ -156,6 +156,8 @@ class LocalEnforcer {
    * For the matching session ID, activate and/or deactivate the specified
    * rules.
    * Afterwards, a bearer is created.
+   * If a session is CWF and out of monitoring quota, it will trigger a session
+   * terminate
    *
    * NOTE: If an empty session ID is specified, apply changes to all matching
    * sessions with the specified IMSI.
@@ -237,6 +239,8 @@ class LocalEnforcer {
    * Processes the monitoring component of UpdateSessionResponse.
    * Updates moniroting credits according to the response and updates rules
    * that are installed for this session.
+   * If a session is CWF and out of monitoring quota, it will trigger a session
+   * terminate
    */
   void update_monitoring_credits_and_rules(
     const UpdateSessionResponse& response,
