@@ -35,7 +35,7 @@ func (srv *PolicyAssignmentServer) EnableStaticRules(ctx context.Context, req *p
 	if !doesSubscriberAndRulesExist(networkID, req.Imsi, req.RuleIds, req.BaseNames) {
 		return nil, status.Errorf(codes.InvalidArgument, "Either a subscriber or one more rules/basenames are not found")
 	}
-	updates := []configurator.EntityUpdateCriteria{}
+	var updates []configurator.EntityUpdateCriteria
 	for _, ruleID := range req.RuleIds {
 		updates = append(updates, getRuleUpdateForEnable(ruleID, req.Imsi))
 	}
@@ -54,7 +54,7 @@ func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *
 	if !doesSubscriberAndRulesExist(networkID, req.Imsi, req.RuleIds, req.BaseNames) {
 		return nil, status.Errorf(codes.InvalidArgument, "Either a subscriber or one more rules/basenames are not found")
 	}
-	updates := []configurator.EntityUpdateCriteria{}
+	var updates []configurator.EntityUpdateCriteria
 	for _, ruleID := range req.RuleIds {
 		updates = append(updates, getRuleUpdateForDisableRule(ruleID, req.Imsi))
 	}
@@ -69,7 +69,7 @@ func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *
 }
 
 func doesSubscriberAndRulesExist(networkID string, subscriberID string, ruleIDs []string, baseNames []string) bool {
-	ids := []storage.TypeAndKey{storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: subscriberID}}
+	ids := []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: subscriberID}}
 	for _, ruleID := range ruleIDs {
 		ids = append(ids, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: ruleID})
 	}

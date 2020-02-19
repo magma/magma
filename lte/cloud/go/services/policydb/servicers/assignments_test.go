@@ -17,7 +17,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/subscriberdb/servicers"
+	"magma/lte/cloud/go/services/policydb/servicers"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"

@@ -11,6 +11,11 @@ services:
     port: 9083
     proxy_type: "clientcert"
 
+  policydb:
+    host: "localhost"
+    port: 9085
+    proxy_type: "clientcert"
+
   meteringd_records:
     host: "localhost"
     port: 9090
