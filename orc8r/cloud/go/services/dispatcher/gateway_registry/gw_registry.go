@@ -97,7 +97,7 @@ func GetServiceAddressForGateway(hwId string) (string, error) {
 // Returns a connection and a context that should be based on for rpc calls on this connection.
 // The context will put the Gatewayid in its metadata, which will be surfaced as HTTP/2 headers.
 func GetGatewayConnection(service GwServiceType, hwId string) (*grpc.ClientConn, context.Context, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpxMaxTimeoutSec*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
 	addr, err := GetServiceAddressForGateway(hwId)
 	if err != nil {
