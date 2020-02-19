@@ -1215,25 +1215,17 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota)
 {
   insert_static_rule(1, "m1", "static_1");
 
+  std::vector<std::string> static_rules{}; // no rule installs
   SessionState::Config test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
-
   CreateSessionResponse response;
-  auto monitors = response.mutable_usage_monitors();
-  create_monitor_update_response(
-    "IMSI1",
-    "m1",
-    MonitoringLevel::PCC_RULE_LEVEL,
-    2048,
-    monitors->Add());
+  create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
 
-  // No rule installs -> No monitoring quota
   std::vector<SubscriberQuotaUpdate_Type> expected_states
     {SubscriberQuotaUpdate_Type_NO_QUOTA};
   EXPECT_CALL(
     *pipelined_client,
-    update_subscriber_quota_state(
-      CheckQuotaUpdateState(1, expected_states)))
+    update_subscriber_quota_state(CheckQuotaUpdateState(1, expected_states)))
     .Times(1)
     .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
@@ -1243,18 +1235,11 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota)
 {
   insert_static_rule(0, "m1", "static_1");
 
+  std::vector<std::string> static_rules{"static_1"};
   SessionState::Config test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
-
   CreateSessionResponse response;
-  auto monitors = response.mutable_usage_monitors();
-  auto monitor = monitors->Add();
-  create_monitor_update_response(
-    "IMSI1",
-    "m1",
-    MonitoringLevel::PCC_RULE_LEVEL,
-    2048,
-    monitor);
+  create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
 
   StaticRuleInstall static_rule_install;
   static_rule_install.set_rule_id("static_1");
@@ -1265,11 +1250,92 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota)
     {SubscriberQuotaUpdate_Type_VALID_QUOTA};
   EXPECT_CALL(
     *pipelined_client,
-    update_subscriber_quota_state(
-      CheckQuotaUpdateState(1, expected_states)))
+    update_subscriber_quota_state(CheckQuotaUpdateState(1, expected_states)))
     .Times(1)
     .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
+}
+
+TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update)
+{
+  // setup : successful session creation with valid monitoring quota
+  insert_static_rule(0, "m1", "static_1");
+  insert_static_rule(0, "m1", "static_2");
+
+  std::vector<std::string> static_rules{"static_1", "static_2"};
+  SessionState::Config test_cwf_cfg;
+  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  CreateSessionResponse response;
+  create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
+
+  // remove only static_2, should not change anything in terms of quota since
+  // static_1 is still active
+  UpdateSessionResponse update_response;
+  auto monitor =
+    update_response.mutable_usage_monitor_responses()->Add();
+  create_monitor_update_response(
+    "IMSI1",
+    "m1",
+    MonitoringLevel::PCC_RULE_LEVEL,
+    2048,
+    monitor);
+  monitor->add_rules_to_remove("static_2");
+  local_enforcer->update_session_credits_and_rules(update_response);
+
+
+  // send an update response with rule removals for "static_1" to indicate
+  // total monitoring quota exhaustion
+  update_response.clear_usage_monitor_responses();
+  monitor = update_response.mutable_usage_monitor_responses()->Add();
+  create_monitor_update_response(
+    "IMSI1",
+    "m1",
+    MonitoringLevel::PCC_RULE_LEVEL,
+    0,
+    monitor);
+  monitor->add_rules_to_remove("static_1");
+
+  std::vector<SubscriberQuotaUpdate_Type> expected_states =
+    {SubscriberQuotaUpdate_Type_TERMINATE};
+  EXPECT_CALL(
+    *pipelined_client,
+    update_subscriber_quota_state(CheckQuotaUpdateState(1, expected_states)))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+  local_enforcer->update_session_credits_and_rules(update_response);
+}
+
+TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar)
+{
+  // setup : successful session creation with valid monitoring quota
+  insert_static_rule(0, "m1", "static_1");
+
+  std::vector<std::string> static_rules{"static_1"};
+  SessionState::Config test_cwf_cfg;
+  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  CreateSessionResponse response;
+  create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
+
+  // send a policy reauth request with rule removals for "static_1" to indicate
+  // total monitoring quota exhaustion
+  PolicyReAuthRequest request;
+  request.set_session_id("");
+  request.set_imsi("IMSI1");
+  request.add_rules_to_remove("static_1");
+
+  std::vector<SubscriberQuotaUpdate_Type> expected_states
+    {SubscriberQuotaUpdate_Type_TERMINATE};
+  EXPECT_CALL(
+    *pipelined_client,
+    update_subscriber_quota_state(CheckQuotaUpdateState(1, expected_states)))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+  PolicyReAuthAnswer answer;
+  local_enforcer->init_policy_reauth(request, answer);
 }
 
 int main(int argc, char **argv)
