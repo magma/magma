@@ -6,8 +6,10 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 """
 import netifaces
+import ipaddress
 from typing import NamedTuple, Dict, List
 
+from ryu.lib import hub
 from ryu.lib.packet import ether_types
 from ryu.ofproto.inet import IPPROTO_TCP
 from ryu.controller.controller import Datapath
@@ -20,8 +22,10 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import INGRESS, EGRESS
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
+from magma.pipelined.directoryd_client import get_record
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction
+from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
+    DIRECTION_REG
 
 
 class CheckQuotaController(MagmaController):
@@ -50,6 +54,12 @@ class CheckQuotaController(MagmaController):
         self.next_table = \
             self._service_manager.get_table_num(INGRESS)
         self.egress_table = self._service_manager.get_table_num(EGRESS)
+        self.fake_ip_network = ipaddress.ip_network('192.168.0.0/16')
+        self.fake_ip_iterator = self.fake_ip_network.hosts()
+        self.arpd_controller_fut = kwargs['app_futures']['arpd']
+        self.arp_contoller = None
+        self.ip_rewrite_scratch = \
+            self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
         self._clean_restart = kwargs['config']['clean_restart']
         self._datapath = None
 
@@ -104,8 +114,25 @@ class CheckQuotaController(MagmaController):
         """
         Redirect the UE flow to the dedicated flask server.
         On return traffic rewrite the IP/port so the redirection is seamless.
+
+        Match incoming user traffic:
+            1. Rewrite ip src to be in same subnet as check quota server
+            2. Rewrite ip dst to check quota server
+            3. Rewrite eth dst to check quota server
+            4. Rewrite tcp dst port to either quota/non quota
+
+            5. LEARN action
+                This will rewrite the ip src and dst and tcp port for traffic
+                coming back to the UE
+
+            6. ARP controller arp clamp
+                Sets the ARP clamping(for ARPs from the check quota server)
+                for the fake IP we used to reach the check quota server
+
         """
         parser = self._datapath.ofproto_parser
+        fake_ip = self._next_fake_ip()
+
         if has_quota:
             tcp_dst = self.config.has_quota_port
         else:
@@ -117,6 +144,66 @@ class CheckQuotaController(MagmaController):
             ipv4_dst=self.config.quota_check_ip
         )
         actions = [
+            parser.NXActionLearn(
+                table_id=self.ip_rewrite_scratch,
+                priority=flows.UE_FLOW_PRIORITY,
+                specs=[
+                    parser.NXFlowSpecMatch(
+                        src=ether_types.ETH_TYPE_IP, dst=('eth_type_nxm', 0),
+                        n_bits=16
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=IPPROTO_TCP, dst=('ip_proto_nxm', 0), n_bits=8
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=Direction.IN,
+                        dst=(DIRECTION_REG, 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=int(ipaddress.IPv4Address(self.config.bridge_ip)),
+                        dst=('ipv4_src_nxm', 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=int(fake_ip),
+                        dst=('ipv4_dst_nxm', 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=('tcp_src_nxm', 0),
+                        dst=('tcp_dst_nxm', 0),
+                        n_bits=16
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=tcp_dst,
+                        dst=('tcp_src_nxm', 0),
+                        n_bits=16
+                    ),
+                    parser.NXFlowSpecMatch(
+                        src=encode_imsi(imsi),
+                        dst=(IMSI_REG, 0),
+                        n_bits=64
+                    ),
+                    parser.NXFlowSpecLoad(
+                        src=('ipv4_src_nxm', 0),
+                        dst=('ipv4_dst_nxm', 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecLoad(
+                        src=int(
+                            ipaddress.IPv4Address(self.config.quota_check_ip)),
+                        dst=('ipv4_src_nxm', 0),
+                        n_bits=32
+                    ),
+                    parser.NXFlowSpecLoad(
+                        src=80,
+                        dst=('tcp_src_nxm', 0),
+                        n_bits=16
+                    ),
+                ]
+            ),
+            parser.OFPActionSetField(ipv4_src=str(fake_ip)),
             parser.OFPActionSetField(ipv4_dst=self.config.bridge_ip),
             parser.OFPActionSetField(eth_dst=self.config.cwf_bridge_mac),
             parser.OFPActionSetField(tcp_dst=tcp_dst),
@@ -133,15 +220,29 @@ class CheckQuotaController(MagmaController):
             ip_proto=IPPROTO_TCP, direction=Direction.IN,
             ipv4_src=self.config.bridge_ip)
         actions = [
-            parser.OFPActionSetField(ipv4_src=self.config.quota_check_ip),
-            parser.OFPActionSetField(eth_dst=ue_mac),
-            parser.OFPActionSetField(tcp_src=80)
-        ]
+            parser.NXActionResubmitTable(table_id=self.ip_rewrite_scratch)]
         flows.add_resubmit_next_service_flow(
             self._datapath, self.tbl_num, match, actions,
             priority=flows.DEFAULT_PRIORITY,
             resubmit_table=self.egress_table
         )
+        hub.spawn(self._setup_fake_ip_arp, str(imsi), fake_ip)
+
+    def _setup_fake_ip_arp(self, imsi, fake_ip):
+        mac = get_record(imsi, 'mac_addr')
+        while mac is None:
+            self.logger.debug("Mac not found for subscriber %s, retrying", imsi)
+            hub.sleep(0.1)
+            mac = get_record(imsi, 'mac_addr')
+
+        self.logger.info("Received mac %s for subscriber %s, with fake ip %s",
+                          mac, imsi, fake_ip)
+
+        if self.arp_contoller or self.arpd_controller_fut.done():
+            if not self.arp_contoller:
+                self.arp_contoller = self.arpd_controller_fut.result()
+            self.arp_contoller.set_incoming_arp_flows(self._datapath, fake_ip,
+                                                      mac)
 
     def _remove_subscriber_flow(self, imsi: str):
         match = MagmaMatch(
@@ -178,3 +279,18 @@ class CheckQuotaController(MagmaController):
 
     def _delete_all_flows(self, datapath: Datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        flows.delete_all_flows_from_table(datapath, self.ip_rewrite_scratch)
+
+    def _next_fake_ip(self):
+        ip = next(self.fake_ip_iterator, None)
+        while not self._is_fake_ip_valid(ip):
+            ip = next(self.fake_ip_iterator, None)
+            if ip is None:
+                self.fake_ip_iterator = self.fake_ip_network.hosts()
+        return ip
+
+    def _is_fake_ip_valid(self, ip_addr):
+        if ip_addr is None or str(ip_addr) == self.config.bridge_ip or \
+                str(ip_addr) == self.config.quota_check_ip:
+            return False
+        return True
