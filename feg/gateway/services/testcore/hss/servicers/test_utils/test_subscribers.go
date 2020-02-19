@@ -1,9 +1,9 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ Copyright (c) Facebook, Inc. and its affiliates.
+ All rights reserved.
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
 */
 
 package test_utils
@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	defaultServerHost   = "magma.com"
-	defaultMaxUlBitRate = uint64(100000000)
-	defaultMaxDlBitRate = uint64(200000000)
+	defaultServerHostSubscribers = "magma.com"
+	defaultMaxUlBitRate          = uint64(100000000)
+	defaultMaxDlBitRate          = uint64(200000000)
 )
 
 // GetTestSubscribers returns SubscriberData protos with different settings
@@ -51,7 +51,7 @@ func GetTestSubscribers() []*protos.SubscriberData {
 		},
 		State: &protos.SubscriberState{
 			LteAuthNextSeq:    7350,
-			TgppAaaServerName: defaultServerHost,
+			TgppAaaServerName: defaultServerHostSubscribers,
 		},
 	}
 	subs = append(subs, sub)
@@ -72,7 +72,7 @@ func generateDefaultSub(subscriberID string) *protos.SubscriberData {
 		},
 		State: &protos.SubscriberState{
 			LteAuthNextSeq:          7350,
-			TgppAaaServerName:       defaultServerHost,
+			TgppAaaServerName:       defaultServerHostSubscribers,
 			TgppAaaServerRegistered: false,
 		},
 		Non_3Gpp: &protos.Non3GPPUserProfile{

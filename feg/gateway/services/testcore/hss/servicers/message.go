@@ -18,7 +18,6 @@ import (
 	"magma/feg/gateway/diameter"
 	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
-	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
@@ -45,9 +44,9 @@ func ConstructFailureAnswer(msg *diam.Message, sessionID datatype.UTF8String, se
 // ConvertAuthErrorToFailureMessage creates a corresponding diameter failure message for an auth error.
 func ConvertAuthErrorToFailureMessage(err error, msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig) *diam.Message {
 	switch err.(type) {
-	case servicers.AuthRejectedError:
+	case AuthRejectedError:
 		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(protos.ErrorCode_AUTHORIZATION_REJECTED))
-	case servicers.AuthDataUnavailableError:
+	case AuthDataUnavailableError:
 		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(protos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE))
 	default:
 		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(diam.UnableToComply))

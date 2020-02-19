@@ -1,19 +1,19 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ Copyright (c) Facebook, Inc. and its affiliates.
+ All rights reserved.
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
 */
 
 package servicers
 
 import (
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"testing"
 
 	"magma/lte/cloud/go/crypto"
 	"magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -13,7 +13,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
-	"magma/feg/gateway/services/testcore/hss/servicers/test"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/test_utils"
 )
@@ -21,7 +21,7 @@ import (
 func StartTestService(t *testing.T) (*service.Service, error) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.MOCK_HSS)
 
-	service := test.NewTestHomeSubscriberServer(t)
+	service := test_utils.NewTestHomeSubscriberServer(t)
 
 	protos.RegisterHSSConfiguratorServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)

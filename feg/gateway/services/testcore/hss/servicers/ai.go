@@ -18,7 +18,6 @@ import (
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
@@ -45,7 +44,7 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE)), err
 	}
 
-	lteAuthNextSeq, err := servicers.ResyncLteAuthSeq(subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize(), srv.Config.LteAuthOp)
+	lteAuthNextSeq, err := ResyncLteAuthSeq(subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize(), srv.Config.LteAuthOp)
 	if err == nil {
 		err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
 	}
@@ -56,7 +55,7 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 	const plmnOffsetBytes = 1
 	plmn := air.VisitedPLMNID.Serialize()[plmnOffsetBytes:]
 
-	vectors, lteAuthNextSeq, err := servicers.GenerateLteAuthVectors(uint32(air.RequestedEUTRANAuthInfo.NumVectors),
+	vectors, lteAuthNextSeq, err := GenerateLteAuthVectors(uint32(air.RequestedEUTRANAuthInfo.NumVectors),
 		srv.Milenage, subscriber, plmn, srv.Config.LteAuthOp, srv.AuthSqnInd)
 	if err == nil {
 		err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
@@ -70,7 +69,7 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 
 func (srv *HomeSubscriberServer) setLteAuthNextSeq(subscriber *lteprotos.SubscriberData, lteAuthNextSeq uint64) error {
 	if subscriber.GetState() == nil {
-		return servicers.NewAuthDataUnavailableError("subscriber state was nil")
+		return NewAuthDataUnavailableError("subscriber state was nil")
 	}
 	subscriber.State.LteAuthNextSeq = lteAuthNextSeq
 	return srv.store.UpdateSubscriber(subscriber)

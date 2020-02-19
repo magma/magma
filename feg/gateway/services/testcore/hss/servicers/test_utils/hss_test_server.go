@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test
+package test_utils
 
 import (
 	"testing"
@@ -14,7 +14,6 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -38,7 +37,7 @@ var (
 func NewTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
 	store := storage.NewMemorySubscriberStore()
 
-	subs := test_utils.GetTestSubscribers()
+	subs := GetTestSubscribers()
 	for _, sub := range subs {
 		err := store.AddSubscriber(sub)
 		assert.NoError(t, err)
