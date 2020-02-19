@@ -134,3 +134,15 @@ const GROUP_OPS_MAP = {
   group_right: 'group_right',
 };
 export const GROUP_OPS: Array<string> = Object.keys(GROUP_OPS_MAP);
+
+export class SyntaxError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = this.constructor.name;
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = new Error(message).stack;
+    }
+  }
+}

@@ -12,7 +12,105 @@ import * as PromQL from '../PromQL';
 import {Parse} from '../PromQLParser';
 import {Tokenize} from '../PromQLTokenizer';
 
+class ErrorMatcher {
+  messageRegex: ?RegExp;
+  constructor(messageRegex: ?RegExp) {
+    this.messageRegex = messageRegex;
+  }
+}
+
+function expectSyntaxError(msg: ?RegExp): ErrorMatcher {
+  return new ErrorMatcher(msg);
+}
+
 const testCases = [
+  [
+    'double-quoted string',
+    `"this is \\" a \' string with \\\\, \\t, \\u0100, \\100, \\xA5, and \\n."`,
+    [
+      {
+        value: `this is " a ' string with \\, \t, \u0100, @, \xA5, and \n.`,
+        type: 'string',
+      },
+    ],
+    null,
+  ],
+  [
+    'single-quoted string',
+    `'this is \\' a \" string with \\\\, \\t, \\u0100, \\100, \\xA5, and \\n.'`,
+    [
+      {
+        value: `this is ' a " string with \\, \t, \u0100, @, \xA5, and \n.`,
+        type: 'string',
+      },
+    ],
+    null,
+  ],
+  [
+    'back-ticked string',
+    '`this is a string with no escaping: \\n \\" \\t \\u0100`',
+    [
+      {
+        value: `this is a string with no escaping: \\n \\" \\t \\u0100`,
+        type: 'string',
+      },
+    ],
+    null,
+  ],
+  [
+    'escaped string - with parser',
+    '{l="\\"esc\\""}',
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'l', type: 'word'},
+      {value: '=', type: 'labelOp'},
+      {value: '"esc"', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector('', new PromQL.Labels().addEqual('l', '"esc"')),
+  ],
+  [
+    'malformed double-quoted string',
+    `"forgot to escape " the quote"`,
+    expectSyntaxError(),
+    expectSyntaxError(),
+  ],
+  [
+    'malformed single-quoted string',
+    `'forgot to escpape ' the quote'`,
+    expectSyntaxError(),
+    expectSyntaxError(),
+  ],
+  [
+    'marlformed back-ticked string',
+    '`forgot to escape ` the quote`',
+    expectSyntaxError(),
+    expectSyntaxError(),
+  ],
+  [
+    'unknown escape sequence',
+    `"I had 99 problems \\w"`,
+    expectSyntaxError(/unterminated escape/i),
+    expectSyntaxError(/unterminated escape/i),
+  ],
+  [
+    'malformed \\x escape sequence',
+    `"\\xa "`,
+    expectSyntaxError(/unterminated escape/i),
+    expectSyntaxError(/unterminated escape/i),
+  ],
+  [
+    'marformed \\u escape sequence',
+    `"\\u010 "`,
+    expectSyntaxError(/unterminated escape/i),
+    expectSyntaxError(/unterminated escape/i),
+  ],
+  [
+    'malformed \\U escape sequence',
+    `"\\U0100 "`,
+    expectSyntaxError(/unterminated escape/i),
+    expectSyntaxError(/unterminated escape/i),
+  ],
   [
     'single metric selector',
     'metric',
@@ -406,13 +504,19 @@ const testCases = [
 
 describe('Tokenize', () => {
   test.each(testCases)('%s', (name, input, expectedTokens, _) => {
-    expect(Tokenize(input)).toEqual(expectedTokens);
+    if (expectedTokens instanceof ErrorMatcher) {
+      expect(() => Tokenize(input)).toThrowError(expectedTokens.messageRegex);
+    } else {
+      expect(Tokenize(input)).toEqual(expectedTokens);
+    }
   });
 });
 
 describe('Parser', () => {
   test.each(testCases)('%s', (name, input, _, expected) => {
-    if (expected !== null) {
+    if (expected instanceof ErrorMatcher) {
+      expect(() => Parse(input)).toThrowError(expected.messageRegex);
+    } else if (expected !== null) {
       expect(Parse(input)).toEqual(expected);
     }
   });
