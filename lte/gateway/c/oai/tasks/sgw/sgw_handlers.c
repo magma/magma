@@ -2675,40 +2675,10 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
       }
     }
   }
-  //Send DEACTIVATE_DEDICATED_BEARER_RSP to PGW
-  MessageDef *message_p = NULL;
-  message_p = itti_alloc_new_message(
-    TASK_PGW_APP, S5_NW_INITIATED_DEACTIVATE_BEARER_RESP);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "itti_alloc_new_message failed for nw_initiated_deactv_bearer_rsp\n");
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
-  itti_s5_nw_init_deactv_bearer_rsp_t *deact_ded_bearer_rsp =
-    &message_p->ittiMsg.s5_nw_init_deactv_bearer_response;
-  deact_ded_bearer_rsp->no_of_bearers =
-    s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.num_bearer_context;
-
-  for (i = 0; i < deact_ded_bearer_rsp->no_of_bearers; i++) {
-    //EBI
-    deact_ded_bearer_rsp->ebi[i] = ebi;
-    //Cause
-    deact_ded_bearer_rsp->cause.cause_value =
-      s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[i]
-        .cause.cause_value;
-  }
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Sending nw_initiated_deactv_bearer_rsp to PGW with %d EBIs\n",
-    deact_ded_bearer_rsp->no_of_bearers);
-  print_bearer_ids_helper(
-    deact_ded_bearer_rsp->ebi, deact_ded_bearer_rsp->no_of_bearers);
-
-  message_p->ittiMsgHeader.imsi = imsi64;
-
-  rc = itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
-
+  // Send DEACTIVATE_DEDICATED_BEARER_RSP to SPGW Service
+  spgw_handle_nw_init_deactivate_bearer_rsp(
+    s11_pcrf_ded_bearer_deactv_rsp->cause,
+    *s11_pcrf_ded_bearer_deactv_rsp->lbi);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
@@ -2978,14 +2948,6 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
           is_ebi_found = true;
           ebi_to_be_deactivated[no_of_bearers_to_be_deact] =
             bearer_req_p->ebi[itrn];
-          OAILOG_INFO(
-            LOG_SPGW_APP,
-            "-----------Rashmi  ebi_to_be_deactivated[%d]:%u "
-            "no_of_bearers_to_be_deact: "
-            "%d \n",
-            itrn,
-            ebi_to_be_deactivated[no_of_bearers_to_be_deact],
-            no_of_bearers_to_be_deact);
           no_of_bearers_to_be_deact++;
         } else {
           invalid_bearer_id[no_of_bearers_rej] = bearer_req_p->ebi[itrn];
@@ -3021,13 +2983,6 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
   if (no_of_bearers_to_be_deact > 0) {
     bool delete_default_bearer =
       (bearer_req_p->lbi == bearer_req_p->ebi[0]) ? true : false;
-    OAILOG_INFO(
-      LOG_SPGW_APP,
-      "-----------Rashmi delete_default_bearer :%d bearer_req_p->lbi :%u "
-      "ebi:%u \n",
-      delete_default_bearer,
-      bearer_req_p->lbi,
-      bearer_req_p->ebi[0]);
     rc = _spgw_build_and_send_s11_deactivate_bearer_req(
       imsi64,
       no_of_bearers_to_be_deact,
@@ -3069,26 +3024,11 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
    */
   s11_bearer_deactv_request->delete_default_bearer = delete_default_bearer;
   s11_bearer_deactv_request->no_of_bearers = no_of_bearers_to_be_deact;
-  OAILOG_INFO(
-    LOG_SPGW_APP,
-    "Rashmi num of bearers:%d \n",
-    s11_bearer_deactv_request->no_of_bearers);
 
   memcpy(
     s11_bearer_deactv_request->ebi,
     ebi_to_be_deactivated,
     (sizeof(ebi_t) * no_of_bearers_to_be_deact));
-  for (int i = 0; i < no_of_bearers_to_be_deact; i++) {
-    OAILOG_INFO(
-      LOG_SPGW_APP,
-      "-----------Rashmi bearers to deactivate ebi_to_be_deactivated[%d]:%u "
-      "s11_bearer_deactv_request->ebi[%d]:%u\n",
-      i,
-      ebi_to_be_deactivated[i],
-      i,
-      s11_bearer_deactv_request->ebi[i]);
-  }
-
   print_bearer_ids_helper(
     s11_bearer_deactv_request->ebi, s11_bearer_deactv_request->no_of_bearers);
 
@@ -3098,6 +3038,6 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
     "Sending nw_initiated_deactv_bearer_req to mme_app "
     "with delete_default_bearer flag set to %d\n",
     s11_bearer_deactv_request->delete_default_bearer);
-  OAILOG_FUNC_RETURN(
-    LOG_SPGW_APP, itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p));
+  int rc = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }

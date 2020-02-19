@@ -55,22 +55,20 @@ func TestQueryNode(t *testing.T) {
 
 	t.Run("LocationType", func(t *testing.T) {
 		var rsp struct{ Node struct{ Name string } }
-		err := c.Post(
+		c.MustPost(
 			`query($id: ID!) { node(id: $id) { ... on LocationType { name } } }`,
 			&rsp,
 			client.Var("id", lt.AddLocationType.ID),
 		)
-		require.NoError(t, err)
 		assert.Equal(t, "city", rsp.Node.Name)
 	})
 	t.Run("Location", func(t *testing.T) {
 		var rsp struct{ Node struct{ Name string } }
-		err := c.Post(
+		c.MustPost(
 			`query($id: ID!) { node(id: $id) { ... on Location { name } } }`,
 			&rsp,
 			client.Var("id", l.AddLocation.ID),
 		)
-		require.NoError(t, err)
 		assert.Equal(t, "tlv", rsp.Node.Name)
 	})
 	t.Run("NonExistent", func(t *testing.T) {
@@ -89,7 +87,7 @@ func TestQueryNode(t *testing.T) {
 		assert.Nil(t, v)
 	})
 	t.Run("BadID", func(t *testing.T) {
-		rsp, err := c.RawPost(`query { node(id: "_") { id } }`)
+		rsp, err := c.RawPost(`query { node(id: "-1") { id } }`)
 		require.NoError(t, err)
 		assert.Empty(t, rsp.Errors)
 		v, ok := rsp.Data.(map[string]interface{})["node"]

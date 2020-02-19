@@ -22,6 +22,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"gocloud.dev/pubsub"
 	"gocloud.dev/server/health"
+	"net/url"
 )
 
 // Injectors from wire.go:
@@ -84,6 +85,7 @@ var (
 // Config defines the http server config.
 type Config struct {
 	Tenancy   *viewer.MySQLTenancy
+	AuthURL   *url.URL
 	Topic     *pubsub.Topic
 	Subscribe func(context.Context) (*pubsub.Subscription, error)
 	Logger    log.Logger
@@ -104,10 +106,9 @@ func newRouterConfig(config Config) (cfg routerConfig, err error) {
 	if err = registry.RegisterAction(magmarebootnode.New(client)); err != nil {
 		return
 	}
-	cfg = routerConfig{
-		tenancy: config.Tenancy,
-		logger:  config.Logger,
-	}
+	cfg = routerConfig{logger: config.Logger}
+	cfg.viewer.tenancy = config.Tenancy
+	cfg.viewer.authurl = config.AuthURL.String()
 	cfg.events.topic = config.Topic
 	cfg.events.subscribe = config.Subscribe
 	cfg.orc8r.client = client

@@ -76,14 +76,16 @@ LocalEnforcer::LocalEnforcer(
   std::shared_ptr<AsyncDirectorydClient> directoryd_client,
   std::shared_ptr<SpgwServiceClient> spgw_client,
   std::shared_ptr<aaa::AAAClient> aaa_client,
-  long session_force_termination_timeout_ms):
+  long session_force_termination_timeout_ms,
+  long quota_exhaustion_termination_on_init_ms):
   reporter_(reporter),
   rule_store_(rule_store),
   pipelined_client_(pipelined_client),
   directoryd_client_(directoryd_client),
   spgw_client_(spgw_client),
   aaa_client_(aaa_client),
-  session_force_termination_timeout_ms_(session_force_termination_timeout_ms)
+  session_force_termination_timeout_ms_(session_force_termination_timeout_ms),
+  quota_exhaustion_termination_on_init_ms_(quota_exhaustion_termination_on_init_ms)
 {
 }
 
@@ -243,7 +245,7 @@ void LocalEnforcer::terminate_service(
       }
       MLOG(MDEBUG) << "Setting subscriber quota state as TERMINATE "
                    << "for subscriber " << imsi;
-      session->set_monitoring_quota_state(
+      session->set_subscriber_quota_state(
         SubscriberQuotaUpdate_Type_TERMINATE);
       report_subscriber_state_to_pipelined(
         imsi, session->get_mac_addr(), SubscriberQuotaUpdate_Type_TERMINATE);
@@ -683,16 +685,6 @@ bool LocalEnforcer::init_session_credit(
   auto rule_update_success = handle_session_init_rule_updates(
     imsi, *session_state, response, charging_credits_received);
 
-  auto it = session_map_.find(imsi);
-  if (it == session_map_.end()) {
-    // First time a session is created for IMSI
-    MLOG(MDEBUG) << "First session for IMSI " << imsi
-                 << " with session ID " << session_id;
-    session_map_[imsi] = std::vector<std::unique_ptr<SessionState>>();
-  }
-  session_map_[imsi].push_back(
-    std::move(std::unique_ptr<SessionState>(session_state)));
-
   if (session_state->is_radius_cwf_session()) {
     MLOG(MDEBUG) << "Adding UE MAC flow for subscriber " << imsi;
     SubscriberID sid;
@@ -710,14 +702,67 @@ bool LocalEnforcer::init_session_credit(
     if (!add_ue_mac_flow_success) {
       MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
     }
+
+    handle_session_init_subscriber_quota_state(imsi, *session_state);
+  }
+
+  auto it = session_map_.find(imsi);
+  if (it == session_map_.end()) {
+    // First time a session is created for IMSI
+    MLOG(MDEBUG) << "First session for IMSI " << imsi
+                 << " with session ID " << session_id;
+    session_map_[imsi] = std::vector<std::unique_ptr<SessionState>>();
+  }
+  session_map_[imsi].push_back(
+    std::move(std::unique_ptr<SessionState>(session_state)));
+  return rule_update_success;
+}
+
+void LocalEnforcer::handle_session_init_subscriber_quota_state(
+  const std::string& imsi,
+  SessionState& session_state)
+{
+  auto ue_mac_addr = session_state.get_mac_addr();
+  if (session_state.active_monitored_rules_exist()) {
     MLOG(MDEBUG) << "Setting subscriber quota state as VALID "
-                 << "for subscriber " << imsi;
-    session_state->set_monitoring_quota_state(
+             << "for subscriber " << imsi;
+    session_state.set_subscriber_quota_state(
       SubscriberQuotaUpdate_Type_VALID_QUOTA);
     report_subscriber_state_to_pipelined(
       imsi, ue_mac_addr, SubscriberQuotaUpdate_Type_VALID_QUOTA);
+    return;
   }
-  return rule_update_success;
+  MLOG(MDEBUG) << "No monitoring rules are installed, setting subscriber "
+               << "quota state as NO_QUOTA for subscriber " << imsi;
+  session_state.set_subscriber_quota_state(
+    SubscriberQuotaUpdate_Type_NO_QUOTA);
+  report_subscriber_state_to_pipelined(
+    imsi, ue_mac_addr, SubscriberQuotaUpdate_Type_NO_QUOTA);
+
+  // Schedule a session termination for a configured number of seconds after
+  // session create
+  session_state.mark_as_awaiting_termination();
+  MLOG(MDEBUG) << "Scheduling session for subscriber " << imsi
+               << "to be terminated in "
+               << quota_exhaustion_termination_on_init_ms_ << " ms";
+  evb_->runAfterDelay(
+    [this, imsi] {
+      MLOG(MDEBUG) << "Starting termination due to quota exhaustion for"
+                   << " IMSI " << imsi;
+      auto it = session_map_.find(imsi);
+      if (it == session_map_.end()) {
+          MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
+          return;
+      }
+      for (const auto &session : it->second) {
+        RulesToProcess rules;
+        populate_rules_from_session_to_remove(imsi, session, rules);
+        // terminate_service will properly propagate subscriber quota state
+        // as terminated
+        terminate_service(imsi, rules.static_rules, rules.dynamic_rules);
+      }
+    },
+    quota_exhaustion_termination_on_init_ms_);
 }
 
 void LocalEnforcer::report_subscriber_state_to_pipelined(
@@ -896,6 +941,12 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         MLOG(MERROR) << "Could not activate flows for IMSI "
                      << imsi << "during update";
       }
+
+      // CWF ONLY: terminate sessions with no monitoring quota
+      if (session->is_radius_cwf_session()
+        && !session->active_monitored_rules_exist()) {
+        subscribers_to_terminate.insert(imsi);
+      }
     }
   }
 }
@@ -903,16 +954,15 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 void LocalEnforcer::update_session_credits_and_rules(
   const UpdateSessionResponse& response)
 {
-  // If any update responses return with a permanent error code, we
-  // will terminate the session associated to that subscriber
+  // These subscribers will include any subscriber that received a permanent
+  // diameter error code. Additionally, it will also include CWF sessions that
+  // have run out of monitoring quota.
   std::unordered_set<std::string> subscribers_to_terminate;
 
   update_charging_credits(response, subscribers_to_terminate);
   update_monitoring_credits_and_rules(response, subscribers_to_terminate);
 
   terminate_multiple_services(subscribers_to_terminate);
-  // todo update monitoring quota if all monitoring rules are gone OR
-  // subscriber is terminated
 }
 
 // terminate_subscriber (for externally triggered EndSession)
@@ -957,7 +1007,7 @@ void LocalEnforcer::terminate_subscriber(
         if (!delete_ue_mac_flow_success) {
           MLOG(MERROR) << "Failed to delete UE MAC flow for subscriber " << imsi;
         }
-        session->set_monitoring_quota_state(SubscriberQuotaUpdate_Type_TERMINATE);
+        session->set_subscriber_quota_state(SubscriberQuotaUpdate_Type_TERMINATE);
         report_subscriber_state_to_pipelined(
           imsi, session->get_mac_addr(), SubscriberQuotaUpdate_Type_TERMINATE);
       }
@@ -1145,11 +1195,18 @@ void LocalEnforcer::init_policy_reauth_for_session(
       request.imsi(), ip_addr, rules_to_activate.static_rules,
       rules_to_activate.dynamic_rules);
   }
-  // todo update monitoring quota if all monitoring rules are gone
+
+  // [CWF-ONLY] terminate sessions with no monitoring quota
+  if (session->is_radius_cwf_session()
+    && !session->active_monitored_rules_exist()) {
+          RulesToProcess rules;
+    populate_rules_from_session_to_remove(imsi, session, rules);
+    terminate_service(imsi, rules.static_rules, rules.dynamic_rules);
+    return;
+  }
 
   create_bearer(
     activate_success, session, request, rules_to_activate.dynamic_rules);
-
 }
 
 void LocalEnforcer::receive_monitoring_credit_from_rar(

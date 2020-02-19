@@ -33,7 +33,6 @@
 #include "gtpv1_u_messages_types.h"
 #include "ip_forward_messages_types.h"
 #include "s11_messages_types.h"
-#include "s5_messages_types.h"
 #include "spgw_state.h"
 
 int sgw_handle_s11_create_session_request(

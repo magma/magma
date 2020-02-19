@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 )
@@ -16,7 +17,16 @@ func (subscriptionResolver) WorkOrderAdded(ctx context.Context) (<-chan *ent.Wor
 	events := make(chan *ent.WorkOrder, 1)
 	go func() {
 		defer close(events)
-		<-ctx.Done()
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				events <- &ent.WorkOrder{ID: "42"}
+			case <-ctx.Done():
+				return
+			}
+		}
 	}()
 	return events, nil
 }

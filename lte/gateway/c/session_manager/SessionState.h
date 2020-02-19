@@ -97,6 +97,7 @@ class SessionState {
   /**
    * get_updates collects updates and adds them to a UpdateSessionRequest
    * for reporting.
+   * Only updates request number
    * @param update_request (out) - request to add new updates to
    * @param actions (out) - actions to take on services
    */
@@ -116,12 +117,18 @@ class SessionState {
     std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   /**
+   * mark_as_awaiting_termination transitions the session state from
+   * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
+   */
+  void mark_as_awaiting_termination();
+
+  /**
    * can_complete_termination returns whether the termination for the session
    * can be completed.
    * For this to be true, start_termination needs to be called for the session,
    * and the flows for the session needs to be deleted.
    */
-  bool can_complete_termination();
+  bool can_complete_termination() const;
 
   /**
    * complete_termination collects final usages for all credits into a
@@ -146,37 +153,37 @@ class SessionState {
 
   UsageMonitoringCreditPool& get_monitor_pool();
 
-  std::string get_session_id();
+  std::string get_session_id() const;
 
-  std::string get_subscriber_ip_addr();
+  std::string get_subscriber_ip_addr() const;
 
-  std::string get_mac_addr();
+  std::string get_mac_addr() const;
 
-  std::string get_hardware_addr() { return config_.hardware_addr; }
+  std::string get_hardware_addr() const { return config_.hardware_addr; }
 
-  std::string get_radius_session_id();
+  std::string get_radius_session_id() const;
 
-  std::string get_apn();
+  std::string get_apn() const;
 
   std::string get_core_session_id() const { return core_session_id_; };
 
-  uint32_t get_bearer_id();
+  uint32_t get_bearer_id() const;
 
-  uint32_t get_qci();
+  uint32_t get_qci() const;
 
-  bool is_radius_cwf_session();
+  bool is_radius_cwf_session() const;
 
-  bool is_same_config(const Config& new_config);
+  bool is_same_config(const Config& new_config) const;
 
   void get_session_info(SessionState::SessionInfo& info);
 
-  bool qos_enabled();
+  bool qos_enabled() const;
 
   void set_tgpp_context(const magma::lte::TgppContext& tgpp_context);
 
-  void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context);
+  void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
-  void set_monitoring_quota_state(
+  void set_subscriber_quota_state(
     const magma::lte::SubscriberQuotaUpdate_Type state);
 
   bool active_monitored_rules_exist();
@@ -184,10 +191,16 @@ class SessionState {
  private:
   /**
    * State transitions of a session:
-   * SESSION_ACTIVE
-   *       |
-   *       | (start_termination)
-   *       V
+   * SESSION_ACTIVE  ---------
+   *       |                  \
+   *       |                   \
+   *       |                    \
+   *       |                     \
+   *       | (start_termination)  SESSION_TERMINATION_SCHEDULED
+   *       |                      /
+   *       |                     /
+   *       |                    /
+   *       V                   V
    * SESSION_TERMINATING_FLOW_ACTIVE <----------
    *       |                                   |
    *       | (new_report)                      | (add_used_credit)
@@ -207,7 +220,9 @@ class SessionState {
     SESSION_TERMINATING_FLOW_ACTIVE = 1,
     SESSION_TERMINATING_AGGREGATING_STATS = 2,
     SESSION_TERMINATING_FLOW_DELETED = 3,
-    SESSION_TERMINATED = 4
+    SESSION_TERMINATED = 4,
+    // TODO All sessions in this state should be terminated on sessiond restart
+    SESSION_TERMINATION_SCHEDULED = 5
   };
 
   std::string imsi_;
@@ -219,9 +234,9 @@ class SessionState {
   SessionRules session_rules_;
   SessionState::State curr_state_;
   SessionState::Config config_;
-  // Used to keep track of whether there are monitoring quotas.
+  // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
-  magma::lte::SubscriberQuotaUpdate_Type monitoring_quota_state_;
+  magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;
   magma::lte::TgppContext tgpp_context_;
   std::function<void(SessionTerminateRequest)> on_termination_callback_;
 

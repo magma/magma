@@ -46,10 +46,13 @@ func GetConnToTestFedGWServiceServer(t *testing.T, connectionInterface servicers
 }
 
 func GetMockVLRListenerAndPort(t *testing.T) (*sctp.SCTPListener, int) {
-	ln, err := sctp.ListenSCTP("sctp", servicers.ConstructSCTPAddr(
-		servicers.DefaultVLRIPAddress,
-		0,
-	))
+	//gets the default configuration (servicers.DefaultVLRIPAddress)
+	config := servicers.GetCsfbConfig()
+	ipStr, portNumber, err := servicers.SplitIP(config.Client.ServerAddress)
+	assert.Equal(t, servicers.DefaultVLRIPAddress, ipStr)
+	assert.Equal(t, servicers.DefaultVLRPort, portNumber)
+
+	ln, err := sctp.ListenSCTP("sctp", servicers.ConstructSCTPAddr(ipStr, 0))
 	assert.NoError(t, err)
 
 	port, err := getListenerPort(ln)

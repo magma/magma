@@ -448,17 +448,20 @@ int spgw_send_nw_init_activate_bearer_rsp(
 
 //------------------------------------------------------------------------------
 
-uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
-  const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp)
+uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(
+  gtpv2c_cause_t cause,
+  ebi_t lbi)
 {
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
-  ebi_t ebi[BEARERS_PER_UE];
 
-  memcpy(ebi, deact_ded_bearer_rsp->ebi, deact_ded_bearer_rsp->no_of_bearers);
-  print_bearer_ids_helper(ebi, deact_ded_bearer_rsp->no_of_bearers);
+  OAILOG_INFO(
+    LOG_PGW_APP,
+    "Sending Delete Bearer Rsp to PCRF with LBI %u with cause :%d\n",
+    lbi,
+    cause.cause_value);
   // Send Delete Bearer Rsp to PCRF
   // TODO-Uncomment once implemented at PCRF
-  // rc = send_dedicated_bearer_deactv_rsp(deact_ded_bearer_rsp->ebi);
+  // rc = send_dedicated_bearer_deactv_rsp(lbi, cause);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }

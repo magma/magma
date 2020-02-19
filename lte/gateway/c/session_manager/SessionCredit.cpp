@@ -260,10 +260,11 @@ bool SessionCredit::quota_exhausted(
 
 bool SessionCredit::should_deactivate_service()
 {
-  return credit_type_ == CreditType::CHARGING && !unlimited_quota_ &&
-    SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED &&
-    ((no_more_grant() && quota_exhausted()) ||
-      quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN));
+  return credit_type_ == CreditType::CHARGING &&
+         !unlimited_quota_ &&
+         SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED &&
+         ((no_more_grant() && quota_exhausted()) ||
+           quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN));
 }
 
 bool SessionCredit::validity_timer_expired()

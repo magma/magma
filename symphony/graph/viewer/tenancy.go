@@ -118,7 +118,10 @@ func (m *MySQLTenancy) clientFor(ctx context.Context, name string) (*ent.Client,
 func (m *MySQLTenancy) migrate(ctx context.Context, client *ent.Client) error {
 	ctx, span := trace.StartSpan(ctx, "tenancy.Migrate")
 	defer span.End()
-	if err := client.Schema.Create(ctx, migrate.WithFixture(false), migrate.WithGlobalUniqueID(true)); err != nil {
+	if err := client.Schema.Create(ctx,
+		migrate.WithFixture(false),
+		migrate.WithGlobalUniqueID(true),
+	); err != nil {
 		m.logger.For(ctx).Error("tenancy migrate", zap.Error(err))
 		span.SetStatus(trace.Status{Code: trace.StatusCodeUnknown, Message: err.Error()})
 		return fmt.Errorf("running tenancy migration: %w", err)

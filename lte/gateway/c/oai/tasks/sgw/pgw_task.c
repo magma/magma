@@ -72,11 +72,6 @@ static void *pgw_intertask_interface(void *args_p)
     }
 
     switch (ITTI_MSG_ID(received_message_p)) {
-      case S5_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
-        pgw_handle_nw_init_deactivate_bearer_rsp(
-          &received_message_p->ittiMsg.s5_nw_init_deactv_bearer_response);
-      } break;
-
       case TERMINATE_MESSAGE: {
         pgw_exit();
         OAI_FPRINTF_INFO("TASK_PGW terminated\n");

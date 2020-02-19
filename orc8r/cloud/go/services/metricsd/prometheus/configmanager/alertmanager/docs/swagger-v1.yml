@@ -138,22 +138,22 @@ paths:
           description: Alerting tree
           schema:
             $ref: '#/definitions/global_config'
-      post:
-        summary: Modify alertmanager global config
-        tags:
-          - Routes
-        parameters:
-          - in: body
-            name: global_config
-            description: Global config to be set
-            required: true
-            schema:
-              $ref: '#/definitions/global_config'
-        responses:
-          '200':
-            description: OK
-          default:
-            $ref: '#/responses/UnexpectedError'
+    post:
+      summary: Modify alertmanager global config
+      tags:
+        - Routes
+      parameters:
+        - in: body
+          name: global_config
+          description: Global config to be set
+          required: true
+          schema:
+            $ref: '#/definitions/global_config'
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: '#/responses/UnexpectedError'
 
 parameters:
   tenant_id:

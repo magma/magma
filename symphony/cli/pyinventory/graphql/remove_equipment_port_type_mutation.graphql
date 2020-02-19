@@ -1,0 +1,3 @@
+mutation RemoveEquipmentPortTypeMutation($id: ID!) {
+  removeEquipmentPortType(id: $id)
+}

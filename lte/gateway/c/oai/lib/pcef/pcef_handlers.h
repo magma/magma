@@ -31,7 +31,6 @@ extern "C" {
 #include "intertask_interface.h"
 #include "common_types.h"
 #include "ip_forward_messages_types.h"
-#include "s5_messages_types.h"
 #include "spgw_types.h"
 
 struct pcef_create_session_data {

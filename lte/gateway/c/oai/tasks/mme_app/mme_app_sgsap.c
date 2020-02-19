@@ -31,7 +31,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "assertions.h"
 #include "conversions.h"
 #include "log.h"
 #include "intertask_interface.h"
@@ -60,16 +59,21 @@
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
-  itti_sgsap_paging_request_t *const sgsap_paging_req_pP)
+int mme_app_handle_sgsap_paging_request(
+  mme_app_desc_t* mme_app_desc_p,
+  itti_sgsap_paging_request_t* const sgsap_paging_req_pP)
 {
-  struct ue_mm_context_s *ue_context_p = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
   int rc = RETURNok;
   sgs_fsm_t sgs_fsm;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(sgsap_paging_req_pP);
+  if (sgsap_paging_req_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP, "Invalid SGSAP Paging Request ITTI message received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   IMSI_STRING_TO_IMSI64(sgsap_paging_req_pP->imsi, &imsi64);
 
@@ -104,14 +108,14 @@ int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
       "sgsap_paging_reject", 1, 1, "cause", "SGS context not created");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  ue_context_p->sgs_context->sgsap_msg = (void *) sgsap_paging_req_pP;
+  ue_context_p->sgs_context->sgsap_msg = (void*) sgsap_paging_req_pP;
   sgs_fsm.primitive = _SGS_PAGING_REQUEST;
   sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
-  sgs_fsm.ctx = (void *) ue_context_p->sgs_context;
+  sgs_fsm.ctx = (void*) ue_context_p->sgs_context;
 
   // Invoke SGS FSM
   rc = sgs_fsm_process(&sgs_fsm);
-  if(rc != RETURNok) {
+  if (rc != RETURNok) {
     OAILOG_WARNING(
       LOG_MME_APP,
       "Failed  to execute SGS State machine for ue_id :%u \n",
@@ -120,4 +124,3 @@ int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
   ue_context_p->sgs_context->sgsap_msg = NULL;
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
-

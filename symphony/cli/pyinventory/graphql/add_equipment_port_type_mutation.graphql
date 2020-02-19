@@ -1,0 +1,6 @@
+mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
+  addEquipmentPortType(input: $input) {
+    id
+    name
+  }
+}

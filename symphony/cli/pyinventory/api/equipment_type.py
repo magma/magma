@@ -2,12 +2,12 @@
 # pyre-strict
 
 from dataclasses import asdict
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
 
-from .._utils import PropertyValue, _make_property_types
+from .._utils import PropertyValue, format_properties
 from ..consts import Equipment, EquipmentPortType, EquipmentType
 from ..exceptions import EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_mutation import (
@@ -21,7 +21,6 @@ from ..graphql.edit_equipment_type_mutation import (
 from ..graphql.equipment_port_types import EquipmentPortTypesQuery
 from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
 from ..graphql.equipment_types_query import EquipmentTypesQuery
-from ..graphql.property_kind_enum import PropertyKind
 from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
 from ..graphql_client import GraphqlClient
 from ..reporter import FailedOperationException
@@ -164,17 +163,8 @@ def add_equipment_type(
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
-    property_types = _make_property_types(properties)
 
-    def property_type_to_kind(
-        key: str, value: Union[str, int, float, bool]
-    ) -> Union[str, int, float, bool, PropertyKind]:
-        return value if key != "type" else PropertyKind(value)
-
-    new_property_types = [
-        {k: property_type_to_kind(k, v) for k, v in property_type.items()}
-        for property_type in property_types
-    ]
+    new_property_types = format_properties(properties)
 
     port_definitions = [{"name": name} for name, _ in ports_dict.items()]
     position_definitions = [{"name": position} for position in position_list]

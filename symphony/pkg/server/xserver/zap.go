@@ -29,6 +29,7 @@ func (l *ZapLogger) Log(ent *requestlog.Entry) {
 		zap.String("remote_ip", ent.RemoteIP),
 		zap.String("server_ip", ent.ServerIP),
 		zap.String("referer", ent.Referer),
+		zap.String("proto", ent.Proto),
 		zap.Stringer("trace_id", ent.TraceID),
 		zap.Stringer("span_id", ent.SpanID),
 		zap.Duration("latency", ent.Latency),
