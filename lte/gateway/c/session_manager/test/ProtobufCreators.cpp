@@ -165,4 +165,16 @@ void create_tgpp_context(
   context->set_gy_dest_host(gy_dest_host);
 }
 
+void create_subscriber_quota_update(
+  const std::string& imsi,
+  const std::string& ue_mac_addr,
+  const SubscriberQuotaUpdate_Type state,
+  SubscriberQuotaUpdate* update)
+{
+  auto sid = update->mutable_sid();
+  sid->set_id(imsi);
+  update->set_mac_addr(ue_mac_addr);
+  update->set_update_type(state);
+}
+
 } // namespace magma
