@@ -9,7 +9,8 @@ import grpc
 import logging
 
 from magma.common.service_registry import ServiceRegistry
-from orc8r.protos.directoryd_pb2 import UpdateRecordRequest
+from orc8r.protos.directoryd_pb2 import UpdateRecordRequest, \
+    GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
 DIRECTORYD_SERVICE_NAME = "directoryd"
@@ -42,3 +43,31 @@ def update_record(imsi: str, ip_addr: str) -> None:
             ip_addr,
             err.code(),
             err.details())
+
+
+def get_record(imsi: str, field: str) -> str:
+    """
+    Make RPC call to 'GetDirectoryField' method of local directoryD service
+    """
+    try:
+        chan = ServiceRegistry.get_rpc_channel(DIRECTORYD_SERVICE_NAME,
+                                               ServiceRegistry.LOCAL)
+    except ValueError:
+        logging.error('Cant get RPC channel to %s', DIRECTORYD_SERVICE_NAME)
+        return
+    client = GatewayDirectoryServiceStub(chan)
+    if not imsi.startswith("IMSI"):
+        imsi = "IMSI" + imsi
+    try:
+        # Location will be filled in by directory service
+        req = GetDirectoryFieldRequest(id=imsi, field_key=field)
+        res = client.GetDirectoryField(req, DEFAULT_GRPC_TIMEOUT)
+        if res.value is not None:
+            return res.value
+    except grpc.RpcError as err:
+        logging.error(
+            "GetDirectoryFieldRequest error for id: %s! [%s] %s",
+            imsi,
+            err.code(),
+            err.details())
+    return None

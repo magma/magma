@@ -13,4 +13,4 @@ network:
     cwag_br0:
       dhcp4: no
       addresses:
-        - 192.168.128.1/24
+        - 192.168.128.1/16

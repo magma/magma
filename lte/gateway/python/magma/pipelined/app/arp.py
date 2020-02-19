@@ -84,7 +84,7 @@ class ArpController(MagmaController):
                                        self.config.virtual_mac)
             self._install_default_eth_dst_flow(datapath)
         if self.setup_type == 'CWF':
-            self._set_incoming_arp_flows(datapath,
+            self.set_incoming_arp_flows(datapath,
                 self.config.cwf_check_quota_ip, self.config.cwf_bridge_mac)
             if self.allow_unknown_uplink_arps:
                 self._install_allow_incoming_arp_flow(datapath)
@@ -97,7 +97,7 @@ class ArpController(MagmaController):
         Installs flows to allow arp traffic from the UE and to reply to ARPs
         sent for the UE ip address
         """
-        self._set_incoming_arp_flows(datapath, ue_ip, ue_mac)
+        self.set_incoming_arp_flows(datapath, ue_ip, ue_mac)
         # If we already installed an outgoing allow don't overwrite the rule
         # TODO its probably better for ue mac to manage this
         if ue_ip not in self._current_ues:
@@ -110,7 +110,7 @@ class ArpController(MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.table_num)
 
-    def _set_incoming_arp_flows(self, datapath, ip_block, src_mac):
+    def set_incoming_arp_flows(self, datapath, ip_block, src_mac):
         """
         Install flow rules for incoming ARPs(to UE):
             - For ARP request: respond to incoming ARP requests.
