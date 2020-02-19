@@ -30,8 +30,9 @@ type ServiceLocation struct {
 }
 
 const (
-	GrpcMaxDelaySec   = 10
-	GrpxMaxTimeoutSec = 60
+	GrpcMaxDelaySec        = 10
+	GrpcMaxLocalTimeoutSec = 30
+	GrpcMaxTimeoutSec      = 60
 )
 
 type serviceRegistry struct {
@@ -128,7 +129,7 @@ func GetServicePort(service string) (int, error) {
 
 // GetConnection provides a gRPC connection to a service in the registry.
 func GetConnection(service string) (*grpc.ClientConn, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), GrpxMaxTimeoutSec*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
 	return GetConnectionImpl(
 		ctx,

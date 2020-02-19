@@ -60,6 +60,18 @@ func (cfgMap *ConfigMap) GetRequiredStringParam(key string) string {
 	return str
 }
 
+// UpdateStringParam updates the given string pointed by strPtr if the config param exists and non-empty
+func (cfgMap *ConfigMap) UpdateStringParam(strPtr *string, key string) error {
+	if strPtr == nil {
+		return fmt.Errorf("Nil pointer for parameter with key: %s", key)
+	}
+	str, err := getStringParamImpl(cfgMap, key)
+	if err == nil && len(str) > 0 {
+		*strPtr = str
+	}
+	return err
+}
+
 // GetIntParam is used to retrieve an int param from a YML file
 func (cfgMap *ConfigMap) GetIntParam(key string) (int, error) {
 	return getIntParamImpl(cfgMap, key)
@@ -87,10 +99,12 @@ func (cfgMap *ConfigMap) GetBoolParam(key string) (bool, error) {
 	return param, nil
 }
 
+// GetStringArrayParam finds and returns a string list/array parameter or error
 func (cfgMap *ConfigMap) GetStringArrayParam(key string) ([]string, error) {
 	return getStringArrayParamImpl(cfgMap, key)
 }
 
+// GetRequiredStringArrayParam finds and returns a string list/array parameter or "fatals"
 func (cfgMap *ConfigMap) GetRequiredStringArrayParam(key string) []string {
 	param, err := getStringArrayParamImpl(cfgMap, key)
 	if err != nil {
@@ -99,23 +113,82 @@ func (cfgMap *ConfigMap) GetRequiredStringArrayParam(key string) []string {
 	return param
 }
 
-func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {
-	// Filenames should be lower case
-	moduleName = strings.ToLower(moduleName)
-	serviceName = strings.ToLower(serviceName)
+// GetMapParam finds and returns map parameter or error
+func (cfgMap *ConfigMap) GetMapParam(key string) (map[interface{}]interface{}, error) {
+	return cfgMap.getMapParamImpl(key)
+}
 
-	configFileName := filepath.Join(configDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
-	if fi, err := os.Stat(configFileName); err != nil || fi.IsDir() {
-		old := configFileName
-		configFileName = filepath.Join(oldConfigDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
-		log.Printf("Cannot load '%s': %v, using Legacy Service Registry Configuration: %s", old, err, configFileName)
+// GetRequiredMapParam finds and returns a map parameter or "fatals"
+func (cfgMap *ConfigMap) GetRequiredMapParam(key string) map[interface{}]interface{} {
+	param, err := cfgMap.getMapParamImpl(key)
+	if err != nil {
+		glog.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
+	return param
+}
 
+// GetStructuredServiceConfig updates 'out' structure with configs from the configs YML
+func GetStructuredServiceConfig(moduleName string, serviceName string, out interface{}) error {
+	return GetStructuredServiceConfigExt(moduleName, serviceName, ConfigDir, OldConfigDir, ConfigOverrideDir, out)
+}
+
+// GetStructuredServiceConfigExt is an extended version of GetStructuredServiceConfig, it allows to pass config
+// directory names
+func GetStructuredServiceConfigExt(
+	moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string, out interface{}) error {
+
+	if out == nil {
+		return fmt.Errorf("Structured CFG: Invalid (nil) output parameter")
+	}
+	configFileName := getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir)
+	yamlFileData, err := ioutil.ReadFile(configFileName)
+	if err == nil {
+		err = yaml.Unmarshal([]byte(yamlFileData), out)
+		if err != nil {
+			log.Printf("Structured CFG: Error Unmarshaling '%s' into type %T: %v", configFileName, out, err)
+		} else {
+			log.Printf("Successfully loaded structured '%s::%s' service configs from '%s'",
+				moduleName, serviceName, configFileName)
+		}
+	} else {
+		log.Printf("Structured CFG: Error Reading '%s': %v", configFileName, err)
+	}
+	// Overwrite params from override configs
+	var oerr error
+	overrideFileName := filepath.Join(configOverrideDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
+	if fi, serr := os.Stat(overrideFileName); serr == nil && !fi.IsDir() {
+		yamlFileData, oerr = ioutil.ReadFile(overrideFileName)
+		if oerr == nil {
+			oerr = yaml.Unmarshal([]byte(yamlFileData), out)
+			if oerr != nil {
+				log.Printf("Structured CFG: Error Unmarshaling Override file '%s' into type %T: %v",
+					configFileName, out, err)
+			} else {
+				log.Printf("Successfully loaded Override configs for service %s:%s from '%s'",
+					moduleName, serviceName, overrideFileName)
+			}
+		} else {
+			log.Printf("Structured CFG:Error Loading Override configs from '%s': %v", overrideFileName, err)
+		}
+	}
+	if err == nil || oerr == nil { // fully or partially succeeded
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return oerr
+}
+
+func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {
+	configFileName := getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir)
 	config, err := loadYamlFile(configFileName)
 	if err != nil {
 		// If error - try Override cfg
 		config = &ConfigMap{RawMap: map[interface{}]interface{}{}}
-		log.Printf("Error Loading %s configs from '%s': %v", serviceName, configFileName, err)
+		log.Printf("Error Loading %s::%s configs from '%s': %v", moduleName, serviceName, configFileName, err)
+	} else {
+		log.Printf("Successfully loaded '%s::%s' service configs from '%s'", moduleName, serviceName, configFileName)
 	}
 
 	overrideFileName := filepath.Join(configOverrideDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
@@ -126,10 +199,27 @@ func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, conf
 			return config, err
 		}
 		config = updateMap(config, overrides)
-	} else {
-		log.Printf("No Override configs found at: %s", overrideFileName)
+		log.Printf("Successfully loaded Override configs for service %s:%s from '%s'",
+			moduleName, serviceName, overrideFileName)
 	}
 	return config, err
+}
+
+func getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir string) string {
+	// Filenames should be lower case
+	moduleName = strings.ToLower(moduleName)
+	serviceName = strings.ToLower(serviceName)
+
+	configFileName := filepath.Join(configDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
+	if fi, nerr := os.Stat(configFileName); nerr != nil || fi.IsDir() {
+		old := configFileName
+		configFileName = filepath.Join(oldConfigDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
+		if fi, err := os.Stat(configFileName); err != nil || fi.IsDir() {
+			log.Printf("Cannot find '%s': %v, or Legacy Service Registry Configuration: '%s': %v",
+				old, nerr, configFileName, err)
+		}
+	}
+	return configFileName
 }
 
 func updateMap(baseMap, overrides *ConfigMap) *ConfigMap {
@@ -198,4 +288,20 @@ func getStringArrayParamImpl(cfgMap *ConfigMap, key string) ([]string, error) {
 		return []string{}, fmt.Errorf("could not convert param to string array for key %s", key)
 	}
 	return strings, nil
+}
+
+func (cfgMap *ConfigMap) getMapParamImpl(key string) (map[interface{}]interface{}, error) {
+	if cfgMap == nil {
+		return map[interface{}]interface{}{}, fmt.Errorf("Invalid (nil) ConfigMap")
+	}
+	paramIface, ok := cfgMap.RawMap[key]
+	if !ok {
+		return map[interface{}]interface{}{}, fmt.Errorf("Could not find key %s", key)
+	}
+	param, ok := paramIface.(map[interface{}]interface{})
+	if !ok {
+		return map[interface{}]interface{}{},
+			fmt.Errorf("Could not convert %T param to map for key %s", paramIface, key)
+	}
+	return param, nil
 }
