@@ -161,9 +161,9 @@ class TestWrapper(object):
         print("************************* Waiting for IP changes to propagate")
         self._mobility_util.wait_for_changes()
 
-    def configUEDevice(self, num_ues):
+    def configUEDevice(self, num_ues, apn_list=[]):
         """ Configure the device on the UE side """
-        reqs = self._sub_util.add_sub(num_ues=num_ues)
+        reqs = self._sub_util.add_sub(num_ues=num_ues, apn_list=apn_list)
         for i in range(num_ues):
             print(
                 "************************* UE device config for ue_id ", reqs[i].ue_id
@@ -174,9 +174,9 @@ class TestWrapper(object):
             self._configuredUes.append(reqs[i])
         self.check_gw_health_after_ue_load()
 
-    def configAPN(self, imsi, apn):
+    def configAPN(self, apn):
         """ Configure the APN """
-        self._sub_util.add_apn_data(imsi, apn)
+        self._sub_util.add_apn_data(apn)
 
     def configUEDevice_ues_same_imsi(self, num_ues):
         """ Configure the device on the UE side with same IMSI and

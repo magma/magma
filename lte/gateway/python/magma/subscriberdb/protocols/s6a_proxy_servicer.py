@@ -11,7 +11,10 @@ import logging
 
 from magma.subscriberdb import metrics
 from magma.subscriberdb.crypto.utils import CryptoError
-from magma.subscriberdb.store.base import SubscriberNotFoundError
+from magma.subscriberdb.store.base import (
+    SubscriberNotFoundError,
+    ApnNotFoundError,
+)
 
 from feg.protos import s6a_proxy_pb2, s6a_proxy_pb2_grpc
 
@@ -114,34 +117,38 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         apn.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
 
+        # Seconday PDN
         num_sec_apn = len(sub_data.non_3gpp.apn_config)
+        apn_found = 0
         for idx in range(num_sec_apn):
+            try:
+                apn_data = self.lte_processor.get_apn_data(
+                    sub_data.non_3gpp.apn_config[idx].service_selection
+                )
+                apn_found += 1
+            except ApnNotFoundError as e:
+                continue
             sec_apn = ula.apn.add()
             # Context id 0 is assigned to oai.ipv4 apn. So start from 1
             sec_apn.context_id = idx + 1
-            sec_apn.service_selection = sub_data.non_3gpp.apn_config[
-                idx
-            ].service_selection
-            sec_apn.qos_profile.class_id = sub_data.non_3gpp.apn_config[
-                idx
-            ].qos_profile.class_id
-            sec_apn.qos_profile.priority_level = sub_data.non_3gpp.apn_config[
-                idx
-            ].qos_profile.priority_level
-            sec_apn.qos_profile.preemption_capability = \
-                sub_data.non_3gpp.apn_config[idx].qos_profile.\
-                preemption_capability
-            sec_apn.qos_profile.preemption_vulnerability = \
-                sub_data.non_3gpp.apn_config[idx].qos_profile.\
-                preemption_vulnerability
+            sec_apn.service_selection = apn_data.service_selection
+            sec_apn.qos_profile.class_id = apn_data.qos_profile.class_id
+            sec_apn.qos_profile.priority_level = (
+                apn_data.qos_profile.priority_level
+            )
+            sec_apn.qos_profile.preemption_capability = (
+                apn_data.qos_profile.preemption_capability
+            )
+            sec_apn.qos_profile.preemption_vulnerability = (
+                apn_data.qos_profile.preemption_vulnerability
+            )
 
-            sec_apn.ambr.max_bandwidth_ul = sub_data.non_3gpp.apn_config[
-                idx
-            ].ambr.max_bandwidth_ul
-            sec_apn.ambr.max_bandwidth_dl = sub_data.non_3gpp.apn_config[
-                idx
-            ].ambr.max_bandwidth_dl
+            sec_apn.ambr.max_bandwidth_ul = apn_data.ambr.max_bandwidth_ul
+            sec_apn.ambr.max_bandwidth_dl = apn_data.ambr.max_bandwidth_dl
             sec_apn.pdn = (
                 s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
             )
+
+        if num_sec_apn and (apn_found == 0):
+            ula.error_code = s6a_proxy_pb2.UNKNOWN_EPS_SUBSCRIPTION
         return ula

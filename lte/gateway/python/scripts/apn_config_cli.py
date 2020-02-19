@@ -18,14 +18,14 @@ from lte.protos.subscriberdb_pb2 import (
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
 from magma.common.rpc_utils import grpc_wrapper
-from magma.subscriberdb.sid import SIDUtils
+from orc8r.protos.common_pb2 import Void
 
 
 @grpc_wrapper
 def add_apn(client, args):
     non_3gpp = Non3GPPUserProfile()
 
-    print("Adding APN %s for sid %s " % (args.apn, args.sid))
+    print("Adding APN : ", args.apn)
     apn_config = non_3gpp.apn_config.add()
     apn_config.service_selection = args.apn
     apn_config.qos_profile.class_id = args.qci
@@ -37,7 +37,7 @@ def add_apn(client, args):
     apn_config.ambr.max_bandwidth_ul = args.mbrUL
     apn_config.ambr.max_bandwidth_dl = args.mbrDL
 
-    data = SubscriberData(sid=SIDUtils.to_pb(args.sid), non_3gpp=non_3gpp)
+    data = SubscriberData(non_3gpp=non_3gpp)
     client.AddApn(data)
 
 
@@ -45,42 +45,49 @@ def add_apn(client, args):
 def update_apn(client, args):
     non_3gpp = Non3GPPUserProfile()
 
-    print("Updating APN %s for sid %s " % (args.apn, args.sid))
+    print("Updating APN : ", args.apn)
     apn = non_3gpp.apn_config.add()
     apn.service_selection = args.apn
+    apn.qos_profile.preemption_capability = args.preemptionCapability
+    apn.qos_profile.preemption_vulnerability = args.preemptionVulnerability
     if args.qci is not None:
         apn.qos_profile.class_id = args.qci
     if args.priority is not None:
         apn.qos_profile.priority_level = args.priority
-    apn.qos_profile.preemption_capability = args.preemptionCapability
-    apn.qos_profile.preemption_vulnerability = args.preemptionVulnerability
     if args.mbrUL is not None:
         apn.ambr.max_bandwidth_ul = args.mbrUL
     if args.mbrDL is not None:
         apn.ambr.max_bandwidth_dl = args.mbrDL
-    update = SubscriberData(sid=SIDUtils.to_pb(args.sid), non_3gpp=non_3gpp)
+    update = SubscriberData(non_3gpp=non_3gpp)
     client.UpdateApn(update)
 
 
 @grpc_wrapper
 def delete_apn(client, args):
-    print("Deleting APN %s for sid %s " % (args.apn, args.sid))
+    print("Deleting APN : ", args.apn)
     non_3gpp = Non3GPPUserProfile()
     apn_config = non_3gpp.apn_config.add()
     apn_config.service_selection = args.apn
-    data = SubscriberData(sid=SIDUtils.to_pb(args.sid), non_3gpp=non_3gpp)
+    data = SubscriberData(non_3gpp=non_3gpp)
     client.DeleteApn(data)
 
 
 @grpc_wrapper
 def get_apn(client, args):
-    print("Retrieving APN %s for sid %s " % (args.apn, args.sid))
+    print("Retrieving APN : ", args.apn)
     non_3gpp = Non3GPPUserProfile()
     apn_config = non_3gpp.apn_config.add()
     apn_config.service_selection = args.apn
-    data = SubscriberData(sid=SIDUtils.to_pb(args.sid), non_3gpp=non_3gpp)
+    data = SubscriberData(non_3gpp=non_3gpp)
     apn_data = client.GetApnData(data)
     print(apn_data)
+
+
+@grpc_wrapper
+def list_apns(client, args):
+    print("Retrieving APN list")
+    for apn in client.ListApns(Void()).apn_name:
+        print(apn)
 
 
 def create_parser():
@@ -98,16 +105,15 @@ def create_parser():
     parser_del = subparsers.add_parser("delete", help="Delete an apn")
     parser_update = subparsers.add_parser("update", help="Update an apn")
     parser_get = subparsers.add_parser("get", help="Get apn data")
+    parser_list = subparsers.add_parser("list", help="List all APNs")
 
     # Add arguments
     for cmd in [parser_add, parser_del, parser_update, parser_get]:
-        cmd.add_argument("sid", help="Subscriber identifier")
-    for cmd in [parser_add]:
         cmd.add_argument("apn", help="Name of the APN (ims/internet)")
+    for cmd in [parser_add]:
         cmd.add_argument("qci", type=int, help="QCI for APN [1-9]")
         cmd.add_argument(
-            "priority", type=int, help="Priority of the APN vaules [1-15]"
-        )
+            "priority", type=int, help="Priority of the APN [1-15]")
         cmd.add_argument(
             "preemptionCapability", type=int, help="Enabled/Disabled [0/1]"
         )
@@ -117,7 +123,10 @@ def create_parser():
         cmd.add_argument("mbrUL", type=int, help="Max bit rate UL")
         cmd.add_argument("mbrDL", type=int, help="Max bit rate DL")
     for cmd in [parser_update]:
-        cmd.add_argument("apn", help="Name of the APN (ims/internet)")
+        # preemption_capability and preemption_vulnerability are bool type
+        # and cannot be checked for non-zero. Hence they are
+        # mandatory parameters
+
         cmd.add_argument(
             "preemptionCapability", type=int, help="Enabled/Disabled [0/1]"
         )
@@ -131,14 +140,12 @@ def create_parser():
         cmd.add_argument("--mbrUL", type=int, help="Max bit rate UL")
         cmd.add_argument("--mbrDL", type=int, help="Max bit rate DL")
 
-    for cmd in [parser_del, parser_get]:
-        cmd.add_argument("apn", help="Name of the APN (ims/internet)")
-
     # Add function callbacks
     parser_add.set_defaults(func=add_apn)
     parser_del.set_defaults(func=delete_apn)
     parser_update.set_defaults(func=update_apn)
     parser_get.set_defaults(func=get_apn)
+    parser_list.set_defaults(func=list_apns)
     return parser
 
 

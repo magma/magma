@@ -27,9 +27,9 @@ class TestMaximumBearersPerUe(unittest.TestCase):
         """ Attach a single UE and send standalone PDN Connectivity
         Request + add 9 dedicated bearers + detach"""
         num_ues = 1
-        self._s1ap_wrapper.configUEDevice(num_ues)
-        req = self._s1ap_wrapper.ue_req
-        # APN details to be configured
+
+        # Configure APN before configuring UE device
+        # APN of the secondary PDN
         ims = [
             "ims",  # APN-name
             5,  # qci
@@ -40,10 +40,14 @@ class TestMaximumBearersPerUe(unittest.TestCase):
             100000000,  # MBR DL
         ]
 
+        # APN details to be configured in APN DB
         apn_list = [ims]
-        self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
-        )
+        self._s1ap_wrapper.configAPN(apn_list)
+
+        # List of APN names supported by the UE
+        apn_supported = ["ims"]
+        self._s1ap_wrapper.configUEDevice(num_ues, apn_supported)
+        req = self._s1ap_wrapper.ue_req
 
         # 1 oai PDN + 1 dedicated bearer, 1 ims pdn + 8 dedicated bearers
         loop = 8

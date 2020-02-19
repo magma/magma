@@ -9,8 +9,13 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import abc
-from lte.protos.subscriberdb_pb2 import GSMSubscription, LTESubscription, \
-    SubscriberID
+from lte.protos.subscriberdb_pb2 import (
+    GSMSubscription,
+    LTESubscription,
+    SubscriberID,
+    SubscriberData,
+    Non3GPPUserProfile,
+)
 
 from magma.subscriberdb.sid import SIDUtils
 from .crypto.gsm import UnsafePreComputedA3A8
@@ -264,7 +269,7 @@ class Processor(GSMProcessor, LTEProcessor):
 
     def get_sub_data(self, imsi):
         """
-        Returns the complete subscription profile for subscriber.
+        Returns the complete subscriber profile for subscriber.
         Args:
             imsi: IMSI string
         Returns:
@@ -273,6 +278,21 @@ class Processor(GSMProcessor, LTEProcessor):
         sid = SIDUtils.to_str(SubscriberID(id=imsi, type=SubscriberID.IMSI))
         sub_data = self._store.get_subscriber_data(sid)
         return sub_data
+
+    def get_apn_data(self, apn_name):
+        """
+        Returns the apn profile for subscriber.
+        Args:
+            apn_name : name of the APN
+        Returns:
+            SubscriberData proto struct
+        """
+        non_3gpp = Non3GPPUserProfile()
+        apn_config = non_3gpp.apn_config.add()
+        apn_config.service_selection = apn_name
+        sub_data = SubscriberData(non_3gpp=non_3gpp)
+        apn_data = self._store.get_apn_config(sub_data)
+        return apn_data
 
     @classmethod
     def seq_to_sqn(cls, seq, ind=0):

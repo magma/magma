@@ -26,12 +26,9 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
         Request and detach without sending PDN Disconnect """
 
         num_ue = 1
-        self._s1ap_wrapper.configUEDevice(num_ue)
-        req = self._s1ap_wrapper.ue_req
-        ue_id = req.ue_id
 
-        # APN details to be configured
-        # ims apn
+        # Configure APN before configuring UE device
+        # APN of the secondary PDN
         ims = [
             "ims",  # APN-name
             5,  # qci
@@ -42,10 +39,15 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
             100000000,  # MBR DL
         ]
 
+        # APN details to be configured in APN DB
         apn_list = [ims]
-        self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
-        )
+        self._s1ap_wrapper.configAPN(apn_list)
+
+        # List of APN names supported by the UE
+        apn_supported = ["ims"]
+        self._s1ap_wrapper.configUEDevice(num_ue, apn_supported)
+        req = self._s1ap_wrapper.ue_req
+        ue_id = req.ue_id
 
         print(
             "************************* Running End to End attach for UE id ",

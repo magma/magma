@@ -26,10 +26,9 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
         Request + detach. Repeat 3 times """
 
         num_ues = 1
-        self._s1ap_wrapper.configUEDevice(num_ues)
-        req = self._s1ap_wrapper.ue_req
 
-        # APN details to be configured
+        # Configure APN before configuring UE device
+        # APN of the secondary PDN
         ims = [
             "ims",  # APN-name
             5,  # qci
@@ -40,11 +39,14 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
             100000000,  # MBR DL
         ]
 
+        # APN details to be configured in APN DB
         apn_list = [ims]
-        self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
-        )
+        self._s1ap_wrapper.configAPN(apn_list)
 
+        # List of APN names supported by the UE
+        apn_supported = ["ims"]
+        self._s1ap_wrapper.configUEDevice(num_ues, apn_supported)
+        req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         loop = 3
         print(

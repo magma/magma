@@ -11,8 +11,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import argparse
 
-from lte.protos.subscriberdb_pb2 import GSMSubscription, LTESubscription, \
-    SubscriberData, SubscriberState, SubscriberUpdate
+from lte.protos.subscriberdb_pb2 import (
+    GSMSubscription,
+    LTESubscription,
+    SubscriberData,
+    SubscriberState,
+    SubscriberUpdate,
+    Non3GPPUserProfile,
+)
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from orc8r.protos.common_pb2 import Void
 
@@ -25,6 +31,7 @@ def add_subscriber(client, args):
     gsm = GSMSubscription()
     lte = LTESubscription()
     state = SubscriberState()
+    non_3gpp = Non3GPPUserProfile()
 
     if len(args.gsm_auth_tuple) != 0:
         gsm.state = GSMSubscription.ACTIVE
@@ -41,8 +48,21 @@ def add_subscriber(client, args):
     if args.lte_auth_opc is not None:
         lte.auth_opc = bytes.fromhex(args.lte_auth_opc)
 
-    data = SubscriberData(sid=SIDUtils.to_pb(args.sid), gsm=gsm,
-            lte=lte, state=state)
+    if args.apn_config is not None:
+        apn_list = args.apn_config.split(",")
+        num_apn = len(apn_list)
+        for idx in range(num_apn):
+            apn = non_3gpp.apn_config.add()
+            apn.service_selection = apn_list[idx]
+        print(apn_list)
+
+    data = SubscriberData(
+        sid=SIDUtils.to_pb(args.sid),
+        gsm=gsm,
+        lte=lte,
+        state=state,
+        non_3gpp=non_3gpp,
+    )
     client.AddSubscriber(data)
 
 
@@ -76,9 +96,20 @@ def update_subscriber(client, args):
         fields.append('lte.state')
         fields.append('lte.auth_opc')
 
-
     client.UpdateSubscriber(update)
 
+@grpc_wrapper
+def update_subscriber_apn(client, args):
+    non_3gpp = Non3GPPUserProfile()
+    apn_list = args.apnconfig.split(",")
+    num_apn = len(apn_list)
+    for idx in range(num_apn):
+        apn = non_3gpp.apn_config.add()
+        apn.service_selection = apn_list[idx]
+    print(apn_list)
+
+    data = SubscriberData(sid=SIDUtils.to_pb(args.sid), non_3gpp=non_3gpp)
+    client.UpdateSubscriberApn(data)
 
 @grpc_wrapper
 def delete_subscriber(client, args):
@@ -106,27 +137,66 @@ def create_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Add subcommands
-    subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
-    parser_add = subparsers.add_parser('add', help='Add a new subscriber')
-    parser_del = subparsers.add_parser('delete', help='Delete a subscriber')
-    parser_update = subparsers.add_parser('update', help='Update a subscriber')
-    parser_get = subparsers.add_parser('get', help='Get subscriber data')
-    parser_list = subparsers.add_parser('list', help='List all subscriber ids')
+    subparsers = parser.add_subparsers(title="subcommands", dest="cmd")
+    parser_add = subparsers.add_parser("add", help="Add a new subscriber")
+    parser_del = subparsers.add_parser("delete", help="Delete a subscriber")
+    parser_update = subparsers.add_parser("update", help="Update a subscriber")
+    parser_update_apn = subparsers.add_parser(
+        "update_apn", help="Update apn for a  subscriber"
+    )
+    parser_get = subparsers.add_parser("get", help="Get subscriber data")
+    parser_list = subparsers.add_parser("list", help="List all subscriber ids")
 
     # Add arguments
-    for cmd in [parser_add, parser_del, parser_update, parser_get]:
-        cmd.add_argument('sid', help='Subscriber identifier')
-    for cmd in [parser_add, parser_update]:
-        cmd.add_argument('--gsm-auth-tuple', default=[], action='append',
-                         help='GSM authentication tuple (hex digits)')
-        cmd.add_argument('--lte-auth-key', help='LTE authentication key')
-        cmd.add_argument('--lte-auth-opc', help='LTE authentication opc')
-        cmd.add_argument('--lte-auth-next-seq', type=int,
-                         help='LTE authentication seq number (hex digits)')
-    # Add function callbacks
+    for cmd in [
+        parser_add,
+        parser_del,
+        parser_update,
+        parser_get,
+        parser_update_apn,
+    ]:
+        cmd.add_argument("sid", help="Subscriber identifier")
+    for cmd in [parser_add]:
+        cmd.add_argument(
+            "--gsm-auth-tuple",
+            default=[],
+            action="append",
+            help="GSM authentication tuple (hex digits)",
+        )
+        cmd.add_argument("--lte-auth-key", help="LTE authentication key")
+        cmd.add_argument("--lte-auth-opc", help="LTE authentication opc")
+        cmd.add_argument(
+            "--lte-auth-next-seq",
+            type=int,
+            help="LTE authentication seq number (hex digits)",
+        )
+        cmd.add_argument(
+            "--apn-config", help="Name of the APNs (ims, internet)"
+        )
+
+    for cmd in [parser_update]:
+        cmd.add_argument(
+            "--gsm-auth-tuple",
+            default=[],
+            action="append",
+            help="GSM authentication tuple (hex digits)",
+        )
+        cmd.add_argument("--lte-auth-key", help="LTE authentication key")
+        cmd.add_argument("--lte-auth-opc", help="LTE authentication opc")
+        cmd.add_argument(
+            "--lte-auth-next-seq",
+            type=int,
+            help="LTE authentication seq number (hex digits)",
+        )
+
+    for cmd in [parser_update_apn]:
+        cmd.add_argument("apnconfig", help="Name of the APNs (ims, internet)")
+
+# Add function callbacks
     parser_add.set_defaults(func=add_subscriber)
     parser_del.set_defaults(func=delete_subscriber)
     parser_update.set_defaults(func=update_subscriber)
+    parser_update_apn.set_defaults(func=update_subscriber_apn)
     parser_get.set_defaults(func=get_subscriber)
     parser_list.set_defaults(func=list_subscribers)
     return parser

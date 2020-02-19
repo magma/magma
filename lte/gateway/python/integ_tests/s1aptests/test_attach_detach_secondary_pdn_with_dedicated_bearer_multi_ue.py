@@ -30,7 +30,8 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
         ue_ids = []
         bearer_ids = []
 
-        # APN details to be configured
+        # Configure APN before configuring UE device
+        # APN of the secondary PDN
         ims = [
             "ims",  # APN-name
             5,  # qci
@@ -41,15 +42,17 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
             100000000,  # MBR DL
         ]
 
+        # APN details to be configured in APN DB
         apn_list = [ims]
+        self._s1ap_wrapper.configAPN(apn_list)
 
-        self._s1ap_wrapper.configUEDevice(num_ues)
+        # List of APN names supported by the UE
+        apn_supported = ["ims"]
+        self._s1ap_wrapper.configUEDevice(num_ues, apn_supported)
+
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             ue_id = req.ue_id
-            self._s1ap_wrapper.configAPN(
-                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
-            )
             print(
                 "******************* Running End to End attach for UE id ",
                 ue_id,

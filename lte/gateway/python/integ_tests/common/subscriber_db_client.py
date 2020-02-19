@@ -117,7 +117,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
                 raise
 
     @staticmethod
-    def _get_subscriberdb_data(sid):
+    def _get_subscriberdb_data(sid, apn_list=[]):
         """
         Get subscriber data in protobuf format.
 
@@ -133,26 +133,28 @@ class SubscriberDbGrpc(SubscriberDbClient):
         lte.auth_key = bytes.fromhex(KEY)
         state = SubscriberState()
         state.lte_auth_next_seq = 1
-        return SubscriberData(sid=sub_db_sid, lte=lte, state=state)
+        if len(apn_list):
+            usr_prof = Non3GPPUserProfile()
+            num_apn = len(apn_list)
+            for idx in range(num_apn):
+                apn_config = usr_prof.apn_config.add()
+                apn_config.service_selection = apn_list[idx]
+            return SubscriberData(
+                sid=sub_db_sid, lte=lte, state=state, non_3gpp=usr_prof
+            )
+        else:
+            return SubscriberData(sid=sub_db_sid, lte=lte, state=state)
 
     @staticmethod
-    def _get_subscriberdb_data_with_apn(sid, apn):
+    def _get_apn_data(apn):
         """
-        Get subscriber data in protobuf format.
+        Get APN data in protobuf format.
 
         Args:
-            sid (str): string representation of the subscriber id
             apn : APN/s names
-            sub_data :  retrieved subscriber data
         Returns:
-            subscriber_data (protos.subscriberdb_pb2.SubscriberData):
-                full subscriber information for :sid: in protobuf format.
+            subscriber_data (protos.subscriberdb_pb2.SubscriberData)
         """
-        lte = LTESubscription()
-        lte.state = LTESubscription.ACTIVE
-        lte.auth_key = bytes.fromhex(KEY)
-        state = SubscriberState()
-        state.lte_auth_next_seq = 1
         # APN
         usr_prof = Non3GPPUserProfile()
         num_apn = len(apn)
@@ -195,7 +197,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
                 "Configuring ambr.max_bandwidth_dl : %d",
                 apn_config.ambr.max_bandwidth_dl,
             )
-        return SubscriberData(sid=sid, lte=lte, state=state, non_3gpp=usr_prof)
+        return SubscriberData(non_3gpp=usr_prof)
 
     def _check_invariants(self):
         """
@@ -207,12 +209,13 @@ class SubscriberDbGrpc(SubscriberDbClient):
         sids_eq_len = len(self._added_sids) == len(self.list_subscriber_sids())
         assert sids_eq_len
 
-    def add_subscriber(self, sid):
+    def add_subscriber(self, sid, apn_list=[]):
         logging.info("Adding subscriber : %s", sid)
         self._added_sids.add(sid)
-        sub_data = self._get_subscriberdb_data(sid)
+        sub_data = self._get_subscriberdb_data(sid, apn_list=apn_list)
         SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.AddSubscriber(sub_data))
+            lambda: self._subscriber_stub.AddSubscriber(sub_data)
+        )
         self._check_invariants()
 
     def delete_subscriber(self, sid):
@@ -228,11 +231,29 @@ class SubscriberDbGrpc(SubscriberDbClient):
         sids = ['IMSI' + sid.id for sid in sids_pb]
         return sids
 
-    def add_apn_details(self, sid, apn):
-        sub_data_apn = self._get_subscriberdb_data_with_apn(sid, apn)
+    def add_apn_details(self, apn):
+        sub_data_apn = self._get_apn_data(apn)
         SubscriberDbGrpc._try_to_call(
             lambda: self._subscriber_stub.AddApn(sub_data_apn)
         )
+
+    def list_apn_data(self):
+        apns = SubscriberDbGrpc._try_to_call(
+            lambda: self._subscriber_stub.ListApns(Void()).apn_name
+        )
+        apn_name = [apn for apn in apns]
+        return apn_name
+
+    def clean_apn_config(self):
+        for apn in self.list_apn_data():
+            usr_prof = Non3GPPUserProfile()
+            apn_config = usr_prof.apn_config.add()
+            apn_config.service_selection = apn
+            data = SubscriberData(non_3gpp=usr_prof)
+
+            SubscriberDbGrpc._try_to_call(
+                lambda: self._subscriber_stub.DeleteApn(data)
+            )
 
     def clean_up(self):
         # Remove all sids
@@ -240,6 +261,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
             self.delete_subscriber(sid)
         assert not self.list_subscriber_sids()
         assert not self._added_sids
+        self.clean_apn_config()
 
     def wait_for_changes(self):
         # On gateway, changes propagate immediately

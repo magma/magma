@@ -25,11 +25,9 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
         """ Attach a single UE + add 2 PDN Connections + disconnect """
         num_pdns = 2
         bearer_ids = []
-        apn = ["ims", "internet"]
         num_ue = 1
-        self._s1ap_wrapper.configUEDevice(num_ue)
 
-        # APN details to be configured
+        # Configure APN before configuring UE device
         # ims apn
         ims = [
             "ims",  # APN-name
@@ -52,11 +50,14 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
             150000000,  # MBR DL
         ]
 
+        # APN details to be configured in APN DB
         apn_list = [ims, internet]
+        self._s1ap_wrapper.configAPN(apn_list)
+
+        # List of APN names supported by the UE
+        apn_supported = ["ims", "internet"]
+        self._s1ap_wrapper.configUEDevice(num_ue, apn_supported)
         req = self._s1ap_wrapper.ue_req
-        self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
-        )
         ue_id = req.ue_id
         print(
             "*********************** Running End to End attach for UE id ",
@@ -74,6 +75,8 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         time.sleep(2)
+        # APNs of the seconday PDNs
+        apn = ["ims", "internet"]
         for i in range(num_pdns):
             # Send PDN Connectivity Request
             self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn[i])
