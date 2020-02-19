@@ -15,7 +15,7 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-func getStaticPassAll(ruleID string, monitoringKey string, trackingType string) *protos.PolicyRule {
+func getStaticPassAll(ruleID string, monitoringKey string, trackingType string, priority uint32) *protos.PolicyRule {
 	rule := &models.PolicyRuleConfig{
 		FlowList: []*models.FlowDescription{
 			{
@@ -38,8 +38,40 @@ func getStaticPassAll(ruleID string, monitoringKey string, trackingType string) 
 			},
 		},
 		MonitoringKey: monitoringKey,
-		Priority:      swag.Uint32(3),
+		Priority:      swag.Uint32(priority),
 		TrackingType:  trackingType,
+		RatingGroup:   0,
+	}
+
+	return rule.ToProto(ruleID)
+}
+
+func getStaticDenyAll(ruleID string, monitoringKey string, trackingType string, priority uint32) *protos.PolicyRule {
+	rule := &models.PolicyRuleConfig{
+		FlowList: []*models.FlowDescription{
+			{
+				Action: swag.String("DENY"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_IP"),
+					IPV4Dst:   "0.0.0.0/0",
+					IPV4Src:   "0.0.0.0/0",
+				},
+			},
+			{
+				Action: swag.String("DENY"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("DOWNLINK"),
+					IPProto:   swag.String("IPPROTO_IP"),
+					IPV4Dst:   "0.0.0.0/0",
+					IPV4Src:   "0.0.0.0/0",
+				},
+			},
+		},
+		MonitoringKey: monitoringKey,
+		Priority:      swag.Uint32(priority),
+		TrackingType:  trackingType,
+		RatingGroup:   0,
 	}
 
 	return rule.ToProto(ruleID)

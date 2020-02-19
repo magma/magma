@@ -33,12 +33,17 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 	assert.NoError(t, err)
 
 	ue := ues[0]
-	// Add a pass all static rule not tied to any monitor usage
-	err = ruleManager.AddStaticPassAll("omni-pass-all", "", models.PolicyRuleTrackingTypeNOTRACKING)
+	// Set a block all rule to be installed by the PCRF
+	err = ruleManager.AddStaticRule(getStaticDenyAll("static-block-all", "mkey-1", models.PolicyRuleConfigTrackingTypeONLYPCRF, 30))
+	assert.NoError(t, err)
+	err = ruleManager.AddDynamicRules(ue.Imsi, []string{"static-block-all"}, nil)
 	assert.NoError(t, err)
 
+	// Override with an omni pass all static rule with a higher priority
+	err = ruleManager.AddStaticPassAll("omni-pass-all-1", "", models.PolicyRuleTrackingTypeNOTRACKING, 20)
+	assert.NoError(t, err)
 	// Apply a network wide rule that points to the static rule above
-	err = ruleManager.AddOmniPresentRules("onmi", []string{"omni-pass-all"}, []string{""})
+	err = ruleManager.AddOmniPresentRules("onmi", []string{"omni-pass-all-1"}, []string{""})
 	assert.NoError(t, err)
 
 	// Wait for rules propagation
@@ -58,14 +63,14 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
 
-	record := recordsBySubID["IMSI"+ue.GetImsi()]
+	omniRecord := recordsBySubID["IMSI"+ue.GetImsi()]["omni-pass-all-1"]
+	blockAllRecord := recordsBySubID["IMSI"+ue.GetImsi()]["static-block-all"]
+	assert.NotNil(t, omniRecord, fmt.Sprintf("No policy usage omniRecord for imsi: %v", ue.GetImsi()))
+	assert.NotNil(t, blockAllRecord, fmt.Sprintf("Block all record was not installed for imsi %v", ue.GetImsi()))
 
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", ue.GetImsi()))
-	assert.Equal(t, "omni-pass-all", record.GetRuleId())
-
-	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-	assert.True(t, record.BytesTx <= uint64(200*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
-
+	assert.True(t, omniRecord.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", omniRecord.RuleId))
+	assert.True(t, omniRecord.BytesTx <= uint64(200*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", omniRecord))
+	assert.Equal(t, uint64(0x0), blockAllRecord.BytesTx)
 	_, err = tr.Disconnect(ue.GetImsi())
 	assert.NoError(t, err)
 
