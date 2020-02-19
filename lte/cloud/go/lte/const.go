@@ -26,4 +26,6 @@ const (
 	PolicyRuleEntityType = "policy"
 
 	RatingGroupEntityType = "rating_group"
+
+	ApnEntityType = "apn"
 )

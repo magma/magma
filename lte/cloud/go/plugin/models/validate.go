@@ -337,3 +337,11 @@ func (m *MutableRatingGroup) ValidateModel() error {
 	}
 	return nil
 }
+
+// ValidateModel does standard swagger validation and any custom validation
+func (m *Apn) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}
