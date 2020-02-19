@@ -304,6 +304,20 @@ const testCases = [
       new PromQL.InstantSelector('build_version'),
     ]),
   ],
+  ['binary integer scalar', '0b101010', [{value: 42, type: 'scalar'}], null],
+  [
+    'octal integer scalar',
+    '0o33653337357',
+    [{value: 3735928559, type: 'scalar'}],
+    null,
+  ],
+  ['decimal integer scalar', '1337', [{value: 1337, type: 'scalar'}], null],
+  [
+    'hexadecimal integer scalar',
+    '0xfaceb00c',
+    [{value: 4207849484, type: 'scalar'}],
+    null,
+  ],
   [
     'floating point scalar',
     `vector(-1.234)`,

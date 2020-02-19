@@ -20,7 +20,11 @@ import {
   SyntaxError,
 } from './PromQLTypes';
 
-const lexerRules = {
+type LexerRules = {[string]: LexerRule | $ReadOnlyArray<LexerRule>};
+type LexerRule = string | RegExp | ComplexRule;
+type ComplexRule = {match: RegExp, value: string => string | number | Range};
+
+const lexerRules: LexerRules = {
   WS: /[ \t]+/,
   lBrace: '{',
   rBrace: '}',
@@ -37,10 +41,31 @@ const lexerRules = {
         s.substring(s.length - 1),
       ),
   },
-  scalar: {
-    match: /[-+]?[0-9]*\.?[0-9]+/,
-    value: s => parseFloat(s),
-  }, // matches floating point and integers
+  scalar: [
+    {
+      // binary integers
+      match: /0b[01]+/,
+      value: s => Number.parseInt(s.substring(2), 2),
+    },
+    {
+      // octal integers
+      // in accordance with https://golang.org/pkg/strconv/#ParseInt spec
+      match: /0o[0-7]+/,
+      value: s => Number.parseInt(s.substring(2), 8),
+    },
+    {
+      // hexadecimal integers
+      match: /0x[0-9a-fA-F]+/,
+      value: s => Number.parseInt(s.substring(2), 16),
+    },
+    {
+      // decimal floats and integers
+      // TODO remove sign from lexer
+      // it can only be correcly processed by parser
+      match: /[-+]?[0-9]*\.?[0-9]+(?:e|E[0-9]+)?/,
+      value: s => Number.parseFloat(s),
+    },
+  ],
   aggOp: AGGREGATION_OPERATORS,
   functionName: FUNCTION_NAMES,
   binOp: BINARY_OPERATORS,
