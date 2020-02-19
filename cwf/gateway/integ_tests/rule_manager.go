@@ -48,9 +48,9 @@ func NewRuleManager() (*RuleManager, error) {
 
 // AddStaticPassAll adds a static rule that passes all traffic to policyDB
 // storage
-func (manager *RuleManager) AddStaticPassAll(ruleID string, monitoringKey string, trackingType string) error {
+func (manager *RuleManager) AddStaticPassAll(ruleID string, monitoringKey string, trackingType string, priority uint32) error {
 	fmt.Printf("************************* Adding a Pass-All static rule: %s\n", ruleID)
-	staticPassAll := getStaticPassAll(ruleID, monitoringKey, trackingType)
+	staticPassAll := getStaticPassAll(ruleID, monitoringKey, trackingType, priority)
 	return manager.insertStaticRuleIntoRedis(staticPassAll)
 }
 

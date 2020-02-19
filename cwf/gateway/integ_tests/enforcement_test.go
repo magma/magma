@@ -43,7 +43,7 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	// 3. Install a dynamic rule that points to the static rule above
 	err = ruleManager.AddUsageMonitor(imsi, "mkey1", 1000*KiloBytes, 250*KiloBytes)
 	assert.NoError(t, err)
-	err = ruleManager.AddStaticPassAll("static-pass-all", "mkey1", models.PolicyRuleTrackingTypeONLYPCRF)
+	err = ruleManager.AddStaticPassAll("static-pass-all", "mkey1", models.PolicyRuleTrackingTypeONLYPCRF, 3)
 	assert.NoError(t, err)
 	err = ruleManager.AddDynamicRules(imsi, []string{"static-pass-all"}, nil)
 	assert.NoError(t, err)
@@ -69,9 +69,8 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	// amount of data was passed through
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]
+	record := recordsBySubID["IMSI"+imsi]["static-pass-all"]
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
-	assert.Equal(t, "static-pass-all", record.RuleId)
 	// We should not be seeing > 1024k data here
 	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
 	assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))

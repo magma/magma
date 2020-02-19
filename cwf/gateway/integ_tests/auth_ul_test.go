@@ -16,6 +16,7 @@ import (
 	"fbc/lib/go/radius/rfc2869"
 	"magma/feg/gateway/services/eap"
 
+	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +39,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NotNil(t, eapMessage)
 	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
 
-	err = tr.GenULTraffic(ue.GetImsi(), nil)
+	err = tr.GenULTraffic(ue.GetImsi(), swag.String("100K"))
 	assert.NoError(t, err)
 
 	// Clear hss, ocs, and pcrf

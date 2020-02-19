@@ -15,8 +15,8 @@ import (
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
