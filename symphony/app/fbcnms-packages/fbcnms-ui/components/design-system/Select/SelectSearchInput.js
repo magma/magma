@@ -17,7 +17,7 @@ import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 import {useMenuContext} from './MenuContext';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   input: {
     padding: '16px',
   },
@@ -36,7 +36,7 @@ const useStyles = makeStyles({
     color: symphony.palette.D800,
     fontSize: '13.66px',
   },
-});
+}));
 
 type Props = {
   searchTerm: string,

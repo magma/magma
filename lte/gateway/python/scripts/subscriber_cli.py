@@ -214,5 +214,6 @@ def main():
     # Execute the subcommand function
     args.func(args, SubscriberDBStub, 'subscriberdb')
 
+
 if __name__ == "__main__":
     main()

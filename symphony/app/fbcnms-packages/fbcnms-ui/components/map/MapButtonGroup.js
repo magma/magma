@@ -27,12 +27,12 @@ type Props = {
   initiallySelectedButton?: number,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   text: {
     fontSize: '12px',
     LineHeight: '14px',
   },
-});
+}));
 
 const MapButtonGroup = (props: Props) => {
   const {onIconClicked, buttons} = props;

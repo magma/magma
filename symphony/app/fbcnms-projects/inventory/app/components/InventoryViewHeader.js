@@ -20,7 +20,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   bar: {
     display: 'flex',
     flexDirection: 'column',
@@ -54,7 +54,7 @@ const useStyles = makeStyles({
       paddingleft: '8px',
     },
   },
-});
+}));
 
 export type DisplayOptionTypes = 'table' | 'map';
 export const DisplayOptions = {
@@ -107,6 +107,7 @@ const InventoryViewHeader = (props: Props) => {
             <div className={classes.actionButtons}>
               {props.actionButtons.map(actionButton => (
                 <FormAction
+                  key={actionButton.title}
                   ignorePermissions={actionButton.ignorePermissions}
                   hideWhenDisabled={actionButton.hideWhenDisabled}>
                   <Button

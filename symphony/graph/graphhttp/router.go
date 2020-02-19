@@ -22,9 +22,12 @@ import (
 )
 
 type routerConfig struct {
-	tenancy viewer.Tenancy
-	logger  log.Logger
-	events  struct {
+	viewer struct {
+		tenancy viewer.Tenancy
+		authurl string
+	}
+	logger log.Logger
+	events struct {
 		topic     *pubsub.Topic
 		subscribe func(context.Context) (*pubsub.Subscription, error)
 	}
@@ -32,11 +35,14 @@ type routerConfig struct {
 	actions struct{ registry *executor.Registry }
 }
 
-func newRouter(cfg routerConfig) (*mux.Router, error) {
+func newRouter(cfg routerConfig) (*mux.Router, func(), error) {
 	router := mux.NewRouter()
 	router.Use(
 		func(h http.Handler) http.Handler {
-			return viewer.TenancyHandler(h, cfg.tenancy)
+			return viewer.WebSocketUpgradeHandler(h, cfg.viewer.authurl)
+		},
+		func(h http.Handler) http.Handler {
+			return viewer.TenancyHandler(h, cfg.viewer.tenancy)
 		},
 		func(h http.Handler) http.Handler {
 			return actions.Handler(h, cfg.logger, cfg.actions.registry)
@@ -50,32 +56,33 @@ func newRouter(cfg routerConfig) (*mux.Router, error) {
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("creating import handler: %w", err)
+		return nil, nil, fmt.Errorf("creating import handler: %w", err)
 	}
 	router.PathPrefix("/import/").
 		Handler(http.StripPrefix("/import", handler)).
 		Name("import")
 
 	if handler, err = exporter.NewHandler(cfg.logger); err != nil {
-		return nil, fmt.Errorf("creating export handler: %w", err)
+		return nil, nil, fmt.Errorf("creating export handler: %w", err)
 	}
 	router.PathPrefix("/export/").
 		Handler(http.StripPrefix("/export", handler)).
 		Name("export")
 
-	if handler, err = graphql.NewHandler(
+	handler, cleanup, err := graphql.NewHandler(
 		graphql.HandlerConfig{
 			Logger:      cfg.logger,
 			Topic:       cfg.events.topic,
 			Subscribe:   cfg.events.subscribe,
 			Orc8rClient: cfg.orc8r.client,
 		},
-	); err != nil {
-		return nil, fmt.Errorf("creating graphql handler: %w", err)
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating graphql handler: %w", err)
 	}
 	router.PathPrefix("/").
 		Handler(handler).
 		Name("root")
 
-	return router, nil
+	return router, cleanup, nil
 }

@@ -21,7 +21,7 @@ import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system
 import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     height: '257px',
     backgroundColor: symphony.palette.white,
@@ -66,7 +66,7 @@ const useStyles = makeStyles({
     borderTop: '1px solid #edf0f9',
     margin: '16px 0px',
   },
-});
+}));
 
 type Props = {
   className?: string,

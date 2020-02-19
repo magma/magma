@@ -11,10 +11,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import argparse
 import grpc
-from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
+from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule, \
+    EnableStaticRuleRequest, DisableStaticRuleRequest
 from lte.protos.policydb_pb2_grpc import PolicyDBStub
-from lte.protos.subscriberdb_pb2 import EnableStaticRuleRequest, \
-    DisableStaticRuleRequest
 from magma.common.rpc_utils import grpc_wrapper
 from magma.policydb.rule_store import PolicyRuleDict
 

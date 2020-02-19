@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,6 +23,8 @@ import (
 // CheckListItemDefinitionUpdate is the builder for updating CheckListItemDefinition entities.
 type CheckListItemDefinitionUpdate struct {
 	config
+
+	update_time          *time.Time
 	title                *string
 	_type                *string
 	index                *int
@@ -158,6 +161,10 @@ func (clidu *CheckListItemDefinitionUpdate) ClearWorkOrderType() *CheckListItemD
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (clidu *CheckListItemDefinitionUpdate) Save(ctx context.Context) (int, error) {
+	if clidu.update_time == nil {
+		v := checklistitemdefinition.UpdateDefaultUpdateTime()
+		clidu.update_time = &v
+	}
 	if len(clidu.work_order_type) > 1 {
 		return 0, errors.New("ent: multiple assignments on a unique edge \"work_order_type\"")
 	}
@@ -203,6 +210,13 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 				ps[i](selector)
 			}
 		}
+	}
+	if value := clidu.update_time; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldUpdateTime,
+		})
 	}
 	if value := clidu.title; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -304,7 +318,9 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, clidu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{checklistitemdefinition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -315,7 +331,9 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 // CheckListItemDefinitionUpdateOne is the builder for updating a single CheckListItemDefinition entity.
 type CheckListItemDefinitionUpdateOne struct {
 	config
-	id                   string
+	id string
+
+	update_time          *time.Time
 	title                *string
 	_type                *string
 	index                *int
@@ -445,6 +463,10 @@ func (cliduo *CheckListItemDefinitionUpdateOne) ClearWorkOrderType() *CheckListI
 
 // Save executes the query and returns the updated entity.
 func (cliduo *CheckListItemDefinitionUpdateOne) Save(ctx context.Context) (*CheckListItemDefinition, error) {
+	if cliduo.update_time == nil {
+		v := checklistitemdefinition.UpdateDefaultUpdateTime()
+		cliduo.update_time = &v
+	}
 	if len(cliduo.work_order_type) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order_type\"")
 	}
@@ -484,6 +506,13 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 				Column: checklistitemdefinition.FieldID,
 			},
 		},
+	}
+	if value := cliduo.update_time; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldUpdateTime,
+		})
 	}
 	if value := cliduo.title; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -588,7 +617,9 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 	_spec.Assign = clid.assignValues
 	_spec.ScanValues = clid.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, cliduo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{checklistitemdefinition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

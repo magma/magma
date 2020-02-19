@@ -32,7 +32,7 @@ export default function MainNavListItems() {
     />,
     <NavListItem
       key={2}
-      label="Inventory"
+      label="Locations"
       path={relativeUrl('/inventory')}
       icon={<ViewListIcon />}
       onClick={() => ServerLogger.info(LogEvents.INVENTORY_NAV_CLICKED)}
@@ -46,7 +46,7 @@ export default function MainNavListItems() {
     />,
     <NavListItem
       key={4}
-      label="Configure"
+      label="Catalog"
       path={relativeUrl('/configure')}
       icon={<AssignmentIcon />}
       onClick={() => ServerLogger.info(LogEvents.CONFIGURE_NAV_CLICKED)}

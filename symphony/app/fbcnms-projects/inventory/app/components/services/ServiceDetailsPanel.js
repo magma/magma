@@ -47,7 +47,7 @@ type Props = {
   onClose: () => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     height: '100%',
   },
@@ -99,7 +99,7 @@ const useStyles = makeStyles({
   input: {
     marginBottom: '20px',
   },
-});
+}));
 
 const ServiceDetailsPanel = (props: Props) => {
   const classes = useStyles();
@@ -208,7 +208,7 @@ const ServiceDetailsPanel = (props: Props) => {
       onClose={onClose}
       className={classes.sideBar}
       backButton={backButton}>
-      <div ref={thisElement} className={classes.scroller}>
+      <div ref={thisElement}>
         <ExpandingPanel
           title="Details"
           defaultExpanded={true}

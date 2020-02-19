@@ -13,12 +13,12 @@ import Table from './design-system/Table/Table';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     margin: '4px 8px',
     alignItems: 'center',
   },
-});
+}));
 type errLine = {
   key?: string,
   line: number,

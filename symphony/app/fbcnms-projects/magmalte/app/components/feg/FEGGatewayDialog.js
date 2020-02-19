@@ -44,7 +44,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   appBar: {
     backgroundColor: '#f5f5f5',
     marginBottom: '20px',
@@ -54,7 +54,7 @@ const useStyles = makeStyles({
     margin: '5px 0',
     width: '100%',
   },
-});
+}));
 
 type Props = {|
   onClose: () => void,

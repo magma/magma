@@ -7,10 +7,10 @@
  * @flow
  * @format
  */
+
+import ComparisonViewNoResults from '../comparison_view/ComparisonViewNoResults';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
-import SearchIcon from '@material-ui/icons/Search';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import WorkOrdersMap from './WorkOrdersMap';
 import WorkOrdersView from './WorkOrdersView';
 import classNames from 'classnames';
@@ -54,6 +54,7 @@ type Props = {
   filters: Array<any>,
   workOrderKey: number,
   displayMode?: DisplayOptionTypes,
+  onQueryReturn?: (resultCount: number) => void,
 };
 
 const workOrderSearchQuery = graphql`
@@ -62,8 +63,11 @@ const workOrderSearchQuery = graphql`
     $filters: [WorkOrderFilterInput!]!
   ) {
     workOrderSearch(limit: $limit, filters: $filters) {
-      ...WorkOrdersView_workOrder
-      ...WorkOrdersMap_workOrders
+      count
+      workOrders {
+        ...WorkOrdersView_workOrder
+        ...WorkOrdersMap_workOrders
+      }
     }
   }
 `;
@@ -77,6 +81,7 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
     workOrderKey,
     displayMode,
     className,
+    onQueryReturn,
   } = props;
 
   return (
@@ -95,24 +100,18 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
         workOrderKey: workOrderKey,
       }}
       render={props => {
-        const {workOrderSearch} = props;
-        if (!workOrderSearch || workOrderSearch.length === 0) {
-          return (
-            <div className={classes.noResultsRoot}>
-              <SearchIcon className={classes.searchIcon} />
-              <Text variant="h6" className={classes.noResultsLabel}>
-                No results found
-              </Text>
-            </div>
-          );
+        const {count, workOrders} = props.workOrderSearch;
+        onQueryReturn && onQueryReturn(count);
+        if (count === 0) {
+          return <ComparisonViewNoResults />;
         }
         return (
           <div className={classNames(classes.root, className)}>
             {displayMode === DisplayOptions.map ? (
-              <WorkOrdersMap workOrders={workOrderSearch} />
+              <WorkOrdersMap workOrders={workOrders} />
             ) : (
               <WorkOrdersView
-                workOrder={workOrderSearch}
+                workOrder={workOrders}
                 onWorkOrderSelected={onWorkOrderSelected}
                 className={classes.tableViewContainer}
               />

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
@@ -21,6 +22,10 @@ type CheckListItemDefinition struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Type holds the value of the "type" field.
@@ -64,6 +69,8 @@ func (e CheckListItemDefinitionEdges) WorkOrderTypeOrErr() (*WorkOrderType, erro
 func (*CheckListItemDefinition) scanValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
 		&sql.NullString{}, // title
 		&sql.NullString{}, // type
 		&sql.NullInt64{},  // index
@@ -91,34 +98,44 @@ func (clid *CheckListItemDefinition) assignValues(values ...interface{}) error {
 	}
 	clid.ID = strconv.FormatInt(value.Int64, 10)
 	values = values[1:]
-	if value, ok := values[0].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field title", values[0])
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		clid.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		clid.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field title", values[2])
 	} else if value.Valid {
 		clid.Title = value.String
 	}
-	if value, ok := values[1].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field type", values[1])
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field type", values[3])
 	} else if value.Valid {
 		clid.Type = value.String
 	}
-	if value, ok := values[2].(*sql.NullInt64); !ok {
-		return fmt.Errorf("unexpected type %T for field index", values[2])
+	if value, ok := values[4].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[4])
 	} else if value.Valid {
 		clid.Index = int(value.Int64)
 	}
-	if value, ok := values[3].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field enum_values", values[3])
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field enum_values", values[5])
 	} else if value.Valid {
 		clid.EnumValues = new(string)
 		*clid.EnumValues = value.String
 	}
-	if value, ok := values[4].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field help_text", values[4])
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field help_text", values[6])
 	} else if value.Valid {
 		clid.HelpText = new(string)
 		*clid.HelpText = value.String
 	}
-	values = values[5:]
+	values = values[7:]
 	if len(values) == len(checklistitemdefinition.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_type_check_list_definitions", value)
@@ -158,6 +175,10 @@ func (clid *CheckListItemDefinition) String() string {
 	var builder strings.Builder
 	builder.WriteString("CheckListItemDefinition(")
 	builder.WriteString(fmt.Sprintf("id=%v", clid.ID))
+	builder.WriteString(", create_time=")
+	builder.WriteString(clid.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", update_time=")
+	builder.WriteString(clid.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", title=")
 	builder.WriteString(clid.Title)
 	builder.WriteString(", type=")

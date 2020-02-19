@@ -30,7 +30,7 @@
     "pug": "^2.0.3",
     "react-chartjs-2": "^2.7.4",
     "react-json-tree": "^0.11.2",
-    "react-router-dom": "^4.4.0-beta.6",
+    "react-router-dom": "5.1.2",
     "rimraf": "^3.0.0",
     "url": "^0.11.0"
   },

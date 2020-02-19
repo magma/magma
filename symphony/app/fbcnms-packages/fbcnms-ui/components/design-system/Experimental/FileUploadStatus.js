@@ -16,7 +16,7 @@ import FileIcon from '../Icons/Indications/FileIcon';
 import Text from '../Text';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     height: '52px',
     boxSizing: 'border-box',
@@ -53,7 +53,7 @@ const useStyles = makeStyles({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
-});
+}));
 
 export const FileUploadStatuses = {
   UPLOADING: 'uploading',

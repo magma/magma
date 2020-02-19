@@ -22,6 +22,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"gocloud.dev/pubsub"
 	"gocloud.dev/server/health"
+	"net/url"
 )
 
 // Injectors from wire.go:
@@ -31,7 +32,7 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	router, err := newRouter(graphhttpRouterConfig)
+	router, cleanup, err := newRouter(graphhttpRouterConfig)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -42,12 +43,14 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	v2 := xserver.DefaultViews()
 	exporter, err := xserver.NewPrometheusExporter(logger)
 	if err != nil {
+		cleanup()
 		return nil, nil, err
 	}
 	options := cfg.Census
 	jaegerOptions := oc.JaegerOptions(options)
-	traceExporter, cleanup, err := xserver.NewJaegerExporter(logger, jaegerOptions)
+	traceExporter, cleanup2, err := xserver.NewJaegerExporter(logger, jaegerOptions)
 	if err != nil {
+		cleanup()
 		return nil, nil, err
 	}
 	profilingEnabler := _wireProfilingEnablerValue
@@ -67,6 +70,7 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	}
 	serverServer := server.New(router, serverOptions)
 	return serverServer, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }
@@ -81,6 +85,7 @@ var (
 // Config defines the http server config.
 type Config struct {
 	Tenancy   *viewer.MySQLTenancy
+	AuthURL   *url.URL
 	Topic     *pubsub.Topic
 	Subscribe func(context.Context) (*pubsub.Subscription, error)
 	Logger    log.Logger
@@ -101,10 +106,9 @@ func newRouterConfig(config Config) (cfg routerConfig, err error) {
 	if err = registry.RegisterAction(magmarebootnode.New(client)); err != nil {
 		return
 	}
-	cfg = routerConfig{
-		tenancy: config.Tenancy,
-		logger:  config.Logger,
-	}
+	cfg = routerConfig{logger: config.Logger}
+	cfg.viewer.tenancy = config.Tenancy
+	cfg.viewer.authurl = config.AuthURL.String()
 	cfg.events.topic = config.Topic
 	cfg.events.subscribe = config.Subscribe
 	cfg.orc8r.client = client

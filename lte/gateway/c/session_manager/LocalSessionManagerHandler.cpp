@@ -203,10 +203,15 @@ void LocalSessionManagerHandlerImpl::CreateSession(
 
   if (enforcer_->is_imsi_duplicate(imsi)) {
     std::string * core_sid = enforcer_->duplicate_session_id(imsi, cfg);
-    if (core_sid != nullptr) {
+    if ((core_sid != nullptr) || (request->rat_type() == RATType::TGPP_WLAN)){
+      if (request->rat_type() == RATType::TGPP_WLAN) {
+        MLOG(MINFO) << "Found a session with the same IMSI " << imsi
+                  << " and RAT Type is WLAN, not creating session";
+      } else {
       MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
                   << " and APN " << request->apn()
                   << ", not creating session";
+      }
       enforcer_->get_event_base().runInEventBaseThread(
           [response_callback, core_sid]() {
             try {

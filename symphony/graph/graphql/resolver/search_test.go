@@ -10,6 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/99designs/gqlgen/client"
+	"github.com/99designs/gqlgen/handler"
+	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/graphql/directive"
+	"github.com/facebookincubator/symphony/graph/graphql/generated"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
@@ -33,6 +40,9 @@ type woSearchDataModels struct {
 	owner       string
 	installDate time.Time
 }
+
+const WOCountQuery = `query($filters: [WorkOrderFilterInput!]!) { workOrderSearch(filters:$filters) {count }}`
+const WOAllQuery = `query($filters: [WorkOrderFilterInput!]!) { workOrderSearch(filters:$filters) {count workOrders {id }}}`
 
 func prepareEquipmentData(ctx context.Context, r *TestResolver, name string, props []*models.PropertyInput) equipmentSearchDataModels {
 	mr := r.Mutation()
@@ -139,7 +149,7 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 	_, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          wo1.ID,
 		Name:        wo1.Name,
-		OwnerName:   owner,
+		OwnerName:   &owner,
 		InstallDate: &installDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityHigh,
@@ -511,11 +521,29 @@ func TestSearchEquipmentByDate(t *testing.T) {
 	require.Len(t, res3.Equipment, 0)
 }
 
+func newGraphClient(t *testing.T, r *TestResolver) *client.Client {
+	return client.New(handler.GraphQL(
+		generated.NewExecutableSchema(
+			generated.Config{
+				Resolvers:  r,
+				Directives: directive.New(logtest.NewTestLogger(t)),
+			},
+		),
+		handler.RequestMiddleware(
+			func(ctx context.Context, next func(context.Context) []byte) []byte {
+				ctx = ent.NewContext(ctx, r.client)
+				return next(ctx)
+			},
+		),
+	))
+}
+
 func TestSearchWO(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := ent.NewContext(viewertest.NewContext(r.client), r.client)
 
+	c := newGraphClient(t, r)
 	data := prepareWOData(ctx, r, "A")
 	/*
 		helper: data now is of type:
@@ -526,11 +554,17 @@ func TestSearchWO(t *testing.T) {
 			Awo_3: loc1, assignee2
 			Awo_4: loc2, no assignee
 	*/
-	qr := r.Query()
-	limit := 100
-	all, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{}, &limit)
-	require.NoError(t, err)
-	require.Len(t, all, 4)
+
+	var wo struct {
+		WorkOrderSearch models.WorkOrderSearchResult
+	}
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 4)
+	require.Empty(t, wo.WorkOrderSearch.WorkOrders)
 
 	name := "_1"
 	f1 := models.WorkOrderFilterInput{
@@ -538,10 +572,13 @@ func TestSearchWO(t *testing.T) {
 		Operator:    models.FilterOperatorContains,
 		StringValue: &name,
 	}
-	res1, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f1}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res1, 1)
-	require.Equal(t, data.wo1, res1[0].ID)
+	c.MustPost(
+		WOAllQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f1}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 1)
+	require.Equal(t, data.wo1, wo.WorkOrderSearch.WorkOrders[0].ID)
 
 	status := models.WorkOrderStatusPlanned.String()
 	f2 := models.WorkOrderFilterInput{
@@ -549,50 +586,67 @@ func TestSearchWO(t *testing.T) {
 		Operator:   models.FilterOperatorIsOneOf,
 		StringSet:  []string{status},
 	}
-	res2, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f2}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res2, 3)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f2}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 3)
 
 	f3 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderType,
 		Operator:   models.FilterOperatorIsOneOf,
 		IDSet:      []string{data.woType1},
 	}
-
-	res3, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f3}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res3, 2)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f3}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 2)
 
 	f4 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderAssignee,
 		Operator:   models.FilterOperatorIsOneOf,
 		StringSet:  []string{data.assignee1},
 	}
-	res4, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f4}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res4, 2)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f4}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 2)
 
 	f5 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
 		IDSet:      []string{data.loc1},
 	}
-	res5, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f5}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res5, 2)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f5}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 2)
 
-	res6, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f4, &f5}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res6, 1)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f4, f5}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 1)
 
 	f7 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderOwner,
 		Operator:   models.FilterOperatorIsOneOf,
 		StringSet:  []string{data.owner},
 	}
-	res7, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f7}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res7, 1)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f7}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 1)
 
 	installTimeStr := strconv.FormatInt(data.installDate.Unix(), 10)
 	f8 := models.WorkOrderFilterInput{
@@ -600,9 +654,12 @@ func TestSearchWO(t *testing.T) {
 		Operator:    models.FilterOperatorIs,
 		StringValue: &installTimeStr,
 	}
-	res8, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f8}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res8, 1)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f8}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 1)
 
 	now := strconv.FormatInt(time.Now().Unix(), 10)
 	f9 := models.WorkOrderFilterInput{
@@ -610,47 +667,62 @@ func TestSearchWO(t *testing.T) {
 		Operator:    models.FilterOperatorIs,
 		StringValue: &now,
 	}
-	res9, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f9}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res9, 4)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f9}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 4)
 }
 
 func TestSearchWOByPriority(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
-	ctx := viewertest.NewContext(r.client)
+	ctx := ent.NewContext(viewertest.NewContext(r.client), r.client)
 	data := prepareWOData(ctx, r, "B")
+	c := newGraphClient(t, r)
+	var wo struct {
+		WorkOrderSearch models.WorkOrderSearchResult
+	}
 
-	qr := r.Query()
-	limit := 100
-	all, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{}, &limit)
-	require.NoError(t, err)
-	require.Len(t, all, 4)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 4)
 
 	f1 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderPriority,
 		Operator:   models.FilterOperatorIsOneOf,
 		StringSet:  []string{models.WorkOrderPriorityHigh.String()},
 	}
-	res1, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f1}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res1, 1)
-	require.Equal(t, data.wo1, res1[0].ID)
+	c.MustPost(
+		WOAllQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f1}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 1)
+	require.Equal(t, wo.WorkOrderSearch.WorkOrders[0].ID, data.wo1)
 
 	f2 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderPriority,
 		Operator:   models.FilterOperatorIsOneOf,
 		IDSet:      []string{models.WorkOrderPriorityLow.String()},
 	}
-	res2, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f2}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res2, 0)
+	c.MustPost(
+		WOAllQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f2}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 0)
 }
 
 func TestSearchWOByLocation(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
+	c := newGraphClient(t, r)
 
 	data := prepareWOData(ctx, r, "A")
 	/*
@@ -662,12 +734,16 @@ func TestSearchWOByLocation(t *testing.T) {
 			Awo_3: loc1, assignee2
 			Awo_4: loc2, no assignee
 	*/
-	qr := r.Query()
-	limit := 100
-	all, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{}, &limit)
-	require.NoError(t, err)
-	require.Len(t, all, 4)
+	var wo struct {
+		WorkOrderSearch models.WorkOrderSearchResult
+	}
 
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 4)
 	maxDepth := 2
 	f1 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderLocationInst,
@@ -675,9 +751,13 @@ func TestSearchWOByLocation(t *testing.T) {
 		IDSet:      []string{data.loc1},
 		MaxDepth:   &maxDepth,
 	}
-	res1, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f1}, &limit)
-	require.NoError(t, err)
-	require.Len(t, res1, 2)
+
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f1}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 2)
 
 	f2 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderLocationInst,
@@ -686,7 +766,10 @@ func TestSearchWOByLocation(t *testing.T) {
 		MaxDepth:   &maxDepth,
 	}
 
-	res2, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f1, &f2}, &limit)
-	require.NoError(t, err)
-	require.Empty(t, res2)
+	c.MustPost(
+		WOCountQuery,
+		&wo,
+		client.Var("filters", []models.WorkOrderFilterInput{f2}),
+	)
+	require.Equal(t, wo.WorkOrderSearch.Count, 0)
 }

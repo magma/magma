@@ -23,10 +23,10 @@ type Props = {
 };
 
 const CheckListTable = (props: Props) => {
-  const {list = []} = props;
-
   const checkListTableItems = Array.prototype.filter
-    .call(list, item => CHECKLIST_ITEM_TYPES.hasOwnProperty(item.type))
+    .call(props.list || [], item =>
+      CHECKLIST_ITEM_TYPES.hasOwnProperty(item.type),
+    )
     .sort(sortByIndex);
 
   const CheckListTableComponent = props.onDesignMode

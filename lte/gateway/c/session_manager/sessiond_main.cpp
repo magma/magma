@@ -29,6 +29,7 @@
 #define MIN_USAGE_REPORTING_THRESHOLD 0.4
 #define MAX_USAGE_REPORTING_THRESHOLD 1.1
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
+#define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000 // 30sec
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -115,7 +116,7 @@ int main(int argc, char *argv[])
   magma::init_logging(argv[0]);
   auto mconfig = load_mconfig();
   auto config =
-    magma::ServiceConfigLoader {}.load_service_config(SESSIOND_SERVICE);
+    magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config));
 
   folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
@@ -191,6 +192,16 @@ int main(int argc, char *argv[])
     reporter->rpc_response_loop();
   });
 
+  // [CWF-ONLY]
+  long quota_exhaust_termination_on_init_ms;
+  if (config["cwf_quota_exhaustion_termination_on_init_ms"].IsDefined()) {
+    quota_exhaust_termination_on_init_ms =
+      config["cwf_quota_exhaustion_termination_on_init_ms"].as<long>();
+  } else {
+    quota_exhaust_termination_on_init_ms =
+      DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS;
+  }
+
   auto monitor = std::make_shared<magma::LocalEnforcer>(
     reporter,
     rule_store,
@@ -198,7 +209,8 @@ int main(int argc, char *argv[])
     directoryd_client,
     spgw_client,
     aaa_client,
-    config["session_force_termination_timeout_ms"].as<long>());
+    config["session_force_termination_timeout_ms"].as<long>(),
+    quota_exhaust_termination_on_init_ms);
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(

@@ -46,7 +46,8 @@ class LocalEnforcer {
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
-    long session_force_termination_timeout_ms);
+    long session_force_termination_timeout_ms,
+    long quota_exhaustion_termination_on_init_ms);
 
   void attachEventBase(folly::EventBase *evb);
 
@@ -155,6 +156,8 @@ class LocalEnforcer {
    * For the matching session ID, activate and/or deactivate the specified
    * rules.
    * Afterwards, a bearer is created.
+   * If a session is CWF and out of monitoring quota, it will trigger a session
+   * terminate
    *
    * NOTE: If an empty session ID is specified, apply changes to all matching
    * sessions with the specified IMSI.
@@ -193,6 +196,9 @@ class LocalEnforcer {
                      std::vector<std::unique_ptr<SessionState>>> session_map_;
   folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
+  // [CWF-ONLY] This configures how long we should wait before terminating a
+  // session after it is created without any monitoring quota
+  long quota_exhaustion_termination_on_init_ms_;
 
  private:
   /**
@@ -233,6 +239,8 @@ class LocalEnforcer {
    * Processes the monitoring component of UpdateSessionResponse.
    * Updates moniroting credits according to the response and updates rules
    * that are installed for this session.
+   * If a session is CWF and out of monitoring quota, it will trigger a session
+   * terminate
    */
   void update_monitoring_credits_and_rules(
     const UpdateSessionResponse& response,
@@ -377,6 +385,17 @@ class LocalEnforcer {
     const std::string& imsi,
     const std::string& ue_mac_addr,
     const SubscriberQuotaUpdate_Type state);
+
+  /**
+   * [CWF-ONLY]
+   * If the session has active monitored rules attached to it, then propagate
+   * to pipelined that the subscriber has valid quota.
+   * Otherwise, mark the subscriber as out of quota to pipelined, and schedule
+   * the session to be terminated in a configured amount of time.
+   */
+  void handle_session_init_subscriber_quota_state(
+    const std::string& imsi,
+    SessionState& session_state);
 };
 
 } // namespace magma

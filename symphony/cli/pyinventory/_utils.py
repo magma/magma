@@ -5,6 +5,8 @@ import warnings
 from datetime import date, datetime
 from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union, cast
 
+from .graphql.property_kind_enum import PropertyKind
+
 
 PROPERTY_TYPE_TO_FIELD_NAME = {
     "date": "stringValue",
@@ -168,6 +170,22 @@ def _make_property_types(
         for i, arg in enumerate(properties)
     ]
     return property_types
+
+
+def property_type_to_kind(
+    key: str, value: Union[str, int, float, bool]
+) -> Union[str, int, float, bool, PropertyKind]:
+    return value if key != "type" else PropertyKind(value)
+
+
+def format_properties(
+    properties: List[Tuple[str, str, PropertyValue, bool]]
+) -> List[Dict[str, Any]]:
+    property_types = _make_property_types(properties)
+    return [
+        {k: property_type_to_kind(k, v) for k, v in property_type.items()}
+        for property_type in property_types
+    ]
 
 
 def deprecated(

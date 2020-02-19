@@ -17,7 +17,7 @@ import {FilesUploadContext} from './context/FilesUploadContextProvider';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useRef} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   hiddenInput: {
     width: '0px',
     height: '0px',
@@ -26,7 +26,7 @@ const useStyles = makeStyles({
     position: 'absolute',
     zIndex: -1,
   },
-});
+}));
 
 export const FileUploadButton = (props: {
   button: React.Node,

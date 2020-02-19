@@ -74,6 +74,8 @@ type WorkOrderEdges struct {
 	Comments []*Comment
 	// Properties holds the value of the properties edge.
 	Properties []*Property
+	// CheckListCategories holds the value of the check_list_categories edge.
+	CheckListCategories []*CheckListCategory
 	// CheckListItems holds the value of the check_list_items edge.
 	CheckListItems []*CheckListItem
 	// Technician holds the value of the technician edge.
@@ -82,7 +84,7 @@ type WorkOrderEdges struct {
 	Project *Project
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [11]bool
+	loadedTypes [12]bool
 }
 
 // TypeOrErr returns the Type value or an error if the edge
@@ -167,10 +169,19 @@ func (e WorkOrderEdges) PropertiesOrErr() ([]*Property, error) {
 	return nil, &NotLoadedError{edge: "properties"}
 }
 
+// CheckListCategoriesOrErr returns the CheckListCategories value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorkOrderEdges) CheckListCategoriesOrErr() ([]*CheckListCategory, error) {
+	if e.loadedTypes[8] {
+		return e.CheckListCategories, nil
+	}
+	return nil, &NotLoadedError{edge: "check_list_categories"}
+}
+
 // CheckListItemsOrErr returns the CheckListItems value or an error if the edge
 // was not loaded in eager-loading.
 func (e WorkOrderEdges) CheckListItemsOrErr() ([]*CheckListItem, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.CheckListItems, nil
 	}
 	return nil, &NotLoadedError{edge: "check_list_items"}
@@ -179,7 +190,7 @@ func (e WorkOrderEdges) CheckListItemsOrErr() ([]*CheckListItem, error) {
 // TechnicianOrErr returns the Technician value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e WorkOrderEdges) TechnicianOrErr() (*Technician, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		if e.Technician == nil {
 			// The edge technician was loaded in eager-loading,
 			// but was not found.
@@ -193,7 +204,7 @@ func (e WorkOrderEdges) TechnicianOrErr() (*Technician, error) {
 // ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e WorkOrderEdges) ProjectOrErr() (*Project, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		if e.Project == nil {
 			// The edge project was loaded in eager-loading,
 			// but was not found.
@@ -367,6 +378,11 @@ func (wo *WorkOrder) QueryComments() *CommentQuery {
 // QueryProperties queries the properties edge of the WorkOrder.
 func (wo *WorkOrder) QueryProperties() *PropertyQuery {
 	return (&WorkOrderClient{wo.config}).QueryProperties(wo)
+}
+
+// QueryCheckListCategories queries the check_list_categories edge of the WorkOrder.
+func (wo *WorkOrder) QueryCheckListCategories() *CheckListCategoryQuery {
+	return (&WorkOrderClient{wo.config}).QueryCheckListCategories(wo)
 }
 
 // QueryCheckListItems queries the check_list_items edge of the WorkOrder.

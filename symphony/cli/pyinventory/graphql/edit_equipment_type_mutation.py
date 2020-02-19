@@ -3,7 +3,6 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -12,6 +11,8 @@ from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
 
 from .datetime_utils import fromisoformat
+
+from .property_kind_enum import PropertyKind
 
 
 DATETIME_FIELD = field(
@@ -41,26 +42,6 @@ def enum_field(enum_type):
         }
     )
 
-
-class PropertyKind(Enum):
-    string = "string"
-    int = "int"
-    bool = "bool"
-    float = "float"
-    date = "date"
-    enum = "enum"
-    range = "range"
-    email = "email"
-    gps_location = "gps_location"
-    equipment = "equipment"
-    location = "location"
-    service = "service"
-    datetime_local = "datetime_local"
-    MISSING_ENUM = ""
-
-    @classmethod
-    def _missing_(cls, value):
-        return cls.MISSING_ENUM
 
 
 @dataclass_json

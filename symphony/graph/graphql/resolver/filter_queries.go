@@ -6,7 +6,8 @@ package resolver
 
 import (
 	"context"
-	"strings"
+
+	"github.com/99designs/gqlgen/graphql"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -18,28 +19,8 @@ func (r queryResolver) EquipmentSearch(ctx context.Context, filters []*models.Eq
 	return resolverutil.EquipmentSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }
 
-func (r queryResolver) WorkOrderSearch(ctx context.Context, filters []*models.WorkOrderFilterInput, limit *int) ([]*ent.WorkOrder, error) {
-	var (
-		query = r.ClientFrom(ctx).WorkOrder.Query()
-		err   error
-	)
-	for _, f := range filters {
-		switch {
-		case strings.HasPrefix(f.FilterType.String(), "WORK_ORDER_"):
-			if query, err = r.handleWorkOrderFilter(query, f); err != nil {
-				return nil, err
-			}
-		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
-			if query, err = r.handleWOLocationFilter(query, f); err != nil {
-				return nil, err
-			}
-		}
-	}
-	wos, err := query.All(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Querying work orders failed")
-	}
-	return wos, nil
+func (r queryResolver) WorkOrderSearch(ctx context.Context, filters []*models.WorkOrderFilterInput, limit *int) (*models.WorkOrderSearchResult, error) {
+	return resolverutil.WorkOrderSearch(ctx, r.ClientFrom(ctx), filters, limit, graphql.CollectAllFields(ctx))
 }
 
 func (r queryResolver) LinkSearch(ctx context.Context, filters []*models.LinkFilterInput, limit *int) (*models.LinkSearchResult, error) {

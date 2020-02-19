@@ -14,11 +14,11 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   propValue: {
     color: symphony.palette.D300,
   },
-});
+}));
 
 type Props = {
   title: string,

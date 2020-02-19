@@ -39,24 +39,17 @@ extern "C" {
 #define ULI_DATA_SIZE 13
 
 static void create_session_response(
-  const std::string &imsi,
-  const std::string &apn,
+  const std::string& imsi,
+  const std::string& apn,
   itti_sgi_create_end_point_response_t sgi_response,
-  itti_s5_create_bearer_request_t bearer_request,
-  const grpc::Status &status)
+  s5_create_session_request_t session_request,
+  const grpc::Status& status)
 {
-  MessageDef *message_p = nullptr;
-  message_p = itti_alloc_new_message(TASK_SPGW_APP, S5_CREATE_BEARER_RESPONSE);
-  itti_s5_create_bearer_response_t *s5_response =
-    &message_p->ittiMsg.s5_create_bearer_response;
-  memset(s5_response, 0, sizeof(itti_s5_create_bearer_response_t));
-  s5_response->context_teid = bearer_request.context_teid;
-  s5_response->S1u_teid = bearer_request.S1u_teid;
-  s5_response->eps_bearer_id = bearer_request.eps_bearer_id;
-  s5_response->sgi_create_endpoint_resp = sgi_response;
-  s5_response->failure_cause = S5_OK;
-
-  IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
+  s5_create_session_response_t s5_response = {0};
+  s5_response.context_teid = session_request.context_teid;
+  s5_response.eps_bearer_id = session_request.eps_bearer_id;
+  s5_response.sgi_create_endpoint_resp = sgi_response;
+  s5_response.failure_cause = S5_OK;
 
   if (!status.ok()) {
     struct in_addr addr;
@@ -64,9 +57,9 @@ static void create_session_response(
     // TODO make asynchronous, or make part of create session call
     release_ipv4_address(imsi.c_str(), apn.c_str(),
                          &sgi_response.paa.ipv4_address);
-    s5_response->failure_cause = PCEF_FAILURE;
+    s5_response.failure_cause = PCEF_FAILURE;
   }
-  itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+  handle_s5_create_session_response(s5_response);
 }
 
 static void pcef_fill_create_session_req(
@@ -97,11 +90,11 @@ static void pcef_fill_create_session_req(
 }
 
 void pcef_create_session(
-  char *imsi,
-  char *ip,
-  const pcef_create_session_data *session_data,
+  char* imsi,
+  char* ip,
+  const pcef_create_session_data* session_data,
   itti_sgi_create_end_point_response_t sgi_response,
-  itti_s5_create_bearer_request_t bearer_request)
+  s5_create_session_request_t session_request)
 {
   auto imsi_str = std::string(imsi);
   auto ip_str = std::string(ip);
@@ -111,17 +104,17 @@ void pcef_create_session(
   sreq.mutable_sid()->set_id("IMSI" + imsi_str);
   sreq.set_rat_type(magma::RATType::TGPP_LTE);
   sreq.set_ue_ipv4(ip_str);
-  sreq.set_bearer_id(bearer_request.eps_bearer_id);
+  sreq.set_bearer_id(session_request.eps_bearer_id);
   pcef_fill_create_session_req(session_data, &sreq);
 
   auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
     sreq,
-    [imsi_str, apn, sgi_response, bearer_request](
+    [imsi_str, apn, sgi_response, session_request](
       grpc::Status status, magma::LocalCreateSessionResponse response) {
-      create_session_response(imsi_str, apn, sgi_response, bearer_request,
-                              status);
+      create_session_response(
+        imsi_str, apn, sgi_response, session_request, status);
     });
 }
 

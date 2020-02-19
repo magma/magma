@@ -22,7 +22,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useFormElementContext} from '../Form/FormElementContext';
 import {useMemo} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     justifyContent: 'flex-start',
     padding: '4px',
@@ -47,7 +47,7 @@ const useStyles = makeStyles({
   label: {
     fontWeight: symphony.typography.body2.fontWeight,
   },
-});
+}));
 
 type Props<TValue> = {
   className?: string,

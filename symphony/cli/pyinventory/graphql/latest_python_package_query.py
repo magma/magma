@@ -3,7 +3,6 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -48,11 +47,6 @@ class LatestPythonPackageQuery:
         @dataclass_json
         @dataclass
         class LatestPythonPackageResult:
-            @dataclass_json
-            @dataclass
-            class PythonPackage:
-                version: str
-
             @dataclass_json
             @dataclass
             class PythonPackage:

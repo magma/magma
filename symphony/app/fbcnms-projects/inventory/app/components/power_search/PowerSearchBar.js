@@ -68,7 +68,7 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   footer: {
-    padding: '8px 4px',
+    padding: '8px 4px 8px 10px',
     color: theme.palette.grey.A200,
     fontWeight: 'bold',
     pointerEvents: 'none',
@@ -219,7 +219,7 @@ const PowerSearchBar = (props: Props) => {
           <CSVFileExport
             title="Export"
             exportPath={exportPath}
-            filters={props.filterValues}
+            filters={filterValues}
           />
         )}
       </div>

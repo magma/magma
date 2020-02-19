@@ -19,7 +19,6 @@
  *      contact@openairinterface.org
  */
 
-
 /*! \file mme_app_sgs_status.c
    \brief Handles  SGSAP Status message
    \author
@@ -32,7 +31,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "assertions.h"
 #include "conversions.h"
 #include "log.h"
 #include "service303.h"
@@ -44,13 +42,13 @@
 #include "nas_proc.h"
 
 static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
-    ue_mm_context_t *ue_context_p);
+  ue_mm_context_t* ue_context_p);
 
 static void _mme_app_handle_sgs_status_for_eps_detach_ind(
-    ue_mm_context_t *ue_context_p);
+  ue_mm_context_t* ue_context_p);
 
 static void _mme_app_handle_sgs_status_for_loc_upd_req(
-    ue_mm_context_t *ue_context_p);
+  ue_mm_context_t* ue_context_p);
 
 /****************************************************************************
  **                                                                        **

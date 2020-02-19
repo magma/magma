@@ -183,24 +183,34 @@ type AddServiceEndpointInput struct {
 }
 
 type AddWorkOrderInput struct {
-	Name            string                `json:"name"`
-	Description     *string               `json:"description"`
-	WorkOrderTypeID string                `json:"workOrderTypeId"`
-	LocationID      *string               `json:"locationId"`
-	ProjectID       *string               `json:"projectId"`
-	Properties      []*PropertyInput      `json:"properties"`
-	CheckList       []*CheckListItemInput `json:"checkList"`
-	Assignee        *string               `json:"assignee"`
-	Index           *int                  `json:"index"`
-	Status          *WorkOrderStatus      `json:"status"`
-	Priority        *WorkOrderPriority    `json:"priority"`
+	Name                string                    `json:"name"`
+	Description         *string                   `json:"description"`
+	WorkOrderTypeID     string                    `json:"workOrderTypeId"`
+	LocationID          *string                   `json:"locationId"`
+	ProjectID           *string                   `json:"projectId"`
+	Properties          []*PropertyInput          `json:"properties"`
+	CheckList           []*CheckListItemInput     `json:"checkList"`
+	OwnerName           *string                   `json:"ownerName"`
+	CheckListCategories []*CheckListCategoryInput `json:"checkListCategories"`
+	Assignee            *string                   `json:"assignee"`
+	Index               *int                      `json:"index"`
+	Status              *WorkOrderStatus          `json:"status"`
+	Priority            *WorkOrderPriority        `json:"priority"`
 }
 
 type AddWorkOrderTypeInput struct {
-	Name        string                      `json:"name"`
-	Description *string                     `json:"description"`
-	Properties  []*PropertyTypeInput        `json:"properties"`
-	CheckList   []*CheckListDefinitionInput `json:"checkList"`
+	Name                string                      `json:"name"`
+	Description         *string                     `json:"description"`
+	Properties          []*PropertyTypeInput        `json:"properties"`
+	CheckList           []*CheckListDefinitionInput `json:"checkList"`
+	CheckListCategories []*CheckListCategoryInput   `json:"checkListCategories"`
+}
+
+type CheckListCategoryInput struct {
+	ID          *string               `json:"id"`
+	Title       string                `json:"title"`
+	Description *string               `json:"description"`
+	CheckList   []*CheckListItemInput `json:"checkList"`
 }
 
 type CheckListDefinitionInput struct {
@@ -307,27 +317,29 @@ type EditProjectTypeInput struct {
 }
 
 type EditWorkOrderInput struct {
-	ID          string                `json:"id"`
-	Name        string                `json:"name"`
-	Description *string               `json:"description"`
-	OwnerName   string                `json:"ownerName"`
-	InstallDate *time.Time            `json:"installDate"`
-	Assignee    *string               `json:"assignee"`
-	Index       *int                  `json:"index"`
-	Status      WorkOrderStatus       `json:"status"`
-	Priority    WorkOrderPriority     `json:"priority"`
-	ProjectID   *string               `json:"projectId"`
-	Properties  []*PropertyInput      `json:"properties"`
-	CheckList   []*CheckListItemInput `json:"checkList"`
-	LocationID  *string               `json:"locationId"`
+	ID                  string                    `json:"id"`
+	Name                string                    `json:"name"`
+	Description         *string                   `json:"description"`
+	OwnerName           *string                   `json:"ownerName"`
+	InstallDate         *time.Time                `json:"installDate"`
+	Assignee            *string                   `json:"assignee"`
+	Index               *int                      `json:"index"`
+	Status              WorkOrderStatus           `json:"status"`
+	Priority            WorkOrderPriority         `json:"priority"`
+	ProjectID           *string                   `json:"projectId"`
+	Properties          []*PropertyInput          `json:"properties"`
+	CheckList           []*CheckListItemInput     `json:"checkList"`
+	CheckListCategories []*CheckListCategoryInput `json:"checkListCategories"`
+	LocationID          *string                   `json:"locationId"`
 }
 
 type EditWorkOrderTypeInput struct {
-	ID          string                      `json:"id"`
-	Name        string                      `json:"name"`
-	Description *string                     `json:"description"`
-	Properties  []*PropertyTypeInput        `json:"properties"`
-	CheckList   []*CheckListDefinitionInput `json:"checkList"`
+	ID                  string                      `json:"id"`
+	Name                string                      `json:"name"`
+	Description         *string                     `json:"description"`
+	Properties          []*PropertyTypeInput        `json:"properties"`
+	CheckList           []*CheckListDefinitionInput `json:"checkList"`
+	CheckListCategories []*CheckListCategoryInput   `json:"checkListCategories"`
 }
 
 type EquipmentFilterInput struct {
@@ -680,6 +692,11 @@ type WorkOrderFilterInput struct {
 	StringSet     []string            `json:"stringSet"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                `json:"maxDepth"`
+}
+
+type WorkOrderSearchResult struct {
+	WorkOrders []*ent.WorkOrder `json:"workOrders"`
+	Count      int              `json:"count"`
 }
 
 type CellularNetworkType string
@@ -1223,11 +1240,12 @@ func (e ProjectFilterType) MarshalGQL(w io.Writer) {
 type PropertyEntity string
 
 const (
-	PropertyEntityEquipment PropertyEntity = "EQUIPMENT"
-	PropertyEntityService   PropertyEntity = "SERVICE"
-	PropertyEntityLink      PropertyEntity = "LINK"
-	PropertyEntityPort      PropertyEntity = "PORT"
-	PropertyEntityLocation  PropertyEntity = "LOCATION"
+	PropertyEntityEquipment  PropertyEntity = "EQUIPMENT"
+	PropertyEntityService    PropertyEntity = "SERVICE"
+	PropertyEntityLink       PropertyEntity = "LINK"
+	PropertyEntityPort       PropertyEntity = "PORT"
+	PropertyEntityLocation   PropertyEntity = "LOCATION"
+	PropertyEntityWorkOrders PropertyEntity = "WORK_ORDERS"
 )
 
 var AllPropertyEntity = []PropertyEntity{
@@ -1236,6 +1254,7 @@ var AllPropertyEntity = []PropertyEntity{
 	PropertyEntityLink,
 	PropertyEntityPort,
 	PropertyEntityLocation,
+	PropertyEntityWorkOrders,
 }
 
 func (e PropertyEntity) IsValid() bool {

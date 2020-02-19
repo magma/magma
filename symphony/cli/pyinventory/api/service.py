@@ -2,46 +2,37 @@
 # pyre-strict
 
 from dataclasses import asdict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 from dacite import Config, from_dict
 
-from .._utils import PropertyValue, _get_graphql_properties, _make_property_types
+from .._utils import PropertyValue, _get_graphql_properties, format_properties
 from ..consts import (
     Customer,
     EquipmentPort,
     Link,
     Service,
     ServiceEndpoint,
-    ServiceEndpointRole,
     ServiceType,
 )
 from ..graphql.add_service_endpoint_mutation import (
     AddServiceEndpointInput,
     AddServiceEndpointMutation,
-    ServiceEndpointRole as AddServiceEndpointRole,
 )
 from ..graphql.add_service_link_mutation import AddServiceLinkMutation
 from ..graphql.add_service_mutation import AddServiceMutation, ServiceCreateData
 from ..graphql.add_service_type_mutation import (
     AddServiceTypeMutation,
-    PropertyKind,
     ServiceTypeCreateData,
 )
 from ..graphql.remove_service_mutation import RemoveServiceMutation
 from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
 from ..graphql.service_details_query import ServiceDetailsQuery
+from ..graphql.service_endpoint_role_enum import ServiceEndpointRole
+from ..graphql.service_status_enum import ServiceStatus
 from ..graphql.service_type_services_query import ServiceTypeServicesQuery
 from ..graphql.service_types_query import ServiceTypesQuery
 from ..graphql_client import GraphqlClient
-
-
-ENDPOINT_ROLE_TO_ADD_ENDPOINT_ROLE: Dict[
-    ServiceEndpointRole, AddServiceEndpointRole
-] = {
-    ServiceEndpointRole.CONSUMER: AddServiceEndpointRole.CONSUMER,
-    ServiceEndpointRole.PROVIDER: AddServiceEndpointRole.PROVIDER,
-}
 
 
 def _populate_service_types(client: GraphqlClient) -> None:
@@ -62,17 +53,8 @@ def add_service_type(
     hasCustomer: bool,
     properties: List[Tuple[str, str, PropertyValue, bool]],
 ) -> ServiceType:
-    property_types = _make_property_types(properties)
 
-    def property_type_to_kind(
-        key: str, value: Union[str, int, float, bool]
-    ) -> Union[str, int, float, bool, PropertyKind]:
-        return value if key != "type" else PropertyKind(value)
-
-    new_property_types = [
-        {k: property_type_to_kind(k, v) for k, v in property_type.items()}
-        for property_type in property_types
-    ]
+    new_property_types = format_properties(properties)
     result = AddServiceTypeMutation.execute(
         client,
         data=ServiceTypeCreateData(
@@ -114,7 +96,7 @@ def add_service(
         name=name,
         externalId=external_id,
         serviceTypeId=client.serviceTypes[service_type].id,
-        status="PENDING",
+        status=ServiceStatus.PENDING,
         customerId=customer.id if customer is not None else None,
         properties=properties,
         upstreamServiceIds=[],
@@ -150,10 +132,7 @@ def add_service_endpoint(
     role: ServiceEndpointRole,
 ) -> None:
     AddServiceEndpointMutation.execute(
-        client,
-        input=AddServiceEndpointInput(
-            id=service.id, portId=port.id, role=ENDPOINT_ROLE_TO_ADD_ENDPOINT_ROLE[role]
-        ),
+        client, input=AddServiceEndpointInput(id=service.id, portId=port.id, role=role)
     )
 
 

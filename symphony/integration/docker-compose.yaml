@@ -38,7 +38,6 @@ services:
       MYSQL_DB: auth
       MYSQL_USER: root
       MYSQL_PASS: root
-      SESSION_TOKEN: bgnllrfbcldunrbefllrnegehrflvlvn
       FB_TEST_USER: fbuser@fb.com
     networks:
       - public
@@ -70,6 +69,7 @@ services:
     environment:
       GQL_DEBUG: 1
       MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true&interpolateParams=true
+      AUTH_URL: http://platform-server/user/me
       ORC8R_HOST: ${ORC8R_API_HOSTNAME:-api-staging.magma.etagecom.io}
       ORC8R_CERT: /magma_certs/${ORC8R_API_CERT:-}api_cert
       ORC8R_PKEY: /magma_certs/${ORC8R_API_PRIVATE_KEY:-}api_key
@@ -152,13 +152,15 @@ services:
     restart: on-failure
 
   mysql:
-    image: mysql:8.0.18
+    image: mysql
     command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: auth
     volumes:
       - ${PWD}/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    security_opt:
+      - seccomp:unconfined
     healthcheck:
       test: mysqladmin ping -proot
     networks:

@@ -291,7 +291,9 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wodu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{workorderdefinition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -560,7 +562,9 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 	_spec.Assign = wod.assignValues
 	_spec.ScanValues = wod.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, woduo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{workorderdefinition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

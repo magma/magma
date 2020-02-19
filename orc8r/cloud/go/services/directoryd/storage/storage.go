@@ -8,22 +8,12 @@ LICENSE file in the root directory of this source tree.
 
 package storage
 
-import (
-	"magma/orc8r/lib/go/protos"
-)
+// DirectorydStorage is the persistence service interface for location records.
+// All Directoryd data accesses from directoryd service must go through this interface.
+type DirectorydStorage interface {
+	// GetHostname gets the hostname mapped to by hwid.
+	GetHostname(hwid string) (string, error)
 
-/*
-	Persistence service interface for location records. All Directoryd data accesses from
-	directoryd service must go through this interface.
-*/
-type DirectorydPersistenceService interface {
-
-	// Get location record by ID
-	GetRecord(tableId protos.TableID, recordId string) (*protos.LocationRecord, error)
-
-	// Update existing location record or persist new location record
-	UpdateOrCreateRecord(tableId protos.TableID, recordId string, record *protos.LocationRecord) error
-
-	// Delete location record. MAY return non-nil error if recordId does not exist.
-	DeleteRecord(tableId protos.TableID, recordId string) error
+	// PutHostname maps hwid to hostname.
+	PutHostname(hwid, hostname string) error
 }

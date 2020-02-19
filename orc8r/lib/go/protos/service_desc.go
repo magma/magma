@@ -30,16 +30,6 @@ func GetLegacyDispatcherDesc() *grpc.ServiceDesc {
 	}
 }
 
-func GetLegacyDirectorydDesc() *grpc.ServiceDesc {
-	return &grpc.ServiceDesc{
-		ServiceName: "magma.DirectoryService",
-		HandlerType: _DirectoryService_serviceDesc.HandlerType,
-		Methods:     _DirectoryService_serviceDesc.Methods,
-		Streams:     _DirectoryService_serviceDesc.Streams,
-		Metadata:    _DirectoryService_serviceDesc.Metadata,
-	}
-}
-
 func GetLegacyLoggerDesc() *grpc.ServiceDesc {
 	return &grpc.ServiceDesc{
 		ServiceName: "magma.LoggingService",

@@ -55,7 +55,7 @@ const InventoryTopBar = (props: Props) => {
         <InventoryEntitiesTypeahead onEntitySelected={onSearchEntitySelected} />
       </div>
       <div className={classes.spacer} />
-      <div className={classes.workOrders}>
+      <div>
         {woPopoverEnabled && (
           <WorkOrdersPopover
             onSelect={onWorkOrderSelected}

@@ -11,9 +11,30 @@ import (
 	"github.com/facebookincubator/ent/schema/index"
 )
 
+// CheckListCategory defines the CheckListCategory type schema.
+type CheckListCategory struct {
+	schema
+}
+
+// Fields returns CheckListCategory type fields.
+func (CheckListCategory) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("title"),
+		field.String("description").
+			Optional(),
+	}
+}
+
+// Edges returns CheckListCategory type edges.
+func (CheckListCategory) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("check_list_items", CheckListItem.Type),
+	}
+}
+
 // CheckListItem defines the CheckListItem type schema.
 type CheckListItemDefinition struct {
-	ent.Schema
+	schema
 }
 
 // Fields returns CheckListItem type fields.

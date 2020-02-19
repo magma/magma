@@ -174,7 +174,9 @@ func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, hu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{hyperlink.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -330,7 +332,9 @@ func (huo *HyperlinkUpdateOne) sqlSave(ctx context.Context) (h *Hyperlink, err e
 	_spec.Assign = h.assignValues
 	_spec.ScanValues = h.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, huo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{hyperlink.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

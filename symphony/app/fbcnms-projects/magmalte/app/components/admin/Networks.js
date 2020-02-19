@@ -35,7 +35,7 @@ import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   header: {
     margin: '10px',
     display: 'flex',
@@ -47,7 +47,7 @@ const useStyles = makeStyles({
   noNetworks: {
     height: '70vh',
   },
-});
+}));
 
 function Networks() {
   const classes = useStyles();
@@ -98,7 +98,7 @@ function Networks() {
           </NoNetworksMessage>
         </div>
       ) : (
-        <Paper className={classes.tableRoot} elevation={2}>
+        <Paper elevation={2}>
           <Table>
             <TableHead>
               <TableRow>

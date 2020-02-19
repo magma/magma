@@ -53,7 +53,7 @@ type Props = {
   onCreateUser: (payload: SaveUserData) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
@@ -62,7 +62,7 @@ const useStyles = makeStyles({
   select: {
     marginTop: '16px',
   },
-});
+}));
 
 function getInitialNetworkIDs(userNetworkIds, allNetworkIDs): Set<string> {
   return new Set(allNetworkIDs && userNetworkIds ? userNetworkIds : []);

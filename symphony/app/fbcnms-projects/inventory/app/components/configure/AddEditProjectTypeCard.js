@@ -32,7 +32,7 @@ import {makeStyles} from '@material-ui/styles';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     padding: '24px 16px',
     maxHeight: '100%',
@@ -54,7 +54,7 @@ const useStyles = makeStyles({
   cancelButton: {
     marginRight: '8px',
   },
-});
+}));
 
 type Props = {
   workOrderTypes: ProjectTypeWorkOrderTemplatesPanel_workOrderTypes,
@@ -265,7 +265,7 @@ const AddEditProjectTypeCard = (props: Props) => {
               );
             }}
           />
-          <ExpandingPanel title="Properties" className={classes.panel}>
+          <ExpandingPanel title="Properties">
             <PropertyTypeTable
               supportDelete={true}
               // eslint-disable-next-line flowtype/no-weak-types

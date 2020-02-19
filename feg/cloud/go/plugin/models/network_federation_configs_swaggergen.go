@@ -22,8 +22,7 @@ type NetworkFederationConfigs struct {
 	AaaServer *AaaServer `json:"aaa_server"`
 
 	// csfb
-	// Required: true
-	Csfb *Csfb `json:"csfb"`
+	Csfb *Csfb `json:"csfb,omitempty"`
 
 	// eap aka
 	// Required: true
@@ -128,8 +127,8 @@ func (m *NetworkFederationConfigs) validateAaaServer(formats strfmt.Registry) er
 
 func (m *NetworkFederationConfigs) validateCsfb(formats strfmt.Registry) error {
 
-	if err := validate.Required("csfb", "body", m.Csfb); err != nil {
-		return err
+	if swag.IsZero(m.Csfb) { // not required
+		return nil
 	}
 
 	if m.Csfb != nil {

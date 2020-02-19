@@ -12,12 +12,12 @@ import * as React from 'react';
 import ToggleButtonGroup from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   toggleGroup: {
     boxShadow: '0px 0px 0.5px 0.5px grey',
     borderRadius: '4px',
   },
-});
+}));
 
 type Props = {children: ?React.Node};
 

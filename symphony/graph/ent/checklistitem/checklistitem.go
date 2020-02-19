@@ -51,5 +51,6 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the CheckListItem type.
 var ForeignKeys = []string{
+	"check_list_category_check_list_items",
 	"work_order_check_list_items",
 }

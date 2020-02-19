@@ -253,7 +253,9 @@ func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error
 		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fpsu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{floorplanscale.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -488,7 +490,9 @@ func (fpsuo *FloorPlanScaleUpdateOne) sqlSave(ctx context.Context) (fps *FloorPl
 	_spec.Assign = fps.assignValues
 	_spec.ScanValues = fps.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, fpsuo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{floorplanscale.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

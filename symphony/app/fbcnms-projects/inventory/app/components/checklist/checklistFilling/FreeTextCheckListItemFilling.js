@@ -21,7 +21,7 @@ type Props = {
   onChange?: (updatedChecklistItem: FreeTextCheckListItemFilling_item) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -37,7 +37,7 @@ const useStyles = makeStyles({
       marginRight: '8px',
     },
   },
-});
+}));
 
 const FreeTextCheckListItemFilling = (props: Props) => {
   const {item, onChange} = props;

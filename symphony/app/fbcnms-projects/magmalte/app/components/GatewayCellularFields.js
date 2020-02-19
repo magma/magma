@@ -28,7 +28,7 @@ import {toString} from './GatewayUtils';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   input: {
     margin: '10px 0',
     width: '100%',
@@ -39,7 +39,7 @@ const useStyles = makeStyles({
   divider: {
     margin: '10px 0',
   },
-});
+}));
 
 type Props = {
   onClose: () => void,

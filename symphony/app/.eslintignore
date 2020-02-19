@@ -24,3 +24,5 @@ flow-typed/npm/express_v4.x.x.js
 flow-typed/npm/lodash_v4.x.x.js
 flow-typed/npm/history_v4.x.x.js
 flow-typed/npm/prettier_v1.x.x.js
+flow-typed/npm/react-router-dom_v5.x.x.js
+flow-typed/npm/react-router_v5.x.x.js

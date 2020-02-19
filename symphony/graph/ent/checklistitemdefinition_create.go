@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
@@ -20,12 +21,42 @@ import (
 // CheckListItemDefinitionCreate is the builder for creating a CheckListItemDefinition entity.
 type CheckListItemDefinitionCreate struct {
 	config
+	create_time     *time.Time
+	update_time     *time.Time
 	title           *string
 	_type           *string
 	index           *int
 	enum_values     *string
 	help_text       *string
 	work_order_type map[string]struct{}
+}
+
+// SetCreateTime sets the create_time field.
+func (clidc *CheckListItemDefinitionCreate) SetCreateTime(t time.Time) *CheckListItemDefinitionCreate {
+	clidc.create_time = &t
+	return clidc
+}
+
+// SetNillableCreateTime sets the create_time field if the given value is not nil.
+func (clidc *CheckListItemDefinitionCreate) SetNillableCreateTime(t *time.Time) *CheckListItemDefinitionCreate {
+	if t != nil {
+		clidc.SetCreateTime(*t)
+	}
+	return clidc
+}
+
+// SetUpdateTime sets the update_time field.
+func (clidc *CheckListItemDefinitionCreate) SetUpdateTime(t time.Time) *CheckListItemDefinitionCreate {
+	clidc.update_time = &t
+	return clidc
+}
+
+// SetNillableUpdateTime sets the update_time field if the given value is not nil.
+func (clidc *CheckListItemDefinitionCreate) SetNillableUpdateTime(t *time.Time) *CheckListItemDefinitionCreate {
+	if t != nil {
+		clidc.SetUpdateTime(*t)
+	}
+	return clidc
 }
 
 // SetTitle sets the title field.
@@ -106,6 +137,14 @@ func (clidc *CheckListItemDefinitionCreate) SetWorkOrderType(w *WorkOrderType) *
 
 // Save creates the CheckListItemDefinition in the database.
 func (clidc *CheckListItemDefinitionCreate) Save(ctx context.Context) (*CheckListItemDefinition, error) {
+	if clidc.create_time == nil {
+		v := checklistitemdefinition.DefaultCreateTime()
+		clidc.create_time = &v
+	}
+	if clidc.update_time == nil {
+		v := checklistitemdefinition.DefaultUpdateTime()
+		clidc.update_time = &v
+	}
 	if clidc.title == nil {
 		return nil, errors.New("ent: missing required field \"title\"")
 	}
@@ -138,6 +177,22 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 			},
 		}
 	)
+	if value := clidc.create_time; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldCreateTime,
+		})
+		clid.CreateTime = *value
+	}
+	if value := clidc.update_time; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldUpdateTime,
+		})
+		clid.UpdateTime = *value
+	}
 	if value := clidc.title; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,

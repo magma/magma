@@ -18,6 +18,7 @@ import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import type {
+  CheckListCategoryTable_list,
   ChecklistViewer_checkListItems,
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';
@@ -53,6 +54,7 @@ type Props = {
   workOrder: WorkOrderDetails_workOrder,
   properties: Array<Property>,
   checklist: ChecklistViewer_checkListItems,
+  checkListCategories: CheckListCategoryTable_list,
   locationId: ?string,
   onWorkOrderRemoved: () => void,
   onCancelClicked: () => void,
@@ -66,6 +68,7 @@ const WorkOrderHeader = (props: Props) => {
     workOrder,
     properties,
     checklist,
+    checkListCategories,
     locationId,
     onWorkOrderRemoved,
     onCancelClicked,
@@ -114,6 +117,7 @@ const WorkOrderHeader = (props: Props) => {
           workOrder={workOrder}
           properties={properties}
           checklist={checklist}
+          checkListCategories={checkListCategories}
           locationId={locationId}
         />
       </div>

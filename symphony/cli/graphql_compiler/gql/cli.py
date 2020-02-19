@@ -7,6 +7,7 @@ from graphql.language.parser import parse
 
 from .query_parser import QueryParser, AnonymousQueryError, InvalidQueryError
 from .renderer_dataclasses import DataclassesRenderer
+from .utils_codegen import get_enum_filename
 
 DEFAULT_CONFIG_FNAME = '.gql.json'
 
@@ -42,6 +43,17 @@ def process_file(
         except (AnonymousQueryError, InvalidQueryError):
             safe_remove(target_filename)
             raise
+    enums = renderer.render_enums(parsed)
+    for enum, code in enums.items():
+        target_enum_filename = os.path.join(
+            os.path.dirname(target_filename), "".join([get_enum_filename(enum), '.py']))
+        if verify:
+            assert code == open(target_enum_filename, 'r').read(), \
+                f"Generated file name {target_enum_filename} does " \
+                "not match compilation result"
+        else:
+            with open(target_enum_filename, 'w') as outfile:
+                outfile.write(code)
 
 
 def run(schema_filepath: str, graphql_library: str, verify: bool):

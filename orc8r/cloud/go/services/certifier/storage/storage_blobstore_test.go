@@ -63,7 +63,7 @@ func TestCertifierBlobstore_GetCertInfo(t *testing.T) {
 	store = cstorage.NewCertifierBlobstore(blobFactMock)
 
 	_, err = store.GetCertInfo(serialNumber)
-	assert.Equal(t, err, merrors.ErrNotFound)
+	assert.Exactly(t, err, merrors.ErrNotFound)
 	blobFactMock.AssertExpectations(t)
 	blobStoreMock.AssertExpectations(t)
 

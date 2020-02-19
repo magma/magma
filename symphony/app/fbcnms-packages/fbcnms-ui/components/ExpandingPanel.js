@@ -16,6 +16,7 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import Text from './design-system/Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
+import {useEffect, useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   expansionPanel: {
@@ -67,6 +68,7 @@ type Props = {
   detailsPaneClass?: string,
   rightContent?: React.Node,
   defaultExpanded?: boolean,
+  allowExpandCollapse?: boolean,
   expandedClassName?: string,
   expanded?: boolean,
   expansionPanelSummaryClassName?: string,
@@ -79,21 +81,31 @@ const ExpandingPanel = ({
   children,
   title,
   rightContent,
-  defaultExpanded,
-  expanded,
+  defaultExpanded = true,
+  expanded: expandedProp,
+  allowExpandCollapse = true,
   expandedClassName,
   expansionPanelSummaryClassName,
   onChange,
 }: Props) => {
   const classes = useStyles();
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  useEffect(
+    () => setExpanded(expandedProp ?? (allowExpandCollapse && defaultExpanded)),
+    [allowExpandCollapse, defaultExpanded, expandedProp],
+  );
   return (
     <ExpansionPanel
       className={classNames(classes.expansionPanel, className)}
       classes={{expanded: expandedClassName}}
       defaultExpanded={defaultExpanded}
       expanded={expanded}
-      onChange={(event, expanded) => {
-        onChange && onChange(expanded);
+      onChange={(event, newExpandedValue) => {
+        if (!allowExpandCollapse) {
+          return;
+        }
+        setExpanded(newExpandedValue);
+        onChange && onChange(newExpandedValue);
       }}>
       <ExpansionPanelSummary
         className={classNames(
@@ -104,9 +116,9 @@ const ExpandingPanel = ({
           expandIcon: classes.expandIcon,
           content: classes.summaryContent,
         }}
-        expandIcon={<ExpandMoreIcon className={classes.expandButton} />}>
+        expandIcon={allowExpandCollapse && <ExpandMoreIcon />}>
         <Text className={classes.panelTitle}>{title}</Text>
-        <div onClick={event => event.stopPropagation()}>{rightContent}</div>
+        <div onClick={e => e.stopPropagation()}>{rightContent}</div>
       </ExpansionPanelSummary>
       <ExpansionPanelDetails
         className={classNames(classes.panelDetails, detailsPaneClass)}>
@@ -114,10 +126,6 @@ const ExpandingPanel = ({
       </ExpansionPanelDetails>
     </ExpansionPanel>
   );
-};
-
-ExpandingPanel.defaultProps = {
-  defaultExpanded: true,
 };
 
 export default ExpandingPanel;

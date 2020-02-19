@@ -36,9 +36,9 @@ import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_theme => ({
   paper: {
-    padding: theme.spacing(3, 2),
+    padding: '24px 16px',
   },
 }));
 

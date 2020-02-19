@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash e3360d1fe670c91753bdba3d4e5dd07a
+ * @relayHash e4f8c194e14f414890f41361bf48005f
  */
 
 /* eslint-disable */
@@ -26,6 +26,8 @@ export type AddWorkOrderInput = {|
   projectId?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
   checkList?: ?$ReadOnlyArray<CheckListItemInput>,
+  ownerName?: ?string,
+  checkListCategories?: ?$ReadOnlyArray<CheckListCategoryInput>,
   assignee?: ?string,
   index?: ?number,
   status?: ?WorkOrderStatus,
@@ -57,6 +59,12 @@ export type CheckListItemInput = {|
   enumValues?: ?string,
   stringValue?: ?string,
   checked?: ?boolean,
+|};
+export type CheckListCategoryInput = {|
+  id?: ?string,
+  title: string,
+  description?: ?string,
+  checkList?: ?$ReadOnlyArray<CheckListItemInput>,
 |};
 export type AddWorkOrderMutationVariables = {|
   input: AddWorkOrderInput

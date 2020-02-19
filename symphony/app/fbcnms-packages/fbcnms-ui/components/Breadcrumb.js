@@ -90,7 +90,7 @@ const Breadcrumb = (props: Props) => {
         placement="top"
         title={
           typeof subtext === 'string' ? (
-            <Text className={classes.subtext} variant="caption" color="light">
+            <Text variant="caption" color="light">
               {subtext}
             </Text>
           ) : (

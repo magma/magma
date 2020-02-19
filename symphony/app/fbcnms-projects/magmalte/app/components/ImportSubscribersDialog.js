@@ -29,7 +29,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   content: {
     display: 'flex',
     flexDirection: 'column',
@@ -46,7 +46,7 @@ const useStyles = makeStyles({
   icon: {
     marginLeft: '5px',
   },
-});
+}));
 
 const IMSI = 'imsi';
 const LTE_STATE = 'lte_state';

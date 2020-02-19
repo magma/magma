@@ -3,7 +3,6 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional

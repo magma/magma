@@ -18,8 +18,8 @@ import (
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/testcore/hss"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/lib/go/protos"
 	registryTestUtils "magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-redis/redis"
 	"github.com/golang/glog"

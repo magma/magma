@@ -153,7 +153,7 @@ class MagmaController(app_manager.RyuApp):
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
         return SetupFlowsResult(
-            result=self.setup(request.requests, request.quota_updates,
+            result=self.setup(request.requests, request.quota_updates.updates,
                               startup_flows)
         )
 

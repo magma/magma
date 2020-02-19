@@ -13,7 +13,7 @@ import classNames from 'classnames';
 import symphony from '../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-export const typographyStyles = makeStyles({
+const styles = {
   h1: symphony.typography.h1,
   h2: symphony.typography.h2,
   h3: symphony.typography.h3,
@@ -57,7 +57,8 @@ export const typographyStyles = makeStyles({
   boldWeight: {
     fontWeight: 600,
   },
-});
+};
+export const typographyStyles = makeStyles<Props, typeof styles>(() => styles);
 
 type Props = {
   children: ?React.Node,
@@ -81,7 +82,14 @@ type Props = {
 };
 
 const Text = (props: Props) => {
-  const {children, variant, className, color, weight, ...rest} = props;
+  const {
+    children,
+    variant = 'body1',
+    className,
+    color = 'regular',
+    weight = 'inherit',
+    ...rest
+  } = props;
   const classes = typographyStyles();
   return (
     <span
@@ -95,12 +103,6 @@ const Text = (props: Props) => {
       {children}
     </span>
   );
-};
-
-Text.defaultProps = {
-  variant: 'body1',
-  color: 'regular',
-  weight: 'inherit',
 };
 
 export default Text;

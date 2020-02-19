@@ -238,7 +238,9 @@ func (stqu *SurveyTemplateQuestionUpdate) sqlSave(ctx context.Context) (n int, e
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, stqu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{surveytemplatequestion.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -455,7 +457,9 @@ func (stquo *SurveyTemplateQuestionUpdateOne) sqlSave(ctx context.Context) (stq 
 	_spec.Assign = stq.assignValues
 	_spec.ScanValues = stq.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, stquo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{surveytemplatequestion.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

@@ -18,7 +18,7 @@ import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useMemo, useState} from 'react';
 import WorkOrderCard from './WorkOrderCard';
 import WorkOrderComparisonViewQueryRenderer from './WorkOrderComparisonViewQueryRenderer';
-import classNames from 'classnames';
+import fbt from 'fbt';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
@@ -27,7 +27,7 @@ import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 import {getInitialFilterValue} from '../comparison_view/FilterUtils';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -43,7 +43,9 @@ const useStyles = makeStyles({
     flexGrow: 1,
     paddingTop: '8px',
   },
-});
+}));
+
+const QUERY_LIMIT = 100;
 
 const WorkOrderComparisonView = () => {
   const [filters, setFilters] = useState([]);
@@ -53,6 +55,7 @@ const WorkOrderComparisonView = () => {
   const [resultsDisplayMode, setResultsDisplayMode] = useState(
     DisplayOptions.table,
   );
+  const [count, setCount] = useState((0: number));
   const {match, history, location} = useRouter();
   const classes = useStyles();
 
@@ -135,6 +138,24 @@ const WorkOrderComparisonView = () => {
                   )
                 }
                 onFiltersChanged={filters => setFilters(filters)}
+                exportPath={'/work_orders'}
+                footer={
+                  count !== 0
+                    ? count > QUERY_LIMIT
+                      ? fbt(
+                          '1 to ' +
+                            fbt.param('size of page', QUERY_LIMIT) +
+                            ' of ' +
+                            fbt.param('total number possible rows', count),
+                          'header to indicate partial results',
+                        )
+                      : fbt(
+                          '1 to ' +
+                            fbt.param('number of results in page', count),
+                          'header to indicate number of results',
+                        )
+                    : null
+                }
               />
             </div>
           }
@@ -147,10 +168,6 @@ const WorkOrderComparisonView = () => {
         />
         <div className={classes.searchResults}>
           <WorkOrderComparisonViewQueryRenderer
-            className={classNames({
-              [classes.comparisionViewTable]:
-                resultsDisplayMode === DisplayOptions.table,
-            })}
             limit={50}
             filters={filters}
             onWorkOrderSelected={selectedWorkOrderCardId =>
@@ -162,6 +179,7 @@ const WorkOrderComparisonView = () => {
                 ? DisplayOptions.map
                 : DisplayOptions.table
             }
+            onQueryReturn={c => setCount(c)}
           />
         </div>
       </div>

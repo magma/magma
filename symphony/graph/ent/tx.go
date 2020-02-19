@@ -18,6 +18,8 @@ type Tx struct {
 	config
 	// ActionsRule is the client for interacting with the ActionsRule builders.
 	ActionsRule *ActionsRuleClient
+	// CheckListCategory is the client for interacting with the CheckListCategory builders.
+	CheckListCategory *CheckListCategoryClient
 	// CheckListItem is the client for interacting with the CheckListItem builders.
 	CheckListItem *CheckListItemClient
 	// CheckListItemDefinition is the client for interacting with the CheckListItemDefinition builders.
@@ -110,6 +112,7 @@ func (tx *Tx) Client() *Client {
 		config:                      tx.config,
 		Schema:                      migrate.NewSchema(tx.driver),
 		ActionsRule:                 NewActionsRuleClient(tx.config),
+		CheckListCategory:           NewCheckListCategoryClient(tx.config),
 		CheckListItem:               NewCheckListItemClient(tx.config),
 		CheckListItemDefinition:     NewCheckListItemDefinitionClient(tx.config),
 		Comment:                     NewCommentClient(tx.config),

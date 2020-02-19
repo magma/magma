@@ -1016,7 +1016,6 @@ definitions:
       - aaa_server
       - served_network_ids
       - health
-      - csfb
     properties:
       s6a:
         $ref: '#/definitions/s6a'
@@ -1280,7 +1279,6 @@ definitions:
       - aaa_server
       - served_network_ids
       - health
-      - csfb
     properties:
       s6a:
         $ref: '#/definitions/s6a'

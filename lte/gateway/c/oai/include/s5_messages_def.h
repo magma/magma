@@ -29,16 +29,6 @@
 //WARNING: Do not include this header directly. Use intertask_interface.h instead.
 
 MESSAGE_DEF(
-  S5_CREATE_BEARER_REQUEST,
-  MESSAGE_PRIORITY_MED,
-  itti_s5_create_bearer_request_t,
-  s5_create_bearer_request)
-MESSAGE_DEF(
-  S5_CREATE_BEARER_RESPONSE,
-  MESSAGE_PRIORITY_MED,
-  itti_s5_create_bearer_response_t,
-  s5_create_bearer_response)
-MESSAGE_DEF(
   S5_NW_INITIATED_ACTIVATE_BEARER_REQ,
   MESSAGE_PRIORITY_MED,
   itti_s5_nw_init_actv_bearer_request_t,

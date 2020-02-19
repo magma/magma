@@ -37,8 +37,9 @@ type CheckListItem struct {
 	HelpText *string `json:"help_text,omitempty" gqlgen:"helpText"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CheckListItemQuery when eager-loading is set.
-	Edges                       CheckListItemEdges `json:"edges"`
-	work_order_check_list_items *string
+	Edges                                CheckListItemEdges `json:"edges"`
+	check_list_category_check_list_items *string
+	work_order_check_list_items          *string
 }
 
 // CheckListItemEdges holds the relations/edges for other nodes in the graph.
@@ -81,6 +82,7 @@ func (*CheckListItem) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*CheckListItem) fkValues() []interface{} {
 	return []interface{}{
+		&sql.NullInt64{}, // check_list_category_check_list_items
 		&sql.NullInt64{}, // work_order_check_list_items
 	}
 }
@@ -136,6 +138,12 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 	values = values[7:]
 	if len(values) == len(checklistitem.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field check_list_category_check_list_items", value)
+		} else if value.Valid {
+			cli.check_list_category_check_list_items = new(string)
+			*cli.check_list_category_check_list_items = strconv.FormatInt(value.Int64, 10)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_check_list_items", value)
 		} else if value.Valid {
 			cli.work_order_check_list_items = new(string)

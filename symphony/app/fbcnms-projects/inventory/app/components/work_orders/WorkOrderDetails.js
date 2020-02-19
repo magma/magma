@@ -12,6 +12,7 @@ import type {AddImageMutationResponse} from '../../mutations/__generated__/AddIm
 import type {AddImageMutationVariables} from '../../mutations/__generated__/AddImageMutation.graphql';
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {
+  CheckListCategoryExpandingPanel_list,
   CheckListTable_list,
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';
@@ -25,6 +26,7 @@ import type {WithSnackbarProps} from 'notistack';
 import AddHyperlinkButton from '../AddHyperlinkButton';
 import AddImageMutation from '../../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
 import CheckListTable from '../checklist/CheckListTable';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
@@ -68,6 +70,7 @@ import {withStyles} from '@material-ui/core/styles';
 type State = {
   workOrder: WorkOrderDetails_workOrder,
   checklist: CheckListTable_list,
+  checkListCategories: CheckListCategoryExpandingPanel_list,
   properties: Array<Property>,
   locationId: ?string,
   isLoadingDocument: boolean,
@@ -161,6 +164,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
     workOrder: this.props.workOrder,
     properties: this.getEditingProperties(),
     checklist: this.props.workOrder.checkList,
+    checkListCategories: this.props.workOrder.checkListCategories,
     locationId: this.props.workOrder.location?.id,
     isLoadingDocument: false,
     showChecklistDesignMode: false,
@@ -182,6 +186,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
       workOrder,
       properties,
       checklist,
+      checkListCategories,
       locationId,
       showChecklistDesignMode,
     } = this.state;
@@ -195,6 +200,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
             workOrder={workOrder}
             properties={properties}
             checklist={checklist}
+            checkListCategories={checkListCategories}
             locationId={locationId}
             onWorkOrderRemoved={onWorkOrderRemoved}
             onCancelClicked={onCancelClicked}
@@ -352,7 +358,10 @@ class WorkOrderDetails extends React.Component<Props, State> {
                                     margin="dense"
                                     selectedLocation={
                                       location
-                                        ? {id: location.id, name: location.name}
+                                        ? {
+                                            id: location.id,
+                                            name: location.name,
+                                          }
                                         : null
                                     }
                                     onLocationSelection={location =>
@@ -491,6 +500,12 @@ class WorkOrderDetails extends React.Component<Props, State> {
                               onDesignMode={this.state.showChecklistDesignMode}
                             />
                           </ExpandingPanel>
+                          <CheckListCategoryExpandingPanel
+                            list={checkListCategories}
+                            onListChanged={
+                              this._checkListCategoryChangedHandler
+                            }
+                          />
                         </Grid>
                         <Grid item xs={4} sm={4} lg={4} xl={4}>
                           <ExpandingPanel title="Team" className={classes.card}>
@@ -626,12 +641,18 @@ class WorkOrderDetails extends React.Component<Props, State> {
     });
   };
 
-  _checklistChangedHandler = updatedChecklist => {
+  _checkListCategoryChangedHandler = updatedCheckListCategories => {
     this.setState(() => {
       return {
-        checklist: updatedChecklist,
+        checkListCategories: updatedCheckListCategories,
       };
     });
+  };
+
+  _checklistChangedHandler = updatedChecklist => {
+    this.setState(() => ({
+      checklist: updatedChecklist,
+    }));
   };
 
   _setWorkOrderDetail = (
@@ -729,6 +750,9 @@ export default withRouter(
               }
               checkList {
                 ...CheckListTable_list @relay(mask: false)
+              }
+              checkListCategories {
+                ...CheckListCategoryExpandingPanel_list
               }
             }
           `,

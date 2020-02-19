@@ -3,7 +3,6 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -12,6 +11,8 @@ from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
 
 from .datetime_utils import fromisoformat
+
+from .service_endpoint_role_enum import ServiceEndpointRole
 
 
 DATETIME_FIELD = field(
@@ -41,15 +42,6 @@ def enum_field(enum_type):
         }
     )
 
-
-class ServiceEndpointRole(Enum):
-    CONSUMER = "CONSUMER"
-    PROVIDER = "PROVIDER"
-    MISSING_ENUM = ""
-
-    @classmethod
-    def _missing_(cls, value):
-        return cls.MISSING_ENUM
 
 
 @dataclass_json

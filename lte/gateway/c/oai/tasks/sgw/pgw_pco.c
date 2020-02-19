@@ -49,6 +49,10 @@ int pgw_pco_push_protocol_or_container_id(
   if (
     PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID <=
     pco->num_protocol_or_container_id) {
+    OAILOG_ERROR(
+      LOG_PGW_APP,
+      "Invalid num_protocol_or_container_id :%d within pco \n",
+      pco->num_protocol_or_container_id);
     return RETURNerror;
   }
   pco->protocol_or_container_ids[pco->num_protocol_or_container_id].id =
@@ -335,6 +339,8 @@ int pgw_process_pco_request(
   protocol_configuration_options_t *pco_resp,
   protocol_configuration_options_ids_t *const pco_ids)
 {
+  OAILOG_FUNC_IN(LOG_PGW_APP);
+  uint32_t rc = RETURNok;
   memset(pco_ids, 0, sizeof *pco_ids);
 
   switch (pco_req->configuration_protocol) {
@@ -356,13 +362,13 @@ int pgw_process_pco_request(
   for (int id = 0; id < pco_req->num_protocol_or_container_id; id++) {
     switch (pco_req->protocol_or_container_ids[id].id) {
       case PCO_PI_IPCP:
-        pgw_process_pco_request_ipcp(
+        rc = pgw_process_pco_request_ipcp(
           pco_resp, &pco_req->protocol_or_container_ids[id]);
         pco_ids->pi_ipcp = true;
         break;
 
       case PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST:
-        pgw_process_pco_dns_server_request(
+        rc = pgw_process_pco_dns_server_request(
           pco_resp, &pco_req->protocol_or_container_ids[id]);
         pco_ids->ci_dns_server_ipv4_address_request = true;
         break;
@@ -374,13 +380,13 @@ int pgw_process_pco_request(
         break;
 
       case PCO_CI_IPV4_LINK_MTU_REQUEST:
-        pgw_process_pco_link_mtu_request(
+        rc = pgw_process_pco_link_mtu_request(
           pco_resp, &pco_req->protocol_or_container_ids[id]);
         pco_ids->ci_ipv4_link_mtu_request = true;
         break;
 
       case PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST:
-        pgw_process_pco_link_mtu_request(
+        rc = pgw_process_pco_link_mtu_request(
           pco_resp, &pco_req->protocol_or_container_ids[id]);
         pco_ids->ci_ipv4_link_mtu_request = true;
         break;
@@ -402,5 +408,5 @@ int pgw_process_pco_request(
       pgw_process_pco_link_mtu_request(pco_resp, NULL);
     }
   }
-  return RETURNok;
+  return rc;
 }

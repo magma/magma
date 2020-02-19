@@ -337,6 +337,7 @@ input AddWorkOrderTypeInput {
     @uniqueField(typ: "property type", field: "Name")
   checkList: [CheckListDefinitionInput]
     @uniqueField(typ: "check list definition", field: "Name")
+  checkListCategories: [CheckListCategoryInput!]
 }
 
 input EditWorkOrderTypeInput {
@@ -347,6 +348,7 @@ input EditWorkOrderTypeInput {
     @uniqueField(typ: "property type", field: "Name")
   checkList: [CheckListDefinitionInput]
     @uniqueField(typ: "check list definition", field: "Name")
+  checkListCategories: [CheckListCategoryInput!]
 }
 
 input AddWorkOrderInput {
@@ -357,6 +359,8 @@ input AddWorkOrderInput {
   projectId: ID
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
+  ownerName: String
+  checkListCategories: [CheckListCategoryInput!]
   assignee: String
   index: Int
   status: WorkOrderStatus
@@ -367,7 +371,7 @@ input EditWorkOrderInput {
   id: ID!
   name: String!
   description: String
-  ownerName: String!
+  ownerName: String
   installDate: Time
   assignee: String
   index: Int
@@ -376,6 +380,7 @@ input EditWorkOrderInput {
   projectId: ID
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
+  checkListCategories: [CheckListCategoryInput!]
   locationId: ID
 }
 
@@ -427,7 +432,7 @@ input EquipmentPortInput {
   name: String!
   index: Int
   visibleLabel: String
-  portTypeID: String
+  portTypeID: ID
   bandwidth: String
 }
 
@@ -878,7 +883,14 @@ input CheckListDefinitionInput {
   helpText: String
 }
 
-type CheckListItem {
+type CheckListCategory implements Node {
+  id: ID!
+  title: String!
+  description: String
+  checkList: [CheckListItem!]!
+}
+
+type CheckListItem implements Node {
   id: ID!
   title: String!
   type: CheckListItemType!
@@ -887,6 +899,13 @@ type CheckListItem {
   enumValues: String
   stringValue: String
   checked: Boolean
+}
+
+input CheckListCategoryInput {
+  id: ID
+  title: String!
+  description: String
+  checkList: [CheckListItemInput!]
 }
 
 input CheckListItemInput {
@@ -901,7 +920,7 @@ input CheckListItemInput {
 }
 
 """
-Work Order type schema: e.g. constrcution work.
+Work Order type schema: e.g. construction work.
 """
 type WorkOrderType implements Node {
   id: ID!
@@ -910,6 +929,7 @@ type WorkOrderType implements Node {
   propertyTypes: [PropertyType]!
   numberOfWorkOrders: Int!
   checkListDefinitions: [CheckListItemDefinition]!
+  checkListCategories: [CheckListCategory!]!
 }
 
 """
@@ -938,6 +958,7 @@ type WorkOrder implements Node {
   properties: [Property]!
   project: Project
   checkList: [CheckListItem]!
+  checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
 }
 
@@ -1157,6 +1178,11 @@ type LocationSearchResult {
 
 type ServiceSearchResult {
   services: [Service]!
+  count: Int!
+}
+
+type WorkOrderSearchResult {
+  workOrders: [WorkOrder]!
   count: Int!
 }
 
@@ -1824,8 +1850,10 @@ type Query {
     id: ID!
   ): Node
 
-  location(id: ID!): Location @deprecated(reason: "Use `node` instead")
-  locationType(id: ID!): LocationType @deprecated(reason: "Use `node` instead")
+  location(id: ID!): Location
+    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+  locationType(id: ID!): LocationType
+    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
   locationTypes(
     after: Cursor
     first: Int
@@ -1842,9 +1870,10 @@ type Query {
     before: Cursor
     last: Int
   ): LocationConnection
-  equipment(id: ID!): Equipment @deprecated(reason: "Use `node` instead")
+  equipment(id: ID!): Equipment
+    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
   equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use `node` instead")
+    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -1863,15 +1892,18 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
-  service(id: ID!): Service @deprecated(reason: "Use `node` instead")
-  serviceType(id: ID!): ServiceType @deprecated(reason: "Use `node` instead")
+  service(id: ID!): Service
+    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+  serviceType(id: ID!): ServiceType
+    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
   serviceTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ServiceTypeConnection
-  workOrder(id: ID!): WorkOrder @deprecated(reason: "Use `node` instead")
+  workOrder(id: ID!): WorkOrder
+    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
   workOrders(
     after: Cursor
     first: Int
@@ -1899,7 +1931,7 @@ type Query {
   workOrderSearch(
     filters: [WorkOrderFilterInput!]!
     limit: Int = 500
-  ): [WorkOrder]!
+  ): WorkOrderSearchResult!
   linkSearch(filters: [LinkFilterInput!]!, limit: Int = 500): LinkSearchResult!
   portSearch(filters: [PortFilterInput!]!, limit: Int = 500): PortSearchResult!
   locationSearch(

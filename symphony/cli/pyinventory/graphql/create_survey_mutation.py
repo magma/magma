@@ -3,7 +3,6 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -12,6 +11,11 @@ from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
 
 from .datetime_utils import fromisoformat
+
+from .cellular_network_type_enum import CellularNetworkType
+from .file_type_enum import FileType
+from .survey_question_type_enum import SurveyQuestionType
+from .survey_status_enum import SurveyStatus
 
 
 DATETIME_FIELD = field(
@@ -41,58 +45,6 @@ def enum_field(enum_type):
         }
     )
 
-
-class SurveyStatus(Enum):
-    PLANNED = "PLANNED"
-    INPROGRESS = "INPROGRESS"
-    COMPLETED = "COMPLETED"
-    MISSING_ENUM = ""
-
-    @classmethod
-    def _missing_(cls, value):
-        return cls.MISSING_ENUM
-
-
-class SurveyQuestionType(Enum):
-    BOOL = "BOOL"
-    EMAIL = "EMAIL"
-    COORDS = "COORDS"
-    PHONE = "PHONE"
-    TEXT = "TEXT"
-    TEXTAREA = "TEXTAREA"
-    PHOTO = "PHOTO"
-    WIFI = "WIFI"
-    CELLULAR = "CELLULAR"
-    FLOAT = "FLOAT"
-    INTEGER = "INTEGER"
-    DATE = "DATE"
-    MISSING_ENUM = ""
-
-    @classmethod
-    def _missing_(cls, value):
-        return cls.MISSING_ENUM
-
-
-class FileType(Enum):
-    IMAGE = "IMAGE"
-    FILE = "FILE"
-    MISSING_ENUM = ""
-
-    @classmethod
-    def _missing_(cls, value):
-        return cls.MISSING_ENUM
-
-
-class CellularNetworkType(Enum):
-    CDMA = "CDMA"
-    GSM = "GSM"
-    LTE = "LTE"
-    WCDMA = "WCDMA"
-    MISSING_ENUM = ""
-
-    @classmethod
-    def _missing_(cls, value):
-        return cls.MISSING_ENUM
 
 
 @dataclass_json
