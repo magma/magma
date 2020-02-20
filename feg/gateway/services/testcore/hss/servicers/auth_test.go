@@ -6,9 +6,10 @@
  LICENSE file in the root directory of this source tree.
 */
 
-package servicers
+package servicers_test
 
 import (
+	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"testing"
 
@@ -26,30 +27,30 @@ var (
 )
 
 func TestSeqToSqn(t *testing.T) {
-	assert.Equal(t, uint64(0x1FE000), SeqToSqn(0xFF00, 0))
-	assert.Equal(t, uint64(0xFFFFFFFFFA00), SeqToSqn(0xFFFFFFFFFFD0, 0))
-	assert.Equal(t, uint64(0x142), SeqToSqn(0xA, 2))
-	assert.Equal(t, uint64(0xFFFFFFFFF805), SeqToSqn(0xFFFFFFFFFFC0, 5))
+	assert.Equal(t, uint64(0x1FE000), servicers.SeqToSqn(0xFF00, 0))
+	assert.Equal(t, uint64(0xFFFFFFFFFA00), servicers.SeqToSqn(0xFFFFFFFFFFD0, 0))
+	assert.Equal(t, uint64(0x142), servicers.SeqToSqn(0xA, 2))
+	assert.Equal(t, uint64(0xFFFFFFFFF805), servicers.SeqToSqn(0xFFFFFFFFFFC0, 5))
 }
 
 func TestSplitSqn(t *testing.T) {
-	sqn, ind := SplitSqn(0x1FE001)
+	sqn, ind := servicers.SplitSqn(0x1FE001)
 	assert.Equal(t, uint64(0xFF00), sqn)
 	assert.Equal(t, uint64(0x1), ind)
 
-	sqn, ind = SplitSqn(0xFFFFFFFFFA1F)
+	sqn, ind = servicers.SplitSqn(0xFFFFFFFFFA1F)
 	assert.Equal(t, uint64(0x7FFFFFFFFD0), sqn)
 	assert.Equal(t, uint64(0x1F), ind)
 }
 
 func TestGetOrGenerateOpc(t *testing.T) {
 	lte := &protos.LTESubscription{AuthOpc: []byte("\xcdc\xcbq\x95J\x9fNH\xa5\x99N7\xa0+\xaf")}
-	opc, err := GetOrGenerateOpc(lte, defaultLteAuthOp)
+	opc, err := servicers.GetOrGenerateOpc(lte, defaultLteAuthOp)
 	assert.NoError(t, err)
 	assert.Equal(t, lte.AuthOpc, opc)
 
 	lte = &protos.LTESubscription{AuthKey: []byte("\x46\x5b\x5c\xe8\xb1\x99\xb4\x9f\xaa\x5f\x0a\x2e\xe2\x38\xa6\xbc")}
-	opc, err = GetOrGenerateOpc(lte, defaultLteAuthOp)
+	opc, err = servicers.GetOrGenerateOpc(lte, defaultLteAuthOp)
 	assert.NoError(t, err)
 	expectedOpc, err := crypto.GenerateOpc(lte.AuthKey, defaultLteAuthOp)
 	assert.NoError(t, err)
@@ -61,8 +62,8 @@ func TestGenerateLteAuthVector_MissingLTE(t *testing.T) {
 	assert.NoError(t, err)
 
 	subscriber := &protos.SubscriberData{State: &protos.SubscriberState{}}
-	_, _, err = GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
-	assert.Exactly(t, NewAuthRejectedError("Subscriber data missing LTE subscription"), err)
+	_, _, err = servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
+	assert.Exactly(t, servicers.NewAuthRejectedError("Subscriber data missing LTE subscription"), err)
 }
 
 func TestGenerateLteAuthVector_MissingSubscriberState(t *testing.T) {
@@ -75,8 +76,8 @@ func TestGenerateLteAuthVector_MissingSubscriberState(t *testing.T) {
 			AuthAlgo: protos.LTESubscription_MILENAGE,
 		},
 	}
-	_, _, err = GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
-	assert.Exactly(t, NewAuthRejectedError("Subscriber data missing subscriber state"), err)
+	_, _, err = servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
+	assert.Exactly(t, servicers.NewAuthRejectedError("Subscriber data missing subscriber state"), err)
 }
 
 func TestGenerateLteAuthVector_InactiveLTESubscription(t *testing.T) {
@@ -90,8 +91,8 @@ func TestGenerateLteAuthVector_InactiveLTESubscription(t *testing.T) {
 		},
 		State: &protos.SubscriberState{},
 	}
-	_, _, err = GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
-	assert.Exactly(t, NewAuthRejectedError("LTE Service not active"), err)
+	_, _, err = servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
+	assert.Exactly(t, servicers.NewAuthRejectedError("LTE Service not active"), err)
 }
 
 func TestGenerateLteAuthVector_UnknownLTEAuthAlgo(t *testing.T) {
@@ -105,8 +106,8 @@ func TestGenerateLteAuthVector_UnknownLTEAuthAlgo(t *testing.T) {
 		},
 		State: &protos.SubscriberState{},
 	}
-	_, _, err = GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
-	assert.Exactly(t, NewAuthRejectedError("Unsupported crypto algorithm: 10"), err)
+	_, _, err = servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, defaultAuthSqnInd)
+	assert.Exactly(t, servicers.NewAuthRejectedError("Unsupported crypto algorithm: 10"), err)
 }
 
 func TestGenerateLteAuthVector_Success(t *testing.T) {
@@ -124,7 +125,7 @@ func TestGenerateLteAuthVector_Success(t *testing.T) {
 		},
 		State: &protos.SubscriberState{LteAuthNextSeq: 229},
 	}
-	vector, lteAuthNextSeq, err := GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, 23)
+	vector, lteAuthNextSeq, err := servicers.GenerateLteAuthVector(milenage, subscriber, defaultPlmn, defaultLteAuthOp, 23)
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(230), lteAuthNextSeq)
 
@@ -136,75 +137,75 @@ func TestGenerateLteAuthVector_Success(t *testing.T) {
 
 func TestResyncLteAuthSeq(t *testing.T) {
 	subscriber := test_utils.GetTestSubscribers()[0]
-	lteAuthNextSeq, err := ResyncLteAuthSeq(subscriber, nil, defaultLteAuthOp)
+	lteAuthNextSeq, err := servicers.ResyncLteAuthSeq(subscriber, nil, defaultLteAuthOp)
 	assert.NoError(t, err)
 	assert.Equal(t, lteAuthNextSeq, subscriber.GetState().GetLteAuthNextSeq())
 
-	lteAuthNextSeq, err = ResyncLteAuthSeq(subscriber, make([]byte, 30), defaultLteAuthOp)
+	lteAuthNextSeq, err = servicers.ResyncLteAuthSeq(subscriber, make([]byte, 30), defaultLteAuthOp)
 	assert.NoError(t, err)
 	assert.Equal(t, lteAuthNextSeq, subscriber.GetState().GetLteAuthNextSeq())
 
 	resyncInfo := make([]byte, 50)
 	resyncInfo[25] = 1
-	_, err = ResyncLteAuthSeq(subscriber, resyncInfo, defaultLteAuthOp)
-	assert.Exactly(t, NewAuthRejectedError("resync info incorrect length. expected 30 bytes, but got 50 bytes"), err)
+	_, err = servicers.ResyncLteAuthSeq(subscriber, resyncInfo, defaultLteAuthOp)
+	assert.Exactly(t, servicers.NewAuthRejectedError("resync info incorrect length. expected 30 bytes, but got 50 bytes"), err)
 
 	resyncInfo = make([]byte, 30)
 	resyncInfo[0] = 0xFF
-	_, err = ResyncLteAuthSeq(subscriber, resyncInfo, defaultLteAuthOp)
-	assert.Exactly(t, NewAuthRejectedError("Invalid resync authentication code"), err)
+	_, err = servicers.ResyncLteAuthSeq(subscriber, resyncInfo, defaultLteAuthOp)
+	assert.Exactly(t, servicers.NewAuthRejectedError("Invalid resync authentication code"), err)
 
 	macS := []byte{132, 178, 239, 23, 199, 61, 138, 176}
 	copy(resyncInfo[22:], macS)
-	lteAuthNextSeq, err = ResyncLteAuthSeq(subscriber, resyncInfo, defaultLteAuthOp)
+	lteAuthNextSeq, err = servicers.ResyncLteAuthSeq(subscriber, resyncInfo, defaultLteAuthOp)
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(0x4204c05f18b), lteAuthNextSeq)
 }
 
 func TestGetNextLteAuthSqnAfterResync(t *testing.T) {
 	state := &protos.SubscriberState{LteAuthNextSeq: 1 << 30}
-	_, err := GetNextLteAuthSqnAfterResync(state, SeqToSqn(1<<30-1<<10, 2))
-	assert.Exactly(t, NewAuthRejectedError("Re-sync delta in range but UE rejected auth: 1023"), err)
+	_, err := servicers.GetNextLteAuthSqnAfterResync(state, servicers.SeqToSqn(1<<30-1<<10, 2))
+	assert.Exactly(t, servicers.NewAuthRejectedError("Re-sync delta in range but UE rejected auth: 1023"), err)
 
-	lteAuthNextSeq, err := GetNextLteAuthSqnAfterResync(state, SeqToSqn(1<<30-1, 3))
+	lteAuthNextSeq, err := servicers.GetNextLteAuthSqnAfterResync(state, servicers.SeqToSqn(1<<30-1, 3))
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(1<<30), lteAuthNextSeq)
 
-	_, err = GetNextLteAuthSqnAfterResync(nil, 0)
-	assert.Exactly(t, NewAuthDataUnavailableError("subscriber state was nil"), err)
+	_, err = servicers.GetNextLteAuthSqnAfterResync(nil, 0)
+	assert.Exactly(t, servicers.NewAuthDataUnavailableError("subscriber state was nil"), err)
 }
 
 func TestValidateLteSubscription(t *testing.T) {
-	err := ValidateLteSubscription(nil)
+	err := servicers.ValidateLteSubscription(nil)
 	assert.EqualError(t, err, "Subscriber data missing LTE subscription")
 
 	lte := &protos.LTESubscription{
 		State:    protos.LTESubscription_INACTIVE,
 		AuthAlgo: protos.LTESubscription_MILENAGE,
 	}
-	err = ValidateLteSubscription(lte)
+	err = servicers.ValidateLteSubscription(lte)
 	assert.EqualError(t, err, "LTE Service not active")
 
 	lte = &protos.LTESubscription{
 		State:    protos.LTESubscription_ACTIVE,
 		AuthAlgo: 50,
 	}
-	err = ValidateLteSubscription(lte)
+	err = servicers.ValidateLteSubscription(lte)
 	assert.EqualError(t, err, "Unsupported crypto algorithm: 50")
 
 	lte = &protos.LTESubscription{
 		State:    protos.LTESubscription_ACTIVE,
 		AuthAlgo: protos.LTESubscription_MILENAGE,
 	}
-	err = ValidateLteSubscription(lte)
+	err = servicers.ValidateLteSubscription(lte)
 	assert.NoError(t, err)
 }
 
 func TestIsAllZero(t *testing.T) {
-	assert.Equal(t, true, IsAllZero(nil))
-	assert.Equal(t, true, IsAllZero(make([]byte, 50)))
+	assert.Equal(t, true, servicers.IsAllZero(nil))
+	assert.Equal(t, true, servicers.IsAllZero(make([]byte, 50)))
 
 	bytes := make([]byte, 30)
 	bytes[25] = 1
-	assert.Equal(t, false, IsAllZero(bytes))
+	assert.Equal(t, false, servicers.IsAllZero(bytes))
 }

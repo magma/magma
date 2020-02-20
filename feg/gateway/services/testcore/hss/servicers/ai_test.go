@@ -120,7 +120,7 @@ func TestNewAIA_MissingAuthKey(t *testing.T) {
 
 	air := createAIR("missing_auth_key")
 	response, err := hss.NewAIA(server, air)
-	assert.Exactly(t, servicers.NewAuthRejectedError("incorrect key size. Expected 16 bytes, but got 0 bytes"), err)
+	assert.Exactly(t, hss.NewAuthRejectedError("incorrect key size. Expected 16 bytes, but got 0 bytes"), err)
 
 	// Check that the AIA has the expected error.
 	var aia definitions.AIA
