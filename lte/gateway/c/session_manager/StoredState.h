@@ -125,4 +125,25 @@ struct StoredSessionState {
   uint32_t request_number;
 };
 
+// Update Criteria
+
+struct SessionCreditUpdateCriteria {
+  bool reporting;
+  bool is_final;
+  ReAuthState reauth_state;
+  ServiceState service_state;
+  std::time_t  expiry_time;
+  std::unordered_map<Bucket, uint64_t> bucket_deltas;
+};
+
+struct SessionStateUpdateCriteria {
+  std::vector<std::string> static_rules_to_install;
+  std::vector<std::string> static_rules_to_uninstall;
+  std::vector<PolicyRule> dynamic_rules_to_install;
+  std::vector<std::string> dynamic_rules_to_uninstall;
+  std::unordered_map<
+    CreditKey, SessionCreditUpdateCriteria,
+    decltype(&ccHash), decltype(&ccEqual)> charging_credit_map;
+  std::unordered_map<std::string, SessionCreditUpdateCriteria> monitor_credit_map;
+};
 }; // namespace magma
