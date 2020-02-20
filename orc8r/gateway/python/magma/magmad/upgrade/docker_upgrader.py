@@ -40,8 +40,8 @@ class DockerUpgrader(Upgrader2):
         split_version = version.split('|')
         if len(split_version) > 2:
             raise ValueError(
-                'Expected version formatted as <image tag>|<git hash>, got %s',
-                version,
+                'Expected version formatted as '
+                '<image tag>|<git hash>, got {}'.format(version),
             )
         return ImageNameT(version)
 
