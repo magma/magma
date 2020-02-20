@@ -114,6 +114,9 @@ add_library(SESSION_MANAGER
     SessionStore.h
     MemorySessionStore.cpp
     MemorySessionStore.h
+    MemoryStoreClient.cpp
+    MemoryStoreClient.h
+    StoreClient.h
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
