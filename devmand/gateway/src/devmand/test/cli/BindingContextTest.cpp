@@ -15,7 +15,7 @@
 #include <folly/futures/Future.h>
 #include <folly/json.h>
 #include <gtest/gtest.h>
-#include <ydk_ietf/iana_if_type.hpp>
+#include <ydk_openconfig/iana_if_type.hpp>
 #include <ydk_openconfig/openconfig_interfaces.hpp>
 #include <ydk_openconfig/openconfig_vlan_types.hpp>
 
@@ -42,9 +42,9 @@ class BindingContextTest : public ::testing::Test {
 
 TEST_F(BindingContextTest, caching) {
   BindingContext& bundleOpenconfig =
-      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+      mreg.getBindingContext(Model::OPENCONFIG_2_4_3);
   BindingContext& bundleOpenconfig2 =
-      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+      mreg.getBindingContext(Model::OPENCONFIG_2_4_3);
   ASSERT_EQ(&bundleOpenconfig, &bundleOpenconfig2);
   ASSERT_EQ(1, mreg.bindingCacheSize());
 }
@@ -53,7 +53,7 @@ static shared_ptr<OpenconfigInterface> interfaceCpp() {
   auto interface = make_shared<OpenconfigInterface>();
   interface->name = "loopback1";
   interface->config->name = "loopback1";
-  interface->config->type = ietf::iana_if_type::SoftwareLoopback();
+  interface->config->type = openconfig::iana_if_type::SoftwareLoopback();
   interface->config->mtu = 1500;
   interface->state->ifindex = 1;
   interface->ethernet->switched_vlan->config->access_vlan = 77;
@@ -131,7 +131,7 @@ static const string singleInterfaceJson =
 
 TEST_F(BindingContextTest, jsonSerializationTopLevel) {
   BindingContext& bundleOpenconfig =
-      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+      mreg.getBindingContext(Model::OPENCONFIG_2_4_3);
 
   shared_ptr<OpenconfigInterfaces> originalIfc = interfacesCpp();
 
@@ -147,7 +147,7 @@ TEST_F(BindingContextTest, jsonSerializationTopLevel) {
 
 TEST_F(BindingContextTest, domSerializationTopLevel) {
   BindingContext& bundleOpenconfig =
-      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+      mreg.getBindingContext(Model::OPENCONFIG_2_4_3);
 
   shared_ptr<OpenconfigInterfaces> originalIfc = interfacesCpp();
 
@@ -163,7 +163,7 @@ TEST_F(BindingContextTest, domSerializationTopLevel) {
 
 TEST_F(BindingContextTest, domSerializationNested) {
   BindingContext& bundleOpenconfig =
-      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+      mreg.getBindingContext(Model::OPENCONFIG_2_4_3);
 
   shared_ptr<OpenconfigInterface> originalIfc = interfaceCpp();
 
@@ -181,7 +181,7 @@ TEST_F(BindingContextTest, domSerializationNested) {
 
 TEST_F(BindingContextTest, toDomFail) {
   BindingContext& bundleOpenconfig =
-      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+      mreg.getBindingContext(Model::OPENCONFIG_2_4_3);
 
   shared_ptr<OpenconfigInterfaces> originalIfc = interfacesCpp();
 
@@ -194,7 +194,7 @@ TEST_F(BindingContextTest, toDomFail) {
 
 TEST_F(BindingContextTest, jsonSerializationFail) {
   BindingContext& bundleOpenconfig =
-      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+      mreg.getBindingContext(Model::OPENCONFIG_2_4_3);
 
   class FakeEntity : public OpenconfigInterfaces {
    public:
@@ -211,7 +211,7 @@ TEST_F(BindingContextTest, jsonSerializationFail) {
 
 TEST_F(BindingContextTest, jsonDeserializationFail) {
   BindingContext& bundleOpenconfig =
-      mreg.getBindingContext(Model::OPENCONFIG_0_1_6);
+      mreg.getBindingContext(Model::OPENCONFIG_2_4_3);
 
   ASSERT_THROW(
       const shared_ptr<Entity> decodedIfcEntity =

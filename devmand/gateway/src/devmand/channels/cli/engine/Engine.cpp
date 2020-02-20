@@ -16,6 +16,7 @@
 #include <libssh/libssh.h>
 #include <spdlog/spdlog.h>
 #include <iostream>
+#include <libyang/libyang.h>
 
 namespace devmand {
 namespace channels {
@@ -48,9 +49,12 @@ void Engine::initLogging(uint32_t verbosity, bool callInitMlog) {
       magma::init_logging("devmand");
     }
     magma::set_verbosity(verbosity);
-    // IInitialize spd -> glog sink for YDK lib
+    // Initialize spd -> glog sink for YDK lib
     spdlog::create<Spd2Glog>("ydk");
     spdlog::set_level(spdlog::level::level_enum::info);
+
+    // Disable libyang logs
+    llly_log_options(0);
   } else {
     MLOG(MWARNING) << "Logging already initialized";
   }

@@ -13,7 +13,7 @@
 #include <devmand/devices/cli/schema/ModelRegistry.h>
 #include <folly/futures/Future.h>
 #include <folly/json.h>
-#include <ydk_ietf/iana_if_type.hpp>
+#include <ydk_openconfig/iana_if_type.hpp>
 #include <ydk_openconfig/openconfig_interfaces.hpp>
 #include <ydk_openconfig/openconfig_network_instance.hpp>
 #include <ydk_openconfig/openconfig_vlan_types.hpp>
@@ -34,7 +34,7 @@ using Vlan = Ni::Vlans::Vlan;
 
 using Ifcs = openconfig::openconfig_interfaces::Interfaces;
 using Ifc = openconfig::openconfig_interfaces::Interfaces::Interface;
-using IfcType = ietf::iana_if_type::IanaInterfaceType;
+using IfcType = openconfig::iana_if_type::IanaInterfaceType;
 using AdminState = Ifc::State::AdminStatus;
 using OperState = Ifc::State::OperStatus;
 
@@ -75,13 +75,13 @@ static void parseConfig(
 
   parseLeaf<IfcType>(output, type, cfg->type, 1, [&ifcId](auto str) -> IfcType {
     if (str.find("lag") == 0) {
-      return ietf::iana_if_type::Ieee8023adLag();
+      return openconfig::iana_if_type::Ieee8023adLag();
     } else if (str.find("vlan") == 0) {
-      return ietf::iana_if_type::L3ipvlan();
+      return openconfig::iana_if_type::L3ipvlan();
     } else if (regex_match(ifcId, ethernetIfc)) {
-      return ietf::iana_if_type::EthernetCsmacd();
+      return openconfig::iana_if_type::EthernetCsmacd();
     }
-    return ietf::iana_if_type::Other();
+    return openconfig::iana_if_type::Other();
   });
 }
 
@@ -160,7 +160,7 @@ static void parseState(
     }
   });
 
-  if (cfg->type.get() == ietf::iana_if_type::EthernetCsmacd().to_string()) {
+  if (cfg->type.get() == openconfig::iana_if_type::EthernetCsmacd().to_string()) {
     const ReadCommand cmdStateEth =
         ReadCommand::create("show interface ethernet " + ifcId);
     string outputStateEth = channel.executeRead(cmdStateEth).get();
@@ -322,7 +322,7 @@ StructuredUbntDevice::StructuredUbntDevice(
 
 void StructuredUbntDevice::setIntendedDatastore(const dynamic& config) {
   const string& json = folly::toJson(config);
-  auto& bundle = mreg->getBindingContext(Model::OPENCONFIG_0_1_6);
+  auto& bundle = mreg->getBindingContext(Model::OPENCONFIG_2_4_3);
   const shared_ptr<OpenconfigInterfaces>& ydkModel =
       make_shared<OpenconfigInterfaces>();
   const shared_ptr<Entity> decodedIfcEntity =
@@ -334,7 +334,7 @@ void StructuredUbntDevice::setIntendedDatastore(const dynamic& config) {
         std::static_pointer_cast<OpenconfigInterface>(entity);
     shared_ptr<OpenconfigConfig> openConfig = iface->config;
     if (openConfig->type.get() !=
-        ietf::iana_if_type::EthernetCsmacd().to_string()) {
+        openconfig::iana_if_type::EthernetCsmacd().to_string()) {
       continue;
     }
     string enabled =
@@ -354,7 +354,7 @@ shared_ptr<Datastore> StructuredUbntDevice::getOperationalDatastore() {
   auto state = Datastore::make(*reinterpret_cast<MetricSink*>(&app), getId());
   state->setStatus(true);
 
-  auto& bundle = mreg->getBindingContext(Model::OPENCONFIG_0_1_6);
+  auto& bundle = mreg->getBindingContext(Model::OPENCONFIG_2_4_3);
 
   // TODO the conversion here is: Object -> Json -> folly:dynamic
   // the json step is unnecessary

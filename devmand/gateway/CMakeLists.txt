@@ -81,7 +81,6 @@ target_link_libraries(devman
   yang
   ydk
   ydk_openconfig
-  ydk_ietf
   curl
   xslt
   xml2
