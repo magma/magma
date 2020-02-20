@@ -17,10 +17,10 @@ import React, {useContext} from 'react';
 import SearchIcon from '@material-ui/icons/Search';
 import ViewListIcon from '@material-ui/icons/ViewList';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 export default function MainNavListItems() {
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
   const servicesEnabled = useContext(AppContext).isFeatureEnabled('services');
   return [
     <NavListItem

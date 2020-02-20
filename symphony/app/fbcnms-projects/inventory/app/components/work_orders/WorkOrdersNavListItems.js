@@ -13,10 +13,10 @@ import ProjectsIcon from '@fbcnms/ui/icons/ProjectsIcon';
 import React from 'react';
 import WorkIcon from '@material-ui/icons/Work';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 export const WorkOrdersNavListItems = () => {
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
   return [
     <NavListItem
       key={1}

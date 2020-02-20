@@ -27,7 +27,6 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import axios from 'axios';
-
 import renderList from '@fbcnms/util/renderList';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {Link, Route} from 'react-router-dom';
@@ -35,6 +34,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRelativePath, useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 export type Organization = OrganizationRawType & {id: number};
 
@@ -53,7 +53,9 @@ type Props = {...WithAlert};
 
 function Organizations(props: Props) {
   const classes = useStyles();
-  const {relativePath, relativeUrl, history} = useRouter();
+  const relativeUrl = useRelativeUrl();
+  const relativePath = useRelativePath();
+  const {history} = useRouter();
   const [organizations, setOrganizations] = useState<?(Organization[])>(null);
   const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
   const enqueueSnackbar = useEnqueueSnackbar();
