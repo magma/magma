@@ -28,37 +28,46 @@ import (
 
 // GetBootstrapperCloudConnection initializes and returns Bootstrapper cloud grpc connection
 func (b *Bootstrapper) GetBootstrapperCloudConnection() (*grpc.ClientConn, error) {
-	// Do not use proxied connection for bootstrapper
-
 	addrPieces := strings.Split(b.CpConfig.BootstrapAddr, ":")
 	addr := fmt.Sprintf("%s:%d", addrPieces[0], b.CpConfig.BootstrapPort)
 
 	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpcMaxLocalTimeoutSec*time.Second)
 	defer cancel()
-	opts := b.getGrpcOpts(b.CpConfig.ProxyCloudConnection)
+	proxied := b.CpConfig.ProxyCloudConnection
+	opts := b.getGrpcOpts(proxied)
 	conn, err := grpc.DialContext(ctx, addr, opts...)
-	// if the proxy is not present, we should fail fast & retry with direct TLS connection
-	if err != nil {
-		firstErr := fmt.Errorf("Bootstrapper dial failure for address: %s; GRPC Dial error: %s", addr, err)
-		if b.CpConfig.ProxyCloudConnection {
-			log.Printf("%v; trying direct TLS cloud connection", firstErr)
-			// Try to call cloud directly
-			ctxTls, cancelTls := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
-			defer cancelTls()
-			addr = fmt.Sprintf("%s:%d", addrPieces[0], DefaultTLSBootstrapPort)
-			opts = b.getGrpcOpts(false)
-			conn, err = grpc.DialContext(ctxTls, addr, opts...)
-			if err != nil {
-				return conn, fmt.Errorf(
-					"Bootstrapper TLS dial failure for address: %s; GRPC Dial error: %s", addr, err)
-			}
-		} else {
-			return conn, firstErr // already direct cloud conn, fail
-		}
-	} else if ctx.Err() != nil {
-		return nil, ctx.Err()
+	if err == nil {
+		return conn, ctx.Err()
 	}
-	return conn, nil
+	// if the proxy is not present, we should with direct TLS connection to default and configured TLS ports
+	firstErr := fmt.Errorf("Bootstrapper dial failure for address: %s; GRPC Dial error: %s", addr, err)
+	if proxied {
+		addr = fmt.Sprintf("%s:%d", addrPieces[0], DefaultTLSBootstrapPort)
+		log.Printf("%v; trying secure connection to: %s", firstErr, addr)
+		// Try to call cloud directly
+		ctxTls, cancelTls := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
+		defer cancelTls()
+		opts = b.getGrpcOpts(false)
+		conn, err = grpc.DialContext(ctxTls, addr, opts...)
+		if err == nil {
+			return conn, ctxTls.Err()
+		}
+		err = fmt.Errorf("Bootstrapper TLS dial failure for address: %s; GRPC Dial error: %s", addr, err)
+		// final attempt, use direct cloud connection and configured bootstrapper port instead of default TLS port
+		if b.CpConfig.BootstrapPort != DefaultTLSBootstrapPort {
+			addr = fmt.Sprintf("%s:%d", addrPieces[0], b.CpConfig.BootstrapPort)
+			log.Printf("%v; trying: %s", err, addr)
+			ctx2Tls, cance2lTls := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
+			defer cance2lTls()
+			conn, err = grpc.DialContext(ctx2Tls, addr, opts...)
+			if err == nil {
+				return conn, ctx2Tls.Err()
+			}
+			err = fmt.Errorf("final Bootstrapper TLS dial failure for: %s; GRPC Dial error: %s", addr, err)
+		}
+		log.Print(err)
+	}
+	return conn, firstErr
 }
 
 func (b *Bootstrapper) getGrpcOpts(useProxy bool) []grpc.DialOption {

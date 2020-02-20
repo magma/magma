@@ -69,11 +69,11 @@ func main() {
 	}
 
 	// Main bootstrapper loop
-	configJson, _ := json.Marshal(b)
+	configJson, _ := json.MarshalIndent(b, "", "  ")
 	if err := b.Initialize(); err != nil {
-		log.Fatalf("Bootstrapper Initialize error: %v, with configs:\n\t%s", err, string(configJson))
+		log.Fatalf("Bootstrapper Initialization error: %v, for configuration: %s", err, string(configJson))
 	}
-	log.Printf("Starting Bootstrapper:\n\t%s\n", string(configJson))
+	log.Printf("Starting Bootstrapper with configuration: %s\n", string(configJson))
 	for {
 		err := b.Start() // Start will only return on error
 		if err != nil {
