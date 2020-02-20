@@ -84,17 +84,19 @@ type Service struct {
 // interceptor to perform identity check. If your service does not or can not
 // perform identity checks, (e.g. federation), use NewServiceWithOptions.
 func NewOrchestratorService(moduleName string, serviceName string) (*Service, error) {
+	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
-	return NewServiceWithOptions(moduleName, serviceName, grpc.UnaryInterceptor(unary.MiddlewareHandler))
+	return newServiceWithOptionsImpl(moduleName, serviceName, grpc.UnaryInterceptor(unary.MiddlewareHandler))
 }
 
 // NewOrchestratorServiceWithOptions returns a new GRPC orchestrator service
 // implementing service303 with the specified grpc server options. This service
 // will implement a middleware interceptor to perform identity check.
 func NewOrchestratorServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
+	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 	serverOptions = append(serverOptions, grpc.UnaryInterceptor(unary.MiddlewareHandler))
-	return NewServiceWithOptions(moduleName, serviceName, serverOptions...)
+	return newServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
 }
 
 // NewServiceWithOptions returns a new GRPC orchestrator service implementing
@@ -106,9 +108,11 @@ func NewOrchestratorServiceWithOptions(moduleName string, serviceName string, se
 // fatal. It also will load the config specified by [service name].yml. Since
 // not all services have configs, it will only log in case it does not exist
 func NewServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
-	// Parse the command line flags
 	flag.Parse()
+	return newServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
+}
 
+func newServiceWithOptionsImpl(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
 	if err != nil {
