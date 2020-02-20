@@ -124,6 +124,12 @@ const testCases = [
     new PromQL.InstantSelector('absent'),
   ],
   [
+    'standalone aggregation is not allowed',
+    'avg',
+    [{value: 'avg', type: 'aggOp'}],
+    expectSyntaxError(/malformed promql/i),
+  ],
+  [
     'empty label selector',
     '{}',
     [{value: '{', type: 'lBrace'}, {value: '}', type: 'rBrace'}],
@@ -166,6 +172,32 @@ const testCases = [
       {value: '}', type: 'rBrace'},
     ],
     new PromQL.InstantSelector('', new PromQL.Labels().addEqual('abs', '-1')),
+  ],
+  [
+    'label names equal to keywords',
+    `{by="this magic",group_left="is allowed",unless="I failed"}`,
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'by', type: 'clauseOp'},
+      {value: '=', type: 'labelOp'},
+      {value: 'this magic', type: 'string'},
+      {value: ',', type: 'comma'},
+      {value: 'group_left', type: 'groupOp'},
+      {value: '=', type: 'labelOp'},
+      {value: 'is allowed', type: 'string'},
+      {value: ',', type: 'comma'},
+      {value: 'unless', type: 'setOp'},
+      {value: '=', type: 'labelOp'},
+      {value: 'I failed', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector(
+      '',
+      new PromQL.Labels()
+        .addEqual('by', 'this magic')
+        .addEqual('group_left', 'is allowed')
+        .addEqual('unless', 'I failed'),
+    ),
   ],
   [
     'label selector',

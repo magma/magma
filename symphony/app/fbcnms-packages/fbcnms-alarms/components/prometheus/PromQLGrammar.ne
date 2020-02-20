@@ -26,11 +26,15 @@ range_selector -> instant_selector duration {% ([selector, duration]) => new Ran
 
 duration ->  %lBracket RANGE %rBracket {% ([_lBracket, range, _rBracket]) => range %}
 
-binary_operation -> expression BIN_OP expression                     {% ([lh, op, rh]) => new BinaryOperation(lh, rh, op) %}
-                  | expression BIN_OP vector_match_clause expression {% ([lh, op, clause, rh]) => new BinaryOperation(lh, rh, op, clause) %}
+binary_operation -> expression bin_op expression                     {% ([lh, op, rh]) => new BinaryOperation(lh, rh, op) %}
+                  | expression bin_op vector_match_clause expression {% ([lh, op, clause, rh]) => new BinaryOperation(lh, rh, op, clause) %}
 
 vector_match_clause -> CLAUSE_OP labelList                    {% ([op, labels]) => new VectorMatchClause(new Clause(op, labels)) %}
                      | CLAUSE_OP labelList GROUP_OP labelList {% ([matchOp, matchLabels, groupOp, groupLabels]) => new VectorMatchClause(new Clause(matchOp, matchLabels), new Clause(groupOp, groupLabels)) %}
+
+bin_op  ->  BIN_COMP    {% id %}
+        |   SET_OP      {% id %}
+        |   ARITHM_OP   {% id %}
 
 offset_clause -> "offset" RANGE
 
@@ -51,7 +55,12 @@ label_selector -> %lBrace label_match_list %rBrace {% ([_lBrace, labels, _rBrace
 label_match_list -> label_match_list %comma label_matcher {% ([existingLabels, _, newLabel]) => [...existingLabels, newLabel] %}
                   | label_matcher                         {% d => [d[0]] %}
 
-label_matcher -> IDENTIFIER LABEL_OP STRING {% ([name, op, value]) => new Label(name, value, op) %}
+label_matcher -> label LABEL_OP STRING {% ([name, op, value]) => new Label(name, value, op) %}
+
+label   ->  IDENTIFIER  {% id %}
+        |   SET_OP      {% id %}
+        |   GROUP_OP    {% id %}
+        |   CLAUSE_OP   {% id %}
 
 function -> IDENTIFIER %lParen func_params %rParen {% ([funcName, _lParen, params, _rParen]) => {
         if (FUNCTION_NAMES.includes(funcName)) {
@@ -72,13 +81,13 @@ parameter -> SCALAR     {% id %}
 # Terminals
 SCALAR      ->  %scalar         {% d => new Scalar(d[0].value) %}
 STRING      ->  %string         {% d => d[0].value %}
-IDENTIFIER  ->  %identifier     {% ([id]) => id.text %}
+IDENTIFIER  ->  %identifier     {% d => d[0].value %}
 LABEL_OP    ->  %labelOp        {% d => d[0].value %}
-BIN_OP      ->  %binComp        {% d => d[0].value %}
-            |   %setOp          {% d => d[0].value %}
-            |   %arithmetic     {% d => d[0].value %}
+BIN_COMP    ->  %binComp        {% d => d[0].value %}
+SET_OP      ->  %setOp          {% d => d[0].value %}
+ARITHM_OP   ->  %arithmetic     {% d => d[0].value %}
 AGG_OP      ->  %aggOp          {% d => d[0].value %}
 FUNC_NAME   ->  %functionName   {% d => d[0].value %}
 RANGE       ->  %range          {% d => d[0].value %}
-CLAUSE_OP   ->  %clauseOp      {% d => d[0].value %}
+CLAUSE_OP   ->  %clauseOp       {% d => d[0].value %}
 GROUP_OP    ->  %groupOp        {% d => d[0].value %}
