@@ -1,0 +1,14 @@
+---
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+- name: Set OVS controller for XWF bridge
+  become: true
+  shell: ovs-vsctl set-controller uplink_br0 tcp:{{ xwf_ctrl_ip }}:6653
+
+# TODO(novo): remove after adding app for it
+- name: Set OVS controller for XWF bridge
+  become: true
+  shell: ovs-ofctl add-flow cwag_br0 "table=0, priority=0, actions=resubmit(,1)"
