@@ -32,19 +32,12 @@ const (
 	AlertNameQueryParam = "alert_name"
 	AlertNamePathParam  = "alert_name"
 
-	AlertConfigURL         = PrometheusRoot + obsidian.UrlSep + alertConfigPart
-	AlertUpdateURL         = AlertConfigURL + obsidian.UrlSep + ":" + AlertNamePathParam
-	AlertReceiverConfigURL = PrometheusRoot + obsidian.UrlSep + alertReceiverPart
-	AlertReceiverUpdateURL = AlertReceiverConfigURL + obsidian.UrlSep + ":" + ReceiverNamePathParam
-	AlertBulkUpdateURL     = AlertConfigURL + "/bulk"
-
 	AlertConfigV1URL         = PrometheusV1Root + obsidian.UrlSep + alertConfigPart
 	AlertUpdateV1URL         = AlertConfigV1URL + obsidian.UrlSep + ":" + AlertNamePathParam
 	AlertReceiverConfigV1URL = PrometheusV1Root + obsidian.UrlSep + alertReceiverPart
 	AlertReceiverUpdateV1URL = AlertReceiverConfigV1URL + obsidian.UrlSep + ":" + ReceiverNamePathParam
 	AlertBulkUpdateV1URL     = AlertConfigV1URL + "/bulk"
 
-	FiringAlertURL   = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "alerts"
 	FiringAlertV1URL = handlers.ManageNetworkPath + obsidian.UrlSep + "alerts"
 
 	AlertSilencerV1URL = FiringAlertV1URL + obsidian.UrlSep + "silence"
