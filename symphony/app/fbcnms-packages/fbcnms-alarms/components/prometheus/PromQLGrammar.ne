@@ -1,13 +1,14 @@
 @{%
 const {lexer} = require('../PromQLTokenizer');
+const {FUNCTION_NAMES, SyntaxError} = require('../PromQLTypes')
 const {AggregationOperation, BinaryOperation, Clause, Function, InstantSelector, Label, Labels, RangeSelector, Scalar, String, VectorMatchClause} = require('../PromQL');
 %}
 
 @lexer lexer
 
 expression -> metric_selector  {% id %}
-            | function         {% id %}
             | aggregation      {% id %}
+            | function         {% id %}
             | binary_operation {% id %}
             | SCALAR           {% id %}
 
@@ -33,15 +34,6 @@ vector_match_clause -> CLAUSE_OP labelList                    {% ([op, labels]) 
 
 offset_clause -> "offset" RANGE
 
-function -> FUNC_NAME %lParen func_params %rParen {% ([funcName, _lParen, params, _rParen]) => new Function(funcName, params) %}
-
-func_params -> func_params %comma parameter {% ([existingParams, _comma, newParam]) => [...existingParams, newParam] %}
-             | parameter                    {% d => [d[0]] %}
-
-parameter -> SCALAR     {% id %}
-           | expression {% id %}
-           | STRING     {% d => new String(d[0]) %}
-
 aggregation -> AGG_OP %lParen func_params %rParen                 {% ([aggOp, _lParen, params, _rParen]) => new AggregationOperation(aggOp, params) %}
              | AGG_OP %lParen func_params %rParen dimensionClause {% ([aggOp, _lParen, params, _rParen, clause]) => new AggregationOperation(aggOp, params, clause) %}
              | AGG_OP dimensionClause %lParen func_params %rParen {% ([aggOp, clause, _lParen, params, _rParen]) => new AggregationOperation(aggOp, params, clause) %}
@@ -61,19 +53,32 @@ label_match_list -> label_match_list %comma label_matcher {% ([existingLabels, _
 
 label_matcher -> IDENTIFIER LABEL_OP STRING {% ([name, op, value]) => new Label(name, value, op) %}
 
+function -> IDENTIFIER %lParen func_params %rParen {% ([funcName, _lParen, params, _rParen]) => {
+        if (FUNCTION_NAMES.includes(funcName)) {
+             return new Function(funcName, params)
+         } else {
+             throw new SyntaxError(`Unknown function: ${funcName}`);
+         }
+}
+%}
+
+func_params -> func_params %comma parameter {% ([existingParams, _comma, newParam]) => [...existingParams, newParam] %}
+             | parameter                    {% d => [d[0]] %}
+
+parameter -> SCALAR     {% id %}
+           | expression {% id %}
+           | STRING     {% d => new String(d[0]) %}
+
 # Terminals
 SCALAR      ->  %scalar         {% d => new Scalar(d[0].value) %}
 STRING      ->  %string         {% d => d[0].value %}
 IDENTIFIER  ->  %identifier     {% ([id]) => id.text %}
 LABEL_OP    ->  %labelOp        {% d => d[0].value %}
-BIN_OP      ->  %binOp          {% d => d[0].value %}
+BIN_OP      ->  %binComp        {% d => d[0].value %}
+            |   %setOp          {% d => d[0].value %}
+            |   %arithmetic     {% d => d[0].value %}
 AGG_OP      ->  %aggOp          {% d => d[0].value %}
 FUNC_NAME   ->  %functionName   {% d => d[0].value %}
 RANGE       ->  %range          {% d => d[0].value %}
-CLAUSE_OP   ->  "by"            {% d => d[0].value %}
-            |   "on"            {% d => d[0].value %}
-            |   "unless"        {% d => d[0].value %}
-            |   "without"       {% d => d[0].value %}
-            |   "ignoring"      {% d => d[0].value %}
-GROUP_OP    ->  "group_left"    {% d => d[0].value %}
-            |   "group_right"   {% d => d[0].value %}
+CLAUSE_OP   ->  %clauseOp      {% d => d[0].value %}
+GROUP_OP    ->  %groupOp        {% d => d[0].value %}
