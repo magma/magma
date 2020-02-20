@@ -122,6 +122,7 @@ const AddHyperlinkButton = (props: Props) => {
           skin={skin}
           menuDockRight={true}
           options={Strings.documents.categories.map(category => ({
+            key: category,
             label: category,
             value: category,
           }))}

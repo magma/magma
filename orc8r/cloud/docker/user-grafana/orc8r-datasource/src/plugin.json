@@ -3,6 +3,8 @@
   "id": "orchestrator-grafana-datasource",
   "type": "datasource",
 
+  "metrics": true,
+
   "info": {
     "description": "orchestrator metrics datasource",
     "author": {

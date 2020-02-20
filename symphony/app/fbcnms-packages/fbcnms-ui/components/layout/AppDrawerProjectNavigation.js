@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {Tab} from '@fbcnms/ui/context/AppContext';
+
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
@@ -22,7 +24,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../../hooks';
 
 export type ProjectLink = {
-  id: string,
+  id: Tab,
   name: string,
   secondary: string,
   url: string,

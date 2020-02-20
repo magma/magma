@@ -10,7 +10,6 @@ syntax = "proto3";
 package magma.lte;
 
 import "orc8r/protos/common.proto";
-import "lte/protos/meteringd.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
@@ -141,13 +140,6 @@ message PacketDropTableId {
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
 service Pipelined {
-  // -------------
-  // Metering App:
-  // -------------
-
-  // Get subscriber metering flows
-  rpc GetSubscriberMeteringFlows (magma.orc8r.Void) returns (FlowTable) {}
-
   // ----------------
   // Enforcement App:
   // ----------------

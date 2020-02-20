@@ -449,6 +449,11 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscrib
 	if m.Lte.SubProfile == "" {
 		m.Lte.SubProfile = "default"
 	}
+	for _, tk := range ent.Associations {
+		if tk.Type == lte.ApnEntityType {
+			m.ActiveApns = append(m.ActiveApns, tk.Key)
+		}
+	}
 	return m
 }
 
@@ -668,4 +673,19 @@ func (m *MutableRatingGroup) ToRatingGroup(id uint32) *RatingGroup {
 	ratingGroup.ID = RatingGroupID(id)
 	ratingGroup.LimitType = m.LimitType
 	return ratingGroup
+}
+
+func (m *Apn) FromBackendModels(ent configurator.NetworkEntity) *Apn {
+	m.ApnName = ApnName(ent.Key)
+	m.ApnConfiguration = ent.Config.(*ApnConfiguration)
+	return m
+}
+
+func (m ApnList) ToAssocs() []storage.TypeAndKey {
+	return funk.Map(
+		m,
+		func(rn string) storage.TypeAndKey {
+			return storage.TypeAndKey{Type: lte.ApnEntityType, Key: rn}
+		},
+	).([]storage.TypeAndKey)
 }

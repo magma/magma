@@ -31,7 +31,6 @@ from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.check_quota import CheckQuotaController
-from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
@@ -60,24 +59,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         Add the servicer to a gRPC server
         """
         pipelined_pb2_grpc.add_PipelinedServicer_to_server(self, server)
-
-    # --------------------------
-    # Metering App
-    # --------------------------
-
-    def GetSubscriberMeteringFlows(self, request, context):
-        """
-        Returns all subscriber metering flows
-        """
-        if not self._service_manager.is_app_enabled(
-                MeterStatsController.APP_NAME):
-            context.set_code(grpc.StatusCode.UNAVAILABLE)
-            context.set_details('Service not enabled!')
-            return None
-        fut = Future()
-        self._loop.call_soon_threadsafe(
-            self._metering_stats.get_subscriber_metering_flows, fut)
-        return fut.result()
 
     # --------------------------
     # Enforcement App

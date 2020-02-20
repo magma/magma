@@ -71,6 +71,16 @@ magma-gen-meta:
       filename: rule_names_swaggergen.go
     - go-struct-name: RatingGroup
       filename: rating_group_swaggergen.go
+    - go-struct-name: AggregatedMaximumBitrate
+      filename: aggregated_maximum_bitrate_swaggergen.go
+    - go-struct-name: QoSProfile
+      filename: qos_profile_swaggergen.go
+    - go-struct-name: APNConfiguration
+      filename: apn_configuration_swaggergen.go
+    - go-struct-name: APNName
+      filename: apn_name_swaggergen.go
+    - go-struct-name: APN
+      filename: apn_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -1242,6 +1252,86 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/apns:
+    get:
+      summary: List APNs in the network
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of all the APNs in the network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/apn'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new APN to the network
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: apn
+          description: New APN configuration
+          required: true
+          schema:
+            $ref: '#/definitions/apn'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/apns/{apn_name}:
+    get:
+      summary: Retrieve the APN info
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/apn_name'
+      responses:
+        '200':
+          description: APN Info
+          schema:
+            $ref: '#/definitions/apn'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an existing APN in the network
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/apn_name'
+        - in: body
+          name: apn
+          description: New APN configuration
+          required: true
+          schema:
+            $ref: '#/definitions/apn'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Remove an APN from the network
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/apn_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /lte/{network_id}/subscribers:
     get:
       summary: List subscribers in the network
@@ -1393,7 +1483,7 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: body
-          name: Rating Group 
+          name: Rating Group
           description: Rating group to add
           required: true
           schema:
@@ -1674,7 +1764,7 @@ parameters:
 
   rating_group_id:
     in: path
-    name: rating_group_id 
+    name: rating_group_id
     description: Rating Group Id
     required: true
     type: integer
@@ -1684,6 +1774,13 @@ parameters:
     in: path
     name: base_name
     description: Charging Rule Base Name
+    required: true
+    type: string
+
+  apn_name:
+    in: path
+    name: apn_name
+    description: Access Point Name
     required: true
     type: string
 
@@ -2211,6 +2308,7 @@ definitions:
     required:
       - id
       - lte
+      - active_apns
     properties:
       id:
         $ref: '#/definitions/subscriber_id'
@@ -2234,6 +2332,8 @@ definitions:
         example:
           - 'rule1'
           - 'rule2'
+      active_apns:
+        $ref: '#/definitions/apn_list'
 
   lte_subscription:
     type: object
@@ -2326,10 +2426,10 @@ definitions:
 
   rating_group_id:
     # A unique human readable identifier for labeling a policy rule
-    type: integer 
+    type: integer
     format: uint32
     x-nullable: false
-    example: 1 
+    example: 1
 
   flow_description:
     type: object
@@ -2574,3 +2674,91 @@ definitions:
         enum:
         - UPLINK
         - DOWNLINK
+
+  aggregated_maximum_bitrate:
+    type: object
+    required:
+      - max_bandwidth_ul
+      - max_bandwidth_dl
+    properties:
+      max_bandwidth_ul:
+        type: integer
+        format: uint32
+        example: 10000000
+      max_bandwidth_dl:
+        type: integer
+        format: uint32
+        example: 20000000
+
+  qos_profile:
+    type: object
+    properties:
+      class_id:
+        type: integer
+        format: uint32
+        minimum: 1
+        maximum: 85
+        example: 9
+        default: 9
+        x-go-custom-tag: 'magma_alt_name:"QCI"'
+      priority_level:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 15
+        example: 15
+        default: 15
+      preemption_capability:
+        type: boolean
+        example: true
+        default: true
+      preemption_vulnerability:
+        type: boolean
+        example: false
+        default: false
+
+  apn_configuration:
+    # APN configuration for the default service
+    # that APN provides
+    type: object
+    required:
+      - ambr
+      - qos_profile
+    properties:
+      ambr:
+        $ref: '#/definitions/aggregated_maximum_bitrate'
+      qos_profile:
+        $ref: '#/definitions/qos_profile'
+
+  apn_name:
+    type: string
+    x-nullable: false
+    example: "inet"
+    x-go-custom-tag: 'magma_alt_name:"service_selection"'
+
+  apn_list:
+    type: array
+    description: 'APNs that are allowed for this subscriber'
+    items:
+      type: string
+      x-nullable: false
+      example: 'internet'
+    x-omitempty: true
+    example:
+      - 'internet'
+      - 'ims'
+
+  apn:
+    # A template for configuring APN with string name
+    # used as key and rest of the parameters are packed
+    # as APN configuration
+    type: object
+    required:
+      - apn_name
+      - apn_configuration
+    properties:
+      apn_name:
+        $ref: '#/definitions/apn_name'
+      apn_configuration:
+        $ref: '#/definitions/apn_configuration'
+

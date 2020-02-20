@@ -178,6 +178,7 @@ class PropertyTypeTable extends React.Component<Props> {
                               ),
                           )
                           .map(type => ({
+                            key: type,
                             value: type,
                             label: propertyTypeLabels[type].label,
                           }))}

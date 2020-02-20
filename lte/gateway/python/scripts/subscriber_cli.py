@@ -41,8 +41,12 @@ def add_subscriber(client, args):
     if args.lte_auth_opc is not None:
         lte.auth_opc = bytes.fromhex(args.lte_auth_opc)
 
-    data = SubscriberData(sid=SIDUtils.to_pb(args.sid), gsm=gsm,
-            lte=lte, state=state)
+    data = SubscriberData(
+        sid=SIDUtils.to_pb(args.sid),
+        gsm=gsm,
+        lte=lte,
+        state=state,
+    )
     client.AddSubscriber(data)
 
 
@@ -75,7 +79,6 @@ def update_subscriber(client, args):
         lte.auth_opc = bytes.fromhex(args.lte_auth_opc)
         fields.append('lte.state')
         fields.append('lte.auth_opc')
-
 
     client.UpdateSubscriber(update)
 
@@ -144,6 +147,7 @@ def main():
 
     # Execute the subcommand function
     args.func(args, SubscriberDBStub, 'subscriberdb')
+
 
 if __name__ == "__main__":
     main()

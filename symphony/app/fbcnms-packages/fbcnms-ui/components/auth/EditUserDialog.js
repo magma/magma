@@ -8,6 +8,7 @@
  * @format
  */
 
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
@@ -20,7 +21,7 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import Select from '@material-ui/core/Select';
 import SymphonySelect from '@fbcnms/ui/components/design-system/Select/Select';
 import TextField from '@material-ui/core/TextField';
@@ -71,6 +72,8 @@ function getInitialNetworkIDs(userNetworkIds, allNetworkIDs): Set<string> {
 export default function EditUserDialog(props: Props) {
   const {allNetworkIDs} = props;
   const classes = useStyles();
+
+  const {isTabEnabled} = useContext(AppContext);
 
   const [error, setError] = useState<string>('');
   const [email, setEmail] = useState<string>(props.editingUser?.email || '');
@@ -159,14 +162,17 @@ export default function EditUserDialog(props: Props) {
           label="Role"
           options={[
             {
+              key: 'user',
               label: 'User',
               value: UserRoles.USER,
             },
             {
+              key: 'read_only_user',
               label: 'Read Only User',
               value: UserRoles.READ_ONLY_USER,
             },
             {
+              key: 'super_user',
               label: 'Super User',
               value: UserRoles.SUPERUSER,
             },
@@ -174,7 +180,7 @@ export default function EditUserDialog(props: Props) {
           selectedValue={role}
           onChange={value => setRole(value)}
         />
-        {allNetworkIDs && (
+        {isTabEnabled('nms') && allNetworkIDs && (
           <FormControl className={classes.input}>
             <InputLabel htmlFor="network_ids">Accessible Networks</InputLabel>
             <Select

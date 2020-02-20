@@ -179,6 +179,7 @@ const CheckListTableDefinition = (props: Props) => {
   const checklistTypes = useMemo(
     () =>
       Object.keys(CHECKLIST_ITEM_TYPES).map(type => ({
+        key: type,
         label: CHECKLIST_ITEM_TYPES[type].description,
         value: type,
       })),

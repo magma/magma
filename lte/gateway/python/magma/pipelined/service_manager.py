@@ -35,7 +35,6 @@ from typing import List
 
 import aioeventlet
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.meteringd_pb2_grpc import MeteringdRecordsControllerStub
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
 from magma.pipelined.app.base import ControllerType
@@ -50,9 +49,6 @@ from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL, \
     InOutController
-from magma.pipelined.app.meter import MeterController
-from magma.pipelined.app.meter_stats import MeterStatsController
-from magma.pipelined.app.subscriber import SubscriberController
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.app.check_quota import CheckQuotaController
@@ -63,7 +59,6 @@ from ryu.base.app_manager import AppManager
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
-
 
 App = namedtuple('App', ['name', 'module', 'type'])
 
@@ -90,6 +85,7 @@ class TableRange():
     """
     Used to generalize different table ranges.
     """
+
     def __init__(self, start: int, end: int):
         self._start = start
         self._end = end
@@ -98,7 +94,7 @@ class TableRange():
     def allocate_table(self):
         if (self._next_table == self._end):
             raise TableNumException('Cannot generate more tables. Table limit'
-                'of %s reached!' % self._end)
+                                    'of %s reached!' % self._end)
         table_num = self._next_table
         self._next_table += 1
         return table_num
@@ -106,7 +102,7 @@ class TableRange():
     def allocate_tables(self, count: int):
         if self._next_table + count >= self._end:
             raise TableNumException('Cannot generate more tables. Table limit'
-                'of %s reached!' % self._end)
+                                    'of %s reached!' % self._end)
         tables = [self.allocate_table() for i in range(0, count)]
         return tables
 
@@ -133,7 +129,7 @@ class _TableManager:
     def __init__(self):
         self._table_ranges = {
             ControllerType.PHYSICAL: TableRange(self.INGRESS_TABLE_NUM + 1,
-                self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
+                                                self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
             ControllerType.LOGICAL:
                 TableRange(self.PHYSICAL_TO_LOGICAL_TABLE_NUM + 1,
                            self.EGRESS_TABLE_NUM)
@@ -254,17 +250,6 @@ class ServiceManager:
     # app manager to instantiate the app.
     # Note that a service may require multiple apps.
     DYNAMIC_SERVICE_TO_APPS = {
-        PipelineD.METERING: [
-            App(name=MeterController.APP_NAME,
-                module=MeterController.__module__,
-                type=MeterController.APP_TYPE),
-            App(name=MeterStatsController.APP_NAME,
-                module=MeterStatsController.__module__,
-                type=MeterStatsController.APP_TYPE),
-            App(name=SubscriberController.APP_NAME,
-                module=SubscriberController.__module__,
-                type=SubscriberController.APP_TYPE),
-        ],
         PipelineD.DPI: [
             App(name=DPIController.APP_NAME, module=DPIController.__module__,
                 type=DPIController.APP_TYPE),
@@ -294,7 +279,7 @@ class ServiceManager:
         ],
         ARP_SERVICE_NAME: [
             App(name=ArpController.APP_NAME, module=ArpController.__module__,
-            type=ArpController.APP_TYPE),
+                type=ArpController.APP_TYPE),
         ],
         ACCESS_CONTROL_SERVICE_NAME: [
             App(name=AccessControlController.APP_NAME,
@@ -379,7 +364,7 @@ class ServiceManager:
         """
         dynamic_services = self._magma_service.mconfig.services
         dynamic_apps = [app for service in dynamic_services for
-                               app in self.DYNAMIC_SERVICE_TO_APPS[service]]
+                        app in self.DYNAMIC_SERVICE_TO_APPS[service]]
         self._apps.extend(dynamic_apps)
 
         # Register dynamic apps for each service to a main table. Filter out
@@ -405,14 +390,11 @@ class ServiceManager:
         contexts['loop'] = self._magma_service.loop
         contexts['service_manager'] = self
 
-        records_chan = ServiceRegistry.get_rpc_channel(
-            'meteringd_records', ServiceRegistry.CLOUD)
         sessiond_chan = ServiceRegistry.get_rpc_channel(
             'sessiond', ServiceRegistry.LOCAL)
         mobilityd_chan = ServiceRegistry.get_rpc_channel(
             'mobilityd', ServiceRegistry.LOCAL)
         contexts['rpc_stubs'] = {
-            'metering_cloud': MeteringdRecordsControllerStub(records_chan),
             'mobilityd': MobilityServiceStub(mobilityd_chan),
             'sessiond': LocalSessionManagerStub(sessiond_chan),
         }

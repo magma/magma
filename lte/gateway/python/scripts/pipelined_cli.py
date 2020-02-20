@@ -10,12 +10,10 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import argparse
-import binascii
 import errno
 from pprint import pprint
 import subprocess
 
-import re
 from magma.common.rpc_utils import grpc_wrapper
 from lte.protos.pipelined_pb2 import (
     SubscriberQuotaUpdate,
@@ -36,29 +34,6 @@ from lte.protos.pipelined_pb2 import (
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
-
-
-# --------------------------
-# Metering App
-# --------------------------
-
-@grpc_wrapper
-def get_subscriber_metering_flows(client, _):
-    flow_table = client.GetSubscriberMeteringFlows(Void())
-    print(flow_table)
-
-
-def create_metering_parser(apps):
-    """
-    Creates the argparse subparser for the metering app
-    """
-    app = apps.add_parser('meter')
-    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
-
-    # Add subcommands
-    subcmd = subparsers.add_parser('dump_flows',
-                                   help='Prints all subscriber metering flows')
-    subcmd.set_defaults(func=get_subscriber_metering_flows)
 
 
 # --------------------------
@@ -247,7 +222,6 @@ def create_check_flows_parser(apps):
     subcmd.set_defaults(func=update_quota)
 
 
-
 # --------------------------
 # Debugging
 # --------------------------
@@ -357,7 +331,6 @@ def create_parser():
         description='Management CLI for pipelined',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     apps = parser.add_subparsers(title='apps', dest='cmd')
-    create_metering_parser(apps)
     create_enforcement_parser(apps)
     create_ue_mac_parser(apps)
     create_check_flows_parser(apps)
