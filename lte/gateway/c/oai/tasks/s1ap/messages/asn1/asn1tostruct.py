@@ -456,7 +456,7 @@ for key in iesDefs:
         f.write("                decoded += tempDecoded;\n")
         f.write("                if (asn1_xer_print)\n")
         f.write("                    xer_fprint(stdout, &asn_DEF_%s, %s_p);\n" % (ietypeunderscore, lowerFirstCamelWord(ietypesubst)))
-        if ie[2] in (list(ieofielist.keys()) + list(choicelist.keys())):
+        if ie[2] in (ieofielist.keys() + choicelist.keys()):
             if ie[2] in choicelist.keys():
                 f.write("                if (%s_decode_%s(&%s->%s, %s_p) < 0) {\n" % (fileprefix, ietypeunderscore.lower(), lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore, lowerFirstCamelWord(ietypesubst)))
                 f.write("                   OAILOG_ERROR (LOG_%s, \"Decoding of encapsulated IE %s failed\\n\");\n" % (fileprefix.upper(), lowerFirstCamelWord(ietypesubst)))
