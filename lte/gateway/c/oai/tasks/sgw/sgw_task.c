@@ -170,10 +170,27 @@ static void* sgw_intertask_interface(void* args_p)
       } break;
 
       case SPGW_NW_INITIATED_ACTIVATE_BEARER_REQ: {
-        spgw_handle_nw_initiated_bearer_actv_req(
+        /* TODO need to discuss as part sending response to PCEF,
+         * should these errors need to be mapped to gx errors
+         * or sessiond does mapping of these error codes to gx error codes
+         */
+        gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
+        int32_t rc = spgw_handle_nw_initiated_bearer_actv_req(
           spgw_state_p,
           &received_message_p->ittiMsg.spgw_nw_init_actv_bearer_request,
-          imsi64);
+          imsi64,
+          &failed_cause);
+        if (rc != RETURNerror) {
+          OAILOG_ERROR(
+            LOG_SPGW_APP,
+            "Send Create Bearer Failure Response to PCRF with cause :%d \n",
+            failed_cause);
+          // Send Reject to PCRF
+          // TODO-Uncomment once implemented at PCRF
+          /* rc = send_dedicated_bearer_actv_rsp(bearer_req_p->lbi,
+           *    failed_cause);
+           */
+        }
       } break;
 
       case SPGW_NW_INITIATED_DEACTIVATE_BEARER_REQ: {

@@ -453,7 +453,6 @@ static void get_session_req_data(
 }
 
 //------------------------------------------------------------------------------
-
 int spgw_send_nw_init_activate_bearer_rsp(
   gtpv2c_cause_value_t cause,
   Imsi_t imsi,
@@ -499,7 +498,8 @@ uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(
 int spgw_handle_nw_initiated_bearer_actv_req(
   spgw_state_t* spgw_state,
   const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
-  imsi64_t imsi64)
+  imsi64_t imsi64,
+  gtpv2c_cause_value_t* failed_cause)
 {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   hash_table_ts_t* hashtblP = NULL;
@@ -507,11 +507,6 @@ int spgw_handle_nw_initiated_bearer_actv_req(
   bool is_teid_found = false;
   bool is_lbi_found = false;
   int rc = RETURNok;
-  /* TODO need to discuss as part sending response to PCEF,
-   * should these errors need to be mapped to gx errors
-   * or sessiond does mapping of these error codes to gx error codes
-   */
-  gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
 
   OAILOG_INFO(
     LOG_SPGW_APP,
@@ -522,8 +517,8 @@ int spgw_handle_nw_initiated_bearer_actv_req(
   if (!hashtblP) {
     OAILOG_ERROR(
       LOG_SPGW_APP, "No s11_bearer_context_information hash table found \n");
-    failed_cause = REQUEST_REJECTED;
-    goto error_handle_failure_scenario;
+    *failed_cause = REQUEST_REJECTED;
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
   spgw_imsi_map_t* imsi_map = get_spgw_imsi_map();
@@ -536,8 +531,8 @@ int spgw_handle_nw_initiated_bearer_actv_req(
       "Failed to fetch local_teid: %lu from from imsi" IMSI_64_FMT "\n",
       local_teid,
       imsi64);
-    failed_cause = REQUEST_REJECTED;
-    goto error_handle_failure_scenario;
+    *failed_cause = REQUEST_REJECTED;
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   OAILOG_DEBUG(
     LOG_SPGW_APP,
@@ -564,8 +559,8 @@ int spgw_handle_nw_initiated_bearer_actv_req(
     OAILOG_ERROR(
       LOG_SPGW_APP,
       "Sending dedicated_bearer_actv_rsp with REQUEST_REJECTED cause to NW\n");
-    failed_cause = REQUEST_REJECTED;
-    goto error_handle_failure_scenario;
+    *failed_cause = REQUEST_REJECTED;
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
   teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(spgw_state);
@@ -579,41 +574,26 @@ int spgw_handle_nw_initiated_bearer_actv_req(
       "and lbi: %u \n ",
       local_teid,
       bearer_req_p->lbi);
-    failed_cause = REQUEST_REJECTED;
-    goto error_handle_failure_scenario;
+    *failed_cause = REQUEST_REJECTED;
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   // Build and send ITTI message, s11_create_bearer_request to MME APP
   rc = _spgw_build_and_send_s11_create_bearer_request(
     spgw_ctxt_p, bearer_req_p, spgw_state, s1_u_sgw_fteid);
-  if (rc == RETURNok) {
-    OAILOG_INFO(
-      LOG_SPGW_APP,
-      "Sent S11 Create Bearer Request for local_teid: %lu and lbi :%u \n",
-      local_teid,
-      bearer_req_p->lbi);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
-  } else {
+  if (rc != RETURNok) {
     OAILOG_ERROR(
       LOG_SPGW_APP,
       "Failed to build and send S11 Create Bearer Request for "
       "local_teid: %lu and lbi :%u \n",
       local_teid,
       bearer_req_p->lbi);
-    failed_cause = REQUEST_REJECTED;
+
+    *failed_cause = REQUEST_REJECTED;
     _delete_temporary_dedicated_bearer_context(
       s1_u_sgw_fteid, bearer_req_p->lbi, spgw_ctxt_p);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-
-error_handle_failure_scenario:
-  OAILOG_ERROR(
-    LOG_SPGW_APP,
-    "Send Create Bearer Failure Response to PCRF with cause :%d \n",
-    failed_cause);
-  // Send Reject to PCRF
-  // TODO-Uncomment once implemented at PCRF
-  /* rc = send_dedicated_bearer_actv_rsp(bearer_req_p->lbi,
-         REQUEST_REJECTED);*/
-  OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }
 
 // Build and send ITTI message, s11_create_bearer_request to MME APP
@@ -766,12 +746,12 @@ static void _delete_temporary_dedicated_bearer_context(
   if (!pgw_ni_cbr_proc) {
     OAILOG_ERROR(
       LOG_SPGW_APP,
-      "Failed to get Crete bearer procedure from temporary stored contexts for "
-      "lbi :%u \n",
+      "Failed to get Create bearer procedure from temporary stored contexts "
+      "for lbi :%u \n",
       lbi);
     OAILOG_FUNC_OUT(LOG_SPGW_APP);
   }
-  OAILOG_DEBUG(
+  OAILOG_INFO(
     LOG_SPGW_APP, "Delete temporary bearer context for lbi :%u \n", lbi);
   spgw_eps_bearer_entry_p = LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
   while (spgw_eps_bearer_entry_p) {
@@ -821,7 +801,7 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
     spgw_state->sgw_state.s11_bearer_context_information;
   if (hashtblP == NULL) {
     OAILOG_ERROR(
-      LOG_SPGW_APP, "hashtblP is NULL for nw_initiated_deactv_bearer_req\n");
+      LOG_SPGW_APP, "No s11_bearer_context_information hash table is found\n");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
