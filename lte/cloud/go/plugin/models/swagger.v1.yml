@@ -2695,9 +2695,9 @@ definitions:
     properties:
       class_id:
         type: integer
-        format: uint32
-        minimum: 1
-        maximum: 85
+        format: int32
+        minimum: 0
+        maximum: 255
         example: 9
         default: 9
         x-go-custom-tag: 'magma_alt_name:"QCI"'
@@ -2761,4 +2761,3 @@ definitions:
         $ref: '#/definitions/apn_name'
       apn_configuration:
         $ref: '#/definitions/apn_configuration'
-

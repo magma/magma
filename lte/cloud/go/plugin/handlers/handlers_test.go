@@ -3249,7 +3249,7 @@ func TestCreateApn(t *testing.T) {
 				MaxBandwidthUl: swag.Uint32(100),
 			},
 			QosProfile: &lteModels.QosProfile{
-				ClassID:                 9,
+				ClassID:                 swag.Int32(9),
 				PreemptionCapability:    swag.Bool(true),
 				PreemptionVulnerability: swag.Bool(false),
 				PriorityLevel:           swag.Uint32(15),
@@ -3314,7 +3314,7 @@ func TestListApns(t *testing.T) {
 						MaxBandwidthUl: swag.Uint32(200),
 					},
 					QosProfile: &lteModels.QosProfile{
-						ClassID:                 9,
+						ClassID:                 swag.Int32(9),
 						PreemptionCapability:    swag.Bool(true),
 						PreemptionVulnerability: swag.Bool(false),
 						PriorityLevel:           swag.Uint32(15),
@@ -3329,7 +3329,7 @@ func TestListApns(t *testing.T) {
 						MaxBandwidthUl: swag.Uint32(100),
 					},
 					QosProfile: &lteModels.QosProfile{
-						ClassID:                 5,
+						ClassID:                 swag.Int32(5),
 						PreemptionCapability:    swag.Bool(true),
 						PreemptionVulnerability: swag.Bool(false),
 						PriorityLevel:           swag.Uint32(5),
@@ -3356,7 +3356,7 @@ func TestListApns(t *testing.T) {
 						MaxBandwidthUl: swag.Uint32(200),
 					},
 					QosProfile: &lteModels.QosProfile{
-						ClassID:                 9,
+						ClassID:                 swag.Int32(9),
 						PreemptionCapability:    swag.Bool(true),
 						PreemptionVulnerability: swag.Bool(false),
 						PriorityLevel:           swag.Uint32(15),
@@ -3371,7 +3371,7 @@ func TestListApns(t *testing.T) {
 						MaxBandwidthUl: swag.Uint32(100),
 					},
 					QosProfile: &lteModels.QosProfile{
-						ClassID:                 5,
+						ClassID:                 swag.Int32(5),
 						PreemptionCapability:    swag.Bool(true),
 						PreemptionVulnerability: swag.Bool(false),
 						PriorityLevel:           swag.Uint32(5),
@@ -3417,7 +3417,7 @@ func TestGetApn(t *testing.T) {
 					MaxBandwidthUl: swag.Uint32(200),
 				},
 				QosProfile: &lteModels.QosProfile{
-					ClassID:                 9,
+					ClassID:                 swag.Int32(9),
 					PreemptionCapability:    swag.Bool(true),
 					PreemptionVulnerability: swag.Bool(false),
 					PriorityLevel:           swag.Uint32(15),
@@ -3442,7 +3442,7 @@ func TestGetApn(t *testing.T) {
 					MaxBandwidthUl: swag.Uint32(200),
 				},
 				QosProfile: &lteModels.QosProfile{
-					ClassID:                 9,
+					ClassID:                 swag.Int32(9),
 					PreemptionCapability:    swag.Bool(true),
 					PreemptionVulnerability: swag.Bool(false),
 					PriorityLevel:           swag.Uint32(15),
@@ -3475,7 +3475,7 @@ func TestUpdateApn(t *testing.T) {
 				MaxBandwidthUl: swag.Uint32(100),
 			},
 			QosProfile: &lteModels.QosProfile{
-				ClassID:                 5,
+				ClassID:                 swag.Int32(5),
 				PreemptionCapability:    swag.Bool(true),
 				PreemptionVulnerability: swag.Bool(false),
 				PriorityLevel:           swag.Uint32(5),
@@ -3506,7 +3506,7 @@ func TestUpdateApn(t *testing.T) {
 					MaxBandwidthUl: swag.Uint32(200),
 				},
 				QosProfile: &lteModels.QosProfile{
-					ClassID:                 9,
+					ClassID:                 swag.Int32(9),
 					PreemptionCapability:    swag.Bool(true),
 					PreemptionVulnerability: swag.Bool(false),
 					PriorityLevel:           swag.Uint32(15),
@@ -3564,7 +3564,7 @@ func TestDeleteApn(t *testing.T) {
 						MaxBandwidthUl: swag.Uint32(200),
 					},
 					QosProfile: &lteModels.QosProfile{
-						ClassID:                 9,
+						ClassID:                 swag.Int32(9),
 						PreemptionCapability:    swag.Bool(true),
 						PreemptionVulnerability: swag.Bool(false),
 						PriorityLevel:           swag.Uint32(15),
@@ -3579,7 +3579,7 @@ func TestDeleteApn(t *testing.T) {
 						MaxBandwidthUl: swag.Uint32(100),
 					},
 					QosProfile: &lteModels.QosProfile{
-						ClassID:                 5,
+						ClassID:                 swag.Int32(5),
 						PreemptionCapability:    swag.Bool(true),
 						PreemptionVulnerability: swag.Bool(false),
 						PriorityLevel:           swag.Uint32(5),
@@ -3613,7 +3613,7 @@ func TestDeleteApn(t *testing.T) {
 				MaxBandwidthUl: swag.Uint32(100),
 			},
 			QosProfile: &lteModels.QosProfile{
-				ClassID:                 5,
+				ClassID:                 swag.Int32(5),
 				PreemptionCapability:    swag.Bool(true),
 				PreemptionVulnerability: swag.Bool(false),
 				PriorityLevel:           swag.Uint32(5),
