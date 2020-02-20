@@ -70,7 +70,7 @@ const lexerRules: LexerRules = {
   functionName: FUNCTION_NAMES,
   binOp: BINARY_OPERATORS,
   labelOp: LABEL_OPERATORS,
-  word: /\w+/,
+  identifier: /\w+/,
   string: [
     {
       // double-quoted string with no escape sequences;
