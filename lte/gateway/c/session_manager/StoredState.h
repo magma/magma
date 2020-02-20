@@ -122,6 +122,7 @@ struct StoredSessionState {
   std::string core_session_id;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
+  uint32_t request_number;
 };
 
 }; // namespace magma
