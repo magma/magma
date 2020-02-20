@@ -267,7 +267,7 @@ void ReaderRegistryBuilder::addReader(Path path, shared_ptr<Reader> reader) {
     }
   }
 
-  allReaders.emplace(path, reader);
+  allReaders.insert_or_assign(path, reader);
 }
 
 unique_ptr<CompositeReader> ReaderRegistryBuilder::createCompositeReader(
