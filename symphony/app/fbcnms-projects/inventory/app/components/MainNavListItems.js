@@ -28,35 +28,45 @@ export default function MainNavListItems() {
       label="Search"
       path={relativeUrl('/search')}
       icon={<SearchIcon />}
-      onClick={() => ServerLogger.info(LogEvents.SEARCH_NAV_CLICKED)}
+      onClick={() => {
+        ServerLogger.info(LogEvents.SEARCH_NAV_CLICKED);
+      }}
     />,
     <NavListItem
       key={2}
       label="Locations"
       path={relativeUrl('/inventory')}
       icon={<ViewListIcon />}
-      onClick={() => ServerLogger.info(LogEvents.INVENTORY_NAV_CLICKED)}
+      onClick={() => {
+        ServerLogger.info(LogEvents.INVENTORY_NAV_CLICKED);
+      }}
     />,
     <NavListItem
       key={3}
       label="Map"
       path={relativeUrl('/map')}
       icon={<MapIcon />}
-      onClick={() => ServerLogger.info(LogEvents.MAP_NAV_CLICKED)}
+      onClick={() => {
+        ServerLogger.info(LogEvents.MAP_NAV_CLICKED);
+      }}
     />,
     <NavListItem
       key={4}
       label="Catalog"
       path={relativeUrl('/configure')}
       icon={<AssignmentIcon />}
-      onClick={() => ServerLogger.info(LogEvents.CONFIGURE_NAV_CLICKED)}
+      onClick={() => {
+        ServerLogger.info(LogEvents.CONFIGURE_NAV_CLICKED);
+      }}
     />,
     <NavListItem
       key={5}
       label="Services"
       path={relativeUrl('/services')}
       icon={<LinearScaleIcon />}
-      onClick={() => ServerLogger.info(LogEvents.SERVICES_NAV_CLICKED)}
+      onClick={() => {
+        ServerLogger.info(LogEvents.SERVICES_NAV_CLICKED);
+      }}
       hidden={!servicesEnabled}
     />,
   ];
