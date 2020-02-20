@@ -92,6 +92,9 @@ class PipelinedController(Enum):
     StartupFlows = Controller(
         'magma.pipelined.app.startup_flows', 'startup_flows'
     )
+    DPI = Controller(
+        'magma.pipelined.app.dpi', 'dpi'
+    )
 
 
 def assert_pipelined_not_running():

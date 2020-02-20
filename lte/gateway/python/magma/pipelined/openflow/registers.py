@@ -12,6 +12,7 @@ from enum import IntEnum
 # Global registers:
 IMSI_REG = 'metadata'
 DIRECTION_REG = 'reg1'
+DPI_REG = 'reg3'
 TEST_PACKET_REG = 'reg5'
 PASSTHROUGH_REG = 'reg6'
 VLAN_TAG_REG = 'reg7'
