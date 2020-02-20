@@ -42,7 +42,7 @@ set(SMGR_ORC8R_CPP_PROTOS common directoryd)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_LTE_CPP_PROTOS session_manager meteringd subscriberdb policydb
+set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb policydb
   pipelined spgw_service mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})

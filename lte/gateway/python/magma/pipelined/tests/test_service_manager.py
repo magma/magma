@@ -19,8 +19,6 @@ from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import INGRESS, EGRESS, PHYSICAL_TO_LOGICAL
-from magma.pipelined.app.meter import MeterController
-from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.service_manager import (
     ServiceManager,
     TableNumException,
@@ -33,7 +31,7 @@ class ServiceManagerTest(unittest.TestCase):
         magma_service_mock = MagicMock()
         magma_service_mock.mconfig = PipelineD()
         magma_service_mock.mconfig.services.extend(
-            [PipelineD.ENFORCEMENT, PipelineD.DPI, PipelineD.METERING])
+            [PipelineD.ENFORCEMENT, PipelineD.DPI])
         magma_service_mock.config = {
             'static_services': ['arpd', 'access_control']
         }
@@ -54,12 +52,6 @@ class ServiceManagerTest(unittest.TestCase):
             self.service_manager.get_table_num(DPIController.APP_NAME),
             12)
         self.assertEqual(
-            self.service_manager.get_table_num(MeterController.APP_NAME),
-            13)
-        self.assertEqual(
-            self.service_manager.get_table_num(MeterStatsController.APP_NAME),
-            13)
-        self.assertEqual(
             self.service_manager.get_table_num(PHYSICAL_TO_LOGICAL),
             10)
 
@@ -76,13 +68,6 @@ class ServiceManagerTest(unittest.TestCase):
             12)
         self.assertEqual(
             self.service_manager.get_next_table_num(DPIController.APP_NAME),
-            13)
-        self.assertEqual(
-            self.service_manager.get_next_table_num(MeterController.APP_NAME),
-            20)
-        self.assertEqual(
-            self.service_manager.get_next_table_num(
-                MeterStatsController.APP_NAME),
             20)
         self.assertEqual(
             self.service_manager.get_next_table_num(PHYSICAL_TO_LOGICAL),
@@ -95,10 +80,6 @@ class ServiceManagerTest(unittest.TestCase):
             EnforcementController.APP_NAME))
         self.assertTrue(self.service_manager.is_app_enabled(
             DPIController.APP_NAME))
-        self.assertTrue(self.service_manager.is_app_enabled(
-            MeterController.APP_NAME))
-        self.assertTrue(self.service_manager.is_app_enabled(
-            MeterStatsController.APP_NAME))
         self.assertTrue(self.service_manager.is_app_enabled(
             EnforcementStatsController.APP_NAME))
 
@@ -126,8 +107,6 @@ class ServiceManagerTest(unittest.TestCase):
 
         self.assertEqual(self.service_manager.get_scratch_table_nums(
             EnforcementController.APP_NAME), enforcement_scratch)
-        self.assertEqual(self.service_manager.get_scratch_table_nums(
-            MeterController.APP_NAME), [])
 
     def test_get_all_table_assignments(self):
         self.service_manager.allocate_scratch_tables(
@@ -153,12 +132,6 @@ class ServiceManagerTest(unittest.TestCase):
                                          type=ControllerType.LOGICAL)),
             ('dpi', Tables(main_table=12, scratch_tables=[],
                            type=ControllerType.LOGICAL)),
-            ('meter', Tables(main_table=13, scratch_tables=[],
-                             type=ControllerType.LOGICAL)),
-            ('meter_stats', Tables(main_table=13, scratch_tables=[],
-                                   type=ControllerType.LOGICAL)),
-            ('subscriber', Tables(main_table=13, scratch_tables=[],
-                                  type=ControllerType.SPECIAL)),
             ('egress', Tables(main_table=20, scratch_tables=[],
                               type=ControllerType.SPECIAL)),
         ])
