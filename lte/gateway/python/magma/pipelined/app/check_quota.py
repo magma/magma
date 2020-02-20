@@ -228,12 +228,18 @@ class CheckQuotaController(MagmaController):
         )
         hub.spawn(self._setup_fake_ip_arp, str(imsi), fake_ip)
 
-    def _setup_fake_ip_arp(self, imsi, fake_ip):
-        mac = get_record(imsi, 'mac_addr')
-        while mac is None:
+    def _setup_fake_ip_arp(self, imsi, fake_ip, retries=10):
+        for _ in range(0, retries):
+            mac = get_record(imsi, 'mac_addr')
+            if mac is not None:
+                break
             self.logger.debug("Mac not found for subscriber %s, retrying", imsi)
             hub.sleep(0.1)
-            mac = get_record(imsi, 'mac_addr')
+
+        if mac is None:
+            self.logger.error("Mac for subscriber %s, not found after %d"
+                              "retries, exiting.", imsi, retries)
+            return
 
         self.logger.info("Received mac %s for subscriber %s, with fake ip %s",
                           mac, imsi, fake_ip)
@@ -256,6 +262,14 @@ class CheckQuotaController(MagmaController):
             imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
             ip_proto=IPPROTO_TCP, direction=Direction.IN,
             ipv4_src=self.config.bridge_ip)
+        flows.delete_flow(self._datapath, self.tbl_num, match)
+
+        match = MagmaMatch(
+            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+            ip_proto=IPPROTO_TCP, direction=Direction.OUT,
+            vlan_vid=(0x1000, 0x1000),
+            ipv4_dst=self.config.quota_check_ip
+        )
         flows.delete_flow(self._datapath, self.tbl_num, match)
 
     def _install_default_flows(self, datapath: Datapath):
