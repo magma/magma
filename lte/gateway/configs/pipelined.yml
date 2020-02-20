@@ -31,7 +31,8 @@ static_services: [
   'access_control',
   'ryu_rest_service',
   'startup_flows',
-#  'packet_tracer',
+  'apn',
+  #  'packet_tracer',
 ]
 
 of_server_port: 3333

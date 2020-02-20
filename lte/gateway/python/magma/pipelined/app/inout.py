@@ -8,6 +8,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 from collections import namedtuple
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
+from ryu.ofproto import ether
+from ryu.ofproto import ofproto_v1_4 as ofp
 
 from .base import MagmaController
 from magma.pipelined.openflow import flows
@@ -15,6 +17,7 @@ from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import load_direction, Direction, \
     PASSTHROUGH_REG_VAL
+from magma.pipelined.apn import encode_apn
 
 from ryu.lib.packet import ether_types
 
@@ -137,18 +140,6 @@ class InOutController(MagmaController):
         flows.add_output_flow(dp, self._service_manager.get_table_num(EGRESS),
                               uplink_match, [],
                               output_port=self._uplink_port)
-
-        # Add default flows for APN
-        # if APN app is enabled:
-        #   for apn, routing_config in self.config.apn_routing:
-        #      RYU is not able to set double extended registers - however should be able to match so following should work
-        #       matcher = MagmaMatch(xxreg3=encodedencode_apn(apn))       
-        #       add flow with priority higher then default
-        #       set :
-        #           VLAN to routing_config.get("vlan")
-        #           outport to routing_config.get("outport", "LOCAL")
-
-
 
     def _install_default_ingress_flows(self, dp):
         """

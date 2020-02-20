@@ -18,10 +18,15 @@ PASSTHROUGH_REG = 'reg6'
 VLAN_TAG_REG = 'reg7'
 
 # xxreg3 allow us to specify 16 bytes vakue to describe APN
-# according to http://man7.org/linux/man-pages/man7/ovs-fields.7.html xxreg3 will allocate 
-# [xreg2, xreg3] or [reg12, reg13, reg14, reg15] under the hood
+# according to http://man7.org/linux/man-pages/man7/ovs-fields.7.html 
+# xxreg3 will allocate [xreg2, xreg3] or [reg12, reg13, reg14, reg15] 
+# under the hood
 APN_TAG_REG = 'xxreg3' 
-APN_TAG_MAP = {
+
+XXREGISTERS_MAP = {
+    'xxreg0': ['reg0', 'reg1', 'reg2', 'reg3'],
+    'xxreg1': ['reg4', 'reg5', 'reg6', 'reg7'],
+    'xxreg2': ['reg8', 'reg9', 'reg10', 'reg11'],
     'xxreg3': ['reg12', 'reg13', 'reg14', 'reg15']
 }
 
