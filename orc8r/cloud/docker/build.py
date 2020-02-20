@@ -173,6 +173,10 @@ def _copy_module(module: MagmaModule) -> None:
             os.path.join(module.host_path, 'lib'),
             os.path.join(dst, 'lib'),
         )
+        shutil.copytree(
+            os.path.join(module.host_path, 'gateway', 'go'),
+            os.path.join(dst, 'gateway', 'go'),
+        )
 
     if os.path.isdir(os.path.join(module.host_path, 'tools')):
         shutil.copytree(

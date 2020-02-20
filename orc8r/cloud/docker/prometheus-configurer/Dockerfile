@@ -8,14 +8,16 @@ ENV PATH ${PATH}:${GOBIN}
 ENV GOPROXY https://proxy.golang.org
 
 # Copy go.mod file to cache the downloads
-COPY cloud/go/go.mod /gomod/
-COPY lib/go/go.mod /gomod/
-COPY lib/go/protos/go.mod /gomod/
-WORKDIR /gomod
+COPY cloud/go/go.mod /gomod/cloud/go/
+COPY gateway/go/go.mod /gomod/gateway/go/
+COPY lib/go/go.mod /gomod/lib/go/
+COPY lib/go/protos/go.mod /gomod/lib/go/protos/
+WORKDIR /gomod/cloud/go
 RUN go mod download
 
 # Copy magma code
 COPY cloud/go/ /go/src/magma/orc8r/cloud/go/
+COPY gateway/go/ /go/src/magma/orc8r/gateway/go/
 COPY lib/go/ /go/src/magma/orc8r/lib/go/
 
 # Build prom_alertconfig service
