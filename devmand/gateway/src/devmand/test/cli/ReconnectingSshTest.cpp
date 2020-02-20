@@ -101,8 +101,10 @@ TEST_F(ReconnectingSshTest, commandTimeout) {
       getConfig(
           "9999", std::chrono::seconds(cmdTimeout), std::chrono::seconds(10)),
       *cliEngine);
-  shared_ptr<Cli> cli =
-      ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
+  shared_ptr<Cli> cli = ioConfigurationBuilder.createAll(
+      ReadCachingCli::createCache(),
+      make_shared<TreeCache>(
+          ioConfigurationBuilder.getConnectionParameters()->flavour));
   ensureConnected(cli);
   // sleep so that cli stack will be destroyed
   string sleepCommand = "sleep ";
@@ -122,8 +124,10 @@ TEST_F(ReconnectingSshTest, serverDisconnectSendCommands) {
       getConfig(
           "9999", std::chrono::seconds(cmdTimeout), std::chrono::seconds(60)),
       *cliEngine);
-  shared_ptr<Cli> cli =
-      ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
+  shared_ptr<Cli> cli = ioConfigurationBuilder.createAll(
+      ReadCachingCli::createCache(),
+      make_shared<TreeCache>(
+          ioConfigurationBuilder.getConnectionParameters()->flavour));
 
   ensureConnected(cli);
   ssh->close();
@@ -140,8 +144,10 @@ TEST_F(ReconnectingSshTest, serverDisconnectWaitForKeepalive) {
           std::chrono::seconds(cmdTimeout),
           std::chrono::seconds(keepaliveFreq)),
       *cliEngine);
-  shared_ptr<Cli> cli =
-      ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
+  shared_ptr<Cli> cli = ioConfigurationBuilder.createAll(
+      ReadCachingCli::createCache(),
+      make_shared<TreeCache>(
+          ioConfigurationBuilder.getConnectionParameters()->flavour));
 
   ensureConnected(cli);
 
@@ -173,8 +179,10 @@ TEST_F(ReconnectingSshTest, keepalive) {
           std::chrono::seconds(cmdTimeout),
           std::chrono::seconds(keepaliveTimeout)),
       *cliEngine);
-  shared_ptr<Cli> cli =
-      ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
+  shared_ptr<Cli> cli = ioConfigurationBuilder.createAll(
+      ReadCachingCli::createCache(),
+      make_shared<TreeCache>(
+          ioConfigurationBuilder.getConnectionParameters()->flavour));
 
   int attempt = 0;
   while (true) {

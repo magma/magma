@@ -14,6 +14,7 @@
 #include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
+#include <devmand/channels/cli/TreeCache.h>
 #include <devmand/channels/cli/engine/Engine.h>
 #include <folly/Executor.h>
 
@@ -56,6 +57,7 @@ static constexpr auto sshConnectionTimeoutConfig = "sshConnectionTimeout";
  * resolution
  */
 class IoConfigurationBuilder {
+
  public:
   struct ConnectionParameters {
     string username;
@@ -87,7 +89,9 @@ class IoConfigurationBuilder {
 
   ~IoConfigurationBuilder();
 
-  shared_ptr<Cli> createAll(shared_ptr<CliCache> commandCache);
+  shared_ptr<Cli> createAll(
+      shared_ptr<CliCache> commandCache,
+      shared_ptr<TreeCache> treeCache);
 
   static Future<shared_ptr<Cli>> createPromptAwareCli(
       shared_ptr<ConnectionParameters> params);
@@ -105,10 +109,14 @@ class IoConfigurationBuilder {
       long sshConnectionTimeout,
       channels::cli::Engine& engine);
 
+  shared_ptr<ConnectionParameters> getConnectionParameters();
+
  private:
   shared_ptr<ConnectionParameters> connectionParameters;
 
-  shared_ptr<Cli> createAllUsingFactory(shared_ptr<CliCache> commandCache);
+  shared_ptr<Cli> createAllUsingFactory(
+      shared_ptr<CliCache> commandCache,
+      shared_ptr<TreeCache> treeCache);
 
   static chrono::seconds toSeconds(const string& value);
 

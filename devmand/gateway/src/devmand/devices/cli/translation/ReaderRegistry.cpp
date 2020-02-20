@@ -54,7 +54,11 @@ Future<dynamic> CompositeReader::read(
           if (childData == localData) {
             continue;
           }
-          localData.merge_patch(childData);
+          if (!childData.empty() &&
+              !childData.items().begin()->second.empty()) {
+            // add child data only if it's not empty
+            localData.merge_patch(childData);
+          }
         }
         return localData;
       })

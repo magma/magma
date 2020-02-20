@@ -74,8 +74,10 @@ TEST_F(CliTest, writeMultipleTimesAllExecute) {
   deviceConfig.id = "localhost-test-device";
 
   IoConfigurationBuilder ioConfigurationBuilder(deviceConfig, *cliEngine);
-  const shared_ptr<Cli>& cli =
-      ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
+  const shared_ptr<Cli>& cli = ioConfigurationBuilder.createAll(
+      ReadCachingCli::createCache(),
+      make_shared<TreeCache>(
+          ioConfigurationBuilder.getConnectionParameters()->flavour));
   const function<bool()>& connectionTest = ensureConnected(cli);
 
   EXPECT_BECOMES_TRUE(connectionTest());

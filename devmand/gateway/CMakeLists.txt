@@ -122,6 +122,9 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/PlaintextCliDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/ParsingUtils.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/StructuredUbntDevice.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/UbntStpPlugin.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/UbntNetworksPlugin.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/UbntInterfacePlugin.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/ModelRegistry.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/Path.cpp

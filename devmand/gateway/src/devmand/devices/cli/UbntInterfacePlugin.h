@@ -5,39 +5,29 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
-#pragma once
-
 #define LOG_WITH_GLOG
 #include <magma_logging.h>
 
-#include <devmand/channels/cli/Channel.h>
-#include <folly/executors/CPUThreadPoolExecutor.h>
+#include <devmand/devices/cli/translation/BindingReaderRegistry.h>
+#include <devmand/devices/cli/translation/BindingWriterRegistry.h>
+#include <devmand/devices/cli/translation/PluginRegistry.h>
 
 namespace devmand {
 namespace devices {
 namespace cli {
 
-using namespace std;
-using namespace folly;
 using namespace devmand::channels::cli;
 
-class DeviceAccess {
+class UbntInterfacePlugin : public Plugin {
  public:
-  DeviceAccess(
-      shared_ptr<Cli> _cliChannel,
-      string _deviceId,
-      shared_ptr<Executor> _workerExecutor);
-  ~DeviceAccess() = default;
+  UbntInterfacePlugin(BindingContext& openconfigContext);
 
- public:
-  shared_ptr<Cli> cli() const;
-  string id() const;
-  shared_ptr<Executor> executor() const;
+  DeviceType getDeviceType() const override;
+  void provideReaders(ReaderRegistryBuilder& registry) const override;
+  void provideWriters(WriterRegistryBuilder& registry) const override;
 
  private:
-  shared_ptr<Cli> cliChannel;
-  string deviceId;
-  shared_ptr<Executor> workerExecutor;
+  BindingContext& openconfigContext;
 };
 
 } // namespace cli
