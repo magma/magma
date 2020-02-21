@@ -32,6 +32,15 @@ var (
 	errNoProject     = gqlerror.Errorf("project doesn't exist")
 )
 
+func (r queryResolver) ProjectType(ctx context.Context, id string) (*ent.ProjectType, error) {
+	noder, err := r.Node(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	typ, _ := noder.(*ent.ProjectType)
+	return typ, nil
+}
+
 func (projectTypeResolver) NumberOfProjects(ctx context.Context, obj *ent.ProjectType) (int, error) {
 	return obj.QueryProjects().Count(ctx)
 }

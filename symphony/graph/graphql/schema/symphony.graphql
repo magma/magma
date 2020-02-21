@@ -1960,6 +1960,8 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
+  projectType(id: ID!): ProjectType
+    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
   projectTypes(
     after: Cursor
     first: Int

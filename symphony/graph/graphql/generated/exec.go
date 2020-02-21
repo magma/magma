@@ -639,6 +639,7 @@ type ComplexityRoot struct {
 		PortSearch               func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
 		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
 		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
+		ProjectType              func(childComplexity int, id string) int
 		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		SearchForEntity          func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Service                  func(childComplexity int, id string) int
@@ -1147,6 +1148,7 @@ type QueryResolver interface {
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id string) (*ent.Node, error)
+	ProjectType(ctx context.Context, id string) (*ent.ProjectType, error)
 	ProjectTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectTypeConnection, error)
 	Customers(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.CustomerConnection, error)
 	ActionsRules(ctx context.Context) (*models.ActionsRulesSearchResult, error)
@@ -4274,6 +4276,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ProjectSearch(childComplexity, args["filters"].([]*models.ProjectFilterInput), args["limit"].(*int)), true
+
+	case "Query.projectType":
+		if e.complexity.Query.ProjectType == nil {
+			break
+		}
+
+		args, err := ec.field_Query_projectType_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ProjectType(childComplexity, args["id"].(string)), true
 
 	case "Query.projectTypes":
 		if e.complexity.Query.ProjectTypes == nil {
@@ -7657,6 +7671,8 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
+  projectType(id: ID!): ProjectType
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   projectTypes(
     after: Cursor
     first: Int
@@ -9551,6 +9567,20 @@ func (ec *executionContext) field_Query_projectSearch_args(ctx context.Context, 
 		}
 	}
 	args["limit"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_projectType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -24103,6 +24133,47 @@ func (ec *executionContext) _Query_vertex(ctx context.Context, field graphql.Col
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOVertex2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_projectType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_projectType_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ProjectType(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProjectType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOProjectType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_projectTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -39086,6 +39157,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_vertex(ctx, field)
+				return res
+			})
+		case "projectType":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_projectType(ctx, field)
 				return res
 			})
 		case "projectTypes":
