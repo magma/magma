@@ -40,14 +40,14 @@ class APNController(MagmaController):
 
     def __init__(self, *args, **kwargs):
         super(APNController, self).__init__(*args, **kwargs)
-        self._clean_start = True # get from config file
+        # TODO(119vik) get following from the config file
+        self._clean_start = True 
         self._datapath = None
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
-        self.next_table = 20
-        # \
-        #     self._service_manager.get_next_table_num(self.APP_NAME)
         self.apn_tagging_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self.next_table = self._service_manager.get_next_table_num(
+            self.APP_NAME)
         self._msg_hub = MessageHub(self.logger)
 
     def initialize_on_connect(self, datapath):
@@ -71,14 +71,14 @@ class APNController(MagmaController):
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
 
-    def _wait_for_flow_responses(self, imsi, flow_adds, chan):
+    def _wait_for_flow_responses(self, imsi, flow_list, chan):
         def fail(err):
             self.logger.error(
                 "Failed to install flow for subscriber %s: %s",
                 imsi, err)
             return False
 
-        for _ in range(len(flow_adds)):
+        for _ in range(len(flow_list)):
             try:
                 result = chan.get()
             except MsgChannel.Timeout:
@@ -131,10 +131,14 @@ class APNController(MagmaController):
             eth_type=ether.ETH_TYPE_IP)
         
         # Generate OF Add Flow messages for Uplink and DownLink traffic
-        flow_adds += self._get_flows_for_traffic_direction(outbound_match, 
-                                                           apn_tagging_actions)
-        flow_adds += self._get_flows_for_traffic_direction(inbound_match, 
-                                                           apn_tagging_actions)
+        flow_adds += self._get_flows_for_traffic_direction(
+            flows.get_add_resubmit_next_service_flow_msg,
+            outbound_match, 
+            apn_tagging_actions)
+        flow_adds += self._get_flows_for_traffic_direction(
+            flows.get_add_resubmit_next_service_flow_msg, 
+            inbound_match, 
+            apn_tagging_actions)
         
         logging.info("Flows to add {}, datapath {}".format(flow_adds, 
                                                            self._datapath))
@@ -170,11 +174,14 @@ class APNController(MagmaController):
                 value=int(encoded_apn_registers[reg_num], base=16)
             ) for reg_num in range(4)]
     
-    def _get_flows_for_traffic_direction(self, matcher, apn_tagging_actions):
+    def _get_flows_for_traffic_direction(self, generator, matcher, 
+                                         apn_tagging_actions):
         """ 
             Generates list of flows for specified traffic direction
             
             Args:
+                generator: function which responsible for add / delete flow mod
+                    generation
                 matcher: MagmaMatcher instance which specifies traffic flow 
                     direction
                 apn_tagging_actions: actions to be applied to packets at 
@@ -182,20 +189,20 @@ class APNController(MagmaController):
 
         """
         return [
-            flows.get_add_resubmit_next_service_flow_msg(
+            generator(
                 self._datapath, 
                 self.tbl_num,
                 matcher,
                 None,
-                priority=flows.DEFAULT_PRIORITY,
-                resubmit_table=self.apn_tagging_scratch),
-            flows.get_add_resubmit_next_service_flow_msg(
+                resubmit_table=self.apn_tagging_scratch,
+                priority=flows.DEFAULT_PRIORITY),
+            generator(
                 self._datapath, 
                 self.apn_tagging_scratch,
                 matcher,
                 apn_tagging_actions,
-                priority=flows.DEFAULT_PRIORITY,
-                resubmit_table=self.next_table)]
+                resubmit_table=self.next_table,
+                priority=flows.DEFAULT_PRIORITY)]
     
     def delete_apn_flow_for_ue(self, imsi, ue_ip_addr, apn):
         """ Delete flow been created in scope of add_apn_flow_for_ue.
@@ -208,63 +215,70 @@ class APNController(MagmaController):
         """
         #TODO(119vik): same IP is reused for several bearers connected to the 
         # same APN - take care about duplications
-        pass
-        # parser = self._datapath.ofproto_parser
+        parser = self._datapath.ofproto_parser
         
-        # encoded_apn = encode_apn(apn)
-        # apn_tagging_actions = self._get_apn_tagging_actions(parser, encoded_apn)
-        # flow_dels = []
+        encoded_apn = encode_apn(apn)
+        apn_tagging_actions = self._get_apn_tagging_actions(parser, encoded_apn)
+        flow_dels = []
 
-        # # Prepare matchers for both UpLink and DownLink traffic
-        # outbound_match = MagmaMatch(
-        #     direction=Direction.OUT, 
-        #     ipv4_src=ue_ip_addr, 
-        #     eth_type=ether.ETH_TYPE_IP)
-        # inbound_match = MagmaMatch(
-        #     direction=Direction.IN, 
-        #     ipv4_dst=ue_ip_addr, 
-        #     eth_type=ether.ETH_TYPE_IP)
+        # Prepare matchers for both UpLink and DownLink traffic
+        outbound_match = MagmaMatch(
+            direction=Direction.OUT, 
+            ipv4_src=ue_ip_addr, 
+            eth_type=ether.ETH_TYPE_IP)
+        inbound_match = MagmaMatch(
+            direction=Direction.IN, 
+            ipv4_dst=ue_ip_addr, 
+            eth_type=ether.ETH_TYPE_IP)
         
-        # # Generate OF Add Flow messages for Uplink and DownLink traffic
-        # flow_dels += self._get_del_flows_for_traffic_direction(
-        #     outbound_match, apn_tagging_actions)
-        # flow_dels += self._get_del_flows_for_traffic_direction(
-        #     inbound_match, apn_tagging_actions)
+        # Generate OF Add Flow messages for Uplink and DownLink traffic
+        flow_dels += self._get_flows_for_traffic_direction(
+            get_del_resubmit_next_service_flow_msg,
+            outbound_match, 
+            apn_tagging_actions
+        )
+        flow_dels += self._get_flows_for_traffic_direction(
+            get_del_resubmit_next_service_flow_msg,
+            inbound_match, 
+            apn_tagging_actions
+        )
+        logging.info("Flows to delete {}, datapath {}".format(flow_dels, 
+                                                              self._datapath))
         
-        # logging.info("Flows to add {}, datapath {}".format(flow_dels, 
-        #                                                    self._datapath))
-        
-        # # Push messages to OVS through async message hub
-        # chan = self._msg_hub.send(flow_dels, self._datapath)
+        # Push messages to OVS through async message hub
+        chan = self._msg_hub.send(flow_dels, self._datapath)
 
-        # # Wait and process response
-        # return self._wait_for_flow_responses(imsi, flow_dels, chan)  
+        # Wait and process response
+        return self._wait_for_flow_responses(imsi, flow_dels, chan)  
 
-    def _get_del_flows_for_traffic_direction(self, matcher, 
-                                             apn_tagging_actions):
-        """ 
-            Generates list of flows for specified traffic direction
-            
-            Args:
-                matcher: MagmaMatcher instance which specifies traffic flow 
-                    direction
-                apn_tagging_actions: actions to be applied to packets at 
-                    ScratchTable level
 
-        """
-        pass
-        # return [
-        #     flows.get_delete_flow_msg(
-        #         self._datapath, 
-        #         self.tbl_num,
-        #         matcher,
-        #         None,
-        #         priority=flows.DEFAULT_PRIORITY,
-        #         resubmit_table=self.apn_tagging_scratch),
-        #     flows.get_add_resubmit_next_service_flow_msg(
-        #         self._datapath, 
-        #         self.apn_tagging_scratch,
-        #         matcher,
-        #         apn_tagging_actions,
-        #         priority=flows.DEFAULT_PRIORITY,
-        #         resubmit_table=self.next_table)]
+# TODO(119vik): migrate following to the openflow.flows module
+def get_del_resubmit_next_service_flow_msg(datapath, table, match, actions=None,
+                                           resubmit_table=None, **kwargs):
+    """
+        Get an delete flow modification message that resubmits to another 
+        service.
+
+        Args:
+            datapath (ryu.controller.controller.Datapath):
+                Datapath to push the flow to
+            table (int): Table number to apply the flow to
+            match (MagmaMatch): The match for the flow
+            actions ([OFPAction]):
+                List of actions for the flow.
+            instructions ([OFPInstruction]):
+                List of instructions for the flow. This will default to a
+                single OFPInstructionsActions to apply `actions`.
+                Ignored if `actions` is set.
+            priority (int): Flow priority
+            resubmit_table (int): Table number of the next service to
+                forward traffic to.
+
+        Returns:
+            OFPFlowMod
+    """
+    actions = actions or []
+    actions.append(datapath.ofproto_parser.NXActionResubmitTable(
+        table_id=resubmit_table))
+
+    return flows.get_delete_flow_msg(datapath, table, match, actions, **kwargs)
