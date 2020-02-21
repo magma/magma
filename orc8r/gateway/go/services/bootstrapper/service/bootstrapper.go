@@ -58,9 +58,9 @@ type Bootstrapper struct {
 	// private, caches, tmps
 	//
 	// 'cached' challenge key
-	challengeKey *ecdsa.PrivateKey `json:"-"`
+	challengeKey *ecdsa.PrivateKey
 	// if set to true - start bootstrapping even is the GW certificate is still valid
-	forceBootstrap bool `json:"-"`
+	forceBootstrap bool
 }
 
 // NewBootstrapper returns a new instance of bootstrapper with initialized configuration
