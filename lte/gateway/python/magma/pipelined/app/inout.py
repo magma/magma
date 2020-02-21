@@ -8,8 +8,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 from collections import namedtuple
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-from ryu.ofproto import ether
-from ryu.ofproto import ofproto_v1_4 as ofp
 
 from .base import MagmaController
 from magma.pipelined.openflow import flows
@@ -17,7 +15,6 @@ from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import load_direction, Direction, \
     PASSTHROUGH_REG_VAL
-from magma.pipelined.apn import encode_apn
 
 from ryu.lib.packet import ether_types
 

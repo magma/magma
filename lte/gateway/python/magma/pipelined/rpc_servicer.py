@@ -463,7 +463,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             app_name, tables in table_assignments.items()])
 
 
-
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
                                         List[RuleModResult]]:

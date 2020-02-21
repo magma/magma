@@ -255,6 +255,13 @@ class ServiceManager:
     # app manager to instantiate the app.
     # Note that a service may require multiple apps.
     DYNAMIC_SERVICE_TO_APPS = {
+<<<<<<< HEAD
+=======
+        PipelineD.DPI: [
+            App(name=DPIController.APP_NAME, module=DPIController.__module__,
+                type=DPIController.APP_TYPE),
+        ],
+>>>>>>> remove unnecesary changes
         PipelineD.ENFORCEMENT: [
             App(name=EnforcementController.APP_NAME,
                 module=EnforcementController.__module__,
@@ -303,7 +310,6 @@ class ServiceManager:
                 module=APNController.__module__,
                 type=APNController.APP_TYPE)
         ],
-
         VLAN_LEARN_SERVICE_NAME: [
             App(name=VlanLearnController.APP_NAME,
                 module=VlanLearnController.__module__,
@@ -403,7 +409,17 @@ class ServiceManager:
 
         dynamic_apps = [app for service in dynamic_services for
                         app in self.DYNAMIC_SERVICE_TO_APPS[service]]
+<<<<<<< HEAD
         return dynamic_apps
+=======
+        self._apps.extend(dynamic_apps)
+
+        # Register dynamic apps for each service to a main table. Filter out
+        # any apps that do not need a table.
+        for service in dynamic_services:
+            apps = self.DYNAMIC_SERVICE_TO_APPS[service]
+            self._table_manager.register_apps_for_service(apps)
+>>>>>>> remove unnecesary changes
 
     def load(self):
         """
