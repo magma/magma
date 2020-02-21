@@ -349,14 +349,14 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 				}
 			}
 		}
-	case models.PropertyEntityWorkOrders:
-		typs, err := c.PropertyType.Query().
+	case models.PropertyEntityWorkOrder:
+		types, err := c.PropertyType.Query().
 			Where(propertytype.HasPropertiesWith(property.HasWorkOrderWith(workorder.IDIn(ids...)))).
 			GroupBy(propertytype.FieldName).Strings(ctx)
 		if err != nil {
 			return nil, err
 		}
-		return typs, nil
+		return types, nil
 	default:
 		return nil, errors.Errorf("entity not supported %s", entity)
 	}
@@ -432,7 +432,7 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying location properties (id=%s)", entity.ID)
 		}
-	case models.PropertyEntityWorkOrders:
+	case models.PropertyEntityWorkOrder:
 		entity := instance.(*ent.WorkOrder)
 		var err error
 		props, err = entity.QueryProperties().All(ctx)

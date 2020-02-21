@@ -812,6 +812,7 @@ enum PropertyEntity {
   LINK
   PORT
   LOCATION
+  WORK_ORDER
 }
 
 enum CommentEntity {

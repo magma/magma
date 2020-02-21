@@ -6509,6 +6509,7 @@ enum PropertyEntity {
   LINK
   PORT
   LOCATION
+  WORK_ORDER
 }
 
 enum CommentEntity {
@@ -7547,8 +7548,10 @@ type Query {
     id: ID!
   ): Node
 
-  location(id: ID!): Location @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
-  locationType(id: ID!): LocationType @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+  location(id: ID!): Location
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+  locationType(id: ID!): LocationType
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   locationTypes(
     after: Cursor
     first: Int
@@ -7565,9 +7568,10 @@ type Query {
     before: Cursor
     last: Int
   ): LocationConnection
-  equipment(id: ID!): Equipment @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+  equipment(id: ID!): Equipment
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -7586,15 +7590,18 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
-  service(id: ID!): Service @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
-  serviceType(id: ID!): ServiceType @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+  service(id: ID!): Service
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+  serviceType(id: ID!): ServiceType
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   serviceTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ServiceTypeConnection
-  workOrder(id: ID!): WorkOrder @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+  workOrder(id: ID!): WorkOrder
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   workOrders(
     after: Cursor
     first: Int
