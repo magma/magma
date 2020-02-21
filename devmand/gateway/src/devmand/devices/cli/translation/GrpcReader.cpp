@@ -27,6 +27,7 @@ GrpcReader::GrpcReader(
 
 Future<dynamic> GrpcReader::read(const Path& path, const DeviceAccess& device)
     const {
+  MLOG(MDEBUG) << "[" << id << "] read " << path;
   ActualReadRequest* actualRequest = new ActualReadRequest();
   actualRequest->set_path(path.str());
   ReadRequest request;

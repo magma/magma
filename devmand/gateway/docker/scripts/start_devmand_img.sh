@@ -23,4 +23,4 @@ docker run -d -h devmanddevel --net ${DEVMANDDOCKERNET}  \
       -v "$(realpath ~/cache_devmand_build):/cache/devmand/build:rw" \
       --entrypoint /bin/bash \
       "facebookconnectivity-southpoll-dev-docker.jfrog.io/devmand" \
-      -c 'mkdir /run/sshd && /usr/sbin/sshd && bash -c "sleep infinity && ls"'
+      -c 'mkdir -p /run/sshd && /usr/sbin/sshd && bash -c "sleep infinity && ls"'

@@ -29,7 +29,7 @@ GrpcListReader::GrpcListReader(
 Future<vector<dynamic>> GrpcListReader::readKeys(
     const Path& path,
     const DeviceAccess& device) const {
-
+  MLOG(MDEBUG) << "[" << id << "] readKeys " << path;
   ActualReadRequest* actualRequest = new ActualReadRequest();
   actualRequest->set_path(path.str());
   ReadRequest request;

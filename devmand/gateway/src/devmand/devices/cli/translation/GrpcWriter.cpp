@@ -29,6 +29,7 @@ Future<Unit> GrpcWriter::create(
     const Path& path,
     dynamic cfg,
     const DeviceAccess& device) const {
+  MLOG(MDEBUG) << "[" << id << "] create " << path;
   ActualCreateRequest* actualRequest = new ActualCreateRequest();
   actualRequest->set_path(path.str());
   actualRequest->set_cfg(toJson(cfg));
@@ -47,6 +48,7 @@ Future<Unit> GrpcWriter::update(
     dynamic before,
     dynamic after,
     const DeviceAccess& device) const {
+  MLOG(MDEBUG) << "[" << id << "] update " << path;
   ActualUpdateRequest* actualRequest = new ActualUpdateRequest();
   actualRequest->set_path(path.str());
   actualRequest->set_before(toJson(before));
@@ -65,6 +67,7 @@ Future<Unit> GrpcWriter::remove(
     const Path& path,
     dynamic before,
     const DeviceAccess& device) const {
+  MLOG(MDEBUG) << "[" << id << "] remove " << path;
   ActualRemoveRequest* actualRequest = new ActualRemoveRequest();
   actualRequest->set_path(path.str());
   actualRequest->set_before(toJson(before));
