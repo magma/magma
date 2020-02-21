@@ -130,6 +130,51 @@ const testCases = [
     expectSyntaxError(/malformed promql/i),
   ],
   [
+    'metric selector with leading colon',
+    `:metric:name`,
+    [
+      {value: ':', type: 'colon'},
+      {value: 'metric', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'name', type: 'identifier'},
+    ],
+    new PromQL.InstantSelector(':metric:name'),
+  ],
+  [
+    'metric selector with trailing colon',
+    `metric:name:`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'name', type: 'identifier'},
+      {value: ':', type: 'colon'},
+    ],
+    new PromQL.InstantSelector('metric:name:'),
+  ],
+  [
+    'metric selector with colons in name - complex',
+    `:some:metric::name:{label=~"value"}`,
+    [
+      {value: ':', type: 'colon'},
+      {value: 'some', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'metric', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: ':', type: 'colon'},
+      {value: 'name', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: '{', type: 'lBrace'},
+      {value: 'label', type: 'identifier'},
+      {value: '=~', type: 'labelOp'},
+      {value: 'value', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector(
+      ':some:metric::name:',
+      new PromQL.Labels().addRegex('label', 'value'),
+    ),
+  ],
+  [
     'empty label selector',
     '{}',
     [{value: '{', type: 'lBrace'}, {value: '}', type: 'rBrace'}],
@@ -198,6 +243,20 @@ const testCases = [
         .addEqual('group_left', 'is allowed')
         .addEqual('unless', 'I failed'),
     ),
+  ],
+  [
+    'label names with colons are not allowed',
+    `{some:label="value"}`,
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'some', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'label', type: 'identifier'},
+      {value: '=', type: 'labelOp'},
+      {value: 'value', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    expectSyntaxError(),
   ],
   [
     'label selector',
@@ -348,6 +407,19 @@ const testCases = [
       {value: ')', type: 'rParen'},
     ],
     expectSyntaxError(/unknown function/i),
+  ],
+  [
+    'function names with colons are not allowed',
+    `some:func(1)`,
+    [
+      {value: 'some', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'func', type: 'identifier'},
+      {value: '(', type: 'lParen'},
+      {value: 1, type: 'scalar'},
+      {value: ')', type: 'rParen'},
+    ],
+    expectSyntaxError(),
   ],
   [
     'function with string parameter',

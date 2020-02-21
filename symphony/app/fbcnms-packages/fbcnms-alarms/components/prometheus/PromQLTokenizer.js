@@ -36,6 +36,7 @@ const lexerRules: LexerRules = {
   lBracket: '[',
   rBracket: ']',
   comma: ',',
+  colon: ':',
   range: {
     match: /[0-9]+[smhdwy]/,
     value: s =>

@@ -18,9 +18,13 @@ metric_selector -> selector               {% id %}
 selector -> instant_selector {% id %}
           | range_selector   {% id %}
 
-instant_selector -> IDENTIFIER label_selector {% ([id, labels]) => new InstantSelector(id, labels) %}
-                  | IDENTIFIER                {% ([id]) => new InstantSelector(id) %}
-                  | label_selector            {% ([labels]) => new InstantSelector("", labels) %}
+instant_selector -> metric_identifier label_selector    {% ([id, labels]) => new InstantSelector(id, labels) %}
+                  | metric_identifier                   {% ([id]) => new InstantSelector(id) %}
+                  | label_selector                      {% ([labels]) => new InstantSelector("", labels) %}
+
+metric_identifier -> metric_identifier %colon:+ IDENTIFIER:?    {% matches => matches.join('') %}
+                   | %colon metric_identifier                   {% matches => matches.join('') %}
+                   | IDENTIFIER                                 {% id %}
 
 range_selector -> instant_selector duration {% ([selector, duration]) => new RangeSelector(selector, duration)%}
 
