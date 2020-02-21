@@ -37,6 +37,7 @@ from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.check_quota import CheckQuotaController
+from magma.pipelined.app.apn import APNController
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
@@ -414,9 +415,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def AddAPNFlowForUser(self, 
             request: ActivateAPNTaggingFlowsForUserRequest, 
             context) -> APNTaggingResponse:
-        # TODO(119vik): add async response handling
-        # if app is not enabled
-        #     return None
+        if not self._service_manager.is_app_enabled(
+                APNController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
         self._loop.call_soon_threadsafe(self._add_apn_flows_async, request)
         resp = APNTaggingResponse()
         return resp
@@ -432,9 +436,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def DeleteAPNFlowForUser(self, 
             request: DeactivateAPNTaggingFlowsForUserRequest, 
             context) -> APNTaggingResponse:
-        #  TODO(119vik): add real implementation
-        # if app is not enabled
-        #     return None
+
+        if not self._service_manager.is_app_enabled(
+                APNController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
         self._loop.call_soon_threadsafe(self._delete_apn_flows_async, request)
         resp = APNTaggingResponse()
         return resp
