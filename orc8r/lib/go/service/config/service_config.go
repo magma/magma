@@ -133,12 +133,12 @@ func GetStructuredServiceConfig(moduleName string, serviceName string, out inter
 
 // GetStructuredServiceConfigExt is an extended version of GetStructuredServiceConfig, it allows to pass config
 // directory names
-func GetStructuredServiceConfigExt(
-	moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string, out interface{}) error {
-
+func GetStructuredServiceConfigExt(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string, out interface{}) error {
 	if out == nil {
 		return fmt.Errorf("Structured CFG: Invalid (nil) output parameter")
 	}
+
+	moduleName, serviceName = strings.ToLower(moduleName), strings.ToLower(serviceName)
 	configFileName := getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir)
 	yamlFileData, err := ioutil.ReadFile(configFileName)
 	if err == nil {
@@ -180,6 +180,7 @@ func GetStructuredServiceConfigExt(
 }
 
 func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {
+	moduleName, serviceName = strings.ToLower(moduleName), strings.ToLower(serviceName)
 	configFileName := getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir)
 	config, err := loadYamlFile(configFileName)
 	if err != nil {
