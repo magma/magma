@@ -2151,4 +2151,5 @@ type Mutation {
 
 type Subscription {
   workOrderAdded: WorkOrder
+  workOrderDone: WorkOrder
 }

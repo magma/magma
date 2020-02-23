@@ -114,10 +114,15 @@ func (resolver) FloorPlan() generated.FloorPlanResolver {
 	return floorPlanResolver{}
 }
 
-func (r resolver) Mutation() generated.MutationResolver {
-	mr := mutationResolver{r}
+func (r resolver) Mutation() (mr generated.MutationResolver) {
+	mr = mutationResolver{r}
 	if r.mutation.transactional {
-		return txResolver{mr}
+		mr = txResolver{mr}
+	}
+	mr = eventResolver{
+		MutationResolver: mr,
+		emitter:          r.event.Emitter,
+		logger:           r.logger,
 	}
 	return mr
 }
