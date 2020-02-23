@@ -106,7 +106,6 @@ static unique_ptr<PluginRegistry> loadPlugins(
       modelRegistry->getBindingContext(Model::OPENCONFIG_2_4_3)));
   pReg->registerPlugin(make_shared<UbntNetworksPlugin>(
       modelRegistry->getBindingContext(Model::OPENCONFIG_2_4_3)));
-  // TODO read configuration, add remote plugins
   map<PluginId, PluginEndpoint> grpcPlugins = parseGrpcPlugins(pluginConfig);
   for (auto const& kv : grpcPlugins) {
     const string& id = kv.first;
@@ -124,7 +123,7 @@ static unique_ptr<PluginRegistry> loadPlugins(
  * starvation - connection failures should always be detected.
  * SSH cli (SshSessionAsync) - separate executor for ssh layer.
  * All other layers share common threadpool executor.
- * Plugin executor is used used for remote plugins.
+ * Plugin executor is used for remote plugins.
  * All executors are cpu threadpool executors, to mitigate possible deadlocks,
  * such as when cli destructor calls destroy.get() - this would block forever on
  * IO threadpool executor.
@@ -181,7 +180,7 @@ shared_ptr<DeviceContext> Engine::getDeviceContext(const DeviceType& type) {
   return pluginRegistry->getDeviceContext(type);
 }
 
-// TODO should this be singleton/cached?
+// TODO should be cached
 unique_ptr<ReaderRegistry> Engine::getReaderRegistry(
     shared_ptr<DeviceContext> deviceCtx) {
   ReaderRegistryBuilder rRegBuilder{
@@ -190,7 +189,7 @@ unique_ptr<ReaderRegistry> Engine::getReaderRegistry(
   return rRegBuilder.build();
 }
 
-// TODO should this be singleton/cached?
+// TODO should be cached
 unique_ptr<WriterRegistry> Engine::getWriterRegistry(
     shared_ptr<DeviceContext> deviceCtx) {
   WriterRegistryBuilder wRegBuilder{
