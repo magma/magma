@@ -64,7 +64,7 @@ class DatastoreTest : public ::testing::Test {
 
  public:
   DatastoreTest()
-      : cliEngine(std::make_unique<channels::cli::Engine>()),
+      : cliEngine(std::make_unique<channels::cli::Engine>(dynamic::object())),
         schemaContext(cliEngine->getModelRegistry()->getSchemaContext(
             Model::OPENCONFIG_2_4_3)) {}
 

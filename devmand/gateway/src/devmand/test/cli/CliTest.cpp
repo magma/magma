@@ -41,7 +41,7 @@ class CliTest : public ::testing::Test {
 
   void SetUp() override {
     devmand::test::utils::log::initLog(MDEBUG);
-    cliEngine = make_unique<channels::cli::Engine>();
+    cliEngine = make_unique<channels::cli::Engine>(dynamic::object());
     ssh = startSshServer();
   }
 

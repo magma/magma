@@ -555,7 +555,7 @@ static const string EXPECTED_OUTPUT =
     "  }\n"
     "}";
 
-TEST_F(StructuredUbntDeviceTest, getIfcOper) {
+TEST_F(StructuredUbntDeviceTest, DISABLED_getIfcOper) {
   PluginRegistry pReg;
   ModelRegistry mReg;
   auto executor = make_shared<CPUThreadPoolExecutor>(2);
@@ -574,7 +574,8 @@ TEST_F(StructuredUbntDeviceTest, getIfcOper) {
            "/", DeviceAccess(make_shared<UbntFakeCli>(), "test", executor))
           .get();
 
-  EXPECT_EQ(folly::parseJson(EXPECTED_OUTPUT), stateResult);
+  dynamic expected = folly::parseJson(EXPECTED_OUTPUT);
+  EXPECT_EQ(expected, stateResult);
 
   // Let the executor finish
   via(executor.get(), []() {}).get();

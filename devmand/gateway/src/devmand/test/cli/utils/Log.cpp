@@ -20,7 +20,7 @@ atomic_bool loggingInitialized(false);
 
 void initLog(uint32_t verbosity) {
   if (loggingInitialized.load()) {
-    magma::set_verbosity(verbosity);
+    ::magma::set_verbosity(verbosity);
     return;
   }
   Engine::initLogging(verbosity, true);

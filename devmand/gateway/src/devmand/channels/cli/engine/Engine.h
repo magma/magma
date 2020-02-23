@@ -49,6 +49,10 @@ class Engine : public channels::Engine {
   static void initSsh();
   static void closeSsh();
 
+  typedef string PluginId;
+  typedef string PluginEndpoint;
+  static map<PluginId, PluginEndpoint> parseGrpcPlugins(dynamic pluginConfig);
+
   shared_ptr<CliThreadWheelTimekeeper> timekeeper;
   shared_ptr<folly::Executor> sshCliExecutor;
   shared_ptr<folly::Executor> commonExecutor;

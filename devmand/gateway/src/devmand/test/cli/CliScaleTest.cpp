@@ -30,7 +30,7 @@ using namespace folly;
 
 class CliScaleTest : public ::testing::Test {
  protected:
-  channels::cli::Engine cliEngine;
+  channels::cli::Engine cliEngine{dynamic::object()};
 
   void SetUp() override {
     devmand::test::utils::log::initLog(MWARNING);

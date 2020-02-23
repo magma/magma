@@ -71,7 +71,7 @@ static uint CPU_CORES = std::max(uint(4), std::thread::hardware_concurrency());
 
 typedef string PluginId;
 typedef string PluginEndpoint;
-static map<PluginId, PluginEndpoint> parseGrpcPlugins(dynamic pluginConfig) {
+map<PluginId, PluginEndpoint> Engine::parseGrpcPlugins(dynamic pluginConfig) {
   map<PluginId, PluginEndpoint> result{};
   dynamic grpcPlugins = pluginConfig["grpcPlugins"];
   if (grpcPlugins.isArray()) {
@@ -106,7 +106,8 @@ static unique_ptr<PluginRegistry> loadPlugins(
       modelRegistry->getBindingContext(Model::OPENCONFIG_2_4_3)));
   pReg->registerPlugin(make_shared<UbntNetworksPlugin>(
       modelRegistry->getBindingContext(Model::OPENCONFIG_2_4_3)));
-  map<PluginId, PluginEndpoint> grpcPlugins = parseGrpcPlugins(pluginConfig);
+  map<PluginId, PluginEndpoint> grpcPlugins =
+      Engine::parseGrpcPlugins(pluginConfig);
   for (auto const& kv : grpcPlugins) {
     const string& id = kv.first;
     const string& endpoint = kv.second;

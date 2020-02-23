@@ -47,7 +47,7 @@ class ReconnectingSshTest : public ::testing::Test {
   void SetUp() override {
     devmand::test::utils::log::initLog();
     ssh = startSshServer();
-    cliEngine = make_unique<channels::cli::Engine>();
+    cliEngine = make_unique<channels::cli::Engine>(dynamic::object());
   }
 
   void TearDown() override {
