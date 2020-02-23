@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
-from .gql import gql
-from .client import Client, OperationException
+import warnings
 
-__all__ = ['gql', 'Client', 'OperationException']
+from .client import Client, GraphqlDeprecationWarning, OperationException
+from .gql import gql
+
+
+__all__ = ["gql", "Client", "OperationException"]
+
+warnings.filterwarnings("always", "", GraphqlDeprecationWarning)
