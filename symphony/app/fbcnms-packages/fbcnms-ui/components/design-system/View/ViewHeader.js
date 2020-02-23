@@ -44,6 +44,14 @@ const useStyles = makeStyles(() => ({
   title: {
     paddingTop: '4px',
   },
+  collapsablePart: {
+    maxHeight: '200px',
+    overflow: 'hidden',
+    transition: 'max-height 500ms ease-out 0s',
+  },
+  collapsed: {
+    maxHeight: '0px',
+  },
   searchBarContainer: {
     paddingTop: '8px',
   },
@@ -83,6 +91,7 @@ export type ViewHeaderProps = {
   title: React.Node,
   subtitle?: ?React.Node,
   searchBar?: ?React.Node,
+  showMinimal?: ?boolean,
 };
 
 export type ViewHeaderActionsProps = {
@@ -98,7 +107,7 @@ export type FullViewHeaderProps = ViewHeaderProps &
   ViewHeaderOptionsProps;
 
 const ViewHeader = (props: FullViewHeaderProps) => {
-  const {title, subtitle, viewOptions, searchBar} = props;
+  const {title, subtitle, viewOptions, searchBar, showMinimal = false} = props;
   const actionButtons: Array<ActionButtonProps> = props.actionButtons || [];
   const classes = useStyles();
 
@@ -108,12 +117,17 @@ const ViewHeader = (props: FullViewHeaderProps) => {
         <Text variant="h6" className={classes.title}>
           {title}
         </Text>
-        <Text variant="body2" color="gray">
-          {subtitle}
-        </Text>
-        {searchBar != null && (
-          <div className={classes.searchBarContainer}>{searchBar}</div>
-        )}
+        <div
+          className={classNames(classes.collapsablePart, {
+            [classes.collapsed]: showMinimal,
+          })}>
+          <Text variant="body2" color="gray">
+            {subtitle}
+          </Text>
+          {searchBar != null && (
+            <div className={classes.searchBarContainer}>{searchBar}</div>
+          )}
+        </div>
       </div>
       <div className={classes.column}>
         {viewOptions != null && (

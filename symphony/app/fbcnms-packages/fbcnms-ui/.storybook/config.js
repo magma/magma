@@ -34,6 +34,7 @@ function loadStories() {
     './components/card.stories.js',
     './containers/viewHeader.stories.js',
     './containers/sideMenu.stories.js',
+    './containers/navigatableViews.stories.js',
   ];
 
   designSystemStories.map(story => req(story));

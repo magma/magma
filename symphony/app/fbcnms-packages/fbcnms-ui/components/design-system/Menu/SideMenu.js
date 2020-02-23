@@ -68,7 +68,7 @@ export type MenuItem = {
 };
 
 type Props = {
-  header?: ?string,
+  header?: ?React.Node,
   items: Array<MenuItem>,
   activeItemIndex?: number,
   onActiveItemChanged: (activeItem: MenuItem, activeItemIndex: number) => void,
