@@ -31,6 +31,8 @@ function loadStories() {
     './foundation/typography.stories.js',
     './inputs/text-input.stories.js',
     './inputs/form-field.stories.js',
+    './components/card.stories.js',
+    './containers/viewHeader.stories.js',
   ];
 
   designSystemStories.map(story => req(story));
