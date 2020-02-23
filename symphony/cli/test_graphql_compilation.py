@@ -14,6 +14,7 @@ from fbc.symphony.cli.graphql_compiler.gql.utils_codegen import (
 )
 from graphql import build_ast_schema
 from graphql.language.parser import parse
+from graphql.utilities.find_deprecated_usages import find_deprecated_usages
 from libfb.py import testutil
 
 
@@ -77,4 +78,10 @@ class PyinventoryGraphqlCompilationTest(testutil.BaseFacebookTestCase):
         query_renderer = DataclassesRenderer(schema)
 
         for filename in filenames:
+            with open(filename) as f:
+                query = parse(f.read())
+                usages = find_deprecated_usages(schema, query)
+                assert len(usages) == 0, (
+                    f"Graphql file name {filename} uses " f"deprecated fields {usages}"
+                )
             self.verify_file(filename, query_parser, query_renderer)
