@@ -12,6 +12,8 @@ from marshmallow import fields as marshmallow_fields
 
 from .datetime_utils import fromisoformat
 
+from .edit_location_input import EditLocationInput
+
 
 DATETIME_FIELD = field(
     metadata={
@@ -22,36 +24,6 @@ DATETIME_FIELD = field(
         }
     }
 )
-
-
-@dataclass_json
-@dataclass
-class EditLocationInput:
-    @dataclass_json
-    @dataclass
-    class PropertyInput:
-        propertyTypeID: str
-        id: Optional[str] = None
-        stringValue: Optional[str] = None
-        intValue: Optional[int] = None
-        booleanValue: Optional[bool] = None
-        floatValue: Optional[Number] = None
-        latitudeValue: Optional[Number] = None
-        longitudeValue: Optional[Number] = None
-        rangeFromValue: Optional[Number] = None
-        rangeToValue: Optional[Number] = None
-        equipmentIDValue: Optional[str] = None
-        locationIDValue: Optional[str] = None
-        serviceIDValue: Optional[str] = None
-        isEditable: Optional[bool] = None
-        isInstanceProperty: Optional[bool] = None
-
-    id: str
-    name: str
-    latitude: Number
-    longitude: Number
-    properties: List[PropertyInput]
-    externalID: Optional[str] = None
 
 
 @dataclass_json

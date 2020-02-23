@@ -12,11 +12,10 @@ from gql.gql.client import OperationException
 from .._utils import PropertyValue, format_properties
 from ..consts import EquipmentPortType
 from ..exceptions import EntityNotFoundError
-from ..graphql.add_equipment_port_type_mutation import (
-    AddEquipmentPortTypeInput,
-    AddEquipmentPortTypeMutation,
-)
+from ..graphql.add_equipment_port_type_input import AddEquipmentPortTypeInput
+from ..graphql.add_equipment_port_type_mutation import AddEquipmentPortTypeMutation
 from ..graphql.equipment_port_type_query import EquipmentPortTypeQuery
+from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_equipment_port_type_mutation import (
     RemoveEquipmentPortTypeMutation,
 )
@@ -79,17 +78,13 @@ def add_equipment_port_type(
                 name=name,
                 properties=[
                     from_dict(
-                        data_class=AddEquipmentPortTypeInput.PropertyTypeInput,
-                        data=p,
-                        config=Config(strict=True),
+                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
                     )
                     for p in new_property_types
                 ],
                 linkProperties=[
                     from_dict(
-                        data_class=AddEquipmentPortTypeInput.PropertyTypeInput,
-                        data=p,
-                        config=Config(strict=True),
+                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
                     )
                     for p in new_link_property_types
                 ],

@@ -13,13 +13,16 @@ from ..exceptions import (
     LocationIsNotUniqueException,
     LocationNotFoundException,
 )
-from ..graphql.add_location_mutation import AddLocationInput, AddLocationMutation
-from ..graphql.edit_location_mutation import EditLocationInput, EditLocationMutation
+from ..graphql.add_location_input import AddLocationInput
+from ..graphql.add_location_mutation import AddLocationMutation
+from ..graphql.edit_location_input import EditLocationInput
+from ..graphql.edit_location_mutation import EditLocationMutation
 from ..graphql.location_children_query import LocationChildrenQuery
 from ..graphql.location_deps_query import LocationDepsQuery
 from ..graphql.location_details_query import LocationDetailsQuery
 from ..graphql.location_documents_query import LocationDocumentsQuery
 from ..graphql.move_location_mutation import MoveLocationMutation
+from ..graphql.property_input import PropertyInput
 from ..graphql.remove_location_mutation import RemoveLocationMutation
 from ..graphql.search_query import SearchQuery
 from ..graphql_client import GraphqlClient
@@ -376,11 +379,7 @@ def edit_location(
         latitude=new_lat if new_lat is not None else location.latitude,
         longitude=new_long if new_long is not None else location.longitude,
         properties=[
-            from_dict(
-                data_class=EditLocationInput.PropertyInput,
-                data=p,
-                config=Config(strict=True),
-            )
+            from_dict(data_class=PropertyInput, data=p, config=Config(strict=True))
             for p in properties
         ],
         externalID=new_external_id,

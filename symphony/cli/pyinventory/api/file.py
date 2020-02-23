@@ -10,7 +10,8 @@ from typing import Generator, Optional
 import filetype
 
 from ..consts import Document, Location, SiteSurvey
-from ..graphql.add_image_mutation import AddImageInput, AddImageMutation
+from ..graphql.add_image_input import AddImageInput
+from ..graphql.add_image_mutation import AddImageMutation
 from ..graphql.delete_image_mutation import DeleteImageMutation
 from ..graphql.image_entity_enum import ImageEntity
 from ..graphql_client import GraphqlClient

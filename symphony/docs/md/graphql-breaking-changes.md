@@ -3,7 +3,7 @@ id: graphql-breaking-changes
 title: Graphql API Breaking Changes
 ---
 
-[//]: <> (@generated This file was created by cli/extract_graphql_deprecations.py do not change it manually)
+[//]: <> (@generated This file was created by cli/extract_graphql_deprecations.pydo not change it manually)
 
 ## Deprecated Queries
 * `location` - Use `node` instead. Will be removed on 1/4/2020

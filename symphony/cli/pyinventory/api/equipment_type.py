@@ -10,17 +10,16 @@ from gql.gql.client import OperationException
 from .._utils import PropertyValue, format_properties
 from ..consts import Equipment, EquipmentPortType, EquipmentType
 from ..exceptions import EquipmentTypeNotFoundException
-from ..graphql.add_equipment_type_mutation import (
-    AddEquipmentTypeInput,
-    AddEquipmentTypeMutation,
-)
-from ..graphql.edit_equipment_type_mutation import (
-    EditEquipmentTypeInput,
-    EditEquipmentTypeMutation,
-)
+from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
+from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
+from ..graphql.edit_equipment_type_input import EditEquipmentTypeInput
+from ..graphql.edit_equipment_type_mutation import EditEquipmentTypeMutation
+from ..graphql.equipment_port_input import EquipmentPortInput
 from ..graphql.equipment_port_types import EquipmentPortTypesQuery
+from ..graphql.equipment_position_input import EquipmentPositionInput
 from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
 from ..graphql.equipment_types_query import EquipmentTypesQuery
+from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
 from ..graphql_client import GraphqlClient
 from ..reporter import FailedOperationException
@@ -71,7 +70,7 @@ def _add_equipment_type(
             category=category,
             positions=[
                 from_dict(
-                    data_class=AddEquipmentTypeInput.EquipmentPositionInput,
+                    data_class=EquipmentPositionInput,
                     data=pos,
                     config=Config(strict=True),
                 )
@@ -79,17 +78,13 @@ def _add_equipment_type(
             ],
             ports=[
                 from_dict(
-                    data_class=AddEquipmentTypeInput.EquipmentPortInput,
-                    data=port,
-                    config=Config(strict=True),
+                    data_class=EquipmentPortInput, data=port, config=Config(strict=True)
                 )
                 for port in port_definitions
             ],
             properties=[
                 from_dict(
-                    data_class=AddEquipmentTypeInput.PropertyTypeInput,
-                    data=prop,
-                    config=Config(strict=True),
+                    data_class=PropertyTypeInput, data=prop, config=Config(strict=True)
                 )
                 for prop in properties
             ],
@@ -129,7 +124,7 @@ def _edit_equipment_type(
             category=category,
             positions=[
                 from_dict(
-                    data_class=EditEquipmentTypeInput.EquipmentPositionInput,
+                    data_class=EquipmentPositionInput,
                     data=pos,
                     config=Config(strict=True),
                 )
@@ -137,17 +132,13 @@ def _edit_equipment_type(
             ],
             ports=[
                 from_dict(
-                    data_class=EditEquipmentTypeInput.EquipmentPortInput,
-                    data=port,
-                    config=Config(strict=True),
+                    data_class=EquipmentPortInput, data=port, config=Config(strict=True)
                 )
                 for port in port_definitions
             ],
             properties=[
                 from_dict(
-                    data_class=EditEquipmentTypeInput.PropertyTypeInput,
-                    data=prop,
-                    config=Config(strict=True),
+                    data_class=PropertyTypeInput, data=prop, config=Config(strict=True)
                 )
                 for prop in properties
             ],

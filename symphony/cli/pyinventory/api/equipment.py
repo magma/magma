@@ -15,7 +15,8 @@ from ..exceptions import (
     EquipmentPositionIsNotUniqueException,
     EquipmentPositionNotFoundException,
 )
-from ..graphql.add_equipment_mutation import AddEquipmentInput, AddEquipmentMutation
+from ..graphql.add_equipment_input import AddEquipmentInput
+from ..graphql.add_equipment_mutation import AddEquipmentMutation
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.equipment_search_query import EquipmentSearchQuery
 from ..graphql.equipment_type_and_properties_query import (
