@@ -33,6 +33,7 @@ function loadStories() {
     './inputs/form-field.stories.js',
     './components/card.stories.js',
     './containers/viewHeader.stories.js',
+    './containers/sideMenu.stories.js',
   ];
 
   designSystemStories.map(story => req(story));
