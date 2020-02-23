@@ -7,42 +7,43 @@
 package graphhttp
 
 import (
-	"context"
 	"net/http"
 	"net/url"
 
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions/action/magmarebootnode"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
 	"github.com/facebookincubator/symphony/pkg/actions/trigger/magmaalert"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/oc"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
+	"go.opencensus.io/stats/view"
 
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
-	"gocloud.dev/pubsub"
 	"gocloud.dev/server/health"
 )
 
 // Config defines the http server config.
 type Config struct {
-	Tenancy   *viewer.MySQLTenancy
-	AuthURL   *url.URL
-	Topic     *pubsub.Topic
-	Subscribe func(context.Context) (*pubsub.Subscription, error)
-	Logger    log.Logger
-	Census    oc.Options
-	Orc8r     orc8r.Config
+	Tenancy    *viewer.MySQLTenancy
+	AuthURL    *url.URL
+	Emitter    event.Emitter
+	Subscriber event.Subscriber
+	Logger     log.Logger
+	Census     oc.Options
+	Orc8r      orc8r.Config
 }
 
 // NewServer creates a server from config.
 func NewServer(cfg Config) (*server.Server, func(), error) {
 	wire.Build(
 		xserver.ServiceSet,
-		xserver.DefaultViews,
+		provideViews,
 		newHealthChecker,
 		wire.FieldsOf(new(Config), "Tenancy", "Logger", "Census"),
 		newRouterConfig,
@@ -68,9 +69,16 @@ func newRouterConfig(config Config) (cfg routerConfig, err error) {
 	cfg = routerConfig{logger: config.Logger}
 	cfg.viewer.tenancy = config.Tenancy
 	cfg.viewer.authurl = config.AuthURL.String()
-	cfg.events.topic = config.Topic
-	cfg.events.subscribe = config.Subscribe
+	cfg.events.emitter = config.Emitter
+	cfg.events.subscriber = config.Subscriber
 	cfg.orc8r.client = client
 	cfg.actions.registry = registry
 	return cfg, nil
+}
+
+func provideViews() []*view.View {
+	views := xserver.DefaultViews()
+	views = append(views, mysql.DefaultViews...)
+	views = append(views, event.DefaultViews...)
+	return views
 }

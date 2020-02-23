@@ -36,5 +36,5 @@ func Pipe() (Emitter, Subscriber) {
 	return TopicEmitter{topic: topic}, subscriber
 }
 
-// Views are predefined views for opencensus metrics.
-var Views = pubsub.OpenCensusViews
+// DefaultViews are predefined views for opencensus metrics.
+var DefaultViews = pubsub.OpenCensusViews

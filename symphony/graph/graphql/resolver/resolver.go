@@ -9,17 +9,17 @@ import (
 	"net/http"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"gocloud.dev/pubsub"
 )
 
 type (
 	// Config configures resolver.
 	Config struct {
-		Logger    log.Logger
-		Topic     *pubsub.Topic
-		Subscribe func(context.Context) (*pubsub.Subscription, error)
+		Logger     log.Logger
+		Emitter    event.Emitter
+		Subscriber event.Subscriber
 	}
 
 	// Option allows for managing resolver configuration using functional options.
@@ -27,9 +27,9 @@ type (
 
 	resolver struct {
 		logger log.Logger
-		events struct {
-			topic     *pubsub.Topic
-			subscribe func(context.Context) (*pubsub.Subscription, error)
+		event  struct {
+			event.Emitter
+			event.Subscriber
 		}
 		mutation struct{ transactional bool }
 		orc8r    struct{ client *http.Client }
@@ -39,8 +39,8 @@ type (
 // New creates a graphql resolver.
 func New(cfg Config, opts ...Option) generated.ResolverRoot {
 	r := &resolver{logger: cfg.Logger}
-	r.events.topic = cfg.Topic
-	r.events.subscribe = cfg.Subscribe
+	r.event.Emitter = cfg.Emitter
+	r.event.Subscriber = cfg.Subscriber
 	r.mutation.transactional = true
 	for _, opt := range opts {
 		opt(r)
@@ -61,6 +61,7 @@ func WithOrc8rClient(client *http.Client) Option {
 		r.orc8r.client = client
 	}
 }
+
 func (resolver) ClientFrom(ctx context.Context) *ent.Client {
 	client := ent.FromContext(ctx)
 	if client == nil {

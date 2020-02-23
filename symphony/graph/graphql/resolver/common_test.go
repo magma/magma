@@ -9,20 +9,18 @@ import (
 	"flag"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 
 	"github.com/stretchr/testify/require"
-	"gocloud.dev/pubsub"
-	"gocloud.dev/pubsub/mempubsub"
 )
 
 var debug = flag.Bool("debug", false, "run database driver on debug mode")
@@ -52,14 +50,12 @@ func newResolver(t *testing.T, drv dialect.Driver, opts ...Option) *TestResolver
 	client := ent.NewClient(ent.Driver(drv))
 	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
 
-	topic := mempubsub.NewTopic()
+	emitter, subscriber := event.Pipe()
 	r := New(
 		Config{
-			Logger: logtest.NewTestLogger(t),
-			Topic:  topic,
-			Subscribe: func(context.Context) (*pubsub.Subscription, error) {
-				return mempubsub.NewSubscription(topic, time.Second), nil
-			},
+			Logger:     logtest.NewTestLogger(t),
+			Emitter:    emitter,
+			Subscriber: subscriber,
 		},
 		opts...,
 	)

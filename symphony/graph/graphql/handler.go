@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -30,14 +31,13 @@ import (
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
-	"gocloud.dev/pubsub"
 )
 
 // HandlerConfig configures graphql handler.
 type HandlerConfig struct {
 	Logger      log.Logger
-	Topic       *pubsub.Topic
-	Subscribe   func(context.Context) (*pubsub.Subscription, error)
+	Emitter     event.Emitter
+	Subscriber  event.Subscriber
 	Orc8rClient *http.Client
 }
 
@@ -55,9 +55,9 @@ func init() {
 func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 	rsv := resolver.New(
 		resolver.Config{
-			Logger:    cfg.Logger,
-			Topic:     cfg.Topic,
-			Subscribe: cfg.Subscribe,
+			Logger:     cfg.Logger,
+			Emitter:    cfg.Emitter,
+			Subscriber: cfg.Subscriber,
 		},
 		resolver.WithOrc8rClient(
 			cfg.Orc8rClient,

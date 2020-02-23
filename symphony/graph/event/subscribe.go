@@ -30,6 +30,11 @@ func (f SubscriberFunc) Subscribe(ctx context.Context) (*pubsub.Subscription, er
 // URLSubscriber opens subscriptions from urls.
 type URLSubscriber string
 
+// NewURLSubscriber creates a url subscriber from a url string.
+func NewURLSubscriber(url string) URLSubscriber {
+	return URLSubscriber(url)
+}
+
 // Subscribe opens a subscription from url.
 func (u URLSubscriber) Subscribe(ctx context.Context) (*pubsub.Subscription, error) {
 	return pubsub.OpenSubscription(ctx, u.String())

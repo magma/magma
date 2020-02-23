@@ -29,7 +29,7 @@ func TestURLSubscriber(t *testing.T) {
 		require.NoError(t, err)
 		defer topic.Shutdown(ctx)
 
-		subscription, err := URLSubscriber(name).Subscribe(ctx)
+		subscription, err := NewURLSubscriber(name).Subscribe(ctx)
 		require.NoError(t, err)
 		subscription.Shutdown(ctx)
 	})

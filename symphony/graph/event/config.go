@@ -39,17 +39,22 @@ func (c *Config) UnmarshalFlag(v string) error {
 // Set is a wire provider that provides an emitter/subscriber
 // given context and config.
 var Set = wire.NewSet(
-	Provide,
-	wire.Bind(new(Emitter), new(TopicEmitter)),
+	ProvideEmitter,
+	ProvideSubscriber,
+	wire.Bind(new(Emitter), new(*TopicEmitter)),
 	wire.Bind(new(Subscriber), new(URLSubscriber)),
 )
 
-// Provide event emitter / subscriber from config.
-func Provide(ctx context.Context, cfg Config) (*TopicEmitter, *URLSubscriber, error) {
+// ProvideEmitter providers emitter from config.
+func ProvideEmitter(ctx context.Context, cfg Config) (*TopicEmitter, func(), error) {
 	emitter, err := NewTopicEmitter(ctx, cfg.url)
 	if err != nil {
 		return nil, nil, err
 	}
-	subscriber := URLSubscriber(cfg.url)
-	return emitter, &subscriber, nil
+	return emitter, func() { _ = emitter.Shutdown(ctx) }, nil
+}
+
+// ProvideEmitter providers subscriber from config.
+func ProvideSubscriber(cfg Config) URLSubscriber {
+	return NewURLSubscriber(cfg.url)
 }
