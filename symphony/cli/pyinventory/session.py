@@ -10,6 +10,8 @@ from typing import Optional
 from gql.gql.transport.http import HTTPTransport
 from graphql.language.printer import print_ast
 
+from .exceptions import MissingEnumException
+
 
 class simple_utc(tzinfo):
     def tzname(self, dt: Optional[datetime]) -> Optional[str]:
@@ -23,6 +25,8 @@ def encode_variable(variable):
     if isinstance(variable, datetime):
         return datetime.isoformat(variable.replace(tzinfo=simple_utc()))
     elif isinstance(variable, Enum):
+        if variable.value == "":
+            raise MissingEnumException(variable)
         return variable.value
     else:
         return variable.__dict__
@@ -58,7 +62,6 @@ class RequestsHTTPSessionTransport(HTTPTransport):
             data=json.dumps(payload, default=encode_variable).encode("utf-8"),
             headers=self.headers,
         )
-        request.raise_for_status()
 
         result = request.json()
 
