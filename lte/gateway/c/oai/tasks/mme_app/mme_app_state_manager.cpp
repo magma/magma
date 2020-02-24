@@ -72,6 +72,8 @@ int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p)
   persist_state_enabled = mme_config_p->use_stateless;
   max_ue_htbl_lists_ = mme_config_p->max_ues;
   mme_statistic_timer_ = mme_config_p->mme_statistic_timer;
+  log_task = LOG_MME_APP;
+  table_key = MME_NAS_STATE_KEY;
 
   // Allocate the local mme state
   create_state();

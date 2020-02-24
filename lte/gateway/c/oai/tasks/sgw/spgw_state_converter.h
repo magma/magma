@@ -85,6 +85,14 @@ class SpgwStateConverter : StateConverter {
     const gateway::spgw::SpgwImsiMap& spgw_imsi_proto,
     spgw_imsi_map_t* spgw_imsi_map);
 
+  static void ue_to_proto(
+    const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
+    gateway::spgw::S11BearerContext* ue_proto);
+
+  static void proto_to_ue(
+    const gateway::spgw::S11BearerContext& spgw_bearer_proto,
+    s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state);
+
  private:
   SpgwStateConverter();
   ~SpgwStateConverter();

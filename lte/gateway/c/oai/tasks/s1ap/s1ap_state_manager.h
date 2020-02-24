@@ -36,8 +36,6 @@ extern "C" {
 #include "state_manager.h"
 #include "s1ap_state_converter.h"
 
-using magma::lte::gateway::s1ap::S1apState;
-
 namespace {
 constexpr char S1AP_STATE_TABLE[] = "s1ap_state";
 }
@@ -50,7 +48,12 @@ namespace lte {
  * to maintain S1AP task state, allocating and freeing related state structs.
  */
 class S1apStateManager :
-  public StateManager<s1ap_state_t, S1apState, S1apStateConverter> {
+  public StateManager<
+    s1ap_state_t,
+    ue_description_t,
+    magma::lte::gateway::s1ap::S1apState,
+    magma::lte::gateway::s1ap::UeDescription,
+    S1apStateConverter> {
  public:
   /**
    * Returns an instance of S1apStateManager, guaranteed to be thread safe and

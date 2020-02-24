@@ -508,7 +508,7 @@ void MmeNasStateConverter::proto_to_pdn_context_list(
 }
 
 void MmeNasStateConverter::ue_context_to_proto(
-  ue_mm_context_t* state_ue_context,
+  const ue_mm_context_t* state_ue_context,
   UeContext* ue_context_proto)
 {
   ue_context_proto->Clear();
@@ -791,6 +791,20 @@ void MmeNasStateConverter::proto_to_state(
     proto_to_guti_table(
     mme_ue_ctxts_proto.guti_ue_id_htbl(),
     mme_ue_ctxt_state->guti_ue_context_htbl);*/
+}
+
+void MmeNasStateConverter::ue_to_proto(
+  const ue_mm_context_t* ue_ctxt,
+  UeContext* ue_ctxt_proto)
+{
+  ue_context_to_proto(ue_ctxt, ue_ctxt_proto);
+}
+
+void MmeNasStateConverter::proto_to_ue(
+  const UeContext& ue_ctxt_proto,
+  ue_mm_context_t* ue_ctxt)
+{
+  proto_to_ue_mm_context(ue_ctxt_proto, ue_ctxt);
 }
 } // namespace lte
 } // namespace magma
