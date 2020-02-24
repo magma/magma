@@ -70,6 +70,11 @@ const lexerRules: LexerRules = {
       value: s => Number.parseFloat(s),
     },
   ],
+  // `!=` needs explicit token because it is ambiguous:
+  // can mean either vector comparator or label matcher.
+  // Must be declared above binComp and labelOp, because their definitions
+  // include `!=`, too.
+  neq: '!=',
   binComp: BINARY_COMPARATORS,
   arithmetic: BINARY_ARITHMETIC_OPS,
   labelOp: LABEL_OPERATORS,

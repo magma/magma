@@ -323,6 +323,35 @@ const testCases = [
     ),
   ],
   [
+    '!= operator as vector comparator',
+    `metric != metric`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '!=', type: 'neq'},
+      {value: 'metric', type: 'identifier'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.InstantSelector('metric'),
+      '!=',
+    ),
+  ],
+  [
+    '!= operator as label matcher',
+    `{status!="500"}`,
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'status', type: 'identifier'},
+      {value: '!=', type: 'neq'},
+      {value: '500', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector(
+      '',
+      new PromQL.Labels().addNotEqual('status', '500'),
+    ),
+  ],
+  [
     'label list (e.g. by (label1, label2) clause)',
     `by (label1, label2)`,
     [
