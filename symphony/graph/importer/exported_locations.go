@@ -281,6 +281,9 @@ func (m *importer) getLocationPropertyInputs(ctx context.Context, importLine Imp
 	for _, propType := range propTypes {
 		propName := propType.Name
 		inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
+		if inp == nil {
+			continue
+		}
 		propType := typ.QueryPropertyTypes().Where(propertytype.Name(propName)).OnlyX(ctx)
 		if err != nil {
 			return nil, fmt.Sprintf("getting property input: prop %v", propName), err

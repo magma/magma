@@ -83,6 +83,7 @@ func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, 
 		return nil, nil
 	}
 	value := l.line[idx]
+
 	if pTyp.Type == "service" && value != "" {
 		if value, err = client.Service.Query().Where(service.Name(value)).OnlyID(ctx); err != nil {
 			return nil, errors.Wrapf(err, "service name does not exist %q", l.line[idx])
