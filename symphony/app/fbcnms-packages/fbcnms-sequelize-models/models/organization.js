@@ -25,6 +25,7 @@ export type OrganizationRawType = {
 };
 
 type OrganizationGetters = {
+  id: number,
   isMasterOrg: boolean,
 };
 

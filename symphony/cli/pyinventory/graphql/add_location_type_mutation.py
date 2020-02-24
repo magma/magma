@@ -13,7 +13,8 @@ from marshmallow import fields as marshmallow_fields
 from .datetime_utils import fromisoformat
 
 from .property_kind_enum import PropertyKind
-from .survey_question_type_enum import SurveyQuestionType
+
+from .add_location_type_input import AddLocationTypeInput
 
 
 DATETIME_FIELD = field(
@@ -43,55 +44,6 @@ def enum_field(enum_type):
         }
     )
 
-
-
-@dataclass_json
-@dataclass
-class AddLocationTypeInput:
-    @dataclass_json
-    @dataclass
-    class PropertyTypeInput:
-        name: str
-        type: PropertyKind = enum_field(PropertyKind)
-        id: Optional[str] = None
-        index: Optional[int] = None
-        category: Optional[str] = None
-        stringValue: Optional[str] = None
-        intValue: Optional[int] = None
-        booleanValue: Optional[bool] = None
-        floatValue: Optional[Number] = None
-        latitudeValue: Optional[Number] = None
-        longitudeValue: Optional[Number] = None
-        rangeFromValue: Optional[Number] = None
-        rangeToValue: Optional[Number] = None
-        isEditable: Optional[bool] = None
-        isInstanceProperty: Optional[bool] = None
-        isMandatory: Optional[bool] = None
-        isDeleted: Optional[bool] = None
-
-    @dataclass_json
-    @dataclass
-    class SurveyTemplateCategoryInput:
-        @dataclass_json
-        @dataclass
-        class SurveyTemplateQuestionInput:
-            questionTitle: str
-            questionDescription: str
-            questionType: SurveyQuestionType = enum_field(SurveyQuestionType)
-            index: int
-            id: Optional[str] = None
-
-        categoryTitle: str
-        categoryDescription: str
-        id: Optional[str] = None
-        surveyTemplateQuestions: Optional[List[SurveyTemplateQuestionInput]] = None
-
-    name: str
-    properties: List[PropertyTypeInput]
-    surveyTemplateCategories: List[SurveyTemplateCategoryInput]
-    mapType: Optional[str] = None
-    mapZoomLevel: Optional[int] = None
-    isSite: Optional[bool] = None
 
 
 @dataclass_json

@@ -226,7 +226,7 @@ TEST_F(ReaderRegistryTest, readerError) {
 
 TEST_F(ReaderRegistryTest, withSchemaContext) {
   ModelRegistry models;
-  ReaderRegistryBuilder reg{models.getSchemaContext(Model::OPENCONFIG_0_1_6)};
+  ReaderRegistryBuilder reg{models.getSchemaContext(Model::OPENCONFIG_2_4_3)};
 
   reg.addList(
       "/openconfig-interfaces:interfaces/interface",
@@ -293,7 +293,7 @@ TEST_F(ReaderRegistryTest, withSchemaContext) {
 
 TEST_F(ReaderRegistryTest, withSchemaContextBadPath) {
   ModelRegistry models;
-  ReaderRegistryBuilder reg{models.getSchemaContext(Model::OPENCONFIG_0_1_6)};
+  ReaderRegistryBuilder reg{models.getSchemaContext(Model::OPENCONFIG_2_4_3)};
 
   // Nonexisting path
   EXPECT_THROW(

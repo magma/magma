@@ -30,11 +30,15 @@ export const BINARY_ARITHMETIC_OPS_MAP = {
   '%': '%',
   '^': '^',
 };
-const BINARY_ARITHMETIC_OPS = Object.keys(BINARY_ARITHMETIC_OPS_MAP);
+export const BINARY_ARITHMETIC_OPS: Array<BinaryArithmetic> = Object.keys(
+  BINARY_ARITHMETIC_OPS_MAP,
+);
 
 export type BinaryLogical = $Keys<typeof BINARY_LOGIC_OPS_MAP>;
 export const BINARY_LOGIC_OPS_MAP = {and: 'and', or: 'or', unless: 'unless'};
-const BINARY_LOGIC_OPS = Object.keys(BINARY_LOGIC_OPS_MAP);
+export const BINARY_LOGIC_OPS: Array<BinaryLogical> = Object.keys(
+  BINARY_LOGIC_OPS_MAP,
+);
 
 export const BINARY_OPERATORS = [
   ...BINARY_COMPARATORS,
@@ -47,7 +51,7 @@ export type BinaryOperator =
   | BinaryLogical;
 
 export type LabelOperator = '=' | '!=' | '=~' | '!~';
-export const LABEL_OPERATORS = ['=', '!=', '=~', '!~'];
+export const LABEL_OPERATORS: Array<LabelOperator> = ['=', '!=', '=~', '!~'];
 
 export type AggregationOperator = $Keys<typeof AGGREGATION_OPERATORS_MAP>;
 const AGGREGATION_OPERATORS_MAP = {
@@ -62,15 +66,6 @@ const AGGREGATION_OPERATORS_MAP = {
   quantile: 'quantile',
   bottomk: 'bottomk',
   topk: 'topk',
-  sum_over_time: 'sum_over_time',
-  min_over_time: 'min_over_time',
-  max_over_time: 'max_over_time',
-  avg_over_time: 'avg_over_time',
-  stddev_over_time: 'stddev_over_time',
-  stdvar_over_time: 'stdvar_over_time',
-  count_over_time: 'count_over_time',
-  quantile_over_time: 'quantile_over_time',
-  count_over_time: 'count_values',
 };
 export const AGGREGATION_OPERATORS: Array<string> = Object.keys(
   AGGREGATION_OPERATORS_MAP,
@@ -115,6 +110,19 @@ const FUNCTION_NAMES_MAP = {
   timestamp: 'timestamp',
   vector: 'vector',
   year: 'year',
+  // 'Over time' functions, operating on range-vectors.
+  // They differ from aggregation operators:
+  // - aggregations operate on instant vectors and `by`/`without` dimensions
+  // - functions operate on range vectors and don't allow specifying dimensions
+  sum_over_time: 'sum_over_time',
+  min_over_time: 'min_over_time',
+  max_over_time: 'max_over_time',
+  avg_over_time: 'avg_over_time',
+  stddev_over_time: 'stddev_over_time',
+  stdvar_over_time: 'stdvar_over_time',
+  count_over_time: 'count_over_time',
+  quantile_over_time: 'quantile_over_time',
+  count_over_time: 'count_values',
 };
 export const FUNCTION_NAMES: Array<string> = Object.keys(FUNCTION_NAMES_MAP);
 
@@ -122,7 +130,6 @@ export type ClauseOperator = $Keys<typeof CLAUSE_OPS>;
 const CLAUSE_OPS_MAP = {
   by: 'by',
   on: 'on',
-  unless: 'unless',
   without: 'without',
   ignoring: 'ignoring',
 };

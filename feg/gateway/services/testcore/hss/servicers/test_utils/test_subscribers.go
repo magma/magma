@@ -83,7 +83,7 @@ func generateDefaultSub(subscriberID string) *protos.SubscriberData {
 				MaxBandwidthUl: uint32(defaultMaxUlBitRate),
 				MaxBandwidthDl: uint32(defaultMaxDlBitRate),
 			},
-			ApnConfig: &protos.APNConfiguration{
+			ApnConfig: []*protos.APNConfiguration{&protos.APNConfiguration{
 				ContextId:        10,
 				ServiceSelection: "*",
 				QosProfile: &protos.APNConfiguration_QoSProfile{
@@ -97,7 +97,7 @@ func generateDefaultSub(subscriberID string) *protos.SubscriberData {
 					MaxBandwidthDl: uint32(defaultMaxDlBitRate),
 				},
 				Pdn: protos.APNConfiguration_IPV6,
-			},
+			}},
 		},
 		SubProfile: "test_profile",
 	}

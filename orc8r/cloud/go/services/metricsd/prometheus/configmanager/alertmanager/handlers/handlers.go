@@ -26,7 +26,7 @@ const (
 	v0RoutePath              = "/receiver/route"
 	v0receiverNameQueryParam = "receiver"
 
-	v1rootPath         = "/v1"
+	v1rootPath         = "/v1/:tenant_id"
 	v1receiverPath     = "/receiver"
 	v1receiverNamePath = v1receiverPath + "/:" + receiverNameParam
 	v1routePath        = "/route"

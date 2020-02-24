@@ -18,9 +18,9 @@ import (
 type QosProfile struct {
 
 	// class id
-	// Maximum: 85
-	// Minimum: 1
-	ClassID uint32 `json:"class_id,omitempty" magma_alt_name:"QCI"`
+	// Maximum: 255
+	// Minimum: 0
+	ClassID *int32 `json:"class_id,omitempty" magma_alt_name:"QCI"`
 
 	// preemption capability
 	PreemptionCapability *bool `json:"preemption_capability,omitempty"`
@@ -58,11 +58,11 @@ func (m *QosProfile) validateClassID(formats strfmt.Registry) error {
 		return nil
 	}
 
-	if err := validate.MinimumInt("class_id", "body", int64(m.ClassID), 1, false); err != nil {
+	if err := validate.MinimumInt("class_id", "body", int64(*m.ClassID), 0, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("class_id", "body", int64(m.ClassID), 85, false); err != nil {
+	if err := validate.MaximumInt("class_id", "body", int64(*m.ClassID), 255, false); err != nil {
 		return err
 	}
 

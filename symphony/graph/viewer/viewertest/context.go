@@ -11,22 +11,29 @@ import (
 	"github.com/facebookincubator/symphony/graph/viewer"
 )
 
+// DefaultViewer defines the default viewer set by this package.
+var DefaultViewer = viewer.Viewer{
+	Tenant: "test",
+	User:   "tester@example.com",
+	Role:   "superuser",
+}
+
 // Option enables viewer customization.
 type Option func(*viewer.Viewer)
 
-// WithTenant overrides viewer tenant name.
-func WithTenant(name string) Option {
+// WithViewer overrides default viewer.
+func WithViewer(override *viewer.Viewer) Option {
 	return func(v *viewer.Viewer) {
-		v.Tenant = name
+		*v = *override
 	}
 }
 
 // NewContext returns viewer context for tests.
 func NewContext(c *ent.Client, opts ...Option) context.Context {
-	v := &viewer.Viewer{Tenant: "test"}
+	v := DefaultViewer
 	for _, opt := range opts {
-		opt(v)
+		opt(&v)
 	}
-	ctx := viewer.NewContext(context.Background(), v)
+	ctx := viewer.NewContext(context.Background(), &v)
 	return ent.NewContext(ctx, c)
 }

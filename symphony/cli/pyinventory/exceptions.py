@@ -4,6 +4,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
+from enum import Enum
 from typing import Optional
 
 
@@ -24,6 +25,14 @@ def get_location_id_msg(
     if external_id:
         msg = msg + f" with external id {external_id}"
     return msg
+
+
+class MissingEnumException(Exception):
+    def __init__(self, variable: Enum) -> None:
+        self.enum_type = str(type(variable))
+
+    def __str__(self) -> str:
+        return f"Try to encode missing value of enum {self.enum_type}"
 
 
 class EntityNotFoundError(Exception):

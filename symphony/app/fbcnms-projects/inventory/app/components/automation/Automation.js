@@ -28,7 +28,7 @@ import {Suspense, useContext} from 'react';
 import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
 import {makeStyles} from '@material-ui/styles';
 import {shouldShowSettings} from '@fbcnms/magmalte/app/components/Settings';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -41,7 +41,7 @@ const useStyles = makeStyles(_theme => ({
 }));
 
 function NavItems() {
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
 
   return (
     <>
@@ -55,7 +55,7 @@ function NavItems() {
 }
 
 function NavRoutes() {
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
   return (
     <Switch>
       <Route path={relativeUrl('/actions/list')} component={ActionsList} />

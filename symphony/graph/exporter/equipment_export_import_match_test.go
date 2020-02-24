@@ -15,21 +15,19 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
 	"github.com/stretchr/testify/require"
-	"gocloud.dev/pubsub"
-	"gocloud.dev/pubsub/mempubsub"
 )
 
 // TODO (T59270743): Move this file to importer folder and refactor similar code with exported_service_integration_test.go
@@ -100,14 +98,12 @@ func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	readr := csv.NewReader(r)
 	buf, contentType := writeModifiedCSV(t, readr, method, withVerify)
 
-	topic := mempubsub.NewTopic()
+	emitter, subscriber := event.Pipe()
 	h, _ := importer.NewHandler(
 		importer.Config{
-			Logger: logtest.NewTestLogger(t),
-			Topic:  topic,
-			Subscribe: func(context.Context) (*pubsub.Subscription, error) {
-				return mempubsub.NewSubscription(topic, time.Second), nil
-			},
+			Logger:     logtest.NewTestLogger(t),
+			Emitter:    emitter,
+			Subscriber: subscriber,
 		},
 	)
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))

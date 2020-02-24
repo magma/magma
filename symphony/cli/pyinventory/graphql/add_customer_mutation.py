@@ -12,6 +12,8 @@ from marshmallow import fields as marshmallow_fields
 
 from .datetime_utils import fromisoformat
 
+from .add_customer_input import AddCustomerInput
+
 
 DATETIME_FIELD = field(
     metadata={
@@ -22,13 +24,6 @@ DATETIME_FIELD = field(
         }
     }
 )
-
-
-@dataclass_json
-@dataclass
-class AddCustomerInput:
-    name: str
-    externalId: Optional[str] = None
 
 
 @dataclass_json

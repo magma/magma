@@ -304,7 +304,7 @@ func getSubscriberData() *lteprotos.SubscriberData {
 			},
 			Non_3GppIpAccess:    getNon3GPPIPAccess(),
 			Non_3GppIpAccessApn: getNon3GPPIPAccessApn(),
-			ApnConfig: &lteprotos.APNConfiguration{
+			ApnConfig: []*lteprotos.APNConfiguration{&lteprotos.APNConfiguration{
 				ContextId:        uint32(apnContextID),
 				ServiceSelection: serviceSelection,
 				QosProfile: &lteprotos.APNConfiguration_QoSProfile{
@@ -318,7 +318,7 @@ func getSubscriberData() *lteprotos.SubscriberData {
 					MaxBandwidthDl: uint32(apnMaxBandwidthDl),
 				},
 				Pdn: lteprotos.APNConfiguration_PDNType(pdn),
-			},
+			}},
 
 			AccessNetId: lteprotos.AccessNetworkIdentifier(anid),
 		},

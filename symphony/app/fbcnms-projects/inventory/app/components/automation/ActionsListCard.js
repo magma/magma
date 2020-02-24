@@ -34,6 +34,7 @@ import {Route} from 'react-router-dom';
 import {graphql, useFragment, useLazyLoadQuery} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRelativePath, useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(_theme => ({
@@ -105,7 +106,9 @@ export default function ActionsListCard() {
 }
 
 function RuleRow(props: {rule: ActionsListCard_actionsRule$key}) {
-  const {history, relativeUrl, relativePath} = useRouter();
+  const relativeUrl = useRelativeUrl();
+  const relativePath = useRelativePath();
+  const {history} = useRouter();
   const classes = useStyles();
   const rule: ActionsListCard_actionsRule = useFragment<ActionsListCard_actionsRule>(
     actionRuleFragment,

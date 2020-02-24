@@ -8,9 +8,7 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
 import type {enodeb} from '@fbcnms/magma-api';
 
 import AddEditEnodebDialog from './AddEditEnodebDialog';
@@ -18,7 +16,9 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -28,13 +28,15 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
 
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {Route} from 'react-router-dom';
+import {makeStyles} from '@material-ui/styles';
+import {useCallback, useState} from 'react';
+import {useRouter} from '@fbcnms/ui/hooks';
 
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   header: {
     margin: '10px',
     display: 'flex',
@@ -43,123 +45,84 @@ const styles = theme => ({
   paper: {
     margin: theme.spacing(3),
   },
-});
+}));
 
-type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
+export default function Enodebs() {
+  const {match, relativePath, relativeUrl, history} = useRouter();
+  const classes = useStyles();
+  const [enodebs, setEnodebs] = useState([]);
+  const [lastFetchTime, setLastFetchTime] = useState(Date.now());
+  const {isLoading} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdEnodebs,
+    {networkId: nullthrows(match.params.networkId)},
+    useCallback(
+      response => setEnodebs(Object.keys(response).map(key => response[key])),
+      [],
+    ),
+    lastFetchTime,
+  );
 
-type State = {
-  showDialog: boolean,
-  enodebs: enodeb[],
-  editingEnodeb: ?enodeb,
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
+  const rows = enodebs.map(enodeb => (
+    <EnodebRow
+      key={enodeb.serial}
+      enodeb={enodeb}
+      onSave={() => setLastFetchTime(Date.now())}
+    />
+  ));
+
+  return (
+    <>
+      <div className={classes.paper}>
+        <div className={classes.header}>
+          <Text variant="h5">Configure eNodeB Devices</Text>
+          <NestedRouteLink to="/new">
+            <Button>Add eNodeB</Button>
+          </NestedRouteLink>
+        </div>
+        <Paper elevation={2}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Serial ID</TableCell>
+                <TableCell>Device Class</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>{rows}</TableBody>
+          </Table>
+        </Paper>
+        <Route
+          path={relativePath('/new')}
+          render={() => (
+            <AddEditEnodebDialog
+              editingEnodeb={null}
+              onClose={() => history.push(relativeUrl(''))}
+              onSave={() => {
+                history.push(relativeUrl(''));
+                setLastFetchTime(Date.now());
+              }}
+            />
+          )}
+        />
+      </div>
+    </>
+  );
+}
+
+type Props = WithAlert & {
+  enodeb: enodeb,
+  onSave: () => void,
 };
 
-class Enodebs extends React.Component<Props, State> {
-  state = {
-    showDialog: false,
-    enodebs: [],
-    editingEnodeb: null,
-  };
-
-  componentDidMount() {
-    const {match} = this.props;
-    MagmaV1API.getLteByNetworkIdEnodebs({
-      networkId: nullthrows(match.params.networkId),
-    })
-      .then(result => {
-        const enodebs = Object.keys(result).map(key => result[key]);
-        this.setState({enodebs});
-      })
-      .catch(error => {
-        this.props.alert('Failed to get eNB for network: ' + error);
-      });
-  }
-
-  render() {
-    const {enodebs} = this.state;
-    const rows = (enodebs || []).map(enodeb => (
-      <TableRow key={enodeb.serial}>
-        <TableCell>
-          {status}
-          {enodeb.serial}
-        </TableCell>
-        <TableCell>{enodeb.config.device_class}</TableCell>
-        <TableCell>
-          <IconButton onClick={() => this.editEnodeb(enodeb)}>
-            <EditIcon />
-          </IconButton>
-          <IconButton onClick={() => this.deleteEnodeb(enodeb)}>
-            <DeleteIcon />
-          </IconButton>
-        </TableCell>
-      </TableRow>
-    ));
-
-    const addEditEnodebDialog = this.state.showDialog ? (
-      <AddEditEnodebDialog
-        editingEnodeb={this.state.editingEnodeb}
-        onClose={this.hideDialog}
-        onSave={this.onSave}
-      />
-    ) : null;
-
-    return (
-      <>
-        <div className={this.props.classes.paper}>
-          <div className={this.props.classes.header}>
-            <Text variant="h5">Configure eNodeB Devices</Text>
-            <Button onClick={this.showDialog}>Add eNodeB</Button>
-          </div>
-          <Paper elevation={2}>
-            {enodebs ? (
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Serial ID</TableCell>
-                    <TableCell>Device Class</TableCell>
-                    <TableCell />
-                  </TableRow>
-                </TableHead>
-                <TableBody>{rows}</TableBody>
-              </Table>
-            ) : (
-              <LoadingFiller />
-            )}
-          </Paper>
-          {addEditEnodebDialog}
-        </div>
-      </>
-    );
-  }
-
-  showDialog = () => this.setState({showDialog: true});
-  hideDialog = () => {
-    this.setState({
-      showDialog: false,
-      editingEnodeb: null,
-    });
-  };
-  editEnodeb = editingEnodeb => {
-    this.showDialog();
-    this.setState({editingEnodeb});
-  };
-
-  onSave = (enodeb: enodeb) => {
-    const newEnodebs = nullthrows(this.state.enodebs).slice(0);
-    if (this.state.editingEnodeb) {
-      newEnodebs[newEnodebs.indexOf(this.state.editingEnodeb)] = enodeb;
-    } else {
-      newEnodebs.push(enodeb);
-    }
-    this.setState({
-      enodebs: newEnodebs,
-      showDialog: false,
-      editingEnodeb: null,
-    });
-  };
-
-  deleteEnodeb = enodeb => {
-    const {match} = this.props;
-    this.props
+function EnodebRowItem(props: Props) {
+  const {enodeb} = props;
+  const {match, relativePath, history, relativeUrl} = useRouter();
+  const deleteEnodeb = () => {
+    props
       .confirm(`Are you sure you want to delete ${enodeb.serial}?`)
       .then(confirmed => {
         if (!confirmed) {
@@ -168,15 +131,42 @@ class Enodebs extends React.Component<Props, State> {
         MagmaV1API.deleteLteByNetworkIdEnodebsByEnodebSerial({
           networkId: nullthrows(match.params.networkId),
           enodebSerial: enodeb.serial,
-        }).then(() =>
-          this.setState({
-            enodebs: this.state.enodebs.filter(
-              enb => enb.serial != enodeb.serial,
-            ),
-          }),
-        );
+        }).then(props.onSave);
       });
   };
+
+  return (
+    <TableRow key={enodeb.serial}>
+      <TableCell>
+        {status}
+        {enodeb.serial}
+      </TableCell>
+      <TableCell>{enodeb.config.device_class}</TableCell>
+      <TableCell>
+        <NestedRouteLink to={`/edit/${enodeb.serial}`}>
+          <IconButton>
+            <EditIcon />
+          </IconButton>
+        </NestedRouteLink>
+        <IconButton onClick={deleteEnodeb}>
+          <DeleteIcon />
+        </IconButton>
+      </TableCell>
+      <Route
+        path={relativePath(`/edit/${enodeb.serial}`)}
+        render={() => (
+          <AddEditEnodebDialog
+            editingEnodeb={enodeb}
+            onClose={() => history.push(relativeUrl(''))}
+            onSave={() => {
+              props.onSave();
+              history.push(relativeUrl(''));
+            }}
+          />
+        )}
+      />
+    </TableRow>
+  );
 }
 
-export default withStyles(styles)(withAlert(withRouter(Enodebs)));
+const EnodebRow = withAlert(EnodebRowItem);

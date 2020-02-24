@@ -14,6 +14,8 @@ from .datetime_utils import fromisoformat
 
 from .property_kind_enum import PropertyKind
 
+from .service_type_create_data_input import ServiceTypeCreateData
+
 
 DATETIME_FIELD = field(
     metadata={
@@ -42,35 +44,6 @@ def enum_field(enum_type):
         }
     )
 
-
-
-@dataclass_json
-@dataclass
-class ServiceTypeCreateData:
-    @dataclass_json
-    @dataclass
-    class PropertyTypeInput:
-        name: str
-        type: PropertyKind = enum_field(PropertyKind)
-        id: Optional[str] = None
-        index: Optional[int] = None
-        category: Optional[str] = None
-        stringValue: Optional[str] = None
-        intValue: Optional[int] = None
-        booleanValue: Optional[bool] = None
-        floatValue: Optional[Number] = None
-        latitudeValue: Optional[Number] = None
-        longitudeValue: Optional[Number] = None
-        rangeFromValue: Optional[Number] = None
-        rangeToValue: Optional[Number] = None
-        isEditable: Optional[bool] = None
-        isInstanceProperty: Optional[bool] = None
-        isMandatory: Optional[bool] = None
-        isDeleted: Optional[bool] = None
-
-    name: str
-    hasCustomer: bool
-    properties: Optional[List[PropertyTypeInput]] = None
 
 
 @dataclass_json

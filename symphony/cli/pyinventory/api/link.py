@@ -12,8 +12,10 @@ from ..exceptions import (
     LinkNotFoundException,
     PortAlreadyOccupiedException,
 )
-from ..graphql.add_link_mutation import AddLinkInput, AddLinkMutation
+from ..graphql.add_link_input import AddLinkInput
+from ..graphql.add_link_mutation import AddLinkMutation
 from ..graphql.equipment_ports_query import EquipmentPortsQuery
+from ..graphql.link_side_input import LinkSide
 from ..graphql_client import GraphqlClient
 from ..reporter import FailedOperationException
 
@@ -99,8 +101,8 @@ def add_link(
 
     add_link_input = AddLinkInput(
         sides=[
-            AddLinkInput.LinkSide(equipment=equipment_a.id, port=port_id_a),
-            AddLinkInput.LinkSide(equipment=equipment_b.id, port=port_id_b),
+            LinkSide(equipment=equipment_a.id, port=port_id_a),
+            LinkSide(equipment=equipment_b.id, port=port_id_b),
         ],
         properties=[],
         serviceIds=[],

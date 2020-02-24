@@ -14,3 +14,7 @@ network:
       dhcp4: no
       addresses:
         - 192.168.128.1/16
+    gw0:
+      dhcp4: no
+      addresses:
+        - 10.100.0.1/16

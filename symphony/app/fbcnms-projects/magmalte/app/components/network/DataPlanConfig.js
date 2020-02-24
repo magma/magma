@@ -8,11 +8,8 @@
  * @format
  */
 
-import type {ContextRouter, Match} from 'react-router-dom';
 import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
-import type {network_epc_configs} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DataPlanEditDialog from './DataPlanEditDialog';
@@ -28,12 +25,14 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import {Route, withRouter} from 'react-router-dom';
+import {Route} from 'react-router-dom';
 
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {get} from 'lodash';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 import {
   BITRATE_MULTIPLIER,
@@ -41,139 +40,32 @@ import {
   DEFAULT_DATA_PLAN_ID,
 } from './DataPlanConst';
 
-const styles = (theme: Theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   rowIcon: {
     display: 'inline-block',
     ...theme.mixins.toolbar,
   },
-});
+}));
 
-type ErrorResponse = {
-  response: {
-    data: {
-      message: string,
-    },
-  },
-};
+type Props = WithAlert & {};
 
-type State = {
-  config: ?network_epc_configs,
-  loading: boolean,
-};
+function DataPlanConfig(props: Props) {
+  const classes = useStyles();
+  const {match, history, relativePath, relativeUrl} = useRouter();
+  const [config, setConfig] = useState();
 
-type Props = WithStyles<typeof styles> & ContextRouter & WithAlert & {};
+  const {isLoading} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdCellularEpc,
+    {networkId: nullthrows(match.params.networkId)},
+    setConfig,
+  );
 
-class DataPlanConfig extends React.Component<Props, State> {
-  state = {
-    config: null,
-    loading: true,
-  };
-
-  componentDidMount() {
-    MagmaV1API.getLteByNetworkIdCellularEpc({
-      networkId: nullthrows(this.props.match.params.networkId),
-    })
-      .then(response => this.setState({config: response, loading: false}))
-      .catch((error: ErrorResponse) => {
-        this.props.alert(get(error, 'response.data.message', error));
-        this.setState({
-          loading: false,
-        });
-      });
+  if (!config || isLoading) {
+    return <LoadingFiller />;
   }
 
-  render() {
-    const {classes, match} = this.props;
-    const {config} = this.state;
-
-    if (!config) {
-      return <LoadingFiller />;
-    }
-
-    const rows = Object.keys(config.sub_profiles || {}).map(id => {
-      const profile = nullthrows(config.sub_profiles)[id];
-      return (
-        <TableRow key={id}>
-          <TableCell>{id}</TableCell>
-          <TableCell>
-            {profile.max_dl_bit_rate ===
-            DATA_PLAN_UNLIMITED_RATES.max_dl_bit_rate
-              ? 'Unlimited'
-              : profile.max_dl_bit_rate / BITRATE_MULTIPLIER + ' Mbps'}
-          </TableCell>
-          <TableCell>
-            {profile.max_ul_bit_rate ===
-            DATA_PLAN_UNLIMITED_RATES.max_ul_bit_rate
-              ? 'Unlimited'
-              : profile.max_ul_bit_rate / BITRATE_MULTIPLIER + ' Mbps'}
-          </TableCell>
-          <TableCell>
-            <div className={classes.rowIcon}>
-              <NestedRouteLink to={`/edit/${encodeURIComponent(id)}`}>
-                <IconButton color="primary">
-                  <EditIcon />
-                </IconButton>
-              </NestedRouteLink>
-            </div>
-            <div className={classes.rowIcon}>
-              {id !== DEFAULT_DATA_PLAN_ID && (
-                <IconButton
-                  color="primary"
-                  onClick={() => this.handleDataPlanDelete(id)}>
-                  <DeleteIcon />
-                </IconButton>
-              )}
-            </div>
-          </TableCell>
-        </TableRow>
-      );
-    });
-
-    return (
-      <>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Data Plan Name</TableCell>
-              <TableCell>Download Speed</TableCell>
-              <TableCell>Upload Speed</TableCell>
-              <TableCell>
-                <NestedRouteLink to="/add">
-                  <Button>Add Data Plan</Button>
-                </NestedRouteLink>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          {rows && <TableBody>{rows}</TableBody>}
-        </Table>
-        <Route path={`${match.path}/add`} component={this.renderEditDialog} />
-        <Route
-          path={`${match.path}/edit/:dataPlanId`}
-          component={this.renderEditDialog}
-        />
-      </>
-    );
-  }
-
-  renderEditDialog = (props: {match: Match}) => {
-    const dataPlanId = props.match.params.dataPlanId;
-    return (
-      <DataPlanEditDialog
-        dataPlanId={dataPlanId}
-        epcConfig={nullthrows(this.state.config)}
-        onCancel={this.handleDataPlanEditCancel}
-        onSave={this.handleDataPlanEditSave}
-      />
-    );
-  };
-
-  handleDataPlanDelete = (dataPlanId: string) => {
-    const {config} = this.state;
-    if (!config) {
-      return;
-    }
-
-    this.props
+  const onDelete = (dataPlanId: string) => {
+    props
       .confirm(`Are you sure you want to delete "${dataPlanId}"?`)
       .then(confirmed => {
         if (!confirmed) {
@@ -188,25 +80,92 @@ class DataPlanConfig extends React.Component<Props, State> {
           sub_profiles: newSubProfiles,
         };
         return MagmaV1API.putLteByNetworkIdCellularEpc({
-          networkId: nullthrows(this.props.match.params.networkId),
+          networkId: nullthrows(match.params.networkId),
           config: newConfig,
-        }).then(() => this.setState({config: newConfig}));
+        }).then(() => setConfig(newConfig));
       });
   };
 
-  handleDataPlanEditCancel = () => {
-    this.props.history.push(`${this.props.match.url}/`);
-  };
+  const rows = Object.keys(config.sub_profiles || {}).map(id => {
+    const profile = nullthrows(config.sub_profiles)[id];
+    return (
+      <TableRow key={id}>
+        <TableCell>{id}</TableCell>
+        <TableCell>
+          {profile.max_dl_bit_rate === DATA_PLAN_UNLIMITED_RATES.max_dl_bit_rate
+            ? 'Unlimited'
+            : profile.max_dl_bit_rate / BITRATE_MULTIPLIER + ' Mbps'}
+        </TableCell>
+        <TableCell>
+          {profile.max_ul_bit_rate === DATA_PLAN_UNLIMITED_RATES.max_ul_bit_rate
+            ? 'Unlimited'
+            : profile.max_ul_bit_rate / BITRATE_MULTIPLIER + ' Mbps'}
+        </TableCell>
+        <TableCell>
+          <div className={classes.rowIcon}>
+            <NestedRouteLink to={`/edit/${encodeURIComponent(id)}`}>
+              <IconButton color="primary">
+                <EditIcon />
+              </IconButton>
+            </NestedRouteLink>
+          </div>
+          <div className={classes.rowIcon}>
+            {id !== DEFAULT_DATA_PLAN_ID && (
+              <IconButton color="primary" onClick={() => onDelete(id)}>
+                <DeleteIcon />
+              </IconButton>
+            )}
+          </div>
+        </TableCell>
+      </TableRow>
+    );
+  });
 
-  handleDataPlanEditSave = (
-    dataPlanId: string,
-    newNetworkConfig: network_epc_configs,
-  ) => {
-    this.setState({
-      config: newNetworkConfig,
-    });
-    this.props.history.push(`${this.props.match.url}/`);
+  const onSave = (_, newConfig) => {
+    history.push(relativeUrl(''));
+    setConfig(newConfig);
   };
+  return (
+    <>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Data Plan Name</TableCell>
+            <TableCell>Download Speed</TableCell>
+            <TableCell>Upload Speed</TableCell>
+            <TableCell>
+              <NestedRouteLink to="/add">
+                <Button>Add Data Plan</Button>
+              </NestedRouteLink>
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        {rows && <TableBody>{rows}</TableBody>}
+      </Table>
+      <Route
+        path={relativePath('/add')}
+        component={() => (
+          <DataPlanEditDialog
+            dataPlanId={null}
+            epcConfig={config}
+            onCancel={() => history.push(relativeUrl(''))}
+            onSave={onSave}
+          />
+        )}
+      />
+      <Route
+        path={relativePath('/edit/:dataPlanId')}
+        component={({match}) => (
+          <DataPlanEditDialog
+            dataPlanId={match.params.dataPlanId}
+            epcConfig={config}
+            onCancel={() => history.push(relativeUrl(''))}
+            onSave={onSave}
+          />
+        )}
+      />
+    </>
+  );
 }
 
-export default withStyles(styles)(withRouter(withAlert(DataPlanConfig)));
+export default withAlert(DataPlanConfig);

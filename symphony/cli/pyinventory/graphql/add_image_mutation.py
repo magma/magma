@@ -12,7 +12,7 @@ from marshmallow import fields as marshmallow_fields
 
 from .datetime_utils import fromisoformat
 
-from .image_entity_enum import ImageEntity
+from .add_image_input import AddImageInput
 
 
 DATETIME_FIELD = field(
@@ -24,37 +24,6 @@ DATETIME_FIELD = field(
         }
     }
 )
-
-
-def enum_field(enum_type):
-    def encode_enum(value):
-        return value.value
-
-    def decode_enum(t, value):
-        return t(value)
-
-    return field(
-        metadata={
-            "dataclasses_json": {
-                "encoder": encode_enum,
-                "decoder": partial(decode_enum, enum_type),
-            }
-        }
-    )
-
-
-
-@dataclass_json
-@dataclass
-class AddImageInput:
-    entityType: ImageEntity = enum_field(ImageEntity)
-    entityId: str
-    imgKey: str
-    fileName: str
-    fileSize: int
-    modified: datetime = DATETIME_FIELD
-    contentType: str
-    category: Optional[str] = None
 
 
 @dataclass_json

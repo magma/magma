@@ -24,7 +24,7 @@
 #include <folly/json.h>
 #include <gtest/gtest.h>
 #include <ydk/path_api.hpp>
-#include <ydk_ietf/iana_if_type.hpp>
+#include <ydk_openconfig/iana_if_type.hpp>
 #include <ydk_openconfig/openconfig_interfaces.hpp>
 #include <ydk_openconfig/openconfig_vlan_types.hpp>
 
@@ -66,12 +66,12 @@ class DatastoreTest : public ::testing::Test {
   DatastoreTest()
       : cliEngine(std::make_unique<channels::cli::Engine>()),
         schemaContext(cliEngine->getModelRegistry()->getSchemaContext(
-            Model::OPENCONFIG_0_1_6)) {}
+            Model::OPENCONFIG_2_4_3)) {}
 
  protected:
   void SetUp() override {
     devmand::test::utils::log::initLog();
-    Model model = Model::OPENCONFIG_0_1_6;
+    Model model = Model::OPENCONFIG_2_4_3;
     ydk::path::Repository repo(
         model.getDir(), ydk::path::ModelCachingOption::COMMON);
     bindingCodec =
@@ -87,14 +87,14 @@ static shared_ptr<OpenconfigInterfaces> ydkInterfaces() {
   interface->config->enabled = true;
   interface->config->mtu = 1500;
   interface->config->description = "this is a config description";
-  interface->config->type = ietf::iana_if_type::EthernetCsmacd();
+  interface->config->type = openconfig::iana_if_type::EthernetCsmacd();
   interface->state->admin_status = "UP";
   interface->state->description = "dummy state";
   interface->state->enabled = true;
   interface->state->mtu = 1518;
   interface->state->oper_status = "DOWN";
   interface->state->name = "0/2";
-  interface->state->type = ietf::iana_if_type::EthernetCsmacd();
+  interface->state->type = openconfig::iana_if_type::EthernetCsmacd();
   interfaces->interface.append(interface);
   return interfaces;
 }

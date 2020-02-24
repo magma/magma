@@ -35,11 +35,7 @@ const (
 	seriesPart     = "series"
 	paramMatch     = "match"
 
-	PrometheusRoot   = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "prometheus"
 	PrometheusV1Root = handlers.ManageNetworkPath + obsidian.UrlSep + "prometheus"
-
-	QueryURL      = PrometheusRoot + obsidian.UrlSep + queryPart
-	QueryRangeURL = PrometheusRoot + obsidian.UrlSep + queryRangePart
 
 	QueryV1URL      = PrometheusV1Root + obsidian.UrlSep + queryPart
 	QueryRangeV1URL = PrometheusV1Root + obsidian.UrlSep + queryRangePart

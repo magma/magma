@@ -16,13 +16,11 @@ from xlsxwriter.worksheet import Worksheet
 
 from .api.file import add_site_survey_image, delete_site_survey_image
 from .consts import Location, SiteSurvey
-from .graphql.create_survey_mutation import (
-    CreateSurveyMutation,
-    SurveyCreateData,
-    SurveyQuestionType,
-)
+from .graphql.create_survey_mutation import CreateSurveyMutation
 from .graphql.location_surveys_query import LocationSurveysQuery
 from .graphql.remove_site_survey_mutation import RemoveSiteSurveyMutation
+from .graphql.survey_create_data_input import SurveyCreateData
+from .graphql.survey_question_type_enum import SurveyQuestionType
 from .graphql_client import GraphqlClient
 from .reporter import FailedOperationException
 from .site_survey_schema import retrieve_tamplates_and_set_them

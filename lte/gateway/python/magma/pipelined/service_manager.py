@@ -29,6 +29,7 @@ should not be accessible to apps from other services.
 # produces a parse error
 
 import asyncio
+import logging
 from concurrent.futures import Future
 from collections import namedtuple, OrderedDict
 from typing import List
@@ -362,7 +363,19 @@ class ServiceManager:
         _init_dynamic_services populates app modules and allocates a main table
         for each dynamic service.
         """
-        dynamic_services = self._magma_service.mconfig.services
+        dynamic_services = []
+        for service in self._magma_service.mconfig.services:
+            if service not in self.DYNAMIC_SERVICE_TO_APPS:
+                # Most likely cause: the config contains a deprecated
+                # pipelined service.
+                # Fix: update the relevant network's network_services settings.
+                logging.warning(
+                    'Mconfig contains unsupported network_services service: %s',
+                    service,
+                )
+                continue
+            dynamic_services.append(service)
+
         dynamic_apps = [app for service in dynamic_services for
                         app in self.DYNAMIC_SERVICE_TO_APPS[service]]
         self._apps.extend(dynamic_apps)

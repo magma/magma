@@ -9,12 +9,11 @@ from gql.gql.client import OperationException
 
 from .._utils import PropertyValue, format_properties
 from ..consts import Location, LocationType
-from ..graphql.add_location_type_mutation import (
-    AddLocationTypeInput,
-    AddLocationTypeMutation,
-)
+from ..graphql.add_location_type_input import AddLocationTypeInput
+from ..graphql.add_location_type_mutation import AddLocationTypeMutation
 from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
 from ..graphql.location_types_query import LocationTypesQuery
+from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
 from ..graphql_client import GraphqlClient
 from ..reporter import FailedOperationException
@@ -56,9 +55,7 @@ def add_location_type(
                 mapZoomLevel=map_zoom_level,
                 properties=[
                     from_dict(
-                        data_class=AddLocationTypeInput.PropertyTypeInput,
-                        data=p,
-                        config=Config(strict=True),
+                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
                     )
                     for p in new_property_types
                 ],

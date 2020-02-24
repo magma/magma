@@ -30,49 +30,6 @@ Location files should be of the following form:
 * If there is not one hierarchy - multiple files can be uploaded.
       * for example, if there can be both "Buildings" and "Rooms" under cities - have one file with the hierarchy of ...City => Building => Floor etc ..., and one with the ....City=>Room
 
-## 3. Position Definition
-
-* Have the following columns on the first row:
-   * "Equipment_Type" - equipment type name to attach to - should be created in advance
-   * "position_name" - name of the 'position' to be added
-   * "Position_Visible_Label" - visible label  of position
-
-## 4. Port Definition
-
-![](https://s3.amazonaws.com/purpleheadband.images/wiki/portDef.png)
-
-* Have **all** the following columns:
-   * "Equipment_type" - equipment type name to attach to - mandatory
-   * "Port_Type"  - value can be empty
-   * "Port_Bandwidth" - value can be empty
-   * "Port_Visible_Label" - value can be empty
-   * "Port_ID" - port name - mandatory
-
-## 5. Equipment upload
-
- Equipment files should be of the following form:
-
-> Every row is one equipment
-
-![](https://s3.amazonaws.com/purpleheadband.images/wiki/equipfull.png)
-
-* First row will include (in this order):
-   * Location types (all the hierarchy) - similar to how it's present on locations upload, means where will this equipment sit
-   * “equipment type”  - the name of the equipment type - mandatory
-   * “equipment name”  - equipment instance name - mandatory
-   * properties for that type - on each row - only the relevant properties shpuld be filled
-
-
-## 6. Port Connection
-
-* Have the following columns:
-   * A_Equipment - Equipment A name
-   * A_Port - Port A name
-   * B_Equipment - Equipment name
-   * B_Port - Port B name
-* The script will create a link between the two ports
-
-
 # Importing Exported Data (Equipment, Links && Ports)
 
 

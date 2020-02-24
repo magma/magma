@@ -21,7 +21,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {QueryRenderer} from 'react-relay';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useParams} from 'react-router';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -92,8 +92,8 @@ const idQuery = graphql`
 `;
 
 const EntDetails = (_props: Props) => {
-  const {match} = useRouter();
-  const id = nullthrows(match.params.id);
+  const params = useParams();
+  const id = nullthrows(params.id);
   const classes = useStyles();
   const [selectedView, setSelectedView] = useState<'details' | 'graph'>(
     'details',

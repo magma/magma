@@ -4,7 +4,8 @@
 from typing import List, Optional
 
 from ..consts import Customer
-from ..graphql.add_customer_mutation import AddCustomerInput, AddCustomerMutation
+from ..graphql.add_customer_input import AddCustomerInput
+from ..graphql.add_customer_mutation import AddCustomerMutation
 from ..graphql.customers_query import CustomersQuery
 from ..graphql.remove_customer_mutation import RemoveCustomerMutation
 from ..graphql_client import GraphqlClient

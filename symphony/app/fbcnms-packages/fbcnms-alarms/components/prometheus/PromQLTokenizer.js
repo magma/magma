@@ -14,15 +14,18 @@ import {Range} from './PromQL';
 
 import {
   AGGREGATION_OPERATORS,
-  BINARY_OPERATORS,
-  FUNCTION_NAMES,
+  BINARY_ARITHMETIC_OPS,
+  BINARY_COMPARATORS,
+  BINARY_LOGIC_OPS,
+  CLAUSE_OPS,
+  GROUP_OPS,
   LABEL_OPERATORS,
   SyntaxError,
 } from './PromQLTypes';
 
 type LexerRules = {[string]: LexerRule | $ReadOnlyArray<LexerRule>};
 type LexerRule = string | RegExp | ComplexRule;
-type ComplexRule = {match: RegExp, value: string => string | number | Range};
+type ComplexRule = {match: RegExp, value?: string => string | number | Range};
 
 const lexerRules: LexerRules = {
   WS: /[ \t]+/,
@@ -33,6 +36,7 @@ const lexerRules: LexerRules = {
   lBracket: '[',
   rBracket: ']',
   comma: ',',
+  colon: ':',
   range: {
     match: /[0-9]+[smhdwy]/,
     value: s =>
@@ -66,11 +70,21 @@ const lexerRules: LexerRules = {
       value: s => Number.parseFloat(s),
     },
   ],
-  aggOp: AGGREGATION_OPERATORS,
-  functionName: FUNCTION_NAMES,
-  binOp: BINARY_OPERATORS,
+  binComp: BINARY_COMPARATORS,
+  arithmetic: BINARY_ARITHMETIC_OPS,
   labelOp: LABEL_OPERATORS,
-  identifier: /\w+/,
+  // Allows greedy-matching identifiers, e.g.
+  // `by` will be emitted as %clauseOp, but
+  // `byteCount` will be emitted as %identifier
+  identifier: {
+    match: /\w+/,
+    type: Moo.keywords({
+      aggOp: AGGREGATION_OPERATORS,
+      clauseOp: CLAUSE_OPS,
+      groupOp: GROUP_OPS,
+      setOp: BINARY_LOGIC_OPS,
+    }),
+  },
   string: [
     {
       // double-quoted string with no escape sequences;

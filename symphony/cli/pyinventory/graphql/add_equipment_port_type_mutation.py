@@ -12,7 +12,7 @@ from marshmallow import fields as marshmallow_fields
 
 from .datetime_utils import fromisoformat
 
-from .property_kind_enum import PropertyKind
+from .add_equipment_port_type_input import AddEquipmentPortTypeInput
 
 
 DATETIME_FIELD = field(
@@ -24,53 +24,6 @@ DATETIME_FIELD = field(
         }
     }
 )
-
-
-def enum_field(enum_type):
-    def encode_enum(value):
-        return value.value
-
-    def decode_enum(t, value):
-        return t(value)
-
-    return field(
-        metadata={
-            "dataclasses_json": {
-                "encoder": encode_enum,
-                "decoder": partial(decode_enum, enum_type),
-            }
-        }
-    )
-
-
-
-@dataclass_json
-@dataclass
-class AddEquipmentPortTypeInput:
-    @dataclass_json
-    @dataclass
-    class PropertyTypeInput:
-        name: str
-        type: PropertyKind = enum_field(PropertyKind)
-        id: Optional[str] = None
-        index: Optional[int] = None
-        category: Optional[str] = None
-        stringValue: Optional[str] = None
-        intValue: Optional[int] = None
-        booleanValue: Optional[bool] = None
-        floatValue: Optional[Number] = None
-        latitudeValue: Optional[Number] = None
-        longitudeValue: Optional[Number] = None
-        rangeFromValue: Optional[Number] = None
-        rangeToValue: Optional[Number] = None
-        isEditable: Optional[bool] = None
-        isInstanceProperty: Optional[bool] = None
-        isMandatory: Optional[bool] = None
-        isDeleted: Optional[bool] = None
-
-    name: str
-    properties: List[PropertyTypeInput]
-    linkProperties: List[PropertyTypeInput]
 
 
 @dataclass_json

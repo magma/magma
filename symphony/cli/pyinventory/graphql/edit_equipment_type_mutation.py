@@ -14,6 +14,8 @@ from .datetime_utils import fromisoformat
 
 from .property_kind_enum import PropertyKind
 
+from .edit_equipment_type_input import EditEquipmentTypeInput
+
 
 DATETIME_FIELD = field(
     metadata={
@@ -42,56 +44,6 @@ def enum_field(enum_type):
         }
     )
 
-
-
-@dataclass_json
-@dataclass
-class EditEquipmentTypeInput:
-    @dataclass_json
-    @dataclass
-    class EquipmentPositionInput:
-        name: str
-        id: Optional[str] = None
-        index: Optional[int] = None
-        visibleLabel: Optional[str] = None
-
-    @dataclass_json
-    @dataclass
-    class EquipmentPortInput:
-        name: str
-        id: Optional[str] = None
-        index: Optional[int] = None
-        visibleLabel: Optional[str] = None
-        portTypeID: Optional[str] = None
-        bandwidth: Optional[str] = None
-
-    @dataclass_json
-    @dataclass
-    class PropertyTypeInput:
-        name: str
-        type: PropertyKind = enum_field(PropertyKind)
-        id: Optional[str] = None
-        index: Optional[int] = None
-        category: Optional[str] = None
-        stringValue: Optional[str] = None
-        intValue: Optional[int] = None
-        booleanValue: Optional[bool] = None
-        floatValue: Optional[Number] = None
-        latitudeValue: Optional[Number] = None
-        longitudeValue: Optional[Number] = None
-        rangeFromValue: Optional[Number] = None
-        rangeToValue: Optional[Number] = None
-        isEditable: Optional[bool] = None
-        isInstanceProperty: Optional[bool] = None
-        isMandatory: Optional[bool] = None
-        isDeleted: Optional[bool] = None
-
-    id: str
-    name: str
-    positions: List[EquipmentPositionInput]
-    ports: List[EquipmentPortInput]
-    properties: List[PropertyTypeInput]
-    category: Optional[str] = None
 
 
 @dataclass_json

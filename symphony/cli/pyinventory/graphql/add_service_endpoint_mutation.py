@@ -14,6 +14,8 @@ from .datetime_utils import fromisoformat
 
 from .service_endpoint_role_enum import ServiceEndpointRole
 
+from .add_service_endpoint_input import AddServiceEndpointInput
+
 
 DATETIME_FIELD = field(
     metadata={
@@ -42,14 +44,6 @@ def enum_field(enum_type):
         }
     )
 
-
-
-@dataclass_json
-@dataclass
-class AddServiceEndpointInput:
-    id: str
-    portId: str
-    role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
 
 
 @dataclass_json

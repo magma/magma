@@ -118,6 +118,63 @@ const testCases = [
     new PromQL.InstantSelector('metric'),
   ],
   [
+    'metric with the same name as registered function',
+    'absent',
+    [{value: 'absent', type: 'identifier'}],
+    new PromQL.InstantSelector('absent'),
+  ],
+  [
+    'standalone aggregation is not allowed',
+    'avg',
+    [{value: 'avg', type: 'aggOp'}],
+    expectSyntaxError(/malformed promql/i),
+  ],
+  [
+    'metric selector with leading colon',
+    `:metric:name`,
+    [
+      {value: ':', type: 'colon'},
+      {value: 'metric', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'name', type: 'identifier'},
+    ],
+    new PromQL.InstantSelector(':metric:name'),
+  ],
+  [
+    'metric selector with trailing colon',
+    `metric:name:`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'name', type: 'identifier'},
+      {value: ':', type: 'colon'},
+    ],
+    new PromQL.InstantSelector('metric:name:'),
+  ],
+  [
+    'metric selector with colons in name - complex',
+    `:some:metric::name:{label=~"value"}`,
+    [
+      {value: ':', type: 'colon'},
+      {value: 'some', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'metric', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: ':', type: 'colon'},
+      {value: 'name', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: '{', type: 'lBrace'},
+      {value: 'label', type: 'identifier'},
+      {value: '=~', type: 'labelOp'},
+      {value: 'value', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector(
+      ':some:metric::name:',
+      new PromQL.Labels().addRegex('label', 'value'),
+    ),
+  ],
+  [
     'empty label selector',
     '{}',
     [{value: '{', type: 'lBrace'}, {value: '}', type: 'rBrace'}],
@@ -128,7 +185,7 @@ const testCases = [
     'metric and\tmetric',
     [
       {value: 'metric', type: 'identifier'},
-      {value: 'and', type: 'binOp'},
+      {value: 'and', type: 'setOp'},
       {value: 'metric', type: 'identifier'},
     ],
     new PromQL.BinaryOperation(
@@ -148,6 +205,58 @@ const testCases = [
       {value: '}', type: 'rBrace'},
     ],
     new PromQL.InstantSelector('', new PromQL.Labels().addEqual('code', '500')),
+  ],
+  [
+    'label name equal to registered function',
+    `{abs="-1"}`,
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'abs', type: 'identifier'},
+      {value: '=', type: 'labelOp'},
+      {value: '-1', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector('', new PromQL.Labels().addEqual('abs', '-1')),
+  ],
+  [
+    'label names equal to keywords',
+    `{by="this magic",group_left="is allowed",unless="I failed"}`,
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'by', type: 'clauseOp'},
+      {value: '=', type: 'labelOp'},
+      {value: 'this magic', type: 'string'},
+      {value: ',', type: 'comma'},
+      {value: 'group_left', type: 'groupOp'},
+      {value: '=', type: 'labelOp'},
+      {value: 'is allowed', type: 'string'},
+      {value: ',', type: 'comma'},
+      {value: 'unless', type: 'setOp'},
+      {value: '=', type: 'labelOp'},
+      {value: 'I failed', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector(
+      '',
+      new PromQL.Labels()
+        .addEqual('by', 'this magic')
+        .addEqual('group_left', 'is allowed')
+        .addEqual('unless', 'I failed'),
+    ),
+  ],
+  [
+    'label names with colons are not allowed',
+    `{some:label="value"}`,
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'some', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'label', type: 'identifier'},
+      {value: '=', type: 'labelOp'},
+      {value: 'value', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    expectSyntaxError(),
   ],
   [
     'label selector',
@@ -190,7 +299,7 @@ const testCases = [
     `metric > metric`,
     [
       {value: 'metric', type: 'identifier'},
-      {value: '>', type: 'binOp'},
+      {value: '>', type: 'binComp'},
       {value: 'metric', type: 'identifier'},
     ],
     new PromQL.BinaryOperation(
@@ -204,7 +313,7 @@ const testCases = [
     `metric >= metric`,
     [
       {value: 'metric', type: 'identifier'},
-      {value: '>=', type: 'binOp'},
+      {value: '>=', type: 'binComp'},
       {value: 'metric', type: 'identifier'},
     ],
     new PromQL.BinaryOperation(
@@ -217,7 +326,7 @@ const testCases = [
     'label list (e.g. by (label1, label2) clause)',
     `by (label1, label2)`,
     [
-      {value: 'by', type: 'identifier'},
+      {value: 'by', type: 'clauseOp'},
       {value: '(', type: 'lParen'},
       {value: 'label1', type: 'identifier'},
       {value: ',', type: 'comma'},
@@ -247,7 +356,7 @@ const testCases = [
       {value: '(', type: 'lParen'},
       {value: 'metric', type: 'identifier'},
       {value: ')', type: 'rParen'},
-      {value: 'by', type: 'identifier'},
+      {value: 'by', type: 'clauseOp'},
       {value: '(', type: 'lParen'},
       {value: 'label', type: 'identifier'},
       {value: ')', type: 'rParen'},
@@ -263,7 +372,7 @@ const testCases = [
     `sum by (label) (metric)`,
     [
       {value: 'sum', type: 'aggOp'},
-      {value: 'by', type: 'identifier'},
+      {value: 'by', type: 'clauseOp'},
       {value: '(', type: 'lParen'},
       {value: 'label', type: 'identifier'},
       {value: ')', type: 'rParen'},
@@ -281,12 +390,36 @@ const testCases = [
     'simple function',
     `rate(1)`,
     [
-      {value: 'rate', type: 'functionName'},
+      {value: 'rate', type: 'identifier'},
       {value: '(', type: 'lParen'},
       {value: 1, type: 'scalar'},
       {value: ')', type: 'rParen'},
     ],
     new PromQL.Function('rate', [new PromQL.Scalar(1)]),
+  ],
+  [
+    'unknown function',
+    `kolmogorovComplexity(input)`,
+    [
+      {value: 'kolmogorovComplexity', type: 'identifier'},
+      {value: '(', type: 'lParen'},
+      {value: 'input', type: 'identifier'},
+      {value: ')', type: 'rParen'},
+    ],
+    expectSyntaxError(/unknown function/i),
+  ],
+  [
+    'function names with colons are not allowed',
+    `some:func(1)`,
+    [
+      {value: 'some', type: 'identifier'},
+      {value: ':', type: 'colon'},
+      {value: 'func', type: 'identifier'},
+      {value: '(', type: 'lParen'},
+      {value: 1, type: 'scalar'},
+      {value: ')', type: 'rParen'},
+    ],
+    expectSyntaxError(),
   ],
   [
     'function with string parameter',
@@ -322,7 +455,7 @@ const testCases = [
     'floating point scalar',
     `vector(-1.234)`,
     [
-      {value: 'vector', type: 'functionName'},
+      {value: 'vector', type: 'identifier'},
       {value: '(', type: 'lParen'},
       {value: -1.234, type: 'scalar'},
       {value: ')', type: 'rParen'},
@@ -369,7 +502,7 @@ const testCases = [
     [
       {value: 'avg', type: 'aggOp'},
       {value: '(', type: 'lParen'},
-      {value: 'rate', type: 'functionName'},
+      {value: 'rate', type: 'identifier'},
       {value: '(', type: 'lParen'},
       {value: 'http_status', type: 'identifier'},
       {value: '{', type: 'lBrace'},
@@ -382,7 +515,7 @@ const testCases = [
       {value: ']', type: 'rBracket'},
       {value: ')', type: 'rParen'},
       {value: ')', type: 'rParen'},
-      {value: '>', type: 'binOp'},
+      {value: '>', type: 'binComp'},
       {value: 5, type: 'scalar'},
     ],
     new PromQL.BinaryOperation(
@@ -407,7 +540,7 @@ const testCases = [
     [
       {value: 'avg', type: 'aggOp'},
       {value: '(', type: 'lParen'},
-      {value: 'rate', type: 'functionName'},
+      {value: 'rate', type: 'identifier'},
       {value: '(', type: 'lParen'},
       {value: 'http_status', type: 'identifier'},
       {value: '{', type: 'lBrace'},
@@ -420,13 +553,13 @@ const testCases = [
       {value: ']', type: 'rBracket'},
       {value: ')', type: 'rParen'},
       {value: ')', type: 'rParen'},
-      {value: 'by', type: 'identifier'},
+      {value: 'by', type: 'clauseOp'},
       {value: '(', type: 'lParen'},
       {value: 'region', type: 'identifier'},
       {value: ',', type: 'comma'},
       {value: 'code', type: 'identifier'},
       {value: ')', type: 'rParen'},
-      {value: '>', type: 'binOp'},
+      {value: '>', type: 'binComp'},
       {value: 5, type: 'scalar'},
     ],
     new PromQL.BinaryOperation(
@@ -468,8 +601,8 @@ const testCases = [
     `metric / on (label1,label2) metric2`,
     [
       {value: 'metric', type: 'identifier'},
-      {value: '/', type: 'binOp'},
-      {value: 'on', type: 'identifier'},
+      {value: '/', type: 'arithmetic'},
+      {value: 'on', type: 'clauseOp'},
       {value: '(', type: 'lParen'},
       {value: 'label1', type: 'identifier'},
       {value: ',', type: 'comma'},
@@ -491,7 +624,7 @@ const testCases = [
     `bytes_received > 0`,
     [
       {value: 'bytes_received', type: 'identifier'},
-      {value: '>', type: 'binOp'},
+      {value: '>', type: 'binComp'},
       {value: 0, type: 'scalar'},
     ],
     new PromQL.BinaryOperation(
@@ -505,7 +638,7 @@ const testCases = [
     `up == 0`,
     [
       {value: 'up', type: 'identifier'},
-      {value: '==', type: 'binOp'},
+      {value: '==', type: 'binComp'},
       {value: 0, type: 'scalar'},
     ],
     new PromQL.BinaryOperation(

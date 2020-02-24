@@ -19,6 +19,7 @@ import Tabs from '@material-ui/core/Tabs';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -76,7 +77,8 @@ function getTabValue(tabURI: string) {
 }
 
 export default function Configure() {
-  const {location, history, relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
+  const {location, history} = useRouter();
   const classes = useStyles();
   const servicesEnabled = useContext(AppContext).isFeatureEnabled('services');
   return (

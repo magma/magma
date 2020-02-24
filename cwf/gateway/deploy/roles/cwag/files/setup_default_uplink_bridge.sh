@@ -8,6 +8,9 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 sudo ovs-vsctl add-br uplink_br0
+sudo ovs-vsctl --may-exist add-port uplink_br0 gw0 \
+  -- set Interface gw0 type=internal \
+  -- set interface gw0 ofport=1
 
 sudo ovs-vsctl --may-exist add-port uplink_br0 uplink_patch
 sudo ovs-vsctl --may-exist add-port cwag_br0 cwag_patch

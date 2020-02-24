@@ -15,7 +15,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -25,6 +24,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -36,8 +36,6 @@ import (
 
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
-	"gocloud.dev/pubsub"
-	"gocloud.dev/pubsub/mempubsub"
 )
 
 var debug = flag.Bool("debug", false, "run database driver on debug mode")
@@ -107,13 +105,12 @@ func newResolver(t *testing.T, drv dialect.Driver) (*TestExporterResolver, error
 	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
 	require.NoError(t, err)
 
-	logger, topic := logtest.NewTestLogger(t), mempubsub.NewTopic()
+	logger := logtest.NewTestLogger(t)
+	emitter, subscriber := event.Pipe()
 	r := resolver.New(resolver.Config{
-		Logger: logger,
-		Topic:  topic,
-		Subscribe: func(context.Context) (*pubsub.Subscription, error) {
-			return mempubsub.NewSubscription(topic, time.Second), nil
-		},
+		Logger:     logger,
+		Emitter:    emitter,
+		Subscriber: subscriber,
 	})
 
 	e := exporter{logger, equipmentRower{logger}}
@@ -386,14 +383,12 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 		buf, contentType = writeModifiedPortsCSV(t, readr, skipLines, withVerify)
 	}
 
-	topic := mempubsub.NewTopic()
+	emitter, subscriber := event.Pipe()
 	h, _ := importer.NewHandler(
 		importer.Config{
-			Logger: logtest.NewTestLogger(t),
-			Topic:  topic,
-			Subscribe: func(context.Context) (*pubsub.Subscription, error) {
-				return mempubsub.NewSubscription(topic, time.Second), nil
-			},
+			Logger:     logtest.NewTestLogger(t),
+			Emitter:    emitter,
+			Subscriber: subscriber,
 		},
 	)
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
