@@ -40,9 +40,10 @@ const (
 
 // SuccessMessage is the type returns to client on success import
 type SuccessMessage struct {
-	MessageCode  int `json:"messageCode"`
-	SuccessLines int `json:"successLines"`
-	AllLines     int `json:"allLines"`
+	MessageCode  int  `json:"messageCode"`
+	SuccessLines int  `json:"successLines"`
+	AllLines     int  `json:"allLines"`
+	Committed    bool `json:"committed"`
 }
 
 type ReturnMessage struct {
@@ -50,7 +51,7 @@ type ReturnMessage struct {
 	Errors  Errors         `json:"errors"`
 }
 
-func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, isSuccess bool) error {
+func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, isSuccess, startSaving bool) error {
 	w.Header().Set("Content-Type", "application/json")
 	messageCode := int(SuccessfullyUploaded)
 	if !isSuccess {
@@ -61,6 +62,7 @@ func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, i
 			MessageCode:  messageCode,
 			SuccessLines: success,
 			AllLines:     all,
+			Committed:    startSaving,
 		},
 		Errors: errs,
 	})

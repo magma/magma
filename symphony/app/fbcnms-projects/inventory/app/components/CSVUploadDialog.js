@@ -236,7 +236,8 @@ const CSVUploadDialog = (props: Props) => {
 
       if (
         responseData.errors == null ||
-        (responseData.errors != null && !verifyBefore)
+        (responseData.errors != null && !verifyBefore) ||
+        responseData.summary.committed
       ) {
         onSuccess(
           fbt(

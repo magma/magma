@@ -64,6 +64,7 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 	} else {
 		commitRuns = []bool{true}
 	}
+	startSaving := false
 
 	for fileName := range r.MultipartForm.File {
 		firstLine, _, err := m.newReader(fileName, r)
@@ -86,6 +87,8 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
 			if commit && *verifyBeforeCommit && len(errs) != 0 {
 				break
+			} else if commit && len(errs) == 0 {
+				startSaving = true
 			}
 			numRows, validRows = 0, 0
 			_, reader, err := m.newReader(fileName, r)
@@ -132,7 +135,7 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(http.StatusOK)
-	err = writeSuccessMessage(w, validRows, numRows, errs, !*verifyBeforeCommit || len(errs) == 0)
+	err = writeSuccessMessage(w, validRows, numRows, errs, !*verifyBeforeCommit || len(errs) == 0, startSaving)
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return
