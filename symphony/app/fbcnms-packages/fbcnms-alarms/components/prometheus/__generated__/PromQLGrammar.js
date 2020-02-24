@@ -7,7 +7,19 @@ function id(x) { return x[0]; }
 
 const {lexer} = require('../PromQLTokenizer');
 const {FUNCTION_NAMES, SyntaxError} = require('../PromQLTypes')
-const {AggregationOperation, BinaryOperation, Clause, Function, InstantSelector, Label, Labels, RangeSelector, Scalar, String, VectorMatchClause} = require('../PromQL');
+const {
+        AggregationOperation,
+        BinaryOperation,
+        Clause,
+        Function,
+        InstantSelector,
+        Label,
+        Labels,
+        RangeSelector,
+        Scalar,
+        String,
+        VectorMatchClause
+} = require('../PromQL');
 var grammar = {
     Lexer: lexer,
     ParserRules: [
@@ -35,19 +47,33 @@ var grammar = {
     {"name": "binary_operation", "symbols": ["expression", "bin_op", "expression"], "postprocess": ([lh, op, rh]) => new BinaryOperation(lh, rh, op)},
     {"name": "binary_operation", "symbols": ["expression", "bin_op", "vector_match_clause", "expression"], "postprocess": ([lh, op, clause, rh]) => new BinaryOperation(lh, rh, op, clause)},
     {"name": "vector_match_clause", "symbols": ["CLAUSE_OP", "labelList"], "postprocess": ([op, labels]) => new VectorMatchClause(new Clause(op, labels))},
-    {"name": "vector_match_clause", "symbols": ["CLAUSE_OP", "labelList", "GROUP_OP", "labelList"], "postprocess": ([matchOp, matchLabels, groupOp, groupLabels]) => new VectorMatchClause(new Clause(matchOp, matchLabels), new Clause(groupOp, groupLabels))},
+    {"name": "vector_match_clause", "symbols": ["CLAUSE_OP", "labelList", "GROUP_OP", "labelList"], "postprocess":  ([matchOp, matchLabels, groupOp, groupLabels]) =>
+        new VectorMatchClause(
+                new Clause(matchOp, matchLabels),
+                new Clause(groupOp, groupLabels))
+                                },
     {"name": "bin_op", "symbols": ["BIN_COMP"], "postprocess": id},
     {"name": "bin_op", "symbols": ["SET_OP"], "postprocess": id},
     {"name": "bin_op", "symbols": ["ARITHM_OP"], "postprocess": id},
     {"name": "offset_clause", "symbols": [{"literal":"offset"}, "RANGE"]},
-    {"name": "aggregation", "symbols": ["AGG_OP", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess": ([aggOp, _lParen, params, _rParen]) => new AggregationOperation(aggOp, params)},
-    {"name": "aggregation", "symbols": ["AGG_OP", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen), "dimensionClause"], "postprocess": ([aggOp, _lParen, params, _rParen, clause]) => new AggregationOperation(aggOp, params, clause)},
-    {"name": "aggregation", "symbols": ["AGG_OP", "dimensionClause", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess": ([aggOp, clause, _lParen, params, _rParen]) => new AggregationOperation(aggOp, params, clause)},
+    {"name": "aggregation", "symbols": ["AGG_OP", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess":  ([aggOp, _lParen, params, _rParen]) => 
+        new AggregationOperation(aggOp, params)
+                                },
+    {"name": "aggregation", "symbols": ["AGG_OP", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen), "dimensionClause"], "postprocess":  ([aggOp, _lParen, params, _rParen, clause]) =>
+        new AggregationOperation(aggOp, params, clause)
+                                },
+    {"name": "aggregation", "symbols": ["AGG_OP", "dimensionClause", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess":  ([aggOp, clause, _lParen, params, _rParen]) =>
+        new AggregationOperation(aggOp, params, clause)
+                                },
     {"name": "dimensionClause", "symbols": ["CLAUSE_OP", "labelList"], "postprocess": ([op, labelList]) => new Clause(op, labelList)},
     {"name": "labelList", "symbols": [(lexer.has("lParen") ? {type: "lParen"} : lParen), "label_name_list", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess": ([_lParen, labels, _rParen]) => labels},
     {"name": "label_name_list", "symbols": ["label_name_list", (lexer.has("comma") ? {type: "comma"} : comma), "IDENTIFIER"], "postprocess": ([existingLabels, _, newLabel]) => [...existingLabels, newLabel]},
     {"name": "label_name_list", "symbols": ["IDENTIFIER"], "postprocess": d => [d[0]]},
-    {"name": "label_selector", "symbols": [(lexer.has("lBrace") ? {type: "lBrace"} : lBrace), "label_match_list", (lexer.has("rBrace") ? {type: "rBrace"} : rBrace)], "postprocess": ([_lBrace, labels, _rBrace]) => {const ret = new Labels(); labels.forEach(l => ret.addLabel(l.name, l.value, l.operator)); return ret}},
+    {"name": "label_selector", "symbols": [(lexer.has("lBrace") ? {type: "lBrace"} : lBrace), "label_match_list", (lexer.has("rBrace") ? {type: "rBrace"} : rBrace)], "postprocess":  ([_lBrace, labels, _rBrace]) => {
+                const ret = new Labels();
+                labels.forEach(l => ret.addLabel(l.name, l.value, l.operator));
+                return ret
+        }},
     {"name": "label_selector", "symbols": [(lexer.has("lBrace") ? {type: "lBrace"} : lBrace), (lexer.has("rBrace") ? {type: "rBrace"} : rBrace)], "postprocess": d => new Labels()},
     {"name": "label_match_list", "symbols": ["label_match_list", (lexer.has("comma") ? {type: "comma"} : comma), "label_matcher"], "postprocess": ([existingLabels, _, newLabel]) => [...existingLabels, newLabel]},
     {"name": "label_match_list", "symbols": ["label_matcher"], "postprocess": d => [d[0]]},
@@ -58,12 +84,11 @@ var grammar = {
     {"name": "label", "symbols": ["CLAUSE_OP"], "postprocess": id},
     {"name": "function", "symbols": ["IDENTIFIER", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess":  ([funcName, _lParen, params, _rParen]) => {
                 if (FUNCTION_NAMES.includes(funcName)) {
-                     return new Function(funcName, params)
-                 } else {
-                     throw new SyntaxError(`Unknown function: ${funcName}`);
-                 }
-        }
-        },
+                        return new Function(funcName, params)
+                } else {
+                        throw new SyntaxError(`Unknown function: ${funcName}`);
+                }
+        }},
     {"name": "func_params", "symbols": ["func_params", (lexer.has("comma") ? {type: "comma"} : comma), "parameter"], "postprocess": ([existingParams, _comma, newParam]) => [...existingParams, newParam]},
     {"name": "func_params", "symbols": ["parameter"], "postprocess": d => [d[0]]},
     {"name": "parameter", "symbols": ["SCALAR"], "postprocess": id},
