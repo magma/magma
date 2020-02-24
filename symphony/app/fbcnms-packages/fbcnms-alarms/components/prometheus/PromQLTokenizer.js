@@ -114,6 +114,9 @@ const lexerRules: LexerRules = {
       value: s => unescapeString(s.slice(1, -1), `'`),
     },
   ],
+  // Comments must be stripped by tokenzier,
+  // and therefore will not be present in the AST.
+  comment: /#[^\n]*/,
 };
 
 /**
@@ -228,10 +231,10 @@ export type Token = {
 type TokenType = $Keys<typeof lexerRules>;
 
 export const lexer = Moo.compile(lexerRules);
-// Ignore whitespace tokens
+// Ignore whitespace and comment tokens
 lexer.next = (next => () => {
   let tok;
-  while ((tok = next.call(lexer)) && tok.type === 'WS') {}
+  while ((tok = next.call(lexer)) && ['WS', 'comment'].includes(tok.type)) {}
   return tok;
 })(lexer.next);
 

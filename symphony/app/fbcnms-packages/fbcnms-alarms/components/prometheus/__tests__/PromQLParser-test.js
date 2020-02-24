@@ -647,6 +647,27 @@ const testCases = [
       '==',
     ),
   ],
+  [
+    'comments',
+    `metric_name # comment with ### symbols`,
+    [{value: 'metric_name', type: 'identifier'}],
+    new PromQL.InstantSelector('metric_name'),
+  ],
+  [
+    'octothorpes in strings are not comments',
+    `{fragment="#index"}`,
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'fragment', type: 'identifier'},
+      {value: '=', type: 'labelOp'},
+      {value: '#index', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector(
+      '',
+      new PromQL.Labels().addEqual('fragment', '#index'),
+    ),
+  ],
 ];
 
 describe('Tokenize', () => {
