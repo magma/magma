@@ -225,12 +225,9 @@ func (r mutationResolver) EditWorkOrder(
 	}
 
 	for _, pInput := range input.Properties {
-		propUpdate, err := r.updateProperty(ctx, wo.QueryProperties(), pInput)
+		err := r.updateProperty(ctx, wo.QueryProperties(), pInput)
 		if err != nil {
 			return nil, errors.Wrap(err, "updating work order property value")
-		}
-		if _, err = propUpdate.Save(ctx); err != nil {
-			return nil, errors.Wrap(err, "saving work order property value update")
 		}
 	}
 
@@ -274,7 +271,7 @@ func (r mutationResolver) EditWorkOrder(
 func (r mutationResolver) updateProperty(
 	ctx context.Context,
 	query *ent.PropertyQuery,
-	input *models.PropertyInput) (*ent.PropertyUpdate, error) {
+	input *models.PropertyInput) error {
 	propertyQuery := query.
 		Where(property.HasTypeWith(propertytype.ID(input.PropertyTypeID)))
 	if input.ID != nil {
@@ -284,22 +281,25 @@ func (r mutationResolver) updateProperty(
 	existingProperty, err := propertyQuery.Only(ctx)
 	if err != nil {
 		if input.ID == nil {
-			return nil, errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
+			return errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
 		}
-		return nil, errors.Wrapf(err, "querying property type %q and id %q", input.PropertyTypeID, *input.ID)
+		return errors.Wrapf(err, "querying property type %q and id %q", input.PropertyTypeID, *input.ID)
 	}
 	client := r.ClientFrom(ctx)
 	typ, err := client.PropertyType.Get(ctx, input.PropertyTypeID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
+		return errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
 	}
 	if typ.Editable && typ.IsInstanceProperty {
 		existingPropQuery := client.Property.
 			Update().
 			Where(property.ID(existingProperty.ID))
-		return updatePropValues(input, existingPropQuery), nil
+
+		if _, err = updatePropValues(input, existingPropQuery).Save(ctx); err != nil {
+			return errors.Wrap(err, "saving work order property value update")
+		}
 	}
-	return nil, nil
+	return nil
 }
 
 func (r mutationResolver) createOrUpdateCheckListCategory(
