@@ -10,6 +10,7 @@
 
 'use strict';
 
+import type {AlertSkin} from './Alert';
 import type {ComponentType, ElementConfig, Node} from 'react';
 
 import Alert from './Alert';
@@ -22,6 +23,8 @@ type State = {|
 export type DialogProps = {|
   cancelLabel?: Node,
   confirmLabel?: Node,
+  checkboxLabel?: Node,
+  skin?: AlertSkin,
   message: Node,
   title?: ?Node,
 |};
