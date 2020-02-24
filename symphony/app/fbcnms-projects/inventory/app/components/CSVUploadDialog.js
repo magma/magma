@@ -283,7 +283,6 @@ const CSVUploadDialog = (props: Props) => {
       return;
     }
     const verifyBeforeCommit =
-      entity != 'location' &&
       deprecatedUploadsParams.find(e => e.entity == entity) == null;
     uploadFile(verifyBeforeCommit, f, entity);
   };

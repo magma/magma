@@ -154,7 +154,10 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 			return nil, errors.Wrapf(err, "missing location type: id=%q", typID)
 		}
 		if commit {
-			loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+			loc, _, err = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+			if err != nil {
+				return nil, errors.Wrapf(err, "querying or creating location: id=%v", typID)
+			}
 		} else {
 			loc, err = m.queryLocationForTypeAndParent(ctx, locName, typ, currParentID)
 			if loc == nil && ent.MaskNotFound(err) == nil {
