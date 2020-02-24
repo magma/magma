@@ -36,6 +36,8 @@ const (
 	ImportEntityPortInLink ImportEntity = "PORT_IN_LINK"
 	// ImportEntityService specifies a service for import
 	ImportEntityService ImportEntity = "SERVICE"
+	// ImportEntityLocation specifies a location for import
+	ImportEntityLocation ImportEntity = "LOCATION"
 )
 
 // SuccessMessage is the type returns to client on success import
@@ -141,14 +143,22 @@ func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int,
 }
 
 // nolint: unparam
-func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord, commit bool) (*ent.Location, error) {
+func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord, commit bool, limit *int) (*ent.Location, error) {
 	var currParentID *string
 	var loc *ent.Location
 	ic := getImportContext(ctx)
-	locStart, _ := l.Header().LocationsRangeIdx()
+
+	locStart, indexToStopLoop := l.Header().LocationsRangeIdx()
+	if limit != nil {
+		indexToStopLoop = *limit
+	}
+
 	for i, locName := range l.LocationsRangeArr() {
 		if locName == "" {
 			continue
+		}
+		if i >= indexToStopLoop {
+			break
 		}
 		typID := ic.indexToLocationTypeID[i+locStart] // the actual index
 		typ, err := m.r.Query().LocationType(ctx, typID)
@@ -169,7 +179,7 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 		}
 		currParentID = &loc.ID
 	}
-	if loc == nil {
+	if loc == nil && limit != nil {
 		return nil, errors.Errorf("equipment with no locations specified. id:%q, name: %q", l.ID(), l.Name())
 	}
 	return loc, nil
@@ -339,4 +349,22 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		return errors.Errorf("wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
 	}
 	return nil
+}
+
+func (m *importer) parseImportArgs(r *http.Request) ([]int, *bool, error) {
+	err := r.ParseForm()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	skipLines, err := getLinesToSkip(r)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
+	if err != nil {
+		return nil, nil, err
+	}
+	return skipLines, verifyBeforeCommit, nil
 }

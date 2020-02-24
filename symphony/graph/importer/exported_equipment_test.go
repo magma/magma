@@ -236,19 +236,19 @@ func TestLocationHierarchy(t *testing.T) {
 	err := importer.inputValidations(ctx, title)
 	require.NoError(t, err)
 
-	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test1, title), true)
+	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test1, title), true, nil)
 	require.NoError(t, err)
 	require.Equal(t, loc.Name, "locNameL")
 	require.Equal(t, loc.QueryType().OnlyXID(ctx), ids.locTypeIDL)
 	require.False(t, loc.QueryChildren().ExistX(ctx))
 
-	loc2, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test2, title), true)
+	loc2, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test2, title), true, nil)
 	require.NoError(t, err)
 	require.Equal(t, loc2.Name, "locNameS")
 	require.Equal(t, loc2.QueryType().OnlyXID(ctx), ids.locTypeIDS)
 	require.Equal(t, loc2.QueryParent().OnlyX(ctx).Name, "locNameM")
 
-	loc3, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test3, title), true)
+	loc3, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(test3, title), true, nil)
 	require.NoError(t, err)
 	require.Equal(t, loc3.Name, "locNameM")
 	require.Equal(t, loc3.QueryType().OnlyXID(ctx), ids.locTypeIDM)
@@ -278,7 +278,7 @@ func TestPosition(t *testing.T) {
 	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err := importer.inputValidations(ctx, title)
 	require.NoError(t, err)
-	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title), true)
+	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title), true, nil)
 	require.NoError(t, err)
 	equipmentType, err := importer.r.Mutation().AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:      "type1",
@@ -425,7 +425,7 @@ func TestValidateForExistingEquipment(t *testing.T) {
 	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err := importer.inputValidations(ctx, title)
 	require.NoError(t, err)
-	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title), true)
+	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title), true, nil)
 	require.NoError(t, err)
 	equipmentType, err := importer.r.Mutation().AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:      "type1",

@@ -47,20 +47,9 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "cannot parse form", http.StatusInternalServerError)
 		return
 	}
-	err := r.ParseForm()
+	skipLines, verifyBeforeCommit, err := m.parseImportArgs(r)
 	if err != nil {
-		errorReturn(w, "can't parse form", log, err)
-		return
-	}
-	skipLines, err := getLinesToSkip(r)
-	if err != nil {
-		errorReturn(w, "can't parse skipped lines", log, err)
-		return
-	}
-
-	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
-	if err != nil {
-		errorReturn(w, "can't parse verify_before_commit param", log, err)
+		errorReturn(w, "can't parse form or arguments", log, err)
 		return
 	}
 
@@ -258,7 +247,7 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 		return nil, fmt.Sprintf("getting port definition %v under equipment type %v", defName, etn), nil, err
 	}
 
-	parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, portRecord, commit)
+	parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, portRecord, commit, nil)
 
 	if err != nil {
 		return nil, "error while creating/verifying location hierarchy", nil, err

@@ -207,7 +207,7 @@ describe('<AddToLocationDialog />', () => {
       expect(getByText('Upload Exported Equipment')).toBeInTheDocument();
       expect(getByText('Upload Exported Ports')).toBeInTheDocument();
       expect(getByText('Upload Exported Links')).toBeInTheDocument();
-      expect(getByText('Upload Locations')).toBeInTheDocument();
+      expect(getByText('Upload Exported Locations')).toBeInTheDocument();
       expect(getByText('Upload Exported Service')).toBeInTheDocument();
     });
   });

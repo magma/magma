@@ -55,6 +55,16 @@ func (l ImportHeader) ExternalIDIdx() int {
 	return findIndex(l.line, "External ID")
 }
 
+// LatitudeIdx returns the index of "latitude" column
+func (l ImportHeader) LatitudeIdx() int {
+	return findIndex(l.line, "Latitude")
+}
+
+// LongitudeIdx returns the index of "longitude" column
+func (l ImportHeader) LongitudeIdx() int {
+	return findIndex(l.line, "Longitude")
+}
+
 func (l ImportHeader) ThirdParentIdx() int {
 	return l.prnt3Idx
 }
@@ -113,6 +123,8 @@ func (l ImportHeader) LocationsRangeIdx() (int, int) {
 		return 5, l.prnt3Idx
 	case ImportEntityPortInLink:
 		return 3, l.prnt3Idx
+	case ImportEntityLocation:
+		return 1, l.ExternalIDIdx()
 	}
 	return -1, -1
 }
@@ -127,6 +139,8 @@ func (l ImportHeader) PropertyStartIdx() int {
 		return l.StatusIdx() + 1
 	case ImportEntityLink:
 		return l.LinkSecondPortStartIdx() * 2
+	case ImportEntityLocation:
+		return l.ExternalIDIdx() + 3
 	}
 	return -1
 }

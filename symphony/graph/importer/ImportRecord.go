@@ -68,6 +68,9 @@ func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, 
 	case ImportEntityService:
 		typ := typ.(*ent.ServiceType)
 		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
+	case ImportEntityLocation:
+		typ := typ.(*ent.LocationType)
+		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
 	default:
 		return nil, errors.Wrapf(err, "entity is not supported %s", l.entity())
 	}
@@ -114,6 +117,16 @@ func (l ImportRecord) PortEquipmentTypeName() string {
 
 func (l ImportRecord) ExternalID() string {
 	return l.line[l.title.ExternalIDIdx()]
+}
+
+// Latitude returns the valur on LatitudeIdx
+func (l ImportRecord) Latitude() string {
+	return l.line[l.title.LatitudeIdx()]
+}
+
+// Longitude returns the valur on LongitudeIdx
+func (l ImportRecord) Longitude() string {
+	return l.line[l.title.LongitudeIdx()]
 }
 
 func (l ImportRecord) ThirdParent() string {

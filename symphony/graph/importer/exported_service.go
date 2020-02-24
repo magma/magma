@@ -45,21 +45,9 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = r.ParseForm()
+	skipLines, verifyBeforeCommit, err := m.parseImportArgs(r)
 	if err != nil {
-		errorReturn(w, "can't parse form", log, err)
-		return
-	}
-
-	skipLines, err := getLinesToSkip(r)
-	if err != nil {
-		errorReturn(w, "can't parse skipped lines", log, err)
-		return
-	}
-
-	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
-	if err != nil {
-		errorReturn(w, "can't parse verify_before_commit param", log, err)
+		errorReturn(w, "can't parse form or arguments", log, err)
 		return
 	}
 

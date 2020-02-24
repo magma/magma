@@ -74,6 +74,7 @@ func NewHandler(cfg Config) (http.Handler, error) {
 		{"export_equipment", u.processExportedEquipment},
 		{"export_ports", u.processExportedPorts},
 		{"export_links", u.processExportedLinks},
+		{"export_locations", u.processExportedLocation},
 		{"export_service", u.processExportedService},
 	}
 	for _, route := range routes {
