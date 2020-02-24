@@ -127,7 +127,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	)
 
 	titleWithProperties := append(dataHeader[:], propName1, propName2, propName3, propName4, propName5, propName6, propName7, propName8)
-	fl := NewImportHeader(titleWithProperties, ImportEntityService)
+	fl, _ := NewImportHeader(titleWithProperties, ImportEntityService)
 	r1 := NewImportRecord(row1, fl)
 	require.NoError(t, err)
 	styp1, err := q.ServiceType(ctx, data.serviceTypeID)
@@ -225,7 +225,7 @@ func TestValidateForExistingService(t *testing.T) {
 	prepareServiceTypeData(ctx, t, *r)
 
 	titleWithProperties := []string{"Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID", "Status"}
-	title := NewImportHeader(titleWithProperties, ImportEntityService)
+	title, _ := NewImportHeader(titleWithProperties, ImportEntityService)
 
 	serviceType, err := importer.r.Mutation().AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "type1",

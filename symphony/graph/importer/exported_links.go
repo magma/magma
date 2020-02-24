@@ -62,12 +62,15 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityLink)
 		if err != nil {
 			errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
 			return
 		}
-
+		importHeader, err := NewImportHeader(first, ImportEntityLink)
+		if err != nil {
+			errorReturn(w, "error on header", log, err)
+			return
+		}
 		if err = m.inputValidationsLinks(ctx, importHeader); err != nil {
 			errorReturn(w, "first line validation error", log, err)
 			return
@@ -305,9 +308,14 @@ func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *I
 	header := importLine.Header()
 	headerSlices := header.LinkGetTwoPortsSlices()
 	ahead, bhead := headerSlices[0], headerSlices[1]
-	headerA := NewImportHeader(ahead, ImportEntityPortInLink)
-	headerB := NewImportHeader(bhead, ImportEntityPortInLink)
-
+	headerA, err := NewImportHeader(ahead, ImportEntityPortInLink)
+	if err != nil {
+		return nil, nil, err
+	}
+	headerB, err := NewImportHeader(bhead, ImportEntityPortInLink)
+	if err != nil {
+		return nil, nil, err
+	}
 	portsSlices := importLine.LinkGetTwoPortsSlices()
 	portASlice, portBSlice := portsSlices[0], portsSlices[1]
 	if equal(portASlice, portBSlice) {
@@ -393,17 +401,22 @@ func (m *importer) inputValidationsLinks(ctx context.Context, importHeader Impor
 		return errors.Errorf("first cell should be 'Link ID' ")
 	}
 	portsSlices := importHeader.LinkGetTwoPortsSlices()
-	ha := NewImportHeader(portsSlices[0], ImportEntityPortInLink)
-
+	ha, err := NewImportHeader(portsSlices[0], ImportEntityPortInLink)
+	if err != nil {
+		return err
+	}
 	locStart, _ := ha.LocationsRangeIdx()
 	if !equal(ha.line[:locStart], []string{"Port A Name", "Equipment A Name", "Equipment A Type"}) {
 		return errors.New("first line misses sequence; 'Port A Name', 'Equipment A Name' or 'Equipment A Type' ")
 	}
-	err := m.validateAllLocationTypeExist(ctx, locStart, ha.LocationTypesRangeArr(), false)
+	err = m.validateAllLocationTypeExist(ctx, locStart, ha.LocationTypesRangeArr(), false)
 	if err != nil {
 		return err
 	}
-	hb := NewImportHeader(portsSlices[1], ImportEntityPortInLink)
+	hb, err := NewImportHeader(portsSlices[1], ImportEntityPortInLink)
+	if err != nil {
+		return err
+	}
 	locStart, _ = hb.LocationsRangeIdx()
 	if !equal(hb.line[:locStart], []string{"Port B Name", "Equipment B Name", "Equipment B Type"}) {
 		return errors.New("first line misses sequence; 'Port B Name', 'Equipment B Name' or 'Equipment B Type' ")

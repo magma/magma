@@ -86,17 +86,24 @@ func TestLocationTitleInputValidation(t *testing.T) {
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	prepareBasicData(ctx, t, *r)
 
-	err := importer.inputValidationsLocation(ctx, NewImportHeader([]string{"aa"}, ImportEntityLocation))
+	header, _ := NewImportHeader([]string{"aa"}, ImportEntityLocation)
+	err := importer.inputValidationsLocation(ctx, header)
 	require.Error(t, err)
-	err = importer.inputValidationsLocation(ctx, NewImportHeader(locationIDHeader, ImportEntityLocation))
+
+	header, _ = NewImportHeader(locationIDHeader, ImportEntityLocation)
+	err = importer.inputValidationsLocation(ctx, header)
 	require.Error(t, err)
 
 	locationTypeNotInOrder := append(append(locationIDHeader, []string{locTypeNameS, locTypeNameM, locTypeNameL}...), locationFixedDataHeader...)
-	err = importer.inputValidationsLocation(ctx, NewImportHeader(locationTypeNotInOrder, ImportEntityLocation))
+
+	header, _ = NewImportHeader(locationTypeNotInOrder, ImportEntityLocation)
+	err = importer.inputValidationsLocation(ctx, header)
 	require.Error(t, err)
 
 	locationTypeInOrder := append(append(locationIDHeader, []string{locTypeNameL, locTypeNameM, locTypeNameS}...), locationFixedDataHeader...)
-	err = importer.inputValidationsLocation(ctx, NewImportHeader(locationTypeInOrder, ImportEntityLocation))
+
+	header, _ = NewImportHeader(locationTypeInOrder, ImportEntityLocation)
+	err = importer.inputValidationsLocation(ctx, header)
 	require.NoError(t, err)
 }
 
@@ -115,7 +122,7 @@ func TestImportLocationHierarchy(t *testing.T) {
 		test4 = []string{"", "locNameL", "", "locNameS", "external_3", "32", "33"}
 	)
 	locationTypeInOrder := append(append(locationIDHeader, []string{locTypeNameL, locTypeNameM, locTypeNameS}...), locationFixedDataHeader...)
-	title := NewImportHeader(locationTypeInOrder, ImportEntityLocation)
+	title, _ := NewImportHeader(locationTypeInOrder, ImportEntityLocation)
 	err := importer.inputValidationsLocation(ctx, title)
 	require.NoError(t, err)
 
@@ -180,12 +187,12 @@ func TestValidateLocationPropertiesForType(t *testing.T) {
 
 	firstRowLocations := append(append(locationIDHeader, []string{locTypeNameL, locTypeNameM, locTypeNameS}...), locationFixedDataHeader...)
 	finalFirstRow := append(firstRowLocations, propName1, propName2, propName3, propName4, propName5, propName6)
-	fl := NewImportHeader(finalFirstRow, ImportEntityLocation)
+	fl, _ := NewImportHeader(finalFirstRow, ImportEntityLocation)
 
 	err := importer.inputValidationsLocation(ctx, fl)
 	require.NoError(t, err)
 
-	fl = NewImportHeader(finalFirstRow, ImportEntityLocation)
+	fl, _ = NewImportHeader(finalFirstRow, ImportEntityLocation)
 	r1 := NewImportRecord(test1, fl)
 	require.NoError(t, err)
 	lType1, err := q.LocationType(ctx, data.locTypeIDS)
@@ -263,7 +270,7 @@ func TestValidateForExistingLocation(t *testing.T) {
 
 	firstRowLocations := append(append(locationIDHeader, []string{locTypeNameL, locTypeNameM, locTypeNameS}...), locationFixedDataHeader...)
 	finalFirstRow := append(firstRowLocations, propName1, propName2, propName3, propName4, propName5, propName6)
-	fl := NewImportHeader(finalFirstRow, ImportEntityLocation)
+	fl, _ := NewImportHeader(finalFirstRow, ImportEntityLocation)
 	err := importer.inputValidationsLocation(ctx, fl)
 	require.NoError(t, err)
 

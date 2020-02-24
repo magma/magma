@@ -230,20 +230,24 @@ func TestPortTitleInputValidation(t *testing.T) {
 		servicesHeader = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
 	)
 	prepareBasicData(ctx, t, *r)
-
-	err := importer.inputValidationsPorts(ctx, NewImportHeader([]string{"aa"}, ImportEntityPort))
+	header, _ := NewImportHeader([]string{"aa"}, ImportEntityPort)
+	err := importer.inputValidationsPorts(ctx, header)
 	require.Error(t, err)
-	err = importer.inputValidationsPorts(ctx, NewImportHeader(portDataHeader[:], ImportEntityPort))
+	header, _ = NewImportHeader(portDataHeader[:], ImportEntityPort)
+	err = importer.inputValidationsPorts(ctx, header)
 	require.Error(t, err)
-	err = importer.inputValidationsPorts(ctx, NewImportHeader(linkDataHeader[:], ImportEntityPort))
+	header, _ = NewImportHeader(linkDataHeader[:], ImportEntityPort)
+	err = importer.inputValidationsPorts(ctx, header)
 	require.Error(t, err)
 
 	locationTypeNotInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameS, locTypeNameM, locTypeNameL}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
-	err = importer.inputValidationsPorts(ctx, NewImportHeader(locationTypeNotInOrder, ImportEntityPort))
+	header, _ = NewImportHeader(locationTypeNotInOrder, ImportEntityPort)
+	err = importer.inputValidationsPorts(ctx, header)
 	require.Error(t, err)
 
 	locationTypeInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
-	err = importer.inputValidationsPorts(ctx, NewImportHeader(locationTypeInOrder, ImportEntityPort))
+	header, _ = NewImportHeader(locationTypeInOrder, ImportEntityPort)
+	err = importer.inputValidationsPorts(ctx, header)
 	require.NoError(t, err)
 }
 
@@ -281,7 +285,7 @@ func TestGeneralPortsImport(t *testing.T) {
 	locationTypeInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
 	titleWithProperties := append(locationTypeInOrder, propNameStr, propNameInt, propNameDate, propNameBool)
 
-	fl := NewImportHeader(titleWithProperties, ImportEntityPort)
+	fl, _ := NewImportHeader(titleWithProperties, ImportEntityPort)
 	err := importer.inputValidationsPorts(ctx, fl)
 	require.NoError(t, err)
 

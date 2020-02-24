@@ -60,10 +60,14 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityService)
 		if err != nil {
 			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
 			http.Error(w, fmt.Sprintf("cannot handle file: %q. file name: %q", err, fileName), http.StatusInternalServerError)
+			return
+		}
+		importHeader, err := NewImportHeader(first, ImportEntityService)
+		if err != nil {
+			errorReturn(w, "error on header", log, err)
 			return
 		}
 
@@ -274,7 +278,9 @@ func (m *importer) validatePropertiesForServiceType(ctx context.Context, line Im
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }

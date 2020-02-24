@@ -307,7 +307,9 @@ func (m *importer) validatePropertiesForPortType(ctx context.Context, line Impor
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }

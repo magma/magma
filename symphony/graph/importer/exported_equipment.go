@@ -61,9 +61,13 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityEquipment)
 		if err != nil {
 			errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
+			return
+		}
+		importHeader, err := NewImportHeader(first, ImportEntityEquipment)
+		if err != nil {
+			errorReturn(w, fmt.Sprintf("error on header"), log, err)
 			return
 		}
 		//
@@ -294,7 +298,9 @@ func (m *importer) validatePropertiesForEquipmentType(ctx context.Context, line 
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }

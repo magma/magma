@@ -61,9 +61,13 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityLocation)
 		if err != nil {
 			errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
+			return
+		}
+		importHeader, err := NewImportHeader(first, ImportEntityLocation)
+		if err != nil {
+			errorReturn(w, "error on header", log, err)
 			return
 		}
 
@@ -372,7 +376,9 @@ func (m *importer) validatePropertiesForLocationType(ctx context.Context, line I
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }
