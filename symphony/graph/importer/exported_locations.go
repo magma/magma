@@ -302,7 +302,7 @@ func (m *importer) getLocationPropertyInputs(ctx context.Context, importLine Imp
 }
 
 func (m *importer) validateLineForExistingLocation(ctx context.Context, locationID string, importLine ImportRecord) (*ent.Location, error) {
-	location, err := m.r.Query().Location(ctx, locationID)
+	location, err := m.ClientFrom(ctx).Location.Get(ctx, locationID)
 	if err != nil {
 		return nil, fmt.Errorf("fetching location: %w", err)
 	}

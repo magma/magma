@@ -354,7 +354,7 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	*/
 }
 
-func prepareLinksPortsAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
+func prepareHandlerAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
