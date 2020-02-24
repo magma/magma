@@ -46,8 +46,8 @@ var grammar = {
     {"name": "duration", "symbols": [(lexer.has("lBracket") ? {type: "lBracket"} : lBracket), "RANGE", (lexer.has("rBracket") ? {type: "rBracket"} : rBracket)], "postprocess": ([_lBracket, range, _rBracket]) => range},
     {"name": "binary_operation", "symbols": ["expression", "bin_op", "expression"], "postprocess": ([lh, op, rh]) => new BinaryOperation(lh, rh, op)},
     {"name": "binary_operation", "symbols": ["expression", "bin_op", "vector_match_clause", "expression"], "postprocess": ([lh, op, clause, rh]) => new BinaryOperation(lh, rh, op, clause)},
-    {"name": "vector_match_clause", "symbols": ["CLAUSE_OP", "labelList"], "postprocess": ([op, labels]) => new VectorMatchClause(new Clause(op, labels))},
-    {"name": "vector_match_clause", "symbols": ["CLAUSE_OP", "labelList", "GROUP_OP", "labelList"], "postprocess":  ([matchOp, matchLabels, groupOp, groupLabels]) =>
+    {"name": "vector_match_clause", "symbols": ["MATCH_CLAUSE", "labelList"], "postprocess": ([op, labels]) => new VectorMatchClause(new Clause(op, labels))},
+    {"name": "vector_match_clause", "symbols": ["MATCH_CLAUSE", "labelList", "GROUP_CLAUSE", "labelList"], "postprocess":  ([matchOp, matchLabels, groupOp, groupLabels]) =>
         new VectorMatchClause(
                 new Clause(matchOp, matchLabels),
                 new Clause(groupOp, groupLabels))
@@ -56,16 +56,14 @@ var grammar = {
     {"name": "bin_op", "symbols": ["SET_OP"], "postprocess": id},
     {"name": "bin_op", "symbols": ["ARITHM_OP"], "postprocess": id},
     {"name": "offset_clause", "symbols": [{"literal":"offset"}, "RANGE"]},
-    {"name": "aggregation", "symbols": ["AGG_OP", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess":  ([aggOp, _lParen, params, _rParen]) => 
-        new AggregationOperation(aggOp, params)
-                                },
-    {"name": "aggregation", "symbols": ["AGG_OP", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen), "dimensionClause"], "postprocess":  ([aggOp, _lParen, params, _rParen, clause]) =>
+    {"name": "aggregation", "symbols": ["AGG_OP", "func_call_body"], "postprocess": ([aggOp, params]) => new AggregationOperation(aggOp, params)},
+    {"name": "aggregation", "symbols": ["AGG_OP", "func_call_body", "dimensionClause"], "postprocess":  ([aggOp, params, clause]) =>
         new AggregationOperation(aggOp, params, clause)
                                 },
-    {"name": "aggregation", "symbols": ["AGG_OP", "dimensionClause", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess":  ([aggOp, clause, _lParen, params, _rParen]) =>
+    {"name": "aggregation", "symbols": ["AGG_OP", "dimensionClause", "func_call_body"], "postprocess":  ([aggOp, clause, params,]) =>
         new AggregationOperation(aggOp, params, clause)
                                 },
-    {"name": "dimensionClause", "symbols": ["CLAUSE_OP", "labelList"], "postprocess": ([op, labelList]) => new Clause(op, labelList)},
+    {"name": "dimensionClause", "symbols": ["AGG_CLAUSE", "labelList"], "postprocess": ([op, labelList]) => new Clause(op, labelList)},
     {"name": "labelList", "symbols": [(lexer.has("lParen") ? {type: "lParen"} : lParen), "label_name_list", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess": ([_lParen, labels, _rParen]) => labels},
     {"name": "label_name_list", "symbols": ["label_name_list", (lexer.has("comma") ? {type: "comma"} : comma), "IDENTIFIER"], "postprocess": ([existingLabels, _, newLabel]) => [...existingLabels, newLabel]},
     {"name": "label_name_list", "symbols": ["IDENTIFIER"], "postprocess": d => [d[0]]},
@@ -80,15 +78,17 @@ var grammar = {
     {"name": "label_matcher", "symbols": ["label", "LABEL_OP", "STRING"], "postprocess": ([name, op, value]) => new Label(name, value, op)},
     {"name": "label", "symbols": ["IDENTIFIER"], "postprocess": id},
     {"name": "label", "symbols": ["SET_OP"], "postprocess": id},
-    {"name": "label", "symbols": ["GROUP_OP"], "postprocess": id},
-    {"name": "label", "symbols": ["CLAUSE_OP"], "postprocess": id},
-    {"name": "function", "symbols": ["IDENTIFIER", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess":  ([funcName, _lParen, params, _rParen]) => {
+    {"name": "label", "symbols": ["AGG_CLAUSE"], "postprocess": id},
+    {"name": "label", "symbols": ["MATCH_CLAUSE"], "postprocess": id},
+    {"name": "label", "symbols": ["GROUP_CLAUSE"], "postprocess": id},
+    {"name": "function", "symbols": ["IDENTIFIER", "func_call_body"], "postprocess":  ([funcName, params]) => {
                 if (FUNCTION_NAMES.includes(funcName)) {
                         return new Function(funcName, params)
                 } else {
                         throw new SyntaxError(`Unknown function: ${funcName}`);
                 }
         }},
+    {"name": "func_call_body", "symbols": [(lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess": ([_lParen, params, _rParen]) => params},
     {"name": "func_params", "symbols": ["func_params", (lexer.has("comma") ? {type: "comma"} : comma), "parameter"], "postprocess": ([existingParams, _comma, newParam]) => [...existingParams, newParam]},
     {"name": "func_params", "symbols": ["parameter"], "postprocess": d => [d[0]]},
     {"name": "parameter", "symbols": ["SCALAR"], "postprocess": id},
@@ -104,10 +104,11 @@ var grammar = {
     {"name": "SET_OP", "symbols": [(lexer.has("setOp") ? {type: "setOp"} : setOp)], "postprocess": d => d[0].value},
     {"name": "ARITHM_OP", "symbols": [(lexer.has("arithmetic") ? {type: "arithmetic"} : arithmetic)], "postprocess": d => d[0].value},
     {"name": "AGG_OP", "symbols": [(lexer.has("aggOp") ? {type: "aggOp"} : aggOp)], "postprocess": d => d[0].value},
+    {"name": "AGG_CLAUSE", "symbols": [(lexer.has("aggClause") ? {type: "aggClause"} : aggClause)], "postprocess": d => d[0].value},
     {"name": "FUNC_NAME", "symbols": [(lexer.has("functionName") ? {type: "functionName"} : functionName)], "postprocess": d => d[0].value},
     {"name": "RANGE", "symbols": [(lexer.has("range") ? {type: "range"} : range)], "postprocess": d => d[0].value},
-    {"name": "CLAUSE_OP", "symbols": [(lexer.has("clauseOp") ? {type: "clauseOp"} : clauseOp)], "postprocess": d => d[0].value},
-    {"name": "GROUP_OP", "symbols": [(lexer.has("groupOp") ? {type: "groupOp"} : groupOp)], "postprocess": d => d[0].value}
+    {"name": "MATCH_CLAUSE", "symbols": [(lexer.has("matchClause") ? {type: "matchClause"} : matchClause)], "postprocess": d => d[0].value},
+    {"name": "GROUP_CLAUSE", "symbols": [(lexer.has("groupClause") ? {type: "groupClause"} : groupClause)], "postprocess": d => d[0].value}
 ]
   , ParserStart: "expression"
 }

@@ -14,12 +14,13 @@ import {Range} from './PromQL';
 
 import {
   AGGREGATION_OPERATORS,
+  AGGR_CLAUSE_TYPES,
   BINARY_ARITHMETIC_OPS,
   BINARY_COMPARATORS,
-  BINARY_LOGIC_OPS,
-  CLAUSE_OPS,
-  GROUP_OPS,
+  BINARY_SET_OPS,
+  GROUP_CLAUSE_TYPES,
   LABEL_OPERATORS,
+  MATCH_CLAUSE_TYPES,
   SyntaxError,
 } from './PromQLTypes';
 
@@ -85,9 +86,10 @@ const lexerRules: LexerRules = {
     match: /\w+/,
     type: Moo.keywords({
       aggOp: AGGREGATION_OPERATORS,
-      clauseOp: CLAUSE_OPS,
-      groupOp: GROUP_OPS,
-      setOp: BINARY_LOGIC_OPS,
+      aggClause: AGGR_CLAUSE_TYPES,
+      groupClause: GROUP_CLAUSE_TYPES,
+      matchClause: MATCH_CLAUSE_TYPES,
+      setOp: BINARY_SET_OPS,
     }),
   },
   string: [

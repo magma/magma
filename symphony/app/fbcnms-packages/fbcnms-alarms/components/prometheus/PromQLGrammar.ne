@@ -65,9 +65,9 @@ binary_operation ->
                         {% ([lh, op, clause, rh]) => new BinaryOperation(lh, rh, op, clause) %}
 
 vector_match_clause ->
-        CLAUSE_OP labelList
+        MATCH_CLAUSE labelList
                         {% ([op, labels]) => new VectorMatchClause(new Clause(op, labels)) %}
-        | CLAUSE_OP labelList GROUP_OP labelList
+        | MATCH_CLAUSE labelList GROUP_CLAUSE labelList
                         {% ([matchOp, matchLabels, groupOp, groupLabels]) =>
                                 new VectorMatchClause(
                                         new Clause(matchOp, matchLabels),
@@ -82,20 +82,18 @@ bin_op ->
 offset_clause -> "offset" RANGE
 
 aggregation ->
-        AGG_OP %lParen func_params %rParen
-                        {% ([aggOp, _lParen, params, _rParen]) => 
-                                new AggregationOperation(aggOp, params)
-                        %}
-        | AGG_OP %lParen func_params %rParen dimensionClause
-                        {% ([aggOp, _lParen, params, _rParen, clause]) =>
+        AGG_OP func_call_body
+                        {% ([aggOp, params]) => new AggregationOperation(aggOp, params) %}
+        | AGG_OP func_call_body dimensionClause
+                        {% ([aggOp, params, clause]) =>
                                 new AggregationOperation(aggOp, params, clause)
                         %}
-        | AGG_OP dimensionClause %lParen func_params %rParen
-                        {% ([aggOp, clause, _lParen, params, _rParen]) =>
+        | AGG_OP dimensionClause func_call_body
+                        {% ([aggOp, clause, params,]) =>
                                 new AggregationOperation(aggOp, params, clause)
                         %}
 
-dimensionClause -> CLAUSE_OP labelList
+dimensionClause -> AGG_CLAUSE labelList
                         {% ([op, labelList]) => new Clause(op, labelList) %}
 
 labelList -> %lParen label_name_list %rParen
@@ -126,17 +124,21 @@ label_matcher -> label LABEL_OP STRING
 label ->
         IDENTIFIER      {% id %}
         | SET_OP        {% id %}
-        | GROUP_OP      {% id %}
-        | CLAUSE_OP     {% id %}
+        | AGG_CLAUSE    {% id %}
+        | MATCH_CLAUSE  {% id %}
+        | GROUP_CLAUSE  {% id %}
 
-function -> IDENTIFIER %lParen func_params %rParen
-                        {% ([funcName, _lParen, params, _rParen]) => {
+function -> IDENTIFIER func_call_body
+                        {% ([funcName, params]) => {
                                 if (FUNCTION_NAMES.includes(funcName)) {
                                         return new Function(funcName, params)
                                 } else {
                                         throw new SyntaxError(`Unknown function: ${funcName}`);
                                 }
                         }%}
+
+func_call_body -> %lParen func_params %rParen
+                        {% ([_lParen, params, _rParen]) => params %}
 
 func_params ->
         func_params %comma parameter
@@ -163,8 +165,12 @@ SET_OP -> %setOp        {% d => d[0].value %}
 ARITHM_OP -> %arithmetic
                         {% d => d[0].value %}
 AGG_OP -> %aggOp        {% d => d[0].value %}
+AGG_CLAUSE -> %aggClause
+                        {% d => d[0].value %}
 FUNC_NAME -> %functionName
                         {% d => d[0].value %}
 RANGE -> %range         {% d => d[0].value %}
-CLAUSE_OP -> %clauseOp  {% d => d[0].value %}
-GROUP_OP -> %groupOp    {% d => d[0].value %}
+MATCH_CLAUSE -> %matchClause
+                        {% d => d[0].value %}
+GROUP_CLAUSE -> %groupClause
+                        {% d => d[0].value %}
