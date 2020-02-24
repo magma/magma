@@ -190,6 +190,23 @@ class StateManager {
     return imsi_str;
   }
 
+  void clear_state_db_imsi(const std::string& imsi_str)
+  {
+    AssertFatal(
+      is_initialized,
+      "StateManager init() function should be called to initialize state");
+
+    if (persist_state_enabled) {
+      std::vector<std::string> keys = {IMSI_PREFIX + imsi_str + ":" +
+                                       task_name};
+      if (redis_client->clear_keys(keys) != RETURNok) {
+        OAILOG_ERROR(log_task, "Failed to remove UE state from db");
+        return;
+      }
+      OAILOG_DEBUG(log_task, "Removing UE state for IMSI %s", imsi_str.c_str());
+    }
+  }
+
   /**
    * Virtual function for freeing state_cache_p
    */
