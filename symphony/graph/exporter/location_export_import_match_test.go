@@ -14,15 +14,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/event"
+	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
-	"gocloud.dev/pubsub"
-	"gocloud.dev/pubsub/mempubsub"
-
-	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,10 +29,12 @@ func writeModifiedLocationsCSV(t *testing.T, r *csv.Reader, method method, withV
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 	if skipLines {
-		bw.WriteField("skip_lines", "[2,3]")
+		err := bw.WriteField("skip_lines", "[2,3]")
+		require.NoError(t, err)
 	}
 	if withVerify {
-		bw.WriteField("verify_before_commit", "true")
+		err := bw.WriteField("verify_before_commit", "true")
+		require.NoError(t, err)
 	}
 	fileWriter, err := bw.CreateFormFile("file_0", "name1")
 	require.Nil(t, err)
@@ -87,14 +86,11 @@ func importLocationsFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	readr := csv.NewReader(r)
 	buf, contentType := writeModifiedLocationsCSV(t, readr, method, withVerify, skipLines)
 
-	topic := mempubsub.NewTopic()
 	h, _ := importer.NewHandler(
 		importer.Config{
-			Logger: logtest.NewTestLogger(t),
-			Topic:  topic,
-			Subscribe: func(context.Context) (*pubsub.Subscription, error) {
-				return mempubsub.NewSubscription(topic, time.Second), nil
-			},
+			Logger:     logtest.NewTestLogger(t),
+			Emitter:    event.NewNopEmitter(),
+			Subscriber: event.NewNopSubscriber(),
 		},
 	)
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
@@ -121,8 +117,8 @@ func TestExportAndEditLocations(t *testing.T) {
 			log := r.exporter.log
 			e := &exporter{log, locationsRower{log}}
 			ctx, res := prepareHandlerAndExport(t, r, e)
-			defer res.Body.Close()
 			importLocationsFile(t, r.client, res.Body, MethodEdit, withVerify, skipLines)
+			res.Body.Close()
 
 			locations, err := r.Query().LocationSearch(ctx, nil, nil)
 			require.NoError(t, err)
@@ -170,7 +166,6 @@ func TestExportAndAddLocations(t *testing.T) {
 			log := r.exporter.log
 			e := &exporter{log, locationsRower{log}}
 			ctx, res := prepareHandlerAndExport(t, r, e)
-			defer res.Body.Close()
 
 			locs := r.client.Location.Query().AllX(ctx)
 			require.Len(t, locs, 3)
@@ -180,8 +175,8 @@ func TestExportAndAddLocations(t *testing.T) {
 			require.Len(t, locs, 0)
 
 			importLocationsFile(t, r.client, res.Body, MethodAdd, withVerify, skipLines)
+			res.Body.Close()
 
-			//importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityLink, MethodAdd, skipLines, withVerify)
 			locations, err := r.Query().LocationSearch(ctx, nil, nil)
 			require.NoError(t, err)
 			switch {
