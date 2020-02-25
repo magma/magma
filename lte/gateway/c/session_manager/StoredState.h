@@ -128,7 +128,6 @@ struct StoredSessionState {
 // Update Criteria
 
 struct SessionCreditUpdateCriteria {
-  bool reporting;
   bool is_final;
   ReAuthState reauth_state;
   ServiceState service_state;
@@ -142,8 +141,12 @@ struct SessionStateUpdateCriteria {
   std::vector<PolicyRule> dynamic_rules_to_install;
   std::vector<std::string> dynamic_rules_to_uninstall;
   std::unordered_map<
+    CreditKey, StoredSessionCredit,
+    decltype(&ccHash), decltype(&ccEqual)> charging_credit_to_install;
+  std::unordered_map<
     CreditKey, SessionCreditUpdateCriteria,
     decltype(&ccHash), decltype(&ccEqual)> charging_credit_map;
+  std::unordered_map<std::string, StoredMonitor> monitor_credit_to_install;
   std::unordered_map<std::string, SessionCreditUpdateCriteria> monitor_credit_map;
 };
 }; // namespace magma
