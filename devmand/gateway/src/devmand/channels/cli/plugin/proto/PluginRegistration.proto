@@ -10,18 +10,29 @@ message CapabilitiesRequest {
   string id = 1;
 }
 
+message CliFlavourParams {
+  string newline = 1;
+  string baseShowConfigRegex = 2;
+  uint32 baseShowConfigIdx = 3;
+  string singleIndentChar = 4;
+  string configSubsectionEnd = 5;
+}
+
 message DeviceType {
   string device = 1;
   string version = 2;
+  CliFlavourParams cliFlavourParams = 3;
 }
 
 message ReaderCapability {
   string path = 1;
 }
+
 message WriterCapability {
   string path = 1;
   repeated string dependencies = 2;
 }
+
 message CapabilitiesResponse {
   DeviceType deviceType = 1;
   repeated ReaderCapability readers = 2;

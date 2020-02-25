@@ -201,4 +201,3 @@ string interface02state =
     "}";
 
 } // namespace devmand::test::utils::cli
-

@@ -108,14 +108,28 @@ static unique_ptr<PluginRegistry> loadPlugins(
       modelRegistry->getBindingContext(Model::OPENCONFIG_2_4_3)));
   map<PluginId, PluginEndpoint> grpcPlugins =
       Engine::parseGrpcPlugins(pluginConfig);
+
+  map<DeviceType, shared_ptr<CliFlavourParameters>> flavours =
+      CliFlavour::getHardcodedFlavours();
+
   for (auto const& kv : grpcPlugins) {
     const string& id = kv.first;
     const string& endpoint = kv.second;
     shared_ptr<grpc::Channel> grpcChannel =
         grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials());
-    shared_ptr<Plugin> plugin = GrpcPlugin::create(grpcChannel, id, executor);
+    shared_ptr<GrpcPlugin> plugin =
+        GrpcPlugin::create(grpcChannel, id, executor);
     pReg->registerPlugin(plugin);
+
+    Optional<CliFlavourParameters> maybeCliFlavourParameters =
+        plugin->getCliFlavourParameters();
+    if (maybeCliFlavourParameters) {
+      flavours.insert_or_assign(
+          plugin->getDeviceType(),
+          make_shared<CliFlavourParameters>(*maybeCliFlavourParameters));
+    }
   }
+  pReg->registerFlavours(flavours);
   return move(pReg);
 }
 
@@ -197,6 +211,10 @@ unique_ptr<WriterRegistry> Engine::getWriterRegistry(
       mreg->getSchemaContext(Model::OPENCONFIG_2_4_3)};
   deviceCtx->provideWriters(wRegBuilder);
   return wRegBuilder.build();
+}
+
+shared_ptr<CliFlavour> Engine::getCliFlavour(const DeviceType& deviceType) {
+  return pluginRegistry->getCliFlavour(deviceType);
 }
 
 } // namespace cli

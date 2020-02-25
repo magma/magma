@@ -643,7 +643,7 @@ bool ActualCreateRequest::MergePartialFromCodedStream(
               input, this->mutable_path()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->path().data(),
-(int)              this->path().length(),
+              (int)this->path().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ActualCreateRequest.path"));
         } else {
@@ -662,7 +662,7 @@ bool ActualCreateRequest::MergePartialFromCodedStream(
               input, this->mutable_cfg()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->cfg().data(),
-(int)              this->cfg().length(),
+              (int)this->cfg().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ActualCreateRequest.cfg"));
         } else {
@@ -704,7 +704,7 @@ void ActualCreateRequest::SerializeWithCachedSizes(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualCreateRequest.path");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -715,7 +715,7 @@ void ActualCreateRequest::SerializeWithCachedSizes(
   if (this->cfg().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->cfg().data(),
-(int)        this->cfg().length(),
+        (int)this->cfg().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualCreateRequest.cfg");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -735,7 +735,7 @@ ActualCreateRequest::InternalSerializeWithCachedSizesToArray(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualCreateRequest.path");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -746,7 +746,7 @@ ActualCreateRequest::InternalSerializeWithCachedSizesToArray(
   if (this->cfg().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->cfg().data(),
-(int)        this->cfg().length(),
+        (int)this->cfg().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualCreateRequest.cfg");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -2150,7 +2150,7 @@ bool ActualUpdateRequest::MergePartialFromCodedStream(
               input, this->mutable_path()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->path().data(),
-(int)              this->path().length(),
+              (int)this->path().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ActualUpdateRequest.path"));
         } else {
@@ -2169,7 +2169,7 @@ bool ActualUpdateRequest::MergePartialFromCodedStream(
               input, this->mutable_before()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->before().data(),
-(int)              this->before().length(),
+              (int)this->before().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ActualUpdateRequest.before"));
         } else {
@@ -2188,7 +2188,7 @@ bool ActualUpdateRequest::MergePartialFromCodedStream(
               input, this->mutable_after()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->after().data(),
-(int)              this->after().length(),
+              (int)this->after().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ActualUpdateRequest.after"));
         } else {
@@ -2230,7 +2230,7 @@ void ActualUpdateRequest::SerializeWithCachedSizes(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualUpdateRequest.path");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -2241,7 +2241,7 @@ void ActualUpdateRequest::SerializeWithCachedSizes(
   if (this->before().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->before().data(),
-(int)        this->before().length(),
+        (int)this->before().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualUpdateRequest.before");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -2252,7 +2252,7 @@ void ActualUpdateRequest::SerializeWithCachedSizes(
   if (this->after().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->after().data(),
-(int)        this->after().length(),
+        (int)this->after().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualUpdateRequest.after");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -2272,7 +2272,7 @@ ActualUpdateRequest::InternalSerializeWithCachedSizesToArray(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualUpdateRequest.path");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -2283,7 +2283,7 @@ ActualUpdateRequest::InternalSerializeWithCachedSizesToArray(
   if (this->before().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->before().data(),
-(int)        this->before().length(),
+        (int)this->before().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualUpdateRequest.before");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -2294,7 +2294,7 @@ ActualUpdateRequest::InternalSerializeWithCachedSizesToArray(
   if (this->after().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->after().data(),
-(int)        this->after().length(),
+        (int)this->after().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualUpdateRequest.after");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -3751,7 +3751,7 @@ bool ActualRemoveRequest::MergePartialFromCodedStream(
               input, this->mutable_path()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->path().data(),
-(int)              this->path().length(),
+              (int)this->path().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ActualRemoveRequest.path"));
         } else {
@@ -3770,7 +3770,7 @@ bool ActualRemoveRequest::MergePartialFromCodedStream(
               input, this->mutable_before()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->before().data(),
-(int)              this->before().length(),
+              (int)this->before().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ActualRemoveRequest.before"));
         } else {
@@ -3812,7 +3812,7 @@ void ActualRemoveRequest::SerializeWithCachedSizes(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualRemoveRequest.path");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -3823,7 +3823,7 @@ void ActualRemoveRequest::SerializeWithCachedSizes(
   if (this->before().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->before().data(),
-(int)        this->before().length(),
+        (int)this->before().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualRemoveRequest.before");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -3843,7 +3843,7 @@ ActualRemoveRequest::InternalSerializeWithCachedSizesToArray(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualRemoveRequest.path");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -3854,7 +3854,7 @@ ActualRemoveRequest::InternalSerializeWithCachedSizesToArray(
   if (this->before().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->before().data(),
-(int)        this->before().length(),
+        (int)this->before().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualRemoveRequest.before");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(

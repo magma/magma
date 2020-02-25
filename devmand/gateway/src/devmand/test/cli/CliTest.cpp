@@ -73,7 +73,8 @@ TEST_F(CliTest, writeMultipleTimesAllExecute) {
   deviceConfig.ip = "localhost";
   deviceConfig.id = "localhost-test-device";
 
-  IoConfigurationBuilder ioConfigurationBuilder(deviceConfig, *cliEngine);
+  IoConfigurationBuilder ioConfigurationBuilder(
+      deviceConfig, *cliEngine, CliFlavour::getDefaultInstance());
   const shared_ptr<Cli>& cli = ioConfigurationBuilder.createAll(
       ReadCachingCli::createCache(),
       make_shared<TreeCache>(

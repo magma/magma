@@ -15,10 +15,10 @@ using namespace std;
 
 static const char* showRunningCommand = "show running-config";
 
-static const shared_ptr<CliFlavour> ubiquitiFlavour =
-    CliFlavour::create(UBIQUITI);
+static const shared_ptr<CliFlavour> ubiquitiFlavour = CliFlavour::getUbiquiti();
 
-static const shared_ptr<CliFlavour> ciscoFlavour = CliFlavour::create("cisco");
+static const shared_ptr<CliFlavour> ciscoFlavour =
+    CliFlavour::getDefaultInstance();
 
 class TreeCacheTest : public ::testing::Test {
  protected:

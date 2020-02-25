@@ -100,7 +100,8 @@ TEST_F(ReconnectingSshTest, commandTimeout) {
   IoConfigurationBuilder ioConfigurationBuilder(
       getConfig(
           "9999", std::chrono::seconds(cmdTimeout), std::chrono::seconds(10)),
-      *cliEngine);
+      *cliEngine,
+      CliFlavour::getDefaultInstance());
   shared_ptr<Cli> cli = ioConfigurationBuilder.createAll(
       ReadCachingCli::createCache(),
       make_shared<TreeCache>(
@@ -123,7 +124,8 @@ TEST_F(ReconnectingSshTest, serverDisconnectSendCommands) {
   IoConfigurationBuilder ioConfigurationBuilder(
       getConfig(
           "9999", std::chrono::seconds(cmdTimeout), std::chrono::seconds(60)),
-      *cliEngine);
+      *cliEngine,
+      CliFlavour::getDefaultInstance());
   shared_ptr<Cli> cli = ioConfigurationBuilder.createAll(
       ReadCachingCli::createCache(),
       make_shared<TreeCache>(
@@ -143,7 +145,8 @@ TEST_F(ReconnectingSshTest, serverDisconnectWaitForKeepalive) {
           "9999",
           std::chrono::seconds(cmdTimeout),
           std::chrono::seconds(keepaliveFreq)),
-      *cliEngine);
+      *cliEngine,
+      CliFlavour::getDefaultInstance());
   shared_ptr<Cli> cli = ioConfigurationBuilder.createAll(
       ReadCachingCli::createCache(),
       make_shared<TreeCache>(
@@ -178,7 +181,8 @@ TEST_F(ReconnectingSshTest, keepalive) {
           "9999",
           std::chrono::seconds(cmdTimeout),
           std::chrono::seconds(keepaliveTimeout)),
-      *cliEngine);
+      *cliEngine,
+      CliFlavour::getDefaultInstance());
   shared_ptr<Cli> cli = ioConfigurationBuilder.createAll(
       ReadCachingCli::createCache(),
       make_shared<TreeCache>(

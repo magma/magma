@@ -11,8 +11,8 @@
 #include <magma_logging.h>
 
 #include <devmand/channels/cli/plugin/protocpp/WriterPlugin.grpc.pb.h>
-#include <devmand/devices/cli/translation/PluginRegistry.h>
 #include <devmand/devices/cli/translation/GrpcCliHandler.h>
+#include <devmand/devices/cli/translation/PluginRegistry.h>
 #include <grpc++/grpc++.h>
 
 namespace devmand {

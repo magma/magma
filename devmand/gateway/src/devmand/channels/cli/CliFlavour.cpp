@@ -105,59 +105,39 @@ void DefaultPromptResolver::removeEmptyStrings(vector<string>& split) const {
           }),
       split.end());
 }
+// cli flavour
 
 CliFlavour::CliFlavour(
     unique_ptr<PromptResolver>&& _resolver,
     unique_ptr<CliInitializer>&& _initializer,
-    string _newline,
-    regex _baseShowConfig,
-    unsigned int _baseShowConfigIdx,
-    Optional<char> _singleIndentChar,
-    string _configSubsectionEnd)
+    shared_ptr<CliFlavourParameters> _params)
     : resolver(forward<unique_ptr<PromptResolver>>(_resolver)),
       initializer(forward<unique_ptr<CliInitializer>>(_initializer)),
-      newline(_newline),
-      baseShowConfig(_baseShowConfig),
-      baseShowConfigIdx(_baseShowConfigIdx),
-      singleIndentChar(_singleIndentChar),
-      configSubsectionEnd(_configSubsectionEnd) {}
+      params(_params) {}
 
-shared_ptr<CliFlavour> CliFlavour::create(string flavour) {
-  if (flavour == UBIQUITI) {
-    return make_shared<CliFlavour>(
-        make_unique<DefaultPromptResolver>(),
-        make_unique<UbiquitiInitializer>(),
-        "\n",
-        regex(R"(^((do )?sho?w? runn?i?n?g?-?c?o?n?f?i?g?).*)"),
-        1,
-        none,
-        "exit");
-  } else {
-    return make_shared<CliFlavour>(
-        make_unique<DefaultPromptResolver>(),
-        make_unique<EmptyInitializer>(),
-        "\n",
-        regex(R"(^((do )?sho?w? runn?i?n?g?-?c?o?n?f?i?g?).*)"),
-        1,
-        ' ',
-        "!");
-  }
+shared_ptr<CliFlavour> CliFlavour::create(
+    shared_ptr<CliFlavourParameters> parameters) {
+  return make_shared<CliFlavour>(
+      make_unique<DefaultPromptResolver>(),
+      make_unique<UbiquitiInitializer>(),
+      parameters);
 }
 
 Optional<size_t> CliFlavour::getBaseShowConfigIdx(const string cmd) const {
   smatch pieces_match;
-  if (regex_match(cmd, pieces_match, baseShowConfig)) {
-    return Optional<size_t>((size_t)pieces_match[baseShowConfigIdx].length());
+  if (regex_match(cmd, pieces_match, params->baseShowConfig)) {
+    return Optional<size_t>(
+        (size_t)pieces_match[params->baseShowConfigIdx].length());
   }
   return Optional<size_t>(none);
 }
 
 Optional<char> CliFlavour::getSingleIndentChar() {
-  return singleIndentChar;
+  return params->singleIndentChar;
 }
 
 string CliFlavour::getConfigSubsectionEnd() {
-  return configSubsectionEnd;
+  return params->configSubsectionEnd;
 }
 
 vector<string> CliFlavour::splitSubcommands(string subcommands) {
@@ -178,7 +158,7 @@ shared_ptr<CliInitializer> CliFlavour::getInitializer() {
 }
 
 string CliFlavour::getNewline() {
-  return newline;
+  return params->newline;
 }
 
 } // namespace cli

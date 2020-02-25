@@ -29,6 +29,9 @@ namespace {
 const ::google::protobuf::Descriptor* CapabilitiesRequest_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
     CapabilitiesRequest_reflection_ = NULL;
+const ::google::protobuf::Descriptor* CliFlavourParams_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+    CliFlavourParams_reflection_ = NULL;
 const ::google::protobuf::Descriptor* DeviceType_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
     DeviceType_reflection_ = NULL;
@@ -68,10 +71,38 @@ void protobuf_AssignDesc_PluginRegistration_2eproto() {
               CapabilitiesRequest, _internal_metadata_),
           GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
               CapabilitiesRequest, _is_default_instance_));
-  DeviceType_descriptor_ = file->message_type(1);
-  static const int DeviceType_offsets_[2] = {
+  CliFlavourParams_descriptor_ = file->message_type(1);
+  static const int CliFlavourParams_offsets_[5] = {
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
+          CliFlavourParams, newline_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
+          CliFlavourParams, baseshowconfigregex_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
+          CliFlavourParams, baseshowconfigidx_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
+          CliFlavourParams, singleindentchar_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
+          CliFlavourParams, configsubsectionend_),
+  };
+  CliFlavourParams_reflection_ = ::google::protobuf::internal::
+      GeneratedMessageReflection::NewGeneratedMessageReflection(
+          CliFlavourParams_descriptor_,
+          CliFlavourParams::default_instance_,
+          CliFlavourParams_offsets_,
+          -1,
+          -1,
+          -1,
+          sizeof(CliFlavourParams),
+          GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
+              CliFlavourParams, _internal_metadata_),
+          GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
+              CliFlavourParams, _is_default_instance_));
+  DeviceType_descriptor_ = file->message_type(2);
+  static const int DeviceType_offsets_[3] = {
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DeviceType, device_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(DeviceType, version_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
+          DeviceType, cliflavourparams_),
   };
   DeviceType_reflection_ = ::google::protobuf::internal::
       GeneratedMessageReflection::NewGeneratedMessageReflection(
@@ -86,7 +117,7 @@ void protobuf_AssignDesc_PluginRegistration_2eproto() {
               DeviceType, _internal_metadata_),
           GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
               DeviceType, _is_default_instance_));
-  ReaderCapability_descriptor_ = file->message_type(2);
+  ReaderCapability_descriptor_ = file->message_type(3);
   static const int ReaderCapability_offsets_[1] = {
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ReaderCapability, path_),
   };
@@ -103,7 +134,7 @@ void protobuf_AssignDesc_PluginRegistration_2eproto() {
               ReaderCapability, _internal_metadata_),
           GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
               ReaderCapability, _is_default_instance_));
-  WriterCapability_descriptor_ = file->message_type(3);
+  WriterCapability_descriptor_ = file->message_type(4);
   static const int WriterCapability_offsets_[2] = {
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WriterCapability, path_),
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
@@ -122,7 +153,7 @@ void protobuf_AssignDesc_PluginRegistration_2eproto() {
               WriterCapability, _internal_metadata_),
           GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
               WriterCapability, _is_default_instance_));
-  CapabilitiesResponse_descriptor_ = file->message_type(4);
+  CapabilitiesResponse_descriptor_ = file->message_type(5);
   static const int CapabilitiesResponse_offsets_[4] = {
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(
           CapabilitiesResponse, devicetype_),
@@ -164,6 +195,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
       CapabilitiesRequest_descriptor_,
       &CapabilitiesRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+      CliFlavourParams_descriptor_, &CliFlavourParams::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       DeviceType_descriptor_, &DeviceType::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
       ReaderCapability_descriptor_, &ReaderCapability::default_instance());
@@ -179,6 +212,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
 void protobuf_ShutdownFile_PluginRegistration_2eproto() {
   delete CapabilitiesRequest::default_instance_;
   delete CapabilitiesRequest_reflection_;
+  delete CliFlavourParams::default_instance_;
+  delete CliFlavourParams_reflection_;
   delete DeviceType::default_instance_;
   delete DeviceType_reflection_;
   delete ReaderCapability::default_instance_;
@@ -200,30 +235,38 @@ void protobuf_AddDesc_PluginRegistration_2eproto() {
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
       "\n\030PluginRegistration.proto\022\033devmand.chan"
       "nels.cli.plugin\"!\n\023CapabilitiesRequest\022\n"
-      "\n\002id\030\001 \001(\t\"-\n\nDeviceType\022\016\n\006device\030\001 \001(\t"
-      "\022\017\n\007version\030\002 \001(\t\" \n\020ReaderCapability\022\014\n"
-      "\004path\030\001 \001(\t\"6\n\020WriterCapability\022\014\n\004path\030"
-      "\001 \001(\t\022\024\n\014dependencies\030\002 \003(\t\"\227\002\n\024Capabili"
-      "tiesResponse\022;\n\ndeviceType\030\001 \001(\0132\'.devma"
-      "nd.channels.cli.plugin.DeviceType\022>\n\007rea"
-      "ders\030\002 \003(\0132-.devmand.channels.cli.plugin"
-      ".ReaderCapability\022B\n\013listReaders\030\003 \003(\0132-"
-      ".devmand.channels.cli.plugin.ReaderCapab"
-      "ility\022>\n\007writers\030\004 \003(\0132-.devmand.channel"
-      "s.cli.plugin.WriterCapability2\216\001\n\022Plugin"
-      "Registration\022x\n\017GetCapabilities\0220.devman"
-      "d.channels.cli.plugin.CapabilitiesReques"
-      "t\0321.devmand.channels.cli.plugin.Capabili"
-      "tiesResponse\"\000b\006proto3",
-      662);
+      "\n\002id\030\001 \001(\t\"\222\001\n\020CliFlavourParams\022\017\n\007newli"
+      "ne\030\001 \001(\t\022\033\n\023baseShowConfigRegex\030\002 \001(\t\022\031\n"
+      "\021baseShowConfigIdx\030\003 \001(\r\022\030\n\020singleIndent"
+      "Char\030\004 \001(\t\022\033\n\023configSubsectionEnd\030\005 \001(\t\""
+      "v\n\nDeviceType\022\016\n\006device\030\001 \001(\t\022\017\n\007version"
+      "\030\002 \001(\t\022G\n\020cliFlavourParams\030\003 \001(\0132-.devma"
+      "nd.channels.cli.plugin.CliFlavourParams\""
+      " \n\020ReaderCapability\022\014\n\004path\030\001 \001(\t\"6\n\020Wri"
+      "terCapability\022\014\n\004path\030\001 \001(\t\022\024\n\014dependenc"
+      "ies\030\002 \003(\t\"\227\002\n\024CapabilitiesResponse\022;\n\nde"
+      "viceType\030\001 \001(\0132\'.devmand.channels.cli.pl"
+      "ugin.DeviceType\022>\n\007readers\030\002 \003(\0132-.devma"
+      "nd.channels.cli.plugin.ReaderCapability\022"
+      "B\n\013listReaders\030\003 \003(\0132-.devmand.channels."
+      "cli.plugin.ReaderCapability\022>\n\007writers\030\004"
+      " \003(\0132-.devmand.channels.cli.plugin.Write"
+      "rCapability2\216\001\n\022PluginRegistration\022x\n\017Ge"
+      "tCapabilities\0220.devmand.channels.cli.plu"
+      "gin.CapabilitiesRequest\0321.devmand.channe"
+      "ls.cli.plugin.CapabilitiesResponse\"\000b\006pr"
+      "oto3",
+      884);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
       "PluginRegistration.proto", &protobuf_RegisterTypes);
   CapabilitiesRequest::default_instance_ = new CapabilitiesRequest();
+  CliFlavourParams::default_instance_ = new CliFlavourParams();
   DeviceType::default_instance_ = new DeviceType();
   ReaderCapability::default_instance_ = new ReaderCapability();
   WriterCapability::default_instance_ = new WriterCapability();
   CapabilitiesResponse::default_instance_ = new CapabilitiesResponse();
   CapabilitiesRequest::default_instance_->InitAsDefaultInstance();
+  CliFlavourParams::default_instance_->InitAsDefaultInstance();
   DeviceType::default_instance_->InitAsDefaultInstance();
   ReaderCapability::default_instance_->InitAsDefaultInstance();
   WriterCapability::default_instance_->InitAsDefaultInstance();
@@ -337,7 +380,7 @@ bool CapabilitiesRequest::MergePartialFromCodedStream(
               input, this->mutable_id()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->id().data(),
-(int)              this->id().length(),
+              (int)this->id().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.CapabilitiesRequest.id"));
         } else {
@@ -379,7 +422,7 @@ void CapabilitiesRequest::SerializeWithCachedSizes(
   if (this->id().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->id().data(),
-(int)        this->id().length(),
+        (int)this->id().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.CapabilitiesRequest.id");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -399,7 +442,7 @@ CapabilitiesRequest::InternalSerializeWithCachedSizesToArray(
   if (this->id().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->id().data(),
-(int)        this->id().length(),
+        (int)this->id().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.CapabilitiesRequest.id");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -548,8 +591,703 @@ void CapabilitiesRequest::set_allocated_id(::std::string* id) {
 // ===================================================================
 
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int CliFlavourParams::kNewlineFieldNumber;
+const int CliFlavourParams::kBaseShowConfigRegexFieldNumber;
+const int CliFlavourParams::kBaseShowConfigIdxFieldNumber;
+const int CliFlavourParams::kSingleIndentCharFieldNumber;
+const int CliFlavourParams::kConfigSubsectionEndFieldNumber;
+#endif // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+CliFlavourParams::CliFlavourParams()
+    : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:devmand.channels.cli.plugin.CliFlavourParams)
+}
+
+void CliFlavourParams::InitAsDefaultInstance() {
+  _is_default_instance_ = true;
+}
+
+CliFlavourParams::CliFlavourParams(const CliFlavourParams& from)
+    : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:devmand.channels.cli.plugin.CliFlavourParams)
+}
+
+void CliFlavourParams::SharedCtor() {
+  _is_default_instance_ = false;
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
+  newline_.UnsafeSetDefault(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  baseshowconfigregex_.UnsafeSetDefault(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  baseshowconfigidx_ = 0u;
+  singleindentchar_.UnsafeSetDefault(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  configsubsectionend_.UnsafeSetDefault(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+CliFlavourParams::~CliFlavourParams() {
+  // @@protoc_insertion_point(destructor:devmand.channels.cli.plugin.CliFlavourParams)
+  SharedDtor();
+}
+
+void CliFlavourParams::SharedDtor() {
+  newline_.DestroyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  baseshowconfigregex_.DestroyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  singleindentchar_.DestroyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  configsubsectionend_.DestroyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (this != default_instance_) {
+  }
+}
+
+void CliFlavourParams::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* CliFlavourParams::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return CliFlavourParams_descriptor_;
+}
+
+const CliFlavourParams& CliFlavourParams::default_instance() {
+  if (default_instance_ == NULL)
+    protobuf_AddDesc_PluginRegistration_2eproto();
+  return *default_instance_;
+}
+
+CliFlavourParams* CliFlavourParams::default_instance_ = NULL;
+
+CliFlavourParams* CliFlavourParams::New(
+    ::google::protobuf::Arena* arena) const {
+  CliFlavourParams* n = new CliFlavourParams;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void CliFlavourParams::Clear() {
+  // @@protoc_insertion_point(message_clear_start:devmand.channels.cli.plugin.CliFlavourParams)
+  newline_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  baseshowconfigregex_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  baseshowconfigidx_ = 0u;
+  singleindentchar_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  configsubsectionend_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+bool CliFlavourParams::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION)                 \
+  if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) \
+  goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:devmand.channels.cli.plugin.CliFlavourParams)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p =
+        input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second)
+      goto handle_unusual;
+    switch (
+        ::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional string newline = 1;
+      case 1: {
+        if (tag == 10) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+              input, this->mutable_newline()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              this->newline().data(),
+              (int)this->newline().length(),
+              ::google::protobuf::internal::WireFormatLite::PARSE,
+              "devmand.channels.cli.plugin.CliFlavourParams.newline"));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(18))
+          goto parse_baseShowConfigRegex;
+        break;
+      }
+
+      // optional string baseShowConfigRegex = 2;
+      case 2: {
+        if (tag == 18) {
+        parse_baseShowConfigRegex:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+              input, this->mutable_baseshowconfigregex()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              this->baseshowconfigregex().data(),
+              (int)this->baseshowconfigregex().length(),
+              ::google::protobuf::internal::WireFormatLite::PARSE,
+              "devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex"));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(24))
+          goto parse_baseShowConfigIdx;
+        break;
+      }
+
+      // optional uint32 baseShowConfigIdx = 3;
+      case 3: {
+        if (tag == 24) {
+        parse_baseShowConfigIdx:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+               ::google::protobuf::uint32,
+               ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+              input, &baseshowconfigidx_)));
+
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(34))
+          goto parse_singleIndentChar;
+        break;
+      }
+
+      // optional string singleIndentChar = 4;
+      case 4: {
+        if (tag == 34) {
+        parse_singleIndentChar:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+              input, this->mutable_singleindentchar()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              this->singleindentchar().data(),
+              (int)this->singleindentchar().length(),
+              ::google::protobuf::internal::WireFormatLite::PARSE,
+              "devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar"));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(42))
+          goto parse_configSubsectionEnd;
+        break;
+      }
+
+      // optional string configSubsectionEnd = 5;
+      case 5: {
+        if (tag == 42) {
+        parse_configSubsectionEnd:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+              input, this->mutable_configsubsectionend()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+              this->configsubsectionend().data(),
+              (int)this->configsubsectionend().length(),
+              ::google::protobuf::internal::WireFormatLite::PARSE,
+              "devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd"));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd())
+          goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+                ::google::protobuf::internal::WireFormatLite::
+                    WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormatLite::SkipField(
+            input, tag));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:devmand.channels.cli.plugin.CliFlavourParams)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:devmand.channels.cli.plugin.CliFlavourParams)
+  return false;
+#undef DO_
+}
+
+void CliFlavourParams::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  (void)output;
+  // @@protoc_insertion_point(serialize_start:devmand.channels.cli.plugin.CliFlavourParams)
+  // optional string newline = 1;
+  if (this->newline().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        this->newline().data(),
+        (int)this->newline().length(),
+        ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+        "devmand.channels.cli.plugin.CliFlavourParams.newline");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+        1, this->newline(), output);
+  }
+
+  // optional string baseShowConfigRegex = 2;
+  if (this->baseshowconfigregex().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        this->baseshowconfigregex().data(),
+        (int)this->baseshowconfigregex().length(),
+        ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+        "devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+        2, this->baseshowconfigregex(), output);
+  }
+
+  // optional uint32 baseShowConfigIdx = 3;
+  if (this->baseshowconfigidx() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(
+        3, this->baseshowconfigidx(), output);
+  }
+
+  // optional string singleIndentChar = 4;
+  if (this->singleindentchar().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        this->singleindentchar().data(),
+        (int)this->singleindentchar().length(),
+        ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+        "devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+        4, this->singleindentchar(), output);
+  }
+
+  // optional string configSubsectionEnd = 5;
+  if (this->configsubsectionend().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        this->configsubsectionend().data(),
+        (int)this->configsubsectionend().length(),
+        ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+        "devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+        5, this->configsubsectionend(), output);
+  }
+
+  // @@protoc_insertion_point(serialize_end:devmand.channels.cli.plugin.CliFlavourParams)
+}
+
+::google::protobuf::uint8*
+CliFlavourParams::InternalSerializeWithCachedSizesToArray(
+    bool deterministic,
+    ::google::protobuf::uint8* target) const {
+  (void)deterministic;
+  // @@protoc_insertion_point(serialize_to_array_start:devmand.channels.cli.plugin.CliFlavourParams)
+  // optional string newline = 1;
+  if (this->newline().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        this->newline().data(),
+        (int)this->newline().length(),
+        ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+        "devmand.channels.cli.plugin.CliFlavourParams.newline");
+    target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->newline(), target);
+  }
+
+  // optional string baseShowConfigRegex = 2;
+  if (this->baseshowconfigregex().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        this->baseshowconfigregex().data(),
+        (int)this->baseshowconfigregex().length(),
+        ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+        "devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex");
+    target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->baseshowconfigregex(), target);
+  }
+
+  // optional uint32 baseShowConfigIdx = 3;
+  if (this->baseshowconfigidx() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(
+        3, this->baseshowconfigidx(), target);
+  }
+
+  // optional string singleIndentChar = 4;
+  if (this->singleindentchar().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        this->singleindentchar().data(),
+        (int)this->singleindentchar().length(),
+        ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+        "devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar");
+    target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        4, this->singleindentchar(), target);
+  }
+
+  // optional string configSubsectionEnd = 5;
+  if (this->configsubsectionend().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        this->configsubsectionend().data(),
+        (int)this->configsubsectionend().length(),
+        ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+        "devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd");
+    target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        5, this->configsubsectionend(), target);
+  }
+
+  // @@protoc_insertion_point(serialize_to_array_end:devmand.channels.cli.plugin.CliFlavourParams)
+  return target;
+}
+
+int CliFlavourParams::ByteSize() const {
+  // @@protoc_insertion_point(message_byte_size_start:devmand.channels.cli.plugin.CliFlavourParams)
+  int total_size = 0;
+
+  // optional string newline = 1;
+  if (this->newline().size() > 0) {
+    total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+                      this->newline());
+  }
+
+  // optional string baseShowConfigRegex = 2;
+  if (this->baseshowconfigregex().size() > 0) {
+    total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+                      this->baseshowconfigregex());
+  }
+
+  // optional uint32 baseShowConfigIdx = 3;
+  if (this->baseshowconfigidx() != 0) {
+    total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+                      this->baseshowconfigidx());
+  }
+
+  // optional string singleIndentChar = 4;
+  if (this->singleindentchar().size() > 0) {
+    total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+                      this->singleindentchar());
+  }
+
+  // optional string configSubsectionEnd = 5;
+  if (this->configsubsectionend().size() > 0) {
+    total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+                      this->configsubsectionend());
+  }
+
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void CliFlavourParams::MergeFrom(const ::google::protobuf::Message& from) {
+  // @@protoc_insertion_point(generalized_merge_from_start:devmand.channels.cli.plugin.CliFlavourParams)
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  const CliFlavourParams* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<
+          const CliFlavourParams>(&from);
+  if (source == NULL) {
+    // @@protoc_insertion_point(generalized_merge_from_cast_fail:devmand.channels.cli.plugin.CliFlavourParams)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    // @@protoc_insertion_point(generalized_merge_from_cast_success:devmand.channels.cli.plugin.CliFlavourParams)
+    MergeFrom(*source);
+  }
+}
+
+void CliFlavourParams::MergeFrom(const CliFlavourParams& from) {
+  // @@protoc_insertion_point(class_specific_merge_from_start:devmand.channels.cli.plugin.CliFlavourParams)
+  if (GOOGLE_PREDICT_FALSE(&from == this)) {
+    ::google::protobuf::internal::MergeFromFail(__FILE__, __LINE__);
+  }
+  if (from.newline().size() > 0) {
+    newline_.AssignWithDefault(
+        &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+        from.newline_);
+  }
+  if (from.baseshowconfigregex().size() > 0) {
+    baseshowconfigregex_.AssignWithDefault(
+        &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+        from.baseshowconfigregex_);
+  }
+  if (from.baseshowconfigidx() != 0) {
+    set_baseshowconfigidx(from.baseshowconfigidx());
+  }
+  if (from.singleindentchar().size() > 0) {
+    singleindentchar_.AssignWithDefault(
+        &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+        from.singleindentchar_);
+  }
+  if (from.configsubsectionend().size() > 0) {
+    configsubsectionend_.AssignWithDefault(
+        &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+        from.configsubsectionend_);
+  }
+}
+
+void CliFlavourParams::CopyFrom(const ::google::protobuf::Message& from) {
+  // @@protoc_insertion_point(generalized_copy_from_start:devmand.channels.cli.plugin.CliFlavourParams)
+  if (&from == this)
+    return;
+  Clear();
+  MergeFrom(from);
+}
+
+void CliFlavourParams::CopyFrom(const CliFlavourParams& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:devmand.channels.cli.plugin.CliFlavourParams)
+  if (&from == this)
+    return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool CliFlavourParams::IsInitialized() const {
+  return true;
+}
+
+void CliFlavourParams::Swap(CliFlavourParams* other) {
+  if (other == this)
+    return;
+  InternalSwap(other);
+}
+void CliFlavourParams::InternalSwap(CliFlavourParams* other) {
+  newline_.Swap(&other->newline_);
+  baseshowconfigregex_.Swap(&other->baseshowconfigregex_);
+  std::swap(baseshowconfigidx_, other->baseshowconfigidx_);
+  singleindentchar_.Swap(&other->singleindentchar_);
+  configsubsectionend_.Swap(&other->configsubsectionend_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  std::swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata CliFlavourParams::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = CliFlavourParams_descriptor_;
+  metadata.reflection = CliFlavourParams_reflection_;
+  return metadata;
+}
+
+#if PROTOBUF_INLINE_NOT_IN_HEADERS
+// CliFlavourParams
+
+// optional string newline = 1;
+void CliFlavourParams::clear_newline() {
+  newline_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+const ::std::string& CliFlavourParams::newline() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.newline)
+  return newline_.GetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void CliFlavourParams::set_newline(const ::std::string& value) {
+  newline_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.newline)
+}
+void CliFlavourParams::set_newline(const char* value) {
+  newline_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:devmand.channels.cli.plugin.CliFlavourParams.newline)
+}
+void CliFlavourParams::set_newline(const char* value, size_t size) {
+  newline_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:devmand.channels.cli.plugin.CliFlavourParams.newline)
+}
+::std::string* CliFlavourParams::mutable_newline() {
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.CliFlavourParams.newline)
+  return newline_.MutableNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+::std::string* CliFlavourParams::release_newline() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.CliFlavourParams.newline)
+
+  return newline_.ReleaseNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void CliFlavourParams::set_allocated_newline(::std::string* newline) {
+  if (newline != NULL) {
+  } else {
+  }
+  newline_.SetAllocatedNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), newline);
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.CliFlavourParams.newline)
+}
+
+// optional string baseShowConfigRegex = 2;
+void CliFlavourParams::clear_baseshowconfigregex() {
+  baseshowconfigregex_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+const ::std::string& CliFlavourParams::baseshowconfigregex() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+  return baseshowconfigregex_.GetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void CliFlavourParams::set_baseshowconfigregex(const ::std::string& value) {
+  baseshowconfigregex_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+}
+void CliFlavourParams::set_baseshowconfigregex(const char* value) {
+  baseshowconfigregex_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+}
+void CliFlavourParams::set_baseshowconfigregex(const char* value, size_t size) {
+  baseshowconfigregex_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+}
+::std::string* CliFlavourParams::mutable_baseshowconfigregex() {
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+  return baseshowconfigregex_.MutableNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+::std::string* CliFlavourParams::release_baseshowconfigregex() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+
+  return baseshowconfigregex_.ReleaseNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void CliFlavourParams::set_allocated_baseshowconfigregex(
+    ::std::string* baseshowconfigregex) {
+  if (baseshowconfigregex != NULL) {
+  } else {
+  }
+  baseshowconfigregex_.SetAllocatedNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      baseshowconfigregex);
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+}
+
+// optional uint32 baseShowConfigIdx = 3;
+void CliFlavourParams::clear_baseshowconfigidx() {
+  baseshowconfigidx_ = 0u;
+}
+::google::protobuf::uint32 CliFlavourParams::baseshowconfigidx() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigIdx)
+  return baseshowconfigidx_;
+}
+void CliFlavourParams::set_baseshowconfigidx(::google::protobuf::uint32 value) {
+  baseshowconfigidx_ = value;
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigIdx)
+}
+
+// optional string singleIndentChar = 4;
+void CliFlavourParams::clear_singleindentchar() {
+  singleindentchar_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+const ::std::string& CliFlavourParams::singleindentchar() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+  return singleindentchar_.GetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void CliFlavourParams::set_singleindentchar(const ::std::string& value) {
+  singleindentchar_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+}
+void CliFlavourParams::set_singleindentchar(const char* value) {
+  singleindentchar_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+}
+void CliFlavourParams::set_singleindentchar(const char* value, size_t size) {
+  singleindentchar_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+}
+::std::string* CliFlavourParams::mutable_singleindentchar() {
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+  return singleindentchar_.MutableNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+::std::string* CliFlavourParams::release_singleindentchar() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+
+  return singleindentchar_.ReleaseNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void CliFlavourParams::set_allocated_singleindentchar(
+    ::std::string* singleindentchar) {
+  if (singleindentchar != NULL) {
+  } else {
+  }
+  singleindentchar_.SetAllocatedNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      singleindentchar);
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+}
+
+// optional string configSubsectionEnd = 5;
+void CliFlavourParams::clear_configsubsectionend() {
+  configsubsectionend_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+const ::std::string& CliFlavourParams::configsubsectionend() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+  return configsubsectionend_.GetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void CliFlavourParams::set_configsubsectionend(const ::std::string& value) {
+  configsubsectionend_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+}
+void CliFlavourParams::set_configsubsectionend(const char* value) {
+  configsubsectionend_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+}
+void CliFlavourParams::set_configsubsectionend(const char* value, size_t size) {
+  configsubsectionend_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+}
+::std::string* CliFlavourParams::mutable_configsubsectionend() {
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+  return configsubsectionend_.MutableNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+::std::string* CliFlavourParams::release_configsubsectionend() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+
+  return configsubsectionend_.ReleaseNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+void CliFlavourParams::set_allocated_configsubsectionend(
+    ::std::string* configsubsectionend) {
+  if (configsubsectionend != NULL) {
+  } else {
+  }
+  configsubsectionend_.SetAllocatedNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      configsubsectionend);
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+}
+
+#endif // PROTOBUF_INLINE_NOT_IN_HEADERS
+
+// ===================================================================
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int DeviceType::kDeviceFieldNumber;
 const int DeviceType::kVersionFieldNumber;
+const int DeviceType::kCliFlavourParamsFieldNumber;
 #endif // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 DeviceType::DeviceType()
@@ -560,6 +1298,9 @@ DeviceType::DeviceType()
 
 void DeviceType::InitAsDefaultInstance() {
   _is_default_instance_ = true;
+  cliflavourparams_ = const_cast<
+      ::devmand::channels::cli::plugin::CliFlavourParams*>(
+      &::devmand::channels::cli::plugin::CliFlavourParams::default_instance());
 }
 
 DeviceType::DeviceType(const DeviceType& from)
@@ -577,6 +1318,7 @@ void DeviceType::SharedCtor() {
       &::google::protobuf::internal::GetEmptyStringAlreadyInited());
   version_.UnsafeSetDefault(
       &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  cliflavourparams_ = NULL;
 }
 
 DeviceType::~DeviceType() {
@@ -590,6 +1332,7 @@ void DeviceType::SharedDtor() {
   version_.DestroyNoArena(
       &::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (this != default_instance_) {
+    delete cliflavourparams_;
   }
 }
 
@@ -625,6 +1368,9 @@ void DeviceType::Clear() {
       &::google::protobuf::internal::GetEmptyStringAlreadyInited());
   version_.ClearToEmptyNoArena(
       &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (GetArenaNoVirtual() == NULL && cliflavourparams_ != NULL)
+    delete cliflavourparams_;
+  cliflavourparams_ = NULL;
 }
 
 bool DeviceType::MergePartialFromCodedStream(
@@ -649,7 +1395,7 @@ bool DeviceType::MergePartialFromCodedStream(
               input, this->mutable_device()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->device().data(),
-(int)              this->device().length(),
+              (int)this->device().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.DeviceType.device"));
         } else {
@@ -668,9 +1414,24 @@ bool DeviceType::MergePartialFromCodedStream(
               input, this->mutable_version()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->version().data(),
-(int)              this->version().length(),
+              (int)this->version().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.DeviceType.version"));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26))
+          goto parse_cliFlavourParams;
+        break;
+      }
+
+      // optional .devmand.channels.cli.plugin.CliFlavourParams cliFlavourParams
+      // = 3;
+      case 3: {
+        if (tag == 26) {
+        parse_cliFlavourParams:
+          DO_(::google::protobuf::internal::WireFormatLite::
+                  ReadMessageNoVirtual(input, mutable_cliflavourparams()));
         } else {
           goto handle_unusual;
         }
@@ -710,7 +1471,7 @@ void DeviceType::SerializeWithCachedSizes(
   if (this->device().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->device().data(),
-(int)        this->device().length(),
+        (int)this->device().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.DeviceType.device");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -721,11 +1482,18 @@ void DeviceType::SerializeWithCachedSizes(
   if (this->version().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->version().data(),
-(int)        this->version().length(),
+        (int)this->version().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.DeviceType.version");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
         2, this->version(), output);
+  }
+
+  // optional .devmand.channels.cli.plugin.CliFlavourParams cliFlavourParams =
+  // 3;
+  if (this->has_cliflavourparams()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+        3, *this->cliflavourparams_, output);
   }
 
   // @@protoc_insertion_point(serialize_end:devmand.channels.cli.plugin.DeviceType)
@@ -740,7 +1508,7 @@ void DeviceType::SerializeWithCachedSizes(
   if (this->device().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->device().data(),
-(int)        this->device().length(),
+        (int)this->device().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.DeviceType.device");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -751,11 +1519,19 @@ void DeviceType::SerializeWithCachedSizes(
   if (this->version().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->version().data(),
-(int)        this->version().length(),
+        (int)this->version().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.DeviceType.version");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         2, this->version(), target);
+  }
+
+  // optional .devmand.channels.cli.plugin.CliFlavourParams cliFlavourParams =
+  // 3;
+  if (this->has_cliflavourparams()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+        InternalWriteMessageNoVirtualToArray(
+            3, *this->cliflavourparams_, false, target);
   }
 
   // @@protoc_insertion_point(serialize_to_array_end:devmand.channels.cli.plugin.DeviceType)
@@ -778,6 +1554,14 @@ int DeviceType::ByteSize() const {
     total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
                       this->version());
+  }
+
+  // optional .devmand.channels.cli.plugin.CliFlavourParams cliFlavourParams =
+  // 3;
+  if (this->has_cliflavourparams()) {
+    total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+                      *this->cliflavourparams_);
   }
 
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
@@ -818,6 +1602,11 @@ void DeviceType::MergeFrom(const DeviceType& from) {
         &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
         from.version_);
   }
+  if (from.has_cliflavourparams()) {
+    mutable_cliflavourparams()
+        ->::devmand::channels::cli::plugin::CliFlavourParams::MergeFrom(
+            from.cliflavourparams());
+  }
 }
 
 void DeviceType::CopyFrom(const ::google::protobuf::Message& from) {
@@ -848,6 +1637,7 @@ void DeviceType::Swap(DeviceType* other) {
 void DeviceType::InternalSwap(DeviceType* other) {
   device_.Swap(&other->device_);
   version_.Swap(&other->version_);
+  std::swap(cliflavourparams_, other->cliflavourparams_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
 }
@@ -957,6 +1747,47 @@ void DeviceType::set_allocated_version(::std::string* version) {
   // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.DeviceType.version)
 }
 
+// optional .devmand.channels.cli.plugin.CliFlavourParams cliFlavourParams = 3;
+bool DeviceType::has_cliflavourparams() const {
+  return !_is_default_instance_ && cliflavourparams_ != NULL;
+}
+void DeviceType::clear_cliflavourparams() {
+  if (GetArenaNoVirtual() == NULL && cliflavourparams_ != NULL)
+    delete cliflavourparams_;
+  cliflavourparams_ = NULL;
+}
+const ::devmand::channels::cli::plugin::CliFlavourParams&
+DeviceType::cliflavourparams() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.DeviceType.cliFlavourParams)
+  return cliflavourparams_ != NULL ? *cliflavourparams_
+                                   : *default_instance_->cliflavourparams_;
+}
+::devmand::channels::cli::plugin::CliFlavourParams*
+DeviceType::mutable_cliflavourparams() {
+  if (cliflavourparams_ == NULL) {
+    cliflavourparams_ = new ::devmand::channels::cli::plugin::CliFlavourParams;
+  }
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.DeviceType.cliFlavourParams)
+  return cliflavourparams_;
+}
+::devmand::channels::cli::plugin::CliFlavourParams*
+DeviceType::release_cliflavourparams() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.DeviceType.cliFlavourParams)
+
+  ::devmand::channels::cli::plugin::CliFlavourParams* temp = cliflavourparams_;
+  cliflavourparams_ = NULL;
+  return temp;
+}
+void DeviceType::set_allocated_cliflavourparams(
+    ::devmand::channels::cli::plugin::CliFlavourParams* cliflavourparams) {
+  delete cliflavourparams_;
+  cliflavourparams_ = cliflavourparams;
+  if (cliflavourparams) {
+  } else {
+  }
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.DeviceType.cliFlavourParams)
+}
+
 #endif // PROTOBUF_INLINE_NOT_IN_HEADERS
 
 // ===================================================================
@@ -1057,7 +1888,7 @@ bool ReaderCapability::MergePartialFromCodedStream(
               input, this->mutable_path()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->path().data(),
-(int)              this->path().length(),
+              (int)this->path().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ReaderCapability.path"));
         } else {
@@ -1099,7 +1930,7 @@ void ReaderCapability::SerializeWithCachedSizes(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ReaderCapability.path");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -1119,7 +1950,7 @@ ReaderCapability::InternalSerializeWithCachedSizesToArray(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ReaderCapability.path");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -1366,7 +2197,7 @@ bool WriterCapability::MergePartialFromCodedStream(
               input, this->mutable_path()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->path().data(),
-(int)              this->path().length(),
+              (int)this->path().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.WriterCapability.path"));
         } else {
@@ -1385,7 +2216,7 @@ bool WriterCapability::MergePartialFromCodedStream(
               input, this->add_dependencies()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->dependencies(this->dependencies_size() - 1).data(),
-(int)              this->dependencies(this->dependencies_size() - 1).length(),
+              (int)this->dependencies(this->dependencies_size() - 1).length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.WriterCapability.dependencies"));
         } else {
@@ -1429,7 +2260,7 @@ void WriterCapability::SerializeWithCachedSizes(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.WriterCapability.path");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -1440,7 +2271,7 @@ void WriterCapability::SerializeWithCachedSizes(
   for (int i = 0; i < this->dependencies_size(); i++) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->dependencies(i).data(),
-(int)        this->dependencies(i).length(),
+        (int)this->dependencies(i).length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.WriterCapability.dependencies");
     ::google::protobuf::internal::WireFormatLite::WriteString(
@@ -1460,7 +2291,7 @@ WriterCapability::InternalSerializeWithCachedSizesToArray(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.WriterCapability.path");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -1471,7 +2302,7 @@ WriterCapability::InternalSerializeWithCachedSizesToArray(
   for (int i = 0; i < this->dependencies_size(); i++) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->dependencies(i).data(),
-(int)        this->dependencies(i).length(),
+        (int)this->dependencies(i).length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.WriterCapability.dependencies");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(

@@ -167,13 +167,12 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/WriterPlugin.grpc.pb.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/PluginRegistration.pb.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/PluginRegistration.grpc.pb.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/CliFlavour.pb.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/CliFlavour.grpc.pb.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcReader.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcListReader.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcWriter.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcCliHandler.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcPlugin.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/DeviceType.cpp
 )
 
 target_link_libraries(devman_channel_cli

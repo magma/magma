@@ -47,6 +47,8 @@ class GrpcPlugin : public Plugin {
   void provideReaders(ReaderRegistryBuilder& registry) const override;
 
   void provideWriters(WriterRegistryBuilder& registry) const override;
+
+  Optional<CliFlavourParameters> getCliFlavourParameters() const;
 };
 
 } // namespace cli
