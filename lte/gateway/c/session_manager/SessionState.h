@@ -141,6 +141,10 @@ class SessionState {
    */
   void complete_termination();
 
+  bool is_dynamic_rule_installed(const std::string& rule_id);
+
+  bool is_static_rule_installed(const std::string& rule_id);
+
   void insert_dynamic_rule(const PolicyRule& dynamic_rule);
 
   void activate_static_rule(const std::string& rule_id);
@@ -187,6 +191,10 @@ class SessionState {
     const magma::lte::SubscriberQuotaUpdate_Type state);
 
   bool active_monitored_rules_exist();
+
+  uint32_t get_request_number();
+
+  void increment_request_number(uint32_t incr);
 
  private:
   /**
