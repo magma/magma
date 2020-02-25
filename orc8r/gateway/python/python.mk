@@ -47,17 +47,28 @@ swagger_prereqs:
 	@mkdir -p $(PYTHON_BUILD)/gen
 $(SWAGGER_LIST): %_swagger_specs:
 	@echo "Generating python code for $* swagger*.yml files"
-	@rm -rf $(PYTHON_BUILD)/gen/$*/swagger # clean directory for easy moving of files
+	@# Clean directory for easy moving of files
+	@rm -rf $(PYTHON_BUILD)/gen/$*/swagger
 	@mkdir -p $(PYTHON_BUILD)/gen/$*/swagger
 	@touch $(PYTHON_BUILD)/gen/$*/swagger/__init__.py
-	/usr/bin/java -jar "$(SWAGGER_CODEGEN_JAR)" generate \
-		-i $(SRC)/$*/swagger/swagger*.yml \
-		-o $(PYTHON_BUILD)/gen/$*/swagger \
-		-l python \
-		-Dmodels
-	@mv $(PYTHON_BUILD)/gen/$*/swagger/swagger_client/* $(PYTHON_BUILD)/gen/$*/swagger/ # flatten directory
+	@# Initialize a subdirectory to store swagger specs
+	@mkdir -p $(PYTHON_BUILD)/gen/$*/swagger/specs
+	@touch $(PYTHON_BUILD)/gen/$*/swagger/specs/__init__.py
+	@# Copy swagger specs over to the build directory,
+	@# so that eventd can access them at runtime
+	cp $(SRC)/$*/swagger/*.yml $(PYTHON_BUILD)/gen/$*/swagger/specs
+	@# Generate the files
+	ls $(PYTHON_BUILD)/gen/$*/swagger/specs \
+		| grep -e ".*\.yml" \
+		| xargs -t -I% /usr/bin/java -jar "$(SWAGGER_CODEGEN_JAR)" generate \
+			-i $(PYTHON_BUILD)/gen/$*/swagger/specs/% \
+			-o $(PYTHON_BUILD)/gen/$*/swagger \
+			-l python \
+			-Dmodels
+	@# Flatten and clean up directory
+	@mv $(PYTHON_BUILD)/gen/$*/swagger/swagger_client/* $(PYTHON_BUILD)/gen/$*/swagger/
 	@rmdir $(PYTHON_BUILD)/gen/$*/swagger/swagger_client
-	@rm -r $(PYTHON_BUILD)/gen/$*/swagger/test # remove tests
+	@rm -r $(PYTHON_BUILD)/gen/$*/swagger/test
 
 protos:: $(BIN)/grpcio-tools $(PROTO_LIST) prometheus_proto
 	@find $(PYTHON_BUILD)/gen -type d | tail -n +2 | sed '/__pycache__/d' | xargs -I % touch "%/__init__.py"
