@@ -76,6 +76,7 @@ s1aptests/test_attach_detach_secondary_pdn_no_disconnect.py \
 s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_looped.py \
 s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_multi_ue.py \
 s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer.py \
+s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_deactivate.py \
 s1aptests/test_attach_detach_disconnect_default_pdn.py \
 s1aptests/test_attach_detach_max_pdns.py \
 s1aptests/test_attach_detach_multiple_secondary_pdn.py \
