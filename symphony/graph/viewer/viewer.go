@@ -96,6 +96,7 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 		if err != nil {
 			return r
 		}
+		req.Host = r.Host
 		if username, password, ok := r.BasicAuth(); ok {
 			req.SetBasicAuth(username, password)
 		}

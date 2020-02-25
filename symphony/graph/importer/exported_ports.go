@@ -64,13 +64,18 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 	} else {
 		commitRuns = []bool{true}
 	}
+	startSaving := false
 
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityPort)
 		if err != nil {
 			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
 			http.Error(w, fmt.Sprintf("cannot handle file: %q. file name: %q", err, fileName), http.StatusInternalServerError)
+			return
+		}
+		importHeader, err := NewImportHeader(first, ImportEntityPort)
+		if err != nil {
+			errorReturn(w, "error on header", log, err)
 			return
 		}
 		//
@@ -87,6 +92,8 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
 			if commit && *verifyBeforeCommit && len(errs) != 0 {
 				break
+			} else if commit && len(errs) == 0 {
+				startSaving = true
 			}
 			if len(skipLines) > 0 {
 				nextLineToSkipIndex = 0
@@ -180,7 +187,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 	}
 	log.Debug("Exported ports - Done")
 	w.WriteHeader(http.StatusOK)
-	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0)
+	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0, startSaving)
 
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)

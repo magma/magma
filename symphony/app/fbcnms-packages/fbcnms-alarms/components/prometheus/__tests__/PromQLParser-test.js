@@ -223,11 +223,11 @@ const testCases = [
     `{by="this magic",group_left="is allowed",unless="I failed"}`,
     [
       {value: '{', type: 'lBrace'},
-      {value: 'by', type: 'clauseOp'},
+      {value: 'by', type: 'aggClause'},
       {value: '=', type: 'labelOp'},
       {value: 'this magic', type: 'string'},
       {value: ',', type: 'comma'},
-      {value: 'group_left', type: 'groupOp'},
+      {value: 'group_left', type: 'groupClause'},
       {value: '=', type: 'labelOp'},
       {value: 'is allowed', type: 'string'},
       {value: ',', type: 'comma'},
@@ -305,7 +305,7 @@ const testCases = [
     new PromQL.BinaryOperation(
       new PromQL.InstantSelector('metric'),
       new PromQL.InstantSelector('metric'),
-      '>',
+      new PromQL.BinaryComparator('>'),
     ),
   ],
   [
@@ -319,14 +319,58 @@ const testCases = [
     new PromQL.BinaryOperation(
       new PromQL.InstantSelector('metric'),
       new PromQL.InstantSelector('metric'),
-      '>=',
+      new PromQL.BinaryComparator('>='),
+    ),
+  ],
+  [
+    '> operator bool mode',
+    'metric > bool metric2',
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '>', type: 'binComp'},
+      {value: 'bool', type: 'identifier'},
+      {value: 'metric2', type: 'identifier'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.InstantSelector('metric2'),
+      new PromQL.BinaryComparator('>').makeBoolean(),
+    ),
+  ],
+  [
+    '!= operator as vector comparator',
+    `metric != metric`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '!=', type: 'neq'},
+      {value: 'metric', type: 'identifier'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.InstantSelector('metric'),
+      new PromQL.BinaryComparator('!='),
+    ),
+  ],
+  [
+    '!= operator as label matcher',
+    `{status!="500"}`,
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'status', type: 'identifier'},
+      {value: '!=', type: 'neq'},
+      {value: '500', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector(
+      '',
+      new PromQL.Labels().addNotEqual('status', '500'),
     ),
   ],
   [
     'label list (e.g. by (label1, label2) clause)',
     `by (label1, label2)`,
     [
-      {value: 'by', type: 'clauseOp'},
+      {value: 'by', type: 'aggClause'},
       {value: '(', type: 'lParen'},
       {value: 'label1', type: 'identifier'},
       {value: ',', type: 'comma'},
@@ -356,7 +400,7 @@ const testCases = [
       {value: '(', type: 'lParen'},
       {value: 'metric', type: 'identifier'},
       {value: ')', type: 'rParen'},
-      {value: 'by', type: 'clauseOp'},
+      {value: 'by', type: 'aggClause'},
       {value: '(', type: 'lParen'},
       {value: 'label', type: 'identifier'},
       {value: ')', type: 'rParen'},
@@ -372,7 +416,7 @@ const testCases = [
     `sum by (label) (metric)`,
     [
       {value: 'sum', type: 'aggOp'},
-      {value: 'by', type: 'clauseOp'},
+      {value: 'by', type: 'aggClause'},
       {value: '(', type: 'lParen'},
       {value: 'label', type: 'identifier'},
       {value: ')', type: 'rParen'},
@@ -531,7 +575,7 @@ const testCases = [
         ]),
       ]),
       new PromQL.Scalar(5),
-      '>',
+      new PromQL.BinaryComparator('>'),
     ),
   ],
   [
@@ -553,7 +597,7 @@ const testCases = [
       {value: ']', type: 'rBracket'},
       {value: ')', type: 'rParen'},
       {value: ')', type: 'rParen'},
-      {value: 'by', type: 'clauseOp'},
+      {value: 'by', type: 'aggClause'},
       {value: '(', type: 'lParen'},
       {value: 'region', type: 'identifier'},
       {value: ',', type: 'comma'},
@@ -579,7 +623,7 @@ const testCases = [
         new PromQL.Clause('by', ['region', 'code']),
       ),
       new PromQL.Scalar(5),
-      '>',
+      new PromQL.BinaryComparator('>'),
     ),
   ],
   [
@@ -602,7 +646,7 @@ const testCases = [
     [
       {value: 'metric', type: 'identifier'},
       {value: '/', type: 'arithmetic'},
-      {value: 'on', type: 'clauseOp'},
+      {value: 'on', type: 'matchClause'},
       {value: '(', type: 'lParen'},
       {value: 'label1', type: 'identifier'},
       {value: ',', type: 'comma'},
@@ -620,6 +664,55 @@ const testCases = [
     ),
   ],
   [
+    'binary operation with group clause',
+    `metric + on(label1) group_left(label2) metric2`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '+', type: 'arithmetic'},
+      {value: 'on', type: 'matchClause'},
+      {value: '(', type: 'lParen'},
+      {value: 'label1', type: 'identifier'},
+      {value: ')', type: 'rParen'},
+      {value: 'group_left', type: 'groupClause'},
+      {value: '(', type: 'lParen'},
+      {value: 'label2', type: 'identifier'},
+      {value: ')', type: 'rParen'},
+      {value: 'metric2', type: 'identifier'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.InstantSelector('metric2'),
+      '+',
+      new PromQL.VectorMatchClause(
+        new PromQL.Clause('on', ['label1']),
+        new PromQL.Clause('group_left', ['label2']),
+      ),
+    ),
+  ],
+  [
+    'binary operation with group clause without labels',
+    `metric + on(label1) group_left metric2`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '+', type: 'arithmetic'},
+      {value: 'on', type: 'matchClause'},
+      {value: '(', type: 'lParen'},
+      {value: 'label1', type: 'identifier'},
+      {value: ')', type: 'rParen'},
+      {value: 'group_left', type: 'groupClause'},
+      {value: 'metric2', type: 'identifier'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.InstantSelector('metric2'),
+      '+',
+      new PromQL.VectorMatchClause(
+        new PromQL.Clause('on', ['label1']),
+        new PromQL.Clause('group_left'),
+      ),
+    ),
+  ],
+  [
     'metric that starts with clause operator name',
     `bytes_received > 0`,
     [
@@ -630,7 +723,7 @@ const testCases = [
     new PromQL.BinaryOperation(
       new PromQL.InstantSelector('bytes_received'),
       new PromQL.Scalar(0),
-      '>',
+      new PromQL.BinaryComparator('>'),
     ),
   ],
   [
@@ -644,7 +737,28 @@ const testCases = [
     new PromQL.BinaryOperation(
       new PromQL.InstantSelector('up'),
       new PromQL.Scalar(0),
-      '==',
+      new PromQL.BinaryComparator('=='),
+    ),
+  ],
+  [
+    'comments',
+    `metric_name # comment with ### symbols`,
+    [{value: 'metric_name', type: 'identifier'}],
+    new PromQL.InstantSelector('metric_name'),
+  ],
+  [
+    'octothorpes in strings are not comments',
+    `{fragment="#index"}`,
+    [
+      {value: '{', type: 'lBrace'},
+      {value: 'fragment', type: 'identifier'},
+      {value: '=', type: 'labelOp'},
+      {value: '#index', type: 'string'},
+      {value: '}', type: 'rBrace'},
+    ],
+    new PromQL.InstantSelector(
+      '',
+      new PromQL.Labels().addEqual('fragment', '#index'),
     ),
   ],
 ];

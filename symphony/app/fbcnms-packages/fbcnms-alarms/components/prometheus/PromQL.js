@@ -9,10 +9,15 @@
  */
 
 import type {
+  AggrClauseType,
   AggregationOperator,
-  BinaryOperator,
+  BinaryArithmetic,
+  BinarySet,
   FunctionName,
+  GroupClauseType,
   LabelOperator,
+  MatchClauseType,
+  BinaryComparator as SimpleBinaryComparator,
 } from './PromQLTypes';
 
 export interface Expression {
@@ -217,18 +222,47 @@ export class BinaryOperation implements Expression {
 
   toPromQL(): string {
     return (
-      `${this.lh.toPromQL()} ${this.operator} ` +
+      `${this.lh.toPromQL()} ${this.operator.toString()} ` +
       (this.clause ? this.clause.toString() + ' ' : '') +
       `${this.rh.toPromQL()}`
     );
   }
 }
 
-export class VectorMatchClause {
-  matchClause: Clause;
-  groupClause: ?Clause;
+export type BinaryOperator = BinaryArithmetic | BinarySet | BinaryComparator;
 
-  constructor(matchClause: Clause, groupClause: ?Clause) {
+export class BinaryComparator {
+  op: SimpleBinaryComparator;
+  boolMode: boolean;
+
+  constructor(op: SimpleBinaryComparator) {
+    this.op = op;
+    this.boolMode = false;
+  }
+
+  makeBoolean() {
+    this.boolMode = true;
+    return this;
+  }
+
+  makeRegular() {
+    this.boolMode = false;
+    return this;
+  }
+
+  toString(): string {
+    return this.boolMode ? `${this.op} bool` : this.op;
+  }
+}
+
+export class VectorMatchClause {
+  matchClause: Clause<MatchClauseType>;
+  groupClause: ?Clause<GroupClauseType>;
+
+  constructor(
+    matchClause: Clause<MatchClauseType>,
+    groupClause: ?Clause<GroupClauseType>,
+  ) {
     this.matchClause = matchClause;
     this.groupClause = groupClause;
   }
@@ -241,29 +275,33 @@ export class VectorMatchClause {
   }
 }
 
-export class Clause {
-  operator: string;
+export type ClauseType = AggrClauseType | MatchClauseType | GroupClauseType;
+export class Clause<ClauseType: ClauseType> {
+  operator: ClauseType;
   labelList: Array<string>;
 
-  constructor(operator: string, labelList: Array<string>) {
+  constructor(operator: ClauseType, labelList: Array<string> = []) {
     this.operator = operator;
     this.labelList = labelList;
   }
 
   toString(): string {
-    return `${this.operator} (` + this.labelList.join(',') + ')';
+    return (
+      this.operator +
+      (this.labelList.length > 0 ? ` (${this.labelList.join(',')})` : '')
+    );
   }
 }
 
 export class AggregationOperation implements Expression {
   name: AggregationOperator;
   parameters: Array<Expression>;
-  clause: ?Clause;
+  clause: ?Clause<AggrClauseType>;
 
   constructor(
     name: AggregationOperator,
     parameters: Array<Expression>,
-    clause: ?Clause,
+    clause: ?Clause<AggrClauseType>,
   ) {
     this.name = name;
     this.parameters = parameters;

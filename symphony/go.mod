@@ -19,6 +19,7 @@ require (
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/bobesa/go-domain-util v0.0.0-20190911083921-4033b5f7dd89
 	github.com/cenkalti/backoff v2.2.1+incompatible
+	github.com/davecgh/go-spew v1.1.1
 	github.com/facebookincubator/ent v0.1.3-0.20200216161758-320b9caf6172
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gogo/protobuf v1.3.1 // indirect

@@ -1310,7 +1310,20 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 		Name:       newWorkOrderName,
 		Properties: []*models.PropertyInput{&prop},
 	}
-	updatedP, err := mr.EditWorkOrder(ctx, editInput)
+	_, err = mr.EditWorkOrder(ctx, editInput)
+	require.NoError(t, err)
+
+	newStrFixedValue := "updated FixedFoo"
+	newStrFixedProp := models.PropertyInput{
+		PropertyTypeID: strFixedProp.PropertyTypeID,
+		StringValue:    &newStrFixedValue,
+	}
+	editFixedPropInput := models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       newWorkOrderName,
+		Properties: []*models.PropertyInput{&newStrFixedProp},
+	}
+	updatedP, err := mr.EditWorkOrder(ctx, editFixedPropInput)
 	require.NoError(t, err)
 
 	updatedNode, err := qr.Node(ctx, updatedP.ID)
@@ -1326,6 +1339,10 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	updatedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
 	require.Equal(t, updatedProp.StringVal, *prop.StringValue, "Comparing updated properties: string value")
 	require.Equal(t, updatedProp.QueryType().OnlyXID(ctx), prop.PropertyTypeID, "Comparing updated properties: PropertyType value")
+
+	notUpdatedFixedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
+	require.Equal(t, notUpdatedFixedProp.StringVal, *strFixedProp.StringValue, "Comparing not changed fixed property: string value")
+	require.Equal(t, notUpdatedFixedProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing updated properties: PropertyType value")
 }
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {

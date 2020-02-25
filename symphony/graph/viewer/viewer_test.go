@@ -134,8 +134,10 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 		conn.Close()
 	})
 
+	const host = "test.example.com"
 	authenticator := httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			require.Equal(t, host, r.Host)
 			if username, _, ok := r.BasicAuth(); ok {
 				err := json.NewEncoder(w).Encode(&Viewer{
 					Tenant: "test",
@@ -165,6 +167,7 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 			})
 			handler = WebSocketUpgradeHandler(handler, authenticator.URL)
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req.Host = host
 			authReq(req)
 			req.Header.Set("Connection", "upgrade")
 			req.Header.Set("Upgrade", "websocket")

@@ -34,21 +34,14 @@ export const BINARY_ARITHMETIC_OPS: Array<BinaryArithmetic> = Object.keys(
   BINARY_ARITHMETIC_OPS_MAP,
 );
 
-export type BinaryLogical = $Keys<typeof BINARY_LOGIC_OPS_MAP>;
-export const BINARY_LOGIC_OPS_MAP = {and: 'and', or: 'or', unless: 'unless'};
-export const BINARY_LOGIC_OPS: Array<BinaryLogical> = Object.keys(
-  BINARY_LOGIC_OPS_MAP,
-);
+export type BinarySet = 'and' | 'or' | 'unless';
+export const BINARY_SET_OPS: Array<BinarySet> = ['and', 'or', 'unless'];
 
 export const BINARY_OPERATORS = [
   ...BINARY_COMPARATORS,
   ...BINARY_ARITHMETIC_OPS,
-  ...BINARY_LOGIC_OPS,
+  ...BINARY_SET_OPS,
 ];
-export type BinaryOperator =
-  | BinaryComparator
-  | BinaryArithmetic
-  | BinaryLogical;
 
 export type LabelOperator = '=' | '!=' | '=~' | '!~';
 export const LABEL_OPERATORS: Array<LabelOperator> = ['=', '!=', '=~', '!~'];
@@ -126,21 +119,17 @@ const FUNCTION_NAMES_MAP = {
 };
 export const FUNCTION_NAMES: Array<string> = Object.keys(FUNCTION_NAMES_MAP);
 
-export type ClauseOperator = $Keys<typeof CLAUSE_OPS>;
-const CLAUSE_OPS_MAP = {
-  by: 'by',
-  on: 'on',
-  without: 'without',
-  ignoring: 'ignoring',
-};
-export const CLAUSE_OPS: Array<string> = Object.keys(CLAUSE_OPS_MAP);
+export type AggrClauseType = 'by' | 'without';
+export const AGGR_CLAUSE_TYPES: Array<AggrClauseType> = ['by', 'without'];
 
-export type GroupOperator = $Keys<typeof GROUP_OPS>;
-const GROUP_OPS_MAP = {
-  group_left: 'group_left',
-  group_right: 'group_right',
-};
-export const GROUP_OPS: Array<string> = Object.keys(GROUP_OPS_MAP);
+export type MatchClauseType = 'on' | 'ignoring';
+export const MATCH_CLAUSE_TYPES: Array<MatchClauseType> = ['on', 'ignoring'];
+
+export type GroupClauseType = 'group_left' | 'group_right';
+export const GROUP_CLAUSE_TYPES: Array<GroupClauseType> = [
+  'group_left',
+  'group_right',
+];
 
 export class SyntaxError extends Error {
   constructor(message: string) {
