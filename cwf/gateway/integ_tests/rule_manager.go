@@ -183,10 +183,10 @@ func makeUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) 
 		Imsi: imsi,
 		UsageMonitorCredits: []*fegProtos.UsageMonitorCredit{
 			{
-				MonitoringKey:   monitoringKey,
-				Volume:          volume,
-				ReturnBytes:     bytesPerGrant,
-				MonitoringLevel: fegProtos.UsageMonitorCredit_RuleLevel,
+				MonitoringKey:        monitoringKey,
+				TotalQuota:           &fegProtos.Octets{TotalOctets: volume},
+				QuotaGrantPerRequest: &fegProtos.Octets{TotalOctets: bytesPerGrant},
+				MonitoringLevel:      fegProtos.UsageMonitorCredit_RuleLevel,
 			},
 		},
 	}
