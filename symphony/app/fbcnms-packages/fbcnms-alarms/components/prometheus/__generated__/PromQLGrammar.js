@@ -9,6 +9,7 @@ const {lexer} = require('../PromQLTokenizer');
 const {FUNCTION_NAMES, SyntaxError} = require('../PromQLTypes')
 const {
         AggregationOperation,
+        BinaryComparator,
         BinaryOperation,
         Clause,
         Function,
@@ -57,7 +58,8 @@ var grammar = {
                 new Clause(matchOp, matchLabels),
                 new Clause(groupOp))
                                 },
-    {"name": "bin_op", "symbols": ["BIN_COMP"], "postprocess": id},
+    {"name": "bin_op", "symbols": ["BIN_COMP"], "postprocess": ([op, _boolMode]) => new BinaryComparator(op)},
+    {"name": "bin_op", "symbols": ["BIN_COMP", {"literal":"bool"}], "postprocess": ([op, _boolMode]) => new BinaryComparator(op).makeBoolean()},
     {"name": "bin_op", "symbols": ["SET_OP"], "postprocess": id},
     {"name": "bin_op", "symbols": ["ARITHM_OP"], "postprocess": id},
     {"name": "offset_clause", "symbols": [{"literal":"offset"}, "RANGE"]},

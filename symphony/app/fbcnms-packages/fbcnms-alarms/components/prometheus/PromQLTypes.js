@@ -42,7 +42,6 @@ export const BINARY_OPERATORS = [
   ...BINARY_ARITHMETIC_OPS,
   ...BINARY_SET_OPS,
 ];
-export type BinaryOperator = BinaryComparator | BinaryArithmetic | BinarySet;
 
 export type LabelOperator = '=' | '!=' | '=~' | '!~';
 export const LABEL_OPERATORS: Array<LabelOperator> = ['=', '!=', '=~', '!~'];

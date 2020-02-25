@@ -305,7 +305,7 @@ const testCases = [
     new PromQL.BinaryOperation(
       new PromQL.InstantSelector('metric'),
       new PromQL.InstantSelector('metric'),
-      '>',
+      new PromQL.BinaryComparator('>'),
     ),
   ],
   [
@@ -319,7 +319,22 @@ const testCases = [
     new PromQL.BinaryOperation(
       new PromQL.InstantSelector('metric'),
       new PromQL.InstantSelector('metric'),
-      '>=',
+      new PromQL.BinaryComparator('>='),
+    ),
+  ],
+  [
+    '> operator bool mode',
+    'metric > bool metric2',
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '>', type: 'binComp'},
+      {value: 'bool', type: 'identifier'},
+      {value: 'metric2', type: 'identifier'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.InstantSelector('metric2'),
+      new PromQL.BinaryComparator('>').makeBoolean(),
     ),
   ],
   [
@@ -333,7 +348,7 @@ const testCases = [
     new PromQL.BinaryOperation(
       new PromQL.InstantSelector('metric'),
       new PromQL.InstantSelector('metric'),
-      '!=',
+      new PromQL.BinaryComparator('!='),
     ),
   ],
   [
@@ -560,7 +575,7 @@ const testCases = [
         ]),
       ]),
       new PromQL.Scalar(5),
-      '>',
+      new PromQL.BinaryComparator('>'),
     ),
   ],
   [
@@ -608,7 +623,7 @@ const testCases = [
         new PromQL.Clause('by', ['region', 'code']),
       ),
       new PromQL.Scalar(5),
-      '>',
+      new PromQL.BinaryComparator('>'),
     ),
   ],
   [
@@ -708,7 +723,7 @@ const testCases = [
     new PromQL.BinaryOperation(
       new PromQL.InstantSelector('bytes_received'),
       new PromQL.Scalar(0),
-      '>',
+      new PromQL.BinaryComparator('>'),
     ),
   ],
   [
@@ -722,7 +737,7 @@ const testCases = [
     new PromQL.BinaryOperation(
       new PromQL.InstantSelector('up'),
       new PromQL.Scalar(0),
-      '==',
+      new PromQL.BinaryComparator('=='),
     ),
   ],
   [

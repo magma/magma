@@ -11,11 +11,13 @@
 import type {
   AggrClauseType,
   AggregationOperator,
-  BinaryOperator,
+  BinaryArithmetic,
+  BinarySet,
   FunctionName,
   GroupClauseType,
   LabelOperator,
   MatchClauseType,
+  BinaryComparator as SimpleBinaryComparator,
 } from './PromQLTypes';
 
 export interface Expression {
@@ -220,10 +222,36 @@ export class BinaryOperation implements Expression {
 
   toPromQL(): string {
     return (
-      `${this.lh.toPromQL()} ${this.operator} ` +
+      `${this.lh.toPromQL()} ${this.operator.toString()} ` +
       (this.clause ? this.clause.toString() + ' ' : '') +
       `${this.rh.toPromQL()}`
     );
+  }
+}
+
+export type BinaryOperator = BinaryArithmetic | BinarySet | BinaryComparator;
+
+export class BinaryComparator {
+  op: SimpleBinaryComparator;
+  boolMode: boolean;
+
+  constructor(op: SimpleBinaryComparator) {
+    this.op = op;
+    this.boolMode = false;
+  }
+
+  makeBoolean() {
+    this.boolMode = true;
+    return this;
+  }
+
+  makeRegular() {
+    this.boolMode = false;
+    return this;
+  }
+
+  toString(): string {
+    return this.boolMode ? `${this.op} bool` : this.op;
   }
 }
 

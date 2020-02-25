@@ -3,6 +3,7 @@ const {lexer} = require('../PromQLTokenizer');
 const {FUNCTION_NAMES, SyntaxError} = require('../PromQLTypes')
 const {
         AggregationOperation,
+        BinaryComparator,
         BinaryOperation,
         Clause,
         Function,
@@ -81,7 +82,9 @@ vector_match_clause ->
                         %}
 
 bin_op ->
-        BIN_COMP        {% id %}
+        BIN_COMP        {% ([op, _boolMode]) => new BinaryComparator(op) %}
+        | BIN_COMP "bool"
+                        {% ([op, _boolMode]) => new BinaryComparator(op).makeBoolean() %}
         | SET_OP        {% id %}
         | ARITHM_OP     {% id %}
 

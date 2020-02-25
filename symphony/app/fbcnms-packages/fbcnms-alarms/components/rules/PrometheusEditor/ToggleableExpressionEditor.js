@@ -31,7 +31,6 @@ import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks/index';
 
-import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 import type {InputChangeFunc} from './PrometheusEditor';
 import type {prometheus_labelset} from '@fbcnms/magma-api';
 
@@ -56,7 +55,7 @@ const useStyles = makeStyles(theme => ({
 
 export type ThresholdExpression = {
   metricName: string,
-  comparator: BinaryComparator,
+  comparator: PromQL.BinaryComparator,
   filters: PromQL.Labels,
   value: number,
 };
@@ -187,7 +186,7 @@ function ThresholdExpressionEditor(props: {
             onChange={(event, val) => {
               props.onChange({
                 ...props.expression,
-                comparator: val,
+                comparator: new PromQL.BinaryComparator(val),
               });
             }}>
             <ToggleButton value="<">{'<'}</ToggleButton>

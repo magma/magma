@@ -156,6 +156,24 @@ describe('Binary Operators', () => {
       '1 + 2',
     ],
     [
+      'comparison',
+      new PromQL.BinaryOperation(
+        new PromQL.InstantSelector('metric1'),
+        new PromQL.InstantSelector('metric2'),
+        new PromQL.BinaryComparator('=='),
+      ),
+      'metric1 == metric2',
+    ],
+    [
+      'boolean comparison',
+      new PromQL.BinaryOperation(
+        new PromQL.InstantSelector('metric1'),
+        new PromQL.InstantSelector('metric2'),
+        new PromQL.BinaryComparator('==').makeBoolean(),
+      ),
+      'metric1 == bool metric2',
+    ],
+    [
       'metric and metric',
       new PromQL.BinaryOperation(basicSelector, basicSelector, 'and'),
       'metric and metric',
@@ -271,7 +289,7 @@ describe('realistic examples', () => {
           new PromQL.Clause('by', ['region']),
         ),
         new PromQL.Scalar(5),
-        '>',
+        new PromQL.BinaryComparator('>'),
       ),
       `avg(rate(http_status{code="500"}[5m])) by (region) > 5`,
     ],
