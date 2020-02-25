@@ -286,7 +286,7 @@ class SubscriberUtil(object):
         self._ue_id += 1
         return ue_cfg
 
-    def add_sub(self, num_ues=1, apn_list=[]):
+    def add_sub(self, num_ues=1, apn_list=None):
         """ Add subscribers to the EPC, is blocking """
         # Add the default IMSI used for the tests
         subscribers = []

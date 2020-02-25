@@ -117,7 +117,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
                 raise
 
     @staticmethod
-    def _get_subscriberdb_data(sid, apn_list=[]):
+    def _get_subscriberdb_data(sid, apn_list=None):
         """
         Get subscriber data in protobuf format.
 
@@ -133,7 +133,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
         lte.auth_key = bytes.fromhex(KEY)
         state = SubscriberState()
         state.lte_auth_next_seq = 1
-        if len(apn_list):
+        if apn_list:
             usr_prof = Non3GPPUserProfile()
             num_apn = len(apn_list)
             for idx in range(num_apn):
@@ -209,7 +209,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
         sids_eq_len = len(self._added_sids) == len(self.list_subscriber_sids())
         assert sids_eq_len
 
-    def add_subscriber(self, sid, apn_list=[]):
+    def add_subscriber(self, sid, apn_list=None):
         logging.info("Adding subscriber : %s", sid)
         self._added_sids.add(sid)
         sub_data = self._get_subscriberdb_data(sid, apn_list=apn_list)

@@ -161,7 +161,7 @@ class TestWrapper(object):
         print("************************* Waiting for IP changes to propagate")
         self._mobility_util.wait_for_changes()
 
-    def configUEDevice(self, num_ues, apn_list=[]):
+    def configUEDevice(self, num_ues, apn_list=None):
         """ Configure the device on the UE side """
         reqs = self._sub_util.add_sub(num_ues=num_ues, apn_list=apn_list)
         for i in range(num_ues):

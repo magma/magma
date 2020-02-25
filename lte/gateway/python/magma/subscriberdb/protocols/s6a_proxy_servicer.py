@@ -127,6 +127,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
                 )
                 apn_found += 1
             except ApnNotFoundError as e:
+                logging.warning("APN not found : %s", e)
                 continue
             sec_apn = ula.apn.add()
             # Context id 0 is assigned to oai.ipv4 apn. So start from 1
