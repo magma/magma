@@ -9,7 +9,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import unittest
 import warnings
-from unittest.mock import MagicMock
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
@@ -90,7 +89,6 @@ class UEMacAddressTest(unittest.TestCase):
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.check_quota_controller = check_quota_controller_reference.result()
-        cls.check_quota_controller._setup_fake_ip_arp = MagicMock()
         cls.testing_controller = testing_controller_reference.result()
 
     @classmethod
