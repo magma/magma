@@ -101,11 +101,14 @@ def add_file(
                 one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
             entity_id (string):
                 valid entity ID
+            category (Optional[string]): file category name 
 
         Returns: None
 
         Example:
-            client.add_file(client, './document.pdf', 'LOCATION', location.id)
+        ```
+        client.add_file(client, './document.pdf', 'LOCATION', location.id, 'category_name')
+        ```
     """
     entity = {
         "LOCATION": ImageEntity.LOCATION,
@@ -134,11 +137,14 @@ def add_files(
                 one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
             entity_id (string):
                 valid entity ID
+            category (Optional[string]): file category name
 
         Returns: None
 
         Example:
-            client.add_files(client, './documents_folder/', 'LOCATION', location.id)
+        ```
+        client.add_files(client, './documents_folder/', 'LOCATION', location.id, 'category_name')
+        ```
     """
     for file in list_dir(local_directory_path):
         add_file(client, file, entity_type, entity_id, category)

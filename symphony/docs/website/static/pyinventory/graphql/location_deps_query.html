@@ -35,7 +35,7 @@
 <dl>
 <dt id="pyinventory.graphql.location_deps_query.LocationDepsQuery"><code class="flex name class">
 <span>class <span class="ident">LocationDepsQuery</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: Union[<a title="pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData" href="#pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData">LocationDepsQuery.LocationDepsQueryData</a>, NoneType] = None, errors: Union[Any, NoneType] = None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>LocationDepsQuery(data: Union[pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
@@ -57,25 +57,25 @@
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.location_deps_query.LocationDepsQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, id)</span>
+<span>def <span class="ident">execute</span></span>(<span>client, id: str)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.location_deps_query.LocationDepsQuery.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.location_deps_query.LocationDepsQuery.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.location_deps_query.LocationDepsQuery.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -90,7 +90,7 @@
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.location_deps_query.LocationDepsQuery.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
 </code></dt>
 <dd>
 <section class="desc"></section>

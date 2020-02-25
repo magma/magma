@@ -34,12 +34,12 @@ def copy_equipment_with_all_attachments(
     """Copy the equipment to the new location with all its attachments
 
         Args:
-            equipment (client.Equipment object): could be retrieved from the following apis:
+            equipment (pyinventory.consts.Equipment object): could be retrieved from the following apis:
                 * getEquipment
                 * getEquipmentInPosition
                 * addEquipment
                 * addEquipmentToPosition
-            dest_location (client.Location object): retrieved from getLocation or addLocation api.
+            dest_location (pyinventory.consts.Location object): retrieved from getLocation or addLocation api.
 
         Raises: FailedOperationException for internal inventory error
 

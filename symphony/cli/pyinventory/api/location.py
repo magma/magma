@@ -49,41 +49,42 @@ def add_location(
         If a location with his name in this place already exists the existing location is returned
 
         Args:
-            location_hirerchy (List[Tuple[str, str]]):
-                An hirerchy of locations.
-                the first str is location type name
-                the second str is location name
+            location_hirerchy (List[Tuple[str, str]]): An hirerchy of locations.
+                The first str is location type name. The second str is location name
             properties_dict: dict of property name to property value. the property value should match
                             the property type. Otherwise exception is raised
             lat (float): latitude
             long (float): longitude
-            external id (str): ID from external system
+            externalID (str): ID from external system
 
-        Returns: client.Location object
+        Returns:
+            pyinventory.consts.Location object
 
-        Raises: LocationIsNotUniqueException if there is two possible locations
-                    inside the chain and it is not clear where to create or
-                    what to return
-                FailedOperationException for internal inventory error
+        Raises:
+            LocationIsNotUniqueException: if there is two possible locations
+                inside the chain and it is not clear where to create or what to return
+            FailedOperationException: for internal inventory error
 
         Example:
-                location = client.add_location(
-                    [
-                        ('Country', 'England'),
-                        ('City', 'Milton Keynes'),
-                        ('Site', 'Bletchley Park')
-                    ],
-                    {
-                        'Date Property ': date.today(),
-                        'Lat/Lng Property: ': (-1.23,9.232),
-                        'E-mail Property ': "user@fb.com",
-                        'Number Property ': 11,
-                        'String Property ': "aa",
-                        'Float Property': 1.23
-                    },
-                    -11.32,
-                    98.32,
-                    None)
+        ```
+        location = client.add_location(
+            [
+                ('Country', 'England'),
+                ('City', 'Milton Keynes'),
+                ('Site', 'Bletchley Park')
+            ],
+            {
+                'Date Property ': date.today(),
+                'Lat/Lng Property: ': (-1.23,9.232),
+                'E-mail Property ': "user@fb.com",
+                'Number Property ': 11,
+                'String Property ': "aa",
+                'Float Property': 1.23
+            },
+            -11.32,
+            98.32,
+            None)
+        ```
     """
 
     last_location = None
@@ -236,21 +237,25 @@ def get_location(
                 the first str is location type name
                 the second str is location name
 
-        Returns: client.Location object
+        Returns: pyinventory.consts.Location object
 
         Raises: LocationIsNotUniqueException if there is more than one correct
                 location to return
                 or LocationNotFoundException if no location was found
 
         Example:
-                location = client.getLocation([
-                    ('Country', 'England'),
-                    ('City', 'Milton Keynes'),
-                    ('Site', 'Bletchley Park')
-                ])
-            or
-                location = client.getLocation([('Site', 'Bletchley Park')])
-                this call will fail if there is Bletchley Park in two cities in london
+        ```
+        location = client.get_location([
+            ('Country', 'England'),
+            ('City', 'Milton Keynes'),
+            ('Site', 'Bletchley Park')
+        ])
+        ```
+        or
+        ```
+        # this call will fail if there is Bletchley Park in two cities in london
+        location = client.get_location([('Site', 'Bletchley Park')])
+        ```
     """
 
     last_location = None
@@ -329,13 +334,15 @@ def get_location_children(client: GraphqlClient, location_id: str) -> List[Locat
             location_id (str):
                 id of the parent location
 
-        Returns: List of client.Location objects
+        Returns: List of pyinventory.consts.Location objects
 
         Example:
-                client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
-                client.addLocation([('Country', 'England'), ('City', 'London')], {})
-                locations = client.get_location_children([('Country', 'England')])
-                # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
+        ```
+        client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
+        client.addLocation([('Country', 'England'), ('City', 'London')], {})
+        locations = client.get_location_children([('Country', 'England')])
+        # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
+        ```
     """
     result = LocationChildrenQuery.execute(client, id=location_id)
     locations = result.location.children

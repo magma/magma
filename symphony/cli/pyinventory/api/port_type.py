@@ -54,11 +54,13 @@ def add_equipment_port_type(
             FailedOperationException
 
         Example:
-            port_type1 = self.client.add_equipment_port_type(
-                "port type 1",
-                [("port property", "string", None, True)],
-                [("link port property", "string", None, True)],
-            )
+        ```
+        port_type1 = client.add_equipment_port_type(
+            "port type 1",
+            [("port property", "string", None, True)],
+            [("link port property", "string", None, True)],
+        )
+        ```
     """
 
     formated_property_types = format_properties(properties)
@@ -120,13 +122,15 @@ def get_equipment_port_type(
             equipment_port_type_id (str): equipment port type ID
 
         Returns: 
-            EquipmentPortType object
+            pyinventory.consts.EquipmentPortType object
 
         Raises: 
             EntityNotFoundError for not found entity
 
         Example:
-            port_type = self.client.get_equipment_port_type(self.port_type1.id)
+        ```
+        port_type = client.get_equipment_port_type(self.port_type1.id)
+        ```
     """
     result = EquipmentPortTypeQuery.execute(client, id=equipment_port_type_id).port_type
     if not result:
@@ -248,6 +252,8 @@ def delete_equipment_port_type(
             equipment_port_type_id (str): equipment port type ID
 
         Example:
-            client.delete_equipment_port_type(self.port_type1.id)
+        ```
+        client.delete_equipment_port_type(self.port_type1.id)
+        ```
     """
     RemoveEquipmentPortTypeMutation.execute(client, id=equipment_port_type_id)

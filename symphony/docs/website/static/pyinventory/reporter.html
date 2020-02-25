@@ -47,13 +47,13 @@ inheritance.</p></section>
 <h3>Methods</h3>
 <dl>
 <dt id="pyinventory.reporter.DummyReporter.log_failed_operation"><code class="name flex">
-<span>def <span class="ident">log_failed_operation</span></span>(<span>self, row_identifier, row, e)</span>
+<span>def <span class="ident">log_failed_operation</span></span>(<span>self, row_identifier: str, row: Dict[str, Any], e: <a title="pyinventory.reporter.FailedOperationException" href="#pyinventory.reporter.FailedOperationException">FailedOperationException</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.reporter.DummyReporter.log_successful_operation"><code class="name flex">
-<span>def <span class="ident">log_successful_operation</span></span>(<span>self, mutation_name, variables)</span>
+<span>def <span class="ident">log_successful_operation</span></span>(<span>self, mutation_name: str, variables: Dict[str, Any]) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -62,7 +62,7 @@ inheritance.</p></section>
 </dd>
 <dt id="pyinventory.reporter.FailedOperationException"><code class="flex name class">
 <span>class <span class="ident">FailedOperationException</span></span>
-<span>(</span><span>reporter, err_msg, err_id, mutation_name, variables)</span>
+<span>(</span><span>reporter: <a title="pyinventory.reporter.Reporter" href="#pyinventory.reporter.Reporter">Reporter</a>', err_msg: str, err_id: str, mutation_name: str, variables: Dict[str, Any])</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -74,7 +74,7 @@ inheritance.</p></section>
 <h3>Methods</h3>
 <dl>
 <dt id="pyinventory.reporter.FailedOperationException.log_failed_operation"><code class="name flex">
-<span>def <span class="ident">log_failed_operation</span></span>(<span>self, row_identifier, row)</span>
+<span>def <span class="ident">log_failed_operation</span></span>(<span>self, row_identifier: str, row: Dict[str, Any]) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -83,7 +83,7 @@ inheritance.</p></section>
 </dd>
 <dt id="pyinventory.reporter.InventoryReporter"><code class="flex name class">
 <span>class <span class="ident">InventoryReporter</span></span>
-<span>(</span><span>out_file_path, err_file_path)</span>
+<span>(</span><span>out_file_path: str, err_file_path: str)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -108,14 +108,15 @@ error_id,
 row_identifier,
 row</dd>
 </dl>
-<h2 id="example">Example</h2>
-<p>from pyinventory.reporter import InventoryReporter, FailedOperationException
+<p>Example:</p>
+<pre><code>from pyinventory.reporter import InventoryReporter, FailedOperationException
 reporter = InventoryReporter(csvOutPath, csvErrPath)
-client = InventoryClient(email, password, "fb-test", reporter=reporter)
+client = InventoryClient(email, password, &quot;fb-test&quot;, reporter=reporter)
 try:
-location = client.addLocation(..)
+    location = client.addLocation(..)
 except FailedOperationException as e:
-e.logFailedOperation(data_identifier, data)</p></section>
+    e.logFailedOperation(data_identifier, data)
+</code></pre></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="pyinventory.reporter.Reporter" href="#pyinventory.reporter.Reporter">Reporter</a></li>
@@ -124,13 +125,13 @@ e.logFailedOperation(data_identifier, data)</p></section>
 <h3>Methods</h3>
 <dl>
 <dt id="pyinventory.reporter.InventoryReporter.log_failed_operation"><code class="name flex">
-<span>def <span class="ident">log_failed_operation</span></span>(<span>self, row_identifier, row, e)</span>
+<span>def <span class="ident">log_failed_operation</span></span>(<span>self, row_identifier: str, row: Dict[str, Any], e: <a title="pyinventory.reporter.FailedOperationException" href="#pyinventory.reporter.FailedOperationException">FailedOperationException</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.reporter.InventoryReporter.log_successful_operation"><code class="name flex">
-<span>def <span class="ident">log_successful_operation</span></span>(<span>self, mutation_name, variables)</span>
+<span>def <span class="ident">log_successful_operation</span></span>(<span>self, mutation_name: str, variables: Dict[str, Any]) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -156,13 +157,13 @@ inheritance.</p></section>
 <h3>Methods</h3>
 <dl>
 <dt id="pyinventory.reporter.Reporter.log_failed_operation"><code class="name flex">
-<span>def <span class="ident">log_failed_operation</span></span>(<span>self, row_identifier, row, e)</span>
+<span>def <span class="ident">log_failed_operation</span></span>(<span>self, row_identifier: str, row: Dict[str, Any], e: <a title="pyinventory.reporter.FailedOperationException" href="#pyinventory.reporter.FailedOperationException">FailedOperationException</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.reporter.Reporter.log_successful_operation"><code class="name flex">
-<span>def <span class="ident">log_successful_operation</span></span>(<span>self, mutation_name, variables)</span>
+<span>def <span class="ident">log_successful_operation</span></span>(<span>self, mutation_name: str, variables: Dict[str, Any]) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
