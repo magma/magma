@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # pyre-strict
 
-from datetime import datetime
-from typing import Any, Dict, List, NamedTuple, Optional
+from datetime import date, datetime
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from .graphql.image_entity_enum import ImageEntity
 from .reporter import DummyReporter
@@ -34,6 +34,29 @@ PROPERTY_VALUES = """stringValue
     floatValue
     latitudeValue
     longitudeValue"""
+
+ReturnType = TypeVar("ReturnType")
+PropertyValueType = Union[
+    Type[date], Type[float], Type[int], Type[str], Type[bool], Type[Tuple[float, float]]
+]
+
+
+class DataTypeName(NamedTuple):
+    data_type: PropertyValueType
+    graphql_field_name: Tuple[str, ...]
+
+
+TYPE_AND_FIELD_NAME = {
+    "date": DataTypeName(data_type=date, graphql_field_name=("stringValue",)),
+    "float": DataTypeName(data_type=float, graphql_field_name=("floatValue",)),
+    "int": DataTypeName(data_type=int, graphql_field_name=("intValue",)),
+    "email": DataTypeName(data_type=str, graphql_field_name=("stringValue",)),
+    "string": DataTypeName(data_type=str, graphql_field_name=("stringValue",)),
+    "bool": DataTypeName(data_type=bool, graphql_field_name=("booleanValue",)),
+    "gps_location": DataTypeName(
+        data_type=tuple, graphql_field_name=("latitudeValue", "longitudeValue")
+    ),
+}
 
 
 class LocationType(NamedTuple):
