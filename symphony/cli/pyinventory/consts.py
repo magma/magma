@@ -15,7 +15,6 @@ DUMMY_REPORTER = DummyReporter()
 INVENTORY_ENDPOINT = "https://{}.thesymphony.cloud"
 LOCALHOST_INVENTORY_ENDPOINT = "https://{}.localtest.me"
 INVENTORY_GRAPHQL_ENDPOINT = "/graph/query"
-INVENTORY_LOGIN_ENDPOINT = "/user/login"
 INVENTORY_STORE_PUT_ENDPOINT = "/store/put"
 INVENTORY_STORE_DELETE_ENDPOINT = "/store/delete?key={}"
 
@@ -29,7 +28,7 @@ PropertyValueType = Union[
 
 class PropertyDefinition(NamedTuple):
     """
-    Args:
+    Attributes:
         property_name (str): type name
         property_type (str): enum["string", "int", "bool", "float", "date", "enum", "range", 
             "email", "gps_location", "equipment", "location", "service", "datetime_local"]
