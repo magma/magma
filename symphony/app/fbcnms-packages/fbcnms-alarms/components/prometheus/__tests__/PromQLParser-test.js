@@ -649,6 +649,55 @@ const testCases = [
     ),
   ],
   [
+    'binary operation with group clause',
+    `metric + on(label1) group_left(label2) metric2`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '+', type: 'arithmetic'},
+      {value: 'on', type: 'matchClause'},
+      {value: '(', type: 'lParen'},
+      {value: 'label1', type: 'identifier'},
+      {value: ')', type: 'rParen'},
+      {value: 'group_left', type: 'groupClause'},
+      {value: '(', type: 'lParen'},
+      {value: 'label2', type: 'identifier'},
+      {value: ')', type: 'rParen'},
+      {value: 'metric2', type: 'identifier'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.InstantSelector('metric2'),
+      '+',
+      new PromQL.VectorMatchClause(
+        new PromQL.Clause('on', ['label1']),
+        new PromQL.Clause('group_left', ['label2']),
+      ),
+    ),
+  ],
+  [
+    'binary operation with group clause without labels',
+    `metric + on(label1) group_left metric2`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '+', type: 'arithmetic'},
+      {value: 'on', type: 'matchClause'},
+      {value: '(', type: 'lParen'},
+      {value: 'label1', type: 'identifier'},
+      {value: ')', type: 'rParen'},
+      {value: 'group_left', type: 'groupClause'},
+      {value: 'metric2', type: 'identifier'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.InstantSelector('metric2'),
+      '+',
+      new PromQL.VectorMatchClause(
+        new PromQL.Clause('on', ['label1']),
+        new PromQL.Clause('group_left'),
+      ),
+    ),
+  ],
+  [
     'metric that starts with clause operator name',
     `bytes_received > 0`,
     [

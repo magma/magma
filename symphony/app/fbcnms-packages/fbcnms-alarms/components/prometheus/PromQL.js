@@ -9,10 +9,13 @@
  */
 
 import type {
+  AggrClauseType,
   AggregationOperator,
   BinaryOperator,
   FunctionName,
+  GroupClauseType,
   LabelOperator,
+  MatchClauseType,
 } from './PromQLTypes';
 
 export interface Expression {
@@ -225,10 +228,13 @@ export class BinaryOperation implements Expression {
 }
 
 export class VectorMatchClause {
-  matchClause: Clause;
-  groupClause: ?Clause;
+  matchClause: Clause<MatchClauseType>;
+  groupClause: ?Clause<GroupClauseType>;
 
-  constructor(matchClause: Clause, groupClause: ?Clause) {
+  constructor(
+    matchClause: Clause<MatchClauseType>,
+    groupClause: ?Clause<GroupClauseType>,
+  ) {
     this.matchClause = matchClause;
     this.groupClause = groupClause;
   }
@@ -241,29 +247,33 @@ export class VectorMatchClause {
   }
 }
 
-export class Clause {
-  operator: string;
+export type ClauseType = AggrClauseType | MatchClauseType | GroupClauseType;
+export class Clause<ClauseType: ClauseType> {
+  operator: ClauseType;
   labelList: Array<string>;
 
-  constructor(operator: string, labelList: Array<string>) {
+  constructor(operator: ClauseType, labelList: Array<string> = []) {
     this.operator = operator;
     this.labelList = labelList;
   }
 
   toString(): string {
-    return `${this.operator} (` + this.labelList.join(',') + ')';
+    return (
+      this.operator +
+      (this.labelList.length > 0 ? ` (${this.labelList.join(',')})` : '')
+    );
   }
 }
 
 export class AggregationOperation implements Expression {
   name: AggregationOperator;
   parameters: Array<Expression>;
-  clause: ?Clause;
+  clause: ?Clause<AggrClauseType>;
 
   constructor(
     name: AggregationOperator,
     parameters: Array<Expression>,
-    clause: ?Clause,
+    clause: ?Clause<AggrClauseType>,
   ) {
     this.name = name;
     this.parameters = parameters;

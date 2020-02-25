@@ -73,6 +73,12 @@ vector_match_clause ->
                                         new Clause(matchOp, matchLabels),
                                         new Clause(groupOp, groupLabels))
                         %}
+        | MATCH_CLAUSE labelList GROUP_CLAUSE
+                        {% ([matchOp, matchLabels, groupOp]) =>
+                                new VectorMatchClause(
+                                        new Clause(matchOp, matchLabels),
+                                        new Clause(groupOp))
+                        %}
 
 bin_op ->
         BIN_COMP        {% id %}

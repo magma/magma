@@ -52,6 +52,11 @@ var grammar = {
                 new Clause(matchOp, matchLabels),
                 new Clause(groupOp, groupLabels))
                                 },
+    {"name": "vector_match_clause", "symbols": ["MATCH_CLAUSE", "labelList", "GROUP_CLAUSE"], "postprocess":  ([matchOp, matchLabels, groupOp]) =>
+        new VectorMatchClause(
+                new Clause(matchOp, matchLabels),
+                new Clause(groupOp))
+                                },
     {"name": "bin_op", "symbols": ["BIN_COMP"], "postprocess": id},
     {"name": "bin_op", "symbols": ["SET_OP"], "postprocess": id},
     {"name": "bin_op", "symbols": ["ARITHM_OP"], "postprocess": id},

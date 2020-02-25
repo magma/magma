@@ -195,6 +195,19 @@ describe('Binary Operators', () => {
       ),
       `metric / on (label1,label2) group_left (label1) metric2`,
     ],
+    [
+      'binary operation with grouped match clause without labels',
+      new PromQL.BinaryOperation(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.InstantSelector('metric2'),
+        '/',
+        new PromQL.VectorMatchClause(
+          new PromQL.Clause('on', ['label1', 'label2']),
+          new PromQL.Clause('group_left'),
+        ),
+      ),
+      `metric / on (label1,label2) group_left metric2`,
+    ],
   ];
 
   test.each(testCases)('%s', (_, binOp, expectedString) => {
