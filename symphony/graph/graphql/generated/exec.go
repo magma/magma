@@ -6533,6 +6533,7 @@ enum PropertyEntity {
   PORT
   LOCATION
   WORK_ORDER
+  PROJECT
 }
 
 enum CommentEntity {

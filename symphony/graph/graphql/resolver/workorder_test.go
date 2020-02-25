@@ -1346,22 +1346,30 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 }
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
-	t.Skip("skipping test until mandatory props are added - T57858029")
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
 	latlongPropType := models.PropertyTypeInput{
-		Name: "lat_long_prop",
-		Type: "gps_location",
+		Name:        "lat_long_prop",
+		Type:        "gps_location",
+		IsMandatory: pointer.ToBool(true),
 	}
 	propTypeInputs := []*models.PropertyTypeInput{&latlongPropType}
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type", Properties: propTypeInputs})
 	require.NoError(t, err)
 
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_fail",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.Error(t, err, "Adding work order instance with missing mandatory properties")
+
 	latlongProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("lat_long_prop")).OnlyXID(ctx),
+		LatitudeValue:  pointer.ToFloat64(32.6),
+		LongitudeValue: pointer.ToFloat64(34.7),
 	}
 	propInputs := []*models.PropertyInput{&latlongProp}
 	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -1369,7 +1377,24 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 		WorkOrderTypeID: woType.ID,
 		Properties:      propInputs,
 	})
-	require.Error(t, err, "Adding work order instance with invalid lat-long prop")
+	require.NoError(t, err)
+
+	// not mandatory props
+	notMandatoryProp := &models.PropertyTypeInput{
+		Name: "lat_long_prop",
+		Type: "gps_location",
+	}
+	props := []*models.PropertyTypeInput{notMandatoryProp}
+
+	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type2", Properties: props})
+	require.NoError(t, err)
+
+	wo, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_pass",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.NoError(t, err, "Adding work order instance with missing mandatory properties")
+	require.Len(t, wo.QueryProperties().AllX(ctx), 1)
 }
 
 func TestAddWorkOrderWithCheckListCategory(t *testing.T) {

@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -131,6 +132,10 @@ func (r mutationResolver) AddWorkOrder(
 	ctx context.Context, input models.AddWorkOrderInput,
 ) (*ent.WorkOrder, error) {
 	c := r.ClientFrom(ctx)
+	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, input.Properties, input.WorkOrderTypeID, models.PropertyEntityWorkOrder)
+	if err != nil {
+		return nil, fmt.Errorf("validating property for template : %w", err)
+	}
 	mutation := r.ClientFrom(ctx).
 		WorkOrder.Create().
 		SetName(input.Name).
@@ -163,7 +168,7 @@ func (r mutationResolver) AddWorkOrder(
 	if err != nil {
 		return nil, errors.Wrap(err, "creating work order")
 	}
-	if _, err := r.AddProperties(input.Properties,
+	if _, err := r.AddProperties(propInput,
 		resolverutil.AddPropertyArgs{
 			Context:    ctx,
 			EntSetter:  func(b *ent.PropertyCreate) { b.SetWorkOrderID(wo.ID) },

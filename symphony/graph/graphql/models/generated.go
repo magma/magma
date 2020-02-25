@@ -1246,6 +1246,7 @@ const (
 	PropertyEntityPort      PropertyEntity = "PORT"
 	PropertyEntityLocation  PropertyEntity = "LOCATION"
 	PropertyEntityWorkOrder PropertyEntity = "WORK_ORDER"
+	PropertyEntityProject   PropertyEntity = "PROJECT"
 )
 
 var AllPropertyEntity = []PropertyEntity{
@@ -1255,11 +1256,12 @@ var AllPropertyEntity = []PropertyEntity{
 	PropertyEntityPort,
 	PropertyEntityLocation,
 	PropertyEntityWorkOrder,
+	PropertyEntityProject,
 }
 
 func (e PropertyEntity) IsValid() bool {
 	switch e {
-	case PropertyEntityEquipment, PropertyEntityService, PropertyEntityLink, PropertyEntityPort, PropertyEntityLocation, PropertyEntityWorkOrder:
+	case PropertyEntityEquipment, PropertyEntityService, PropertyEntityLink, PropertyEntityPort, PropertyEntityLocation, PropertyEntityWorkOrder, PropertyEntityProject:
 		return true
 	}
 	return false
