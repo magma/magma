@@ -853,14 +853,17 @@ int mme_config_parse_file(mme_config_t *config_pP)
               MIN_MNC_LENGTH,
               MAX_MNC_LENGTH);
             char c[2] = {mnc[0], 0};
-            config_pP->gummei.gummei[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
-            c[0] = mnc[1];
-            config_pP->gummei.gummei[i].plmn.mnc_digit2 = (uint8_t) atoi(c);
-            if (3 == strlen(mnc)) {
-              c[0] = mnc[2];
-              config_pP->gummei.gummei[i].plmn.mnc_digit3 = (uint8_t) atoi(c);
-            } else {
+            if (2 == strlen(mnc)) {
+              config_pP->gummei.gummei[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
+              c[0] = mnc[1];
+              config_pP->gummei.gummei[i].plmn.mnc_digit2 = (uint8_t) atoi(c);
               config_pP->gummei.gummei[i].plmn.mnc_digit3 = 0x0F;
+            } else {
+              config_pP->gummei.gummei[i].plmn.mnc_digit3 = (uint8_t) atoi(c);
+              c[0] = mnc[1];
+              config_pP->gummei.gummei[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
+              c[0] = mnc[2];
+              config_pP->gummei.gummei[i].plmn.mnc_digit2 = (uint8_t) atoi(c);
             }
           }
 
