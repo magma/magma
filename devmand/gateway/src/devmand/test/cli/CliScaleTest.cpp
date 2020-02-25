@@ -30,7 +30,7 @@ using namespace folly;
 
 class CliScaleTest : public ::testing::Test {
  protected:
-  channels::cli::Engine cliEngine;
+  channels::cli::Engine cliEngine{dynamic::object()};
 
   void SetUp() override {
     devmand::test::utils::log::initLog(MWARNING);
@@ -80,7 +80,10 @@ TEST_F(CliScaleTest, DISABLED_scale) {
             10s,
             30,
             cliEngine));
-    return ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
+    return ioConfigurationBuilder.createAll(
+        ReadCachingCli::createCache(),
+        make_shared<TreeCache>(
+            ioConfigurationBuilder.getConnectionParameters()->flavour));
   };
   const ReadCommand& cmd = ReadCommand::create("show running-config");
 

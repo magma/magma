@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package devmand.channels.cli.plugin;
+
+service CliFlavour {
+    rpc Get(CliFlavourRequest) returns (CliFlavourResponse) {}
+}
+
+message CliFlavourRequest {
+}
+
+message CliFlavourResponse {
+    string newline = 1;
+    string baseShowConfigRegex = 2;
+    uint32 baseShowConfigIdx = 3;
+    string singleIndentChar = 4;
+    string configSubsectionEnd = 5;
+}

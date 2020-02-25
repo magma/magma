@@ -54,7 +54,11 @@ Future<dynamic> CompositeReader::read(
           if (childData == localData) {
             continue;
           }
-          localData.merge_patch(childData);
+          if (!childData.empty() &&
+              !childData.items().begin()->second.empty()) {
+            // add child data only if it's not empty
+            localData.merge_patch(childData);
+          }
         }
         return localData;
       })
@@ -190,17 +194,6 @@ ostream& operator<<(ostream& os, const ReaderRegistry& registry) {
   return os;
 }
 
-class PathVertexWriter {
-  YangHierarchy graph;
-
- public:
-  PathVertexWriter(YangHierarchy _name) : graph(_name) {}
-  void operator()(ostream& out, const YangHierarchy::vertex_descriptor v)
-      const {
-    out << "[path=\"" << graph.graph()[v].path << "\"]";
-  }
-};
-
 unique_ptr<ReaderRegistry> ReaderRegistryBuilder::build() {
   if (allReaders.empty()) {
     ReaderRegistryException(
@@ -274,7 +267,7 @@ void ReaderRegistryBuilder::addReader(Path path, shared_ptr<Reader> reader) {
     }
   }
 
-  allReaders.emplace(path, reader);
+  allReaders.insert_or_assign(path, reader);
 }
 
 unique_ptr<CompositeReader> ReaderRegistryBuilder::createCompositeReader(
