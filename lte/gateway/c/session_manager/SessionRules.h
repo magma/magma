@@ -40,6 +40,10 @@ class SessionRules {
     const std::string& rule_id,
     std::string* monitoring_key);
 
+  bool is_dynamic_rule_installed(const std::string& rule_id);
+
+  bool is_static_rule_installed(const std::string& rule_id);
+
   void insert_dynamic_rule(const PolicyRule& rule);
 
   void activate_static_rule(const std::string& rule_id);
