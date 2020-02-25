@@ -4,13 +4,13 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import List, Tuple
+from typing import List
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
 
-from .._utils import PropertyValue, format_properties
-from ..consts import EquipmentPortType
+from .._utils import format_properties
+from ..consts import EquipmentPortType, PropertyDefinition
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_port_type_input import AddEquipmentPortTypeInput
 from ..graphql.add_equipment_port_type_mutation import AddEquipmentPortTypeMutation
@@ -29,8 +29,8 @@ ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME = "addEquipmentPortType"
 def add_equipment_port_type(
     client: GraphqlClient,
     name: str,
-    properties: List[Tuple[str, str, PropertyValue, bool]],
-    link_properties: List[Tuple[str, str, PropertyValue, bool]],
+    properties: List[PropertyDefinition],
+    link_properties: List[PropertyDefinition],
 ) -> EquipmentPortType:
     """This function creates an equipment port type.
 
@@ -101,7 +101,12 @@ def add_equipment_port_type(
             ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME,
             add_equipment_port_type_input,
         )
-    return EquipmentPortType(id=result.id, name=result.name)
+    return EquipmentPortType(
+        id=result.id,
+        name=result.name,
+        properties=result.properties,
+        link_properties=result.link_properties,
+    )
 
 
 def get_equipment_port_type(
@@ -127,7 +132,12 @@ def get_equipment_port_type(
         raise EntityNotFoundError(
             entity="Equipment Port Type", entity_id=equipment_port_type_id
         )
-    return EquipmentPortType(id=result.id, name=result.name)
+    return EquipmentPortType(
+        id=result.id,
+        name=result.name,
+        properties=result.properties,
+        link_properties=result.link_properties,
+    )
 
 
 def delete_equipment_port_type(

@@ -14,7 +14,7 @@ from .datetime_utils import fromisoformat
 
 from .property_kind_enum import PropertyKind
 
-from .add_equipment_port_type_input import AddEquipmentPortTypeInput
+from .edit_equipment_port_type_input import EditEquipmentPortTypeInput
 
 
 DATETIME_FIELD = field(
@@ -48,10 +48,10 @@ def enum_field(enum_type):
 
 @dataclass_json
 @dataclass
-class AddEquipmentPortTypeMutation:
+class EditEquipmentPortTypeMutation:
     __QUERY__ = """
-    mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
-  addEquipmentPortType(input: $input) {
+    mutation EditEquipmentPortTypeMutation($input: EditEquipmentPortTypeInput!) {
+  editEquipmentPortType(input: $input) {
     id
     name
     propertyTypes {
@@ -89,7 +89,7 @@ class AddEquipmentPortTypeMutation:
 
     @dataclass_json
     @dataclass
-    class AddEquipmentPortTypeMutationData:
+    class EditEquipmentPortTypeMutationData:
         @dataclass_json
         @dataclass
         class EquipmentPortType:
@@ -114,14 +114,14 @@ class AddEquipmentPortTypeMutation:
             propertyTypes: List[PropertyType]
             linkPropertyTypes: List[PropertyType]
 
-        addEquipmentPortType: Optional[EquipmentPortType] = None
+        editEquipmentPortType: Optional[EquipmentPortType] = None
 
-    data: Optional[AddEquipmentPortTypeMutationData] = None
+    data: Optional[EditEquipmentPortTypeMutationData] = None
     errors: Optional[Any] = None
 
     @classmethod
     # fmt: off
-    def execute(cls, client, input: AddEquipmentPortTypeInput):
+    def execute(cls, client, input: EditEquipmentPortTypeInput):
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

@@ -19,26 +19,28 @@ INVENTORY_LOGIN_ENDPOINT = "/user/login"
 INVENTORY_STORE_PUT_ENDPOINT = "/store/put"
 INVENTORY_STORE_DELETE_ENDPOINT = "/store/delete?key={}"
 
-PROPERTY_TYPE_VALUES = """stringValue
-    intValue
-    booleanValue
-    floatValue
-    latitudeValue
-    longitudeValue
-    isEditable
-    isInstanceProperty"""
-
-PROPERTY_VALUES = """stringValue
-    intValue
-    booleanValue
-    floatValue
-    latitudeValue
-    longitudeValue"""
 
 ReturnType = TypeVar("ReturnType")
+PropertyValue = Union[date, float, int, str, bool, Tuple[float, float]]
 PropertyValueType = Union[
     Type[date], Type[float], Type[int], Type[str], Type[bool], Type[Tuple[float, float]]
 ]
+
+
+class PropertyDefinition(NamedTuple):
+    """
+    Args:
+        property_name (str): type name
+        property_type (str): enum["string", "int", "bool", "float", "date", "enum", "range", 
+            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
+        default_value (PropertyValue): default property value
+        is_fixed (bool): fixed value flag
+    """
+
+    property_name: str
+    property_type: str
+    default_value: PropertyValue
+    is_fixed: Optional[bool] = False
 
 
 class DataTypeName(NamedTuple):
@@ -62,7 +64,7 @@ TYPE_AND_FIELD_NAME = {
 class LocationType(NamedTuple):
     name: str
     id: str
-    propertyTypes: List[Dict[str, Any]]
+    propertyTypes: List[Dict[str, PropertyValue]]
 
 
 class Location(NamedTuple):
@@ -78,7 +80,7 @@ class EquipmentType(NamedTuple):
     name: str
     category: Optional[str]
     id: str
-    propertyTypes: List[Dict[str, Any]]
+    propertyTypes: List[Dict[str, PropertyValue]]
     positionDefinitions: List[Dict[str, Any]]
     portDefinitions: List[Dict[str, Any]]
 
@@ -86,6 +88,8 @@ class EquipmentType(NamedTuple):
 class EquipmentPortType(NamedTuple):
     id: str
     name: str
+    properties: List[Dict[str, PropertyValue]]
+    link_properties: List[Dict[str, PropertyValue]]
 
 
 class Equipment(NamedTuple):
@@ -115,7 +119,7 @@ class ServiceType(NamedTuple):
     name: str
     id: str
     hasCustomer: bool
-    propertyTypes: List[Dict[str, Any]]
+    propertyTypes: List[Dict[str, PropertyValue]]
 
 
 class Customer(NamedTuple):

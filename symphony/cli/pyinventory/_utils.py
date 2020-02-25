@@ -2,17 +2,20 @@
 # pyre-strict
 
 import warnings
-from datetime import date, datetime
+from datetime import datetime
 from typing import Callable, Dict, List, Optional, Tuple, Union, cast
 
-from .consts import TYPE_AND_FIELD_NAME, DataTypeName, ReturnType
+from .consts import (
+    TYPE_AND_FIELD_NAME,
+    DataTypeName,
+    PropertyDefinition,
+    PropertyValue,
+    ReturnType,
+)
 from .exceptions import EntityNotFoundError
 from .graphql.property_input import PropertyInput
 from .graphql.property_kind_enum import PropertyKind
 from .graphql.property_type_input import PropertyTypeInput
-
-
-PropertyValue = Union[date, float, int, str, bool, Tuple[float, float]]
 
 
 def format_to_type_and_field_name(type_key: str) -> Optional[DataTypeName]:
@@ -178,15 +181,17 @@ def _get_property_default_value(
 
 
 def _make_property_types(
-    properties: List[Tuple[str, str, PropertyValue, bool]]
+    properties: List[PropertyDefinition]
 ) -> List[Dict[str, PropertyValue]]:
     property_types = [
         {
-            "name": arg[0],
-            "type": arg[1],
+            "name": arg.property_name,
+            "type": arg.property_type,
             "index": i,
-            **_get_property_default_value(arg[0], arg[1], arg[2]),
-            "isInstanceProperty": arg[3],
+            **_get_property_default_value(
+                arg.property_name, arg.property_type, arg.default_value
+            ),
+            "isInstanceProperty": arg.is_fixed,
         }
         for i, arg in enumerate(properties)
     ]
@@ -200,7 +205,7 @@ def property_type_to_kind(
 
 
 def format_properties(
-    properties: List[Tuple[str, str, PropertyValue, bool]]
+    properties: List[PropertyDefinition]
 ) -> List[Dict[str, Union[PropertyValue, PropertyKind]]]:
     property_types = _make_property_types(properties)
     return [

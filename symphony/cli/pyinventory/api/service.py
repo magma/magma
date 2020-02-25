@@ -2,7 +2,7 @@
 # pyre-strict
 
 from dataclasses import asdict
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from dacite import Config, from_dict
 
@@ -11,6 +11,7 @@ from ..consts import (
     Customer,
     EquipmentPort,
     Link,
+    PropertyDefinition,
     Service,
     ServiceEndpoint,
     ServiceType,
@@ -49,7 +50,7 @@ def add_service_type(
     client: GraphqlClient,
     name: str,
     hasCustomer: bool,
-    properties: List[Tuple[str, str, PropertyValue, bool]],
+    properties: List[PropertyDefinition],
 ) -> ServiceType:
 
     new_property_types = format_properties(properties)
