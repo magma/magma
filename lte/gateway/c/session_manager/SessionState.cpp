@@ -289,6 +289,16 @@ void SessionState::complete_termination()
   }
 }
 
+bool SessionState::is_dynamic_rule_installed(const std::string& rule_id)
+{
+  return session_rules_.is_dynamic_rule_installed(rule_id);
+}
+
+bool SessionState::is_static_rule_installed(const std::string& rule_id)
+{
+  return session_rules_.is_static_rule_installed(rule_id);
+}
+
 void SessionState::insert_dynamic_rule(const PolicyRule& dynamic_rule)
 {
   session_rules_.insert_dynamic_rule(dynamic_rule);
@@ -403,6 +413,14 @@ void SessionState::fill_protos_tgpp_context(
   magma::lte::TgppContext* tgpp_context) const
 {
   *tgpp_context = tgpp_context_;
+}
+
+uint32_t SessionState::get_request_number() {
+  return request_number_;
+}
+
+void SessionState::increment_request_number(uint32_t incr) {
+  request_number_ += incr;
 }
 
 } // namespace magma

@@ -96,6 +96,7 @@ class SessionStateTest : public ::testing::Test {
 TEST_F(SessionStateTest, test_marshal_unmarshal)
 {
   insert_rule(1, "m1", "rule1", STATIC);
+  EXPECT_EQ(session_state->is_static_rule_installed("rule1"), true);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
 
   receive_credit_from_ocs(1, 1024);
@@ -112,6 +113,7 @@ TEST_F(SessionStateTest, test_marshal_unmarshal)
     unmarshaled->get_charging_pool().get_credit(1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(
     unmarshaled->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL), 1024);
+  EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
 }
 
 TEST_F(SessionStateTest, test_insert_credit)
