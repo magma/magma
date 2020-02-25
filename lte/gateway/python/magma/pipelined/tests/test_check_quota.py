@@ -105,7 +105,7 @@ class UEMacAddressTest(unittest.TestCase):
         imsi_1 = 'IMSI010000000088888'
         mac_1 = '5e:cc:cc:b1:49:4b'
 
-        # Add subscriber with UE MAC address """
+        # Add subscriber with UE MAC address
         self.check_quota_controller.update_subscriber_quota_state(
             [
                 SubscriberQuotaUpdate(
@@ -128,8 +128,7 @@ class UEMacAddressTest(unittest.TestCase):
         mac_2 = '5e:a:cc:af:aa:fe'
         mac_3 = '5e:bb:cc:aa:aa:fe'
 
-        # Add subscriber with UE MAC address """
-
+        # Add subscriber with UE MAC address
         self.check_quota_controller.update_subscriber_quota_state(
             [
                 SubscriberQuotaUpdate(

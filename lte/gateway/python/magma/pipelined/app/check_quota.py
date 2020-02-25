@@ -14,10 +14,8 @@ from ryu.lib.packet import ether_types
 from ryu.ofproto.inet import IPPROTO_TCP
 from ryu.controller.controller import Datapath
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
-from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate, \
-    ActivateFlowsRequest, SetupFlowsResult
+from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate, SetupFlowsResult
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import INGRESS, EGRESS
 from magma.pipelined.imsi import encode_imsi
@@ -76,18 +74,17 @@ class CheckQuotaController(MagmaController):
             cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
         )
 
-    # pylint:disable=unused-argument
-    def setup(self, requests: List[ActivateFlowsRequest],
-              quota_updates: List[SubscriberQuotaUpdate],
-              startup_flows: List[OFPFlowStats]) -> SetupFlowsResult:
+    def handle_restart(self, quota_updates: List[SubscriberQuotaUpdate]
+                       ) -> SetupFlowsResult:
         """
-        Setup current check quota flows.
+        Setup the check quota flows for the controller, this is used when
+        the controller restarts.
         """
         # TODO Potentially we can run a diff logic but I don't think there is
         # benefit(we don't need stats here)
         self._delete_all_flows(self._datapath)
-        self.update_subscriber_quota_state(quota_updates)
         self._install_default_flows(self._datapath)
+        self.update_subscriber_quota_state(quota_updates)
 
         return SetupFlowsResult.SUCCESS
 
