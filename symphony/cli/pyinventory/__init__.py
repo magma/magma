@@ -105,6 +105,7 @@ class InventoryClient(GraphqlClient):
     from .api.port_type import (
         add_equipment_port_type,
         get_equipment_port_type,
+        edit_equipment_port_type,
         delete_equipment_port_type,
     )
 

@@ -66,13 +66,13 @@ def get_graphql_property_type_inputs(
     formats data, validates existence of keys from properties_dict in property_types and returns list of PropertyTypeInput
  
         Args:
-            property_types (List[Dict[str, Any]]): list of existing property types
-            properties_dict (Dict[str, PropertyValue]): dictionary of properties, where
+            property_types (List[Dict[str, pyinventory.graphql.property_type_input.PropertyTypeInput]]): list of existing property types
+            properties_dict (Dict[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
                 str: name of existing property
                 PropertyValue: new value of existing type for this property
        
         Returns:
-            List[PropertyTypeInput]
+            List[pyinventory.graphql.property_type_input.PropertyTypeInput]
  
         Raises:
             EntityNotFoundError if there any unknown property name in properties_dict keys
@@ -114,20 +114,22 @@ def get_graphql_property_inputs(
     formats data, validates existence of keys from properties_dict in property_types and returns list of PropertyInput
  
         Args:
-            property_types (List[Dict[str, Any]]): list of existing property types
-            properties_dict (Dict[str, PropertyValue]): dictionary of properties, where
+            property_types (List[Dict[str, pyinventory.graphql.property_type_input.PropertyTypeInput]]): list of existing property types
+            properties_dict (Dict[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
                 str: name of existing property
                 PropertyValue: new value of existing type for this property
        
         Returns:
-            List[PropertyInput]
+            List[pyinventory.graphql.property_input.PropertyInput]
  
         Raises:
             EntityNotFoundError if there any unknown property name in properties_dict keys
        
         Example:
+        ```
             property_types = client.locationTypes[location_type].propertyTypes
             properties = get_graphql_property_inputs(property_types, properties_dict)
+        ```
     """
     properties = []
     property_type_names = {}
