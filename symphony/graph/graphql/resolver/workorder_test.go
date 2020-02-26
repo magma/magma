@@ -1366,18 +1366,6 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 	})
 	require.Error(t, err, "Adding work order instance with missing mandatory properties")
 
-	// mandatory is deleted - should be ok
-	latlongPropType.IsDeleted = pointer.ToBool(true)
-	propTypeInputs = []*models.PropertyTypeInput{&latlongPropType}
-	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type2", Properties: propTypeInputs})
-	require.NoError(t, err)
-
-	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
-		Name:            "should_not_fail",
-		WorkOrderTypeID: woType.ID,
-	})
-	require.NoError(t, err, "Adding work order instance with mandatory properties but deleted")
-
 	latlongProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("lat_long_prop")).OnlyXID(ctx),
 		LatitudeValue:  pointer.ToFloat64(32.6),
@@ -1390,6 +1378,28 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 		Properties:      propInputs,
 	})
 	require.NoError(t, err)
+
+	// mandatory is deleted - should be ok
+	latlongPropType.IsDeleted = pointer.ToBool(true)
+	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type2", Properties: propTypeInputs})
+	deletedPropType := woType.QueryPropertyTypes().OnlyX(ctx)
+	require.NoError(t, err)
+
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_not_fail",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.NoError(t, err, "Adding work order instance of template with mandatory properties but deleted")
+
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_fail",
+		WorkOrderTypeID: woType.ID,
+		Properties: []*models.PropertyInput{{
+			PropertyTypeID: deletedPropType.ID,
+			StringValue:    pointer.ToString("new"),
+		}},
+	})
+	require.Errorf(t, err, "deleted property types")
 
 	// not mandatory props
 	notMandatoryProp := &models.PropertyTypeInput{
