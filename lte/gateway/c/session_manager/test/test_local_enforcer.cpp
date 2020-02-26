@@ -1114,7 +1114,7 @@ TEST_F(LocalEnforcerTest, test_rar_revalidation_timer)
   EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
 }
 
-TEST_F(LocalEnforcerTest, test_pipelined_setup)
+TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup)
 {
   // insert into rule store first so init_session_credit can find the rule
   insert_static_rule(1, "", "rule2");
@@ -1170,9 +1170,60 @@ TEST_F(LocalEnforcerTest, test_pipelined_setup)
   std::vector<std::string> apn_names = {"Magma", "CWC_OFFLOAD"};
   EXPECT_CALL(
     *pipelined_client,
-    setup(CheckSessionInfos(imsi_list, ip_address_list, static_rule_list,
+    setup_cwf(CheckSessionInfos(imsi_list, ip_address_list, static_rule_list,
       dynamic_rule_list), ue_mac_addrs, msisdns, apn_mac_addrs, apn_names,
       testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+    local_enforcer->setup(epoch,
+      [](Status status, SetupFlowsResult resp) {});
+}
+
+TEST_F(LocalEnforcerTest, test_pipelined_lte_setup)
+{
+  // insert into rule store first so init_session_credit can find the rule
+  insert_static_rule(1, "", "rule2");
+
+  CreateSessionResponse response;
+  create_credit_update_response(
+    "IMSI1", 1, 1024, response.mutable_credits()->Add());
+  auto epoch = 145;
+  auto dynamic_rule = response.mutable_dynamic_rules()->Add();
+  auto policy_rule = dynamic_rule->mutable_policy_rule();
+  policy_rule->set_id("rule1");
+  policy_rule->set_rating_group(1);
+  policy_rule->set_tracking_type(PolicyRule::ONLY_OCS);
+  auto static_rule = response.mutable_static_rules()->Add();
+  static_rule->set_rule_id("rule2");
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
+
+  CreateSessionResponse response2;
+  create_credit_update_response(
+    "IMSI2", 1, 2048, response2.mutable_credits()->Add());
+  auto dynamic_rule2 = response2.mutable_dynamic_rules()->Add();
+  auto policy_rule2 = dynamic_rule2->mutable_policy_rule();
+  policy_rule2->set_id("rule22");
+  policy_rule2->set_rating_group(1);
+  policy_rule2->set_tracking_type(PolicyRule::ONLY_OCS);
+  local_enforcer->init_session_credit("IMSI2", "12345", test_cfg, response2);
+
+  std::vector<std::string> imsi_list = {"IMSI2", "IMSI1"};
+  std::vector<std::string> ip_address_list = {"127.0.0.1", "127.0.0.1"};
+  std::vector<std::vector<std::string>> static_rule_list = {{}, {"rule2"}};
+  std::vector<std::vector<std::string>> dynamic_rule_list = {{"rule22"},
+                                                             {"rule1"}};
+
+  std::vector<std::string> ue_mac_addrs = {"00:00:00:00:00:02",
+                                           "11:22:00:00:22:11"};
+  std::vector<std::string> msisdns = {"msisdn2", "msisdn1"};
+  std::vector<std::string> apn_mac_addrs = {"03-21-00-02-00-20",
+                                            "01-a1-20-c2-0f-bb"};
+  std::vector<std::string> apn_names = {"Magma", "CWC_OFFLOAD"};
+  EXPECT_CALL(
+    *pipelined_client,
+    setup_lte(CheckSessionInfos(imsi_list, ip_address_list, static_rule_list,
+      dynamic_rule_list), testing::_, testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
 

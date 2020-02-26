@@ -35,12 +35,22 @@ class PipelinedClient {
    * @param infos - list of SessionInfos to setup flows for
    * @return true if the operation was successful
    */
-  virtual bool setup(
+  virtual bool setup_cwf(
     const std::vector<SessionState::SessionInfo>& infos,
     const std::vector<std::string> ue_mac_addrs,
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
     const std::vector<std::string> apn_names,
+    const std::uint64_t& epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback) = 0;
+
+  /**
+   * Activates all rules for provided SessionInfos
+   * @param infos - list of SessionInfos to setup flows for
+   * @return true if the operation was successful
+   */
+  virtual bool setup_lte(
+    const std::vector<SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
@@ -112,12 +122,22 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * @param infos - list of SessionInfos to setup flows for
    * @return true if the operation was successful
    */
-  bool setup(
+  bool setup_cwf(
     const std::vector<SessionState::SessionInfo>& infos,
     const std::vector<std::string> ue_mac_addrs,
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
     const std::vector<std::string> apn_names,
+    const std::uint64_t& epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback);
+
+  /**
+   * Activates all rules for provided SessionInfos
+   * @param infos - list of SessionInfos to setup flows for
+   * @return true if the operation was successful
+   */
+  bool setup_lte(
+    const std::vector<SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback);
 

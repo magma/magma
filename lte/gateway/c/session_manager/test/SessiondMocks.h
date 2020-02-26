@@ -86,6 +86,11 @@ class MockPipelinedClient : public PipelinedClient {
       const std::vector<std::string> apn_names,
       const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback));
+  MOCK_METHOD3(setup_lte,
+    bool(
+      const std::vector<SessionState::SessionInfo>& infos,
+      const std::uint64_t& epoch,
+      std::function<void(Status status, SetupFlowsResult)> callback));
   MOCK_METHOD1(deactivate_all_flows, bool(const std::string& imsi));
   MOCK_METHOD3(
     deactivate_flows_for_rules,
