@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # pyre-strict
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from dataclasses import asdict
 from typing import Any, Dict, List
@@ -55,8 +58,8 @@ def _populate_equipment_port_types(client: SymphonyClient) -> None:
         client.portTypes[node.name] = EquipmentPortType(
             id=node.id,
             name=node.name,
-            properties=node.properties,
-            link_properties=node.link_properties,
+            properties=list(map(lambda p: asdict(p), node.propertyTypes)),
+            link_properties=list(map(lambda p: asdict(p), node.linkPropertyTypes)),
         )
 
 

@@ -4,6 +4,7 @@
 # license that can be found in the LICENSE file.
 
 
+from pyinventory.api.equipment_type import _populate_equipment_port_types
 from utils.base_test import BaseTest
 
 
@@ -19,6 +20,12 @@ class TestEquipmentPortType(BaseTest):
 
     def tearDown(self):
         self.client.delete_equipment_port_type(self.port_type1.id)
+
+    def test_equipment_port_type_populated(self):
+        self.assertEqual(len(self.client.portTypes), 1)
+        self.client.portTypes = {}
+        _populate_equipment_port_types(self.client)
+        self.assertEqual(len(self.client.portTypes), 1)
 
     def test_equipment_port_type_created(self):
         fetched_port_type = self.client.get_equipment_port_type(self.port_type1.id)
