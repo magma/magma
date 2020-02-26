@@ -6,8 +6,10 @@ from typing import List
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
+from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties
+from ..client import SymphonyClient
 from ..consts import Location, LocationType, PropertyDefinition
 from ..graphql.add_location_type_input import AddLocationTypeInput
 from ..graphql.add_location_type_mutation import AddLocationTypeMutation
@@ -15,15 +17,13 @@ from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
 from ..graphql.location_types_query import LocationTypesQuery
 from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
-from ..graphql_client import GraphqlClient
-from ..reporter import FailedOperationException
 from .location import delete_location
 
 
 ADD_LOCATION_TYPE_MUTATION_NAME = "addLocationType"
 
 
-def _populate_location_types(client: GraphqlClient) -> None:
+def _populate_location_types(client: SymphonyClient) -> None:
     edges = LocationTypesQuery.execute(client).locationTypes.edges
     for edge in edges:
         node = edge.node
@@ -35,7 +35,7 @@ def _populate_location_types(client: GraphqlClient) -> None:
 
 
 def add_location_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     properties: List[PropertyDefinition],
     map_zoom_level: int = 8,
@@ -84,7 +84,7 @@ def add_location_type(
 
 
 def delete_locations_by_location_type(
-    client: GraphqlClient, location_type: LocationType
+    client: SymphonyClient, location_type: LocationType
 ) -> None:
     locations = LocationTypeLocationsQuery.execute(
         client, id=location_type.id
@@ -104,7 +104,7 @@ def delete_locations_by_location_type(
 
 
 def delete_location_type_with_locations(
-    client: GraphqlClient, location_type: LocationType
+    client: SymphonyClient, location_type: LocationType
 ) -> None:
     delete_locations_by_location_type(client, location_type)
     RemoveLocationTypeMutation.execute(client, id=location_type.id)

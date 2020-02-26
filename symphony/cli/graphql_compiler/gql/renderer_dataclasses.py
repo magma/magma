@@ -26,14 +26,14 @@ class DataclassesRenderer:
         buffer.write("")
         buffer.write("from dataclasses import dataclass, field")
         buffer.write("from datetime import datetime")
+        buffer.write("from gql.gql.datetime_utils import fromisoformat")
+        buffer.write("from gql.gql.graphql_client import GraphqlClient")
         buffer.write("from functools import partial")
         buffer.write("from numbers import Number")
         buffer.write("from typing import Any, Callable, List, Mapping, Optional")
         buffer.write("")
         buffer.write("from dataclasses_json import dataclass_json")
         buffer.write("from marshmallow import fields as marshmallow_fields")
-        buffer.write("")
-        buffer.write("from .datetime_utils import fromisoformat")
         buffer.write("")
         enum_names = set()
         for enum in parsed_query.enums:
@@ -113,13 +113,12 @@ class DataclassesRenderer:
             buffer.write("from dataclasses import dataclass, field")
             buffer.write("from datetime import datetime")
             buffer.write("from functools import partial")
+            buffer.write("from gql.gql.datetime_utils import fromisoformat")
             buffer.write("from numbers import Number")
             buffer.write("from typing import Any, Callable, List, Mapping, Optional")
             buffer.write("")
             buffer.write("from dataclasses_json import dataclass_json")
             buffer.write("from marshmallow import fields as marshmallow_fields")
-            buffer.write("")
-            buffer.write("from .datetime_utils import fromisoformat")
             buffer.write("")
             enum_names = set()
             for enum in input_object.input_enums:
@@ -255,7 +254,9 @@ class DataclassesRenderer:
 
             buffer.write("@classmethod")
             buffer.write("# fmt: off")
-            with buffer.write_block(f"def execute(cls, client{vars_args}):"):
+            with buffer.write_block(
+                f"def execute(cls, client: GraphqlClient{vars_args}):"
+            ):
                 buffer.write("# fmt: off")
                 buffer.write(f"variables = {variables_dict}")
                 buffer.write(

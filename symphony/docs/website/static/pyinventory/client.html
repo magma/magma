@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.2" />
-<title>pyinventory.graphql.customers_query API documentation</title>
+<title>pyinventory.client API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyinventory.graphql.customers_query</code></h1>
+<h1 class="title">Module <code>pyinventory.client</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -33,67 +33,105 @@
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery"><code class="flex name class">
-<span>class <span class="ident">CustomersQuery</span></span>
-<span>(</span><span>data: Union[<a title="pyinventory.graphql.customers_query.CustomersQuery.CustomersQueryData" href="#pyinventory.graphql.customers_query.CustomersQuery.CustomersQueryData">CustomersQuery.CustomersQueryData</a>, NoneType] = None, errors: Union[Any, NoneType] = None)</span>
+<dt id="pyinventory.client.SymphonyClient"><code class="flex name class">
+<span>class <span class="ident">SymphonyClient</span></span>
+<span>(</span><span>email: str, password: str, tenant: str = 'fb-test', is_local_host: bool = False, is_dev_mode: bool = False, reporter: gql.gql.reporter.Reporter = &lt;gql.gql.reporter.DummyReporter object&gt;)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>CustomersQuery(data: Union[pyinventory.graphql.customers_query.CustomersQuery.CustomersQueryData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>This is the class to use for working with symphony server.</p>
+<p>The <strong>init</strong> method uses the credentials to establish session with
+the inventory website. It also consumes graphql schema for
+validations, and validates the client version is compatible with server.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>email</code></strong> :&ensp;<code>str</code></dt>
+<dd>The email of the user to connect with.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password of the user to connect with.</dd>
+<dt><strong><code>tenant</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The tenant to connect to -
+should be the beginning of "{}.purpleheadband.cloud"
+The default is "fb-test" for QA environment</dd>
+<dt><strong><code>is_local_host</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Used for developers to connect to
+local inventory. This changes the address and also
+disable verification of ssl certificate</dd>
+<dt><strong><code>is_dev_mode</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Used for developers to connect to
+local inventory from a container. This changes the
+address and also disable verification of ssl
+certificate</dd>
+<dt><strong><code>reporter</code></strong> :&ensp;<code>object</code>, optional</dt>
+<dd>Use reporter.InventoryReporter to
+store reports on all successful and failed mutations
+in inventory. The default is DummyReporter that
+discards reports</dd>
+</dl></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>gql.gql.graphql_client.GraphqlClient</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="pyinventory.InventoryClient" href="index.html#pyinventory.InventoryClient">InventoryClient</a></li>
+</ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery.CustomersQueryData"><code class="name">var <span class="ident">CustomersQueryData</span></code></dt>
+<dt id="pyinventory.client.SymphonyClient.equipmentTypes"><code class="name">var <span class="ident">equipmentTypes</span></code></dt>
 <dd>
-<section class="desc"><p>CustomersQueryData(customers: Union[pyinventory.graphql.customers_query.CustomersQuery.CustomersQueryData.CustomerConnection, NoneType] = None)</p></section>
+<section class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></section>
 </dd>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dt id="pyinventory.client.SymphonyClient.locationTypes"><code class="name">var <span class="ident">locationTypes</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></section>
 </dd>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery.errors"><code class="name">var <span class="ident">errors</span></code></dt>
+<dt id="pyinventory.client.SymphonyClient.portTypes"><code class="name">var <span class="ident">portTypes</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></section>
 </dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient)</span>
-</code></dt>
+<dt id="pyinventory.client.SymphonyClient.serviceTypes"><code class="name">var <span class="ident">serviceTypes</span></code></dt>
 <dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.customers_query.CustomersQuery.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
+<section class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></section>
 </dd>
 </dl>
 </dd>
@@ -108,23 +146,18 @@
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="pyinventory.graphql" href="index.html">pyinventory.graphql</a></code></li>
+<li><code><a title="pyinventory" href="index.html">pyinventory</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="pyinventory.graphql.customers_query.CustomersQuery" href="#pyinventory.graphql.customers_query.CustomersQuery">CustomersQuery</a></code></h4>
-<ul class="two-column">
-<li><code><a title="pyinventory.graphql.customers_query.CustomersQuery.CustomersQueryData" href="#pyinventory.graphql.customers_query.CustomersQuery.CustomersQueryData">CustomersQueryData</a></code></li>
-<li><code><a title="pyinventory.graphql.customers_query.CustomersQuery.data" href="#pyinventory.graphql.customers_query.CustomersQuery.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.customers_query.CustomersQuery.errors" href="#pyinventory.graphql.customers_query.CustomersQuery.errors">errors</a></code></li>
-<li><code><a title="pyinventory.graphql.customers_query.CustomersQuery.execute" href="#pyinventory.graphql.customers_query.CustomersQuery.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.customers_query.CustomersQuery.from_dict" href="#pyinventory.graphql.customers_query.CustomersQuery.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.customers_query.CustomersQuery.from_json" href="#pyinventory.graphql.customers_query.CustomersQuery.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.customers_query.CustomersQuery.schema" href="#pyinventory.graphql.customers_query.CustomersQuery.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.customers_query.CustomersQuery.to_dict" href="#pyinventory.graphql.customers_query.CustomersQuery.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.customers_query.CustomersQuery.to_json" href="#pyinventory.graphql.customers_query.CustomersQuery.to_json">to_json</a></code></li>
+<h4><code><a title="pyinventory.client.SymphonyClient" href="#pyinventory.client.SymphonyClient">SymphonyClient</a></code></h4>
+<ul class="">
+<li><code><a title="pyinventory.client.SymphonyClient.equipmentTypes" href="#pyinventory.client.SymphonyClient.equipmentTypes">equipmentTypes</a></code></li>
+<li><code><a title="pyinventory.client.SymphonyClient.locationTypes" href="#pyinventory.client.SymphonyClient.locationTypes">locationTypes</a></code></li>
+<li><code><a title="pyinventory.client.SymphonyClient.portTypes" href="#pyinventory.client.SymphonyClient.portTypes">portTypes</a></code></li>
+<li><code><a title="pyinventory.client.SymphonyClient.serviceTypes" href="#pyinventory.client.SymphonyClient.serviceTypes">serviceTypes</a></code></li>
 </ul>
 </li>
 </ul>

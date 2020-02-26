@@ -5,9 +5,11 @@ from dataclasses import asdict
 from typing import Dict, List, Optional, Tuple
 
 from gql.gql.client import OperationException
+from gql.gql.reporter import FailedOperationException
 from tqdm import tqdm
 
 from .._utils import PropertyValue, _get_property_value, get_graphql_property_inputs
+from ..client import SymphonyClient
 from ..consts import Equipment, Location
 from ..exceptions import (
     EquipmentIsNotUniqueException,
@@ -24,8 +26,6 @@ from ..graphql.equipment_type_and_properties_query import (
 )
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
 from ..graphql.remove_equipment_mutation import RemoveEquipmentMutation
-from ..graphql_client import GraphqlClient
-from ..reporter import FailedOperationException
 
 
 ADD_EQUIPMENT_MUTATION_NAME = "addEquipment"
@@ -34,7 +34,7 @@ NUM_EQUIPMENTS_TO_SEARCH = 10
 
 
 def _get_equipment_if_exists(
-    client: GraphqlClient, name: str, location: Location
+    client: SymphonyClient, name: str, location: Location
 ) -> Optional[Equipment]:
 
     equipments = LocationEquipmentsQuery.execute(
@@ -50,7 +50,7 @@ def _get_equipment_if_exists(
     return Equipment(equipments[0].name, equipments[0].id)
 
 
-def get_equipment(client: GraphqlClient, name: str, location: Location) -> Equipment:
+def get_equipment(client: SymphonyClient, name: str, location: Location) -> Equipment:
     """Get the equipment in a given location by name
 
         Args:
@@ -75,14 +75,14 @@ def get_equipment(client: GraphqlClient, name: str, location: Location) -> Equip
 
 
 def _get_equipment_in_position_if_exists(
-    client: GraphqlClient, parent_equipment: Equipment, position_name: str
+    client: SymphonyClient, parent_equipment: Equipment, position_name: str
 ) -> Optional[Equipment]:
     _, equipment = _find_position_definition_id(client, parent_equipment, position_name)
     return equipment
 
 
 def get_equipment_in_position(
-    client: GraphqlClient, parent_equipment: Equipment, position_name: str
+    client: SymphonyClient, parent_equipment: Equipment, position_name: str
 ) -> Equipment:
     """Get the equipment attached in a given positionName of a given parentEquipment
 
@@ -90,13 +90,13 @@ def get_equipment_in_position(
             parent_equipment (pyinventory.consts.Equipment object): could be retrieved from
             the following apis:
 
-                * `pyinventory.api.equipment.get_equipment`
+            * `pyinventory.api.equipment.get_equipment`
 
-                * `pyinventory.api.equipment.get_equipment_in_position`
+            * `pyinventory.api.equipment.get_equipment_in_position`
                 
-                * `pyinventory.api.equipment.add_equipment`
+            * `pyinventory.api.equipment.add_equipment`
 
-                * `pyinventory.api.equipment.add_equipment_to_position`
+            * `pyinventory.api.equipment.add_equipment_to_position`
             
             position_name (str): the name of the position in the equipment type.
 
@@ -122,7 +122,7 @@ def get_equipment_in_position(
 
 
 def add_equipment(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     equipment_type: str,
     location: Location,
@@ -196,7 +196,7 @@ def add_equipment(
 
 
 def _find_position_definition_id(
-    client: GraphqlClient, equipment: Equipment, position_name: str
+    client: SymphonyClient, equipment: Equipment, position_name: str
 ) -> Tuple[str, Optional[Equipment]]:
 
     equipment_data = EquipmentPositionsQuery.execute(client, id=equipment.id).equipment
@@ -235,7 +235,7 @@ def _find_position_definition_id(
 
 
 def add_equipment_to_position(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     equipment_type: str,
     existing_equipment: Equipment,
@@ -252,13 +252,13 @@ def add_equipment_to_position(
             existing_equipment (pyinventory.consts.Equipment object): could be retrieved
             from the following apis:
 
-                * `pyinventory.api.equipment.get_equipment`
+            * `pyinventory.api.equipment.get_equipment`
 
-                * `pyinventory.api.equipment.get_equipment_in_position`
+            * `pyinventory.api.equipment.get_equipment_in_position`
                 
-                * `pyinventory.api.equipment.add_equipment`
+            * `pyinventory.api.equipment.add_equipment`
 
-                * `pyinventory.api.equipment.add_equipment_to_position`
+            * `pyinventory.api.equipment.add_equipment_to_position`
             
             position_name (str): the name of the position in the equipment type.
             properties_dict: dict of property name to property value. the property value should match
@@ -324,12 +324,12 @@ def add_equipment_to_position(
     return Equipment(equipment.name, equipment.id)
 
 
-def delete_equipment(client: GraphqlClient, equipment: Equipment) -> None:
+def delete_equipment(client: SymphonyClient, equipment: Equipment) -> None:
     RemoveEquipmentMutation.execute(client, id=equipment.id)
 
 
 def search_for_equipments(
-    client: GraphqlClient, limit: int
+    client: SymphonyClient, limit: int
 ) -> Tuple[List[Equipment], int]:
 
     equipments = EquipmentSearchQuery.execute(
@@ -344,7 +344,7 @@ def search_for_equipments(
     return equipments, total_count
 
 
-def delete_all_equipments(client: GraphqlClient) -> None:
+def delete_all_equipments(client: SymphonyClient) -> None:
     equipments, total_count = search_for_equipments(client, NUM_EQUIPMENTS_TO_SEARCH)
 
     for equipment in equipments:
@@ -363,7 +363,7 @@ def delete_all_equipments(client: GraphqlClient) -> None:
 
 
 def _get_equipment_type_and_properties_dict(
-    client: GraphqlClient, equipment: Equipment
+    client: SymphonyClient, equipment: Equipment
 ) -> Tuple[str, Dict[str, PropertyValue]]:
 
     result = EquipmentTypeAndPropertiesQuery.execute(client, id=equipment.id).equipment
@@ -397,7 +397,7 @@ def _get_equipment_type_and_properties_dict(
 
 
 def copy_equipment_in_position(
-    client: GraphqlClient,
+    client: SymphonyClient,
     equipment: Equipment,
     dest_parent_equipment: Equipment,
     dest_position_name: str,
@@ -416,7 +416,7 @@ def copy_equipment_in_position(
 
 
 def copy_equipment(
-    client: GraphqlClient, equipment: Equipment, dest_location: Location
+    client: SymphonyClient, equipment: Equipment, dest_location: Location
 ) -> Equipment:
     equipment_type, properties_dict = _get_equipment_type_and_properties_dict(
         client, equipment
@@ -427,14 +427,14 @@ def copy_equipment(
 
 
 def get_equipment_type_of_equipment(
-    client: GraphqlClient, equipment: Equipment
+    client: SymphonyClient, equipment: Equipment
 ) -> Equipment:
     equipment_type, _ = _get_equipment_type_and_properties_dict(client, equipment)
     return client.equipmentTypes[equipment_type]
 
 
 def get_or_create_equipment(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     equipment_type: str,
     location: Location,
@@ -447,7 +447,7 @@ def get_or_create_equipment(
 
 
 def get_or_create_equipment_in_position(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     equipment_type: str,
     existing_equipment: Equipment,

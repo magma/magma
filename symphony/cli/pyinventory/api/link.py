@@ -4,7 +4,9 @@
 from typing import List, Tuple
 
 from gql.gql.client import OperationException
+from gql.gql.reporter import FailedOperationException
 
+from ..client import SymphonyClient
 from ..consts import Equipment, EquipmentPort, Link
 from ..exceptions import (
     EquipmentPortIsNotUniqueException,
@@ -16,15 +18,13 @@ from ..graphql.add_link_input import AddLinkInput
 from ..graphql.add_link_mutation import AddLinkMutation
 from ..graphql.equipment_ports_query import EquipmentPortsQuery
 from ..graphql.link_side_input import LinkSide
-from ..graphql_client import GraphqlClient
-from ..reporter import FailedOperationException
 
 
 ADD_LINK_MUTATION_NAME = "addLink"
 
 
 def get_all_links_and_port_names_of_equipment(
-    client: GraphqlClient, equipment: Equipment
+    client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[Link, str]]:
     ports = EquipmentPortsQuery.execute(client, id=equipment.id).equipment.ports
     return [
@@ -35,7 +35,7 @@ def get_all_links_and_port_names_of_equipment(
 
 
 def _find_port_info(
-    client: GraphqlClient, equipment: Equipment, port_name: str
+    client: SymphonyClient, equipment: Equipment, port_name: str
 ) -> EquipmentPortsQuery.EquipmentPortsQueryData.Node.EquipmentPort:
     ports = EquipmentPortsQuery.execute(client, id=equipment.id).equipment.ports
 
@@ -48,7 +48,7 @@ def _find_port_info(
 
 
 def _find_port_definition_id(
-    client: GraphqlClient, equipment: Equipment, port_name: str
+    client: SymphonyClient, equipment: Equipment, port_name: str
 ) -> str:
     port = _find_port_info(client, equipment, port_name)
     if port.link is not None:
@@ -58,14 +58,14 @@ def _find_port_definition_id(
 
 
 def get_port(
-    client: GraphqlClient, equipment: Equipment, port_name: str
+    client: SymphonyClient, equipment: Equipment, port_name: str
 ) -> EquipmentPort:
     port = _find_port_info(client, equipment, port_name)
     return EquipmentPort(id=port.id)
 
 
 def add_link(
-    client: GraphqlClient,
+    client: SymphonyClient,
     equipment_a: Equipment,
     port_name_a: str,
     equipment_b: Equipment,
@@ -140,7 +140,7 @@ def add_link(
 
 
 def get_link_in_port_of_equipment(
-    client: GraphqlClient, equipment: Equipment, port_name: str
+    client: SymphonyClient, equipment: Equipment, port_name: str
 ) -> Link:
     port = _find_port_info(client, equipment, port_name)
     link = port.link

@@ -10,7 +10,13 @@ from typing import Optional
 from gql.gql.transport.http import HTTPTransport
 from graphql.language.printer import print_ast
 
-from .exceptions import MissingEnumException
+
+class MissingEnumException(Exception):
+    def __init__(self, variable: Enum) -> None:
+        self.enum_type = str(type(variable))
+
+    def __str__(self) -> str:
+        return f"Try to encode missing value of enum {self.enum_type}"
 
 
 class simple_utc(tzinfo):

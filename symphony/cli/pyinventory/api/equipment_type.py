@@ -6,8 +6,10 @@ from typing import Any, Dict, List
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
+from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties
+from ..client import SymphonyClient
 from ..consts import Equipment, EquipmentPortType, EquipmentType, PropertyDefinition
 from ..exceptions import EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
@@ -21,8 +23,6 @@ from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuer
 from ..graphql.equipment_types_query import EquipmentTypesQuery
 from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
-from ..graphql_client import GraphqlClient
-from ..reporter import FailedOperationException
 from .equipment import delete_equipment
 
 
@@ -30,7 +30,7 @@ ADD_EQUIPMENT_TYPE_MUTATION_NAME = "addEquipmentType"
 EDIT_EQUIPMENT_TYPE_MUTATION_NAME = "editEquipmentType"
 
 
-def _populate_equipment_types(client: GraphqlClient) -> None:
+def _populate_equipment_types(client: SymphonyClient) -> None:
     edges = EquipmentTypesQuery.execute(client).equipmentTypes.edges
 
     for edge in edges:
@@ -47,7 +47,7 @@ def _populate_equipment_types(client: GraphqlClient) -> None:
         )
 
 
-def _populate_equipment_port_types(client: GraphqlClient) -> None:
+def _populate_equipment_port_types(client: SymphonyClient) -> None:
     edges = EquipmentPortTypesQuery.execute(client).equipmentPortTypes.edges
 
     for edge in edges:
@@ -61,7 +61,7 @@ def _populate_equipment_port_types(client: GraphqlClient) -> None:
 
 
 def _add_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     category: str,
     properties: List[Dict[str, Any]],
@@ -98,7 +98,7 @@ def _add_equipment_type(
 
 
 def get_or_create_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     category: str,
     properties: List[PropertyDefinition],
@@ -113,7 +113,7 @@ def get_or_create_equipment_type(
 
 
 def _edit_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     equipment_type_id: str,
     name: str,
     category: str,
@@ -152,7 +152,7 @@ def _edit_equipment_type(
 
 
 def add_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     category: str,
     properties: List[PropertyDefinition],
@@ -208,7 +208,7 @@ def add_equipment_type(
 
 
 def edit_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     new_positions_list: List[str],
     new_ports_dict: Dict[str, str],
@@ -284,7 +284,7 @@ def edit_equipment_type(
 
 
 def copy_equipment_type(
-    client: GraphqlClient, curr_equipment_type_name: str, new_equipment_type_name: str
+    client: SymphonyClient, curr_equipment_type_name: str, new_equipment_type_name: str
 ) -> EquipmentType:
     if curr_equipment_type_name not in client.equipmentTypes:
         raise Exception(
@@ -333,7 +333,7 @@ def copy_equipment_type(
 
 
 def delete_equipment_type_with_equipments(
-    client: GraphqlClient, equipment_type: EquipmentType
+    client: SymphonyClient, equipment_type: EquipmentType
 ) -> None:
     equipments = EquipmentTypeEquipmentQuery.execute(
         client, id=equipment_type.id

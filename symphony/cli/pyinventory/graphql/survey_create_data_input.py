@@ -4,13 +4,12 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from functools import partial
+from gql.gql.datetime_utils import fromisoformat
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
-
-from .datetime_utils import fromisoformat
 
 from .survey_status_enum import SurveyStatus
 

@@ -9,8 +9,10 @@ from typing import Dict, List, Optional
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
+from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties, get_graphql_property_type_inputs
+from ..client import SymphonyClient
 from ..consts import EquipmentPortType, PropertyDefinition, PropertyValue
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_port_type_mutation import (
@@ -26,8 +28,6 @@ from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_equipment_port_type_mutation import (
     RemoveEquipmentPortTypeMutation,
 )
-from ..graphql_client import GraphqlClient
-from ..reporter import FailedOperationException
 
 
 ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME = "addEquipmentPortType"
@@ -35,7 +35,7 @@ EDIT_EQUIPMENT_PORT_TYPE_MUTATION_NAME = "editEquipmentPortType"
 
 
 def add_equipment_port_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     properties: List[PropertyDefinition],
     link_properties: List[PropertyDefinition],
@@ -113,7 +113,7 @@ def add_equipment_port_type(
 
 
 def get_equipment_port_type(
-    client: GraphqlClient, equipment_port_type_id: str
+    client: SymphonyClient, equipment_port_type_id: str
 ) -> EquipmentPortType:
     """This function returns an equipment port type.
         It can get only the requested equipment port type ID
@@ -147,7 +147,7 @@ def get_equipment_port_type(
 
 
 def edit_equipment_port_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     port_type: EquipmentPortType,
     new_name: Optional[str] = None,
     new_properties: Optional[Dict[str, PropertyValue]] = None,
@@ -243,7 +243,7 @@ def edit_equipment_port_type(
 
 
 def delete_equipment_port_type(
-    client: GraphqlClient, equipment_port_type_id: str
+    client: SymphonyClient, equipment_port_type_id: str
 ) -> None:
     """This function deletes an equipment port type.
         It can get only the requested equipment port type ID

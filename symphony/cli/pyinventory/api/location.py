@@ -5,8 +5,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
+from gql.gql.reporter import FailedOperationException
 
 from .._utils import deprecated, get_graphql_property_inputs
+from ..client import SymphonyClient
 from ..consts import Document, ImageEntity, Location
 from ..exceptions import (
     LocationCannotBeDeletedWithDependency,
@@ -25,8 +27,6 @@ from ..graphql.move_location_mutation import MoveLocationMutation
 from ..graphql.property_input import PropertyInput
 from ..graphql.remove_location_mutation import RemoveLocationMutation
 from ..graphql.search_query import SearchQuery
-from ..graphql_client import GraphqlClient
-from ..reporter import FailedOperationException
 
 
 ADD_LOCATION_MUTATION_NAME = "addLocation"
@@ -35,7 +35,7 @@ MOVE_LOCATION_MUTATION_NAME = "moveLocation"
 
 
 def add_location(
-    client: GraphqlClient,
+    client: SymphonyClient,
     location_hirerchy: List[Tuple[str, str]],
     properties_dict: Dict[str, Any],
     lat: Optional[float] = None,
@@ -227,7 +227,7 @@ def add_location(
 
 
 def get_location(
-    client: GraphqlClient, location_hirerchy: List[Tuple[str, str]]
+    client: SymphonyClient, location_hirerchy: List[Tuple[str, str]]
 ) -> Location:
     """This function returns a location of a specific type with a specific name.
         It can get only the requested location specifiers or the hirerchy leading to it
@@ -327,7 +327,7 @@ def get_location(
     return last_location
 
 
-def get_location_children(client: GraphqlClient, location_id: str) -> List[Location]:
+def get_location_children(client: SymphonyClient, location_id: str) -> List[Location]:
     """This function returns all locations that are children of the given location
 
         Args:
@@ -364,7 +364,7 @@ def get_location_children(client: GraphqlClient, location_id: str) -> List[Locat
 
 
 def edit_location(
-    client: GraphqlClient,
+    client: SymphonyClient,
     location: Location,
     new_name: Optional[str] = None,
     new_lat: Optional[float] = None,
@@ -419,7 +419,7 @@ def edit_location(
         return None
 
 
-def delete_location(client: GraphqlClient, location: Location) -> None:
+def delete_location(client: SymphonyClient, location: Location) -> None:
     deps = LocationDepsQuery.execute(client, id=location.id).location
     if len(deps.files) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "files")
@@ -433,7 +433,7 @@ def delete_location(client: GraphqlClient, location: Location) -> None:
 
 
 def move_location(
-    client: GraphqlClient, location_id: str, new_parent_id: Optional[str]
+    client: SymphonyClient, location_id: str, new_parent_id: Optional[str]
 ) -> Location:
     params = {"locationID": location_id, "parentLocationID": new_parent_id}
     try:
@@ -458,7 +458,7 @@ def move_location(
 
 @deprecated(deprecated_in="2.4.0", deprecated_by="get_location_by_external_id")
 def get_locations_by_external_id(
-    client: GraphqlClient, external_id: str
+    client: SymphonyClient, external_id: str
 ) -> List[Location]:
 
     locations = []
@@ -466,7 +466,7 @@ def get_locations_by_external_id(
     return locations
 
 
-def get_location_by_external_id(client: GraphqlClient, external_id: str) -> Location:
+def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Location:
     locations = SearchQuery.execute(client, name=external_id).searchForEntity.edges
     if not locations:
         raise LocationNotFoundException()
@@ -495,7 +495,9 @@ def get_location_by_external_id(client: GraphqlClient, external_id: str) -> Loca
     )
 
 
-def get_location_documents(client: GraphqlClient, location: Location) -> List[Document]:
+def get_location_documents(
+    client: SymphonyClient, location: Location
+) -> List[Document]:
     result = LocationDocumentsQuery.execute(client, id=location.id)
     files = result.location.files
     return [

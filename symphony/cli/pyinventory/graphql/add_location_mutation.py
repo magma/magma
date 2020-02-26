@@ -3,14 +3,14 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from gql.gql.datetime_utils import fromisoformat
+from gql.gql.graphql_client import GraphqlClient
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
-
-from .datetime_utils import fromisoformat
 
 from .add_location_input import AddLocationInput
 
@@ -70,7 +70,7 @@ class AddLocationMutation:
 
     @classmethod
     # fmt: off
-    def execute(cls, client, input: AddLocationInput):
+    def execute(cls, client: GraphqlClient, input: AddLocationInput):
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

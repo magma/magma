@@ -3,14 +3,14 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from gql.gql.datetime_utils import fromisoformat
+from gql.gql.graphql_client import GraphqlClient
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
-
-from .datetime_utils import fromisoformat
 
 from .service_endpoint_role_enum import ServiceEndpointRole
 
@@ -119,7 +119,7 @@ class AddServiceMutation:
 
     @classmethod
     # fmt: off
-    def execute(cls, client, data: ServiceCreateData):
+    def execute(cls, client: GraphqlClient, data: ServiceCreateData):
         # fmt: off
         variables = {"data": data}
         response_text = client.call(cls.__QUERY__, variables=variables)
