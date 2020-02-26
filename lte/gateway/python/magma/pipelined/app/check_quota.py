@@ -9,7 +9,6 @@ import netifaces
 import ipaddress
 from typing import NamedTuple, Dict, List
 
-from ryu.lib import hub
 from ryu.lib.packet import ether_types
 from ryu.ofproto.inet import IPPROTO_TCP
 from ryu.controller.controller import Datapath
@@ -20,7 +19,6 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import INGRESS, EGRESS
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
-from magma.pipelined.directoryd_client import get_record
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
     DIRECTION_REG
@@ -223,29 +221,15 @@ class CheckQuotaController(MagmaController):
             priority=flows.DEFAULT_PRIORITY,
             resubmit_table=self.egress_table
         )
-        hub.spawn(self._setup_fake_ip_arp, str(imsi), fake_ip)
 
-    def _setup_fake_ip_arp(self, imsi, fake_ip, retries=10):
-        for _ in range(0, retries):
-            mac = get_record(imsi, 'mac_addr')
-            if mac is not None:
-                break
-            self.logger.debug("Mac not found for subscriber %s, retrying", imsi)
-            hub.sleep(0.1)
-
-        if mac is None:
-            self.logger.error("Mac for subscriber %s, not found after %d"
-                              "retries, exiting.", imsi, retries)
-            return
-
-        self.logger.info("Received mac %s for subscriber %s, with fake ip %s",
-                          mac, imsi, fake_ip)
+        self.logger.info("Setting up fake arp for for subscriber %s(%s),"
+                         "with fake ip %s", imsi, ue_mac , fake_ip)
 
         if self.arp_contoller or self.arpd_controller_fut.done():
             if not self.arp_contoller:
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.set_incoming_arp_flows(self._datapath, fake_ip,
-                                                      mac)
+                                                      ue_mac)
 
     def _remove_subscriber_flow(self, imsi: str):
         match = MagmaMatch(
