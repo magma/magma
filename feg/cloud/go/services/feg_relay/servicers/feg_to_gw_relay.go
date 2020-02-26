@@ -50,7 +50,7 @@ func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
 		return "", err
 	}
 	for _, nid := range servedIds {
-		hwId, err := getHwid(imsi, nid)
+		hwId, err := getHwid(nid, imsi)
 		if err == nil && len(hwId) != 0 {
 			glog.V(2).Infof("IMSI to send is %v\n", imsi)
 			return hwId, nil
@@ -145,11 +145,9 @@ func getHwid(nid, imsi string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	record, ok := st.ReportedState.(*directoryd.DirectoryRecord)
 	if !ok || len(record.LocationHistory) == 0 {
 		return "", err
 	}
-
 	return record.LocationHistory[0], nil
 }

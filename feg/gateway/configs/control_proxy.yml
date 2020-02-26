@@ -24,7 +24,7 @@ cloud_address: controller.magma.test
 cloud_port: 9443
 
 bootstrap_address: bootstrapper-controller.magma.test
-bootstrap_port: 9443
+bootstrap_port: 9444
 
 # Option to use nghttpx for proxying. If disabled, the individual
 # services would establish the TLS connections themselves.
