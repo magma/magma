@@ -154,7 +154,7 @@ AsyncPipelinedClient::AsyncPipelinedClient():
 {
 }
 
-bool AsyncPipelinedClient::setup(
+bool AsyncPipelinedClient::setup_cwf(
    const std::vector<SessionState::SessionInfo>& infos,
    const std::vector<std::string> ue_mac_addrs,
    const std::vector<std::string> msisdns,
@@ -169,6 +169,16 @@ bool AsyncPipelinedClient::setup(
   SetupUEMacRequest setup_ue_mac_req = create_setup_ue_mac_req(infos,
     ue_mac_addrs, msisdns, apn_mac_addrs, apn_names, epoch);
   setup_ue_mac_rpc(setup_ue_mac_req, callback);
+  return true;
+}
+
+bool AsyncPipelinedClient::setup_lte(
+   const std::vector<SessionState::SessionInfo>& infos,
+   const std::uint64_t& epoch,
+   std::function<void(Status status, SetupFlowsResult)> callback)
+{
+  SetupPolicyRequest setup_policy_req = create_setup_policy_req(infos, epoch);
+  setup_policy_rpc(setup_policy_req, callback);
   return true;
 }
 

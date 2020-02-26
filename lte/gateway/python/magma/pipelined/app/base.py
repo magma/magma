@@ -19,6 +19,7 @@ from ryu.controller.handler import HANDSHAKE_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_4
 
+from lte.protos.pipelined_pb2 import SetupFlowsResult
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.metrics import OPENFLOW_ERROR_MSG
 from magma.pipelined.openflow.exceptions import MagmaOFError
@@ -120,14 +121,7 @@ class MagmaController(app_manager.RyuApp):
 
         if self._datapath is None:
             self.logger.warning("Datapath not initilized, setup failed")
-            return False
-
-        if self._startup_flow_controller is None:
-            if (self._startup_flows_fut.done()):
-                self._startup_flow_controller = self._startup_flows_fut.result()
-            else:
-                self.logger.error('Flow Startup controller is not ready')
-                return False
+            return SetupFlowsResult.FAILURE
 
         if self.init_finished:
             self.logger.warning('Controller already initialized, ignoring')

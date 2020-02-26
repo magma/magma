@@ -90,7 +90,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                      ) -> SetupFlowsResult:
         enforcement_res = self._enforcer_app.handle_restart(request.requests)
         # TODO check enf_stats result
-        self._enforcement_stats.setup_flows(request)
+        self._enforcement_stats.handle_restart(request.requests)
         fut.set_result(enforcement_res)
 
     def ActivateFlows(self, request, context):
