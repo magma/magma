@@ -15,4 +15,5 @@ target_link_libraries(LIB_GTPV2C
 target_include_directories(LIB_GTPV2C PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/nwgtpv2c-0.11/include/
     ${CMAKE_CURRENT_SOURCE_DIR}/nwgtpv2c-0.11/shared/
+    ${CMAKE_CURRENT_SOURCE_DIR}/nwgtpv2c-0.11/src/
 )

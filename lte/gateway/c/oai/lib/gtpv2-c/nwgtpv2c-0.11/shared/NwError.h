@@ -31,6 +31,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          *
  *----------------------------------------------------------------------------*/
 
+
 #ifndef __NW_ERROR_H__
 #define __NW_ERROR_H__
 
@@ -44,14 +45,14 @@ extern "C" {
 #endif
 #include "common_defs.h"
 typedef enum nw_rc_e {
-  NW_OK = RETURNok,
+  NW_OK                 = RETURNok,
   NW_GTPV2C_IE_MISSING,
   NW_GTPV2C_IE_INCORRECT,
   NW_GTPV2C_MANDATORY_IE_DUPLICATE,
   NW_GTPV2C_CONDITIONAL_IE_MISSING,
   NW_GTPV2C_MANDATORY_IE_MISSING,
   NW_GTPV2C_MSG_MALFORMED,
-  NW_FAILURE = 0xFFFFFFFE
+  NW_FAILURE            = 0xFFFFFFFE
 } nw_rc_t;
 
 #ifdef __cplusplus
@@ -59,3 +60,5 @@ typedef enum nw_rc_e {
 #endif
 
 #endif /* __NW_ERROR_CODE_H__ */
+
+

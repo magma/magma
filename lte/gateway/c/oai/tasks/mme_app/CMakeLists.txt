@@ -25,7 +25,6 @@ add_library(TASK_MME_APP
     mme_app_transport.c
     mme_app_ue_context.c
     mme_app_statistics.c
-    mme_app_embedded_spgw.c
     mme_config.c
     s6a_2_nas_cause.c
     mme_app_purge_ue.c
@@ -55,6 +54,12 @@ add_library(TASK_MME_APP
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
+
+if ( EMBEDDED_SGW)
+add_library(TASK_MME_APP
+mme_app_embedded_spgw.c
+)
+endif (EMBEDDED_SGW)
 
 target_compile_definitions(TASK_MME_APP PRIVATE
   PACKAGE_NAME=\"MME\"

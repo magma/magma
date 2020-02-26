@@ -43,9 +43,9 @@
 */
 
 typedef struct nw_gtpv2c_grouped_ie_parse_info_s {
-  uint8_t groupedIeType;
-  uint16_t mandatoryIeCount;
-  nw_gtpv2c_stack_handle_t hStack;
+  uint8_t                 groupedIeType;
+  uint16_t                mandatoryIeCount;
+  nw_gtpv2c_stack_handle_t  hStack;
 
   struct {
     uint8_t ieMinLength;
@@ -55,14 +55,14 @@ typedef struct nw_gtpv2c_grouped_ie_parse_info_s {
 } nw_gtpv2c_grouped_ie_parse_info_t;
 
 typedef struct nw_gtpv2c_msg_ie_parse_info_s {
-  uint16_t msgType;
-  uint16_t mandatoryIeCount;
-  nw_gtpv2c_stack_handle_t hStack;
+  uint16_t                msgType;
+  uint16_t                mandatoryIeCount;
+  nw_gtpv2c_stack_handle_t  hStack;
 
   struct {
     uint8_t ieMinLength;
     uint8_t iePresence;
-    nw_gtpv2c_grouped_ie_parse_info_t *pGroupedIeInfo;
+    nw_gtpv2c_grouped_ie_parse_info_t* pGroupedIeInfo;
   } ieParseInfo[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM];
 
 } nw_gtpv2c_msg_ie_parse_info_t;
@@ -71,16 +71,16 @@ typedef struct nw_gtpv2c_msg_ie_parse_info_s {
 extern "C" {
 #endif
 
-nw_gtpv2c_msg_ie_parse_info_t *nwGtpv2cMsgIeParseInfoNew(
-  nw_gtpv2c_stack_handle_t hStack,
-  uint8_t msgType);
+nw_gtpv2c_msg_ie_parse_info_t*
+nwGtpv2cMsgIeParseInfoNew(nw_gtpv2c_stack_handle_t hStack, uint8_t msgType);
 
-nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t *thiz);
+nw_rc_t
+nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t* thiz);
 
-nw_rc_t nwGtpv2cMsgIeParse(
-  NW_IN nw_gtpv2c_msg_ie_parse_info_t *thiz,
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_INOUT nw_gtpv2c_error_t *pError);
+nw_rc_t
+nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
+                   NW_IN       nw_gtpv2c_msg_handle_t hMsg,
+                   NW_INOUT    nw_gtpv2c_error_t     *pError);
 
 #ifdef __cplusplus
 }
@@ -88,6 +88,8 @@ nw_rc_t nwGtpv2cMsgIeParse(
 
 #endif /* __NW_GTPV2C_MSG_PARSE_INFO_H__ */
 
+
 /*--------------------------------------------------------------------------*
  *                      E N D     O F    F I L E                            *
  *--------------------------------------------------------------------------*/
+
