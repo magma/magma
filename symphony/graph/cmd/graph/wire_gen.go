@@ -25,8 +25,8 @@ import (
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	_ "gocloud.dev/pubsub/awssnssqs"
 	_ "gocloud.dev/pubsub/mempubsub"
+	_ "gocloud.dev/pubsub/natspubsub"
 )
 
 // Injectors from wire.go:
