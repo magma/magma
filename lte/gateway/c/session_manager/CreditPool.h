@@ -65,6 +65,13 @@ class CreditPool {
    * get_credit is a helper function to return the bytes in a credit bucket
    */
   virtual uint64_t get_credit(const KeyType &key, Bucket bucket) const = 0;
+
+  /**
+   * Updates either the Monitor or SessionCredit using the update criteria
+   */
+  virtual void merge_credit_update(
+    const KeyType &key,
+    const SessionCreditUpdateCriteria &credit_update) = 0;
 };
 
 /**
@@ -101,6 +108,12 @@ class ChargingCreditPool :
 
   uint64_t get_credit(const CreditKey &key, Bucket bucket) const override;
 
+  void add_credit(const CreditKey &key, std::unique_ptr<SessionCredit> credit);
+
+  void merge_credit_update(
+    const CreditKey &key,
+    const SessionCreditUpdateCriteria &credit_update) override;
+
   ChargingReAuthAnswer::Result reauth_key(const CreditKey &charging_key);
 
   ChargingReAuthAnswer::Result reauth_all();
@@ -126,6 +139,16 @@ class UsageMonitoringCreditPool :
     UsageMonitoringUpdateResponse,
     UsageMonitorUpdate> {
  public:
+  struct Monitor {
+    SessionCredit credit;
+    MonitoringLevel level;
+
+    Monitor(): credit(CreditType::MONITORING) {}
+  };
+
+  static std::unique_ptr<Monitor> unmarshal_monitor(
+    const StoredMonitor &marshaled);
+
   static std::unique_ptr<UsageMonitoringCreditPool> unmarshal(
     const StoredUsageMonitoringCreditPool &marshaled);
 
@@ -154,15 +177,17 @@ class UsageMonitoringCreditPool :
 
   uint64_t get_credit(const std::string &key, Bucket bucket) const override;
 
+  void add_monitor(
+    const std::string &key,
+    std::unique_ptr<UsageMonitoringCreditPool::Monitor> monitor);
+
+  void merge_credit_update(
+    const std::string &key,
+    const SessionCreditUpdateCriteria &credit_update) override;
+
   std::unique_ptr<std::string> get_session_level_key();
 
  private:
-  struct Monitor {
-    SessionCredit credit;
-    MonitoringLevel level;
-
-    Monitor(): credit(CreditType::MONITORING) {}
-  };
 
   std::unordered_map<std::string, std::unique_ptr<Monitor>> monitor_map_;
   std::string imsi_;

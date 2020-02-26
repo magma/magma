@@ -8,6 +8,7 @@
  */
 #include <limits>
 #include "CreditPool.h"
+#include "StoredState.h"
 
 #include "magma_logging.h"
 
@@ -274,6 +275,32 @@ uint64_t ChargingCreditPool::get_credit(const CreditKey &key, Bucket bucket) con
   return it->second->get_credit(bucket);
 }
 
+void ChargingCreditPool::add_credit(
+  const CreditKey &key,
+  std::unique_ptr<SessionCredit> credit)
+{
+  credit_map_[key] = std::move(credit);
+}
+
+void ChargingCreditPool::merge_credit_update(
+  const CreditKey &key,
+  const SessionCreditUpdateCriteria &credit_update)
+{
+  auto it = credit_map_.find(key);
+  if (it == credit_map_.end()) {
+    return;
+  }
+  it->second->set_is_final(credit_update.is_final);
+  it->second->set_reauth(credit_update.reauth_state);
+  it->second->set_service_state(credit_update.service_state);
+  it->second->set_expiry_time(credit_update.expiry_time);
+  for (int i = USED_TX; i != MAX_VALUES; i++) {
+    Bucket bucket = static_cast<Bucket>(i);
+    it->second->add_credit(
+      credit_update.bucket_deltas.find(bucket)->second, bucket);
+  }
+}
+
 ChargingReAuthAnswer::Result ChargingCreditPool::reauth_key(
   const CreditKey &charging_key)
 {
@@ -304,6 +331,15 @@ ChargingReAuthAnswer::Result ChargingCreditPool::reauth_all()
     }
   }
   return res;
+}
+
+std::unique_ptr<UsageMonitoringCreditPool::Monitor> UsageMonitoringCreditPool::unmarshal_monitor(
+  const StoredMonitor &marshaled)
+{
+  UsageMonitoringCreditPool::Monitor monitor;
+  monitor.credit = *SessionCredit::unmarshal(marshaled.credit, MONITORING);
+  monitor.level = marshaled.level;
+  return std::make_unique<UsageMonitoringCreditPool::Monitor>(monitor);
 }
 
 std::unique_ptr<UsageMonitoringCreditPool> UsageMonitoringCreditPool::unmarshal(
@@ -529,6 +565,32 @@ uint64_t UsageMonitoringCreditPool::get_credit(
     return 0;
   }
   return it->second->credit.get_credit(bucket);
+}
+
+void UsageMonitoringCreditPool::add_monitor(
+  const std::string &key,
+  std::unique_ptr<UsageMonitoringCreditPool::Monitor> monitor)
+{
+  monitor_map_[key] = std::move(monitor);
+}
+
+void UsageMonitoringCreditPool::merge_credit_update(
+  const std::string &key,
+  const SessionCreditUpdateCriteria &credit_update)
+{
+  auto it = monitor_map_.find(key);
+  if (it == monitor_map_.end()) {
+    return;
+  }
+  it->second->credit.set_is_final(credit_update.is_final);
+  it->second->credit.set_reauth(credit_update.reauth_state);
+  it->second->credit.set_service_state(credit_update.service_state);
+  it->second->credit.set_expiry_time(credit_update.expiry_time);
+  for (int i = USED_TX; i != MAX_VALUES; i++) {
+    Bucket bucket = static_cast<Bucket>(i);
+    it->second->credit.add_credit(
+      credit_update.bucket_deltas.find(bucket)->second, bucket);
+  }
 }
 
 std::unique_ptr<std::string> UsageMonitoringCreditPool::get_session_level_key()
