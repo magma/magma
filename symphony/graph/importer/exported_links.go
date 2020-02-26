@@ -220,18 +220,25 @@ func (m *importer) getLinkPropertyInputs(ctx context.Context, importLine ImportR
 	if err != nil {
 		return nil, fmt.Sprintf("querying link ports: id %v", l.ID), err
 	}
-
+	var portTypes []interface{}
 	for _, port := range ports {
 		definition := port.QueryDefinition().OnlyX(ctx)
 		portType, _ := definition.QueryEquipmentPortType().Only(ctx)
 
 		if portType != nil && importLine.Len() > importHeader.PropertyStartIdx() {
+			portTypes = append(portTypes, portType)
 			portProps, err := m.validatePropertiesForPortType(ctx, importLine, portType, ImportEntityLink)
 			if err != nil {
 				return nil, fmt.Sprintf("validating property for type %v.", portType.Name), err
 			}
 			allPropInputs = append(allPropInputs, portProps...)
 		}
+	}
+	if len(portTypes) != 0 {
+		err = importLine.validatePropertiesMismatch(ctx, portTypes)
+	}
+	if err != nil {
+		return nil, "", err
 	}
 	return allPropInputs, "", nil
 }

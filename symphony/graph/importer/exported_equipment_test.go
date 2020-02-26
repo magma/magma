@@ -259,7 +259,7 @@ func TestLocationHierarchy(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, loc3.Name, "locNameM")
 	require.Equal(t, loc3.QueryType().OnlyXID(ctx), ids.locTypeIDM)
-	require.Equal(t, loc3.ID, loc2.QueryParent().OnlyX(ctx).ID)
+	require.False(t, loc3.QueryChildren().ExistX(ctx))
 }
 
 func TestPosition(t *testing.T) {

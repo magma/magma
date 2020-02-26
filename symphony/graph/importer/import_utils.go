@@ -82,6 +82,8 @@ func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name strin
 	rq := locType.QueryLocations().Where(location.Name(name))
 	if parentID != nil {
 		rq = rq.Where(location.HasParentWith(location.ID(*parentID)))
+	} else {
+		rq = rq.Where(location.Not(location.HasParent()))
 	}
 	l, err := rq.Only(ctx)
 	if l != nil {

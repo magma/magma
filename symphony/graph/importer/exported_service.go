@@ -267,6 +267,11 @@ func (m *importer) getValidatedStatus(importLine ImportRecord) (*models.ServiceS
 }
 
 func (m *importer) validatePropertiesForServiceType(ctx context.Context, line ImportRecord, serviceType *ent.ServiceType) ([]*models.PropertyInput, error) {
+	err := line.validatePropertiesMismatch(ctx, []interface{}{serviceType})
+	if err != nil {
+		return nil, err
+	}
+
 	var pInputs []*models.PropertyInput
 	propTypes, err := serviceType.QueryPropertyTypes().All(ctx)
 	if ent.MaskNotFound(err) != nil {
