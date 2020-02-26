@@ -260,11 +260,30 @@ bool SessionCredit::quota_exhausted(
 
 bool SessionCredit::should_deactivate_service()
 {
-  return credit_type_ == CreditType::CHARGING &&
-         !unlimited_quota_ &&
-         SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED &&
-         ((no_more_grant() && quota_exhausted()) ||
-           quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN));
+  if (credit_type_ != CreditType::CHARGING) {
+    // we only terminate on charging quota exhaustion
+    return false;
+  }
+  if (unlimited_quota_) {
+    return false;
+  }
+  if (!SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
+    // configured in sessiond.yml
+    return false;
+  }
+  if (no_more_grant() && quota_exhausted()) {
+    // If we've exhausted the last grant, we should terminate
+    return true;
+  }
+  if (quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN)) {
+    // extra quota margin is configured in sessiond.yml
+    // We will terminate if we've exceeded (given quota + extra quota margin).
+    // If the gateway loses connection to the reporter, we should not allow the
+    // UE to use internet for too long. This quota should be reasonably big so
+    // that we don't terminate the session too easily.
+    return true;
+  }
+  return false;
 }
 
 bool SessionCredit::validity_timer_expired()
