@@ -17,38 +17,6 @@ from ..graphql.delete_image_mutation import DeleteImageMutation
 from ..graphql.image_entity_enum import ImageEntity
 
 
-def store_file(
-    client: SymphonyClient, file_path: str, file_type: str, is_global: bool
-) -> str:
-    sign_response = client.session.get(
-        client.put_endpoint,
-        params={"contentType": file_type},
-        headers={"Is-Global": str(is_global)},
-    )
-    sign_response = sign_response.json()
-    signed_url = sign_response["URL"]
-    with open(file_path, "rb") as f:
-        file_data = f.read()
-    response = client.session.put(
-        signed_url, data=file_data, headers={"Content-Type": file_type}
-    )
-    response.raise_for_status()
-    return sign_response["key"]
-
-
-def delete_file(client: SymphonyClient, key: str, is_global: bool) -> None:
-    sign_response = client.session.delete(
-        client.delete_endpoint.format(key),
-        headers={"Is-Global": str(is_global)},
-        allow_redirects=False,
-    )
-    sign_response.raise_for_status()
-    assert sign_response.status_code == 307
-    signed_url = sign_response.headers["location"]
-    response = client.session.delete(signed_url)
-    response.raise_for_status()
-
-
 def _add_image(
     client: SymphonyClient,
     local_file_path: str,
@@ -58,7 +26,7 @@ def _add_image(
 ) -> None:
     file_type = filetype.guess(local_file_path)
     file_type = file_type.MIME if file_type is not None else ""
-    img_key = store_file(client, local_file_path, file_type, False)
+    img_key = client.store_file(local_file_path, file_type, False)
     file_size = os.path.getsize(local_file_path)
 
     AddImageMutation.execute(
@@ -174,7 +142,7 @@ def delete_site_survey_image(client: SymphonyClient, survey: SiteSurvey) -> None
     source_file_key = survey.sourceFileKey
     source_file_id = survey.sourceFileId
     if source_file_key is not None:
-        delete_file(client, source_file_key, False)
+        client.delete_file(source_file_key, False)
     if source_file_id is not None:
         _delete_image(client, ImageEntity.SITE_SURVEY, survey.id, source_file_id)
 

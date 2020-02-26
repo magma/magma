@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # pyre-strict
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import requests
 from gql.gql import gql
@@ -16,8 +16,7 @@ class GraphqlClient:
     def __init__(
         self,
         graphql_endpoint_address: str,
-        auth: Optional[requests.auth.AuthBase] = None,
-        verify_ssl: bool = True,
+        session: requests.Session,
         reporter: Reporter = DUMMY_REPORTER,
     ) -> None:
 
@@ -37,17 +36,10 @@ class GraphqlClient:
         """
 
         self.reporter = reporter
-        self.session = requests.Session()
-        self.session.verify = verify_ssl
-        if not verify_ssl:
-            import urllib3
-
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.client = Client(
             transport=RequestsHTTPSessionTransport(
-                self.session,
+                session,
                 graphql_endpoint_address,
-                auth=auth,
                 headers={
                     "Accept": "application/json",
                     "Content-Type": "application/json",

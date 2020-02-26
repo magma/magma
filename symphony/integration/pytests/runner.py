@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
+import sys
 from unittest import TestLoader, TestSuite, TextTestRunner
 
 from test_equipment import TestEquipment
@@ -35,4 +36,7 @@ if __name__ == "__main__":
         runner = XMLTestRunner(output=XML_OUTPUT_DIRECTORY, verbosity=2)
     else:
         runner = TextTestRunner(verbosity=2)
-    runner.run(suite)
+    result = runner.run(suite)
+    if len(result.errors) != 0 or len(result.failures) != 0:
+        sys.exit(1)
+    sys.exit(0)
