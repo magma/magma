@@ -99,8 +99,6 @@ services:
 
   nats:
     image: nats
-    networks:
-      - private
     restart: on-failure
 
   tests:
