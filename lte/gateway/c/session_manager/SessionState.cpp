@@ -362,6 +362,11 @@ std::string SessionState::get_mac_addr() const
   return config_.mac_addr;
 }
 
+std::string SessionState::get_msisdn() const
+{
+  return config_.msisdn;
+}
+
 std::string SessionState::get_apn() const
 {
   return config_.apn;

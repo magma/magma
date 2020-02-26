@@ -163,6 +163,8 @@ class SessionState {
 
   std::string get_mac_addr() const;
 
+  std::string get_msisdn() const;
+
   std::string get_hardware_addr() const { return config_.hardware_addr; }
 
   std::string get_radius_session_id() const;
