@@ -381,4 +381,24 @@ RedirectServer SessionCredit::get_redirect_server() {
   return final_action_info_.redirect_server;
 }
 
+void SessionCredit::set_is_final(bool is_final) {
+  is_final_ = is_final;
+}
+
+void SessionCredit::set_reauth(ReAuthState reauth_state) {
+  reauth_state_ = reauth_state;
+}
+
+void SessionCredit::set_service_state(ServiceState service_state) {
+  service_state_ = service_state;
+}
+
+void SessionCredit::set_expiry_time(std::time_t expiry_time) {
+  expiry_time_ = expiry_time;
+}
+
+void SessionCredit::add_credit(uint64_t credit, Bucket bucket) {
+  buckets_[bucket] += credit;
+}
+
 } // namespace magma

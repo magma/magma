@@ -64,7 +64,8 @@ class MockPipelinedClient : public PipelinedClient {
  public:
   MockPipelinedClient()
   {
-    ON_CALL(*this, setup(_,_,_)).WillByDefault(Return(true));
+    ON_CALL(*this, setup_cwf(_,_,_,_,_,_,_)).WillByDefault(Return(true));
+    ON_CALL(*this, setup_lte(_,_,_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _))
       .WillByDefault(Return(true));
@@ -76,7 +77,16 @@ class MockPipelinedClient : public PipelinedClient {
       .WillByDefault(Return(true));
   }
 
-  MOCK_METHOD3(setup,
+  MOCK_METHOD7(setup_cwf,
+    bool(
+      const std::vector<SessionState::SessionInfo>& infos,
+      const std::vector<std::string> ue_mac_addrs,
+      const std::vector<std::string> msisdns,
+      const std::vector<std::string> apn_mac_addrs,
+      const std::vector<std::string> apn_names,
+      const std::uint64_t& epoch,
+      std::function<void(Status status, SetupFlowsResult)> callback));
+  MOCK_METHOD3(setup_lte,
     bool(
       const std::vector<SessionState::SessionInfo>& infos,
       const std::uint64_t& epoch,

@@ -20,8 +20,7 @@ import (
 type Subscriber struct {
 
 	// active apns
-	// Required: true
-	ActiveApns ApnList `json:"active_apns"`
+	ActiveApns ApnList `json:"active_apns,omitempty"`
 
 	// Base names which are active for this subscriber
 	ActiveBaseNames []BaseName `json:"active_base_names,omitempty"`
@@ -70,8 +69,8 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 
 func (m *Subscriber) validateActiveApns(formats strfmt.Registry) error {
 
-	if err := validate.Required("active_apns", "body", m.ActiveApns); err != nil {
-		return err
+	if swag.IsZero(m.ActiveApns) { // not required
+		return nil
 	}
 
 	if err := m.ActiveApns.Validate(formats); err != nil {

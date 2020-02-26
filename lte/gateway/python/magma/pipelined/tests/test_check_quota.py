@@ -9,7 +9,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import unittest
 import warnings
-from unittest.mock import MagicMock
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
@@ -90,7 +89,6 @@ class UEMacAddressTest(unittest.TestCase):
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.check_quota_controller = check_quota_controller_reference.result()
-        cls.check_quota_controller._setup_fake_ip_arp = MagicMock()
         cls.testing_controller = testing_controller_reference.result()
 
     @classmethod
@@ -105,7 +103,7 @@ class UEMacAddressTest(unittest.TestCase):
         imsi_1 = 'IMSI010000000088888'
         mac_1 = '5e:cc:cc:b1:49:4b'
 
-        # Add subscriber with UE MAC address """
+        # Add subscriber with UE MAC address
         self.check_quota_controller.update_subscriber_quota_state(
             [
                 SubscriberQuotaUpdate(
@@ -128,8 +126,7 @@ class UEMacAddressTest(unittest.TestCase):
         mac_2 = '5e:a:cc:af:aa:fe'
         mac_3 = '5e:bb:cc:aa:aa:fe'
 
-        # Add subscriber with UE MAC address """
-
+        # Add subscriber with UE MAC address
         self.check_quota_controller.update_subscriber_quota_state(
             [
                 SubscriberQuotaUpdate(

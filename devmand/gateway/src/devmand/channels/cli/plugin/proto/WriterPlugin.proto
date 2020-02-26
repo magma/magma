@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package devmand.channels.cli.plugin;
+
+import "Common.proto";
+
+service WriterPlugin {
+  rpc Create(stream CreateRequest) returns (stream CreateResponse) {}
+  rpc Update(stream UpdateRequest) returns (stream UpdateResponse) {}
+  rpc Remove(stream RemoveRequest) returns (stream RemoveResponse) {}
+}
+
+// create
+message ActualCreateRequest {
+  string path = 1;
+  string cfg = 2;
+}
+message CreateRequest {
+  oneof CreateRequestUnion {
+    ActualCreateRequest actualCreateRequest = 1;
+    CliResponse cliResponse = 2;
+  }
+}
+message ActualCreateResponse {
+}
+message CreateResponse {
+  oneof CreateResponseUnion {
+    CliRequest cliRequest = 1;
+    ActualCreateResponse actualCreateResponse = 2;
+  }
+}
+
+// update
+message ActualUpdateRequest {
+  string path = 1;
+  string before = 2;
+  string after = 3;
+}
+message UpdateRequest {
+  oneof UpdateRequestUnion {
+    ActualUpdateRequest actualUpdateRequest = 1;
+    CliResponse cliResponse = 2;
+  }
+}
+message ActualUpdateResponse {
+}
+message UpdateResponse {
+  oneof UpdateResponseUnion {
+    CliRequest cliRequest = 1;
+    ActualUpdateResponse actualUpdateResponse = 2;
+  }
+}
+
+// remove
+message ActualRemoveRequest {
+  string path = 1;
+  string before = 2;
+}
+message RemoveRequest {
+  oneof RemoveRequestUnion {
+    ActualRemoveRequest actualRemoveRequest = 1;
+    CliResponse cliResponse = 2;
+  }
+}
+message ActualRemoveResponse {
+}
+message RemoveResponse {
+  oneof RemoveResponseUnion {
+    CliRequest cliRequest = 1;
+    ActualRemoveResponse actualRemoveResponse = 2;
+  }
+}

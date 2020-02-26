@@ -2,15 +2,16 @@
 # pyre-strict
 
 from dataclasses import asdict
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from dacite import Config, from_dict
 
-from .._utils import PropertyValue, _get_graphql_properties, format_properties
+from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
 from ..consts import (
     Customer,
     EquipmentPort,
     Link,
+    PropertyDefinition,
     Service,
     ServiceEndpoint,
     ServiceType,
@@ -49,7 +50,7 @@ def add_service_type(
     client: GraphqlClient,
     name: str,
     hasCustomer: bool,
-    properties: List[Tuple[str, str, PropertyValue, bool]],
+    properties: List[PropertyDefinition],
 ) -> ServiceType:
 
     new_property_types = format_properties(properties)
@@ -87,7 +88,7 @@ def add_service(
     links: List[Link],
 ) -> Service:
     property_types = client.serviceTypes[service_type].propertyTypes
-    properties = _get_graphql_properties(property_types, properties_dict)
+    properties = get_graphql_property_inputs(property_types, properties_dict)
     service_create_data = ServiceCreateData(
         name=name,
         externalId=external_id,

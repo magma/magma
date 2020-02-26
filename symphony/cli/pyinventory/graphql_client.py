@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # pyre-strict
 
-import re
 from distutils.version import LooseVersion
 from typing import Any, Dict, Optional, Tuple
 
@@ -15,7 +14,6 @@ from .consts import (
     DUMMY_REPORTER,
     INVENTORY_ENDPOINT,
     INVENTORY_GRAPHQL_ENDPOINT,
-    INVENTORY_LOGIN_ENDPOINT,
     INVENTORY_STORE_DELETE_ENDPOINT,
     INVENTORY_STORE_PUT_ENDPOINT,
     LOCALHOST_INVENTORY_ENDPOINT,
@@ -80,7 +78,6 @@ class GraphqlClient:
             if is_local_host
             else INVENTORY_ENDPOINT.format(tenant)
         )
-        self.login: str = self.address + INVENTORY_LOGIN_ENDPOINT
         self.endpoint: str = self.address + INVENTORY_GRAPHQL_ENDPOINT
         self.put_endpoint: str = self.address + INVENTORY_STORE_PUT_ENDPOINT
         self.delete_endpoint: str = self.address + INVENTORY_STORE_DELETE_ENDPOINT
@@ -91,11 +88,11 @@ class GraphqlClient:
             import urllib3
 
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        self._login()
         self.client = Client(
             transport=RequestsHTTPSessionTransport(
                 self.session,
                 self.endpoint,
+                auth=requests.auth.HTTPBasicAuth(self.email, self.password),
                 headers={
                     "Accept": "application/json",
                     "Content-Type": "application/json",
@@ -130,28 +127,6 @@ class GraphqlClient:
                     latest_version
                 )
             )
-
-    def _login(self) -> None:
-        response = self.session.get(self.login)
-        match = re.search(b'"csrfToken":"([^"]+)"', response.content)
-        assert match is not None, "Problem with inventory login"
-        csrf_token = match.group(1).decode("ascii")
-        login_data = "_csrf={0}&email={1}&password={2}".format(
-            csrf_token, self.email, self.password
-        ).encode("ascii")
-        response = self.session.post(
-            self.login,
-            data=login_data,
-            headers={"Content-type": "application/x-www-form-urlencoded"},
-        )
-        response.raise_for_status()
-        assert (
-            re.search('"email":"{}"'.format(self.email).encode(), response.content)
-            is not None
-        ), "Credentials are incorrect"
-        self.session.headers.update(
-            {"x-csrf-token": csrf_token, "User-Agent": "Pyinventory/" + __version__}
-        )
 
     def _get_latest_python_package_version(self) -> Optional[Tuple[str, str]]:
 

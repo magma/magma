@@ -77,6 +77,20 @@ bool SessionRules::get_monitoring_key_for_rule_id(
   return false;
 }
 
+bool SessionRules::is_dynamic_rule_installed(const std::string& rule_id)
+{
+  auto _ = new PolicyRule();
+  return dynamic_rules_.get_rule(rule_id, _);
+}
+
+bool SessionRules::is_static_rule_installed(const std::string& rule_id)
+{
+  return std::find(
+    active_static_rules_.begin(),
+    active_static_rules_.end(),
+    rule_id) != active_static_rules_.end();
+}
+
 void SessionRules::insert_dynamic_rule(const PolicyRule& rule)
 {
   dynamic_rules_.insert_rule(rule);

@@ -82,7 +82,7 @@ func TestImportAndEditPorts(t *testing.T) {
 
 			log := r.exporter.log
 			e := &exporter{log, portsRower{log}}
-			ctx, res := prepareLinksPortsAndExport(t, r, e)
+			ctx, res := prepareHandlerAndExport(t, r, e)
 
 			defer res.Body.Close()
 			importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityPort, MethodEdit, skipLines, withVerify)

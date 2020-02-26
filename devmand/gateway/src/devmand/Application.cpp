@@ -40,10 +40,12 @@ Application::Application()
             del(deviceConfig);
           }) {}
 
-void Application::init() {
+void Application::init(
+    const std::shared_ptr<devmand::magma::DevConf>& devConf) {
+  folly::dynamic pluginConfig = devConf->getPluginConfig();
   ErrorHandler::executeWithCatch(
-      [this]() -> void {
-        cliEngine = addEngine<channels::cli::Engine>();
+      [this, pluginConfig]() -> void {
+        cliEngine = addEngine<channels::cli::Engine>(pluginConfig);
         snmpEngine = addEngine<channels::snmp::Engine>(eventBase, name);
         pingEngine =
             addEngine<channels::ping::Engine>(eventBase, IPVersion::v4);

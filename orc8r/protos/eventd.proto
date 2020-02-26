@@ -31,6 +31,6 @@ message Event {
   string event_type = 2;
   // A user-specified non-unique identifier for events
   string tag = 3;
-  // The serialized event log, which can be deserialized to the event_type.
-  bytes value = 4;
+  // The event log serialized as JSON
+  string value = 4;
 }

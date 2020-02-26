@@ -2,13 +2,13 @@
 # pyre-strict
 
 from dataclasses import asdict
-from typing import List, Tuple
+from typing import List
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
 
-from .._utils import PropertyValue, format_properties
-from ..consts import Location, LocationType
+from .._utils import format_properties
+from ..consts import Location, LocationType, PropertyDefinition
 from ..graphql.add_location_type_input import AddLocationTypeInput
 from ..graphql.add_location_type_mutation import AddLocationTypeMutation
 from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
@@ -37,7 +37,7 @@ def _populate_location_types(client: GraphqlClient) -> None:
 def add_location_type(
     client: GraphqlClient,
     name: str,
-    properties: List[Tuple[str, str, PropertyValue, bool]],
+    properties: List[PropertyDefinition],
     map_zoom_level: int = 8,
 ) -> LocationType:
 

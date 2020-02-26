@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 from gql.gql.client import OperationException
 from tqdm import tqdm
 
-from .._utils import PropertyValue, _get_graphql_properties, _get_property_value
+from .._utils import PropertyValue, _get_property_value, get_graphql_property_inputs
 from ..consts import Equipment, Location
 from ..exceptions import (
     EquipmentIsNotUniqueException,
@@ -55,7 +55,7 @@ def get_equipment(client: GraphqlClient, name: str, location: Location) -> Equip
 
         Args:
             name (str): equipment name
-            location (client.Location object): retrieved from getLocation or
+            location (pyinventory.consts.Location object): retrieved from getLocation or
                                                 addLocation api.
 
         Raises: AssertionException if location contains more than one equipments
@@ -63,7 +63,7 @@ def get_equipment(client: GraphqlClient, name: str, location: Location) -> Equip
                         not found FailedOperationException for internal
                         inventory error
 
-        Returns: client.Equipment object (with name and id fields)
+        Returns: pyinventory.consts.Equipment object (with name and id fields)
                  You can use the id to access the equipment from the UI:
                  https://{}.purpleheadband.cloud/inventory/inventory?equipment={}
     """
@@ -87,12 +87,17 @@ def get_equipment_in_position(
     """Get the equipment attached in a given positionName of a given parentEquipment
 
         Args:
-            parent_equipment (client.Equipment object): could be retrieved from
+            parent_equipment (pyinventory.consts.Equipment object): could be retrieved from
             the following apis:
-                * getEquipment
-                * getEquipmentInPosition
-                * addEquipment
-                * addEquipmentToPosition
+
+                * `pyinventory.api.equipment.get_equipment`
+
+                * `pyinventory.api.equipment.get_equipment_in_position`
+                
+                * `pyinventory.api.equipment.add_equipment`
+
+                * `pyinventory.api.equipment.add_equipment_to_position`
+            
             position_name (str): the name of the position in the equipment type.
 
         Raises: AssertionException if parent equipment has more than one
@@ -100,7 +105,7 @@ def get_equipment_in_position(
                     if the position is not occupied._findPositionDefinitionId
                 FailedOperationException for internal inventory error
 
-        Returns: client.Equipment object (with name and id fields)
+        Returns: pyinventory.consts.Equipment object (with name and id fields)
                  You can use the id to access the equipment from the UI:
                  https://{}.purpleheadband.cloud/inventory/inventory?equipment={}
     """
@@ -130,11 +135,11 @@ def add_equipment(
         Args:
             name (str): name of the new equipment
             equipment_type (str): name of the equipment type
-            location (client.Location object): retrieved from getLocation or addLocation api.
+            location (pyinventory.consts.Location object): retrieved from getLocation or addLocation api.
             properties_dict: dict of property name to property value. the property value should match
                             the property type. Otherwise exception is raised
 
-        Returns: client.Equipment object (with name and id fields)
+        Returns: pyinventory.consts.Equipment object (with name and id fields)
                  You can use the id to access the equipment from the UI:
                  https://{}.purpleheadband.cloud/inventory/inventory?equipment={}
 
@@ -144,23 +149,25 @@ def add_equipment(
                 FailedOperationException for internal inventory error
 
         Example:
-            from datetime import date
-            equipment = client.addEquipment(
-                "Router X123",
-                "Router",
-                location,
-                {
-                    'Date Property ': date.today(),
-                    'Lat/Lng Property: ': (-1.23,9.232),
-                    'E-mail Property ': "user@fb.com",
-                    'Number Property ': 11,
-                    'String Property ': "aa",
-                    'Float Property': 1.23
-                })
+        ```
+        from datetime import date
+        equipment = client.addEquipment(
+            "Router X123",
+            "Router",
+            location,
+            {
+                'Date Property ': date.today(),
+                'Lat/Lng Property: ': (-1.23,9.232),
+                'E-mail Property ': "user@fb.com",
+                'Number Property ': 11,
+                'String Property ': "aa",
+                'Float Property': 1.23
+            })
+        ```
     """
 
     property_types = client.equipmentTypes[equipment_type].propertyTypes
-    properties = _get_graphql_properties(property_types, properties_dict)
+    properties = get_graphql_property_inputs(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
         name=name,
@@ -242,17 +249,22 @@ def add_equipment_to_position(
         Args:
             name (str): name of the new equipment
             equipment_type (str): name of the equipment type
-            existing_equipment (client.Equipment object): could be retrieved
+            existing_equipment (pyinventory.consts.Equipment object): could be retrieved
             from the following apis:
-                * getEquipment
-                * getEquipmentInPosition
-                * addEquipment
-                * addEquipmentToPosition
+
+                * `pyinventory.api.equipment.get_equipment`
+
+                * `pyinventory.api.equipment.get_equipment_in_position`
+                
+                * `pyinventory.api.equipment.add_equipment`
+
+                * `pyinventory.api.equipment.add_equipment_to_position`
+            
             position_name (str): the name of the position in the equipment type.
             properties_dict: dict of property name to property value. the property value should match
                             the property type. Otherwise exception is raised
 
-        Returns: client.Equipment object (with name and id fields)
+        Returns: pyinventory.consts.Equipment object (with name and id fields)
                  You can use the id to access the equipment from the UI:
                  https://{}.purpleheadband.cloud/inventory/inventory?equipment={}
 
@@ -261,27 +273,29 @@ def add_equipment_to_position(
                 FailedOperationException for internal inventory error
 
         Example:
-            from datetime import date
-            equipment = client.addEquipmentToPosition(
-                "Card Y123",
-                "Card",
-                equipment,
-                "Pos 1",
-                {
-                    'Date Property ': date.today(),
-                    'Lat/Lng Property: ': (-1.23,9.232),
-                    'E-mail Property ': "user@fb.com",
-                    'Number Property ': 11,
-                    'String Property ': "aa",
-                    'Float Property': 1.23
-                })
+        ```
+        from datetime import date
+        equipment = client.addEquipmentToPosition(
+            "Card Y123",
+            "Card",
+            equipment,
+            "Pos 1",
+            {
+                'Date Property ': date.today(),
+                'Lat/Lng Property: ': (-1.23,9.232),
+                'E-mail Property ': "user@fb.com",
+                'Number Property ': 11,
+                'String Property ': "aa",
+                'Float Property': 1.23
+            })
+        ```
     """
 
     position_definition_id, _ = _find_position_definition_id(
         client, existing_equipment, position_name
     )
     property_types = client.equipmentTypes[equipment_type].propertyTypes
-    properties = _get_graphql_properties(property_types, properties_dict)
+    properties = get_graphql_property_inputs(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
         name=name,
@@ -371,8 +385,14 @@ def _get_equipment_type_and_properties_dict(
             equipment_type, property_type_id
         )
         property_type = property_types_with_id[0]
-        property_value = _get_property_value(property_type, asdict(property))
-        properties_dict[property_type["name"]] = property_value
+        property_value = _get_property_value(property_type["type"], asdict(property))
+        if property_type["type"] == "gps_location":
+            properties_dict[property_type["name"]] = (
+                property_value[0],
+                property_value[1],
+            )
+        else:
+            properties_dict[property_type["name"]] = property_value[0]
     return equipment_type, properties_dict
 
 

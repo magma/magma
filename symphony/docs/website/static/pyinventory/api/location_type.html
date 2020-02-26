@@ -32,19 +32,19 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.location_type.add_location_type"><code class="name flex">
-<span>def <span class="ident">add_location_type</span></span>(<span>client, name, properties, map_zoom_level=8)</span>
+<span>def <span class="ident">add_location_type</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float]], bool]], map_zoom_level: int = 8) -> <a title="pyinventory.consts.LocationType" href="../consts.html#pyinventory.consts.LocationType">LocationType</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.location_type.delete_location_type_with_locations"><code class="name flex">
-<span>def <span class="ident">delete_location_type_with_locations</span></span>(<span>client, location_type)</span>
+<span>def <span class="ident">delete_location_type_with_locations</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location_type: <a title="pyinventory.consts.LocationType" href="../consts.html#pyinventory.consts.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.location_type.delete_locations_by_location_type"><code class="name flex">
-<span>def <span class="ident">delete_locations_by_location_type</span></span>(<span>client, location_type)</span>
+<span>def <span class="ident">delete_locations_by_location_type</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location_type: <a title="pyinventory.consts.LocationType" href="../consts.html#pyinventory.consts.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>

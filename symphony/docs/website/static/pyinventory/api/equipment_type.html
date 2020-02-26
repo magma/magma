@@ -32,25 +32,25 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.equipment_type.add_equipment_type"><code class="name flex">
-<span>def <span class="ident">add_equipment_type</span></span>(<span>client, name, category, properties, ports_dict, position_list)</span>
+<span>def <span class="ident">add_equipment_type</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, category: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float]], bool]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment_type.copy_equipment_type"><code class="name flex">
-<span>def <span class="ident">copy_equipment_type</span></span>(<span>client, curr_equipment_type_name, new_equipment_type_name)</span>
+<span>def <span class="ident">copy_equipment_type</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, curr_equipment_type_name: str, new_equipment_type_name: str) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment_type.delete_equipment_type_with_equipments"><code class="name flex">
-<span>def <span class="ident">delete_equipment_type_with_equipments</span></span>(<span>client, equipment_type)</span>
+<span>def <span class="ident">delete_equipment_type_with_equipments</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, equipment_type: <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment_type.edit_equipment_type"><code class="name flex">
-<span>def <span class="ident">edit_equipment_type</span></span>(<span>client, name, new_positions_list, new_ports_dict)</span>
+<span>def <span class="ident">edit_equipment_type</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, new_positions_list: List[str], new_ports_dict: Dict[str, str]) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Edit existing equipment type.</p>
@@ -77,7 +77,7 @@
 <p>edited_equipment = client.edit_equipment_type("Card", [], {"Port 5": "Z Cards Only (LS - DND)"})</p></section>
 </dd>
 <dt id="pyinventory.api.equipment_type.get_or_create_equipment_type"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client, name, category, properties, ports_dict, position_list)</span>
+<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, category: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float]], bool]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>

@@ -17,5 +17,6 @@ export const UploadAPIUrls = {
   exported_equipment: () => '/graph/import/export_equipment',
   exported_ports: () => '/graph/import/export_ports',
   exported_links: () => '/graph/import/export_links',
+  exported_locations: () => '/graph/import/export_locations',
   exported_service: () => '/graph/import/export_service',
 };

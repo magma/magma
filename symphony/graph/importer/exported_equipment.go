@@ -39,7 +39,6 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		err                    error
 		modifiedCount, numRows int
 		errs                   Errors
-		verifyBeforeCommit     *bool
 		commitRuns             []bool
 	)
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
@@ -47,21 +46,9 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "cannot parse form", http.StatusInternalServerError)
 		return
 	}
-	err = r.ParseForm()
+	skipLines, verifyBeforeCommit, err := m.parseImportArgs(r)
 	if err != nil {
-		errorReturn(w, "can't parse form", log, err)
-		return
-	}
-
-	skipLines, err := getLinesToSkip(r)
-	if err != nil {
-		errorReturn(w, "can't parse skipped lines", log, err)
-		return
-	}
-
-	verifyBeforeCommit, err = getVerifyBeforeCommitParam(r)
-	if err != nil {
-		errorReturn(w, "can't parse verify_before_commit param", log, err)
+		errorReturn(w, "can't parse form or arguments", log, err)
 		return
 	}
 
@@ -70,12 +57,17 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 	} else {
 		commitRuns = []bool{true}
 	}
+	startSaving := false
 
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityEquipment)
 		if err != nil {
 			errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
+			return
+		}
+		importHeader, err := NewImportHeader(first, ImportEntityEquipment)
+		if err != nil {
+			errorReturn(w, fmt.Sprintf("error on header"), log, err)
 			return
 		}
 		//
@@ -102,6 +94,8 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
 			if commit && pointer.GetBool(verifyBeforeCommit) && len(errs) != 0 {
 				break
+			} else if commit && len(errs) == 0 {
+				startSaving = true
 			}
 			if len(skipLines) > 0 {
 				nextLineToSkipIndex = 0
@@ -142,7 +136,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				id := importLine.ID()
 				if id == "" {
 					// new equip
-					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, importLine, commit)
+					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, importLine, commit, nil)
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/verifying equipment location hierarchy"})
 						continue
@@ -226,7 +220,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusOK)
-	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0)
+	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0, startSaving)
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return
@@ -304,7 +298,9 @@ func (m *importer) validatePropertiesForEquipmentType(ctx context.Context, line 
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }

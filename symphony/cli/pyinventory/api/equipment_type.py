@@ -2,13 +2,13 @@
 # pyre-strict
 
 from dataclasses import asdict
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
 
-from .._utils import PropertyValue, format_properties
-from ..consts import Equipment, EquipmentPortType, EquipmentType
+from .._utils import format_properties
+from ..consts import Equipment, EquipmentPortType, EquipmentType, PropertyDefinition
 from ..exceptions import EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
 from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
@@ -52,7 +52,12 @@ def _populate_equipment_port_types(client: GraphqlClient) -> None:
 
     for edge in edges:
         node = edge.node
-        client.portTypes[node.name] = EquipmentPortType(id=node.id, name=node.name)
+        client.portTypes[node.name] = EquipmentPortType(
+            id=node.id,
+            name=node.name,
+            properties=node.properties,
+            link_properties=node.link_properties,
+        )
 
 
 def _add_equipment_type(
@@ -96,7 +101,7 @@ def get_or_create_equipment_type(
     client: GraphqlClient,
     name: str,
     category: str,
-    properties: List[Tuple[str, str, PropertyValue, bool]],
+    properties: List[PropertyDefinition],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -150,7 +155,7 @@ def add_equipment_type(
     client: GraphqlClient,
     name: str,
     category: str,
-    properties: List[Tuple[str, str, PropertyValue, bool]],
+    properties: List[PropertyDefinition],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:

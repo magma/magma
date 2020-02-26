@@ -35,7 +35,7 @@
 <dl>
 <dt id="pyinventory.graphql_client.GraphqlClient"><code class="flex name class">
 <span>class <span class="ident">GraphqlClient</span></span>
-<span>(</span><span>email, password, tenant='fb-test', is_local_host=False, is_dev_mode=False, reporter=&lt;pyinventory.reporter.DummyReporter object&gt;)</span>
+<span>(</span><span>email: str, password: str, tenant: str = 'fb-test', is_local_host: bool = False, is_dev_mode: bool = False, reporter: <a title="pyinventory.reporter.Reporter" href="reporter.html#pyinventory.reporter.Reporter">Reporter</a> = &lt;<a title="pyinventory.reporter.DummyReporter" href="reporter.html#pyinventory.reporter.DummyReporter">DummyReporter</a> object&gt;)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>This is the class to use for working with inventory. It contains all
@@ -135,13 +135,13 @@ dict(one=1, two=2)</p></section>
 <h3>Methods</h3>
 <dl>
 <dt id="pyinventory.graphql_client.GraphqlClient.call"><code class="name flex">
-<span>def <span class="ident">call</span></span>(<span>self, query, variables)</span>
+<span>def <span class="ident">call</span></span>(<span>self, query: str, variables: Dict[str, Any]) -> str</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql_client.GraphqlClient.query"><code class="name flex">
-<span>def <span class="ident">query</span></span>(<span>self, query_name, query, variables)</span>
+<span>def <span class="ident">query</span></span>(<span>self, query_name: str, query: graphql.language.ast.DocumentNode, variables: Dict[str, Any]) -> Dict[str, Any]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>

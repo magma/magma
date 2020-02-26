@@ -45,7 +45,12 @@ namespace lte {
  * freeing state structs, and writing / reading state to db.
  */
 class SpgwStateManager :
- public StateManager<spgw_state_t, gateway::spgw::SpgwState, SpgwStateConverter> {
+  public StateManager<
+    spgw_state_t,
+    s_plus_p_gw_eps_bearer_context_information_t,
+    gateway::spgw::SpgwState,
+    gateway::spgw::S11BearerContext,
+    SpgwStateConverter> {
  public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and

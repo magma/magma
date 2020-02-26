@@ -2308,7 +2308,6 @@ definitions:
     required:
       - id
       - lte
-      - active_apns
     properties:
       id:
         $ref: '#/definitions/subscriber_id'

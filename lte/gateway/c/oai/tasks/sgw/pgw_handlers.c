@@ -521,33 +521,19 @@ int spgw_handle_nw_initiated_bearer_actv_req(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
-  spgw_imsi_map_t* imsi_map = get_spgw_imsi_map();
-  uint64_t local_teid;
-  hashtable_rc_t hash_rc = hashtable_uint64_ts_get(
-    imsi_map->imsi_teid5_htbl, (const hash_key_t) imsi64, &local_teid);
-  if (hash_rc != HASH_TABLE_OK) {
-    OAILOG_ERROR(
-      LOG_SPGW_APP,
-      "Failed to fetch local_teid: %lu from from imsi" IMSI_64_FMT "\n",
-      local_teid,
-      imsi64);
-    *failed_cause = REQUEST_REJECTED;
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
-  OAILOG_DEBUG(
-    LOG_SPGW_APP,
-    "Using imsi" IMSI_64_FMT " got local_teid %lu \n ",
-    imsi64,
-    local_teid);
-
-  hashtable_ts_get(
-    hashtblP, (const hash_key_t) local_teid, (void**) &spgw_ctxt_p);
-  if (spgw_ctxt_p) {
-    is_teid_found = true;
-    if (
-      spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
-        .default_bearer == bearer_req_p->lbi) {
-      is_lbi_found = true;
+  hashtable_key_array_t* spgw_context_keys = hashtable_ts_get_keys(hashtblP);
+  for (int i = 0; i < spgw_context_keys->num_keys; i++) {
+    hashtable_ts_get(
+      hashtblP,
+      (const hash_key_t) spgw_context_keys->keys[i],
+      (void**) &spgw_ctxt_p);
+    if (spgw_ctxt_p) {
+      is_teid_found = true;
+      if (
+        spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
+          .default_bearer == bearer_req_p->lbi) {
+        is_lbi_found = true;
+      }
     }
   }
   if ((!is_teid_found) || (!is_lbi_found)) {
@@ -570,9 +556,7 @@ int spgw_handle_nw_initiated_bearer_actv_req(
   if (rc != RETURNok) {
     OAILOG_ERROR(
       LOG_SPGW_APP,
-      "Failed to create temporary dedicated bearer context for local_teid: %lu "
-      "and lbi: %u \n ",
-      local_teid,
+      "Failed to create temporary dedicated bearer context for lbi: %u \n ",
       bearer_req_p->lbi);
     *failed_cause = REQUEST_REJECTED;
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
@@ -583,9 +567,7 @@ int spgw_handle_nw_initiated_bearer_actv_req(
   if (rc != RETURNok) {
     OAILOG_ERROR(
       LOG_SPGW_APP,
-      "Failed to build and send S11 Create Bearer Request for "
-      "local_teid: %lu and lbi :%u \n",
-      local_teid,
+      "Failed to build and send S11 Create Bearer Request for lbi :%u \n",
       bearer_req_p->lbi);
 
     *failed_cause = REQUEST_REJECTED;
@@ -805,42 +787,37 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
-  spgw_imsi_map_t* imsi_map = get_spgw_imsi_map();
-  uint64_t local_teid;
-  hashtable_uint64_ts_get(
-    imsi_map->imsi_teid5_htbl, (const hash_key_t) imsi64, &local_teid);
-  OAILOG_DEBUG(
-    LOG_SPGW_APP,
-    "Got imsi " IMSI_64_FMT " from local_teid %lu",
-    imsi64,
-    local_teid);
-  hashtable_ts_get(
-    hashtblP, (const hash_key_t) local_teid, (void**) &spgw_ctxt_p);
-
-  /* Check if valid LBI and EBI recvd
-   * For multi PDN, same IMSI can have multiple sessions, which means there
+  // Check if valid LBI and EBI recvd
+  /* For multi PDN, same IMSI can have multiple sessions, which means there
    * will be multiple entries for different sessions with the same IMSI. Hence
    * even though IMSI is found search the entire list for the LBI
    */
-  if (spgw_ctxt_p != NULL) {
-    is_teid_found = true;
-    if (
-      (bearer_req_p->lbi != 0) &&
-      (bearer_req_p->lbi == spgw_ctxt_p->sgw_eps_bearer_context_information
-                              .pdn_connection.default_bearer)) {
-      is_lbi_found = true;
-      // Check if the received EBI is valid
-      for (itrn = 0; itrn < bearer_req_p->no_of_bearers; itrn++) {
-        if (sgw_cm_get_eps_bearer_entry(
-              &spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection,
-              bearer_req_p->ebi[itrn])) {
-          is_ebi_found = true;
-          ebi_to_be_deactivated[no_of_bearers_to_be_deact] =
-            bearer_req_p->ebi[itrn];
-          no_of_bearers_to_be_deact++;
-        } else {
-          invalid_bearer_id[no_of_bearers_rej] = bearer_req_p->ebi[itrn];
-          no_of_bearers_rej++;
+  hashtable_key_array_t* spgw_context_keys = hashtable_ts_get_keys(hashtblP);
+  for (int i = 0; i < spgw_context_keys->num_keys; i++) {
+    hashtable_ts_get(
+      hashtblP,
+      (const hash_key_t) spgw_context_keys->keys[i],
+      (void**) &spgw_ctxt_p);
+    if (spgw_ctxt_p != NULL) {
+      is_teid_found = true;
+      if (
+        (bearer_req_p->lbi != 0) &&
+        (bearer_req_p->lbi == spgw_ctxt_p->sgw_eps_bearer_context_information
+                                .pdn_connection.default_bearer)) {
+        is_lbi_found = true;
+        // Check if the received EBI is valid
+        for (itrn = 0; itrn < bearer_req_p->no_of_bearers; itrn++) {
+          if (sgw_cm_get_eps_bearer_entry(
+                &spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection,
+                bearer_req_p->ebi[itrn])) {
+            is_ebi_found = true;
+            ebi_to_be_deactivated[no_of_bearers_to_be_deact] =
+              bearer_req_p->ebi[itrn];
+            no_of_bearers_to_be_deact++;
+          } else {
+            invalid_bearer_id[no_of_bearers_rej] = bearer_req_p->ebi[itrn];
+            no_of_bearers_rej++;
+          }
         }
       }
     }

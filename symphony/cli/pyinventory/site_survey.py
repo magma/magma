@@ -709,7 +709,7 @@ def upload_site_survey(
         excel is as needed for upload.
 
         Args:
-            location (client.Location object): could be retrieved from getLocation or addLocation api
+            location (pyinventory.consts.Location object): could be retrieved from getLocation or addLocation api
             name (str): name of the site survey
             completion_date (datetime.datetime object): the time the site survey was completed
             excel_file_path (str): the path for the excel with the site survey information
@@ -718,27 +718,29 @@ def upload_site_survey(
             json_file_path(str): the path for the json file of the schema of the site survey
                                the json file should comply to the schema found in survey_schema.json
                                Example of the format:
-                                {
-                                  "forms": [
-                                    {
-                                      "formTitle": "Site Management - General Information",
-                                      "questions": [
-                                        {
-                                          "questionName": "Exact address",
-                                          "questionType": "TEXT"
-                                        },
-                                        {
-                                          "questionName": "Reference for address",
-                                          "questionType": "TEXT"
-                                        },
-                                        {
-                                          "questionName": "Ubigeo",
-                                          "questionType": "TEXT"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
+            ```
+            {
+                "forms": [
+                {
+                    "formTitle": "Site Management - General Information",
+                    "questions": [
+                    {
+                        "questionName": "Exact address",
+                        "questionType": "TEXT"
+                    },
+                    {
+                        "questionName": "Reference for address",
+                        "questionType": "TEXT"
+                    },
+                    {
+                        "questionName": "Ubigeo",
+                        "questionType": "TEXT"
+                    }
+                    ]
+                }
+                ]
+            }
+            ```
 
         Raises: AssertionException if input values in the excel are incorrect
                 FailedOperationException for internal inventory error
@@ -848,20 +850,22 @@ def get_site_surveys(client: GraphqlClient, location: Location) -> List[SiteSurv
     """Retrieve all site survey completed in the location.
 
         Args:
-            location (client.Location object): could be retrieved from getLocation or addLocation api
+            location (pyinventory.consts.Location object): could be retrieved from getLocation or addLocation api
 
-        Returns: client.SiteSurvey object (with name, id, completion time and the forms)
+        Returns: pyinventory.consts.SiteSurvey object (with name, id, completion time and the forms)
                  The forms are the results of the survey. It is a dict of dicts:
-                    {
-                        formA: {
-                            question1: value1
-                            question2: value2
-                        }
-                        formB: {
-                            question3: value3
-                            question4: value4
-                        }
-                    }
+        ```
+        {
+            formA: {
+                question1: value1
+                question2: value2
+            }
+            formB: {
+                question3: value3
+                question4: value4
+            }
+        }
+        ```
     """
 
     surveys = LocationSurveysQuery.execute(client, id=location.id).location.surveys

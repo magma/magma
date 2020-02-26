@@ -72,9 +72,8 @@ class SessionCredit {
   void add_used_credit(uint64_t used_tx, uint64_t used_rx);
 
   /**
-   * reset_reporting_credit resets the REPORTING_* to 0 when there is some kind
-   * of error in reporting. After this, during the next update the credit will
-   * become eligible to update once again.
+   * reset_reporting_credit resets the REPORTING_* to 0
+   * Also marks the session as not in reporting.
    */
   void reset_reporting_credit();
 
@@ -140,6 +139,43 @@ class SessionCredit {
    * Returns
    */
   RedirectServer get_redirect_server();
+
+  /**
+   * Mark SessionCredit as having been given the final grant.
+   * NOTE: Use only for merging updates into SessionStore
+   * @param is_final
+   */
+  void set_is_final(bool is_final);
+
+  /**
+   * Set ReAuthState.
+   * NOTE: Use only for merging updates into SessionStore
+   * @param reauth_state
+   */
+  void set_reauth(ReAuthState reauth_state);
+
+  /**
+   * Set ServiceState.
+   * NOTE: Use only for merging updates into SessionStore
+   * @param service_state
+   */
+  void set_service_state(ServiceState service_state);
+
+  /**
+   * Set expiry time of SessionCredit
+   * NOTE: Use only for merging updates into SessionStore
+   * @param expiry_time
+   */
+  void set_expiry_time(std::time_t expiry_time);
+
+  /**
+   * Add credit to the specified bucket. This does not necessarily correspond
+   * to allowed or used credit.
+   * NOTE: Use only for merging updates into SessionStore
+   * @param credit
+   * @param bucket
+   */
+  void add_credit(uint64_t credit, Bucket bucket);
 
   /**
    * A threshold represented as a ratio for triggering usage update before

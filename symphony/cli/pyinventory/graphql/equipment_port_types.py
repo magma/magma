@@ -12,6 +12,8 @@ from marshmallow import fields as marshmallow_fields
 
 from .datetime_utils import fromisoformat
 
+from .property_kind_enum import PropertyKind
+
 
 DATETIME_FIELD = field(
     metadata={
@@ -24,6 +26,24 @@ DATETIME_FIELD = field(
 )
 
 
+def enum_field(enum_type):
+    def encode_enum(value):
+        return value.value
+
+    def decode_enum(t, value):
+        return t(value)
+
+    return field(
+        metadata={
+            "dataclasses_json": {
+                "encoder": encode_enum,
+                "decoder": partial(decode_enum, enum_type),
+            }
+        }
+    )
+
+
+
 @dataclass_json
 @dataclass
 class EquipmentPortTypesQuery:
@@ -34,6 +54,34 @@ class EquipmentPortTypesQuery:
       node {
         id
         name
+        propertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          isEditable
+          isInstanceProperty
+        }
+        linkPropertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          isEditable
+          isInstanceProperty
+        }
       }
     }
   }
@@ -53,8 +101,26 @@ class EquipmentPortTypesQuery:
                 @dataclass_json
                 @dataclass
                 class EquipmentPortType:
+                    @dataclass_json
+                    @dataclass
+                    class PropertyType:
+                        id: str
+                        name: str
+                        type: PropertyKind = enum_field(PropertyKind)
+                        index: Optional[int] = None
+                        stringValue: Optional[str] = None
+                        intValue: Optional[int] = None
+                        booleanValue: Optional[bool] = None
+                        floatValue: Optional[Number] = None
+                        latitudeValue: Optional[Number] = None
+                        longitudeValue: Optional[Number] = None
+                        isEditable: Optional[bool] = None
+                        isInstanceProperty: Optional[bool] = None
+
                     id: str
                     name: str
+                    propertyTypes: List[PropertyType]
+                    linkPropertyTypes: List[PropertyType]
 
                 node: Optional[EquipmentPortType] = None
 

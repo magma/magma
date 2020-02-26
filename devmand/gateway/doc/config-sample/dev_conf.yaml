@@ -1,0 +1,33 @@
+devices:
+  - id: ubntYdk
+    ip: 10.19.0.245
+    readonly: false
+    platform: StructuredUbntCli
+    yangConfig: /root/localhost.json
+    type: Device
+    poll:
+      seconds: 10
+    channels:
+      cliChannel:
+        port: 22
+        username: ubnt
+        password: ubnt
+        flavour: ubiquiti
+
+#  - id: linux
+#    ip: 172.8.0.85
+#    readonly: false
+#    platform: StructuredUbntCli
+#    yangConfig: /root/localhost.json
+#    type: Device
+#    poll:
+#      seconds: 10
+#    channels:
+#      cliChannel:
+#        port: 22
+#        username: root
+#        password: root
+#        flavour: default
+#        stateCommand: echo 1
+
+pluginConfig: /root/plugin.json

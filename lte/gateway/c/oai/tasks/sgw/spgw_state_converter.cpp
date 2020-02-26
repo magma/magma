@@ -1027,5 +1027,19 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
   }
 }
 
+void SpgwStateConverter::ue_to_proto(
+  const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
+  gateway::spgw::S11BearerContext* ue_proto)
+{
+  spgw_bearer_context_to_proto(ue_state, ue_proto);
+}
+
+void SpgwStateConverter::proto_to_ue(
+  const gateway::spgw::S11BearerContext& spgw_bearer_proto,
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state)
+{
+  proto_to_spgw_bearer_context(spgw_bearer_proto, spgw_bearer_state);
+}
+
 } // namespace lte
 } // namespace magma

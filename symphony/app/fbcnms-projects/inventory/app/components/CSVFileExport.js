@@ -16,6 +16,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import React, {useState} from 'react';
 import axios from 'axios';
+import classNames from 'classnames';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -28,6 +29,16 @@ const styles = {
   exportButtonContainer: {
     display: 'flex',
   },
+  exportButtonContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    '& $hiddenContent': {
+      maxHeight: '0px',
+      overflowY: 'hidden',
+    },
+  },
+  hiddenContent: {},
 };
 const PATH_PREFIX = '/graph/export';
 
@@ -67,15 +78,24 @@ const CSVFileExport = (props: Props) => {
       setIsDownloading(false);
     }
   };
-
   return (
     <div className={classes.exportButtonContainer}>
-      <Button className={classes.exportButton} onClick={onClick}>
-        {isDownloading ? (
-          <CircularProgress size={20} color={'inherit'} />
-        ) : (
-          title
-        )}
+      <Button className={classes.exportButton} variant="text" onClick={onClick}>
+        <div className={classes.exportButtonContent}>
+          <span
+            className={classNames({
+              [classes.hiddenContent]: isDownloading,
+            })}>
+            {title}
+          </span>
+          <CircularProgress
+            size={20}
+            color="inherit"
+            className={classNames({
+              [classes.hiddenContent]: !isDownloading,
+            })}
+          />
+        </div>
       </Button>
     </div>
   );

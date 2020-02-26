@@ -58,6 +58,14 @@ class MmeNasStateConverter : public StateConverter {
     const MmeNasState& state_proto,
     mme_app_desc_t* mme_nas_state_p);
 
+  static void ue_to_proto(
+    const ue_mm_context_t* ue_ctxt,
+    UeContext* ue_ctxt_proto);
+
+  static void proto_to_ue(
+    const UeContext& ue_ctxt_proto,
+    ue_mm_context_t* ue_ctxt);
+
  private:
   /***********************************************************
     *                 Hashtable <-> Proto
@@ -153,7 +161,7 @@ class MmeNasStateConverter : public StateConverter {
     ue_mm_context_t* state_ue_context);
 
   static void ue_context_to_proto(
-    ue_mm_context_t* ue_ctxt,
+    const ue_mm_context_t* ue_ctxt,
     UeContext* ue_ctxt_proto);
 
   static void proto_to_ue_mm_context(

@@ -36,13 +36,16 @@ const (
 	ImportEntityPortInLink ImportEntity = "PORT_IN_LINK"
 	// ImportEntityService specifies a service for import
 	ImportEntityService ImportEntity = "SERVICE"
+	// ImportEntityLocation specifies a location for import
+	ImportEntityLocation ImportEntity = "LOCATION"
 )
 
 // SuccessMessage is the type returns to client on success import
 type SuccessMessage struct {
-	MessageCode  int `json:"messageCode"`
-	SuccessLines int `json:"successLines"`
-	AllLines     int `json:"allLines"`
+	MessageCode  int  `json:"messageCode"`
+	SuccessLines int  `json:"successLines"`
+	AllLines     int  `json:"allLines"`
+	Committed    bool `json:"committed"`
 }
 
 type ReturnMessage struct {
@@ -50,7 +53,7 @@ type ReturnMessage struct {
 	Errors  Errors         `json:"errors"`
 }
 
-func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, isSuccess bool) error {
+func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, isSuccess, startSaving bool) error {
 	w.Header().Set("Content-Type", "application/json")
 	messageCode := int(SuccessfullyUploaded)
 	if !isSuccess {
@@ -61,6 +64,7 @@ func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, i
 			MessageCode:  messageCode,
 			SuccessLines: success,
 			AllLines:     all,
+			Committed:    startSaving,
 		},
 		Errors: errs,
 	})
@@ -139,14 +143,22 @@ func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int,
 }
 
 // nolint: unparam
-func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord, commit bool) (*ent.Location, error) {
+func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord, commit bool, limit *int) (*ent.Location, error) {
 	var currParentID *string
 	var loc *ent.Location
 	ic := getImportContext(ctx)
-	locStart, _ := l.Header().LocationsRangeIdx()
+
+	locStart, indexToStopLoop := l.Header().LocationsRangeIdx()
+	if limit != nil {
+		indexToStopLoop = *limit
+	}
+
 	for i, locName := range l.LocationsRangeArr() {
 		if locName == "" {
 			continue
+		}
+		if i >= indexToStopLoop {
+			break
 		}
 		typID := ic.indexToLocationTypeID[i+locStart] // the actual index
 		typ, err := m.r.Query().LocationType(ctx, typID)
@@ -154,7 +166,10 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 			return nil, errors.Wrapf(err, "missing location type: id=%q", typID)
 		}
 		if commit {
-			loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+			loc, _, err = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+			if err != nil {
+				return nil, errors.Wrapf(err, "querying or creating location: id=%v", typID)
+			}
 		} else {
 			loc, err = m.queryLocationForTypeAndParent(ctx, locName, typ, currParentID)
 			if loc == nil && ent.MaskNotFound(err) == nil {
@@ -164,7 +179,7 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 		}
 		currParentID = &loc.ID
 	}
-	if loc == nil {
+	if loc == nil && limit != nil {
 		return nil, errors.Errorf("equipment with no locations specified. id:%q, name: %q", l.ID(), l.Name())
 	}
 	return loc, nil
@@ -292,7 +307,9 @@ func (m *importer) validatePropertiesForPortType(ctx context.Context, line Impor
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }
@@ -334,4 +351,22 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		return errors.Errorf("wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
 	}
 	return nil
+}
+
+func (m *importer) parseImportArgs(r *http.Request) ([]int, *bool, error) {
+	err := r.ParseForm()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	skipLines, err := getLinesToSkip(r)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
+	if err != nil {
+		return nil, nil, err
+	}
+	return skipLines, verifyBeforeCommit, nil
 }

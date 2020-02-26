@@ -4,6 +4,8 @@
 
 package importer
 
+import "github.com/pkg/errors"
+
 type ImportHeader struct {
 	line     []string
 	prnt3Idx int
@@ -11,13 +13,22 @@ type ImportHeader struct {
 }
 
 // NewImportHeader creates a new header to be used for import
-func NewImportHeader(line []string, entity ImportEntity) ImportHeader {
+func NewImportHeader(line []string, entity ImportEntity) (ImportHeader, error) {
 	prnt3Idx := findStringContainsIndex(line, "Parent Equipment (3)")
+
+	switch entity {
+	case ImportEntityService, ImportEntityLocation:
+	default:
+		if prnt3Idx == -1 {
+			return ImportHeader{}, errors.New("couldn't find Parent Equipment headers")
+		}
+	}
+
 	return ImportHeader{
 		line:     line,
 		prnt3Idx: prnt3Idx,
 		entity:   entity,
-	}
+	}, nil
 }
 
 func (l ImportHeader) Find(s string) int {
@@ -53,6 +64,16 @@ func (l ImportHeader) PortEquipmentTypeNameIdx() int {
 
 func (l ImportHeader) ExternalIDIdx() int {
 	return findIndex(l.line, "External ID")
+}
+
+// LatitudeIdx returns the index of "latitude" column
+func (l ImportHeader) LatitudeIdx() int {
+	return findIndex(l.line, "Latitude")
+}
+
+// LongitudeIdx returns the index of "longitude" column
+func (l ImportHeader) LongitudeIdx() int {
+	return findIndex(l.line, "Longitude")
 }
 
 func (l ImportHeader) ThirdParentIdx() int {
@@ -113,8 +134,15 @@ func (l ImportHeader) LocationsRangeIdx() (int, int) {
 		return 5, l.prnt3Idx
 	case ImportEntityPortInLink:
 		return 3, l.prnt3Idx
+	case ImportEntityLocation:
+		return 1, l.ExternalIDIdx()
 	}
 	return -1, -1
+}
+
+// PropertyEndIdx is the index of last property on the file. currently it's always the last value
+func (l ImportHeader) PropertyEndIdx() int {
+	return len(l.line) - 1
 }
 
 func (l ImportHeader) PropertyStartIdx() int {
@@ -127,6 +155,8 @@ func (l ImportHeader) PropertyStartIdx() int {
 		return l.StatusIdx() + 1
 	case ImportEntityLink:
 		return l.LinkSecondPortStartIdx() * 2
+	case ImportEntityLocation:
+		return l.ExternalIDIdx() + 3
 	}
 	return -1
 }

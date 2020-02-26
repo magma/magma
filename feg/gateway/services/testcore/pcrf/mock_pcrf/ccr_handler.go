@@ -139,19 +139,41 @@ func updateSubscriberAccountWithUsageUpdates(account *subscriberAccount, monitor
 		if !ok {
 			return credits, fmt.Errorf("Unknown monitoring key %s", update.MonitoringKey)
 		}
-		monitorCredit.Volume -= update.UsedServiceUnit.TotalOctets
-		if monitorCredit.Volume < 0 {
-			monitorCredit.Volume = 0
-		}
-		credits[update.MonitoringKey] = monitorCredit
+		credits[update.MonitoringKey] = updateSubscriberQuota(monitorCredit, update)
 	}
 	return credits, nil
 }
 
-func getQuotaGrant(monitorCredit *protos.UsageMonitorCredit) uint64 {
-	// get the min of return bytes or the total volume
-	if monitorCredit.ReturnBytes > monitorCredit.Volume {
-		return monitorCredit.Volume
+func updateSubscriberQuota(credit *protos.UsageMonitorCredit, usedServiceUnit *usageMonitorRequestAVP) *protos.UsageMonitorCredit {
+	total := credit.TotalQuota
+	update := usedServiceUnit.UsedServiceUnit
+	credit.TotalQuota.TotalOctets = decrementOrZero(total.TotalOctets, update.TotalOctets)
+	credit.TotalQuota.InputOctets = decrementOrZero(total.InputOctets, update.InputOctets)
+	credit.TotalQuota.OutputOctets = decrementOrZero(total.OutputOctets, update.OutputOctets)
+	return credit
+}
+
+func getQuotaGrant(monitorCredit *protos.UsageMonitorCredit) protos.Octets {
+	total := monitorCredit.TotalQuota
+	perRequest := monitorCredit.QuotaGrantPerRequest
+	return protos.Octets{
+		TotalOctets:  getMin(total.TotalOctets, perRequest.TotalOctets),
+		InputOctets:  getMin(total.InputOctets, perRequest.InputOctets),
+		OutputOctets: getMin(total.OutputOctets, perRequest.OutputOctets),
 	}
-	return monitorCredit.ReturnBytes
+}
+
+func decrementOrZero(first, second uint64) uint64 {
+	result := first - second
+	if result < 0 {
+		return 0
+	}
+	return result
+}
+
+func getMin(first, second uint64) uint64 {
+	if first > second {
+		return second
+	}
+	return first
 }

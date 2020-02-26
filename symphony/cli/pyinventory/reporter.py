@@ -65,13 +65,15 @@ class InventoryReporter(Reporter):
                         row
 
             Example:
-                from pyinventory.reporter import InventoryReporter, FailedOperationException
-                reporter = InventoryReporter(csvOutPath, csvErrPath)
-                client = InventoryClient(email, password, "fb-test", reporter=reporter)
-                try:
-                    location = client.addLocation(..)
-                except FailedOperationException as e:
-                    e.logFailedOperation(data_identifier, data)
+            ```
+            from pyinventory.reporter import InventoryReporter, FailedOperationException
+            reporter = InventoryReporter(csvOutPath, csvErrPath)
+            client = InventoryClient(email, password, "fb-test", reporter=reporter)
+            try:
+                location = client.addLocation(..)
+            except FailedOperationException as e:
+                e.logFailedOperation(data_identifier, data)
+            ```
 
         """
 

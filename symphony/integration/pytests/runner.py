@@ -8,13 +8,21 @@ from unittest import TestLoader, TestSuite, TextTestRunner
 from test_equipment import TestEquipment
 from test_link import TestLink
 from test_location import TestLocation
+from test_port_type import TestEquipmentPortType
 from test_service import TestService
 from test_site_survey import TestSiteSurvey
 from utils.constant import XML_OUTPUT_DIRECTORY
 from xmlrunner import XMLTestRunner
 
 
-TEST_CASES = [TestLocation, TestEquipment, TestLink, TestService, TestSiteSurvey]
+TEST_CASES = [
+    TestLocation,
+    TestEquipment,
+    TestLink,
+    TestService,
+    TestSiteSurvey,
+    TestEquipmentPortType,
+]
 
 if __name__ == "__main__":
     suite = TestSuite()
