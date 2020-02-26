@@ -60,7 +60,7 @@ export function AppContextProvider(props: Props) {
     ...appData,
     networkIds: props.networkIDs || [],
     isTabEnabled: (tab: Tab): boolean => {
-      return appData.tabs.indexOf(tab) !== -1;
+      return appData.tabs?.indexOf(tab) !== -1;
     },
     isFeatureEnabled: (featureID: FeatureID): boolean => {
       return appData.enabledFeatures.indexOf(featureID) !== -1;
