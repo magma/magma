@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -82,10 +81,6 @@ func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 	})
 
 	router.Path("/graphiql").
-		MatcherFunc(func(*http.Request, *mux.RouteMatch) bool {
-			_, ok := os.LookupEnv("GQL_DEBUG")
-			return ok
-		}).
 		Handler(ochttp.WithRouteTag(
 			handler.Playground("GraphIQL", "/graph/query"),
 			"graphiql",
