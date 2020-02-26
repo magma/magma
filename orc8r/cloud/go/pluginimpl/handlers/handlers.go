@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
+	eventdh "magma/orc8r/cloud/go/services/eventd/obsidian/handlers"
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/labstack/echo"
@@ -121,6 +122,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 	elasticConfig, err := config.GetServiceConfig(orc8r.ModuleName, "elastic")
 	if err != nil {
 		ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+		ret = append(ret, obsidian.Handler{Path: eventdh.EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
 	} else {
 		elasticHost := elasticConfig.GetRequiredStringParam("elasticHost")
 		elasticPort := elasticConfig.GetRequiredIntParam("elasticPort")
@@ -128,8 +130,10 @@ func GetObsidianHandlers() []obsidian.Handler {
 		client, err := elastic.NewSimpleClient(elastic.SetURL(fmt.Sprintf("http://%s:%d", elasticHost, elasticPort)))
 		if err != nil {
 			ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+			ret = append(ret, obsidian.Handler{Path: eventdh.EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
 		} else {
 			ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: GetQueryLogHandler(client)})
+			ret = append(ret, obsidian.Handler{Path: eventdh.EventsPath, Methods: obsidian.GET, HandlerFunc: eventdh.GetEventsHandler(client)})
 		}
 	}
 

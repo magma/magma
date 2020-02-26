@@ -116,6 +116,8 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
             return
 
         try:
+            # TODO use a different name, tag doesn't work because of fluentbit
+            # using the "tag" field.
             with closing(socket.create_connection(
                     ('localhost', self.fluent_bit_port),
                     timeout=self.tcp_timeout)) as sock:
