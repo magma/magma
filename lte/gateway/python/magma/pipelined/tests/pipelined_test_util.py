@@ -20,7 +20,7 @@ from unittest.mock import MagicMock
 from ryu.lib import hub
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupFlowsRequest, \
+from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupPolicyRequest, \
     UpdateSubscriberQuotaStateRequest
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import ServiceManager
@@ -216,18 +216,22 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
             )
 
 
-def setup_controller(controller, setup_flow_reqest, sleep_time=1, retries=5):
+def setup_controller(controller, setup_req, sleep_time: float = 1,
+                     retries: int = 5):
     for _ in range(0, retries):
-        res = controller.setup_flows(setup_flow_reqest)
-        if res.result == SetupFlowsResult.SUCCESS:
-            return SetupFlowsResult.SUCCESS
+        if controller.is_ready_for_restart_recovery(setup_req.epoch):
+            res = controller.handle_restart(setup_req.requests)
+            if res.result == SetupFlowsResult.SUCCESS:
+                return SetupFlowsResult.SUCCESS
         hub.sleep(sleep_time)
     return res.result
 
 
 def fake_controller_setup(enf_controller, enf_stats_controller=None,
                           startup_flow_controller=None,
-                          setup_flows_request=None):
+                          check_quota_controller=None,
+                          setup_flows_request=None,
+                          check_quota_request=None):
     """
     Immitate contoller restart. This is done by manually setting contoller init
     fields back to False, and restarting the startup stats controller(optional)
@@ -236,9 +240,8 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
     flag is not set fail the test case.
     """
     if setup_flows_request is None:
-        setup_flows_request = SetupFlowsRequest(
+        setup_flows_request = SetupPolicyRequest(
             requests=[], epoch=global_epoch,
-            quota_updates=UpdateSubscriberQuotaStateRequest(updates=[])
         )
     enf_controller.init_finished = False
     if startup_flow_controller:
@@ -256,6 +259,15 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
         enf_stats_controller.init_finished = False
         TestCase().assertEqual(setup_controller(
             enf_stats_controller, setup_flows_request),
+            SetupFlowsResult.SUCCESS)
+    if check_quota_controller:
+        check_quota_controller.init_finished = False
+        if check_quota_request is None:
+            check_quota_request = UpdateSubscriberQuotaStateRequest(
+                requests=[], epoch=global_epoch,
+            )
+        TestCase().assertEqual(setup_controller(
+            check_quota_controller, check_quota_request),
             SetupFlowsResult.SUCCESS)
 
 
