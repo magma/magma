@@ -1366,6 +1366,18 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 	})
 	require.Error(t, err, "Adding work order instance with missing mandatory properties")
 
+	// mandatory is deleted - should be ok
+	latlongPropType.IsDeleted = pointer.ToBool(true)
+	propTypeInputs = []*models.PropertyTypeInput{&latlongPropType}
+	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type2", Properties: propTypeInputs})
+	require.NoError(t, err)
+
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_not_fail",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.NoError(t, err, "Adding work order instance with mandatory properties but deleted")
+
 	latlongProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("lat_long_prop")).OnlyXID(ctx),
 		LatitudeValue:  pointer.ToFloat64(32.6),
@@ -1386,7 +1398,7 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 	}
 	props := []*models.PropertyTypeInput{notMandatoryProp}
 
-	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type2", Properties: props})
+	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type3", Properties: props})
 	require.NoError(t, err)
 
 	wo, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{

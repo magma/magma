@@ -45,6 +45,9 @@ func (r mutationResolver) validatedPropertyInputsFromTemplate(
 		typeIDToInput[pInput.PropertyTypeID] = pInput
 	}
 	for _, propTyp := range pTyps {
+		if propTyp.Deleted {
+			continue
+		}
 		if _, ok := typeIDToInput[propTyp.ID]; !ok {
 			// propTyp not in inputs
 			if !skipMandatoryPropertiesCheck && propTyp.Mandatory {
