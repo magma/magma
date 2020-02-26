@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -114,6 +115,10 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 		mconfig.GetProvider(),
 		mconfig.GetViewProvider(),
 	}
+}
+
+func (*BaseOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
+	return []indexer.Indexer{}
 }
 
 const (
