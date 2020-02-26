@@ -129,10 +129,19 @@ func (workOrderResolver) Comments(ctx context.Context, obj *ent.WorkOrder) ([]*e
 }
 
 func (r mutationResolver) AddWorkOrder(
-	ctx context.Context, input models.AddWorkOrderInput,
+	ctx context.Context,
+	input models.AddWorkOrderInput,
+) (*ent.WorkOrder, error) {
+	return r.internalAddWorkOrder(ctx, input, false)
+}
+
+func (r mutationResolver) internalAddWorkOrder(
+	ctx context.Context,
+	input models.AddWorkOrderInput,
+	skipMandatoryPropertiesCheck bool,
 ) (*ent.WorkOrder, error) {
 	c := r.ClientFrom(ctx)
-	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, input.Properties, input.WorkOrderTypeID, models.PropertyEntityWorkOrder)
+	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, input.Properties, input.WorkOrderTypeID, models.PropertyEntityWorkOrder, skipMandatoryPropertiesCheck)
 	if err != nil {
 		return nil, fmt.Errorf("validating property for template : %w", err)
 	}

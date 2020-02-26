@@ -13,7 +13,11 @@ import (
 )
 
 func (r mutationResolver) validatedPropertyInputsFromTemplate(
-	ctx context.Context, input []*models.PropertyInput, tmplID string, entity models.PropertyEntity,
+	ctx context.Context,
+	input []*models.PropertyInput,
+	tmplID string,
+	entity models.PropertyEntity,
+	skipMandatoryPropertiesCheck bool,
 ) ([]*models.PropertyInput, error) {
 	var pTyps []*ent.PropertyType
 	var erro error
@@ -43,7 +47,7 @@ func (r mutationResolver) validatedPropertyInputsFromTemplate(
 	for _, propTyp := range pTyps {
 		if _, ok := typeIDToInput[propTyp.ID]; !ok {
 			// propTyp not in inputs
-			if propTyp.Mandatory {
+			if !skipMandatoryPropertiesCheck && propTyp.Mandatory {
 				return nil, fmt.Errorf("property type %v is mandatory and must be specified", propTyp.Name)
 			}
 			input = append(input, &models.PropertyInput{

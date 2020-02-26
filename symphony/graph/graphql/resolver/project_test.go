@@ -482,3 +482,52 @@ func TestEditProjectType(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "example_type_name_edited", typ.Name)
 }
+
+func TestProjectWithWorkOrdersAndProperties(t *testing.T) {
+	resolver := newTestResolver(t)
+	defer resolver.drv.Close()
+	ctx := viewertest.NewContext(resolver.client)
+	mutation := resolver.Mutation()
+
+	strPropType := models.PropertyTypeInput{
+		Name: "str_prop",
+		Type: "string",
+	}
+	intPropType := models.PropertyTypeInput{
+		Name:        "int_prop",
+		Type:        "int",
+		IsMandatory: pointer.ToBool(true),
+	}
+	woType, err := mutation.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name:       "example_type_a",
+		Properties: []*models.PropertyTypeInput{&strPropType, &intPropType},
+	})
+	require.NoError(t, err)
+	woDef := models.WorkOrderDefinitionInput{Type: woType.ID, Index: pointer.ToInt(1)}
+
+	typ, err := resolver.Mutation().CreateProjectType(
+		ctx, models.AddProjectTypeInput{
+			Name:        "test",
+			Description: pointer.ToString("foobar"),
+			WorkOrders:  []*models.WorkOrderDefinitionInput{&woDef},
+		},
+	)
+	require.NoError(t, err)
+	node, err := resolver.Query().Node(ctx, typ.ID)
+	require.NoError(t, err)
+	rtyp, ok := node.(*ent.ProjectType)
+	require.True(t, ok)
+	woDefs, err := rtyp.QueryWorkOrders().All(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(woDefs))
+
+	location := createLocation(ctx, t, *resolver)
+	input := models.AddProjectInput{Name: "test", Type: typ.ID, Location: &location.ID}
+	proj, err := mutation.CreateProject(ctx, input)
+	require.NoError(t, err)
+	wos, err := proj.QueryWorkOrders().All(ctx)
+	require.NoError(t, err)
+	assert.Len(t, wos, 1)
+	props := wos[0].QueryProperties().AllX(ctx)
+	require.Len(t, props, 2)
+}

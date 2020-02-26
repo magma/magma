@@ -234,7 +234,7 @@ func (projectResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Project)
 }
 
 func (r mutationResolver) CreateProject(ctx context.Context, input models.AddProjectInput) (*ent.Project, error) {
-	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, input.Properties, input.Type, models.PropertyEntityProject)
+	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, input.Properties, input.Type, models.PropertyEntityProject, false)
 	if err != nil {
 		return nil, fmt.Errorf("validating property for template : %w", err)
 	}
@@ -268,48 +268,16 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 	}
 	for _, wo := range wos {
 		wot := wo.QueryType().FirstX(ctx)
-		w, err := r.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		_, err := r.internalAddWorkOrder(ctx, models.AddWorkOrderInput{
 			Name:            wot.Name,
 			Description:     &wot.Description,
 			WorkOrderTypeID: wot.ID,
 			ProjectID:       &proj.ID,
 			LocationID:      input.Location,
 			Index:           &wo.Index,
-		})
+		}, true)
 		if err != nil {
 			return nil, xerrors.Errorf("creating work order", err)
-		}
-		props, err := wot.QueryPropertyTypes().All(ctx)
-		if err != nil {
-			return nil, xerrors.Errorf("fetching work order properties", err)
-		}
-		for _, p := range props {
-			var stringValue *string = nil
-			if p.Type != models.PropertyKindEnum.String() {
-				stringValue = &p.StringVal
-			}
-
-			newProp := &models.PropertyInput{
-				PropertyTypeID: p.ID,
-				StringValue:    stringValue,
-				IntValue:       &p.IntVal,
-				BooleanValue:   &p.BoolVal,
-				FloatValue:     &p.FloatVal,
-				LatitudeValue:  &p.LatitudeVal,
-				LongitudeValue: &p.LongitudeVal,
-				RangeFromValue: &p.RangeFromVal,
-				RangeToValue:   &p.RangeToVal,
-			}
-			addPropertyArgs := resolverutil.AddPropertyArgs{
-				Context:    ctx,
-				EntSetter:  func(b *ent.PropertyCreate) { b.SetWorkOrder(w) },
-				IsTemplate: pointer.ToBool(true),
-			}
-
-			_, err = r.AddProperty(newProp, addPropertyArgs)
-			if err != nil {
-				return nil, xerrors.Errorf("creating work order properties", err)
-			}
 		}
 	}
 	return proj, nil
