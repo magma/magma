@@ -7,10 +7,10 @@ BUILD_TYPE ?= Debug
 # FEATURES: What kind of flavours do you want your MME or AGW have in it
 # First in FEATURES, select what to you want to build : mme or agw with libgtpnl
 # or agw with OVS (OpenFlow): FEATURE=mme or agw_gtpnl or agw_of
-# Then you can have other features that can be built for mme or agw : 
+# Then you can have other features that can be built for mme or agw :
 # s6a with fd (freeDiameter)
 
-# Default is agw with OpenFlow, no freeDiameter for s6a 
+# Default is agw with OpenFlow, no freeDiameter for s6a
 FEATURES ?= agw_of
 EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
 AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of
