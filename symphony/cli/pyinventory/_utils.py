@@ -8,6 +8,7 @@ import warnings
 from datetime import datetime
 from typing import Callable, Dict, List, Optional, Tuple, Union, cast
 
+from dacite import Config, from_dict
 from .consts import (
     TYPE_AND_FIELD_NAME,
     DataTypeName,
@@ -103,7 +104,11 @@ def get_graphql_property_type_inputs(
                 value=value,
             )
         )
-        properties.append(result)
+        properties.append(
+            from_dict(
+                data_class=PropertyTypeInput, data=result, config=Config(strict=True)
+            )
+        )
 
     return properties
 

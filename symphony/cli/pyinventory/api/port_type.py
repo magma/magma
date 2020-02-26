@@ -180,37 +180,24 @@ def edit_equipment_port_type(
     """
     new_name = port_type.name if new_name is None else new_name
 
-    properties = []
-
+    new_property_type_inputs = []
     if new_properties:
         property_types = client.portTypes[port_type.name].properties
         new_property_type_inputs = get_graphql_property_type_inputs(
             property_types, new_properties
         )
-        properties = [
-            from_dict(
-                data_class=PropertyTypeInput, data=asdict(p), config=Config(strict=True)
-            )
-            for p in new_property_type_inputs
-        ]
 
-    link_properties = []
+    new_link_property_type_inputs = []
     if new_link_properties:
         link_property_types = client.portTypes[port_type.name].link_properties
         new_link_property_type_inputs = get_graphql_property_type_inputs(
             link_property_types, new_link_properties
         )
-        link_properties = [
-            from_dict(
-                data_class=PropertyTypeInput, data=asdict(p), config=Config(strict=True)
-            )
-            for p in new_link_property_type_inputs
-        ]
 
     edit_equipment_port_type_input = {
         "name": new_name,
-        "properties": properties,
-        "linkProperties": link_properties,
+        "properties": new_property_type_inputs,
+        "linkProperties": new_link_properties,
     }
 
     try:
@@ -219,8 +206,8 @@ def edit_equipment_port_type(
             EditEquipmentPortTypeInput(
                 id=port_type.id,
                 name=new_name,
-                properties=properties,
-                linkProperties=link_properties,
+                properties=new_property_type_inputs,
+                linkProperties=new_link_property_type_inputs,
             ),
         ).__dict__[EDIT_EQUIPMENT_PORT_TYPE_MUTATION_NAME]
         client.reporter.log_successful_operation(
