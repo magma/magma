@@ -218,6 +218,14 @@ class SessionCredit {
   CreditType credit_type_;
 
  private:
+  /**
+   * quota_exhausted checks whether usage reported from pipelined since the
+   * last SessionUpdate exceeds the quota received from the reporter.
+   * We mark quota as exhausted if usage_reporting_threshold * available quota
+   * is reached. (so the default is 100% of quota)
+   * We will also add a extra_quota_margin on to the available quota if it is
+   * specified.
+   */
   bool quota_exhausted(
     float usage_reporting_threshold = 1, uint64_t extra_quota_margin = 0);
 
