@@ -141,15 +141,42 @@ bool LocalEnforcer::setup(
   std::function<void(Status status, SetupFlowsResult)> callback)
 {
   std::vector<SessionState::SessionInfo> session_infos;
+  std::vector<std::string> msisdns;
+  std::vector<std::string> ue_mac_addrs;
+  std::vector<std::string> apn_mac_addrs;
+  std::vector<std::string> apn_names;
+  auto cwf = false;
   for(auto it = session_map_.begin(); it != session_map_.end(); it++)
   {
     for (const auto &session : it->second) {
       SessionState::SessionInfo session_info;
       session->get_session_info(session_info);
       session_infos.push_back(session_info);
+      auto ue_mac_addr = session->get_mac_addr();
+      ue_mac_addrs.push_back(ue_mac_addr);
+      auto msisdn = session->get_msisdn();
+      msisdns.push_back(msisdn);
+      std::string apn_mac_addr;
+      std::string apn_name;
+      auto apn = session->get_apn();
+      if (!parse_apn(apn, apn_mac_addr, apn_name)) {
+          MLOG(MWARNING) << "Failed mac/name parsiong for apn " << apn;
+          apn_mac_addr = "";
+          apn_name = apn;
+      }
+      apn_mac_addrs.push_back(apn_mac_addr);
+      apn_names.push_back(apn_name);
+      if (session->is_radius_cwf_session()) {
+        cwf = true;
+      }
     }
   }
-  return pipelined_client_->setup(session_infos, epoch, callback);
+  if (cwf){
+    return pipelined_client_->setup_cwf(session_infos, ue_mac_addrs, msisdns,
+        apn_mac_addrs, apn_names, epoch, callback);
+  } else {
+    return pipelined_client_->setup_lte(session_infos, epoch, callback);
+  }
 }
 
 void LocalEnforcer::aggregate_records(const RuleRecordTable& records)

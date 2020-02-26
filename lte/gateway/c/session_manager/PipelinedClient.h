@@ -37,6 +37,10 @@ class PipelinedClient {
    */
   virtual bool setup(
     const std::vector<SessionState::SessionInfo>& infos,
+    const std::vector<std::string> ue_mac_addrs,
+    const std::vector<std::string> msisdns,
+    const std::vector<std::string> apn_mac_addrs,
+    const std::vector<std::string> apn_names,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
@@ -110,6 +114,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    */
   bool setup(
     const std::vector<SessionState::SessionInfo>& infos,
+    const std::vector<std::string> ue_mac_addrs,
+    const std::vector<std::string> msisdns,
+    const std::vector<std::string> apn_mac_addrs,
+    const std::vector<std::string> apn_names,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback);
 
@@ -166,9 +174,13 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   std::unique_ptr<Pipelined::Stub> stub_;
 
  private:
-  void setup_flows_rpc(
-    const SetupFlowsRequest& request,
+  void setup_policy_rpc(
+    const SetupPolicyRequest& request,
     std::function<void(Status, SetupFlowsResult)> callback);
+
+ void setup_ue_mac_rpc(
+   const SetupUEMacRequest& request,
+   std::function<void(Status, SetupFlowsResult)> callback);
 
   void deactivate_flows_rpc(
     const DeactivateFlowsRequest& request,

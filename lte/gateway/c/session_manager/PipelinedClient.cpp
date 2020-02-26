@@ -79,16 +79,42 @@ magma::UEMacFlowRequest create_delete_ue_mac_flow_req(
   return req;
 }
 
-magma::SetupFlowsRequest create_setup_flows_req(
+magma::SetupPolicyRequest create_setup_policy_req(
   const std::vector<magma::SessionState::SessionInfo>& infos,
   const std::uint64_t& epoch)
 {
-  magma::SetupFlowsRequest req;
+  magma::SetupPolicyRequest req;
   std::vector<magma::ActivateFlowsRequest> activation_reqs;
   for(auto it = infos.begin(); it != infos.end(); it++ )
   {
     auto activate_req = create_activate_req(it->imsi, it->ip_addr,
       it->static_rules, it->dynamic_rules);
+    activation_reqs.push_back(activate_req);
+  }
+  auto mut_requests = req.mutable_requests();
+  for (const auto& act_req : activation_reqs) {
+    mut_requests->Add()->CopyFrom(act_req);
+  }
+  req.set_epoch(epoch);
+  return req;
+}
+
+magma::SetupUEMacRequest create_setup_ue_mac_req(
+  const std::vector<magma::SessionState::SessionInfo>& infos,
+  const std::vector<std::string> ue_mac_addrs,
+  const std::vector<std::string> msisdns,
+  const std::vector<std::string> apn_mac_addrs,
+  const std::vector<std::string> apn_names,
+  const std::uint64_t& epoch)
+{
+  magma::SetupUEMacRequest req;
+  std::vector<magma::UEMacFlowRequest> activation_reqs;
+
+  for (unsigned i=0; i < infos.size(); i++) {
+    magma::SubscriberID sid;
+    sid.set_id(infos[i].imsi);
+    auto activate_req = create_add_ue_mac_flow_req(sid, ue_mac_addrs[i],
+      msisdns[i], apn_mac_addrs[i], apn_names[i]);
     activation_reqs.push_back(activate_req);
   }
   auto mut_requests = req.mutable_requests();
@@ -130,11 +156,19 @@ AsyncPipelinedClient::AsyncPipelinedClient():
 
 bool AsyncPipelinedClient::setup(
    const std::vector<SessionState::SessionInfo>& infos,
+   const std::vector<std::string> ue_mac_addrs,
+   const std::vector<std::string> msisdns,
+   const std::vector<std::string> apn_mac_addrs,
+   const std::vector<std::string> apn_names,
    const std::uint64_t& epoch,
    std::function<void(Status status, SetupFlowsResult)> callback)
 {
-  SetupFlowsRequest setup_req = create_setup_flows_req(infos, epoch);
-  setup_flows_rpc(setup_req, callback);
+  SetupPolicyRequest setup_policy_req = create_setup_policy_req(infos, epoch);
+  setup_policy_rpc(setup_policy_req, callback);
+
+  SetupUEMacRequest setup_ue_mac_req = create_setup_ue_mac_req(infos,
+    ue_mac_addrs, msisdns, apn_mac_addrs, apn_names, epoch);
+  setup_ue_mac_rpc(setup_ue_mac_req, callback);
   return true;
 }
 
@@ -247,14 +281,24 @@ bool AsyncPipelinedClient::update_subscriber_quota_state(
   return true;
 }
 
-void AsyncPipelinedClient::setup_flows_rpc(
-  const SetupFlowsRequest& request,
+void AsyncPipelinedClient::setup_policy_rpc(
+  const SetupPolicyRequest& request,
   std::function<void(Status, SetupFlowsResult)> callback)
 {
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
     std::move(callback), RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(
-    stub_->AsyncSetupFlows(local_resp->get_context(), request, &queue_)));
+    stub_->AsyncSetupPolicyFlows(local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::setup_ue_mac_rpc(
+  const SetupUEMacRequest& request,
+  std::function<void(Status, SetupFlowsResult)> callback)
+{
+  auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
+    std::move(callback), RESPONSE_TIMEOUT);
+  local_resp->set_response_reader(std::move(
+    stub_->AsyncSetupUEMacFlows(local_resp->get_context(), request, &queue_)));
 }
 
 void AsyncPipelinedClient::deactivate_flows_rpc(
