@@ -103,8 +103,6 @@ add_library(SESSION_MANAGER
     DirectorydClient.h
     DiameterCodes.cpp
     DiameterCodes.h
-    SessionRules.cpp
-    SessionRules.h
     CreditKey.h
     CreditPool.cpp
     CreditPool.h
