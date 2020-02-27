@@ -16,7 +16,6 @@ const webpack = require('webpack');
 
 import type {WebpackOptions} from 'webpack';
 
-
 type BuilderParams = {
   config: WebpackOptions,
 };
@@ -56,6 +55,6 @@ export default function builder({config}: BuilderParams): WebpackOptions {
           ],
         },
       ],
-    }
+    },
   };
-};
+}

@@ -3,14 +3,14 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from gql.gql.datetime_utils import fromisoformat
+from gql.gql.graphql_client import GraphqlClient
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
-
-from .datetime_utils import fromisoformat
 
 
 DATETIME_FIELD = field(
@@ -71,7 +71,7 @@ class LocationEquipmentsQuery:
 
     @classmethod
     # fmt: off
-    def execute(cls, client, id: str):
+    def execute(cls, client: GraphqlClient, id: str):
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

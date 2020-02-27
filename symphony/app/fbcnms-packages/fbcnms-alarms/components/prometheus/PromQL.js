@@ -329,3 +329,35 @@ export class String implements Expression {
     return `"${this.value}"`;
   }
 }
+
+export class SubQuery implements Expression {
+  expr: Expression;
+  range: Range;
+  resolution: ?Range;
+  offset: ?Range;
+
+  constructor(
+    expr: Expression,
+    range: Range,
+    resolution: ?Range,
+    offset: ?Range,
+  ) {
+    this.expr = expr;
+    this.range = range;
+    this.resolution = resolution;
+    this.offset = offset;
+  }
+
+  withOffset(offset: Range) {
+    this.offset = offset;
+    return this;
+  }
+
+  toPromQL(): string {
+    const maybeStep = this.resolution != null ? this.resolution.toString() : '';
+    return (
+      `${this.expr.toPromQL()}[${this.range.toString()}:${maybeStep}]` +
+      (this.offset ? ' offset ' + this.offset.toString() : '')
+    );
+  }
+}

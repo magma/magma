@@ -72,10 +72,7 @@ def run(schema_filepath: str, graphql_library: str):
             os.path.join(graphql_library, "**/*.py"), recursive=True
         )
         for py_filename in py_filenames:
-            if os.path.basename(py_filename) not in (
-                "__init__.py",
-                "datetime_utils.py",
-            ):
+            if os.path.basename(py_filename) != "__init__.py":
                 os.unlink(py_filename)
 
         for filename in filenames:

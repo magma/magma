@@ -30,6 +30,7 @@
 #define MAX_USAGE_REPORTING_THRESHOLD 1.1
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 #define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000 // 30sec
+#define DEFAULT_EXTRA_QUOTA_MARGIN 1024
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -178,8 +179,25 @@ int main(int argc, char *argv[])
     reporting_threshold = DEFAULT_USAGE_REPORTING_THRESHOLD;
   }
   magma::SessionCredit::USAGE_REPORTING_THRESHOLD = reporting_threshold;
-  magma::SessionCredit::EXTRA_QUOTA_MARGIN =
-    config["extra_quota_margin"].as<uint64_t>();
+
+  uint64_t margin = DEFAULT_EXTRA_QUOTA_MARGIN;
+  if (config["extra_quota_margin"].IsDefined()) {
+    auto margin_from_config = config["extra_quota_margin"].as<uint64_t>();
+    // This value specifies the amount the usage can exceed the quota before
+    // terminating the session entirely. This is for the case where pipelined
+    // reports usage faster than sessiond can report it. This value should be
+    // reasonably big, as the usage will be eventually reported properly.
+    // So use the default value if it seems small.
+    if (margin_from_config > DEFAULT_EXTRA_QUOTA_MARGIN) {
+      margin = margin_from_config;
+    } else {
+      MLOG(MWARNING) << "The extra_quota_margin from the config "
+                     << margin_from_config << "is smaller than the default "
+                     << DEFAULT_EXTRA_QUOTA_MARGIN
+                     << ", using the default value instead.";
+    }
+  }
+  magma::SessionCredit::EXTRA_QUOTA_MARGIN = margin;
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
    config["terminate_service_when_quota_exhausted"].as<bool>();
 

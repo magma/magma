@@ -79,7 +79,6 @@ router.use(
 );
 router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));
 router.use('/logger', require('@fbcnms/platform-server/logger/routes'));
-router.use('/store', require('../store/routes'));
 router.use('/docs', require('../docs/routes'));
 router.use('/test', require('@fbcnms/platform-server/test/routes'));
 router.use(

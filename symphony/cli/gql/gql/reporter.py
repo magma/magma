@@ -127,3 +127,6 @@ class DummyReporter(Reporter):
         self, row_identifier: str, row: Dict[str, Any], e: FailedOperationException
     ) -> None:
         pass
+
+
+DUMMY_REPORTER = DummyReporter()

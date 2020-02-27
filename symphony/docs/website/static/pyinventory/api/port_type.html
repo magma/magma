@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.port_type.add_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">add_equipment_port_type</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float]], bool]], link_properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float]], bool]]) -> <a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType">EquipmentPortType</a></span>
+<span>def <span class="ident">add_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, properties: List[<a title="pyinventory.consts.PropertyDefinition" href="../consts.html#pyinventory.consts.PropertyDefinition">PropertyDefinition</a>], link_properties: List[<a title="pyinventory.consts.PropertyDefinition" href="../consts.html#pyinventory.consts.PropertyDefinition">PropertyDefinition</a>]) -> <a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType">EquipmentPortType</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function creates an equipment port type.</p>
@@ -41,19 +41,9 @@
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>&nbsp;</dd>
 <dt><strong><code>properties</code></strong></dt>
-<dd>(list of tuple(str, str, PropertyValue, bool)): Optional, where
-str - port type name
-str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]
-PropertyValue - default property value
-bool - fixed value</dd>
+<dd>(List[PropertyDefinition]): list of PropertyDefinitions</dd>
 <dt><strong><code>link_properties</code></strong></dt>
-<dd>(list of tuple(str, str, PropertyValue, bool)): Optional, where
-str - port type name
-str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]
-PropertyValue - default property value
-bool - fixed value</dd>
+<dd>(List[PropertyDefinition]): list of PropertyDefinitions</dd>
 <dt><strong><code>Returns</code></strong></dt>
 <dd>EquipmentPortType object</dd>
 <dt><strong><code>Raises</code></strong></dt>
@@ -68,7 +58,7 @@ bool - fixed value</dd>
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.port_type.delete_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">delete_equipment_port_type</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, equipment_port_type_id: str) -> NoneType</span>
+<span>def <span class="ident">delete_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_port_type_id: str) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function deletes an equipment port type.
@@ -82,8 +72,40 @@ It can get only the requested equipment port type ID</p>
 <pre><code>client.delete_equipment_port_type(self.port_type1.id)
 </code></pre></section>
 </dd>
+<dt id="pyinventory.api.port_type.edit_equipment_port_type"><code class="name flex">
+<span>def <span class="ident">edit_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, port_type: <a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType">EquipmentPortType</a>, new_name: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None, new_link_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType">EquipmentPortType</a></span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function edits an existing equipment port type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>port_type</code></strong> :&ensp;<code>EquipmentPortType</code> <code>object</code></dt>
+<dd>existing eqipment port type object</dd>
+<dt><strong><code>new_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>new name</dd>
+<dt><strong><code>new_properties</code></strong></dt>
+<dd>(Dict[str, PropertyValue]): list of tuples, where
+str - property type name
+PropertyValue - new value of the same type for this property</dd>
+<dt><strong><code>new_link_properties</code></strong></dt>
+<dd>(Dict[str, PropertyValue]): list of tuples, where
+str - link property type name
+PropertyValue - new value of the same type for this link property</dd>
+<dt><strong><code>Returns</code></strong></dt>
+<dd>EquipmentPortType object</dd>
+<dt><strong><code>Raises</code></strong></dt>
+<dd>FailedOperationException</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>port_type1 = self.client.edit_equipment_port_type(
+equipment_port_type,
+"new port type name",
+{"existing property name": "new value"},
+{"existing link property name": "new value"},
+)</p></section>
+</dd>
 <dt id="pyinventory.api.port_type.get_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">get_equipment_port_type</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, equipment_port_type_id: str) -> <a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType">EquipmentPortType</a></span>
+<span>def <span class="ident">get_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_port_type_id: str) -> <a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType">EquipmentPortType</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function returns an equipment port type.
@@ -121,6 +143,7 @@ It can get only the requested equipment port type ID</p>
 <ul class="">
 <li><code><a title="pyinventory.api.port_type.add_equipment_port_type" href="#pyinventory.api.port_type.add_equipment_port_type">add_equipment_port_type</a></code></li>
 <li><code><a title="pyinventory.api.port_type.delete_equipment_port_type" href="#pyinventory.api.port_type.delete_equipment_port_type">delete_equipment_port_type</a></code></li>
+<li><code><a title="pyinventory.api.port_type.edit_equipment_port_type" href="#pyinventory.api.port_type.edit_equipment_port_type">edit_equipment_port_type</a></code></li>
 <li><code><a title="pyinventory.api.port_type.get_equipment_port_type" href="#pyinventory.api.port_type.get_equipment_port_type">get_equipment_port_type</a></code></li>
 </ul>
 </li>

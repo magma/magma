@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from distutils.version import LooseVersion
 from typing import Any, Dict, Optional, Tuple
 
-import requests
 from colorama import Fore
-from gql.gql import gql
-from gql.gql.client import Client
-from graphql.language.ast import DocumentNode
+from gql.gql.graphql_client import GraphqlClient
+from gql.gql.reporter import DUMMY_REPORTER, Reporter
+from requests import Session
+from requests.auth import HTTPBasicAuth
 
 from .consts import (
-    DUMMY_REPORTER,
     INVENTORY_ENDPOINT,
     INVENTORY_GRAPHQL_ENDPOINT,
     INVENTORY_STORE_DELETE_ENDPOINT,
@@ -20,12 +18,9 @@ from .consts import (
     __version__,
 )
 from .graphql.latest_python_package_query import LatestPythonPackageQuery
-from .reporter import Reporter
-from .session import RequestsHTTPSessionTransport
 
 
-class GraphqlClient:
-
+class SymphonyClient(GraphqlClient):
     locationTypes: Dict[str, Any] = {}
     equipmentTypes: Dict[str, Any] = {}
     serviceTypes: Dict[str, Any] = {}
@@ -39,15 +34,12 @@ class GraphqlClient:
         is_local_host: bool = False,
         is_dev_mode: bool = False,
         reporter: Reporter = DUMMY_REPORTER,
-    ) -> None:
-
-        """This is the class to use for working with inventory. It contains all
-            the functions to query and and edit the inventory.
+    ):
+        """This is the class to use for working with symphony server.
 
             The __init__ method uses the credentials to establish session with
             the inventory website. It also consumes graphql schema for
-            validations, and populate the location types and equipment types
-            for faster run of operations.
+            validations, and validates the client version is compatible with server.
 
             Args:
                 email (str): The email of the user to connect with.
@@ -69,38 +61,29 @@ class GraphqlClient:
 
         """
 
-        self.email = email
-        self.password = password
-        self.tenant = tenant
-        self.reporter = reporter
-        self.address: str = (
+        address = (
             LOCALHOST_INVENTORY_ENDPOINT.format(tenant)
             if is_local_host
             else INVENTORY_ENDPOINT.format(tenant)
         )
-        self.endpoint: str = self.address + INVENTORY_GRAPHQL_ENDPOINT
-        self.put_endpoint: str = self.address + INVENTORY_STORE_PUT_ENDPOINT
-        self.delete_endpoint: str = self.address + INVENTORY_STORE_DELETE_ENDPOINT
-        self.session = requests.Session()
-        self.session.verify = not is_local_host and not is_dev_mode
-        self.is_dev_mode = is_dev_mode
-        if is_local_host or is_dev_mode:
+        graphql_endpoint_address = address + INVENTORY_GRAPHQL_ENDPOINT
+
+        self.session: Session = Session()
+        self.session.auth = HTTPBasicAuth(email, password)
+        verify_ssl = not is_local_host and not is_dev_mode
+        self.session.verify = verify_ssl
+        if not verify_ssl:
             import urllib3
 
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        self.client = Client(
-            transport=RequestsHTTPSessionTransport(
-                self.session,
-                self.endpoint,
-                auth=requests.auth.HTTPBasicAuth(self.email, self.password),
-                headers={
-                    "Accept": "application/json",
-                    "Content-Type": "application/json",
-                },
-            ),
-            fetch_schema_from_transport=True,
-        )
 
+        self.put_endpoint: str = address + INVENTORY_STORE_PUT_ENDPOINT
+        self.delete_endpoint: str = address + INVENTORY_STORE_DELETE_ENDPOINT
+
+        super().__init__(graphql_endpoint_address, self.session, reporter)
+        self._verify_version_is_not_broken()
+
+    def _verify_version_is_not_broken(self):
         package = self._get_latest_python_package_version()
 
         latest_version, latest_breaking_version = (
@@ -138,12 +121,30 @@ class GraphqlClient:
             )
         return None
 
-    def call(self, query: str, variables: Dict[str, Any]) -> str:
-        return self.client.execute(
-            gql(query), variable_values=variables, return_json=False
+    def store_file(self, file_path: str, file_type: str, is_global: bool) -> str:
+        sign_response = self.session.get(
+            self.put_endpoint,
+            params={"contentType": file_type},
+            headers={"Is-Global": str(is_global)},
         )
+        sign_response = sign_response.json()
+        signed_url = sign_response["URL"]
+        with open(file_path, "rb") as f:
+            file_data = f.read()
+        response = self.session.put(
+            signed_url, data=file_data, headers={"Content-Type": file_type}
+        )
+        response.raise_for_status()
+        return sign_response["key"]
 
-    def query(
-        self, query_name: str, query: DocumentNode, variables: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        return self.client.execute(query, variable_values=variables)[query_name]
+    def delete_file(self, key: str, is_global: bool) -> None:
+        sign_response = self.session.delete(
+            self.delete_endpoint.format(key),
+            headers={"Is-Global": str(is_global)},
+            allow_redirects=False,
+        )
+        sign_response.raise_for_status()
+        assert sign_response.status_code == 307
+        signed_url = sign_response.headers["location"]
+        response = self.session.delete(signed_url)
+        response.raise_for_status()

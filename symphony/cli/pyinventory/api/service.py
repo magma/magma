@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 from dacite import Config, from_dict
 
 from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
+from ..client import SymphonyClient
 from ..consts import (
     Customer,
     EquipmentPort,
@@ -31,10 +32,9 @@ from ..graphql.service_status_enum import ServiceStatus
 from ..graphql.service_type_create_data_input import ServiceTypeCreateData
 from ..graphql.service_type_services_query import ServiceTypeServicesQuery
 from ..graphql.service_types_query import ServiceTypesQuery
-from ..graphql_client import GraphqlClient
 
 
-def _populate_service_types(client: GraphqlClient) -> None:
+def _populate_service_types(client: SymphonyClient) -> None:
     edges = ServiceTypesQuery.execute(client).serviceTypes.edges
     for edge in edges:
         node = edge.node
@@ -47,7 +47,7 @@ def _populate_service_types(client: GraphqlClient) -> None:
 
 
 def add_service_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     hasCustomer: bool,
     properties: List[PropertyDefinition],
@@ -79,7 +79,7 @@ def add_service_type(
 
 
 def add_service(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     external_id: str,
     service_type: str,
@@ -123,7 +123,7 @@ def add_service(
 
 
 def add_service_endpoint(
-    client: GraphqlClient,
+    client: SymphonyClient,
     service: Service,
     port: EquipmentPort,
     role: ServiceEndpointRole,
@@ -133,7 +133,7 @@ def add_service_endpoint(
     )
 
 
-def get_service(client: GraphqlClient, id: str) -> Service:
+def get_service(client: SymphonyClient, id: str) -> Service:
     result = ServiceDetailsQuery.execute(client, id=id).service
     return Service(
         name=result.name,
@@ -155,7 +155,7 @@ def get_service(client: GraphqlClient, id: str) -> Service:
 
 
 def delete_service_type_with_services(
-    client: GraphqlClient, service_type: ServiceType
+    client: SymphonyClient, service_type: ServiceType
 ) -> None:
     services = ServiceTypeServicesQuery.execute(
         client, id=service_type.id

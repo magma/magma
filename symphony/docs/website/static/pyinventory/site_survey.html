@@ -70,7 +70,7 @@ Columns width:
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.delete_site_survey"><code class="name flex">
-<span>def <span class="ident">delete_site_survey</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, site_survey: <a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a>) -> NoneType</span>
+<span>def <span class="ident">delete_site_survey</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, site_survey: <a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -94,7 +94,7 @@ Columns width:
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.get_site_surveys"><code class="name flex">
-<span>def <span class="ident">get_site_surveys</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>) -> List[<a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a>]</span>
+<span>def <span class="ident">get_site_surveys</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>) -> List[<a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a>]</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Retrieve all site survey completed in the location.</p>
@@ -130,7 +130,7 @@ Columns width:
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.upload_site_survey"><code class="name flex">
-<span>def <span class="ident">upload_site_survey</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>, name: str, completion_date: datetime.datetime, excel_file_path: str, json_file_path: str) -> NoneType</span>
+<span>def <span class="ident">upload_site_survey</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>, name: str, completion_date: datetime.datetime, excel_file_path: str, json_file_path: str) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Upload the site survey to the given completion with the data in the

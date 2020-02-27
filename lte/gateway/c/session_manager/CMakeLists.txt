@@ -103,17 +103,14 @@ add_library(SESSION_MANAGER
     DirectorydClient.h
     DiameterCodes.cpp
     DiameterCodes.h
-    SessionRules.cpp
-    SessionRules.h
     CreditKey.h
     CreditPool.cpp
     CreditPool.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
     StoredState.h
+    SessionStore.cpp
     SessionStore.h
-    MemorySessionStore.cpp
-    MemorySessionStore.h
     MemoryStoreClient.cpp
     MemoryStoreClient.h
     StoreClient.h

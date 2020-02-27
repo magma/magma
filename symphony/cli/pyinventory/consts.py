@@ -5,12 +5,9 @@ from datetime import date, datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from .graphql.image_entity_enum import ImageEntity
-from .reporter import DummyReporter
 
 
 __version__ = "2.4.0"
-
-DUMMY_REPORTER = DummyReporter()
 
 INVENTORY_ENDPOINT = "https://{}.thesymphony.cloud"
 LOCALHOST_INVENTORY_ENDPOINT = "https://{}.localtest.me"

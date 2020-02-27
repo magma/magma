@@ -161,6 +161,11 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: validating property for type %v", err.Error(), portType.Name)})
 							continue
 						}
+						err = importLine.validatePropertiesMismatch(ctx, []interface{}{portType})
+						if err != nil {
+							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: validating property for type %v", err.Error(), portType.Name)})
+							continue
+						}
 						if commit {
 							_, err = m.r.Mutation().EditEquipmentPort(ctx, models.EditEquipmentPortInput{
 								Side: &models.LinkSide{

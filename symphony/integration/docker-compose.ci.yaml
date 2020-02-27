@@ -43,7 +43,7 @@ services:
       PROXY_TARGET: http://front
       INVENTORY_TARGET: http://front
       KEY_PAIRS: HWmHsJtI8wrSkVuXkMxP5HDW32t2AUqz
-    env_file: &env_file
+    env_file:
       - conf/log.env
     healthcheck: &healthcheck
       test: curl -If localhost/healthz/liveness
@@ -51,11 +51,12 @@ services:
 
   graph:
     image: ${DOCKER_REGISTRY}/graph:${TAG}
-    environment:
-      MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true&interpolateParams=true
-    env_file: *env_file
+    env_file:
+      - conf/graph.env
+      - conf/log.env
     depends_on:
       - mysql
+      - nats
     healthcheck: *healthcheck
     restart: on-failure
 
@@ -68,7 +69,9 @@ services:
       S3_REGION: us-east-1
       AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
       AWS_SECRET_ACCESS_KEY: /wJalrXUtnFEMIK7MDENG/bPxRfiCYEXAMPLEKEY
-    env_file: *env_file
+    env_file:
+      - conf/graph.env
+      - conf/log.env
     healthcheck: *healthcheck
     restart: on-failure
 
@@ -93,6 +96,10 @@ services:
       MINIO_SECRET_KEY: /wJalrXUtnFEMIK7MDENG/bPxRfiCYEXAMPLEKEY
     entrypoint: sh
     command: -c 'mkdir -p /data/store.blobs && /usr/bin/minio server /data'
+
+  nats:
+    image: nats
+    restart: on-failure
 
   tests:
     build:

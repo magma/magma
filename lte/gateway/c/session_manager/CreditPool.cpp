@@ -8,6 +8,7 @@
  */
 #include <limits>
 #include "CreditPool.h"
+#include "StoredState.h"
 
 #include "magma_logging.h"
 
@@ -96,25 +97,47 @@ static CreditUsage::UpdateType convert_update_type_to_proto(
   return CreditUsage::QUOTA_EXHAUSTED;
 }
 
-template<typename KeyType>
-static void populate_output_actions(
+void ChargingCreditPool::populate_output_actions(
   std::string imsi,
   std::string ip_addr,
-  KeyType key,
-  SessionRules *session_rules,
+  CreditKey key,
+  StaticRuleStore &static_rules,
+  DynamicRuleStore *dynamic_rules,
   std::unique_ptr<ServiceAction> &action,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out) // const
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
   action->set_imsi(imsi);
   action->set_ip_addr(ip_addr);
-  session_rules->add_rules_to_action(*action, key);
+  static_rules.get_rule_ids_for_charging_key(
+    key, *action->get_mutable_rule_ids());
+  dynamic_rules->get_rule_definitions_for_charging_key(
+    key, *action->get_mutable_rule_definitions());
+  actions_out->push_back(std::move(action));
+}
+
+void UsageMonitoringCreditPool::populate_output_actions(
+  std::string imsi,
+  std::string ip_addr,
+  std::string key,
+  StaticRuleStore &static_rules,
+  DynamicRuleStore *dynamic_rules,
+  std::unique_ptr<ServiceAction> &action,
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
+{
+  action->set_imsi(imsi);
+  action->set_ip_addr(ip_addr);
+  static_rules.get_rule_ids_for_monitoring_key(
+    key, *action->get_mutable_rule_ids());
+  dynamic_rules->get_rule_definitions_for_monitoring_key(
+    key, *action->get_mutable_rule_definitions());
   actions_out->push_back(std::move(action));
 }
 
 void ChargingCreditPool::get_updates(
   std::string imsi,
   std::string ip_addr,
-  SessionRules *session_rules,
+  StaticRuleStore &static_rules,
+  DynamicRuleStore *dynamic_rules,
   std::vector<CreditUsage> *updates_out,
   std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
@@ -133,7 +156,8 @@ void ChargingCreditPool::get_updates(
         imsi,
         ip_addr,
         credit_pair.first,
-        session_rules,
+        static_rules,
+        dynamic_rules,
         action,
         actions_out);
     } else {
@@ -274,6 +298,32 @@ uint64_t ChargingCreditPool::get_credit(const CreditKey &key, Bucket bucket) con
   return it->second->get_credit(bucket);
 }
 
+void ChargingCreditPool::add_credit(
+  const CreditKey &key,
+  std::unique_ptr<SessionCredit> credit)
+{
+  credit_map_[key] = std::move(credit);
+}
+
+void ChargingCreditPool::merge_credit_update(
+  const CreditKey &key,
+  const SessionCreditUpdateCriteria &credit_update)
+{
+  auto it = credit_map_.find(key);
+  if (it == credit_map_.end()) {
+    return;
+  }
+  it->second->set_is_final(credit_update.is_final);
+  it->second->set_reauth(credit_update.reauth_state);
+  it->second->set_service_state(credit_update.service_state);
+  it->second->set_expiry_time(credit_update.expiry_time);
+  for (int i = USED_TX; i != MAX_VALUES; i++) {
+    Bucket bucket = static_cast<Bucket>(i);
+    it->second->add_credit(
+      credit_update.bucket_deltas.find(bucket)->second, bucket);
+  }
+}
+
 ChargingReAuthAnswer::Result ChargingCreditPool::reauth_key(
   const CreditKey &charging_key)
 {
@@ -304,6 +354,15 @@ ChargingReAuthAnswer::Result ChargingCreditPool::reauth_all()
     }
   }
   return res;
+}
+
+std::unique_ptr<UsageMonitoringCreditPool::Monitor> UsageMonitoringCreditPool::unmarshal_monitor(
+  const StoredMonitor &marshaled)
+{
+  UsageMonitoringCreditPool::Monitor monitor;
+  monitor.credit = *SessionCredit::unmarshal(marshaled.credit, MONITORING);
+  monitor.level = marshaled.level;
+  return std::make_unique<UsageMonitoringCreditPool::Monitor>(monitor);
 }
 
 std::unique_ptr<UsageMonitoringCreditPool> UsageMonitoringCreditPool::unmarshal(
@@ -401,7 +460,8 @@ static UsageMonitorUpdate get_monitor_update_from_struct(
 void UsageMonitoringCreditPool::get_updates(
   std::string imsi,
   std::string ip_addr,
-  SessionRules *session_rules,
+  StaticRuleStore &static_rules,
+  DynamicRuleStore *dynamic_rules,
   std::vector<UsageMonitorUpdate> *updates_out,
   std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
@@ -414,7 +474,8 @@ void UsageMonitoringCreditPool::get_updates(
         imsi,
         ip_addr,
         monitor_pair.first,
-        session_rules,
+        static_rules,
+        dynamic_rules,
         action,
         actions_out);
     }
@@ -529,6 +590,32 @@ uint64_t UsageMonitoringCreditPool::get_credit(
     return 0;
   }
   return it->second->credit.get_credit(bucket);
+}
+
+void UsageMonitoringCreditPool::add_monitor(
+  const std::string &key,
+  std::unique_ptr<UsageMonitoringCreditPool::Monitor> monitor)
+{
+  monitor_map_[key] = std::move(monitor);
+}
+
+void UsageMonitoringCreditPool::merge_credit_update(
+  const std::string &key,
+  const SessionCreditUpdateCriteria &credit_update)
+{
+  auto it = monitor_map_.find(key);
+  if (it == monitor_map_.end()) {
+    return;
+  }
+  it->second->credit.set_is_final(credit_update.is_final);
+  it->second->credit.set_reauth(credit_update.reauth_state);
+  it->second->credit.set_service_state(credit_update.service_state);
+  it->second->credit.set_expiry_time(credit_update.expiry_time);
+  for (int i = USED_TX; i != MAX_VALUES; i++) {
+    Bucket bucket = static_cast<Bucket>(i);
+    it->second->credit.add_credit(
+      credit_update.bucket_deltas.find(bucket)->second, bucket);
+  }
 }
 
 std::unique_ptr<std::string> UsageMonitoringCreditPool::get_session_level_key()

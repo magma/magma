@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/bobesa/go-domain-util/domainutil"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
 
@@ -97,9 +96,7 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 		if err != nil {
 			return r
 		}
-		if subdomain := domainutil.Subdomain(r.Host); subdomain != "" {
-			req.Host = subdomain + "." + req.URL.Host
-		}
+		req.Header.Set("X-Forwarded-Host", r.Host)
 		if username, password, ok := r.BasicAuth(); ok {
 			req.SetBasicAuth(username, password)
 		}

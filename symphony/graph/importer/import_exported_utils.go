@@ -172,7 +172,11 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 			}
 		} else {
 			loc, err = m.queryLocationForTypeAndParent(ctx, locName, typ, currParentID)
-			if loc == nil && ent.MaskNotFound(err) == nil {
+
+			if loc == nil {
+				if !ent.IsNotFound(err) {
+					return nil, errors.Wrapf(err, "querying or creating location name: %v", locName)
+				}
 				// no location but no error (dry run mode)
 				return nil, nil
 			}
@@ -287,9 +291,12 @@ func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *en
 }
 
 func (m *importer) validatePropertiesForPortType(ctx context.Context, line ImportRecord, portType *ent.EquipmentPortType, entity ImportEntity) ([]*models.PropertyInput, error) {
-	var pInputs []*models.PropertyInput
-	var propTypes []*ent.PropertyType
-	var err error
+	var (
+		pInputs   []*models.PropertyInput
+		propTypes []*ent.PropertyType
+		err       error
+	)
+
 	switch entity {
 	case ImportEntityPort:
 		propTypes, err = portType.QueryPropertyTypes().All(ctx)

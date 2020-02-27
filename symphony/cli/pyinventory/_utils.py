@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # pyre-strict
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 import warnings
 from datetime import datetime
 from typing import Callable, Dict, List, Optional, Tuple, Union, cast
 
+from dacite import Config, from_dict
 from .consts import (
     TYPE_AND_FIELD_NAME,
     DataTypeName,
@@ -31,7 +35,6 @@ def get_graphql_input_field(
         raise Exception(
             f"property type {property_type_name} has not supported type {type_key}"
         )
-
     if type_key == "string":
         assert isinstance(value, str) or isinstance(
             value, bytes
@@ -97,11 +100,15 @@ def get_graphql_property_type_inputs(
         result.update(
             get_graphql_input_field(
                 property_type_name=name,
-                type_key=property_type_names[name]["type"],
+                type_key=property_type_names[name]["type"].value,
                 value=value,
             )
         )
-        properties.append(result)
+        properties.append(
+            from_dict(
+                data_class=PropertyTypeInput, data=result, config=Config(strict=True)
+            )
+        )
 
     return properties
 
@@ -147,7 +154,7 @@ def get_graphql_property_inputs(
         result.update(
             get_graphql_input_field(
                 property_type_name=name,
-                type_key=property_type_names[name]["type"],
+                type_key=property_type_names[name]["type"].value,
                 value=value,
             )
         )
@@ -187,13 +194,11 @@ def _make_property_types(
 ) -> List[Dict[str, PropertyValue]]:
     property_types = [
         {
-            "name": arg.property_name,
-            "type": arg.property_type,
+            "name": arg[0],
+            "type": arg[1],
             "index": i,
-            **_get_property_default_value(
-                arg.property_name, arg.property_type, arg.default_value
-            ),
-            "isInstanceProperty": arg.is_fixed,
+            **_get_property_default_value(arg[0], arg[1], arg[2]),
+            "isInstanceProperty": arg[3],
         }
         for i, arg in enumerate(properties)
     ]

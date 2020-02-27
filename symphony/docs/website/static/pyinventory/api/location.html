@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.location.add_location"><code class="name flex">
-<span>def <span class="ident">add_location</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location_hirerchy: List[Tuple[str, str]], properties_dict: Dict[str, Any], lat: Union[float, NoneType] = None, long: Union[float, NoneType] = None, externalID: Union[str, NoneType] = None) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
+<span>def <span class="ident">add_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_hirerchy: List[Tuple[str, str]], properties_dict: Dict[str, Any], lat: Union[float, NoneType] = None, long: Union[float, NoneType] = None, externalID: Union[str, NoneType] = None) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Create a new location of a specific type with a specific name.
@@ -92,19 +92,19 @@ inside the chain and it is not clear where to create or what to return</dd>
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.location.delete_location"><code class="name flex">
-<span>def <span class="ident">delete_location</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> NoneType</span>
+<span>def <span class="ident">delete_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.location.edit_location"><code class="name flex">
-<span>def <span class="ident">edit_location</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>, new_name: Union[str, NoneType] = None, new_lat: Union[float, NoneType] = None, new_long: Union[float, NoneType] = None, new_external_id: Union[str, NoneType] = None, new_properties: Union[Dict[str, Any], NoneType] = None) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
+<span>def <span class="ident">edit_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>, new_name: Union[str, NoneType] = None, new_lat: Union[float, NoneType] = None, new_long: Union[float, NoneType] = None, new_external_id: Union[str, NoneType] = None, new_properties: Union[Dict[str, Any], NoneType] = None) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.location.get_location"><code class="name flex">
-<span>def <span class="ident">get_location</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location_hirerchy: List[Tuple[str, str]]) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
+<span>def <span class="ident">get_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_hirerchy: List[Tuple[str, str]]) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function returns a location of a specific type with a specific name.
@@ -136,13 +136,13 @@ location = client.get_location([('Site', 'Bletchley Park')])
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.location.get_location_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_location_by_external_id</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, external_id: str) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
+<span>def <span class="ident">get_location_by_external_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, external_id: str) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.location.get_location_children"><code class="name flex">
-<span>def <span class="ident">get_location_children</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location_id: str) -> List[<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>]</span>
+<span>def <span class="ident">get_location_children</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str) -> List[<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>]</span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function returns all locations that are children of the given location</p>
@@ -161,13 +161,13 @@ locations = client.get_location_children([('Country', 'England')])
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.location.get_location_documents"><code class="name flex">
-<span>def <span class="ident">get_location_documents</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> List[<a title="pyinventory.consts.Document" href="../consts.html#pyinventory.consts.Document">Document</a>]</span>
+<span>def <span class="ident">get_location_documents</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> List[<a title="pyinventory.consts.Document" href="../consts.html#pyinventory.consts.Document">Document</a>]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.location.move_location"><code class="name flex">
-<span>def <span class="ident">move_location</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, location_id: str, new_parent_id: Union[str, NoneType]) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
+<span>def <span class="ident">move_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str, new_parent_id: Union[str, NoneType]) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>

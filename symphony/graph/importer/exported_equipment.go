@@ -290,10 +290,18 @@ func (m *importer) inputValidations(ctx context.Context, importHeader ImportHead
 }
 
 func (m *importer) validatePropertiesForEquipmentType(ctx context.Context, line ImportRecord, equipType *ent.EquipmentType) ([]*models.PropertyInput, error) {
-	ic := getImportContext(ctx)
+	err := line.validatePropertiesMismatch(ctx, []interface{}{equipType})
+	if err != nil {
+		return nil, err
+	}
+
 	var pInputs []*models.PropertyInput
-	propTypeNames := ic.equipmentTypeIDToProperties[equipType.ID]
-	for _, ptypeName := range propTypeNames {
+	propTypes, err := equipType.QueryPropertyTypes().All(ctx)
+	if ent.MaskNotFound(err) != nil {
+		return nil, errors.Wrap(err, "can't query property types for port type")
+	}
+	for _, ptype := range propTypes {
+		ptypeName := ptype.Name
 		pInput, err := line.GetPropertyInput(m.ClientFrom(ctx), ctx, equipType, ptypeName)
 		if err != nil {
 			return nil, err

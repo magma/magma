@@ -9,11 +9,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strings"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -136,10 +134,10 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 		conn.Close()
 	})
 
-	const subdomain = "test."
+	const host = "test.example.com"
 	authenticator := httptest.NewServer(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			require.True(t, strings.HasPrefix(r.Host, subdomain))
+			require.Equal(t, host, r.Header.Get("X-Forwarded-Host"))
 			if username, _, ok := r.BasicAuth(); ok {
 				err := json.NewEncoder(w).Encode(&Viewer{
 					Tenant: "test",
@@ -167,14 +165,9 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 				w.Header().Set(RoleHeader, r.Header.Get(RoleHeader))
 				w.WriteHeader(http.StatusOK)
 			})
-			u, err := url.Parse(authenticator.URL)
-			require.NoError(t, err)
-			_, port, err := net.SplitHostPort(u.Host)
-			require.NoError(t, err)
-			u.Host = net.JoinHostPort("localtest.me", port)
-			handler = WebSocketUpgradeHandler(handler, u.String())
+			handler = WebSocketUpgradeHandler(handler, authenticator.URL)
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			req.Host = subdomain + req.Host
+			req.Host = host
 			authReq(req)
 			req.Header.Set("Connection", "upgrade")
 			req.Header.Set("Upgrade", "websocket")

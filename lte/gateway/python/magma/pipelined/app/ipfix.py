@@ -141,6 +141,7 @@ class IPFIXController(MagmaController):
             apn_name (string): AP name
         """
         imsi_hex = hex(encode_imsi(imsi))
+        apn_name = apn_name.replace(' ', '_')
         action_str = (
             'ovs-ofctl add-flow {} "table={},priority={},metadata={},'
             'actions=sample(probability={},collector_set_id={},'

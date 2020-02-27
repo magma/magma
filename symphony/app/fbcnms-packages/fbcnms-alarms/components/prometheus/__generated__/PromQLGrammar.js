@@ -19,6 +19,7 @@ const {
         RangeSelector,
         Scalar,
         String,
+        SubQuery,
         VectorMatchClause
 } = require('../PromQL');
 var grammar = {
@@ -28,9 +29,10 @@ var grammar = {
     {"name": "expression", "symbols": ["aggregation"], "postprocess": id},
     {"name": "expression", "symbols": ["function"], "postprocess": id},
     {"name": "expression", "symbols": ["binary_operation"], "postprocess": id},
+    {"name": "expression", "symbols": ["subquery"], "postprocess": id},
     {"name": "expression", "symbols": ["SCALAR"], "postprocess": id},
     {"name": "metric_selector", "symbols": ["selector"], "postprocess": id},
-    {"name": "metric_selector", "symbols": ["selector", "offset_clause"], "postprocess": ([selector, offset]) => selector.setOffset(offset[1])},
+    {"name": "metric_selector", "symbols": ["selector", "offset_clause"], "postprocess": ([selector, offset]) => selector.setOffset(offset)},
     {"name": "selector", "symbols": ["instant_selector"], "postprocess": id},
     {"name": "selector", "symbols": ["range_selector"], "postprocess": id},
     {"name": "instant_selector", "symbols": ["metric_identifier", "label_selector"], "postprocess": ([id, labels]) => new InstantSelector(id, labels)},
@@ -62,7 +64,7 @@ var grammar = {
     {"name": "bin_op", "symbols": ["BIN_COMP", {"literal":"bool"}], "postprocess": ([op, _boolMode]) => new BinaryComparator(op).makeBoolean()},
     {"name": "bin_op", "symbols": ["SET_OP"], "postprocess": id},
     {"name": "bin_op", "symbols": ["ARITHM_OP"], "postprocess": id},
-    {"name": "offset_clause", "symbols": [{"literal":"offset"}, "RANGE"]},
+    {"name": "offset_clause", "symbols": [{"literal":"offset"}, "RANGE"], "postprocess": ([_keyword, offset]) => offset},
     {"name": "aggregation", "symbols": ["AGG_OP", "func_call_body"], "postprocess": ([aggOp, params]) => new AggregationOperation(aggOp, params)},
     {"name": "aggregation", "symbols": ["AGG_OP", "func_call_body", "dimensionClause"], "postprocess":  ([aggOp, params, clause]) =>
         new AggregationOperation(aggOp, params, clause)
@@ -101,6 +103,17 @@ var grammar = {
     {"name": "parameter", "symbols": ["SCALAR"], "postprocess": id},
     {"name": "parameter", "symbols": ["expression"], "postprocess": id},
     {"name": "parameter", "symbols": ["STRING"], "postprocess": d => new String(d[0])},
+    {"name": "subquery$ebnf$1", "symbols": ["RANGE"], "postprocess": id},
+    {"name": "subquery$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "subquery$ebnf$2", "symbols": ["offset_clause"], "postprocess": id},
+    {"name": "subquery$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "subquery", "symbols": ["expression", (lexer.has("lBracket") ? {type: "lBracket"} : lBracket), "RANGE", (lexer.has("colon") ? {type: "colon"} : colon), "subquery$ebnf$1", (lexer.has("rBracket") ? {type: "rBracket"} : rBracket), "subquery$ebnf$2"], "postprocess":  ([expr, _lBRacket, range, _colon, step, _rBracket, offset]) =>
+        new SubQuery(
+                expr,
+                range,
+                step === null ? undefined : step,
+                offset === null ? undefined : offset)
+                                },
     {"name": "SCALAR", "symbols": [(lexer.has("scalar") ? {type: "scalar"} : scalar)], "postprocess": d => new Scalar(d[0].value)},
     {"name": "STRING", "symbols": [(lexer.has("string") ? {type: "string"} : string)], "postprocess": d => d[0].value},
     {"name": "IDENTIFIER", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": d => d[0].value},

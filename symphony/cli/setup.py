@@ -20,12 +20,16 @@ def find_version(*file_paths):
     raise RuntimeError("Unable to find version string.")
 
 
+GQL_PACKAGES = ["gql", "gql.*"]
+PYINVENTORY_PACKAGES = ["pyinventory", "pyinventory.*"]
+
+
 setuptools.setup(
     name="pyinventory",
     version=find_version("pyinventory", "consts.py"),
     author="Facebook Inc.",
     description="Tool for accessing and modifying FBC Platform Inventory database",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(include=GQL_PACKAGES + PYINVENTORY_PACKAGES),
     classifiers=["Programming Language :: Python :: 3.6"],
     include_package_data=True,
     install_requires=[

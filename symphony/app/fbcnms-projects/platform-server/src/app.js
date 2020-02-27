@@ -97,13 +97,19 @@ app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());
 
 app.use(configureAccess({loginUrl: '/user/login'}));
 
-// All /graph and /webhooks endpoints don't use CORS and are JSON (no form),
+// All /graph, /store and /webhooks endpoints don't use CORS and are JSON (no form),
 // so no CSRF is needed
 app.use(
   '/graph',
   passport.authenticate(['basic_local', 'session'], {session: false}),
   access(USER),
   require('./graph/routes'),
+);
+app.use(
+  '/store',
+  passport.authenticate(['basic_local', 'session'], {session: false}),
+  access(USER),
+  require('./store/routes'),
 );
 app.use(
   '/webhooks',

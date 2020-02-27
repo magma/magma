@@ -268,6 +268,52 @@ describe('Aggregation Operators', () => {
   });
 });
 
+describe('Sub-queries', () => {
+  const testCases = [
+    [
+      'Simple sub-query',
+      new PromQL.SubQuery(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.Range(5, 'm'),
+        new PromQL.Range(1, 'm'),
+      ),
+      'metric[5m:1m]',
+    ],
+    [
+      'Sub-query with no step',
+      new PromQL.SubQuery(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.Range(5, 'm'),
+      ),
+      'metric[5m:]',
+    ],
+    [
+      'Sub-query with offset',
+      new PromQL.SubQuery(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.Range(5, 'm'),
+      ).withOffset(new PromQL.Range(10, 'd')),
+      `metric[5m:] offset 10d`,
+    ],
+    [
+      'Sub-query on aggregation',
+      new PromQL.SubQuery(
+        new PromQL.AggregationOperation('topk', [
+          new PromQL.Scalar(5),
+          basicSelector,
+        ]),
+        new PromQL.Range(1, 'h'),
+        new PromQL.Range(5, 'm'),
+      ),
+      'topk(5,metric)[1h:5m]',
+    ],
+  ];
+
+  test.each(testCases)('%s', (_, subQuery, expectedString) => {
+    expect(subQuery.toPromQL()).toEqual(expectedString);
+  });
+});
+
 describe('realistic examples', () => {
   const testCases = [
     [

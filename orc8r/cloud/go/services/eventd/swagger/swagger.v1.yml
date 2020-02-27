@@ -1,0 +1,53 @@
+---
+swagger: '2.0'
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/services/eventd/swagger
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+  temp-gen-filename: eventd-swagger.yml
+  output-dir: orc8r/cloud/go/services/eventd/obsidian
+
+info:
+  title: Events definitions and paths
+  description: Magma REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+paths:
+  /events/{stream_name}:
+    get:
+      summary: Query events logged by services
+      tags:
+        - Events
+      parameters:
+        - name: stream_name
+          in: path
+          description: The user-specified string to categorize events
+          required: true
+          type: string
+          minLength: 1
+        - name: event_type
+          in: query
+          description: The type of event to filter the query with.
+          required: false
+          type: string
+        - name: hardware_id
+          in: query
+          description: The hardware ID to filter the query with.
+          required: false
+          type: string
+        - name: tag
+          in: query
+          description: The event tag to filter the query with.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'

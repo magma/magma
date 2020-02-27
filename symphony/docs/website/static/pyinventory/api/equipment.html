@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.equipment.add_equipment"><code class="name flex">
-<span>def <span class="ident">add_equipment</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">add_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Create a new equipment inside a given location. The equipment will be of the given equipment type
@@ -74,7 +74,7 @@ equipment = client.addEquipment(
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.equipment.add_equipment_to_position"><code class="name flex">
-<span>def <span class="ident">add_equipment_to_position</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">add_equipment_to_position</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Create a new equipment inside a given positionName of the given existingEquipment.
@@ -88,11 +88,23 @@ If equipment with his name in this position already exists the existing equipmen
 <dd>name of the equipment type</dd>
 <dt><strong><code>existing_equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
 <dd>could be retrieved</dd>
-<dt>from the following apis:</dt>
-<dt>* getEquipment</dt>
-<dt>* getEquipmentInPosition</dt>
-<dt>* addEquipment</dt>
-<dt>* addEquipmentToPosition</dt>
+</dl>
+<p>from the following apis:</p>
+<ul>
+<li>
+<p><a title="pyinventory.api.equipment.get_equipment" href="#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.get_equipment_in_position" href="#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.add_equipment" href="#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.add_equipment_to_position" href="#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
+</li>
+</ul>
+<dl>
 <dt><strong><code>position_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>the name of the position in the equipment type.</dd>
 <dt><strong><code>properties_dict</code></strong></dt>
@@ -123,31 +135,31 @@ equipment = client.addEquipmentToPosition(
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.equipment.copy_equipment"><code class="name flex">
-<span>def <span class="ident">copy_equipment</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">copy_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment.copy_equipment_in_position"><code class="name flex">
-<span>def <span class="ident">copy_equipment_in_position</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_parent_equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_position_name: str) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">copy_equipment_in_position</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_parent_equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_position_name: str) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment.delete_all_equipments"><code class="name flex">
-<span>def <span class="ident">delete_all_equipments</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>) -> NoneType</span>
+<span>def <span class="ident">delete_all_equipments</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment.delete_equipment"><code class="name flex">
-<span>def <span class="ident">delete_equipment</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>) -> NoneType</span>
+<span>def <span class="ident">delete_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment.get_equipment"><code class="name flex">
-<span>def <span class="ident">get_equipment</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Get the equipment in a given location by name</p>
@@ -168,7 +180,7 @@ inventory error</dd>
 </dl></section>
 </dd>
 <dt id="pyinventory.api.equipment.get_equipment_in_position"><code class="name flex">
-<span>def <span class="ident">get_equipment_in_position</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, parent_equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_equipment_in_position</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, parent_equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Get the equipment attached in a given positionName of a given parentEquipment</p>
@@ -176,11 +188,23 @@ inventory error</dd>
 <dl>
 <dt><strong><code>parent_equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
 <dd>could be retrieved from</dd>
-<dt>the following apis:</dt>
-<dt>* getEquipment</dt>
-<dt>* getEquipmentInPosition</dt>
-<dt>* addEquipment</dt>
-<dt>* addEquipmentToPosition</dt>
+</dl>
+<p>the following apis:</p>
+<ul>
+<li>
+<p><a title="pyinventory.api.equipment.get_equipment" href="#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.get_equipment_in_position" href="#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.add_equipment" href="#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.add_equipment_to_position" href="#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
+</li>
+</ul>
+<dl>
 <dt><strong><code>position_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>the name of the position in the equipment type.</dd>
 <dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>parent</code> <code>equipment</code> <code>has</code> <code>more</code> <code>than</code> <code>one</code></dt>
@@ -193,25 +217,25 @@ FailedOperationException for internal inventory error</dd>
 </dl></section>
 </dd>
 <dt id="pyinventory.api.equipment.get_equipment_type_of_equipment"><code class="name flex">
-<span>def <span class="ident">get_equipment_type_of_equipment</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_equipment_type_of_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment.get_or_create_equipment"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_or_create_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment.get_or_create_equipment_in_position"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment_in_position</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_or_create_equipment_in_position</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.equipment.search_for_equipments"><code class="name flex">
-<span>def <span class="ident">search_for_equipments</span></span>(<span>client: <a title="pyinventory.graphql_client.GraphqlClient" href="../graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a>, limit: int) -> Tuple[List[<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>], int]</span>
+<span>def <span class="ident">search_for_equipments</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, limit: int) -> Tuple[List[<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>], int]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>

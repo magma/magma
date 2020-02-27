@@ -10,7 +10,13 @@ from typing import Optional
 from gql.gql.transport.http import HTTPTransport
 from graphql.language.printer import print_ast
 
-from .exceptions import MissingEnumException
+
+class MissingEnumException(Exception):
+    def __init__(self, variable: Enum) -> None:
+        self.enum_type = str(type(variable))
+
+    def __str__(self) -> str:
+        return f"Try to encode missing value of enum {self.enum_type}"
 
 
 class simple_utc(tzinfo):
@@ -40,7 +46,7 @@ class ExtendedExecutionResult:
 
 
 class RequestsHTTPSessionTransport(HTTPTransport):
-    def __init__(self, session, url, auth=None, use_json=False, timeout=None, **kwargs):
+    def __init__(self, session, url, use_json=False, timeout=None, **kwargs):
         """
         :param session: The session
         :param auth: Auth tuple or callable to enable Basic/Digest/Custom HTTP Auth
@@ -49,7 +55,6 @@ class RequestsHTTPSessionTransport(HTTPTransport):
         """
         super(RequestsHTTPSessionTransport, self).__init__(url, **kwargs)
         self.session = session
-        self.auth = auth
         self.default_timeout = timeout
         self.use_json = use_json
 
@@ -60,8 +65,7 @@ class RequestsHTTPSessionTransport(HTTPTransport):
         request = self.session.post(
             self.url,
             data=json.dumps(payload, default=encode_variable).encode("utf-8"),
-            headers=self.headers,
-            auth=self.auth,
+            headers=self.headers
         )
 
         result = request.json()
