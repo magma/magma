@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -336,6 +337,7 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			SetNillableFormName(sr.FormName).
 			SetNillableFormDescription(sr.FormDescription).
 			SetQuestionIndex(sr.QuestionIndex).
+			SetQuestionFormat(sr.QuestionFormat.String()).
 			SetQuestionText(sr.QuestionText).
 			SetNillableBoolData(sr.BoolData).
 			SetNillableEmailData(sr.EmailData).
@@ -347,14 +349,11 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			SetNillableFloatData(sr.FloatData).
 			SetNillableIntData(sr.IntData).
 			SetSurvey(srv)
-		if sr.QuestionFormat != nil {
-			query.SetQuestionFormat(sr.QuestionFormat.String())
-		}
 		if sr.DateData != nil {
 			query.SetDateData(time.Unix(int64(*sr.DateData), 0))
 		}
 
-		if sr.PhotoData != nil {
+		if *sr.QuestionFormat == models.SurveyQuestionTypePhoto {
 			f, err :=
 				r.createImage(
 					ctx,
@@ -368,7 +367,7 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 							return 0
 						}(),
 						Modified:    time.Now(),
-						ContentType: "image/jpeg",
+						ContentType: models.FileTypeImage.String(),
 					},
 				)
 			if err != nil {
@@ -382,13 +381,11 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			return nil, errors.Wrap(err, "creating survey question")
 		}
 
-		if sr.QuestionFormat != nil {
-			switch *sr.QuestionFormat {
-			case models.SurveyQuestionTypeWifi:
-				_, err = r.CreateWiFiScans(ctx, sr.WifiData, &question.ID, nil)
-			case models.SurveyQuestionTypeCellular:
-				_, err = r.CreateCellScans(ctx, sr.CellData, &question.ID, nil)
-			}
+		switch *sr.QuestionFormat {
+		case models.SurveyQuestionTypeWifi:
+			_, err = r.CreateWiFiScans(ctx, sr.WifiData, &question.ID, nil)
+		case models.SurveyQuestionTypeCellular:
+			_, err = r.CreateCellScans(ctx, sr.CellData, &question.ID, nil)
 		}
 		if err != nil {
 			return nil, err
@@ -1004,7 +1001,12 @@ func (r mutationResolver) createImage(ctx context.Context, input *models.AddImag
 		SetSize(input.FileSize).
 		SetModifiedAt(input.Modified).
 		SetUploadedAt(time.Now()).
-		SetType(models.FileTypeImage.String()).
+		SetType(func() string {
+			if strings.HasPrefix(input.ContentType, "image/") {
+				return models.FileTypeImage.String()
+			}
+			return models.FileTypeFile.String()
+		}()).
 		SetContentType(input.ContentType).
 		SetNillableCategory(input.Category).
 		Save(ctx)
