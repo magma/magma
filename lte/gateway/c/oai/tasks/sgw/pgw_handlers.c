@@ -471,10 +471,10 @@ int spgw_handle_nw_initiated_bearer_actv_req(
   bool is_imsi_found = false;
   bool is_lbi_found = false;
 
-
   OAILOG_INFO(
     LOG_SPGW_APP,
-    "Received Create Bearer Req from PCRF with IMSI " IMSI_64_FMT,
+    "Received Create Bearer Req from PCRF with lbi:%d IMSI\n" IMSI_64_FMT,
+    bearer_req_p->lbi,
     imsi64);
 
   hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
@@ -486,7 +486,8 @@ int spgw_handle_nw_initiated_bearer_actv_req(
   }
 
   // Fetch S11 MME TEID using IMSI and LBI
-  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
+  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
+         (!is_lbi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
@@ -817,8 +818,9 @@ static int _spgw_build_and_send_s11_create_bearer_request(
     spgw_ctxt_p->sgw_eps_bearer_context_information.imsi64;
   OAILOG_INFO(
     LOG_SPGW_APP,
-    "Sending S11 Create Bearer Request to MME_APP for LBI %d\n",
-    bearer_req_p->lbi);
+    "Sending S11 Create Bearer Request to MME_APP for LBI %d IMSI " IMSI_64_FMT,
+    bearer_req_p->lbi,
+    message_p->ittiMsgHeader.imsi);
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
