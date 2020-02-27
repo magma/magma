@@ -13,7 +13,6 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "RuleStore.h"
-#include "SessionRules.h"
 #include "StoredState.h"
 #include "CreditPool.h"
 
@@ -141,18 +140,6 @@ class SessionState {
    */
   void complete_termination();
 
-  bool is_dynamic_rule_installed(const std::string& rule_id);
-
-  bool is_static_rule_installed(const std::string& rule_id);
-
-  void insert_dynamic_rule(const PolicyRule& dynamic_rule);
-
-  void activate_static_rule(const std::string& rule_id);
-
-  bool remove_dynamic_rule(const std::string& rule_id, PolicyRule* rule_out);
-
-  bool deactivate_static_rule(const std::string& rule_id);
-
   ChargingCreditPool& get_charging_pool();
 
   UsageMonitoringCreditPool& get_monitor_pool();
@@ -198,6 +185,31 @@ class SessionState {
 
   void increment_request_number(uint32_t incr);
 
+  // Methods related to the session's static and dynamic rules
+  bool get_charging_key_for_rule_id(
+    const std::string& rule_id,
+    CreditKey* charging_key);
+
+  bool get_monitoring_key_for_rule_id(
+    const std::string& rule_id,
+    std::string* monitoring_key);
+
+  bool is_dynamic_rule_installed(const std::string& rule_id);
+
+  bool is_static_rule_installed(const std::string& rule_id);
+
+  void insert_dynamic_rule(const PolicyRule& rule);
+
+  void activate_static_rule(const std::string& rule_id);
+
+  bool remove_dynamic_rule(const std::string& rule_id, PolicyRule *rule_out);
+
+  bool deactivate_static_rule(const std::string& rule_id);
+
+  DynamicRuleStore& get_dynamic_rules();
+
+  uint32_t total_monitored_rules_count();
+
  private:
   /**
    * State transitions of a session:
@@ -241,7 +253,6 @@ class SessionState {
   uint32_t request_number_;
   ChargingCreditPool charging_pool_;
   UsageMonitoringCreditPool monitor_pool_;
-  SessionRules session_rules_;
   SessionState::State curr_state_;
   SessionState::Config config_;
   // Used to keep track of whether the subscriber has valid quota.
@@ -249,6 +260,13 @@ class SessionState {
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;
   magma::lte::TgppContext tgpp_context_;
   std::function<void(SessionTerminateRequest)> on_termination_callback_;
+
+  // All static rules synced from policy DB
+  StaticRuleStore& static_rules_;
+  // Static rules that are currently installed for the session
+  std::vector<std::string> active_static_rules_;
+  // Dynamic rules that are currently installed for the session
+  DynamicRuleStore dynamic_rules_;
 
  private:
   /**

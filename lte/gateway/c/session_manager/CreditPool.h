@@ -11,8 +11,8 @@
 
 #include <unordered_map>
 #include "CreditKey.h"
+#include "RuleStore.h"
 #include "SessionCredit.h"
-#include "SessionRules.h"
 #include "StoredState.h"
 
 namespace magma {
@@ -45,7 +45,8 @@ class CreditPool {
   virtual void get_updates(
     std::string imsi,
     std::string ip_addr,
-    SessionRules *session_rules,
+    StaticRuleStore &static_rules,
+    DynamicRuleStore *dynamic_rules,
     std::vector<UpdateRequestType> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out) const = 0;
 
@@ -97,7 +98,8 @@ class ChargingCreditPool :
   void get_updates(
     std::string imsi,
     std::string ip_addr,
-    SessionRules *session_rules,
+    StaticRuleStore &static_rules,
+    DynamicRuleStore *dynamic_rules,
     std::vector<CreditUsage> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out) const override;
 
@@ -126,6 +128,15 @@ class ChargingCreditPool :
 
  private:
   bool init_new_credit(const CreditUpdateResponse &update);
+
+  void populate_output_actions(
+    std::string imsi,
+    std::string ip_addr,
+    CreditKey key,
+    StaticRuleStore &static_rules,
+    DynamicRuleStore *dynamic_rules,
+    std::unique_ptr<ServiceAction> &action,
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out) const;
 };
 
 /**
@@ -166,7 +177,8 @@ class UsageMonitoringCreditPool :
   void get_updates(
     std::string imsi,
     std::string ip_addr,
-    SessionRules *session_rules,
+    StaticRuleStore &static_rules,
+    DynamicRuleStore *dynamic_rules,
     std::vector<UsageMonitorUpdate> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out) const override;
 
@@ -196,6 +208,14 @@ class UsageMonitoringCreditPool :
  private:
   void update_session_level_key(const UsageMonitoringUpdateResponse &update);
   bool init_new_credit(const UsageMonitoringUpdateResponse &update);
+  void populate_output_actions(
+    std::string imsi,
+    std::string ip_addr,
+    std::string key,
+    StaticRuleStore &static_rules,
+    DynamicRuleStore *dynamic_rules,
+    std::unique_ptr<ServiceAction> &action,
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out) const;
 };
 
 } // namespace magma

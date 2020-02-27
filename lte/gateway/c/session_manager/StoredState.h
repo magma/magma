@@ -106,15 +106,8 @@ struct StoredUsageMonitoringCreditPool {
   std::unordered_map<std::string, StoredMonitor> monitor_map;
 };
 
-// Installed session rules
-struct StoredSessionRules {
-  std::vector<std::string> static_rule_ids;
-  std::vector<PolicyRule> dynamic_rules;
-};
-
 struct StoredSessionState {
   StoredSessionConfig config;
-  StoredSessionRules rules;
   StoredChargingCreditPool charging_pool;
   StoredUsageMonitoringCreditPool monitor_pool;
   std::string imsi;
@@ -122,6 +115,8 @@ struct StoredSessionState {
   std::string core_session_id;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
+  std::vector<std::string> static_rule_ids;
+  std::vector<PolicyRule> dynamic_rules;
   uint32_t request_number;
 };
 

@@ -97,25 +97,47 @@ static CreditUsage::UpdateType convert_update_type_to_proto(
   return CreditUsage::QUOTA_EXHAUSTED;
 }
 
-template<typename KeyType>
-static void populate_output_actions(
+void ChargingCreditPool::populate_output_actions(
   std::string imsi,
   std::string ip_addr,
-  KeyType key,
-  SessionRules *session_rules,
+  CreditKey key,
+  StaticRuleStore &static_rules,
+  DynamicRuleStore *dynamic_rules,
   std::unique_ptr<ServiceAction> &action,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out) // const
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
   action->set_imsi(imsi);
   action->set_ip_addr(ip_addr);
-  session_rules->add_rules_to_action(*action, key);
+  static_rules.get_rule_ids_for_charging_key(
+    key, *action->get_mutable_rule_ids());
+  dynamic_rules->get_rule_definitions_for_charging_key(
+    key, *action->get_mutable_rule_definitions());
+  actions_out->push_back(std::move(action));
+}
+
+void UsageMonitoringCreditPool::populate_output_actions(
+  std::string imsi,
+  std::string ip_addr,
+  std::string key,
+  StaticRuleStore &static_rules,
+  DynamicRuleStore *dynamic_rules,
+  std::unique_ptr<ServiceAction> &action,
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
+{
+  action->set_imsi(imsi);
+  action->set_ip_addr(ip_addr);
+  static_rules.get_rule_ids_for_monitoring_key(
+    key, *action->get_mutable_rule_ids());
+  dynamic_rules->get_rule_definitions_for_monitoring_key(
+    key, *action->get_mutable_rule_definitions());
   actions_out->push_back(std::move(action));
 }
 
 void ChargingCreditPool::get_updates(
   std::string imsi,
   std::string ip_addr,
-  SessionRules *session_rules,
+  StaticRuleStore &static_rules,
+  DynamicRuleStore *dynamic_rules,
   std::vector<CreditUsage> *updates_out,
   std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
@@ -134,7 +156,8 @@ void ChargingCreditPool::get_updates(
         imsi,
         ip_addr,
         credit_pair.first,
-        session_rules,
+        static_rules,
+        dynamic_rules,
         action,
         actions_out);
     } else {
@@ -437,7 +460,8 @@ static UsageMonitorUpdate get_monitor_update_from_struct(
 void UsageMonitoringCreditPool::get_updates(
   std::string imsi,
   std::string ip_addr,
-  SessionRules *session_rules,
+  StaticRuleStore &static_rules,
+  DynamicRuleStore *dynamic_rules,
   std::vector<UsageMonitorUpdate> *updates_out,
   std::vector<std::unique_ptr<ServiceAction>> *actions_out) const
 {
@@ -450,7 +474,8 @@ void UsageMonitoringCreditPool::get_updates(
         imsi,
         ip_addr,
         monitor_pair.first,
-        session_rules,
+        static_rules,
+        dynamic_rules,
         action,
         actions_out);
     }
