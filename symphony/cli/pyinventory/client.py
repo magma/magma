@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pyre-strict
 
 from distutils.version import LooseVersion
 from typing import Any, Dict, Optional, Tuple
@@ -34,7 +35,7 @@ class SymphonyClient(GraphqlClient):
         is_local_host: bool = False,
         is_dev_mode: bool = False,
         reporter: Reporter = DUMMY_REPORTER,
-    ):
+    ) -> None:
         """This is the class to use for working with symphony server.
 
             The __init__ method uses the credentials to establish session with
@@ -83,7 +84,7 @@ class SymphonyClient(GraphqlClient):
         super().__init__(graphql_endpoint_address, self.session, reporter)
         self._verify_version_is_not_broken()
 
-    def _verify_version_is_not_broken(self):
+    def _verify_version_is_not_broken(self) -> None:
         package = self._get_latest_python_package_version()
 
         latest_version, latest_breaking_version = (

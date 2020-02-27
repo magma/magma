@@ -2,7 +2,7 @@
 # pyre-strict
 
 from dataclasses import asdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from dacite import Config, from_dict
 
@@ -50,7 +50,7 @@ def add_service_type(
     client: SymphonyClient,
     name: str,
     hasCustomer: bool,
-    properties: List[PropertyDefinition],
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
 ) -> ServiceType:
 
     new_property_types = format_properties(properties)
@@ -81,7 +81,7 @@ def add_service_type(
 def add_service(
     client: SymphonyClient,
     name: str,
-    external_id: str,
+    external_id: Optional[str],
     service_type: str,
     customer: Optional[Customer],
     properties_dict: Dict[str, PropertyValue],

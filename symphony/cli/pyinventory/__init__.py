@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pyre-strict
 
 from gql.gql.reporter import DUMMY_REPORTER, Reporter
 
@@ -118,7 +119,7 @@ class InventoryClient(SymphonyClient):
         is_local_host: bool = False,
         is_dev_mode: bool = False,
         reporter: Reporter = DUMMY_REPORTER,
-    ):
+    ) -> None:
         """This is the class to use for working with inventory. It contains all
             the functions to query and and edit the inventory.
 
@@ -144,7 +145,6 @@ class InventoryClient(SymphonyClient):
                             discards reports
 
         """
-
         super().__init__(email, password, tenant, is_local_host, is_dev_mode, reporter)
         self._verify_version_is_not_broken()
         _populate_location_types(self)

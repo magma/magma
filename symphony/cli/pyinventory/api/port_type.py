@@ -11,7 +11,7 @@ from dacite import Config, from_dict
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 
-from .._utils import format_properties, get_graphql_property_type_inputs
+from .._utils import format_property_definitions, get_graphql_property_type_inputs
 from ..client import SymphonyClient
 from ..consts import EquipmentPortType, PropertyDefinition, PropertyValue
 from ..exceptions import EntityNotFoundError
@@ -63,8 +63,8 @@ def add_equipment_port_type(
         ```
     """
 
-    formated_property_types = format_properties(properties)
-    formated_link_property_types = format_properties(link_properties)
+    formated_property_types = format_property_definitions(properties)
+    formated_link_property_types = format_property_definitions(link_properties)
     add_equipment_port_type_input = {
         "name": name,
         "properties": formated_property_types,

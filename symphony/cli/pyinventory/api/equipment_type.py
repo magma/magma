@@ -5,7 +5,7 @@
 # license that can be found in the LICENSE file.
 
 from dataclasses import asdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
@@ -13,7 +13,7 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties
 from ..client import SymphonyClient
-from ..consts import Equipment, EquipmentPortType, EquipmentType, PropertyDefinition
+from ..consts import Equipment, EquipmentPortType, EquipmentType, PropertyValue
 from ..exceptions import EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
 from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
@@ -104,7 +104,7 @@ def get_or_create_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[PropertyDefinition],
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -158,7 +158,7 @@ def add_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[PropertyDefinition],
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:

@@ -5,6 +5,7 @@ from datetime import date, datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from .graphql.image_entity_enum import ImageEntity
+from .graphql.property_kind_enum import PropertyKind
 
 
 __version__ = "2.4.0"
@@ -34,8 +35,8 @@ class PropertyDefinition(NamedTuple):
     """
 
     property_name: str
-    property_type: str
-    default_value: PropertyValue
+    property_kind: PropertyKind
+    default_value: Optional[PropertyValue]
     is_fixed: Optional[bool] = False
 
 

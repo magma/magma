@@ -111,7 +111,7 @@ services:
   pytests:
     build:
       context: ..
-      dockerfile: integration/pytests/Dockerfile
+      dockerfile: cli/tests/Dockerfile
     volumes:
       - ..:/src/symphony:delegated
     environment:
