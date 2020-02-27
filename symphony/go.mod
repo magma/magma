@@ -22,9 +22,8 @@ require (
 	github.com/facebookincubator/ent v0.1.3-0.20200216161758-320b9caf6172
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gogo/protobuf v1.3.1 // indirect
-	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.3.3
-	github.com/google/addlicense v0.0.0-20200109101052-9fa18aaf59fb // indirect
+	github.com/google/addlicense v0.0.0-20200222194535-20ee99ff6ab8 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.4.0
 	github.com/gorilla/mux v1.7.4
@@ -51,13 +50,12 @@ require (
 	go.uber.org/multierr v1.4.0 // indirect
 	go.uber.org/zap v1.13.0
 	gocloud.dev v0.19.0
-	golang.org/x/crypto v0.0.0-20200204104054-c9f3fb736b72 // indirect
+	gocloud.dev/pubsub/natspubsub v0.19.0
 	golang.org/x/lint v0.0.0-20200130185559-910be7a94367 // indirect
 	golang.org/x/mod v0.2.0 // indirect
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 	golang.org/x/text v0.3.2
 	golang.org/x/tools v0.0.0-20200211205636-11eff242d136 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543

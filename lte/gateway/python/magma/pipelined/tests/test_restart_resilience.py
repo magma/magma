@@ -151,8 +151,10 @@ class RestartResilienceTest(unittest.TestCase):
         4) Empty SetupFlowsRequest
             - assert default flows
         """
-        fake_controller_setup(self.enforcement_controller,
-            self.enforcement_stats_controller, self.startup_flows_contoller)
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'default_flows')
@@ -205,11 +207,10 @@ class RestartResilienceTest(unittest.TestCase):
         )
 
         fake_controller_setup(
-            self.enforcement_controller,
-            self.enforcement_stats_controller,
-            self.startup_flows_contoller,
-            setup_flows_request)
-
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller,
+            setup_flows_request=setup_flows_request)
         sub_context = RyuDirectSubscriberContext(
             imsi2, sub2_ip, self.enforcement_controller,
             self._enforcement_tbl_num
@@ -265,10 +266,10 @@ class RestartResilienceTest(unittest.TestCase):
         )
 
         fake_controller_setup(
-            self.enforcement_controller,
-            self.enforcement_stats_controller,
-            self.startup_flows_contoller,
-            setup_flows_request)
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller,
+            setup_flows_request=setup_flows_request)
         flow_verifier = FlowVerifier([
             FlowTest(flow_query, pkts_matched)
         ], self._wait_func(enf_stat_name))
@@ -278,9 +279,10 @@ class RestartResilienceTest(unittest.TestCase):
         with flow_verifier, snapshot_verifier:
             pass
 
-        fake_controller_setup(self.enforcement_controller,
-            self.enforcement_stats_controller, self.startup_flows_contoller)
-
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'default_flows')
@@ -301,8 +303,10 @@ class RestartResilienceTest(unittest.TestCase):
         The controller is then restarted with the same SetupFlowsRequest,
             - assert flows keep their packet counts
         """
-        fake_controller_setup(self.enforcement_controller,
-            self.enforcement_stats_controller, self.startup_flows_contoller)
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'default_flows')
@@ -403,10 +407,10 @@ class RestartResilienceTest(unittest.TestCase):
         )
 
         fake_controller_setup(
-            self.enforcement_controller,
-            self.enforcement_stats_controller,
-            self.startup_flows_contoller,
-            setup_flows_request)
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller,
+            setup_flows_request=setup_flows_request)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
@@ -428,8 +432,10 @@ class RestartResilienceTest(unittest.TestCase):
             Packet bypass flows are added
             Flow learn action is triggered - another flow is added to the table
         """
-        fake_controller_setup(self.enforcement_controller,
-            self.enforcement_stats_controller, self.startup_flows_contoller)
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller)
         redirect_ips = ["185.128.101.5", "185.128.121.4"]
         self.enforcement_controller._redirect_manager._dns_cache.get(
             "about.sha.ddih.org", lambda: redirect_ips, max_age=42
@@ -463,10 +469,10 @@ class RestartResilienceTest(unittest.TestCase):
         )
 
         fake_controller_setup(
-            self.enforcement_controller,
-            self.enforcement_stats_controller,
-            self.startup_flows_contoller,
-            setup_flows_request)
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller,
+            setup_flows_request=setup_flows_request)
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
@@ -529,8 +535,10 @@ class RestartResilienceTest(unittest.TestCase):
         self.enforcement_controller._clean_restart = True
         self.enforcement_stats_controller._clean_restart = True
 
-        fake_controller_setup(self.enforcement_controller,
-            self.enforcement_stats_controller, self.startup_flows_contoller)
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'default_flows')

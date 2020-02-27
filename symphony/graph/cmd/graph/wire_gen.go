@@ -12,21 +12,21 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/server"
-	"gocloud.dev/pubsub"
 	"google.golang.org/grpc"
 	"net/url"
 )
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	_ "gocloud.dev/pubsub/awssnssqs"
 	_ "gocloud.dev/pubsub/mempubsub"
+	_ "gocloud.dev/pubsub/natspubsub"
 )
 
 // Injectors from wire.go:
@@ -48,22 +48,23 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		cleanup()
 		return nil, nil, err
 	}
-	topic, cleanup2, err := newTopic(ctx, flags)
+	eventConfig := flags.Event
+	topicEmitter, cleanup2, err := event.ProvideEmitter(ctx, eventConfig)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	v := newSubscribeFunc(flags)
+	urlSubscriber := event.ProvideSubscriber(eventConfig)
 	options := flags.Census
 	orc8rConfig := flags.Orc8r
 	graphhttpConfig := graphhttp.Config{
-		Tenancy:   mySQLTenancy,
-		AuthURL:   url,
-		Topic:     topic,
-		Subscribe: v,
-		Logger:    logger,
-		Census:    options,
-		Orc8r:     orc8rConfig,
+		Tenancy:    mySQLTenancy,
+		AuthURL:    url,
+		Emitter:    topicEmitter,
+		Subscriber: urlSubscriber,
+		Logger:     logger,
+		Census:     options,
+		Orc8r:      orc8rConfig,
 	}
 	server, cleanup3, err := graphhttp.NewServer(graphhttpConfig)
 	if err != nil {
@@ -121,22 +122,4 @@ func newAuthURL(flags *cliFlags) (*url.URL, error) {
 		return nil, fmt.Errorf("parsing auth url: %w", err)
 	}
 	return u, nil
-}
-
-func newTopic(ctx context.Context, flags *cliFlags) (*pubsub.Topic, func(), error) {
-	topic, err := pubsub.OpenTopic(ctx, flags.PubSubURL)
-	if err != nil {
-		return nil, nil, fmt.Errorf("opening events topic: %w", err)
-	}
-	return topic, func() { topic.Shutdown(ctx) }, nil
-}
-
-func newSubscribeFunc(flags *cliFlags) func(context.Context) (*pubsub.Subscription, error) {
-	return func(ctx context.Context) (*pubsub.Subscription, error) {
-		subscription, err := pubsub.OpenSubscription(ctx, flags.PubSubURL)
-		if err != nil {
-			return nil, fmt.Errorf("opening events subscription: %w", err)
-		}
-		return subscription, nil
-	}
 }

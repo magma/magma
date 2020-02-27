@@ -21,7 +21,7 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import {WorkOrdersNavListItems} from './WorkOrdersNavListItems';
 import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -36,7 +36,7 @@ const useStyles = makeStyles(theme => ({
 function WorkOrdersMain() {
   const classes = useStyles();
   const {tabs, user} = useContext(AppContext);
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
 
   return (
     <div className={classes.root}>

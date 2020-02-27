@@ -2509,6 +2509,17 @@ func TestCreateSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
+	//preseed 2 apns
+	apn1, apn2 := "foo", "bar"
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.ApnEntityType, Key: apn1},
+			{Type: lte.ApnEntityType, Key: apn2},
+		},
+	)
+	assert.NoError(t, err)
+
 	// default sub profile should always succeed
 	payload := &lteModels.Subscriber{
 		ID: "IMSI1234567890",
@@ -2519,6 +2530,7 @@ func TestCreateSubscriber(t *testing.T) {
 			State:      "ACTIVE",
 			SubProfile: "default",
 		},
+		ActiveApns: lteModels.ApnList{apn2, apn1},
 	}
 	tc := tests.Test{
 		Method:         "POST",
@@ -2534,11 +2546,12 @@ func TestCreateSubscriber(t *testing.T) {
 	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
-		NetworkID: "n1",
-		Type:      lte.SubscriberEntityType,
-		Key:       "IMSI1234567890",
-		Config:    payload.Lte,
-		GraphID:   "2",
+		NetworkID:    "n1",
+		Type:         lte.SubscriberEntityType,
+		Key:          "IMSI1234567890",
+		Config:       payload.Lte,
+		GraphID:      "2",
+		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -2552,6 +2565,7 @@ func TestCreateSubscriber(t *testing.T) {
 			State:      "ACTIVE",
 			SubProfile: "foo",
 		},
+		ActiveApns: lteModels.ApnList{apn2, apn1},
 	}
 	tc = tests.Test{
 		Method:         "POST",
@@ -2592,6 +2606,7 @@ func TestCreateSubscriber(t *testing.T) {
 			State:      "ACTIVE",
 			SubProfile: "foo",
 		},
+		ActiveApns: lteModels.ApnList{apn2, apn1},
 	}
 	tc = tests.Test{
 		Method:         "POST",
@@ -2618,6 +2633,7 @@ func TestCreateSubscriber(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			ActiveApns: lteModels.ApnList{apn2, apn1},
 		},
 		Handler:        createSubscriber,
 		ParamNames:     []string{"network_id"},
@@ -2642,6 +2658,17 @@ func TestListSubscribers(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
+	//preseed 2 apns
+	apn1, apn2 := "foo", "bar"
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.ApnEntityType, Key: apn1},
+			{Type: lte.ApnEntityType, Key: apn2},
+		},
+	)
+	assert.NoError(t, err)
+
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
@@ -2664,6 +2691,7 @@ func TestListSubscribers(t *testing.T) {
 					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:    "ACTIVE",
 				},
+				Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
 			},
 			{
 				Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
@@ -2674,6 +2702,7 @@ func TestListSubscribers(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "foo",
 				},
+				Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn1}},
 			},
 		},
 	)
@@ -2696,6 +2725,7 @@ func TestListSubscribers(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "default",
 				},
+				ActiveApns: lteModels.ApnList{apn2, apn1},
 			},
 			"IMSI0987654321": {
 				ID: "IMSI0987654321",
@@ -2706,6 +2736,7 @@ func TestListSubscribers(t *testing.T) {
 					State:      "ACTIVE",
 					SubProfile: "foo",
 				},
+				ActiveApns: lteModels.ApnList{apn1},
 			},
 		}),
 	}
@@ -2725,6 +2756,17 @@ func TestGetSubscriber(t *testing.T) {
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
 	handlers := handlers.GetHandlers()
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	//preseed 2 apns
+	apn1, apn2 := "foo", "bar"
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.ApnEntityType, Key: apn1},
+			{Type: lte.ApnEntityType, Key: apn2},
+		},
+	)
+	assert.NoError(t, err)
 
 	tc := tests.Test{
 		Method:         "GET",
@@ -2748,6 +2790,7 @@ func TestGetSubscriber(t *testing.T) {
 				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:    "ACTIVE",
 			},
+			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
 		},
 	)
 	assert.NoError(t, err)
@@ -2768,6 +2811,7 @@ func TestGetSubscriber(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			ActiveApns: lteModels.ApnList{apn2, apn1},
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -2787,6 +2831,17 @@ func TestUpdateSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	updateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
+	//preseed 2 apns
+	apn1, apn2 := "foo", "bar"
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.ApnEntityType, Key: apn1},
+			{Type: lte.ApnEntityType, Key: apn2},
+		},
+	)
+	assert.NoError(t, err)
+
 	// 404
 	payload := &lteModels.Subscriber{
 		ID: "IMSI1234567890",
@@ -2797,6 +2852,7 @@ func TestUpdateSubscriber(t *testing.T) {
 			State:      "ACTIVE",
 			SubProfile: "default",
 		},
+		ActiveApns: lteModels.ApnList{apn2, apn1},
 	}
 	tc := tests.Test{
 		Method:         "PUT",
@@ -2835,6 +2891,7 @@ func TestUpdateSubscriber(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}},
 		},
 	)
 	assert.NoError(t, err)
@@ -2848,6 +2905,7 @@ func TestUpdateSubscriber(t *testing.T) {
 			State:      "INACTIVE",
 			SubProfile: "foo",
 		},
+		ActiveApns: lteModels.ApnList{apn2, apn1},
 	}
 	tc = tests.Test{
 		Method:         "PUT",
@@ -2863,12 +2921,13 @@ func TestUpdateSubscriber(t *testing.T) {
 	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
-		NetworkID: "n1",
-		Type:      lte.SubscriberEntityType,
-		Key:       "IMSI1234567890",
-		Config:    payload.Lte,
-		GraphID:   "2",
-		Version:   1,
+		NetworkID:    "n1",
+		Type:         lte.SubscriberEntityType,
+		Key:          "IMSI1234567890",
+		Config:       payload.Lte,
+		GraphID:      "2",
+		Version:      1,
+		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -2901,6 +2960,17 @@ func TestDeleteSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
+	//preseed 2 apns
+	apn1, apn2 := "foo", "bar"
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.ApnEntityType, Key: apn1},
+			{Type: lte.ApnEntityType, Key: apn2},
+		},
+	)
+	assert.NoError(t, err)
+
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{
@@ -2911,6 +2981,7 @@ func TestDeleteSubscriber(t *testing.T) {
 				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:    "ACTIVE",
 			},
+			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
 		},
 	)
 	assert.NoError(t, err)
@@ -2944,6 +3015,17 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	activateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/activate", obsidian.POST).HandlerFunc
 	deactivateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/deactivate", obsidian.POST).HandlerFunc
 
+	//preseed 2 apns
+	apn1, apn2 := "foo", "bar"
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.ApnEntityType, Key: apn1},
+			{Type: lte.ApnEntityType, Key: apn2},
+		},
+	)
+	assert.NoError(t, err)
+
 	expected := configurator.NetworkEntity{
 		Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
 		Config: &lteModels.LteSubscription{
@@ -2952,6 +3034,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 			AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:    "ACTIVE",
 		},
+		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
 	}
 	_, err = configurator.CreateEntity("n1", expected)
 	assert.NoError(t, err)
@@ -3026,6 +3109,18 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
+
+	//preseed 2 apns
+	apn1, apn2 := "foo", "bar"
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.ApnEntityType, Key: apn1},
+			{Type: lte.ApnEntityType, Key: apn2},
+		},
+	)
+	assert.NoError(t, err)
+
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{
@@ -3036,6 +3131,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
+			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
 		},
 	)
 	assert.NoError(t, err)
@@ -3096,8 +3192,9 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 			State:      "ACTIVE",
 			SubProfile: "foo",
 		},
-		GraphID: "2",
-		Version: 1,
+		GraphID:      "2",
+		Version:      1,
+		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -3123,10 +3220,409 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 			State:      "ACTIVE",
 			SubProfile: "default",
 		},
-		GraphID: "2",
-		Version: 2,
+		GraphID:      "2",
+		Version:      2,
+		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
+}
+
+func TestCreateApn(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/apns"
+	handlers := handlers.GetHandlers()
+	createApn := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
+
+	// default apn profile should always succeed
+	payload := &lteModels.Apn{
+		ApnName: "foo",
+		ApnConfiguration: &lteModels.ApnConfiguration{
+			Ambr: &lteModels.AggregatedMaximumBitrate{
+				MaxBandwidthDl: swag.Uint32(100),
+				MaxBandwidthUl: swag.Uint32(100),
+			},
+			QosProfile: &lteModels.QosProfile{
+				ClassID:                 swag.Int32(9),
+				PreemptionCapability:    swag.Bool(true),
+				PreemptionVulnerability: swag.Bool(false),
+				PriorityLevel:           swag.Uint32(15),
+			},
+		},
+	}
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        payload,
+		Handler:        createApn,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.ApnEntityType, "foo", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.ApnEntityType,
+		Key:       "foo",
+		Config:    payload.ApnConfiguration,
+		GraphID:   "2",
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func TestListApns(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/apns"
+	handlers := handlers.GetHandlers()
+	listApns := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listApns,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.Apn{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.ApnEntityType, Key: "oai.ipv4",
+				Config: &lteModels.ApnConfiguration{
+					Ambr: &lteModels.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(200),
+						MaxBandwidthUl: swag.Uint32(200),
+					},
+					QosProfile: &lteModels.QosProfile{
+						ClassID:                 swag.Int32(9),
+						PreemptionCapability:    swag.Bool(true),
+						PreemptionVulnerability: swag.Bool(false),
+						PriorityLevel:           swag.Uint32(15),
+					},
+				},
+			},
+			{
+				Type: lte.ApnEntityType, Key: "oai.ims",
+				Config: &lteModels.ApnConfiguration{
+					Ambr: &lteModels.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(100),
+						MaxBandwidthUl: swag.Uint32(100),
+					},
+					QosProfile: &lteModels.QosProfile{
+						ClassID:                 swag.Int32(5),
+						PreemptionCapability:    swag.Bool(true),
+						PreemptionVulnerability: swag.Bool(false),
+						PriorityLevel:           swag.Uint32(5),
+					},
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listApns,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.Apn{
+			"oai.ipv4": {
+				ApnName: "oai.ipv4",
+				ApnConfiguration: &lteModels.ApnConfiguration{
+					Ambr: &lteModels.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(200),
+						MaxBandwidthUl: swag.Uint32(200),
+					},
+					QosProfile: &lteModels.QosProfile{
+						ClassID:                 swag.Int32(9),
+						PreemptionCapability:    swag.Bool(true),
+						PreemptionVulnerability: swag.Bool(false),
+						PriorityLevel:           swag.Uint32(15),
+					},
+				},
+			},
+			"oai.ims": {
+				ApnName: "oai.ims",
+				ApnConfiguration: &lteModels.ApnConfiguration{
+					Ambr: &lteModels.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(100),
+						MaxBandwidthUl: swag.Uint32(100),
+					},
+					QosProfile: &lteModels.QosProfile{
+						ClassID:                 swag.Int32(5),
+						PreemptionCapability:    swag.Bool(true),
+						PreemptionVulnerability: swag.Bool(false),
+						PriorityLevel:           swag.Uint32(5),
+					},
+				},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestGetApn(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/apns/:apn_name"
+	handlers := handlers.GetHandlers()
+	getApn := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getApn,
+		ParamNames:     []string{"network_id", "apn_name"},
+		ParamValues:    []string{"n1", "oai.ipv4"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Type: lte.ApnEntityType, Key: "oai.ipv4",
+			Config: &lteModels.ApnConfiguration{
+				Ambr: &lteModels.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(200),
+					MaxBandwidthUl: swag.Uint32(200),
+				},
+				QosProfile: &lteModels.QosProfile{
+					ClassID:                 swag.Int32(9),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(15),
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getApn,
+		ParamNames:     []string{"network_id", "apn_name"},
+		ParamValues:    []string{"n1", "oai.ipv4"},
+		ExpectedStatus: 200,
+		ExpectedResult: &lteModels.Apn{
+			ApnName: "oai.ipv4",
+			ApnConfiguration: &lteModels.ApnConfiguration{
+				Ambr: &lteModels.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(200),
+					MaxBandwidthUl: swag.Uint32(200),
+				},
+				QosProfile: &lteModels.QosProfile{
+					ClassID:                 swag.Int32(9),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(15),
+				},
+			},
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestUpdateApn(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/apns/:apn_name"
+	handlers := handlers.GetHandlers()
+	updateApn := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
+
+	// 404
+	payload := &lteModels.Apn{
+		ApnName: "oai.ipv4",
+		ApnConfiguration: &lteModels.ApnConfiguration{
+			Ambr: &lteModels.AggregatedMaximumBitrate{
+				MaxBandwidthDl: swag.Uint32(100),
+				MaxBandwidthUl: swag.Uint32(100),
+			},
+			QosProfile: &lteModels.QosProfile{
+				ClassID:                 swag.Int32(5),
+				PreemptionCapability:    swag.Bool(true),
+				PreemptionVulnerability: swag.Bool(false),
+				PriorityLevel:           swag.Uint32(5),
+			},
+		},
+	}
+
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateApn,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "apn_name"},
+		ParamValues:    []string{"n1", "oai.ipv4"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Add the APN Configuration
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Type: lte.ApnEntityType, Key: "oai.ipv4",
+			Config: &lteModels.ApnConfiguration{
+				Ambr: &lteModels.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(200),
+					MaxBandwidthUl: swag.Uint32(200),
+				},
+				QosProfile: &lteModels.QosProfile{
+					ClassID:                 swag.Int32(9),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(15),
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateApn,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "apn_name"},
+		ParamValues:    []string{"n1", "oai.ipv4"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.ApnEntityType, "oai.ipv4", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.ApnEntityType,
+		Key:       "oai.ipv4",
+		Config:    payload.ApnConfiguration,
+		GraphID:   "2",
+		Version:   1,
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func TestDeleteApn(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/apns/:apn_name"
+	handlers := handlers.GetHandlers()
+	deleteApn := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.ApnEntityType, Key: "oai.ipv4",
+				Config: &lteModels.ApnConfiguration{
+					Ambr: &lteModels.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(200),
+						MaxBandwidthUl: swag.Uint32(200),
+					},
+					QosProfile: &lteModels.QosProfile{
+						ClassID:                 swag.Int32(9),
+						PreemptionCapability:    swag.Bool(true),
+						PreemptionVulnerability: swag.Bool(false),
+						PriorityLevel:           swag.Uint32(15),
+					},
+				},
+			},
+			{
+				Type: lte.ApnEntityType, Key: "oai.ims",
+				Config: &lteModels.ApnConfiguration{
+					Ambr: &lteModels.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(100),
+						MaxBandwidthUl: swag.Uint32(100),
+					},
+					QosProfile: &lteModels.QosProfile{
+						ClassID:                 swag.Int32(5),
+						PreemptionCapability:    swag.Bool(true),
+						PreemptionVulnerability: swag.Bool(false),
+						PriorityLevel:           swag.Uint32(5),
+					},
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	tc := tests.Test{
+		Method:         "DELETE",
+		URL:            testURLRoot,
+		Handler:        deleteApn,
+		ParamNames:     []string{"network_id", "apn_name"},
+		ParamValues:    []string{"n1", "oai.ipv4"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadAllEntitiesInNetwork("n1", lte.ApnEntityType, configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(actual))
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.ApnEntityType,
+		Key:       "oai.ims",
+		Config: &lteModels.ApnConfiguration{
+			Ambr: &lteModels.AggregatedMaximumBitrate{
+				MaxBandwidthDl: swag.Uint32(100),
+				MaxBandwidthUl: swag.Uint32(100),
+			},
+			QosProfile: &lteModels.QosProfile{
+				ClassID:                 swag.Int32(5),
+				PreemptionCapability:    swag.Bool(true),
+				PreemptionVulnerability: swag.Bool(false),
+				PriorityLevel:           swag.Uint32(5),
+			},
+		},
+		GraphID: "4",
+		Version: 0,
+	}
+	assert.Equal(t, expected, actual[0])
 }
 
 func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *lteModels.EnodebState) {

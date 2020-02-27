@@ -10,7 +10,7 @@ run:
 
 linters-settings:
   errcheck:
-    ignore: fmt:.*,Read|Write|Close,io:Copy
+    ignore: fmt:.*,Read|Write|Close|Shutdown,io:Copy
   dupl:
     threshold: 180
   funlen:

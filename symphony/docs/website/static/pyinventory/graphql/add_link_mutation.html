@@ -33,67 +33,9 @@
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.add_link_mutation.AddLinkInput"><code class="flex name class">
-<span>class <span class="ident">AddLinkInput</span></span>
-<span>(</span><span>sides, properties, serviceIds, workOrder=None)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>AddLinkInput(sides: List[pyinventory.graphql.add_link_mutation.AddLinkInput.LinkSide], properties: List[pyinventory.graphql.add_link_mutation.AddLinkInput.PropertyInput], serviceIds: List[str], workOrder: Union[str, NoneType] = None)</p></section>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_link_mutation.AddLinkInput.LinkSide"><code class="name">var <span class="ident">LinkSide</span></code></dt>
-<dd>
-<section class="desc"><p>LinkSide(equipment: str, port: str)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_link_mutation.AddLinkInput.PropertyInput"><code class="name">var <span class="ident">PropertyInput</span></code></dt>
-<dd>
-<section class="desc"><p>PropertyInput(propertyTypeID: str, id: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[numbers.Number, NoneType] = None, latitudeValue: Union[numbers.Number, NoneType] = None, longitudeValue: Union[numbers.Number, NoneType] = None, rangeFromValue: Union[numbers.Number, NoneType] = None, rangeToValue: Union[numbers.Number, NoneType] = None, equipmentIDValue: Union[str, NoneType] = None, locationIDValue: Union[str, NoneType] = None, serviceIDValue: Union[str, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_link_mutation.AddLinkInput.workOrder"><code class="name">var <span class="ident">workOrder</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_link_mutation.AddLinkInput.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_link_mutation.AddLinkInput.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_link_mutation.AddLinkInput.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_link_mutation.AddLinkInput.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_link_mutation.AddLinkInput.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-</dd>
 <dt id="pyinventory.graphql.add_link_mutation.AddLinkMutation"><code class="flex name class">
 <span>class <span class="ident">AddLinkMutation</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: Union[<a title="pyinventory.graphql.add_link_mutation.AddLinkMutation.AddLinkMutationData" href="#pyinventory.graphql.add_link_mutation.AddLinkMutation.AddLinkMutationData">AddLinkMutation.AddLinkMutationData</a>, NoneType] = None, errors: Union[Any, NoneType] = None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>AddLinkMutation(data: Union[pyinventory.graphql.add_link_mutation.AddLinkMutation.AddLinkMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
@@ -115,25 +57,25 @@
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.add_link_mutation.AddLinkMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, input)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, input: <a title="pyinventory.graphql.add_link_input.AddLinkInput" href="add_link_input.html#pyinventory.graphql.add_link_input.AddLinkInput">AddLinkInput</a>)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_link_mutation.AddLinkMutation.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_link_mutation.AddLinkMutation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_link_mutation.AddLinkMutation.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -148,7 +90,7 @@
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_link_mutation.AddLinkMutation.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -171,19 +113,6 @@
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
-<li>
-<h4><code><a title="pyinventory.graphql.add_link_mutation.AddLinkInput" href="#pyinventory.graphql.add_link_mutation.AddLinkInput">AddLinkInput</a></code></h4>
-<ul class="two-column">
-<li><code><a title="pyinventory.graphql.add_link_mutation.AddLinkInput.LinkSide" href="#pyinventory.graphql.add_link_mutation.AddLinkInput.LinkSide">LinkSide</a></code></li>
-<li><code><a title="pyinventory.graphql.add_link_mutation.AddLinkInput.PropertyInput" href="#pyinventory.graphql.add_link_mutation.AddLinkInput.PropertyInput">PropertyInput</a></code></li>
-<li><code><a title="pyinventory.graphql.add_link_mutation.AddLinkInput.from_dict" href="#pyinventory.graphql.add_link_mutation.AddLinkInput.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_link_mutation.AddLinkInput.from_json" href="#pyinventory.graphql.add_link_mutation.AddLinkInput.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_link_mutation.AddLinkInput.schema" href="#pyinventory.graphql.add_link_mutation.AddLinkInput.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.add_link_mutation.AddLinkInput.to_dict" href="#pyinventory.graphql.add_link_mutation.AddLinkInput.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_link_mutation.AddLinkInput.to_json" href="#pyinventory.graphql.add_link_mutation.AddLinkInput.to_json">to_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_link_mutation.AddLinkInput.workOrder" href="#pyinventory.graphql.add_link_mutation.AddLinkInput.workOrder">workOrder</a></code></li>
-</ul>
-</li>
 <li>
 <h4><code><a title="pyinventory.graphql.add_link_mutation.AddLinkMutation" href="#pyinventory.graphql.add_link_mutation.AddLinkMutation">AddLinkMutation</a></code></h4>
 <ul class="two-column">

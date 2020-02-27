@@ -11,11 +11,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/graphql/directive"
-	"github.com/facebookincubator/symphony/graph/graphql/generated"
-	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -519,23 +515,6 @@ func TestSearchEquipmentByDate(t *testing.T) {
 	res3, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1, &f2}, &limit)
 	require.NoError(t, err)
 	require.Len(t, res3.Equipment, 0)
-}
-
-func newGraphClient(t *testing.T, r *TestResolver) *client.Client {
-	return client.New(handler.GraphQL(
-		generated.NewExecutableSchema(
-			generated.Config{
-				Resolvers:  r,
-				Directives: directive.New(logtest.NewTestLogger(t)),
-			},
-		),
-		handler.RequestMiddleware(
-			func(ctx context.Context, next func(context.Context) []byte) []byte {
-				ctx = ent.NewContext(ctx, r.client)
-				return next(ctx)
-			},
-		),
-	))
 }
 
 func TestSearchWO(t *testing.T) {

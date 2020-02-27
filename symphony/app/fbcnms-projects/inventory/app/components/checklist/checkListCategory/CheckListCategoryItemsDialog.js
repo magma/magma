@@ -68,8 +68,8 @@ const CheckListCategoryItemsDialog = (props: Props) => {
   const [pickedView, setPickedView] = useState(DESIGN_VIEW.value);
   return (
     <Dialog fullWidth={true} maxWidth="md" open={true}>
-      <DialogTitle disableTypography={true} className={'classes.dialogTitle'}>
-        <Text variant="h6" className={'classes.titleText'}>
+      <DialogTitle disableTypography={true}>
+        <Text variant="h6">
           <fbt desc="">Checklist</fbt>
           {` / ${props.categoryTitle}`}
         </Text>

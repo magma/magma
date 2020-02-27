@@ -8,121 +8,59 @@
  * @format
  */
 
-import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
+import type {
+  FullViewHeaderProps,
+  ViewHeaderActionsProps,
+  ViewHeaderProps,
+} from '@fbcnms/ui/components/design-system/View/ViewHeader';
 
 import * as React from 'react';
-import Button from '@fbcnms/ui/components/design-system/Button';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import ListAltIcon from '@material-ui/icons/ListAlt';
-import MapButtonGroup from '@fbcnms/ui/components/map/MapButtonGroup';
 import MapIcon from '@material-ui/icons/Map';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
-import {makeStyles} from '@material-ui/styles';
+import ViewHeader from '@fbcnms/ui/components/design-system/View/ViewHeader';
+import {useState} from 'react';
 
-const useStyles = makeStyles(() => ({
-  bar: {
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '16px 24px',
-    paddingBottom: '0',
-  },
-  barRow: {
-    display: 'flex',
-    flexDirection: 'row',
-    '&:not(:first-child)': {
-      paddingTop: '8px',
-    },
-  },
-  expandedBarPart: {
-    flexGrow: '1',
-  },
-  groupButtons: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-  },
-  buttonContent: {
-    paddingTop: '4px',
-  },
-  actionButtons: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionButton: {
-    '&:not(:first-child)': {
-      paddingleft: '8px',
-    },
-  },
-}));
-
-export type DisplayOptionTypes = 'table' | 'map';
 export const DisplayOptions = {
   table: 'table',
   map: 'map',
 };
+export type DisplayOptionTypes = $Keys<typeof DisplayOptions>;
 
-type ActionButtonProps = {
-  title: string,
-  action: () => void,
-  ...PermissionHandlingProps,
-};
-
-type Props = {
-  title: string,
+type ViewToggleProps = {
   onViewToggleClicked?: (id: string) => void,
-  actionButtons?: Array<ActionButtonProps>,
-  searchBar?: React.Node,
 };
+
+type Props = ViewHeaderProps & ViewHeaderActionsProps & ViewToggleProps;
 
 const InventoryViewHeader = (props: Props) => {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.bar}>
-      <div className={classes.barRow}>
-        <Text className={classes.expandedBarPart} variant="h6">
-          {props.title}
-        </Text>
-        {!!props.onViewToggleClicked && (
-          <MapButtonGroup
-            onIconClicked={props.onViewToggleClicked}
-            buttons={[
-              {
-                item: <ListAltIcon className={classes.buttonContent} />,
-                id: DisplayOptions.table,
-              },
-              {
-                item: <MapIcon className={classes.buttonContent} />,
-                id: DisplayOptions.map,
-              },
-            ]}
-          />
-        )}
-      </div>
-      <div className={classes.barRow}>
-        <div className={classes.expandedBarPart}>{props.searchBar}</div>
-        {!!props.actionButtons && (
-          <FormValidationContextProvider>
-            <div className={classes.actionButtons}>
-              {props.actionButtons.map(actionButton => (
-                <FormAction
-                  key={actionButton.title}
-                  ignorePermissions={actionButton.ignorePermissions}
-                  hideWhenDisabled={actionButton.hideWhenDisabled}>
-                  <Button
-                    className={classes.actionButton}
-                    onClick={actionButton.action}>
-                    {actionButton.title}
-                  </Button>
-                </FormAction>
-              ))}
-            </div>
-          </FormValidationContextProvider>
-        )}
-      </div>
-    </div>
+  const {onViewToggleClicked, ...restProps} = props;
+  const viewHeaderProps: FullViewHeaderProps = {
+    ...restProps,
+  };
+  const [selectedDisplayOption, setSelectedDisplayOption] = useState(
+    DisplayOptions.table,
   );
+  const onViewOptionClicked = displayOptionId => {
+    setSelectedDisplayOption(displayOptionId);
+    if (onViewToggleClicked) {
+      onViewToggleClicked(displayOptionId);
+    }
+  };
+  viewHeaderProps.viewOptions = {
+    onItemClicked: onViewOptionClicked,
+    selectedButtonId: selectedDisplayOption,
+    buttons: [
+      {
+        item: <ListAltIcon />,
+        id: DisplayOptions.table,
+      },
+      {
+        item: <MapIcon />,
+        id: DisplayOptions.map,
+      },
+    ],
+  };
+  return <ViewHeader {...viewHeaderProps} />;
 };
 
 export default InventoryViewHeader;

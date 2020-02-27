@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.file.add_file"><code class="name flex">
-<span>def <span class="ident">add_file</span></span>(<span>client, local_file_path, entity_type, entity_id, category=None)</span>
+<span>def <span class="ident">add_file</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_file_path: str, entity_type: str, entity_id: str, category: Union[str, NoneType] = None) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function adds file to an entity of a given type.</p>
@@ -46,14 +46,17 @@
 <dt>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dt>
 <dt>entity_id (string):</dt>
 <dt>valid entity ID</dt>
+<dt><strong><code>category</code></strong> :&ensp;<code>Optional</code>[<code>string</code>]</dt>
+<dd>file category name </dd>
 <dt><strong><code>Returns</code></strong> :&ensp;<code>None</code></dt>
 <dd>&nbsp;</dd>
 </dl>
-<h2 id="example">Example</h2>
-<p>client.add_file(client, './document.pdf', 'LOCATION', location.id)</p></section>
+<p>Example:</p>
+<pre><code>client.add_file(client, './document.pdf', 'LOCATION', location.id, 'category_name')
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.file.add_files"><code class="name flex">
-<span>def <span class="ident">add_files</span></span>(<span>client, local_directory_path, entity_type, entity_id, category=None)</span>
+<span>def <span class="ident">add_files</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_directory_path: str, entity_type: str, entity_id: str, category: Union[str, NoneType] = None) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function adds all files located in folder to an entity of a given type.</p>
@@ -67,50 +70,53 @@
 <dt>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dt>
 <dt>entity_id (string):</dt>
 <dt>valid entity ID</dt>
+<dt><strong><code>category</code></strong> :&ensp;<code>Optional</code>[<code>string</code>]</dt>
+<dd>file category name</dd>
 <dt><strong><code>Returns</code></strong> :&ensp;<code>None</code></dt>
 <dd>&nbsp;</dd>
 </dl>
-<h2 id="example">Example</h2>
-<p>client.add_files(client, './documents_folder/', 'LOCATION', location.id)</p></section>
+<p>Example:</p>
+<pre><code>client.add_files(client, './documents_folder/', 'LOCATION', location.id, 'category_name')
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.file.add_location_image"><code class="name flex">
-<span>def <span class="ident">add_location_image</span></span>(<span>client, local_file_path, location)</span>
+<span>def <span class="ident">add_location_image</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_file_path: str, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.file.add_site_survey_image"><code class="name flex">
-<span>def <span class="ident">add_site_survey_image</span></span>(<span>client, local_file_path, id)</span>
+<span>def <span class="ident">add_site_survey_image</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_file_path: str, id: str) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.file.delete_document"><code class="name flex">
-<span>def <span class="ident">delete_document</span></span>(<span>client, document)</span>
+<span>def <span class="ident">delete_document</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, document: <a title="pyinventory.consts.Document" href="../consts.html#pyinventory.consts.Document">Document</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.file.delete_file"><code class="name flex">
-<span>def <span class="ident">delete_file</span></span>(<span>client, key, is_global)</span>
+<span>def <span class="ident">delete_file</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, key: str, is_global: bool) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.file.delete_site_survey_image"><code class="name flex">
-<span>def <span class="ident">delete_site_survey_image</span></span>(<span>client, survey)</span>
+<span>def <span class="ident">delete_site_survey_image</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, survey: <a title="pyinventory.consts.SiteSurvey" href="../consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.file.list_dir"><code class="name flex">
-<span>def <span class="ident">list_dir</span></span>(<span>directory_path)</span>
+<span>def <span class="ident">list_dir</span></span>(<span>directory_path: str) -> Generator[str, NoneType, NoneType]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.file.store_file"><code class="name flex">
-<span>def <span class="ident">store_file</span></span>(<span>client, file_path, file_type, is_global)</span>
+<span>def <span class="ident">store_file</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, file_path: str, file_type: str, is_global: bool) -> str</span>
 </code></dt>
 <dd>
 <section class="desc"></section>

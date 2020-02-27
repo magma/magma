@@ -1,29 +1,31 @@
 #!/usr/bin/env python3
 # pyre-strict
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from dataclasses import asdict
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
+from gql.gql.reporter import FailedOperationException
 
-from .._utils import PropertyValue, format_properties
-from ..consts import Equipment, EquipmentPortType, EquipmentType
+from .._utils import format_properties
+from ..client import SymphonyClient
+from ..consts import Equipment, EquipmentPortType, EquipmentType, PropertyValue
 from ..exceptions import EquipmentTypeNotFoundException
-from ..graphql.add_equipment_type_mutation import (
-    AddEquipmentTypeInput,
-    AddEquipmentTypeMutation,
-)
-from ..graphql.edit_equipment_type_mutation import (
-    EditEquipmentTypeInput,
-    EditEquipmentTypeMutation,
-)
+from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
+from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
+from ..graphql.edit_equipment_type_input import EditEquipmentTypeInput
+from ..graphql.edit_equipment_type_mutation import EditEquipmentTypeMutation
+from ..graphql.equipment_port_input import EquipmentPortInput
 from ..graphql.equipment_port_types import EquipmentPortTypesQuery
+from ..graphql.equipment_position_input import EquipmentPositionInput
 from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
 from ..graphql.equipment_types_query import EquipmentTypesQuery
+from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_equipment_type_mutation import RemoveEquipmentTypeMutation
-from ..graphql_client import GraphqlClient
-from ..reporter import FailedOperationException
 from .equipment import delete_equipment
 
 
@@ -31,7 +33,7 @@ ADD_EQUIPMENT_TYPE_MUTATION_NAME = "addEquipmentType"
 EDIT_EQUIPMENT_TYPE_MUTATION_NAME = "editEquipmentType"
 
 
-def _populate_equipment_types(client: GraphqlClient) -> None:
+def _populate_equipment_types(client: SymphonyClient) -> None:
     edges = EquipmentTypesQuery.execute(client).equipmentTypes.edges
 
     for edge in edges:
@@ -48,16 +50,21 @@ def _populate_equipment_types(client: GraphqlClient) -> None:
         )
 
 
-def _populate_equipment_port_types(client: GraphqlClient) -> None:
+def _populate_equipment_port_types(client: SymphonyClient) -> None:
     edges = EquipmentPortTypesQuery.execute(client).equipmentPortTypes.edges
 
     for edge in edges:
         node = edge.node
-        client.portTypes[node.name] = EquipmentPortType(id=node.id, name=node.name)
+        client.portTypes[node.name] = EquipmentPortType(
+            id=node.id,
+            name=node.name,
+            properties=list(map(lambda p: asdict(p), node.propertyTypes)),
+            link_properties=list(map(lambda p: asdict(p), node.linkPropertyTypes)),
+        )
 
 
 def _add_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     category: str,
     properties: List[Dict[str, Any]],
@@ -71,7 +78,7 @@ def _add_equipment_type(
             category=category,
             positions=[
                 from_dict(
-                    data_class=AddEquipmentTypeInput.EquipmentPositionInput,
+                    data_class=EquipmentPositionInput,
                     data=pos,
                     config=Config(strict=True),
                 )
@@ -79,17 +86,13 @@ def _add_equipment_type(
             ],
             ports=[
                 from_dict(
-                    data_class=AddEquipmentTypeInput.EquipmentPortInput,
-                    data=port,
-                    config=Config(strict=True),
+                    data_class=EquipmentPortInput, data=port, config=Config(strict=True)
                 )
                 for port in port_definitions
             ],
             properties=[
                 from_dict(
-                    data_class=AddEquipmentTypeInput.PropertyTypeInput,
-                    data=prop,
-                    config=Config(strict=True),
+                    data_class=PropertyTypeInput, data=prop, config=Config(strict=True)
                 )
                 for prop in properties
             ],
@@ -98,10 +101,10 @@ def _add_equipment_type(
 
 
 def get_or_create_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[Tuple[str, str, PropertyValue, bool]],
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -113,7 +116,7 @@ def get_or_create_equipment_type(
 
 
 def _edit_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     equipment_type_id: str,
     name: str,
     category: str,
@@ -129,7 +132,7 @@ def _edit_equipment_type(
             category=category,
             positions=[
                 from_dict(
-                    data_class=EditEquipmentTypeInput.EquipmentPositionInput,
+                    data_class=EquipmentPositionInput,
                     data=pos,
                     config=Config(strict=True),
                 )
@@ -137,17 +140,13 @@ def _edit_equipment_type(
             ],
             ports=[
                 from_dict(
-                    data_class=EditEquipmentTypeInput.EquipmentPortInput,
-                    data=port,
-                    config=Config(strict=True),
+                    data_class=EquipmentPortInput, data=port, config=Config(strict=True)
                 )
                 for port in port_definitions
             ],
             properties=[
                 from_dict(
-                    data_class=EditEquipmentTypeInput.PropertyTypeInput,
-                    data=prop,
-                    config=Config(strict=True),
+                    data_class=PropertyTypeInput, data=prop, config=Config(strict=True)
                 )
                 for prop in properties
             ],
@@ -156,10 +155,10 @@ def _edit_equipment_type(
 
 
 def add_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[Tuple[str, str, PropertyValue, bool]],
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -212,7 +211,7 @@ def add_equipment_type(
 
 
 def edit_equipment_type(
-    client: GraphqlClient,
+    client: SymphonyClient,
     name: str,
     new_positions_list: List[str],
     new_ports_dict: Dict[str, str],
@@ -288,7 +287,7 @@ def edit_equipment_type(
 
 
 def copy_equipment_type(
-    client: GraphqlClient, curr_equipment_type_name: str, new_equipment_type_name: str
+    client: SymphonyClient, curr_equipment_type_name: str, new_equipment_type_name: str
 ) -> EquipmentType:
     if curr_equipment_type_name not in client.equipmentTypes:
         raise Exception(
@@ -337,7 +336,7 @@ def copy_equipment_type(
 
 
 def delete_equipment_type_with_equipments(
-    client: GraphqlClient, equipment_type: EquipmentType
+    client: SymphonyClient, equipment_type: EquipmentType
 ) -> None:
     equipments = EquipmentTypeEquipmentQuery.execute(
         client, id=equipment_type.id

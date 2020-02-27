@@ -21,15 +21,18 @@ export type User = {
   isReadOnlyUser: boolean,
 };
 
+export type Tab = 'automation' | 'admin' | 'inventory' | 'nms' | 'workorders';
+
 export type AppContextType = {
   csrfToken: ?string,
   version: ?string,
   networkIds: string[],
-  tabs: string[],
+  tabs: $ReadOnlyArray<Tab>,
   user: User,
   showExpandButton: () => void,
   hideExpandButton: () => void,
   isFeatureEnabled: FeatureID => boolean,
+  isTabEnabled: Tab => boolean,
   ssoEnabled: boolean,
 };
 
@@ -42,6 +45,7 @@ const AppContext = React.createContext<AppContextType>({
   showExpandButton: emptyFunction,
   hideExpandButton: emptyFunction,
   isFeatureEnabled: () => false,
+  isTabEnabled: () => false,
   ssoEnabled: false,
 });
 
@@ -55,6 +59,9 @@ export function AppContextProvider(props: Props) {
   const value = {
     ...appData,
     networkIds: props.networkIDs || [],
+    isTabEnabled: (tab: Tab): boolean => {
+      return appData.tabs?.indexOf(tab) !== -1;
+    },
     isFeatureEnabled: (featureID: FeatureID): boolean => {
       return appData.enabledFeatures.indexOf(featureID) !== -1;
     },

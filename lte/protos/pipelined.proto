@@ -10,13 +10,13 @@ syntax = "proto3";
 package magma.lte;
 
 import "orc8r/protos/common.proto";
-import "lte/protos/meteringd.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
 
 option go_package = "magma/lte/cloud/go/protos";
 
+// Deprecated
 message SetupFlowsRequest {
   // List of requests to activate
   repeated ActivateFlowsRequest requests = 1;
@@ -24,6 +24,27 @@ message SetupFlowsRequest {
   uint64 epoch = 2;
   // List of subscriber quota updates
   UpdateSubscriberQuotaStateRequest quota_updates = 3;
+}
+
+message SetupUEMacRequest {
+  // List of UEs to activate
+  repeated UEMacFlowRequest requests = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+}
+
+message SetupPolicyRequest {
+  // List of requests to activate
+  repeated ActivateFlowsRequest requests = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+}
+
+message SetupQuotaRequest {
+  // List of quota rules to activate
+  UpdateSubscriberQuotaStateRequest quota_updates = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
 }
 
 message SetupFlowsResult {
@@ -141,19 +162,12 @@ message PacketDropTableId {
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
 service Pipelined {
-  // -------------
-  // Metering App:
-  // -------------
-
-  // Get subscriber metering flows
-  rpc GetSubscriberMeteringFlows (magma.orc8r.Void) returns (FlowTable) {}
-
   // ----------------
   // Enforcement App:
   // ----------------
 
   // Setup flows for subscribers (used on restarts)
-  rpc SetupFlows (SetupFlowsRequest) returns (SetupFlowsResult) {}
+  rpc SetupPolicyFlows (SetupPolicyRequest) returns (SetupFlowsResult) {}
 
   // Activate flows for a subscriber based on predefined flow templates
   rpc ActivateFlows (ActivateFlowsRequest) returns (ActivateFlowsResult) {}
@@ -178,12 +192,18 @@ service Pipelined {
   // Quota Check App:
   // ----------------
 
+  // Setup subscribers flows (used on restarts)
+  rpc SetupQuotaFlows (SetupQuotaRequest) returns (SetupFlowsResult) {}
+
   // Synchronize subscribers quota check flows
   rpc UpdateSubscriberQuotaState (UpdateSubscriberQuotaStateRequest) returns (FlowResponse) {}
 
   // -----------
   // UE MAC App:
   // -----------
+
+  // Setup subscribers flows (used on restarts)
+  rpc SetupUEMacFlows (SetupUEMacRequest) returns (SetupFlowsResult) {}
 
   // Add a flow for a subscriber by matching the provided UE MAC address
   rpc AddUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}

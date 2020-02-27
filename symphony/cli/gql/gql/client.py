@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
 
-from logging import getLogger, Logger
-from graphql import build_ast_schema, build_client_schema, \
-    get_introspection_query, parse
+import warnings
+from logging import Logger, getLogger
+
+from graphql import (
+    build_ast_schema,
+    build_client_schema,
+    get_introspection_query,
+    parse,
+)
+from graphql.utilities.find_deprecated_usages import find_deprecated_usages
 from graphql.validation import validate
+
 from .transport.local_schema import LocalSchemaTransport
+
 
 log: Logger = getLogger(__name__)
 
@@ -26,6 +35,10 @@ class RetryError(Exception):
         self.last_exception = last_exception
 
 
+class GraphqlDeprecationWarning(DeprecationWarning):
+    pass
+
+
 class Client(object):
     def __init__(
         self,
@@ -43,8 +56,9 @@ class Client(object):
             assert (
                 not schema
             ), "Cant fetch the schema from transport if is already provided"
-            introspection = transport.execute(parse(
-                get_introspection_query(descriptions=True))).data
+            introspection = transport.execute(
+                parse(get_introspection_query(descriptions=True))
+            ).data
         if introspection:
             assert not schema, "Cant provide introspection and schema at the same time"
             schema = build_client_schema(introspection)
@@ -70,6 +84,13 @@ class Client(object):
         validation_errors = validate(self.schema, document)
         if validation_errors:
             raise validation_errors[0]
+        usages = find_deprecated_usages(self.schema, document)
+        for usage in usages:
+            message = (
+                f"Query of deprecated grapqhl field in {usage}"
+                "Consider upgrading to newer API version."
+            )
+            warnings.warn(message, GraphqlDeprecationWarning)
 
     def execute(self, document, *args, **kwargs):
         if self.schema:
@@ -78,7 +99,8 @@ class Client(object):
         result = self._get_result(document, *args, **kwargs)
         if result.errors:
             raise OperationException(
-                str(result.errors[0]), result.extensions.get("trace_id", ""))
+                str(result.errors[0]), result.extensions.get("trace_id", "")
+            )
 
         return result.data
 

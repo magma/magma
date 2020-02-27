@@ -1240,12 +1240,13 @@ func (e ProjectFilterType) MarshalGQL(w io.Writer) {
 type PropertyEntity string
 
 const (
-	PropertyEntityEquipment  PropertyEntity = "EQUIPMENT"
-	PropertyEntityService    PropertyEntity = "SERVICE"
-	PropertyEntityLink       PropertyEntity = "LINK"
-	PropertyEntityPort       PropertyEntity = "PORT"
-	PropertyEntityLocation   PropertyEntity = "LOCATION"
-	PropertyEntityWorkOrders PropertyEntity = "WORK_ORDERS"
+	PropertyEntityEquipment PropertyEntity = "EQUIPMENT"
+	PropertyEntityService   PropertyEntity = "SERVICE"
+	PropertyEntityLink      PropertyEntity = "LINK"
+	PropertyEntityPort      PropertyEntity = "PORT"
+	PropertyEntityLocation  PropertyEntity = "LOCATION"
+	PropertyEntityWorkOrder PropertyEntity = "WORK_ORDER"
+	PropertyEntityProject   PropertyEntity = "PROJECT"
 )
 
 var AllPropertyEntity = []PropertyEntity{
@@ -1254,12 +1255,13 @@ var AllPropertyEntity = []PropertyEntity{
 	PropertyEntityLink,
 	PropertyEntityPort,
 	PropertyEntityLocation,
-	PropertyEntityWorkOrders,
+	PropertyEntityWorkOrder,
+	PropertyEntityProject,
 }
 
 func (e PropertyEntity) IsValid() bool {
 	switch e {
-	case PropertyEntityEquipment, PropertyEntityService, PropertyEntityLink, PropertyEntityPort, PropertyEntityLocation:
+	case PropertyEntityEquipment, PropertyEntityService, PropertyEntityLink, PropertyEntityPort, PropertyEntityLocation, PropertyEntityWorkOrder, PropertyEntityProject:
 		return true
 	}
 	return false

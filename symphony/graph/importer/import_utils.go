@@ -82,6 +82,8 @@ func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name strin
 	rq := locType.QueryLocations().Where(location.Name(name))
 	if parentID != nil {
 		rq = rq.Where(location.HasParentWith(location.ID(*parentID)))
+	} else {
+		rq = rq.Where(location.Not(location.HasParent()))
 	}
 	l, err := rq.Only(ctx)
 	if l != nil {
@@ -90,11 +92,14 @@ func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name strin
 	return nil, err
 }
 
-func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool) {
+func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool, error) {
 	log := m.logger.For(ctx)
 	l, err := m.queryLocationForTypeAndParent(ctx, name, locType, parentID)
+	if ent.MaskNotFound(err) != nil {
+		return nil, false, err
+	}
 	if l != nil {
-		return l, false
+		return l, false, nil
 	}
 	if !ent.IsNotFound(err) {
 		log.Panic("query location failed", zap.String("name", name), zap.Error(err))
@@ -110,9 +115,9 @@ func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitud
 		ExternalID: externalID,
 	})
 	if err != nil {
-		log.Panic(err.Error(), zap.Error(err))
+		return nil, false, err
 	}
-	return l, true
+	return l, true, nil
 }
 
 func (m *importer) getEquipmentIfExist(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, error) {

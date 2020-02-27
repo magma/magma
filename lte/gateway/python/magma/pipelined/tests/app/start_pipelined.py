@@ -68,17 +68,8 @@ class PipelinedController(Enum):
     Testing = Controller(
         'magma.pipelined.app.testing', 'testing'
     )
-    Meter = Controller(
-        'magma.pipelined.app.meter', 'meter'
-    )
-    MeterStats = Controller(
-        'magma.pipelined.app.meter_stats', 'meter_stats'
-    )
     AccessControl = Controller(
         'magma.pipelined.app.access_control', 'access_control'
-    )
-    Subscriber = Controller(
-        'magma.pipelined.app.subscriber', 'subscriber'
     )
     UEMac = Controller(
         'magma.pipelined.app.ue_mac', 'ue_mac'

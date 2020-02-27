@@ -6,6 +6,7 @@ package importer
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent/service"
 
@@ -51,6 +52,82 @@ func (l ImportRecord) Header() ImportHeader {
 	return l.title
 }
 
+func (l ImportRecord) validatePropertiesMismatch(ctx context.Context, typs []interface{}) error {
+	var (
+		q                  *ent.PropertyTypeQuery
+		typName            string
+		linkTyp1, linkTyp2 *ent.EquipmentPortType
+	)
+	switch l.entity() {
+	case ImportEntityEquipment:
+		typ := typs[0].(*ent.EquipmentType)
+		typName = typ.Name
+		q = typ.QueryPropertyTypes()
+	case ImportEntityPort:
+		typ := typs[0].(*ent.EquipmentPortType)
+		typName = typ.Name
+		q = typ.QueryPropertyTypes()
+	case ImportEntityLink:
+		switch len(typs) {
+		case 1:
+			linkTyp1 = typs[0].(*ent.EquipmentPortType)
+			typName = linkTyp1.Name
+		case 2:
+			linkTyp1 = typs[0].(*ent.EquipmentPortType)
+			linkTyp2 = typs[1].(*ent.EquipmentPortType)
+			typName = fmt.Sprintf("%v or %v", linkTyp1.Name, linkTyp2.Name)
+		default:
+			return errors.New("link must have two ports max")
+		}
+	case ImportEntityService:
+		typ := typs[0].(*ent.ServiceType)
+		typName = typ.Name
+		q = typ.QueryPropertyTypes()
+	default:
+		return fmt.Errorf("entity is not supported %s", l.entity())
+	}
+	header := l.Header()
+	pStart := header.PropertyStartIdx()
+	if pStart == -1 {
+		return errors.New("error getting properties from title")
+	}
+
+	for i, propVal := range l.line[pStart:] {
+		if propVal != "" {
+			pTypeName := header.line[i+pStart]
+			var exists bool
+			var err error
+			switch {
+			case l.entity() == ImportEntityLink:
+				var existA, existB bool
+				if linkTyp1 != nil {
+					existA, err = linkTyp1.QueryLinkPropertyTypes().Where(propertytype.Name(pTypeName)).Exist(ctx)
+					if ent.MaskNotFound(err) != nil {
+						return err
+					}
+				}
+				if linkTyp2 != nil {
+					existB, err = linkTyp2.QueryLinkPropertyTypes().Where(propertytype.Name(pTypeName)).Exist(ctx)
+					if ent.MaskNotFound(err) != nil {
+						return err
+					}
+				}
+				exists = existA || existB
+			default:
+				if q != nil {
+					exists, err = q.Where(propertytype.Name(pTypeName)).Exist(ctx)
+				}
+			}
+
+			if !exists {
+				return fmt.Errorf("property type %v does not exist under type %v", pTypeName, typName)
+			}
+			return err
+		}
+	}
+	return nil
+}
+
 // GetPropertyInput returns a PropertyInput model from a proptypeName
 func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
 	var pTyp *ent.PropertyType
@@ -68,6 +145,9 @@ func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, 
 	case ImportEntityService:
 		typ := typ.(*ent.ServiceType)
 		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
+	case ImportEntityLocation:
+		typ := typ.(*ent.LocationType)
+		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
 	default:
 		return nil, errors.Wrapf(err, "entity is not supported %s", l.entity())
 	}
@@ -80,6 +160,7 @@ func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, 
 		return nil, nil
 	}
 	value := l.line[idx]
+
 	if pTyp.Type == "service" && value != "" {
 		if value, err = client.Service.Query().Where(service.Name(value)).OnlyID(ctx); err != nil {
 			return nil, errors.Wrapf(err, "service name does not exist %q", l.line[idx])
@@ -114,6 +195,16 @@ func (l ImportRecord) PortEquipmentTypeName() string {
 
 func (l ImportRecord) ExternalID() string {
 	return l.line[l.title.ExternalIDIdx()]
+}
+
+// Latitude returns the valur on LatitudeIdx
+func (l ImportRecord) Latitude() string {
+	return l.line[l.title.LatitudeIdx()]
+}
+
+// Longitude returns the valur on LongitudeIdx
+func (l ImportRecord) Longitude() string {
+	return l.line[l.title.LongitudeIdx()]
 }
 
 func (l ImportRecord) ThirdParent() string {

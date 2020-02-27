@@ -42,52 +42,9 @@
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput"><code class="flex name class">
-<span>class <span class="ident">AddServiceEndpointInput</span></span>
-<span>(</span><span>id, portId, role)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>AddServiceEndpointInput(id: str, portId: str, role: pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole)</p></section>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-</dd>
 <dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation"><code class="flex name class">
 <span>class <span class="ident">AddServiceEndpointMutation</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: Union[<a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.AddServiceEndpointMutationData" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.AddServiceEndpointMutationData">AddServiceEndpointMutation.AddServiceEndpointMutationData</a>, NoneType] = None, errors: Union[Any, NoneType] = None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>AddServiceEndpointMutation(data: Union[pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.AddServiceEndpointMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
@@ -109,25 +66,25 @@
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, input)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, input: <a title="pyinventory.graphql.add_service_endpoint_input.AddServiceEndpointInput" href="add_service_endpoint_input.html#pyinventory.graphql.add_service_endpoint_input.AddServiceEndpointInput">AddServiceEndpointInput</a>)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -142,36 +99,10 @@
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole"><code class="flex name class">
-<span>class <span class="ident">ServiceEndpointRole</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole.CONSUMER"><code class="name">var <span class="ident">CONSUMER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole.PROVIDER"><code class="name">var <span class="ident">PROVIDER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
 </dd>
 </dl>
 </dd>
@@ -197,16 +128,6 @@
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput">AddServiceEndpointInput</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.from_dict" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.from_json" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.schema" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.to_dict" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.to_json" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointInput.to_json">to_json</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation">AddServiceEndpointMutation</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.AddServiceEndpointMutationData" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.AddServiceEndpointMutationData">AddServiceEndpointMutationData</a></code></li>
@@ -218,14 +139,6 @@
 <li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.schema" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.schema">schema</a></code></li>
 <li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.to_dict" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.to_dict">to_dict</a></code></li>
 <li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.to_json" href="#pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.to_json">to_json</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole" href="#pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole">ServiceEndpointRole</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole.CONSUMER" href="#pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole.CONSUMER">CONSUMER</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole.MISSING_ENUM" href="#pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole.MISSING_ENUM">MISSING_ENUM</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole.PROVIDER" href="#pyinventory.graphql.add_service_endpoint_mutation.ServiceEndpointRole.PROVIDER">PROVIDER</a></code></li>
 </ul>
 </li>
 </ul>

@@ -260,11 +260,30 @@ bool SessionCredit::quota_exhausted(
 
 bool SessionCredit::should_deactivate_service()
 {
-  return credit_type_ == CreditType::CHARGING &&
-         !unlimited_quota_ &&
-         SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED &&
-         ((no_more_grant() && quota_exhausted()) ||
-           quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN));
+  if (credit_type_ != CreditType::CHARGING) {
+    // we only terminate on charging quota exhaustion
+    return false;
+  }
+  if (unlimited_quota_) {
+    return false;
+  }
+  if (!SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
+    // configured in sessiond.yml
+    return false;
+  }
+  if (no_more_grant() && quota_exhausted()) {
+    // If we've exhausted the last grant, we should terminate
+    return true;
+  }
+  if (quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN)) {
+    // extra quota margin is configured in sessiond.yml
+    // We will terminate if we've exceeded (given quota + extra quota margin).
+    // If the gateway loses connection to the reporter, we should not allow the
+    // UE to use internet for too long. This quota should be reasonably big so
+    // that we don't terminate the session too easily.
+    return true;
+  }
+  return false;
 }
 
 bool SessionCredit::validity_timer_expired()
@@ -379,6 +398,26 @@ bool SessionCredit::no_more_grant()
 
 RedirectServer SessionCredit::get_redirect_server() {
   return final_action_info_.redirect_server;
+}
+
+void SessionCredit::set_is_final(bool is_final) {
+  is_final_ = is_final;
+}
+
+void SessionCredit::set_reauth(ReAuthState reauth_state) {
+  reauth_state_ = reauth_state;
+}
+
+void SessionCredit::set_service_state(ServiceState service_state) {
+  service_state_ = service_state;
+}
+
+void SessionCredit::set_expiry_time(std::time_t expiry_time) {
+  expiry_time_ = expiry_time;
+}
+
+void SessionCredit::add_credit(uint64_t credit, Bucket bucket) {
+  buckets_[bucket] += credit;
 }
 
 } // namespace magma

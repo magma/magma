@@ -53,11 +53,7 @@ const CheckListCategoryExpandingPanel = (props: Props) => {
                   variant="text"
                   disabled={formValidationContext.editLock.detected}
                   onClick={() => categoryContext.call.addNewCategory()}>
-                  {hasCheckListCategories ? (
-                    fbt('Add category', 'Add checklist category button text')
-                  ) : (
-                    <AddIcon color="primary" />
-                  )}
+                  <AddIcon color="primary" />
                 </Button>
               )
             }>

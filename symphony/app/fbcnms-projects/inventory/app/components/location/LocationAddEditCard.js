@@ -20,6 +20,7 @@ import type {
 import type {Location} from '../../common/Location';
 import type {LocationType} from '../../common/LocationType';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
@@ -56,7 +57,7 @@ import {
 import {withSnackbar} from 'notistack';
 import {withStyles} from '@material-ui/core/styles';
 
-const styles = theme => ({
+const styles = (theme: Theme) => ({
   root: {
     height: '100%',
   },

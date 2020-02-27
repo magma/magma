@@ -34,8 +34,7 @@ class Model {
     return dir < x.dir;
   }
 
-  static const Model OPENCONFIG_0_1_6;
-  static const Model IETF_0_1_5;
+  static const Model OPENCONFIG_2_4_3;
 };
 
 } // namespace cli

@@ -48,6 +48,8 @@ const (
 	ManageNetworkRuleNamesPath          = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
 	ManageNetworkSubscriberRuleNamePath = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
 	ManageNetworkSubscriberBaseNamePath = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
+	ManageNetworkApnPath                = ManageNetworkPath + obsidian.UrlSep + "apns"
+	ManageNetworkApnConfigurationPath   = ManageNetworkApnPath + obsidian.UrlSep + ":apn_name"
 
 	Gateways                          = "gateways"
 	ListGatewaysPath                  = ManageNetworkPath + obsidian.UrlSep + Gateways
@@ -139,6 +141,12 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ratingGroupsManagePath, Methods: obsidian.GET, HandlerFunc: GetRatingGroup},
 		{Path: ratingGroupsManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateRatingGroup},
 		{Path: ratingGroupsManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteRatingGroup},
+
+		{Path: ManageNetworkApnPath, Methods: obsidian.GET, HandlerFunc: listApns},
+		{Path: ManageNetworkApnPath, Methods: obsidian.POST, HandlerFunc: createApn},
+		{Path: ManageNetworkApnConfigurationPath, Methods: obsidian.GET, HandlerFunc: getApnConfiguration},
+		{Path: ManageNetworkApnConfigurationPath, Methods: obsidian.PUT, HandlerFunc: updateApnConfiguration},
+		{Path: ManageNetworkApnConfigurationPath, Methods: obsidian.DELETE, HandlerFunc: deleteApnConfiguration},
 	}
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, lte.LteNetworkType, &ltemodels.LteNetwork{})...)
 
@@ -446,7 +454,7 @@ func listSubscribers(c echo.Context) error {
 		return nerr
 	}
 
-	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -477,9 +485,10 @@ func createSubscriber(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
-		Type:   lte.SubscriberEntityType,
-		Key:    string(payload.ID),
-		Config: payload.Lte,
+		Type:         lte.SubscriberEntityType,
+		Key:          string(payload.ID),
+		Config:       payload.Lte,
+		Associations: payload.ActiveApns.ToAssocs(),
 	})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -494,7 +503,7 @@ func getSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadConfig: true})
+	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -520,7 +529,7 @@ func updateSubscriber(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{})
+	_, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -532,7 +541,13 @@ func updateSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, payload.Lte)
+	updateCriteria := configurator.EntityUpdateCriteria{
+		Key:               subscriberID,
+		Type:              lte.SubscriberEntityType,
+		NewConfig:         payload.Lte,
+		AssociationsToSet: payload.ActiveApns.ToAssocs(),
+	}
+	_, err = configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateCriteria})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -583,6 +598,110 @@ func updateSubscriberProfile(c echo.Context) error {
 	_, err = configurator.UpdateEntity(networkID, configurator.EntityUpdateCriteria{Type: lte.SubscriberEntityType, Key: subscriberID, NewConfig: desiredCfg})
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to update profile"), http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func listApns(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.ApnEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := make(map[string]*ltemodels.Apn, len(ents))
+	for _, ent := range ents {
+		ret[ent.Key] = (&ltemodels.Apn{}).FromBackendModels(ent)
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func createApn(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.Apn{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
+		Type:   lte.ApnEntityType,
+		Key:    string(payload.ApnName),
+		Config: payload.ApnConfiguration,
+	})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusCreated)
+}
+
+func getApnConfiguration(c echo.Context) error {
+	networkID, apnName, nerr := getNetworkAndApnName(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ent, err := configurator.LoadEntity(networkID, lte.ApnEntityType, apnName, configurator.EntityLoadCriteria{LoadConfig: true})
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := (&ltemodels.Apn{}).FromBackendModels(ent)
+	return c.JSON(http.StatusOK, ret)
+}
+
+func updateApnConfiguration(c echo.Context) error {
+	networkID, apnName, nerr := getNetworkAndApnName(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.Apn{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.LoadEntity(networkID, lte.ApnEntityType, apnName, configurator.EntityLoadCriteria{})
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(errors.Wrap(err, "failed to load existing APN"), http.StatusInternalServerError)
+	}
+
+	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.ApnEntityType, apnName, payload.ApnConfiguration)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func deleteApnConfiguration(c echo.Context) error {
+	networkID, apnName, nerr := getNetworkAndApnName(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	err := configurator.DeleteEntity(networkID, lte.ApnEntityType, apnName)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -749,4 +868,12 @@ func validateSubscriberProfile(networkID string, sub *ltemodels.LteSubscription)
 		}
 	}
 	return nil
+}
+
+func getNetworkAndApnName(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", "apn_name")
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
 }

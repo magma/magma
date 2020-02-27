@@ -14,7 +14,10 @@
 #include <devmand/channels/cli/Channel.h>
 #include <devmand/channels/cli/Command.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
+#include <devmand/channels/cli/TreeCache.h>
+#include <devmand/channels/cli/datastore/Datastore.h>
 #include <devmand/devices/Device.h>
+#include <devmand/devices/cli/translation/PluginRegistry.h>
 
 namespace devmand {
 namespace devices {
@@ -30,8 +33,10 @@ class StructuredUbntDevice : public Device {
       bool readonly_,
       const std::shared_ptr<Channel> _channel,
       const std::shared_ptr<ModelRegistry> mreg,
-      const std::shared_ptr<CliCache> _cmdCache =
-          ReadCachingCli::createCache());
+      std::unique_ptr<ReaderRegistry>&& _rReg,
+      std::unique_ptr<WriterRegistry>&& _wReg,
+      const std::shared_ptr<CliCache> _cmdCache,
+      const std::shared_ptr<TreeCache> _treeCache);
   StructuredUbntDevice() = delete;
   virtual ~StructuredUbntDevice() = default;
   StructuredUbntDevice(const StructuredUbntDevice&) = delete;
@@ -58,7 +63,14 @@ class StructuredUbntDevice : public Device {
  private:
   std::shared_ptr<Channel> channel;
   std::shared_ptr<CliCache> cmdCache;
+  std::shared_ptr<TreeCache> treeCache;
   std::shared_ptr<ModelRegistry> mreg;
+  std::unique_ptr<ReaderRegistry> rReg;
+  std::unique_ptr<WriterRegistry> wReg;
+//  std::unique_ptr<devmand::channels::cli::datastore::Datastore> configCache;
+//  vector<DiffPath> diffPaths;
+
+//  void reconcile(DeviceAccess& access);
 };
 
 } // namespace cli

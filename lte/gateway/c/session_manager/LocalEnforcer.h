@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/policydb.pb.h>
 #include <orc8r/protos/directoryd.pb.h>
 #include <folly/io/async/EventBaseManager.h>
 

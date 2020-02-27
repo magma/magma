@@ -812,6 +812,8 @@ enum PropertyEntity {
   LINK
   PORT
   LOCATION
+  WORK_ORDER
+  PROJECT
 }
 
 enum CommentEntity {
@@ -1959,6 +1961,8 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
+  projectType(id: ID!): ProjectType
+    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
   projectTypes(
     after: Cursor
     first: Int
@@ -2148,4 +2152,5 @@ type Mutation {
 
 type Subscription {
   workOrderAdded: WorkOrder
+  workOrderDone: WorkOrder
 }

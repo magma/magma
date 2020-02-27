@@ -45,21 +45,9 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = r.ParseForm()
+	skipLines, verifyBeforeCommit, err := m.parseImportArgs(r)
 	if err != nil {
-		errorReturn(w, "can't parse form", log, err)
-		return
-	}
-
-	skipLines, err := getLinesToSkip(r)
-	if err != nil {
-		errorReturn(w, "can't parse skipped lines", log, err)
-		return
-	}
-
-	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
-	if err != nil {
-		errorReturn(w, "can't parse verify_before_commit param", log, err)
+		errorReturn(w, "can't parse form or arguments", log, err)
 		return
 	}
 
@@ -68,13 +56,18 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	} else {
 		commitRuns = []bool{true}
 	}
+	startSaving := false
 
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityService)
 		if err != nil {
 			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
 			http.Error(w, fmt.Sprintf("cannot handle file: %q. file name: %q", err, fileName), http.StatusInternalServerError)
+			return
+		}
+		importHeader, err := NewImportHeader(first, ImportEntityService)
+		if err != nil {
+			errorReturn(w, "error on header", log, err)
 			return
 		}
 
@@ -94,6 +87,8 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
 			if commit && pointer.GetBool(verifyBeforeCommit) && len(errs) != 0 {
 				break
+			} else if commit && len(errs) == 0 {
+				startSaving = true
 			}
 			if len(skipLines) > 0 {
 				nextLineToSkipIndex = 0
@@ -238,7 +233,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	}
 	log.Debug("Exported Service - Done")
 	w.WriteHeader(http.StatusOK)
-	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0)
+	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0, startSaving)
 
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
@@ -272,6 +267,11 @@ func (m *importer) getValidatedStatus(importLine ImportRecord) (*models.ServiceS
 }
 
 func (m *importer) validatePropertiesForServiceType(ctx context.Context, line ImportRecord, serviceType *ent.ServiceType) ([]*models.PropertyInput, error) {
+	err := line.validatePropertiesMismatch(ctx, []interface{}{serviceType})
+	if err != nil {
+		return nil, err
+	}
+
 	var pInputs []*models.PropertyInput
 	propTypes, err := serviceType.QueryPropertyTypes().All(ctx)
 	if ent.MaskNotFound(err) != nil {
@@ -283,7 +283,9 @@ func (m *importer) validatePropertiesForServiceType(ctx context.Context, line Im
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }

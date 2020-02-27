@@ -15,9 +15,18 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"io/ioutil"
+	"net"
+	"os"
+	"strconv"
 	"testing"
 	"time"
 
+	bootstrap_client "magma/gateway/services/bootstrapper/service"
+	"magma/orc8r/cloud/go/services/bootstrapper"
+	"magma/orc8r/cloud/go/test_utils"
+
+	"github.com/emakeev/snowflake"
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -178,6 +187,78 @@ func testWithECDSA(
 	assert.NotNil(t, cert)
 }
 
+// Test with real GW bootstrapper
+func testWithGatewayBootstrapper(t *testing.T, networkId string) {
+	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, bootstrapper.ServiceName)
+	assert.Equal(t, protos.ServiceInfo_STARTING, srv.State)
+	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
+
+	privateKey, err := key.GenerateKey("", 2048)
+	assert.NoError(t, err)
+
+	bootstrServer, err := servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
+	assert.NoError(t, err)
+
+	protos.RegisterBootstrapperServer(srv.GrpcServer, bootstrServer)
+	srv.GrpcServer.RegisterService(protos.GetLegacyBootstrapperDesc(), bootstrServer)
+
+	go srv.RunTest(lis)
+
+	srvIp, srvPort, err := net.SplitHostPort(lis.Addr().String())
+	assert.NoError(t, err)
+	srvPortInt, err := strconv.Atoi(srvPort)
+	assert.NoError(t, err)
+	dir, err := ioutil.TempDir("", "magma_bst")
+	assert.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	completed := false
+	b := &bootstrap_client.Bootstrapper{
+		ChallengeKeyFile: dir + "/gw_challenge.key",
+		CpConfig: bootstrap_client.ControlProxyCfg{
+			RootCaFile:           "",
+			GwCertFile:           dir + "/gateway.crt",
+			GwCertKeyFile:        dir + "/gateway.key",
+			BootstrapAddr:        srvIp,
+			BootstrapPort:        srvPortInt,
+			ProxyCloudConnection: true,
+		},
+		BootstrapCompletionNotifier: func(b *bootstrap_client.Bootstrapper, calbackErr error) {
+			assert.NoError(t, calbackErr)
+			completed = true
+		},
+	}
+	err = b.Initialize()
+	assert.NoError(t, err)
+
+	uuid, err := snowflake.Get()
+	assert.NoError(t, err)
+	gwHwId := uuid.String()
+
+	ck, err := key.ReadKey(b.ChallengeKeyFile)
+	assert.NoError(t, err)
+	pubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(ck))
+	assert.NoError(t, err)
+	encodedPubKey := strfmt.Base64(pubKey)
+
+	configuratorTestUtils.RegisterGateway(
+		t,
+		networkId,
+		gwHwId,
+		&models.GatewayDevice{
+			HardwareID: gwHwId,
+			Key: &models.ChallengeKey{
+				KeyType: ecdsaType,
+				Key:     &encodedPubKey,
+			},
+		},
+	)
+
+	err = b.PeriodicCheck(time.Now())
+	assert.NoError(t, err)
+	assert.True(t, completed)
+}
+
 func testNegative(
 	t *testing.T, networkId string, srv *servicers.BootstrapperServer, ctx context.Context) {
 
@@ -323,4 +404,5 @@ func TestBootstrapperServer(t *testing.T) {
 		context.Background(),
 		metadata.Pairs("x-magma-client-cert-cn", "bla"))
 	testNegative(t, testNetworkID, srv, ctx)
+	testWithGatewayBootstrapper(t, testNetworkID)
 }

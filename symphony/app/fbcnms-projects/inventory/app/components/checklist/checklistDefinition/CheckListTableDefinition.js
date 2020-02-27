@@ -65,6 +65,7 @@ const useStyles = makeStyles(() => ({
     paddingRight: '0px',
   },
   addButton: {
+    height: '32px',
     padding: '4px 18px',
     borderRadius: '4px',
     border: '1px solid',
@@ -179,6 +180,7 @@ const CheckListTableDefinition = (props: Props) => {
   const checklistTypes = useMemo(
     () =>
       Object.keys(CHECKLIST_ITEM_TYPES).map(type => ({
+        key: type,
         label: CHECKLIST_ITEM_TYPES[type].description,
         value: type,
       })),

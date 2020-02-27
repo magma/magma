@@ -68,7 +68,7 @@ func (er woRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
 	for i, w := range wosList {
 		woIDs[i] = w.ID
 	}
-	propertyTypes, err := propertyTypesSlice(ctx, woIDs, client, models.PropertyEntityWorkOrders)
+	propertyTypes, err := propertyTypesSlice(ctx, woIDs, client, models.PropertyEntityWorkOrder)
 	if err != nil {
 		logger.Error("cannot query property types", zap.Error(err))
 		return nil, errors.Wrap(err, "cannot query property types")
@@ -98,7 +98,7 @@ func (er woRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
 }
 
 func woToSlice(ctx context.Context, wo *ent.WorkOrder, propertyTypes []string) ([]string, error) {
-	properties, err := propertiesSlice(ctx, wo, propertyTypes, models.PropertyEntityWorkOrders)
+	properties, err := propertiesSlice(ctx, wo, propertyTypes, models.PropertyEntityWorkOrder)
 	if err != nil {
 		return nil, err
 	}

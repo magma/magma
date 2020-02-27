@@ -83,7 +83,7 @@ func TestExportAndEditLinks(t *testing.T) {
 			require.NoError(t, err)
 			log := r.exporter.log
 			e := &exporter{log, linksRower{log}}
-			ctx, res := prepareLinksPortsAndExport(t, r, e)
+			ctx, res := prepareHandlerAndExport(t, r, e)
 			defer res.Body.Close()
 			importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityLink, MethodEdit, skipLines, withVerify)
 
@@ -123,7 +123,7 @@ func TestExportAndAddLinks(t *testing.T) {
 			require.NoError(t, err)
 			log := r.exporter.log
 			e := &exporter{log, linksRower{log}}
-			ctx, res := prepareLinksPortsAndExport(t, r, e)
+			ctx, res := prepareHandlerAndExport(t, r, e)
 			defer res.Body.Close()
 
 			locs := r.client.Location.Query().AllX(ctx)

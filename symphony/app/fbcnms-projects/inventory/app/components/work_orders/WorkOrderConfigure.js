@@ -15,6 +15,7 @@ import WorkOrderTypes from '../configure/WorkOrderTypes';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(() => ({
@@ -26,7 +27,8 @@ const useStyles = makeStyles(() => ({
 }));
 
 export default function WorkOrderConfigure() {
-  const {location, history, relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
+  const {location, history} = useRouter();
   const classes = useStyles();
   return (
     <div className={classes.root}>

@@ -66,6 +66,7 @@ const TableRowOptionsButton = (props: Props) => {
       variant="text"
       menuDockRight={true}
       options={options.map((opt, optIndex) => ({
+        key: optIndex + '',
         label: opt.caption,
         value: optIndex,
         ignorePermissions: opt.ignorePermissions,

@@ -1125,16 +1125,18 @@ static int s1ap_mme_generate_ue_context_modification(
     S1ap_LAI_t *lai_item = &ueContextModificationIEs_p->registeredLAI;
     lai_item->pLMNidentity.size = PLMN_SIZE;
     lai_item->pLMNidentity.buf = calloc(PLMN_SIZE, sizeof(uint8_t));
+    uint8_t mnc_length = mme_config_find_mnc_length(
+      ue_context_mod_req_pP->lai.mccdigit1,
+      ue_context_mod_req_pP->lai.mccdigit2,
+      ue_context_mod_req_pP->lai.mccdigit3,
+      ue_context_mod_req_pP->lai.mncdigit1,
+      ue_context_mod_req_pP->lai.mncdigit2,
+      ue_context_mod_req_pP->lai.mncdigit3);
+    if (mnc_length != 2 && mnc_length != 3) {
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
     LAI_T_TO_TBCD(
-      ue_context_mod_req_pP->lai,
-      lai_item->pLMNidentity.buf,
-      (mme_config_find_mnc_length(
-        ue_context_mod_req_pP->lai.mccdigit1,
-        ue_context_mod_req_pP->lai.mccdigit2,
-        ue_context_mod_req_pP->lai.mccdigit3,
-        ue_context_mod_req_pP->lai.mncdigit1,
-        ue_context_mod_req_pP->lai.mncdigit2,
-        ue_context_mod_req_pP->lai.mncdigit3)));
+      ue_context_mod_req_pP->lai, lai_item->pLMNidentity.buf, mnc_length);
 
     TAC_TO_ASN1(ue_context_mod_req_pP->lai.lac, &lai_item->lAC);
     lai_item->iE_Extensions = NULL;

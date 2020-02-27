@@ -29,7 +29,7 @@ test('correctly converts a ThresholdExpression to PromQL', () => {
     {
       expression: {
         metricName: 'test',
-        comparator: '<',
+        comparator: new PromQL.BinaryComparator('<'),
         filters: new PromQL.Labels(),
         value: 7,
       },
@@ -38,7 +38,7 @@ test('correctly converts a ThresholdExpression to PromQL', () => {
     {
       expression: {
         metricName: 'test',
-        comparator: '>',
+        comparator: new PromQL.BinaryComparator('>'),
         filters: new PromQL.Labels()
           .addEqual('label1', 'val1')
           .addEqual('label2', 'val2'),
@@ -49,7 +49,7 @@ test('correctly converts a ThresholdExpression to PromQL', () => {
     {
       expression: {
         metricName: 'test',
-        comparator: '>',
+        comparator: new PromQL.BinaryComparator('>'),
         filters: new PromQL.Labels()
           .addRegex('label1', 'val1')
           .addRegex('label2', 'val2'),
@@ -57,7 +57,6 @@ test('correctly converts a ThresholdExpression to PromQL', () => {
       },
       expectedPromQL: 'test{label1=~"val1",label2=~"val2"} > 10',
     },
-    ,
   ];
 
   testCases.forEach(test => {

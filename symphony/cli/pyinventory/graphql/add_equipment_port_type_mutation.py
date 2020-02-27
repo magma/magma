@@ -3,6 +3,8 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from gql.gql.datetime_utils import fromisoformat
+from gql.gql.graphql_client import GraphqlClient
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -10,9 +12,9 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
 
-from .datetime_utils import fromisoformat
-
 from .property_kind_enum import PropertyKind
+
+from .add_equipment_port_type_input import AddEquipmentPortTypeInput
 
 
 DATETIME_FIELD = field(
@@ -46,41 +48,40 @@ def enum_field(enum_type):
 
 @dataclass_json
 @dataclass
-class AddEquipmentPortTypeInput:
-    @dataclass_json
-    @dataclass
-    class PropertyTypeInput:
-        name: str
-        type: PropertyKind = enum_field(PropertyKind)
-        id: Optional[str] = None
-        index: Optional[int] = None
-        category: Optional[str] = None
-        stringValue: Optional[str] = None
-        intValue: Optional[int] = None
-        booleanValue: Optional[bool] = None
-        floatValue: Optional[Number] = None
-        latitudeValue: Optional[Number] = None
-        longitudeValue: Optional[Number] = None
-        rangeFromValue: Optional[Number] = None
-        rangeToValue: Optional[Number] = None
-        isEditable: Optional[bool] = None
-        isInstanceProperty: Optional[bool] = None
-        isMandatory: Optional[bool] = None
-        isDeleted: Optional[bool] = None
-
-    name: str
-    properties: List[PropertyTypeInput]
-    linkProperties: List[PropertyTypeInput]
-
-
-@dataclass_json
-@dataclass
 class AddEquipmentPortTypeMutation:
     __QUERY__ = """
     mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
   addEquipmentPortType(input: $input) {
     id
     name
+    propertyTypes {
+      id
+      name
+      type
+      index
+      stringValue
+      intValue
+      booleanValue
+      floatValue
+      latitudeValue
+      longitudeValue
+      isEditable
+      isInstanceProperty
+    }
+    linkPropertyTypes {
+      id
+      name
+      type
+      index
+      stringValue
+      intValue
+      booleanValue
+      floatValue
+      latitudeValue
+      longitudeValue
+      isEditable
+      isInstanceProperty
+    }
   }
 }
 
@@ -92,8 +93,26 @@ class AddEquipmentPortTypeMutation:
         @dataclass_json
         @dataclass
         class EquipmentPortType:
+            @dataclass_json
+            @dataclass
+            class PropertyType:
+                id: str
+                name: str
+                type: PropertyKind = enum_field(PropertyKind)
+                index: Optional[int] = None
+                stringValue: Optional[str] = None
+                intValue: Optional[int] = None
+                booleanValue: Optional[bool] = None
+                floatValue: Optional[Number] = None
+                latitudeValue: Optional[Number] = None
+                longitudeValue: Optional[Number] = None
+                isEditable: Optional[bool] = None
+                isInstanceProperty: Optional[bool] = None
+
             id: str
             name: str
+            propertyTypes: List[PropertyType]
+            linkPropertyTypes: List[PropertyType]
 
         addEquipmentPortType: Optional[EquipmentPortType] = None
 
@@ -102,7 +121,7 @@ class AddEquipmentPortTypeMutation:
 
     @classmethod
     # fmt: off
-    def execute(cls, client, input: AddEquipmentPortTypeInput):
+    def execute(cls, client: GraphqlClient, input: AddEquipmentPortTypeInput):
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

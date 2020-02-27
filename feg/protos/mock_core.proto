@@ -162,6 +162,15 @@ message UsageMonitorCredit {
     }
     string monitoring_key = 1;
     MonitoringLevel monitoring_level = 2;
-    uint64 return_bytes = 3;
-    uint64 volume = 4;
+
+    // the amount of quota the PCRF grants per Usage Monitor Request
+    Octets quota_grant_per_request = 3;
+    // the total amount of quota assigned to the monitoring key
+    Octets total_quota = 4;
+}
+
+message Octets {
+    uint64 total_octets = 1;
+    uint64 input_octets = 2;
+    uint64 output_octets = 3;
 }

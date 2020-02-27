@@ -88,14 +88,102 @@ class SessionStateTest : public ::testing::Test {
     session_state->get_monitor_pool().receive_credit(monitor_resp);
   }
 
+  PolicyRule get_rule(
+    uint32_t rating_group,
+    const std::string &m_key,
+    const std::string &rule_id)
+  {
+    PolicyRule rule;
+    rule.set_id(rule_id);
+    rule.set_rating_group(rating_group);
+    rule.set_monitoring_key(m_key);
+    if (rating_group == 0 && m_key.length() > 0) {
+      rule.set_tracking_type(PolicyRule::ONLY_PCRF);
+    } else if (rating_group > 0 && m_key.length() == 0) {
+      rule.set_tracking_type(PolicyRule::ONLY_OCS);
+    } else if (rating_group > 0 && m_key.length() > 0) {
+      rule.set_tracking_type(PolicyRule::OCS_AND_PCRF);
+    } else {
+      rule.set_tracking_type(PolicyRule::NO_TRACKING);
+    }
+    return rule;
+  }
+
+  void activate_rule(
+    uint32_t rating_group,
+    const std::string &m_key,
+    const std::string &rule_id,
+    RuleType rule_type)
+  {
+    PolicyRule rule = get_rule(rating_group, m_key, rule_id);
+    switch (rule_type) {
+      case STATIC:
+        rule_store->insert_rule(rule);
+        session_state->activate_static_rule(rule_id);
+        break;
+      case DYNAMIC:
+        session_state->insert_dynamic_rule(rule);
+        break;
+    }
+  }
+
  protected:
   std::shared_ptr<StaticRuleStore> rule_store;
   std::shared_ptr<SessionState> session_state;
 };
 
+TEST_F(SessionStateTest, test_session_rules)
+{
+  activate_rule(1, "m1", "rule1", DYNAMIC);
+  EXPECT_EQ(1, session_state->total_monitored_rules_count());
+  activate_rule(2, "m2", "rule2", STATIC);
+  EXPECT_EQ(2, session_state->total_monitored_rules_count());
+  // add a OCS-ONLY static rule
+  activate_rule(3, "", "rule3", STATIC);
+  EXPECT_EQ(2, session_state->total_monitored_rules_count());
+
+  std::vector<std::string> rules_out{};
+  std::vector<std::string>& rules_out_ptr = rules_out;
+
+  session_state->get_dynamic_rules().get_rule_ids(rules_out_ptr);
+  EXPECT_EQ(rules_out_ptr.size(), 1);
+  EXPECT_EQ(rules_out_ptr[0], "rule1");
+
+  EXPECT_EQ(session_state->is_static_rule_installed("rule2"), true);
+  EXPECT_EQ(session_state->is_static_rule_installed("rule3"), true);
+  EXPECT_EQ(session_state->is_static_rule_installed("rule_DNE"), false);
+
+  // Test rule removals
+  PolicyRule rule_out;
+  session_state->deactivate_static_rule("rule2");
+  EXPECT_EQ(1, session_state->total_monitored_rules_count());
+  EXPECT_EQ(true, session_state->remove_dynamic_rule("rule1", &rule_out));
+  EXPECT_EQ("m1", rule_out.monitoring_key());
+  EXPECT_EQ(0, session_state->total_monitored_rules_count());
+
+  // basic sanity checks to see it's properly deleted
+  rules_out = {};
+  session_state->get_dynamic_rules().get_rule_ids(rules_out_ptr);
+  EXPECT_EQ(rules_out_ptr.size(), 0);
+
+  rules_out = {};
+  session_state->get_dynamic_rules()
+    .get_rule_ids_for_monitoring_key("m1", rules_out);
+  EXPECT_EQ(0, rules_out.size());
+
+  std::string mkey;
+  // searching for non-existent rule should fail
+  EXPECT_EQ(false, session_state->get_dynamic_rules()
+    .get_monitoring_key_for_rule_id("rule1", &mkey));
+  // deleting an already deleted rule should fail
+  EXPECT_EQ(false, session_state->get_dynamic_rules()
+    .remove_rule("rule1", &rule_out));
+}
+
 TEST_F(SessionStateTest, test_marshal_unmarshal)
 {
   insert_rule(1, "m1", "rule1", STATIC);
+  EXPECT_EQ(session_state->is_static_rule_installed("rule1"), true);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
 
   receive_credit_from_ocs(1, 1024);
@@ -112,6 +200,7 @@ TEST_F(SessionStateTest, test_marshal_unmarshal)
     unmarshaled->get_charging_pool().get_credit(1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(
     unmarshaled->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL), 1024);
+  EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
 }
 
 TEST_F(SessionStateTest, test_insert_credit)

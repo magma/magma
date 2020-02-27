@@ -7,9 +7,9 @@ package main
 import (
 	"context"
 	"os"
-	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -18,8 +18,6 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"go.uber.org/zap"
-	"gocloud.dev/pubsub"
-	"gocloud.dev/pubsub/mempubsub"
 )
 
 type cliFlags struct {
@@ -79,14 +77,11 @@ func main() {
 	ctx = ent.NewContext(ctx, tx.Client())
 
 	// Since the client is already uses transaction we can't have transactions on graphql also
-	topic := mempubsub.NewTopic()
 	r := resolver.New(
 		resolver.Config{
-			Logger: logger,
-			Topic:  topic,
-			Subscribe: func(context.Context) (*pubsub.Subscription, error) {
-				return mempubsub.NewSubscription(topic, time.Second), nil
-			},
+			Logger:     logger,
+			Emitter:    event.NewNopEmitter(),
+			Subscriber: event.NewNopSubscriber(),
 		},
 		resolver.WithTransaction(false),
 	)

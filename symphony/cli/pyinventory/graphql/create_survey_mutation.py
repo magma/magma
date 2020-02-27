@@ -3,6 +3,8 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from gql.gql.datetime_utils import fromisoformat
+from gql.gql.graphql_client import GraphqlClient
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -10,12 +12,7 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
 
-from .datetime_utils import fromisoformat
-
-from .cellular_network_type_enum import CellularNetworkType
-from .file_type_enum import FileType
-from .survey_question_type_enum import SurveyQuestionType
-from .survey_status_enum import SurveyStatus
+from .survey_create_data_input import SurveyCreateData
 
 
 DATETIME_FIELD = field(
@@ -27,110 +24,6 @@ DATETIME_FIELD = field(
         }
     }
 )
-
-
-def enum_field(enum_type):
-    def encode_enum(value):
-        return value.value
-
-    def decode_enum(t, value):
-        return t(value)
-
-    return field(
-        metadata={
-            "dataclasses_json": {
-                "encoder": encode_enum,
-                "decoder": partial(decode_enum, enum_type),
-            }
-        }
-    )
-
-
-
-@dataclass_json
-@dataclass
-class SurveyCreateData:
-    @dataclass_json
-    @dataclass
-    class SurveyQuestionResponse:
-        @dataclass_json
-        @dataclass
-        class FileInput:
-            id: str
-            fileName: str
-            storeKey: str
-            sizeInBytes: Optional[int] = None
-            modificationTime: Optional[int] = None
-            uploadTime: Optional[int] = None
-            fileType: Optional[FileType] = None
-
-        @dataclass_json
-        @dataclass
-        class SurveyWiFiScanData:
-            timestamp: int
-            frequency: int
-            channel: int
-            bssid: str
-            strength: int
-            ssid: Optional[str] = None
-            band: Optional[str] = None
-            channelWidth: Optional[int] = None
-            capabilities: Optional[str] = None
-            latitude: Optional[Number] = None
-            longitude: Optional[Number] = None
-
-        @dataclass_json
-        @dataclass
-        class SurveyCellScanData:
-            networkType: CellularNetworkType = enum_field(CellularNetworkType)
-            signalStrength: int
-            timestamp: Optional[int] = None
-            baseStationID: Optional[str] = None
-            networkID: Optional[str] = None
-            systemID: Optional[str] = None
-            cellID: Optional[str] = None
-            locationAreaCode: Optional[str] = None
-            mobileCountryCode: Optional[str] = None
-            mobileNetworkCode: Optional[str] = None
-            primaryScramblingCode: Optional[str] = None
-            operator: Optional[str] = None
-            arfcn: Optional[int] = None
-            physicalCellID: Optional[str] = None
-            trackingAreaCode: Optional[str] = None
-            timingAdvance: Optional[int] = None
-            earfcn: Optional[int] = None
-            uarfcn: Optional[int] = None
-            latitude: Optional[Number] = None
-            longitude: Optional[Number] = None
-
-        formIndex: int
-        questionText: str
-        questionIndex: int
-        wifiData: List[SurveyWiFiScanData]
-        cellData: List[SurveyCellScanData]
-        formName: Optional[str] = None
-        formDescription: Optional[str] = None
-        questionFormat: Optional[SurveyQuestionType] = None
-        boolData: Optional[bool] = None
-        emailData: Optional[str] = None
-        latitude: Optional[Number] = None
-        longitude: Optional[Number] = None
-        locationAccuracy: Optional[Number] = None
-        altitude: Optional[Number] = None
-        phoneData: Optional[str] = None
-        textData: Optional[str] = None
-        floatData: Optional[Number] = None
-        intData: Optional[int] = None
-        dateData: Optional[int] = None
-        photoData: Optional[FileInput] = None
-
-    name: str
-    completionTimestamp: int
-    locationID: str
-    surveyResponses: List[SurveyQuestionResponse]
-    ownerName: Optional[str] = None
-    creationTimestamp: Optional[int] = None
-    status: Optional[SurveyStatus] = None
 
 
 @dataclass_json
@@ -153,7 +46,7 @@ class CreateSurveyMutation:
 
     @classmethod
     # fmt: off
-    def execute(cls, client, data: SurveyCreateData):
+    def execute(cls, client: GraphqlClient, data: SurveyCreateData):
         # fmt: off
         variables = {"data": data}
         response_text = client.call(cls.__QUERY__, variables=variables)

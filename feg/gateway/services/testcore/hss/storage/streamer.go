@@ -14,6 +14,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
 )
 
 type subscriberListener struct {
@@ -66,4 +67,8 @@ func (listener *subscriberListener) Update(batch *orc8rprotos.DataUpdateBatch) b
 	}
 
 	return true
+}
+
+func (listener *subscriberListener) GetExtraArgs() *any.Any {
+	return nil
 }

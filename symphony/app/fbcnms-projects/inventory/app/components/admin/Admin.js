@@ -23,10 +23,9 @@ import SecuritySettings from '@fbcnms/magmalte/app/components/SecuritySettings';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
 import UsersSettings from '@fbcnms/magmalte/app/components/UsersSettings';
 import {Redirect, Route, Switch} from 'react-router-dom';
-
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -36,7 +35,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function NavItems() {
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
   const {isFeatureEnabled} = useContext(AppContext);
   const auditLogEnabled = isFeatureEnabled('audit_log_view');
 
@@ -65,7 +64,7 @@ function NavItems() {
 
 function NavRoutes() {
   const classes = useStyles();
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
   return (
     <Switch>
       <Route path={relativeUrl('/users')} component={UsersSettings} />

@@ -8,6 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 import re
 
+
 class MockRedis(object):
     """
     MockRedis implements a mock Redis Server using an in-memory dictionary
@@ -123,30 +124,38 @@ class MockRedis(object):
 
 
 class MockRedisPipeline(object):
-    """Mock redis-python pipeline object"""
+    """Mock redis-python pipeline object. """
 
     def __init__(self, redis):
         """Initialize the object."""
-
         self.redis = redis
+        self.pipe_res = []
 
     def execute(self):
-        """ no-op."""
-        pass
+        """ Mock execute."""
+        return self.pipe_res
 
     def delete(self, key):
         """ Mock delete."""
-
-        self.redis.delete(key)
-        return self
+        del_res = self.redis.delete(key)
+        self.pipe_res.append(del_res)
+        return del_res
 
     def hget(self, hashkey, key):
-        """Mock srem."""
-        return self.redis.hget(hashkey, key)
+        """Mock hget."""
+        hget_res = self.redis.hget(hashkey, key)
+        self.pipe_res.append(hget_res)
+        return hget_res
 
     def hdel(self, hashkey, key):
         """ Mock hdel"""
-        return self.redis.hdel(hashkey, key)
+        hdel_res = self.redis.hdel(hashkey, key)
+        self.pipe_res.append(hdel_res)
+        return hdel_res
+
+    def multi(self):
+        """ Mock multi """
+        self.pipe_res.clear()
 
 
 class MockRedisLock(object):

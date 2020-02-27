@@ -3,6 +3,8 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from gql.gql.datetime_utils import fromisoformat
+from gql.gql.graphql_client import GraphqlClient
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -10,9 +12,9 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
 
-from .datetime_utils import fromisoformat
-
 from .service_endpoint_role_enum import ServiceEndpointRole
+
+from .add_service_endpoint_input import AddServiceEndpointInput
 
 
 DATETIME_FIELD = field(
@@ -42,14 +44,6 @@ def enum_field(enum_type):
         }
     )
 
-
-
-@dataclass_json
-@dataclass
-class AddServiceEndpointInput:
-    id: str
-    portId: str
-    role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
 
 
 @dataclass_json
@@ -125,7 +119,7 @@ class AddServiceEndpointMutation:
 
     @classmethod
     # fmt: off
-    def execute(cls, client, input: AddServiceEndpointInput):
+    def execute(cls, client: GraphqlClient, input: AddServiceEndpointInput):
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

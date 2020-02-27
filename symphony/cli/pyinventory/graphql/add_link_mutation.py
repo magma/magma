@@ -3,6 +3,8 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from gql.gql.datetime_utils import fromisoformat
+from gql.gql.graphql_client import GraphqlClient
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -10,7 +12,7 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
 
-from .datetime_utils import fromisoformat
+from .add_link_input import AddLinkInput
 
 
 DATETIME_FIELD = field(
@@ -22,40 +24,6 @@ DATETIME_FIELD = field(
         }
     }
 )
-
-
-@dataclass_json
-@dataclass
-class AddLinkInput:
-    @dataclass_json
-    @dataclass
-    class LinkSide:
-        equipment: str
-        port: str
-
-    @dataclass_json
-    @dataclass
-    class PropertyInput:
-        propertyTypeID: str
-        id: Optional[str] = None
-        stringValue: Optional[str] = None
-        intValue: Optional[int] = None
-        booleanValue: Optional[bool] = None
-        floatValue: Optional[Number] = None
-        latitudeValue: Optional[Number] = None
-        longitudeValue: Optional[Number] = None
-        rangeFromValue: Optional[Number] = None
-        rangeToValue: Optional[Number] = None
-        equipmentIDValue: Optional[str] = None
-        locationIDValue: Optional[str] = None
-        serviceIDValue: Optional[str] = None
-        isEditable: Optional[bool] = None
-        isInstanceProperty: Optional[bool] = None
-
-    sides: List[LinkSide]
-    properties: List[PropertyInput]
-    serviceIds: List[str]
-    workOrder: Optional[str] = None
 
 
 @dataclass_json
@@ -85,7 +53,7 @@ class AddLinkMutation:
 
     @classmethod
     # fmt: off
-    def execute(cls, client, input: AddLinkInput):
+    def execute(cls, client: GraphqlClient, input: AddLinkInput):
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

@@ -434,11 +434,14 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
 {
   OAILOG_FUNC_IN(LOG_PGW_APP);
   MessageDef *message_p = NULL;
+  uint32_t i = 0;
   uint32_t rc = RETURNok;
   hash_table_ts_t *hashtblP = NULL;
+  uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
+  hash_node_t *node = NULL;
   itti_s5_nw_init_actv_bearer_request_t *itti_s5_actv_bearer_req = NULL;
-  bool is_teid_found = false;
+  bool is_imsi_found = false;
   bool is_lbi_found = false;
 
   OAILOG_INFO(
@@ -481,37 +484,47 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
 
-  spgw_imsi_map_t* imsi_map = get_spgw_imsi_map();
-  uint64_t local_teid;
-  hashtable_uint64_ts_get(
-    imsi_map->imsi_teid5_htbl, (const hash_key_t) imsi64, &local_teid);
-  OAILOG_DEBUG(
-    LOG_SPGW_APP,
-    "Got imsi" IMSI_64_FMT " with local_teid %lu",
-    imsi64,
-    local_teid);
-
-  hashtable_ts_get(
-    hashtblP, (const hash_key_t) local_teid, (void**) &spgw_ctxt_p);
-  if (spgw_ctxt_p != NULL) {
-    is_teid_found = true;
-    if (
-      spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
-        .default_bearer == bearer_req_p->lbi) {
-      is_lbi_found = true;
-      itti_s5_actv_bearer_req->lbi = bearer_req_p->lbi;
-      itti_s5_actv_bearer_req->mme_teid_S11 =
-        spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
-      itti_s5_actv_bearer_req->s_gw_teid_S11_S4 =
-        spgw_ctxt_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4;
+  // Fetch S11 MME TEID using IMSI and LBI
+  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
+    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
+    if (hashtblP->nodes[i] != NULL) {
+      node = hashtblP->nodes[i];
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+    while (node) {
+      num_elements++;
+      hashtable_ts_get(
+        hashtblP, (const hash_key_t) node->key, (void **) &spgw_ctxt_p);
+      if (spgw_ctxt_p != NULL) {
+        if (!strncmp(
+          (const char *)
+            spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
+          (const char *) bearer_req_p->imsi,
+          strlen((const char *) bearer_req_p->imsi))) {
+          is_imsi_found = true;
+          if (
+            spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
+              .default_bearer == bearer_req_p->lbi) {
+            is_lbi_found = true;
+            itti_s5_actv_bearer_req->lbi = bearer_req_p->lbi;
+            itti_s5_actv_bearer_req->mme_teid_S11 =
+              spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
+            itti_s5_actv_bearer_req->s_gw_teid_S11_S4 =
+              spgw_ctxt_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4;
+            break;
+          }
+        }
+      }
+      node = node->next;
+    }
+    i++;
   }
 
-  if ((!is_teid_found) || (!is_lbi_found)) {
+  if ((!is_imsi_found) || (!is_lbi_found)) {
     OAILOG_INFO(
       LOG_PGW_APP,
-      "is_teid_found (%d), is_lbi_found (%d)\n",
-      is_teid_found, is_lbi_found);
+      "is_imsi_found (%d), is_lbi_found (%d)\n",
+      is_imsi_found, is_lbi_found);
     OAILOG_ERROR(
       LOG_PGW_APP,
       "Sending dedicated_bearer_actv_rsp with REQUEST_REJECTED "
@@ -549,12 +562,13 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
   MessageDef *message_p = NULL;
-  uint32_t itrn = 0;
   hash_table_ts_t *hashtblP = NULL;
+  uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
+  hash_node_t *node = NULL;
   itti_s5_nw_init_deactv_bearer_request_t *itti_s5_deactv_ded_bearer_req = NULL;
   bool is_lbi_found = false;
-  bool is_teid_found = false;
+  bool is_imsi_found = false;
   bool is_ebi_found = false;
   ebi_t ebi_to_be_deactivated[BEARERS_PER_UE] = {0};
   uint32_t no_of_bearers_to_be_deact = 0;
@@ -572,43 +586,55 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
 
-  spgw_imsi_map_t* imsi_map = get_spgw_imsi_map();
-  uint64_t local_teid;
-  hashtable_uint64_ts_get(
-    imsi_map->imsi_teid5_htbl, (const hash_key_t) imsi64, &local_teid);
-  OAILOG_DEBUG(
-    LOG_SPGW_APP, "Got imsi" IMSI_64_FMT " with teid5 %lu", imsi64, local_teid);
-  hashtable_ts_get(
-    hashtblP, (const hash_key_t) local_teid, (void**) &spgw_ctxt_p);
-
   // Check if valid LBI and EBI recvd
   /* For multi PDN, same IMSI can have multiple sessions, which means there
    * will be multiple entries for different sessions with the same IMSI. Hence
    * even though IMSI is found search the entire list for the LBI
    */
-  if (spgw_ctxt_p != NULL) {
-    is_teid_found = true;
-    s11_mme_teid = spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
-    if (
-      (bearer_req_p->lbi != 0) &&
-      (bearer_req_p->lbi == spgw_ctxt_p->sgw_eps_bearer_context_information
-                              .pdn_connection.default_bearer)) {
-      is_lbi_found = true;
-      // Check if the received EBI is valid
-      for (itrn = 0; itrn < bearer_req_p->no_of_bearers; itrn++) {
-        if (sgw_cm_get_eps_bearer_entry(
-              &spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection,
-              bearer_req_p->ebi[itrn])) {
-          is_ebi_found = true;
-          ebi_to_be_deactivated[no_of_bearers_to_be_deact] =
-            bearer_req_p->ebi[itrn];
-          no_of_bearers_to_be_deact++;
-        } else {
-          invalid_bearer_id[no_of_bearers_rej] = bearer_req_p->ebi[itrn];
-          no_of_bearers_rej++;
+  uint32_t i = 0;
+  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
+         (!is_lbi_found)) {
+    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
+    if (hashtblP->nodes[i] != NULL) {
+      node = hashtblP->nodes[i];
+      spgw_ctxt_p = node->data;
+      num_elements++;
+      if (spgw_ctxt_p != NULL) {
+        if (!strcmp(
+              (const char*)
+                spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
+              (const char*) bearer_req_p->imsi)) {
+          is_imsi_found = true;
+          s11_mme_teid =
+            spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
+          if (
+            (bearer_req_p->lbi != 0) &&
+            (bearer_req_p->lbi ==
+             spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
+               .default_bearer)) {
+            is_lbi_found = true;
+            // Check if the received EBI is valid
+            for (uint32_t itrn = 0; itrn < bearer_req_p->no_of_bearers;
+                 itrn++) {
+              if (sgw_cm_get_eps_bearer_entry(
+                    &spgw_ctxt_p->sgw_eps_bearer_context_information
+                       .pdn_connection,
+                    bearer_req_p->ebi[itrn])) {
+                is_ebi_found = true;
+                ebi_to_be_deactivated[no_of_bearers_to_be_deact] =
+                  bearer_req_p->ebi[itrn];
+                no_of_bearers_to_be_deact++;
+              } else {
+                invalid_bearer_id[no_of_bearers_rej] = bearer_req_p->ebi[itrn];
+                no_of_bearers_rej++;
+              }
+            }
+          }
         }
       }
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+    i++;
   }
 
   /* Send reject to NW if we did not find ebi/lbi/imsi.
@@ -617,12 +643,12 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
    * Proceed with deactivation by sending s5_nw_init_deactv_bearer_request to
    * SGW for valid EBIs
    */
-  if ((!is_ebi_found) || (!is_lbi_found) || (!is_teid_found) ||
+  if ((!is_ebi_found) || (!is_lbi_found) || (!is_imsi_found) ||
     (no_of_bearers_rej > 0)) {
     OAILOG_INFO(
       LOG_PGW_APP,
       "is_imsi_found (%d), is_lbi_found (%d), is_ebi_found (%d) \n",
-      is_teid_found, is_lbi_found, is_ebi_found);
+      is_imsi_found, is_lbi_found, is_ebi_found);
     OAILOG_ERROR(
       LOG_PGW_APP,
       "Sending dedicated bearer deactivation reject to NW\n");

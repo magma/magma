@@ -20,9 +20,8 @@ from unittest.mock import MagicMock
 from ryu.lib import hub
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupFlowsRequest, \
+from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupPolicyRequest, \
     UpdateSubscriberQuotaStateRequest
-from magma.pipelined.app.meter_stats import UsageRecord, MeterStatsController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.tests.app.exceptions import BadConfigError, \
@@ -217,18 +216,23 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
             )
 
 
-def setup_controller(controller, setup_flow_reqest, sleep_time=1, retries=5):
+def setup_controller(controller, setup_req, sleep_time: float = 1,
+                     retries: int = 5):
     for _ in range(0, retries):
-        res = controller.setup_flows(setup_flow_reqest)
-        if res.result == SetupFlowsResult.SUCCESS:
-            return SetupFlowsResult.SUCCESS
+        if controller.is_ready_for_restart_recovery(
+                setup_req.epoch) == SetupFlowsResult.SUCCESS:
+            res = controller.handle_restart(setup_req.requests)
+            if res.result == SetupFlowsResult.SUCCESS:
+                return SetupFlowsResult.SUCCESS
         hub.sleep(sleep_time)
     return res.result
 
 
 def fake_controller_setup(enf_controller, enf_stats_controller=None,
                           startup_flow_controller=None,
-                          setup_flows_request=None):
+                          check_quota_controller=None,
+                          setup_flows_request=None,
+                          check_quota_request=None):
     """
     Immitate contoller restart. This is done by manually setting contoller init
     fields back to False, and restarting the startup stats controller(optional)
@@ -237,9 +241,8 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
     flag is not set fail the test case.
     """
     if setup_flows_request is None:
-        setup_flows_request = SetupFlowsRequest(
+        setup_flows_request = SetupPolicyRequest(
             requests=[], epoch=global_epoch,
-            quota_updates=UpdateSubscriberQuotaStateRequest(updates=[])
         )
     enf_controller.init_finished = False
     if startup_flow_controller:
@@ -257,6 +260,15 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
         enf_stats_controller.init_finished = False
         TestCase().assertEqual(setup_controller(
             enf_stats_controller, setup_flows_request),
+            SetupFlowsResult.SUCCESS)
+    if check_quota_controller:
+        check_quota_controller.init_finished = False
+        if check_quota_request is None:
+            check_quota_request = UpdateSubscriberQuotaStateRequest(
+                requests=[], epoch=global_epoch,
+            )
+        TestCase().assertEqual(setup_controller(
+            check_quota_controller, check_quota_request),
             SetupFlowsResult.SUCCESS)
 
 
@@ -295,42 +307,6 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
             )
 
 
-def wait_for_meter_stats(controller: MeterStatsController,
-                         target_usage: Dict[str, UsageRecord],
-                         wait_time: int = 1,
-                         max_sleep_time: int = 10):
-    """
-    Wait until meter stats has reported usage that matches the given
-    target usage.
-
-    Args:
-        controller: MeterStatsController reference with `_sync_stats` mocked
-        target_usage: dictionary of sid to target usage record
-        wait_time: wait time between checking `_sync_stats` calls
-        max_sleep_time: max wait time
-
-    Returns when waiting is done or max_sleep_time exceeded
-
-    Throws a WaitTimeExceeded Exception if max_sleep_time exceeded
-    """
-    sleep_time = 0
-    while sleep_time < max_sleep_time:
-        hub.sleep(wait_time)
-        usage = get_meter_stats(controller)
-        all_records_match = all(
-            usage.get(sid, UsageRecord()).bytes_rx
-            == target_usage[sid].bytes_rx
-            and usage.get(sid, UsageRecord()).bytes_tx
-            == target_usage[sid].bytes_tx for sid in usage)
-        if all_records_match:
-            return
-        sleep_time += wait_time
-    raise WaitTimeExceeded(
-        "Waiting on enforcement stats exceeded the max({}) sleep time".format(
-            max_sleep_time)
-    )
-
-
 def get_enforcement_stats(enforcement_stats):
     """
     Parses multiple _report_usage(delta_usage) from EnforcementStatsController
@@ -349,34 +325,6 @@ def get_enforcement_stats(enforcement_stats):
             else:
                 stats[rule].bytes_rx = max(stats[rule].bytes_rx, info.bytes_rx)
                 stats[rule].bytes_tx = max(stats[rule].bytes_tx, info.bytes_tx)
-    return stats
-
-
-def get_meter_stats(controller: MeterStatsController) \
-        -> Dict[str, UsageRecord]:
-    """
-    Parses all `_sync_stats` calls from MeterStatsController and returns a
-    dictionary of UsageRecord with the maximum bytes. This is done by checking
-    the mocked MeterStatsController `_sync_stats` method call arguments.
-
-    Args:
-        controller: MeterStatsController reference with `_sync_stats` mocked
-
-    Returns:
-        stats: sid to UsageRecord dictionary with the maximum bytes for each
-            subscriber
-
-    """
-    stats = {}  # type: Dict[str, UsageRecord]
-    for call in controller._sync_stats.call_args_list:
-        for (sid, usage_record) in call[0][0].items():
-            if sid not in stats:
-                stats[sid] = usage_record
-            else:
-                stats[sid].bytes_rx = max(stats[sid].bytes_rx,
-                                          usage_record.bytes_rx)
-                stats[sid].bytes_tx = max(stats[sid].bytes_tx,
-                                          usage_record.bytes_tx)
     return stats
 
 

@@ -14,7 +14,6 @@ import type {
 } from '../../mutations/__generated__/MarkSiteSurveyNeededMutation.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
@@ -22,14 +21,10 @@ import MarkSiteSurveyNeededMutation from '../../mutations/MarkSiteSurveyNeededMu
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {withStyles} from '@material-ui/core/styles';
-
-const styles = _theme => ({});
 
 type Props = {
   location: {id: string, siteSurveyNeeded: boolean},
-} & WithAlert &
-  WithStyles<typeof styles>;
+} & WithAlert;
 
 class RequestSiteSurveyLocationButton extends React.Component<Props> {
   render() {
@@ -69,4 +64,4 @@ class RequestSiteSurveyLocationButton extends React.Component<Props> {
   };
 }
 
-export default withStyles(styles)(withAlert(RequestSiteSurveyLocationButton));
+export default withAlert(RequestSiteSurveyLocationButton);

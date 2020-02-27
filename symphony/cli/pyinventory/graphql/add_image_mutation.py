@@ -3,6 +3,8 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from gql.gql.datetime_utils import fromisoformat
+from gql.gql.graphql_client import GraphqlClient
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -10,9 +12,7 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
 
-from .datetime_utils import fromisoformat
-
-from .image_entity_enum import ImageEntity
+from .add_image_input import AddImageInput
 
 
 DATETIME_FIELD = field(
@@ -24,37 +24,6 @@ DATETIME_FIELD = field(
         }
     }
 )
-
-
-def enum_field(enum_type):
-    def encode_enum(value):
-        return value.value
-
-    def decode_enum(t, value):
-        return t(value)
-
-    return field(
-        metadata={
-            "dataclasses_json": {
-                "encoder": encode_enum,
-                "decoder": partial(decode_enum, enum_type),
-            }
-        }
-    )
-
-
-
-@dataclass_json
-@dataclass
-class AddImageInput:
-    entityType: ImageEntity = enum_field(ImageEntity)
-    entityId: str
-    imgKey: str
-    fileName: str
-    fileSize: int
-    modified: datetime = DATETIME_FIELD
-    contentType: str
-    category: Optional[str] = None
 
 
 @dataclass_json
@@ -86,7 +55,7 @@ class AddImageMutation:
 
     @classmethod
     # fmt: off
-    def execute(cls, client, input: AddImageInput):
+    def execute(cls, client: GraphqlClient, input: AddImageInput):
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

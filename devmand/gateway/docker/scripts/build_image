@@ -2,7 +2,9 @@
 set -e
 
 dir=$1
-pkg=$2
+shift
+pkg=$1
+shift
 
 bi_start=$(date +%s)
 
@@ -26,7 +28,7 @@ bi_start=$(date +%s)
          -e "s!%%VERSION%%!${version}!g" \
          -e "s!%%DOCKER_REGISTRY%%!${docker_registry}!g" \
          "${pkg}/Dockerfile" \
-           | docker build -f - --tag "${tag}" "${context}"
+           | docker build -f - --tag "${tag}" "${context}" "$@"
 )
 
 bi_end=$(date +%s)

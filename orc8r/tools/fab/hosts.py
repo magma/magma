@@ -53,6 +53,7 @@ def ansible_setup(hoststr, ansible_group, playbook,
                     Defaults to 'true'
     """
     env.hosts = [hoststr]
+    env.disable_known_hosts = False
     # Provision the gateway host
     (user, ip, port) = split_hoststring(hoststr)
 

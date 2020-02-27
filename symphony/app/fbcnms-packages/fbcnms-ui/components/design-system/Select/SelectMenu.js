@@ -35,6 +35,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 export type OptionProps<TValue> = {|
+  key: string,
   label: React.Node,
   searchTerm?: string,
   value: TValue,
@@ -86,6 +87,7 @@ const SelectMenu = <TValue>({
       {options
         .map(option => {
           const {
+            key,
             label,
             value,
             ignorePermissions,
@@ -94,6 +96,7 @@ const SelectMenu = <TValue>({
           } = option;
           return (
             <SelectMenuItem
+              key={key}
               label={label}
               value={value}
               className={className}

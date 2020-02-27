@@ -46,10 +46,12 @@ const Popover = () => {
 
 const INITIAL_OPTIONS = [
   {
+    key: 'option_1',
     label: 'Option 1',
     value: 'wow1',
   },
   {
+    key: 'option_2',
     label: 'Option 2',
     value: 'wow2',
   },

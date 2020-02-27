@@ -10,3 +10,7 @@
 log_level: INFO
 fluent_bit_port: 5170
 tcp_timeout: 5
+event_registry:
+  mock_subscriber_event:
+    module: orc8r
+    filename: mock_event_definitions.v1.yml

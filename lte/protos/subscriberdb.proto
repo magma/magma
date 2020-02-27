@@ -250,16 +250,3 @@ service SubscriberDB {
   rpc ListApns (magma.orc8r.Void) returns (ApnSet) {}
 
 }
-
-// --------------------------------------------------------------------------
-// SubscriberDB storage for eps_authentication service
-// --------------------------------------------------------------------------
-message SubscriberLookup {
-  magma.orc8r.NetworkID network_id = 1;
-
-  SubscriberID sid = 2;
-}
-
-message GetAllSubscriberDataResponse {
-  repeated SubscriberData subscribers = 1;
-}

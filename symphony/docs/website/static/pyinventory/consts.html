@@ -59,6 +59,28 @@
 </dd>
 </dl>
 </dd>
+<dt id="pyinventory.consts.DataTypeName"><code class="flex name class">
+<span>class <span class="ident">DataTypeName</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>DataTypeName(data_type, graphql_field_name)</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.tuple</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pyinventory.consts.DataTypeName.data_type"><code class="name">var <span class="ident">data_type</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 0</p></section>
+</dd>
+<dt id="pyinventory.consts.DataTypeName.graphql_field_name"><code class="name">var <span class="ident">graphql_field_name</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 1</p></section>
+</dd>
+</dl>
+</dd>
 <dt id="pyinventory.consts.Document"><code class="flex name class">
 <span>class <span class="ident">Document</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -138,7 +160,7 @@
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortType(id, name)</p></section>
+<section class="desc"><p>EquipmentPortType(id, name, properties, link_properties)</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
@@ -149,9 +171,17 @@
 <dd>
 <section class="desc"><p>Alias for field number 0</p></section>
 </dd>
+<dt id="pyinventory.consts.EquipmentPortType.link_properties"><code class="name">var <span class="ident">link_properties</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 3</p></section>
+</dd>
 <dt id="pyinventory.consts.EquipmentPortType.name"><code class="name">var <span class="ident">name</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 1</p></section>
+</dd>
+<dt id="pyinventory.consts.EquipmentPortType.properties"><code class="name">var <span class="ident">properties</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 2</p></section>
 </dd>
 </dl>
 </dd>
@@ -190,36 +220,6 @@
 <dt id="pyinventory.consts.EquipmentType.propertyTypes"><code class="name">var <span class="ident">propertyTypes</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 3</p></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.consts.ImageEntity"><code class="flex name class">
-<span>class <span class="ident">ImageEntity</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.consts.ImageEntity.EQUIPMENT"><code class="name">var <span class="ident">EQUIPMENT</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.consts.ImageEntity.LOCATION"><code class="name">var <span class="ident">LOCATION</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.consts.ImageEntity.SITE_SURVEY"><code class="name">var <span class="ident">SITE_SURVEY</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.consts.ImageEntity.WORK_ORDER"><code class="name">var <span class="ident">WORK_ORDER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
 </dd>
 </dl>
 </dd>
@@ -305,6 +305,47 @@
 </dd>
 </dl>
 </dd>
+<dt id="pyinventory.consts.PropertyDefinition"><code class="flex name class">
+<span>class <span class="ident">PropertyDefinition</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>property_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>type name</dd>
+<dt><strong><code>property_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>enum["string", "int", "bool", "float", "date", "enum", "range",
+"email", "gps_location", "equipment", "location", "service", "datetime_local"]</dd>
+<dt><strong><code>default_value</code></strong> :&ensp;<code>PropertyValue</code></dt>
+<dd>default property value</dd>
+<dt><strong><code>is_fixed</code></strong> :&ensp;<code>bool</code></dt>
+<dd>fixed value flag</dd>
+</dl></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.tuple</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pyinventory.consts.PropertyDefinition.default_value"><code class="name">var <span class="ident">default_value</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 2</p></section>
+</dd>
+<dt id="pyinventory.consts.PropertyDefinition.is_fixed"><code class="name">var <span class="ident">is_fixed</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 3</p></section>
+</dd>
+<dt id="pyinventory.consts.PropertyDefinition.property_name"><code class="name">var <span class="ident">property_name</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 0</p></section>
+</dd>
+<dt id="pyinventory.consts.PropertyDefinition.property_type"><code class="name">var <span class="ident">property_type</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 1</p></section>
+</dd>
+</dl>
+</dd>
 <dt id="pyinventory.consts.Service"><code class="flex name class">
 <span>class <span class="ident">Service</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -366,28 +407,6 @@
 <dt id="pyinventory.consts.ServiceEndpoint.role"><code class="name">var <span class="ident">role</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 2</p></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.consts.ServiceEndpointRole"><code class="flex name class">
-<span>class <span class="ident">ServiceEndpointRole</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.consts.ServiceEndpointRole.CONSUMER"><code class="name">var <span class="ident">CONSUMER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.consts.ServiceEndpointRole.PROVIDER"><code class="name">var <span class="ident">PROVIDER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
 </dd>
 </dl>
 </dd>
@@ -488,6 +507,13 @@
 </ul>
 </li>
 <li>
+<h4><code><a title="pyinventory.consts.DataTypeName" href="#pyinventory.consts.DataTypeName">DataTypeName</a></code></h4>
+<ul class="">
+<li><code><a title="pyinventory.consts.DataTypeName.data_type" href="#pyinventory.consts.DataTypeName.data_type">data_type</a></code></li>
+<li><code><a title="pyinventory.consts.DataTypeName.graphql_field_name" href="#pyinventory.consts.DataTypeName.graphql_field_name">graphql_field_name</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="pyinventory.consts.Document" href="#pyinventory.consts.Document">Document</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.consts.Document.category" href="#pyinventory.consts.Document.category">category</a></code></li>
@@ -514,7 +540,9 @@
 <h4><code><a title="pyinventory.consts.EquipmentPortType" href="#pyinventory.consts.EquipmentPortType">EquipmentPortType</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.consts.EquipmentPortType.id" href="#pyinventory.consts.EquipmentPortType.id">id</a></code></li>
+<li><code><a title="pyinventory.consts.EquipmentPortType.link_properties" href="#pyinventory.consts.EquipmentPortType.link_properties">link_properties</a></code></li>
 <li><code><a title="pyinventory.consts.EquipmentPortType.name" href="#pyinventory.consts.EquipmentPortType.name">name</a></code></li>
+<li><code><a title="pyinventory.consts.EquipmentPortType.properties" href="#pyinventory.consts.EquipmentPortType.properties">properties</a></code></li>
 </ul>
 </li>
 <li>
@@ -526,15 +554,6 @@
 <li><code><a title="pyinventory.consts.EquipmentType.portDefinitions" href="#pyinventory.consts.EquipmentType.portDefinitions">portDefinitions</a></code></li>
 <li><code><a title="pyinventory.consts.EquipmentType.positionDefinitions" href="#pyinventory.consts.EquipmentType.positionDefinitions">positionDefinitions</a></code></li>
 <li><code><a title="pyinventory.consts.EquipmentType.propertyTypes" href="#pyinventory.consts.EquipmentType.propertyTypes">propertyTypes</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.consts.ImageEntity" href="#pyinventory.consts.ImageEntity">ImageEntity</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.consts.ImageEntity.EQUIPMENT" href="#pyinventory.consts.ImageEntity.EQUIPMENT">EQUIPMENT</a></code></li>
-<li><code><a title="pyinventory.consts.ImageEntity.LOCATION" href="#pyinventory.consts.ImageEntity.LOCATION">LOCATION</a></code></li>
-<li><code><a title="pyinventory.consts.ImageEntity.SITE_SURVEY" href="#pyinventory.consts.ImageEntity.SITE_SURVEY">SITE_SURVEY</a></code></li>
-<li><code><a title="pyinventory.consts.ImageEntity.WORK_ORDER" href="#pyinventory.consts.ImageEntity.WORK_ORDER">WORK_ORDER</a></code></li>
 </ul>
 </li>
 <li>
@@ -563,6 +582,15 @@
 </ul>
 </li>
 <li>
+<h4><code><a title="pyinventory.consts.PropertyDefinition" href="#pyinventory.consts.PropertyDefinition">PropertyDefinition</a></code></h4>
+<ul class="">
+<li><code><a title="pyinventory.consts.PropertyDefinition.default_value" href="#pyinventory.consts.PropertyDefinition.default_value">default_value</a></code></li>
+<li><code><a title="pyinventory.consts.PropertyDefinition.is_fixed" href="#pyinventory.consts.PropertyDefinition.is_fixed">is_fixed</a></code></li>
+<li><code><a title="pyinventory.consts.PropertyDefinition.property_name" href="#pyinventory.consts.PropertyDefinition.property_name">property_name</a></code></li>
+<li><code><a title="pyinventory.consts.PropertyDefinition.property_type" href="#pyinventory.consts.PropertyDefinition.property_type">property_type</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="pyinventory.consts.Service" href="#pyinventory.consts.Service">Service</a></code></h4>
 <ul class="two-column">
 <li><code><a title="pyinventory.consts.Service.customer" href="#pyinventory.consts.Service.customer">customer</a></code></li>
@@ -579,13 +607,6 @@
 <li><code><a title="pyinventory.consts.ServiceEndpoint.id" href="#pyinventory.consts.ServiceEndpoint.id">id</a></code></li>
 <li><code><a title="pyinventory.consts.ServiceEndpoint.port" href="#pyinventory.consts.ServiceEndpoint.port">port</a></code></li>
 <li><code><a title="pyinventory.consts.ServiceEndpoint.role" href="#pyinventory.consts.ServiceEndpoint.role">role</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.consts.ServiceEndpointRole" href="#pyinventory.consts.ServiceEndpointRole">ServiceEndpointRole</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.consts.ServiceEndpointRole.CONSUMER" href="#pyinventory.consts.ServiceEndpointRole.CONSUMER">CONSUMER</a></code></li>
-<li><code><a title="pyinventory.consts.ServiceEndpointRole.PROVIDER" href="#pyinventory.consts.ServiceEndpointRole.PROVIDER">PROVIDER</a></code></li>
 </ul>
 </li>
 <li>

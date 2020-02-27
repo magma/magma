@@ -17,7 +17,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
 )
 
@@ -55,7 +54,7 @@ func (cfgMap *ConfigMap) GetStringParam(key string) (string, error) {
 func (cfgMap *ConfigMap) GetRequiredStringParam(key string) string {
 	str, err := getStringParamImpl(cfgMap, key)
 	if err != nil {
-		glog.Fatalf("Error retrieving %s: %v\n", key, err)
+		log.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return str
 }
@@ -81,7 +80,7 @@ func (cfgMap *ConfigMap) GetIntParam(key string) (int, error) {
 func (cfgMap *ConfigMap) GetRequiredIntParam(key string) int {
 	param, err := getIntParamImpl(cfgMap, key)
 	if err != nil {
-		glog.Fatalf("Error retrieving %s: %v\n", key, err)
+		log.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }
@@ -108,7 +107,7 @@ func (cfgMap *ConfigMap) GetStringArrayParam(key string) ([]string, error) {
 func (cfgMap *ConfigMap) GetRequiredStringArrayParam(key string) []string {
 	param, err := getStringArrayParamImpl(cfgMap, key)
 	if err != nil {
-		glog.Fatalf("Error retrieving %s: %v\n", key, err)
+		log.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }
@@ -122,7 +121,7 @@ func (cfgMap *ConfigMap) GetMapParam(key string) (map[interface{}]interface{}, e
 func (cfgMap *ConfigMap) GetRequiredMapParam(key string) map[interface{}]interface{} {
 	param, err := cfgMap.getMapParamImpl(key)
 	if err != nil {
-		glog.Fatalf("Error retrieving %s: %v\n", key, err)
+		log.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }
@@ -134,12 +133,12 @@ func GetStructuredServiceConfig(moduleName string, serviceName string, out inter
 
 // GetStructuredServiceConfigExt is an extended version of GetStructuredServiceConfig, it allows to pass config
 // directory names
-func GetStructuredServiceConfigExt(
-	moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string, out interface{}) error {
-
+func GetStructuredServiceConfigExt(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string, out interface{}) error {
 	if out == nil {
 		return fmt.Errorf("Structured CFG: Invalid (nil) output parameter")
 	}
+
+	moduleName, serviceName = strings.ToLower(moduleName), strings.ToLower(serviceName)
 	configFileName := getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir)
 	yamlFileData, err := ioutil.ReadFile(configFileName)
 	if err == nil {
@@ -181,6 +180,7 @@ func GetStructuredServiceConfigExt(
 }
 
 func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {
+	moduleName, serviceName = strings.ToLower(moduleName), strings.ToLower(serviceName)
 	configFileName := getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir)
 	config, err := loadYamlFile(configFileName)
 	if err != nil {

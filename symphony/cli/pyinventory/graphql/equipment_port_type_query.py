@@ -3,6 +3,8 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from gql.gql.datetime_utils import fromisoformat
+from gql.gql.graphql_client import GraphqlClient
 from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
@@ -10,7 +12,7 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import dataclass_json
 from marshmallow import fields as marshmallow_fields
 
-from .datetime_utils import fromisoformat
+from .property_kind_enum import PropertyKind
 
 
 DATETIME_FIELD = field(
@@ -24,6 +26,24 @@ DATETIME_FIELD = field(
 )
 
 
+def enum_field(enum_type):
+    def encode_enum(value):
+        return value.value
+
+    def decode_enum(t, value):
+        return t(value)
+
+    return field(
+        metadata={
+            "dataclasses_json": {
+                "encoder": encode_enum,
+                "decoder": partial(decode_enum, enum_type),
+            }
+        }
+    )
+
+
+
 @dataclass_json
 @dataclass
 class EquipmentPortTypeQuery:
@@ -33,6 +53,34 @@ class EquipmentPortTypeQuery:
     ... on EquipmentPortType {
       id
       name
+      propertyTypes {
+        id
+        name
+        type
+        index
+        stringValue
+        intValue
+        booleanValue
+        floatValue
+        latitudeValue
+        longitudeValue
+        isEditable
+        isInstanceProperty
+      }
+      linkPropertyTypes {
+        id
+        name
+        type
+        index
+        stringValue
+        intValue
+        booleanValue
+        floatValue
+        latitudeValue
+        longitudeValue
+        isEditable
+        isInstanceProperty
+      }
     }
   }
 }
@@ -45,8 +93,26 @@ class EquipmentPortTypeQuery:
         @dataclass_json
         @dataclass
         class Node:
+            @dataclass_json
+            @dataclass
+            class PropertyType:
+                id: str
+                name: str
+                type: PropertyKind = enum_field(PropertyKind)
+                index: Optional[int] = None
+                stringValue: Optional[str] = None
+                intValue: Optional[int] = None
+                booleanValue: Optional[bool] = None
+                floatValue: Optional[Number] = None
+                latitudeValue: Optional[Number] = None
+                longitudeValue: Optional[Number] = None
+                isEditable: Optional[bool] = None
+                isInstanceProperty: Optional[bool] = None
+
             id: str
             name: str
+            propertyTypes: List[PropertyType]
+            linkPropertyTypes: List[PropertyType]
 
         port_type: Optional[Node] = None
 
@@ -55,7 +121,7 @@ class EquipmentPortTypeQuery:
 
     @classmethod
     # fmt: off
-    def execute(cls, client, id: str):
+    def execute(cls, client: GraphqlClient, id: str):
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

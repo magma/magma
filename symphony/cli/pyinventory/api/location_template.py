@@ -3,16 +3,16 @@
 
 from typing import Dict, List, Tuple
 
+from ..client import SymphonyClient
 from ..consts import Equipment, Location
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
-from ..graphql_client import GraphqlClient
 from .equipment import copy_equipment, copy_equipment_in_position
 from .link import add_link, get_all_links_and_port_names_of_equipment
 
 
 def _get_one_level_attachments_of_equipment(
-    client: GraphqlClient, equipment: Equipment
+    client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[str, Equipment]]:
     positions = EquipmentPositionsQuery.execute(
         client, id=equipment.id
@@ -29,17 +29,17 @@ def _get_one_level_attachments_of_equipment(
 
 
 def copy_equipment_with_all_attachments(
-    client: GraphqlClient, equipment: Equipment, dest_location: Location
+    client: SymphonyClient, equipment: Equipment, dest_location: Location
 ) -> Dict[Equipment, Equipment]:
     """Copy the equipment to the new location with all its attachments
 
         Args:
-            equipment (client.Equipment object): could be retrieved from the following apis:
+            equipment (pyinventory.consts.Equipment object): could be retrieved from the following apis:
                 * getEquipment
                 * getEquipmentInPosition
                 * addEquipment
                 * addEquipmentToPosition
-            dest_location (client.Location object): retrieved from getLocation or addLocation api.
+            dest_location (pyinventory.consts.Location object): retrieved from getLocation or addLocation api.
 
         Raises: FailedOperationException for internal inventory error
 
@@ -66,7 +66,7 @@ def copy_equipment_with_all_attachments(
 
 
 def apply_location_template_to_location(
-    client: GraphqlClient, template_location: Location, location: Location
+    client: SymphonyClient, template_location: Location, location: Location
 ) -> None:
 
     equipments = LocationEquipmentsQuery.execute(

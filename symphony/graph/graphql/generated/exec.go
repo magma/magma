@@ -639,6 +639,7 @@ type ComplexityRoot struct {
 		PortSearch               func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
 		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
 		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
+		ProjectType              func(childComplexity int, id string) int
 		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		SearchForEntity          func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Service                  func(childComplexity int, id string) int
@@ -719,6 +720,7 @@ type ComplexityRoot struct {
 
 	Subscription struct {
 		WorkOrderAdded func(childComplexity int) int
+		WorkOrderDone  func(childComplexity int) int
 	}
 
 	Survey struct {
@@ -1147,6 +1149,7 @@ type QueryResolver interface {
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id string) (*ent.Node, error)
+	ProjectType(ctx context.Context, id string) (*ent.ProjectType, error)
 	ProjectTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectTypeConnection, error)
 	Customers(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.CustomerConnection, error)
 	ActionsRules(ctx context.Context) (*models.ActionsRulesSearchResult, error)
@@ -1175,6 +1178,7 @@ type ServiceTypeResolver interface {
 }
 type SubscriptionResolver interface {
 	WorkOrderAdded(ctx context.Context) (<-chan *ent.WorkOrder, error)
+	WorkOrderDone(ctx context.Context) (<-chan *ent.WorkOrder, error)
 }
 type SurveyResolver interface {
 	CreationTimestamp(ctx context.Context, obj *ent.Survey) (*int, error)
@@ -4275,6 +4279,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ProjectSearch(childComplexity, args["filters"].([]*models.ProjectFilterInput), args["limit"].(*int)), true
 
+	case "Query.projectType":
+		if e.complexity.Query.ProjectType == nil {
+			break
+		}
+
+		args, err := ec.field_Query_projectType_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ProjectType(childComplexity, args["id"].(string)), true
+
 	case "Query.projectTypes":
 		if e.complexity.Query.ProjectTypes == nil {
 			break
@@ -4679,6 +4695,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Subscription.WorkOrderAdded(childComplexity), true
+
+	case "Subscription.workOrderDone":
+		if e.complexity.Subscription.WorkOrderDone == nil {
+			break
+		}
+
+		return e.complexity.Subscription.WorkOrderDone(childComplexity), true
 
 	case "Survey.completionTimestamp":
 		if e.complexity.Survey.CompletionTimestamp == nil {
@@ -6509,6 +6532,8 @@ enum PropertyEntity {
   LINK
   PORT
   LOCATION
+  WORK_ORDER
+  PROJECT
 }
 
 enum CommentEntity {
@@ -7547,8 +7572,10 @@ type Query {
     id: ID!
   ): Node
 
-  location(id: ID!): Location @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
-  locationType(id: ID!): LocationType @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+  location(id: ID!): Location
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+  locationType(id: ID!): LocationType
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   locationTypes(
     after: Cursor
     first: Int
@@ -7565,9 +7592,10 @@ type Query {
     before: Cursor
     last: Int
   ): LocationConnection
-  equipment(id: ID!): Equipment @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+  equipment(id: ID!): Equipment
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -7586,15 +7614,18 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
-  service(id: ID!): Service @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
-  serviceType(id: ID!): ServiceType @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+  service(id: ID!): Service
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+  serviceType(id: ID!): ServiceType
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   serviceTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ServiceTypeConnection
-  workOrder(id: ID!): WorkOrder @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+  workOrder(id: ID!): WorkOrder
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   workOrders(
     after: Cursor
     first: Int
@@ -7650,6 +7681,8 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
+  projectType(id: ID!): ProjectType
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   projectTypes(
     after: Cursor
     first: Int
@@ -7839,6 +7872,7 @@ type Mutation {
 
 type Subscription {
   workOrderAdded: WorkOrder
+  workOrderDone: WorkOrder
 }
 `},
 )
@@ -9544,6 +9578,20 @@ func (ec *executionContext) field_Query_projectSearch_args(ctx context.Context, 
 		}
 	}
 	args["limit"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_projectType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -24098,6 +24146,47 @@ func (ec *executionContext) _Query_vertex(ctx context.Context, field graphql.Col
 	return ec.marshalOVertex2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNode(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_projectType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_projectType_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ProjectType(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProjectType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOProjectType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectType(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_projectTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -25694,6 +25783,49 @@ func (ec *executionContext) _Subscription_workOrderAdded(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Subscription().WorkOrderAdded(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan *ent.WorkOrder)
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
+}
+
+func (ec *executionContext) _Subscription_workOrderDone(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Subscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().WorkOrderDone(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -39081,6 +39213,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_vertex(ctx, field)
 				return res
 			})
+		case "projectType":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_projectType(ctx, field)
+				return res
+			})
 		case "projectTypes":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -39655,6 +39798,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	switch fields[0].Name {
 	case "workOrderAdded":
 		return ec._Subscription_workOrderAdded(ctx, fields[0])
+	case "workOrderDone":
+		return ec._Subscription_workOrderDone(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}

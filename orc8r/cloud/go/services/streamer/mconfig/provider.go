@@ -10,7 +10,9 @@ package mconfig
 
 import (
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/streamer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -26,7 +28,7 @@ func GetProvider() providers.StreamProvider {
 type ConfigProvider struct{}
 
 func (provider *ConfigProvider) GetStreamName() string {
-	return "configs"
+	return definitions.MconfigStreamName
 }
 
 func (provider *ConfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
@@ -53,10 +55,10 @@ func (provider *ConfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any)
 func mconfigToUpdate(configs *protos.GatewayConfigs, key string, digest string) ([]*protos.DataUpdate, error) {
 	// Early/empty return if gateway already has config that would be sent here
 	if digest == configs.Metadata.Digest.Md5HexDigest {
-		return []*protos.DataUpdate{}, nil
+		return []*protos.DataUpdate{}, streamer.EAGAIN // do not close the stream, there were no changes in configs
 	}
 
-	marshaledConfig, err := protos.MarshalIntern(configs)
+	marshaledConfig, err := protos.MarshalJSON(configs)
 	if err != nil {
 		return nil, err
 	}

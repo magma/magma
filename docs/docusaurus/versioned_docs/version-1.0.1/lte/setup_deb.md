@@ -24,14 +24,17 @@ satisfies the following requirements:
 
 - Download .iso image from [Debian mirror](http://cdimage.debian.org/mirror/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-netinst.iso)
 - Create bootable usb using etcher [tutorial here](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
+- Connect AGW host to a working internet connection and select this port during the installation process to get an IP using DHCP
 - Boot your AGW host from USB
   (Press F11 to select boot sequence, :warning: This might be different for
   your machine). If you see 2 options to boot from USB, select the non-UEFI
   option.
-- Select “Install” option.
-- Network missing firmeware "No"
+- Select “Install” option
+- Select a language : "English"
+- Select your location 
+- Configure the keyboard : "American English"
 - Primary network interface "enp1s0"
-- Configuration.
+- Configuration
   * Hostname: “magma”
   * Domain name : “”
   * Root password: “magma”
@@ -40,16 +43,17 @@ satisfies the following requirements:
   * Partition disk: "Use entire disk"
   * Select disk to partition: "sda"
   * Partitioning scheme: "All files in one partition"
-  * Only tick ssh server and utilities (untick every other)
-- Connect your SGi interface to the internet and select this port during the
-installation process to get an IP using DHCP.
+  * Configure the package manager and HTTP proxy information: “”
+  * Software selection : Only tick ssh server and utilities (untick every other)
+  * Install the GRUB boot loader on a hard disk : "Yes" and select "/dev/sda"
+  * Finish the installation : "Continue" 
 
 ### 2. Deploy magma on the  AGW_HOST
 
 ```bash
 su
 wget https://raw.githubusercontent.com/facebookincubator/magma/v1.0/lte/gateway/deploy/agw_install.sh
-sh agw_install.sh
+bash agw_install.sh
 ```
 
 The machine will reboot but It's not finished yet, the script is still running in the background.

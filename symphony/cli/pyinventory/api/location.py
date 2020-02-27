@@ -5,25 +5,28 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
+from gql.gql.reporter import FailedOperationException
 
-from .._utils import _get_graphql_properties, deprecated
+from .._utils import deprecated, get_graphql_property_inputs
+from ..client import SymphonyClient
 from ..consts import Document, ImageEntity, Location
 from ..exceptions import (
     LocationCannotBeDeletedWithDependency,
     LocationIsNotUniqueException,
     LocationNotFoundException,
 )
-from ..graphql.add_location_mutation import AddLocationInput, AddLocationMutation
-from ..graphql.edit_location_mutation import EditLocationInput, EditLocationMutation
+from ..graphql.add_location_input import AddLocationInput
+from ..graphql.add_location_mutation import AddLocationMutation
+from ..graphql.edit_location_input import EditLocationInput
+from ..graphql.edit_location_mutation import EditLocationMutation
 from ..graphql.location_children_query import LocationChildrenQuery
 from ..graphql.location_deps_query import LocationDepsQuery
 from ..graphql.location_details_query import LocationDetailsQuery
 from ..graphql.location_documents_query import LocationDocumentsQuery
 from ..graphql.move_location_mutation import MoveLocationMutation
+from ..graphql.property_input import PropertyInput
 from ..graphql.remove_location_mutation import RemoveLocationMutation
 from ..graphql.search_query import SearchQuery
-from ..graphql_client import GraphqlClient
-from ..reporter import FailedOperationException
 
 
 ADD_LOCATION_MUTATION_NAME = "addLocation"
@@ -32,7 +35,7 @@ MOVE_LOCATION_MUTATION_NAME = "moveLocation"
 
 
 def add_location(
-    client: GraphqlClient,
+    client: SymphonyClient,
     location_hirerchy: List[Tuple[str, str]],
     properties_dict: Dict[str, Any],
     lat: Optional[float] = None,
@@ -46,41 +49,42 @@ def add_location(
         If a location with his name in this place already exists the existing location is returned
 
         Args:
-            location_hirerchy (List[Tuple[str, str]]):
-                An hirerchy of locations.
-                the first str is location type name
-                the second str is location name
+            location_hirerchy (List[Tuple[str, str]]): An hirerchy of locations.
+                The first str is location type name. The second str is location name
             properties_dict: dict of property name to property value. the property value should match
                             the property type. Otherwise exception is raised
             lat (float): latitude
             long (float): longitude
-            external id (str): ID from external system
+            externalID (str): ID from external system
 
-        Returns: client.Location object
+        Returns:
+            pyinventory.consts.Location object
 
-        Raises: LocationIsNotUniqueException if there is two possible locations
-                    inside the chain and it is not clear where to create or
-                    what to return
-                FailedOperationException for internal inventory error
+        Raises:
+            LocationIsNotUniqueException: if there is two possible locations
+                inside the chain and it is not clear where to create or what to return
+            FailedOperationException: for internal inventory error
 
         Example:
-                location = client.add_location(
-                    [
-                        ('Country', 'England'),
-                        ('City', 'Milton Keynes'),
-                        ('Site', 'Bletchley Park')
-                    ],
-                    {
-                        'Date Property ': date.today(),
-                        'Lat/Lng Property: ': (-1.23,9.232),
-                        'E-mail Property ': "user@fb.com",
-                        'Number Property ': 11,
-                        'String Property ': "aa",
-                        'Float Property': 1.23
-                    },
-                    -11.32,
-                    98.32,
-                    None)
+        ```
+        location = client.add_location(
+            [
+                ('Country', 'England'),
+                ('City', 'Milton Keynes'),
+                ('Site', 'Bletchley Park')
+            ],
+            {
+                'Date Property ': date.today(),
+                'Lat/Lng Property: ': (-1.23,9.232),
+                'E-mail Property ': "user@fb.com",
+                'Number Property ': 11,
+                'String Property ': "aa",
+                'Float Property': 1.23
+            },
+            -11.32,
+            98.32,
+            None)
+        ```
     """
 
     last_location = None
@@ -94,7 +98,7 @@ def add_location(
         long_val = None
         if i == len(location_hirerchy) - 1:
             property_types = client.locationTypes[location_type].propertyTypes
-            properties = _get_graphql_properties(property_types, properties_dict)
+            properties = get_graphql_property_inputs(property_types, properties_dict)
             lat_val = lat
             long_val = long
 
@@ -223,7 +227,7 @@ def add_location(
 
 
 def get_location(
-    client: GraphqlClient, location_hirerchy: List[Tuple[str, str]]
+    client: SymphonyClient, location_hirerchy: List[Tuple[str, str]]
 ) -> Location:
     """This function returns a location of a specific type with a specific name.
         It can get only the requested location specifiers or the hirerchy leading to it
@@ -233,21 +237,25 @@ def get_location(
                 the first str is location type name
                 the second str is location name
 
-        Returns: client.Location object
+        Returns: pyinventory.consts.Location object
 
         Raises: LocationIsNotUniqueException if there is more than one correct
                 location to return
                 or LocationNotFoundException if no location was found
 
         Example:
-                location = client.getLocation([
-                    ('Country', 'England'),
-                    ('City', 'Milton Keynes'),
-                    ('Site', 'Bletchley Park')
-                ])
-            or
-                location = client.getLocation([('Site', 'Bletchley Park')])
-                this call will fail if there is Bletchley Park in two cities in london
+        ```
+        location = client.get_location([
+            ('Country', 'England'),
+            ('City', 'Milton Keynes'),
+            ('Site', 'Bletchley Park')
+        ])
+        ```
+        or
+        ```
+        # this call will fail if there is Bletchley Park in two cities in london
+        location = client.get_location([('Site', 'Bletchley Park')])
+        ```
     """
 
     last_location = None
@@ -319,20 +327,22 @@ def get_location(
     return last_location
 
 
-def get_location_children(client: GraphqlClient, location_id: str) -> List[Location]:
+def get_location_children(client: SymphonyClient, location_id: str) -> List[Location]:
     """This function returns all locations that are children of the given location
 
         Args:
             location_id (str):
                 id of the parent location
 
-        Returns: List of client.Location objects
+        Returns: List of pyinventory.consts.Location objects
 
         Example:
-                client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
-                client.addLocation([('Country', 'England'), ('City', 'London')], {})
-                locations = client.get_location_children([('Country', 'England')])
-                # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
+        ```
+        client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
+        client.addLocation([('Country', 'England'), ('City', 'London')], {})
+        locations = client.get_location_children([('Country', 'England')])
+        # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
+        ```
     """
     result = LocationChildrenQuery.execute(client, id=location_id)
     locations = result.location.children
@@ -354,7 +364,7 @@ def get_location_children(client: GraphqlClient, location_id: str) -> List[Locat
 
 
 def edit_location(
-    client: GraphqlClient,
+    client: SymphonyClient,
     location: Location,
     new_name: Optional[str] = None,
     new_lat: Optional[float] = None,
@@ -367,7 +377,7 @@ def edit_location(
     location_type = location.locationTypeName
     property_types = client.locationTypes[location_type].propertyTypes
     if new_properties:
-        properties = _get_graphql_properties(property_types, new_properties)
+        properties = get_graphql_property_inputs(property_types, new_properties)
     if new_external_id is None:
         new_external_id = location.externalId
     edit_location_input = EditLocationInput(
@@ -375,14 +385,7 @@ def edit_location(
         name=new_name if new_name is not None else location.name,
         latitude=new_lat if new_lat is not None else location.latitude,
         longitude=new_long if new_long is not None else location.longitude,
-        properties=[
-            from_dict(
-                data_class=EditLocationInput.PropertyInput,
-                data=p,
-                config=Config(strict=True),
-            )
-            for p in properties
-        ],
+        properties=properties,
         externalID=new_external_id,
     )
 
@@ -413,7 +416,7 @@ def edit_location(
         return None
 
 
-def delete_location(client: GraphqlClient, location: Location) -> None:
+def delete_location(client: SymphonyClient, location: Location) -> None:
     deps = LocationDepsQuery.execute(client, id=location.id).location
     if len(deps.files) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "files")
@@ -427,7 +430,7 @@ def delete_location(client: GraphqlClient, location: Location) -> None:
 
 
 def move_location(
-    client: GraphqlClient, location_id: str, new_parent_id: Optional[str]
+    client: SymphonyClient, location_id: str, new_parent_id: Optional[str]
 ) -> Location:
     params = {"locationID": location_id, "parentLocationID": new_parent_id}
     try:
@@ -452,7 +455,7 @@ def move_location(
 
 @deprecated(deprecated_in="2.4.0", deprecated_by="get_location_by_external_id")
 def get_locations_by_external_id(
-    client: GraphqlClient, external_id: str
+    client: SymphonyClient, external_id: str
 ) -> List[Location]:
 
     locations = []
@@ -460,7 +463,7 @@ def get_locations_by_external_id(
     return locations
 
 
-def get_location_by_external_id(client: GraphqlClient, external_id: str) -> Location:
+def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Location:
     locations = SearchQuery.execute(client, name=external_id).searchForEntity.edges
     if not locations:
         raise LocationNotFoundException()
@@ -489,7 +492,9 @@ def get_location_by_external_id(client: GraphqlClient, external_id: str) -> Loca
     )
 
 
-def get_location_documents(client: GraphqlClient, location: Location) -> List[Document]:
+def get_location_documents(
+    client: SymphonyClient, location: Location
+) -> List[Document]:
     result = LocationDocumentsQuery.execute(client, id=location.id)
     files = result.location.files
     return [

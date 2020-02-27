@@ -11,12 +11,14 @@ import (
 	"github.com/facebookincubator/symphony/graph/viewer"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewContext(t *testing.T) {
-	ctx := NewContext(&ent.Client{}, WithTenant("facebook"))
-	v := viewer.FromContext(ctx)
-	require.NotNil(t, v)
-	assert.Equal(t, "facebook", v.Tenant)
+	want := &viewer.Viewer{
+		Tenant: "facebook",
+		User:   "fbuser@fb.com",
+	}
+	ctx := NewContext(&ent.Client{}, WithViewer(want))
+	got := viewer.FromContext(ctx)
+	assert.Equal(t, want, got)
 }

@@ -91,7 +91,7 @@ func GetServiceAddress(service string) (string, error) {
 
 	location, ok := registry.serviceLocations[service]
 	if !ok {
-		return "", fmt.Errorf("Service %s not registered", service)
+		return "", fmt.Errorf("Service '%s' not registered", service)
 	}
 	if location.Port == 0 {
 		return "", fmt.Errorf("Service %s is not available", service)
@@ -106,7 +106,7 @@ func GetServiceProxyAliases(service string) (map[string]int, error) {
 	defer registry.RUnlock()
 	location, ok := registry.serviceLocations[service]
 	if !ok {
-		return nil, fmt.Errorf("Service %s not registered", service)
+		return nil, fmt.Errorf("failed to retrieve proxy alias: Service '%s' not registered", service)
 	}
 	return location.ProxyAliases, nil
 }
@@ -118,7 +118,7 @@ func GetServicePort(service string) (int, error) {
 	defer registry.RUnlock()
 	location, ok := registry.serviceLocations[strings.ToUpper(string(service))]
 	if !ok {
-		return 0, fmt.Errorf("Service %s not registered", service)
+		return 0, fmt.Errorf("failed to get service port: Service '%s' not registered", service)
 	}
 
 	if location.Port == 0 {

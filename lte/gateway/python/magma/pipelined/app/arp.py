@@ -9,11 +9,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 import netifaces
 from collections import namedtuple
 
+from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupUEMacRequest
+
 from magma.common.misc_utils import cidr_to_ip_netmask_tuple
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, load_passthrough
+from magma.pipelined.directoryd_client import get_all_records
 
 from ryu.controller import dpset
 from ryu.lib.packet import ether_types, arp
@@ -58,6 +61,7 @@ class ArpController(MagmaController):
         self.allow_unknown_uplink_arps = kwargs['config']['allow_unknown_arps']
         self.config = self._get_config(kwargs['config'], kwargs['mconfig'])
         self._current_ues = []
+        self._datapath = None
 
     def _get_config(self, config_dict, mconfig):
         def get_virtual_iface_mac(iface):
@@ -77,14 +81,18 @@ class ArpController(MagmaController):
         )
 
     def initialize_on_connect(self, datapath):
-        flows.delete_all_flows_from_table(datapath, self.table_num)
+        self._datapath = datapath
+        self.delete_all_flows(datapath)
+        self._install_default_flows(datapath)
+
+    def _install_default_flows(self, datapath):
         if self.local_eth_addr:
             for ip_block in self.config.ue_ip_blocks:
                 self.add_ue_arp_flows(datapath, ip_block,
                                        self.config.virtual_mac)
             self._install_default_eth_dst_flow(datapath)
         if self.setup_type == 'CWF':
-            self._set_incoming_arp_flows(datapath,
+            self.set_incoming_arp_flows(datapath,
                 self.config.cwf_check_quota_ip, self.config.cwf_bridge_mac)
             if self.allow_unknown_uplink_arps:
                 self._install_allow_incoming_arp_flow(datapath)
@@ -92,12 +100,29 @@ class ArpController(MagmaController):
         self._install_default_forward_flow(datapath)
         self._install_default_arp_drop_flow(datapath)
 
+    # pylint:disable=unused-argument
+    def handle_restart(self, req: SetupUEMacRequest) -> SetupFlowsResult:
+        """
+        Setup the arp flows for the controller, this is used when the controller
+        restarts.
+        """
+        self.delete_all_flows(self._datapath)
+        self._install_default_flows(self._datapath)
+        records = get_all_records()
+        for rec in records:
+            self.logger.debug("Restoring arp for imsi %s, ip %s mac %s", rec.id,
+                              rec.fields['ipv4_addr'], rec.fields['mac_addr'])
+
+            self.arp_contoller.add_ue_arp_flows(self._datapath,
+                                                rec.fields['ipv4_addr'],
+                                                rec.fields['mac_addr'])
+
     def add_ue_arp_flows(self, datapath, ue_ip, ue_mac):
         """
         Installs flows to allow arp traffic from the UE and to reply to ARPs
         sent for the UE ip address
         """
-        self._set_incoming_arp_flows(datapath, ue_ip, ue_mac)
+        self.set_incoming_arp_flows(datapath, ue_ip, ue_mac)
         # If we already installed an outgoing allow don't overwrite the rule
         # TODO its probably better for ue mac to manage this
         if ue_ip not in self._current_ues:
@@ -110,7 +135,7 @@ class ArpController(MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.table_num)
 
-    def _set_incoming_arp_flows(self, datapath, ip_block, src_mac):
+    def set_incoming_arp_flows(self, datapath, ip_block, src_mac):
         """
         Install flow rules for incoming ARPs(to UE):
             - For ARP request: respond to incoming ARP requests.

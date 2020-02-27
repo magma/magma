@@ -13,7 +13,7 @@ import (
 
 	"magma/feg/gateway/object_store"
 	"magma/feg/gateway/registry"
-	"magma/feg/gateway/streamer"
+	"magma/gateway/streamer"
 	"magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
@@ -85,9 +85,9 @@ func NewRedisPolicyDBClient(reg registry.CloudRegistry) (*RedisPolicyDBClient, e
 		),
 		StreamerClient: streamer.NewStreamerClient(reg),
 	}
-	client.StreamerClient.AddListener(NewBaseNameStreamListener(client.BaseNameMap))
-	client.StreamerClient.AddListener(NewPolicyDBStreamListener(client.PolicyMap))
-	client.StreamerClient.AddListener(NewOmnipresentRulesListener(client.OmnipresentRules))
+	go client.StreamerClient.Stream(NewBaseNameStreamListener(client.BaseNameMap))
+	go client.StreamerClient.Stream(NewPolicyDBStreamListener(client.PolicyMap))
+	go client.StreamerClient.Stream(NewOmnipresentRulesListener(client.OmnipresentRules))
 	return client, nil
 }
 

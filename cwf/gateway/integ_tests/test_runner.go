@@ -271,7 +271,7 @@ func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 			Msisdn:              defaultMSISDN,
 			Non_3GppIpAccess:    lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
 			Non_3GppIpAccessApn: lteprotos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
-			ApnConfig:           &lteprotos.APNConfiguration{},
+			ApnConfig:           []*lteprotos.APNConfiguration{&lteprotos.APNConfiguration{}},
 		},
 	}
 }

@@ -25,20 +25,25 @@
 #include "log.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
-#include "assertions.h"
 #include "common_types.h"
 #include "common_defs.h"
 #include "dynamic_memory_check.h"
 #include "mme_app_desc.h"
 #include "s1ap_messages_types.h"
 
-int mme_app_handle_s1ap_ue_capabilities_ind(mme_app_desc_t *mme_app_desc_p,
-  const itti_s1ap_ue_cap_ind_t const *s1ap_ue_cap_ind_pP)
+int mme_app_handle_s1ap_ue_capabilities_ind(
+  mme_app_desc_t* mme_app_desc_p,
+  const itti_s1ap_ue_cap_ind_t const* s1ap_ue_cap_ind_pP)
 {
-  ue_mm_context_t *ue_context_p = NULL;
+  ue_mm_context_t* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(s1ap_ue_cap_ind_pP);
+  if (s1ap_ue_cap_ind_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid S1AP UE Capability Indication ITTI message received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc_p->mme_ue_contexts, s1ap_ue_cap_ind_pP->mme_ue_s1ap_id);
@@ -50,7 +55,7 @@ int mme_app_handle_s1ap_ue_capabilities_ind(mme_app_desc_t *mme_app_desc_p,
       s1ap_ue_cap_ind_pP->enb_ue_s1ap_id,
       s1ap_ue_cap_ind_pP->mme_ue_s1ap_id);
 
-    free_wrapper((void **) &s1ap_ue_cap_ind_pP->radio_capabilities);
+    free_wrapper((void**) &s1ap_ue_cap_ind_pP->radio_capabilities);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -63,7 +68,7 @@ int mme_app_handle_s1ap_ue_capabilities_ind(mme_app_desc_t *mme_app_desc_p,
   ue_context_p->ue_radio_capability = blk2bstr(
     s1ap_ue_cap_ind_pP->radio_capabilities,
     s1ap_ue_cap_ind_pP->radio_capabilities_length);
-  free_wrapper((void **) &s1ap_ue_cap_ind_pP->radio_capabilities);
+  free_wrapper((void**) &s1ap_ue_cap_ind_pP->radio_capabilities);
 
   OAILOG_DEBUG(
     LOG_MME_APP,

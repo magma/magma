@@ -50,7 +50,16 @@ func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
 		equipmentTypeNameIdx := findIndex(firstLine, "Equipment Type")
 
 		m.populateIndexToLocationTypeMap(ctx, firstLine, false)
-		_ = m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine, ImportEntityEquipment), true)
+		header, err := NewImportHeader(firstLine, ImportEntityEquipment)
+		if err != nil {
+			// 'equipment upload' doesn't use equipment-parent-name ('exported equipment upload' does)
+			if header.prnt3Idx != -1 {
+				log.Warn("can't create import header", zap.Error(err))
+				http.Error(w, "can't create import header", http.StatusInternalServerError)
+				return
+			}
+		}
+		_ = m.populateEquipmentTypeNameToIDMap(ctx, header, true)
 		ic := getImportContext(ctx)
 		equipmentTypeIDToProperties := ic.equipmentTypeIDToProperties
 		equipmentTypeNameToID := ic.equipmentTypeNameToID

@@ -245,7 +245,11 @@ func (m *importer) populateIndexToLocationTypeMap(ctx context.Context, firstLine
 }
 
 func (m *importer) populateEquipmentTypeNameToIDMapGeneral(ctx context.Context, firstLine []string, populateEquipProperties bool) error {
-	return m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine, ImportEntityEquipment), populateEquipProperties)
+	header, err := NewImportHeader(firstLine, ImportEntityEquipment)
+	if err != nil {
+		return err
+	}
+	return m.populateEquipmentTypeNameToIDMap(ctx, header, populateEquipProperties)
 }
 
 func (m *importer) populateEquipmentTypeNameToIDMap(ctx context.Context, firstLine ImportHeader, populateEquipProperties bool) error {

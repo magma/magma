@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -128,9 +129,22 @@ func (workOrderResolver) Comments(ctx context.Context, obj *ent.WorkOrder) ([]*e
 }
 
 func (r mutationResolver) AddWorkOrder(
-	ctx context.Context, input models.AddWorkOrderInput,
+	ctx context.Context,
+	input models.AddWorkOrderInput,
+) (*ent.WorkOrder, error) {
+	return r.internalAddWorkOrder(ctx, input, false)
+}
+
+func (r mutationResolver) internalAddWorkOrder(
+	ctx context.Context,
+	input models.AddWorkOrderInput,
+	skipMandatoryPropertiesCheck bool,
 ) (*ent.WorkOrder, error) {
 	c := r.ClientFrom(ctx)
+	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, input.Properties, input.WorkOrderTypeID, models.PropertyEntityWorkOrder, skipMandatoryPropertiesCheck)
+	if err != nil {
+		return nil, fmt.Errorf("validating property for template : %w", err)
+	}
 	mutation := r.ClientFrom(ctx).
 		WorkOrder.Create().
 		SetName(input.Name).
@@ -163,7 +177,7 @@ func (r mutationResolver) AddWorkOrder(
 	if err != nil {
 		return nil, errors.Wrap(err, "creating work order")
 	}
-	if _, err := r.AddProperties(input.Properties,
+	if _, err := r.AddProperties(propInput,
 		resolverutil.AddPropertyArgs{
 			Context:    ctx,
 			EntSetter:  func(b *ent.PropertyCreate) { b.SetWorkOrderID(wo.ID) },
@@ -225,12 +239,9 @@ func (r mutationResolver) EditWorkOrder(
 	}
 
 	for _, pInput := range input.Properties {
-		propUpdate, err := r.updateProperty(ctx, wo.QueryProperties(), pInput)
+		err := r.updateProperty(ctx, wo.QueryProperties(), pInput)
 		if err != nil {
 			return nil, errors.Wrap(err, "updating work order property value")
-		}
-		if _, err = propUpdate.Save(ctx); err != nil {
-			return nil, errors.Wrap(err, "saving work order property value update")
 		}
 	}
 
@@ -274,7 +285,7 @@ func (r mutationResolver) EditWorkOrder(
 func (r mutationResolver) updateProperty(
 	ctx context.Context,
 	query *ent.PropertyQuery,
-	input *models.PropertyInput) (*ent.PropertyUpdate, error) {
+	input *models.PropertyInput) error {
 	propertyQuery := query.
 		Where(property.HasTypeWith(propertytype.ID(input.PropertyTypeID)))
 	if input.ID != nil {
@@ -284,22 +295,25 @@ func (r mutationResolver) updateProperty(
 	existingProperty, err := propertyQuery.Only(ctx)
 	if err != nil {
 		if input.ID == nil {
-			return nil, errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
+			return errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
 		}
-		return nil, errors.Wrapf(err, "querying property type %q and id %q", input.PropertyTypeID, *input.ID)
+		return errors.Wrapf(err, "querying property type %q and id %q", input.PropertyTypeID, *input.ID)
 	}
 	client := r.ClientFrom(ctx)
 	typ, err := client.PropertyType.Get(ctx, input.PropertyTypeID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
+		return errors.Wrapf(err, "querying property type %q", input.PropertyTypeID)
 	}
 	if typ.Editable && typ.IsInstanceProperty {
 		existingPropQuery := client.Property.
 			Update().
 			Where(property.ID(existingProperty.ID))
-		return updatePropValues(input, existingPropQuery), nil
+
+		if _, err = updatePropValues(input, existingPropQuery).Save(ctx); err != nil {
+			return errors.Wrap(err, "saving work order property value update")
+		}
 	}
-	return nil, nil
+	return nil
 }
 
 func (r mutationResolver) createOrUpdateCheckListCategory(

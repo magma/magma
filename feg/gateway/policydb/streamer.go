@@ -15,6 +15,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
 )
 
 type storedObjectListener struct {
@@ -86,4 +87,8 @@ func (listener *storedObjectListener) Update(ub *orcprotos.DataUpdateBatch) bool
 		}
 	}
 	return true
+}
+
+func (listener *storedObjectListener) GetExtraArgs() *any.Any {
+	return nil
 }

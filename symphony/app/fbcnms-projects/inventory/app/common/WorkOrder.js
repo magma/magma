@@ -62,38 +62,46 @@ export type WorkOrderIdentifier = {
 
 export const priorityValues = [
   {
+    key: 'urgent',
     value: 'URGENT',
     label: 'Urgent',
   },
   {
+    key: 'high',
     value: 'HIGH',
     label: 'High',
   },
   {
+    key: 'medium',
     value: 'MEDIUM',
     label: 'Medium',
   },
   {
+    key: 'low',
     value: 'LOW',
     label: 'Low',
   },
   {
+    key: 'none',
     value: 'NONE',
     label: 'None',
   },
 ];
 
 export const doneStatus = {
+  key: 'done',
   value: 'DONE',
   label: 'Done',
 };
 
 export const statusValues = [
   {
+    key: 'planned',
     value: 'PLANNED',
     label: 'Planned',
   },
   {
+    key: 'pending',
     value: 'PENDING',
     label: 'Pending',
   },
@@ -104,10 +112,12 @@ export type FutureState = 'INSTALL' | 'REMOVE';
 
 export const FutureStateValues = [
   {
+    key: 'install',
     value: 'INSTALL',
     label: 'Install',
   },
   {
+    key: 'remove',
     value: 'REMOVE',
     label: 'Remove',
   },

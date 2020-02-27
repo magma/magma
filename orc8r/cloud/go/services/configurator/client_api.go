@@ -415,6 +415,18 @@ func CreateOrUpdateEntityConfig(networkID string, entityType string, entityKey s
 	return err
 }
 
+func CreateOrUpdateEntityConfigAndAssoc(networkID string, entityType string, entityKey string, config interface{}, updatedAssoc []storage2.TypeAndKey) error {
+	// first delete old associations
+	updateCriteria := EntityUpdateCriteria{
+		Key:               entityKey,
+		Type:              entityType,
+		NewConfig:         config,
+		AssociationsToSet: updatedAssoc,
+	}
+	_, err := UpdateEntities(networkID, []EntityUpdateCriteria{updateCriteria})
+	return err
+}
+
 func DeleteEntityConfig(networkID, entityType, entityKey string) error {
 	updateCriteria := EntityUpdateCriteria{
 		Key:          entityKey,

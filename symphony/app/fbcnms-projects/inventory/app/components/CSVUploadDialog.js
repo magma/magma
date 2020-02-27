@@ -71,9 +71,9 @@ const deprecatedUploadsParams = [
 
 const uploadParams = [
   {
-    text: 'Upload Locations',
+    text: 'Upload Locations - deprecated',
     uploadPath: UploadAPIUrls.locations(),
-    entity: 'location',
+    entity: 'locationDeprecated',
   },
   {
     text: 'Upload Exported Equipment',
@@ -89,6 +89,11 @@ const uploadParams = [
     text: 'Upload Exported Links',
     uploadPath: UploadAPIUrls.exported_links(),
     entity: 'link',
+  },
+  {
+    text: 'Upload Exported Locations',
+    uploadPath: UploadAPIUrls.exported_locations(),
+    entity: 'location',
   },
   {
     text: 'Upload Exported Service',
@@ -236,7 +241,8 @@ const CSVUploadDialog = (props: Props) => {
 
       if (
         responseData.errors == null ||
-        (responseData.errors != null && !verifyBefore)
+        (responseData.errors != null && !verifyBefore) ||
+        responseData.summary.committed
       ) {
         onSuccess(
           fbt(
@@ -283,7 +289,6 @@ const CSVUploadDialog = (props: Props) => {
       return;
     }
     const verifyBeforeCommit =
-      entity != 'location' &&
       deprecatedUploadsParams.find(e => e.entity == entity) == null;
     uploadFile(verifyBeforeCommit, f, entity);
   };

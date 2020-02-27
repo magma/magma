@@ -40,17 +40,27 @@ const (
 
 // Bootstrapper - implementation of bootstrapper
 type Bootstrapper struct {
-	sync.Mutex
-	HardwareId string
+	sync.RWMutex `json:"-"`
 
+	// GW Hardware ID
+	HardwareId string
 	// Challenge Key params
 	ChallengeKeyFile string
-
+	// Configs loaded from control_proxy.yml
 	CpConfig ControlProxyCfg
-	// caches, tmps
+	// BootstrapCompletionNotifier is an optional callback function which will be called on every
+	// successful or failed bootstrap completion.
+	// NOTE: it's responsibility of the notifier to lock/unlock passed *Bootstrapper if it needs
+	// to access (read/write) it's fields. The bootstrapper object will not be locked prior to
+	// the notify callback.
+	BootstrapCompletionNotifier func(*Bootstrapper, error) `json:"-"`
+	//
+	// private, caches, tmps
+	//
+	// 'cached' challenge key
 	challengeKey *ecdsa.PrivateKey
-
-	forceBootstrap bool // if set to true - start bootstrapping even is the GW certificate is still valid
+	// if set to true - start bootstrapping even is the GW certificate is still valid
+	forceBootstrap bool
 }
 
 // NewBootstrapper returns a new instance of bootstrapper with initialized configuration
@@ -70,8 +80,8 @@ func (b *Bootstrapper) Initialize() error {
 	if err != nil {
 		return fmt.Errorf("Bootstrapper failed to get gateway Hardware ID: %v", err)
 	}
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
+	b.Lock()
+	defer b.Unlock()
 
 	b.HardwareId = hwId.String()
 
@@ -119,30 +129,38 @@ func (b *Bootstrapper) Start() error {
 }
 
 // PeriodicCheck verifies GW certificate validity and bootstraps GW if needed
-func (b *Bootstrapper) PeriodicCheck(now time.Time) error {
-	b.Mutex.Lock()
+func (b *Bootstrapper) PeriodicCheck(now time.Time) (err error) {
+	b.RLock()
+	notifier := b.BootstrapCompletionNotifier
+	defer func() {
+		if notifier != nil {
+			notifier(b, err)
+		}
+	}()
 	if b.validateCert(now) {
-		b.Mutex.Unlock()
-		return nil // all good, cert is still valid - return
+		b.RUnlock()
+		return // all good, cert is still valid - return
 	}
 	// Need a new certificate, bootstrap using cloud
-	newCert, newCertKey, err := b.Bootstrap()
+	newCert, newCertKey, err := b.bootstrap()
 	// Save the new cert & key
 	certFile, certKeyFile := b.CpConfig.GwCertFile, b.CpConfig.GwCertKeyFile
-	b.Mutex.Unlock()
+	b.RUnlock()
 
 	if err != nil {
-		return err
+		return
 	}
 	oldCertFile, oldCertKeyFile, newCertFile, newCertKeyFile :=
 		certFile+".old", certKeyFile+".old", certFile+".new", certKeyFile+".new"
 
 	if err = key.WriteKey(newCertKeyFile, newCertKey); err != nil {
-		return err
+		return
 	}
-	certOut, err := os.Create(newCertFile)
+	var certOut *os.File
+	certOut, err = os.Create(newCertFile)
 	if err != nil {
-		return fmt.Errorf("Failed to open %s for writing: %v", newCertFile, err)
+		err = fmt.Errorf("Failed to open %s for writing: %v", newCertFile, err)
+		return
 	}
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: newCert.CertDer})
 	certOut.Close()
@@ -158,7 +176,8 @@ func (b *Bootstrapper) PeriodicCheck(now time.Time) error {
 		if kerr == nil { // roll back key
 			os.Rename(oldCertKeyFile, certKeyFile)
 		}
-		return fmt.Errorf("Failed to rename new certificate %s: %v", newCertFile, err)
+		err = fmt.Errorf("Failed to rename new certificate %s: %v", newCertFile, err)
+		return err
 	}
 	if err = os.Rename(newCertKeyFile, certKeyFile); err != nil {
 		if cerr == nil { // roll back cert
@@ -167,19 +186,58 @@ func (b *Bootstrapper) PeriodicCheck(now time.Time) error {
 		if kerr == nil { // roll back key
 			os.Rename(oldCertKeyFile, certKeyFile)
 		}
-		return fmt.Errorf("Failed to rename new certificate key %s: %v", newCertKeyFile, err)
+		err = fmt.Errorf("Failed to rename new certificate key %s: %v", newCertKeyFile, err)
+		return err
 	}
 	// Done updating certificate
 	log.Printf("Successfully bootstrapped gateway '%s' with new certificate: %s and key: %s",
 		b.HardwareId, certFile, certKeyFile)
 
 	// bootstrapped, return
+	err = nil
+	return err
+}
+
+// ForceBootstrap runs Bootstrapping sequence irregardless of GW certificate freshness
+func (b *Bootstrapper) ForceBootstrap() error {
+	if b == nil {
+		return fmt.Errorf("Invalid (nil) Bootstrapper")
+	}
+
+	b.Lock()
+	b.forceBootstrap = true
+	b.challengeKey = nil
+	b.Unlock()
+
+	err := b.Initialize()
+	if err != nil {
+		return err
+	}
+	if err = b.PeriodicCheck(time.Now()); err != nil {
+		return err
+	}
+
+	b.Lock()
+	b.forceBootstrap = false
+	b.Unlock()
+
 	return nil
 }
 
-// Bootstrap generates new gateway key & CSR, reaches to the cloud to sign the CSR and returns new cert & key
+// RefreshConfigs attempts to re-read all bootsrapper configs, it also invalidates challenge key cache: challengeKey
+func (b *Bootstrapper) RefreshConfigs() {
+	if b == nil {
+		b.Lock()
+		b.updateBootstrapperKeyCfg()
+		b.updateFromControlProxyCfg()
+		b.challengeKey = nil
+		b.Unlock()
+	}
+}
+
+// bootstrap generates new gateway key & CSR, reaches to the cloud to sign the CSR and returns new cert & key
 // NOTE: it's a responsibility of a caller to synchronise access to Bootstrapper when calling Bootstrap
-func (b *Bootstrapper) Bootstrap() (*protos.Certificate, interface{}, error) {
+func (b *Bootstrapper) bootstrap() (*protos.Certificate, interface{}, error) {
 	var err error
 
 	if b.challengeKey == nil {
@@ -232,43 +290,6 @@ func (b *Bootstrapper) Bootstrap() (*protos.Certificate, interface{}, error) {
 		return nil, nil, fmt.Errorf("failed to sign CSR: %v", err)
 	}
 	return newCert, newCertKey, nil
-}
-
-// ForceBootstrap runs Bootstrapping sequence irregardless of GW certificate freshness
-func (b *Bootstrapper) ForceBootstrap() error {
-	if b == nil {
-		return fmt.Errorf("Invalid (nil) Bootstrapper")
-	}
-
-	b.Lock()
-	b.forceBootstrap = true
-	b.challengeKey = nil
-	b.Unlock()
-
-	err := b.Initialize()
-	if err != nil {
-		return err
-	}
-	if err = b.PeriodicCheck(time.Now()); err != nil {
-		return err
-	}
-
-	b.Lock()
-	b.forceBootstrap = false
-	b.Unlock()
-
-	return nil
-}
-
-// RefreshConfigs attempts to re-read all bootsrapper configs, it also invalidates challenge key cache: challengeKey
-func (b *Bootstrapper) RefreshConfigs() {
-	if b == nil {
-		b.Lock()
-		b.updateBootstrapperKeyCfg()
-		b.updateFromControlProxyCfg()
-		b.challengeKey = nil
-		b.Unlock()
-	}
 }
 
 func (b *Bootstrapper) validateCert(now time.Time) bool {

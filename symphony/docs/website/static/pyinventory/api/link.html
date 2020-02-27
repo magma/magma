@@ -32,51 +32,76 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.link.add_link"><code class="name flex">
-<span>def <span class="ident">add_link</span></span>(<span>client, equipment_a, port_name_a, equipment_b, port_name_b)</span>
+<span>def <span class="ident">add_link</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_a: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, port_name_a: str, equipment_b: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, port_name_b: str) -> <a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link">Link</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Connects a link between two ports of two equipments.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment_a</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code></dt>
-<dd>could be retrieved from the following apis:
-* getEquipment
-* getEquipmentInPosition
-* addEquipment
-* addEquipmentToPosition</dd>
+<dt><strong><code>equipment_a</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
+<dd>
+<p>could be retrieved from the following apis:</p>
+<ul>
+<li>
+<p><a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
+</li>
+</ul>
+</dd>
 <dt><strong><code>port_name_a</code></strong> :&ensp;<code>str</code></dt>
 <dd>The name of port in equipment type</dd>
-<dt><strong><code>equipment_b</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code></dt>
-<dd>could be retrieved from the following apis:
-* getEquipment
-* getEquipmentInPosition
-* addEquipment
-* addEquipmentToPosition</dd>
+<dt><strong><code>equipment_b</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
+<dd>
+<p>could be retrieved from the following apis:</p>
+<ul>
+<li>
+<p><a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></p>
+</li>
+<li>
+<p><a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
+</li>
+</ul>
+</dd>
 <dt><strong><code>port_name_b</code></strong> :&ensp;<code>str</code></dt>
 <dd>The name of port in equipment type</dd>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Link</code> <code>object</code> <code>with</code> <code>id</code> <code>field</code></dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link"><code>Link</code></a> <code>object</code> <code>with</code> <code>id</code> <code>field</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>portName</code> <code>in</code> <code>any</code> of <code>the</code> <code>equipment</code> <code>does</code> <code>not</code> <code>exist</code>, <code>match</code> <code>more</code> <code>than</code> <code>one</code> <code>port</code></dt>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionError</code> <code>if</code> <code>portName</code> <code>in</code> <code>any</code> of <code>the</code> <code>equipment</code> <code>does</code> <code>not</code> <code>exist</code>, <code>match</code> <code>more</code> <code>than</code> <code>one</code> <code>port</code></dt>
 <dd>or is already occupied by link
 FailedOperationException for internal inventory error</dd>
-<dt><strong><code>Example</code></strong> :&ensp;<code>client.addLink</code>(<code>VSATEquipment</code>, <code>"Port</code> <code>A"</code>, <code>MWEquipment</code>, <code>"Port</code> <code>B"</code>)</dt>
-<dd>&nbsp;</dd>
-</dl></section>
+</dl>
+<p>Example:</p>
+<pre><code>client.addLink(VSATEquipment, &quot;Port A&quot;, MWEquipment, &quot;Port B&quot;)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.link.get_all_links_and_port_names_of_equipment"><code class="name flex">
-<span>def <span class="ident">get_all_links_and_port_names_of_equipment</span></span>(<span>client, equipment)</span>
+<span>def <span class="ident">get_all_links_and_port_names_of_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>) -> List[Tuple[<a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link">Link</a>, str]]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.link.get_link_in_port_of_equipment"><code class="name flex">
-<span>def <span class="ident">get_link_in_port_of_equipment</span></span>(<span>client, equipment, port_name)</span>
+<span>def <span class="ident">get_link_in_port_of_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link">Link</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.link.get_port"><code class="name flex">
-<span>def <span class="ident">get_port</span></span>(<span>client, equipment, port_name)</span>
+<span>def <span class="ident">get_port</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.consts.EquipmentPort" href="../consts.html#pyinventory.consts.EquipmentPort">EquipmentPort</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
