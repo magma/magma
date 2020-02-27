@@ -22,7 +22,6 @@ add_library(TASK_SGW
     s11_causes.c
     sgw_task.c
     sgw_handlers.c
-    pgw_task.c
     pgw_handlers.c
     sgw_context_manager.c
     pgw_pco.c
