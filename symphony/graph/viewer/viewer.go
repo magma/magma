@@ -86,15 +86,17 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 			},
 		},
 	}
-	authenticate := func(r *http.Request) *http.Request {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !websocket.IsWebSocketUpgrade(r) || r.Header.Get(TenantHeader) != "" {
-			return r
+			h.ServeHTTP(w, r)
+			return
 		}
 		req, err := http.NewRequestWithContext(
 			r.Context(), http.MethodGet, authurl, nil,
 		)
 		if err != nil {
-			return r
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		req.Header.Set("X-Forwarded-Host", r.Host)
 		if username, password, ok := r.BasicAuth(); ok {
@@ -106,24 +108,24 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 
 		rsp, err := client.Do(req)
 		if err != nil {
-			return r
+			http.Error(w, err.Error(), http.StatusServiceUnavailable)
+			return
 		}
 		defer rsp.Body.Close()
 		if rsp.StatusCode != http.StatusOK {
-			return r
+			http.Error(w, "", http.StatusUnauthorized)
+			return
 		}
 
 		var v Viewer
-		if err := json.NewDecoder(rsp.Body).Decode(&v); err == nil {
-			r.Header.Set(TenantHeader, v.Tenant)
-			r.Header.Set(UserHeader, v.User)
-			r.Header.Set(RoleHeader, v.Role)
+		if err := json.NewDecoder(rsp.Body).Decode(&v); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		return r
-	}
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, authenticate(r))
+		r.Header.Set(TenantHeader, v.Tenant)
+		r.Header.Set(UserHeader, v.User)
+		r.Header.Set(RoleHeader, v.Role)
+		h.ServeHTTP(w, r)
 	})
 }
 
