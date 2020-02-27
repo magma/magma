@@ -219,7 +219,8 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
 def setup_controller(controller, setup_req, sleep_time: float = 1,
                      retries: int = 5):
     for _ in range(0, retries):
-        if controller.is_ready_for_restart_recovery(setup_req.epoch):
+        if controller.is_ready_for_restart_recovery(
+                setup_req.epoch) == SetupFlowsResult.SUCCESS:
             res = controller.handle_restart(setup_req.requests)
             if res.result == SetupFlowsResult.SUCCESS:
                 return SetupFlowsResult.SUCCESS
