@@ -66,7 +66,7 @@ def get_device_name(
         else:
             raise UnrecognizedEnodebError("Device %s unsupported: Software (%s)"
                                          % (device_oui, sw_version))
-    elif device_oui in {'000FB7', }:
+    elif device_oui in {'000FB7', '744D28', }:
         return EnodebDeviceName.CAVIUM
     else:
         raise UnrecognizedEnodebError("Device %s unsupported" % device_oui)
