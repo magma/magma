@@ -58,6 +58,7 @@ const styles = _theme => ({
   },
   addButton: {
     padding: '4px 18px',
+    height: '32px',
     borderRadius: '4px',
     border: '1px solid',
     borderColor: symphony.palette.primary,
