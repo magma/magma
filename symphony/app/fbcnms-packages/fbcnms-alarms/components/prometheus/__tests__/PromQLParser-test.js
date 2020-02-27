@@ -761,6 +761,86 @@ const testCases = [
       new PromQL.Labels().addEqual('fragment', '#index'),
     ),
   ],
+  [
+    'simple subquery',
+    `metric[1h:10m]`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '[', type: 'lBracket'},
+      {value: new PromQL.Range(1, 'h'), type: 'range'},
+      {value: ':', type: 'colon'},
+      {value: new PromQL.Range(10, 'm'), type: 'range'},
+      {value: ']', type: 'rBracket'},
+    ],
+    new PromQL.SubQuery(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.Range(1, 'h'),
+      new PromQL.Range(10, 'm'),
+    ),
+  ],
+  [
+    'simple subquery wihtout step',
+    `metric[1h:]`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '[', type: 'lBracket'},
+      {value: new PromQL.Range(1, 'h'), type: 'range'},
+      {value: ':', type: 'colon'},
+      {value: ']', type: 'rBracket'},
+    ],
+    new PromQL.SubQuery(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.Range(1, 'h'),
+    ),
+  ],
+  [
+    'simple subquery with offset',
+    `metric[1h:] offset 1d`,
+    [
+      {value: 'metric', type: 'identifier'},
+      {value: '[', type: 'lBracket'},
+      {value: new PromQL.Range(1, 'h'), type: 'range'},
+      {value: ':', type: 'colon'},
+      {value: ']', type: 'rBracket'},
+      {value: 'offset', type: 'identifier'},
+      {value: new PromQL.Range(1, 'd'), type: 'range'},
+    ],
+    new PromQL.SubQuery(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.Range(1, 'h'),
+    ).withOffset(new PromQL.Range(1, 'd')),
+  ],
+  [
+    'complex subquery',
+    `avg(metric[1h:10m] offset 1d)[10m:]`,
+    [
+      {value: 'avg', type: 'aggOp'},
+      {value: '(', type: 'lParen'},
+      {value: 'metric', type: 'identifier'},
+      {value: '[', type: 'lBracket'},
+      {value: new PromQL.Range(1, 'h'), type: 'range'},
+      {value: ':', type: 'colon'},
+      {value: new PromQL.Range(10, 'm'), type: 'range'},
+      {value: ']', type: 'rBracket'},
+      {value: 'offset', type: 'identifier'},
+      {value: new PromQL.Range(1, 'd'), type: 'range'},
+      {value: ')', type: 'rParen'},
+      {value: '[', type: 'lBracket'},
+      {value: new PromQL.Range(10, 'm'), type: 'range'},
+      {value: ':', type: 'colon'},
+      {value: ']', type: 'rBracket'},
+    ],
+    new PromQL.SubQuery(
+      new PromQL.AggregationOperation('avg', [
+        new PromQL.SubQuery(
+          new PromQL.InstantSelector('metric'),
+          new PromQL.Range(1, 'h'),
+          new PromQL.Range(10, 'm'),
+        ).withOffset(new PromQL.Range(1, 'd')),
+      ]),
+      new PromQL.Range(10, 'm'),
+    ),
+  ],
 ];
 
 describe('Tokenize', () => {

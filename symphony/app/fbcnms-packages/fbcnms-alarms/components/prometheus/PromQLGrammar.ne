@@ -13,6 +13,7 @@ const {
         RangeSelector,
         Scalar,
         String,
+        SubQuery,
         VectorMatchClause
 } = require('../PromQL');
 %}
@@ -25,12 +26,13 @@ expression ->
         | function      {% id %}
         | binary_operation
                         {% id %}
+        | subquery      {% id %}
         | SCALAR        {% id %}
 
 metric_selector ->
         selector        {% id %}
         | selector offset_clause
-                        {% ([selector, offset]) => selector.setOffset(offset[1]) %}
+                        {% ([selector, offset]) => selector.setOffset(offset) %}
 
 selector ->
         instant_selector
@@ -89,6 +91,7 @@ bin_op ->
         | ARITHM_OP     {% id %}
 
 offset_clause -> "offset" RANGE
+                        {% ([_keyword, offset]) => offset %}
 
 aggregation ->
         AGG_OP func_call_body
@@ -158,6 +161,15 @@ parameter ->
         SCALAR          {% id %}
         | expression    {% id %}
         | STRING        {% d => new String(d[0]) %}
+
+subquery -> expression %lBracket RANGE %colon RANGE:? %rBracket offset_clause:?
+                        {% ([expr, _lBRacket, range, _colon, step, _rBracket, offset]) =>
+                                new SubQuery(
+                                        expr,
+                                        range,
+                                        step === null ? undefined : step,
+                                        offset === null ? undefined : offset)
+                        %}
 
 # Terminals
 SCALAR -> %scalar       {% d => new Scalar(d[0].value) %}
