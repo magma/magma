@@ -58,9 +58,4 @@ typedef struct s5_nw_init_actv_bearer_request_s {
 
 void handle_s5_create_session_response(
   s5_create_session_response_t bearer_resp);
-
-int spgw_send_nw_init_activate_bearer_rsp(
-  gtpv2c_cause_value_t cause,
-  Imsi_t imsi,
-  uint8_t eps_bearer_id);
 #endif /* FILE_SPGW_TYPES_SEEN */

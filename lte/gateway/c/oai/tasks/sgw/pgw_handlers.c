@@ -71,13 +71,13 @@ extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 
 static int _spgw_build_and_send_s11_create_bearer_request(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p,
-  const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
+  const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
   spgw_state_t* spgw_state,
   teid_t s1_u_sgw_fteid);
 
 static int _create_temporary_dedicated_bearer_context(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p,
-  const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
+  const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
   spgw_state_t* spgw_state,
   teid_t s1_u_sgw_fteid);
 
@@ -457,7 +457,7 @@ static void get_session_req_data(
  */
 int spgw_handle_nw_initiated_bearer_actv_req(
   spgw_state_t* spgw_state,
-  const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
+  const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
   imsi64_t imsi64,
   gtpv2c_cause_value_t* failed_cause)
 {
@@ -561,7 +561,7 @@ int spgw_handle_nw_initiated_bearer_actv_req(
 //------------------------------------------------------------------------------
 int32_t spgw_handle_nw_initiated_bearer_deactv_req(
   spgw_state_t* spgw_state,
-  const itti_spgw_nw_init_deactv_bearer_request_t* const bearer_req_p,
+  const itti_gx_nw_init_deactv_bearer_request_t* const bearer_req_p,
   imsi64_t imsi64)
 {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -768,7 +768,7 @@ uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(
 // Build and send ITTI message, s11_create_bearer_request to MME APP
 static int _spgw_build_and_send_s11_create_bearer_request(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p,
-  const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
+  const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
   spgw_state_t* spgw_state,
   teid_t s1_u_sgw_fteid)
 {
@@ -828,7 +828,7 @@ static int _spgw_build_and_send_s11_create_bearer_request(
 // Create temporary dedicated bearer context
 static int _create_temporary_dedicated_bearer_context(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p,
-  const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
+  const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
   spgw_state_t* spgw_state,
   teid_t s1_u_sgw_fteid)
 {
