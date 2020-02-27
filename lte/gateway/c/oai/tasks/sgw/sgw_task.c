@@ -200,7 +200,7 @@ static void* sgw_intertask_interface(void* args_p)
           imsi64);
         if (rc != RETURNok) {
           OAILOG_ERROR(
-            LOG_PGW_APP,
+            LOG_SPGW_APP,
             "Failed to handle NW_INITIATED_DEACTIVATE_BEARER_REQ for imsi:%ld, "
             "send bearer deactivation reject to SPGW service \n",
             imsi64);
