@@ -28,7 +28,7 @@
 
 #ifndef FILE_PGW_HANDLERS_SEEN
 #define FILE_PGW_HANDLERS_SEEN
-#include "sgw_messages_types.h"
+#include "gx_messages_types.h"
 #include "spgw_state.h"
 
 void handle_s5_create_session_request(
@@ -40,12 +40,17 @@ uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(
   ebi_t lbi);
 int spgw_handle_nw_initiated_bearer_actv_req(
   spgw_state_t* state,
-  const itti_spgw_nw_init_actv_bearer_request_t* const bearer_req_p,
+  const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
   imsi64_t imsi64,
   gtpv2c_cause_value_t* failed_cause);
 
 int32_t spgw_handle_nw_initiated_bearer_deactv_req(
   spgw_state_t* spgw_state,
-  const itti_spgw_nw_init_deactv_bearer_request_t* const bearer_req_p,
+  const itti_gx_nw_init_deactv_bearer_request_t* const bearer_req_p,
   imsi64_t imsi64);
+
+int spgw_send_nw_init_activate_bearer_rsp(
+  gtpv2c_cause_value_t cause,
+  Imsi_t imsi,
+  uint8_t eps_bearer_id);
 #endif /* FILE_PGW_HANDLERS_SEEN */

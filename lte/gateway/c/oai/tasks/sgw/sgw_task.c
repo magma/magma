@@ -169,7 +169,7 @@ static void* sgw_intertask_interface(void* args_p)
           imsi64);
       } break;
 
-      case SPGW_NW_INITIATED_ACTIVATE_BEARER_REQ: {
+      case GX_NW_INITIATED_ACTIVATE_BEARER_REQ: {
         /* TODO need to discuss as part sending response to PCEF,
          * should these errors need to be mapped to gx errors
          * or sessiond does mapping of these error codes to gx error codes
@@ -177,10 +177,10 @@ static void* sgw_intertask_interface(void* args_p)
         gtpv2c_cause_value_t failed_cause = REQUEST_ACCEPTED;
         int32_t rc = spgw_handle_nw_initiated_bearer_actv_req(
           spgw_state_p,
-          &received_message_p->ittiMsg.spgw_nw_init_actv_bearer_request,
+          &received_message_p->ittiMsg.gx_nw_init_actv_bearer_request,
           imsi64,
           &failed_cause);
-        if (rc != RETURNerror) {
+        if (rc != RETURNok) {
           OAILOG_ERROR(
             LOG_SPGW_APP,
             "Send Create Bearer Failure Response to PCRF with cause :%d \n",
@@ -193,10 +193,10 @@ static void* sgw_intertask_interface(void* args_p)
         }
       } break;
 
-      case SPGW_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
+      case GX_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
         int32_t rc = spgw_handle_nw_initiated_bearer_deactv_req(
           spgw_state_p,
-          &received_message_p->ittiMsg.spgw_nw_init_deactv_bearer_request,
+          &received_message_p->ittiMsg.gx_nw_init_deactv_bearer_request,
           imsi64);
         if (rc != RETURNok) {
           OAILOG_ERROR(
