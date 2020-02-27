@@ -14,12 +14,23 @@
 #include <folly/io/async/EventBaseManager.h>
 
 #include "SessionState.h"
+#include "MemoryStoreClient.h"
+#include "StoredState.h"
+#include "RuleStore.h"
 
 namespace magma {
 namespace lte {
 
-typedef std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>> SessionMap;
+typedef std::
+  unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
+    SessionMap;
 typedef std::function<void(SessionMap)> CallBackOnAccess;
+// Value int represents the request numbers needed for requests to PCRF
+typedef std::unordered_map<std::string, int> SessionRead;
+typedef std::unordered_map<
+  std::string,
+  std::unordered_map<std::string, SessionStateUpdateCriteria>>
+  SessionUpdate;
 
 /**
  * SessionStore acts as a broker to storage of sessiond state.
@@ -36,37 +47,47 @@ typedef std::function<void(SessionMap)> CallBackOnAccess;
  */
 class SessionStore {
  public:
-  virtual ~SessionStore() = default;
+  SessionStore(std::shared_ptr<StaticRuleStore> rule_store);
 
   /**
-   * Requests R/W access to specified subscribers.
-   *
-   * It is intended that for each gRPC call that session_manager handles,
-   * operate_on_sessions is called once.
-   *
-   *   gRPC request -> Request R/W on Sessions -> Read Sessions -> Update
-   *   -> Commit Subscribers -> respond to gRPC call
-   *
-   * Only one caller can have R/W access to any given subscriber at a time, and
-   * the subscriber is freed after commit.
-   *
-   * @param requested_subscriber_ids
-   *    Subscribers for which R/W access is requested.
-   * @param callback_on_access
-   *    Callback for when R/W access on specified subscribers is granted.
-   *    After updating the granted sessions, they should be returned to be
-   *    written and committed to the SessionStore.
-   *    @param commit
-   *       Callback for when sessions are committed back to SessionStore.
-   *       Input specifies whether the commit was successful.
+   * Read the last written values for the rqeuested sessions through the
+   * storage interface.
+   * NOTE: It is assumed that the correct number of request_numbers are
+   *       reserved on each read_sessions call. If more requests are made to
+   *       the OCS/PCRF than are requested, this can cause undefined behavior.
+   * @param req
+   * @return Last written values for requested sessions. Returns an empty vector
+   *         for subscribers that do not have active sessions.
    */
-  virtual void operate_on_sessions(
-    const std::vector<std::string>& requested_subscriber_ids,
-    CallBackOnAccess callback) = 0;
+  SessionMap read_sessions(const SessionRead& req);
 
-  virtual void commit_sessions(
-    SessionMap session_map,
-    std::function<void(bool)> callback) = 0;
+  /**
+   * Create sessions for a subscriber. Redundant creations will fail.
+   * @param subscriber_id
+   * @param sessions
+   * @return true if successful, otherwise the update to storage is discarded.
+   */
+  bool create_sessions(
+    const std::string& subscriber_id,
+    std::vector<std::unique_ptr<SessionState>> sessions);
+
+  /**
+   * Attempt to update sessions with update criteria. If any update to any of
+   * the sessions is invalid, the whole update request is assumed to be invalid,
+   * and nothing in storage will be overwritten.
+   * @param update_criteria
+   * @return true if successful, otherwise the update to storage is discarded.
+   */
+  bool update_sessions(const SessionUpdate& update_criteria);
+
+ private:
+  static bool merge_into_session(
+    std::unique_ptr<SessionState>& session,
+    const SessionStateUpdateCriteria& update_criteria);
+
+ private:
+  MemoryStoreClient store_client_;
+  std::shared_ptr<StaticRuleStore> rule_store_;
 };
 
 } // namespace lte

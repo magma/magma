@@ -111,9 +111,8 @@ add_library(SESSION_MANAGER
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
     StoredState.h
+    SessionStore.cpp
     SessionStore.h
-    MemorySessionStore.cpp
-    MemorySessionStore.h
     MemoryStoreClient.cpp
     MemoryStoreClient.h
     StoreClient.h
