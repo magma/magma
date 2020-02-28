@@ -46,7 +46,7 @@ class DPITest(unittest.TestCase):
         """
         super(DPITest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([PipelineD.DPI])
+        cls.service_manager = create_service_manager([PipelineD.DPI], [])
 
         dpi_controller_reference = Future()
         testing_controller_reference = Future()
@@ -126,7 +126,7 @@ class DPITest(unittest.TestCase):
             ipv4_src='1.2.3.0/24', tcp_dst=80, tcp_src=51115,
             direction=FlowMatch.UPLINK
         )
-        self.dpi_controller.remove_classify_flow(flow_match1, 'facebook')
+        self.dpi_controller.remove_classify_flow(flow_match1)
         hub.sleep(5)
         assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
 
