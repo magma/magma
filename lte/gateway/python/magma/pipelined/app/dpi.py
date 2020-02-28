@@ -6,19 +6,24 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import shlex
+import subprocess
 
 from magma.pipelined.openflow import flows
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction
-import shlex
-import subprocess
-import logging
+from magma.pipelined.openflow.registers import Direction, DPI_REG
+from magma.pipelined.policy_converters import FlowMatchError, \
+    flow_match_to_magma_match
+
 
 from ryu.lib.packet import ether_types
 
 # TBD: Add more apps and make it dynamic
-appMap = {"facebook": 2, "whatsapp": 3, "instagram": 4, "twitter": 5}
+appMap = {"facebook_messenger": 1, "instagram": 1, "facebook": 3, "youtube": 4,
+          "gmail": 5, "google": 6, "google_docs": 7, "viber": 8, "imo": 9,
+          "netflix": 10, "apple": 11, "microsoft": 12}
+
 
 class DPIController(MagmaController):
     """
@@ -41,6 +46,7 @@ class DPIController(MagmaController):
         self._dpi_enabled = kwargs['config']['dpi']['enabled']
         self._mon_port = kwargs['config']['dpi']['mon_port']
         self._mon_port_number = kwargs['config']['dpi']['mon_port_number']
+        self._bridge_name = kwargs['config']['bridge_name']
         if self._dpi_enabled:
             self._create_monitor_port()
 
@@ -67,27 +73,34 @@ class DPIController(MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
 
-    def classify_flow(self, match, app):
-        ryu_match = {'eth_type': ether_types.ETH_TYPE_IP}
-
-        ryu_match['ipv4_dst'] = self._get_ip_tuple(match.ipv4_dst)
-        ryu_match['ipv4_src'] = self._get_ip_tuple(match.ipv4_src)
-        ryu_match['ip_proto'] = match.ip_proto
-        if match.ip_proto == match.IPProto.IPPROTO_TCP:
-            ryu_match['tcp_dst'] = match.tcp_dst
-            ryu_match['tcp_src'] = match.tcp_src
-        elif match.ip_proto == match.IPProto.IPPROTO_UDP:
-            ryu_match['udp_dst'] = match.udp_dst
-            ryu_match['udp_src'] = match.udp_src
+    def add_classify_flow(self, match, app):
+        try:
+            match = flow_match_to_magma_match(match)
+        except FlowMatchError as e:
+            self.logger.error(e)
+            return False
 
         parser = self._datapath.ofproto_parser
-        app_id = appMap.get(app, 1)  # 1 is returned for unknown apps
-        actions = [parser.NXActionRegLoad2(dst='reg3', value=app_id)]
+        app_id = appMap.get(app, 0)
+        if app_id != 0:
+            actions = [parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                                                 match, actions,
+                                                 priority=flows.DEFAULT_PRIORITY,
+                                                 resubmit_table=self.next_table)
+        else:
+            self.logger.error("Unrecognized app name %s", app)
 
-        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-                                             MagmaMatch(**ryu_match), actions,
-                                             priority=flows.DEFAULT_PRIORITY,
-                                             resubmit_table=self.next_table)
+        return True
+
+    def remove_classify_flow(self, match):
+        try:
+            match = flow_match_to_magma_match(match)
+        except FlowMatchError as e:
+            self.logger.error(e)
+            return False
+
+        flows.delete_flow(self._datapath, self.tbl_num, match)
         return True
 
     def _install_default_flows(self, datapath):
@@ -105,9 +118,6 @@ class DPIController(MagmaController):
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                     direction=Direction.OUT)
         if self._dpi_enabled:
-            # TODO: Do not directly add this action once there is a way to
-            # add a flow with both resubmit to the next service and send to
-            # another port.
             actions = [parser.OFPActionOutput(self._mon_port_number)]
         else:
             actions = []
@@ -122,15 +132,15 @@ class DPIController(MagmaController):
                                              resubmit_table=self.next_table)
 
     def _create_monitor_port(self):
-        add_cmd = "sudo ovs-vsctl add-port gtp_br0 mon1 -- set interface \
-                {} ofport_request={} \
-                type=internal".format(self._mon_port, self._mon_port_number)
-        enable_cmd = "sudo ifconfig {} up".format(self._mon_port)
+        add_cmd = "ovs-vsctl add-port {} mon1 -- set interface {} \
+            ofport_request={} type=internal" \
+            .format(self._bridge_name, self._mon_port, self._mon_port_number)
 
         args = shlex.split(add_cmd)
         ret = subprocess.call(args)
-        logging.debug("created monitor port ret %d", ret)
+        self.logger.debug("Created monitor port ret %d", ret)
 
+        enable_cmd = "ifconfig {} up".format(self._mon_port)
         args = shlex.split(enable_cmd)
         ret = subprocess.call(args)
-        logging.debug("enabled monitor port ret %d", ret)
+        self.logger.debug("Enabled monitor port ret %d", ret)
