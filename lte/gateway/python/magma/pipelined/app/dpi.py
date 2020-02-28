@@ -10,6 +10,7 @@ import shlex
 import subprocess
 
 from magma.pipelined.openflow import flows
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, DPI_REG
@@ -20,7 +21,7 @@ from magma.pipelined.policy_converters import FlowMatchError, \
 from ryu.lib.packet import ether_types
 
 # TODO might move to config file
-appMap = {"facebook_messenger": 1, "instagram": 1, "facebook": 3, "youtube": 4,
+appMap = {"facebook_messenger": 1, "instagram": 2, "facebook": 3, "youtube": 4,
           "gmail": 5, "google": 6, "google_docs": 7, "viber": 8, "imo": 9,
           "netflix": 10, "apple": 11, "microsoft": 12}
 
@@ -35,13 +36,13 @@ class DPIController(MagmaController):
 
     APP_NAME = "dpi"
     APP_TYPE = ControllerType.LOGICAL
-    UPDATE_INTERVAL = 10  # seconds
 
     def __init__(self, *args, **kwargs):
         super(DPIController, self).__init__(*args, **kwargs)
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
+        self.setup_type = kwargs['config']['setup_type']
         self._datapath = None
         self._dpi_enabled = kwargs['config']['dpi']['enabled']
         self._mon_port = kwargs['config']['dpi']['mon_port']
@@ -132,7 +133,17 @@ class DPIController(MagmaController):
                                              resubmit_table=self.next_table)
 
     def _create_monitor_port(self):
-        add_cmd = "ovs-vsctl add-port {} mon1 -- set interface {} \
+        """
+        For cwf we set this up when running docker compose as we can't modify
+        interfaces from inside the container
+
+        For lte just add the port.
+        """
+        if self.setup_type == 'CWF':
+            self._mon_port_number = BridgeTools.get_ofport(self._mon_port)
+            return
+
+        add_cmd = "sudo ovs-vsctl add-port {} mon1 -- set interface {} \
             ofport_request={} type=internal" \
             .format(self._bridge_name, self._mon_port, self._mon_port_number)
 
@@ -140,7 +151,7 @@ class DPIController(MagmaController):
         ret = subprocess.call(args)
         self.logger.debug("Created monitor port ret %d", ret)
 
-        enable_cmd = "ifconfig {} up".format(self._mon_port)
+        enable_cmd = "sudo ifconfig {} up".format(self._mon_port)
         args = shlex.split(enable_cmd)
         ret = subprocess.call(args)
         self.logger.debug("Enabled monitor port ret %d", ret)
