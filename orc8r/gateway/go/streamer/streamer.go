@@ -14,10 +14,14 @@ package streamer
 // New streamer clients
 type Client interface {
 	// AddListener registers a new streaming updates listener for the
-	// listener.Name() stream and starts stream loop routine for it.
+	// listener.GetName() stream.
 	// The stream name must be unique and AddListener will error out if a listener
 	// for the same stream is already registered.
 	AddListener(l Listener) error
+	// Stream starts streaming loop for a registered by AddListener listener
+	// If successful, Stream never return and should be called in it's own go routine or main()
+	// If the provided Listener is not registered, Stream will try to register it prior to starting streaming
+	Stream(l Listener) error
 	// RemoveListener removes currently registered listener. It returns true is the
 	// listener with provided l.Name() exists and was unregistered successfully
 	// RemoveListener is the only way to terminate streaming loop
