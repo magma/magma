@@ -75,3 +75,7 @@ orc8r/cloud/helm/**/.secrets/
 # Clion config
 devmand/gateway/.idea/
 devmand/gateway/cmake-build-debug/
+
+#CI files
+archives/
+test_results_magma_converged_mme.html
