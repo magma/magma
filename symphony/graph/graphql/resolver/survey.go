@@ -25,7 +25,7 @@ func (surveyResolver) CompletionTimestamp(_ context.Context, obj *ent.Survey) (i
 	return int(obj.CompletionTimestamp.Unix()), nil
 }
 
-func (surveyResolver) LocationID(ctx context.Context, obj *ent.Survey) (string, error) {
+func (surveyResolver) LocationID(ctx context.Context, obj *ent.Survey) (int, error) {
 	return obj.QueryLocation().OnlyID(ctx)
 }
 

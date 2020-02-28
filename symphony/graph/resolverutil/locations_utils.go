@@ -24,22 +24,31 @@ func handleEquipmentLocationFilter(q *ent.EquipmentQuery, filter *models.Equipme
 }
 
 // BuildLocationAncestorFilter returns a joined predicate for location ancestors
-func BuildLocationAncestorFilter(locationID string, depth int, maxDepth int) predicate.Location {
+func BuildLocationAncestorFilter(locationID, depth, maxDepth int) predicate.Location {
 	if depth >= maxDepth {
 		return location.ID(locationID)
 	}
-
-	return location.Or(location.ID(locationID), location.HasParentWith(BuildLocationAncestorFilter(locationID, depth+1, maxDepth)))
+	return location.Or(
+		location.ID(locationID),
+		location.HasParentWith(
+			BuildLocationAncestorFilter(locationID, depth+1, maxDepth),
+		),
+	)
 }
 
 // GetPortLocationPredicate returns a predicate for location ancestors for port
-func GetPortLocationPredicate(locationID string, maxDepth *int) predicate.EquipmentPort {
-	equipLocPred := equipment.HasLocationWith(BuildLocationAncestorFilter(locationID, 1, *maxDepth))
-	return equipmentport.HasParentWith(equipment.Or(
-		equipLocPred,
-		equipment.HasParentPositionWith(equipmentposition.HasParentWith(equipLocPred)),
-	))
-
+func GetPortLocationPredicate(locationID int, maxDepth *int) predicate.EquipmentPort {
+	pred := equipment.HasLocationWith(
+		BuildLocationAncestorFilter(locationID, 1, *maxDepth),
+	)
+	return equipmentport.HasParentWith(
+		equipment.Or(
+			pred,
+			equipment.HasParentPositionWith(
+				equipmentposition.HasParentWith(pred),
+			),
+		),
+	)
 }
 
 func equipmentLocationFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilterInput) (*ent.EquipmentQuery, error) {

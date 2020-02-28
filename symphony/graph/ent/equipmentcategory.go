@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type EquipmentCategory struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -70,7 +69,7 @@ func (ec *EquipmentCategory) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	ec.ID = strconv.FormatInt(value.Int64, 10)
+	ec.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -126,12 +125,6 @@ func (ec *EquipmentCategory) String() string {
 	builder.WriteString(ec.Name)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (ec *EquipmentCategory) id() int {
-	id, _ := strconv.Atoi(ec.ID)
-	return id
 }
 
 // EquipmentCategories is a parsable slice of EquipmentCategory.

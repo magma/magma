@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type EquipmentPosition struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -30,8 +29,8 @@ type EquipmentPosition struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPositionQuery when eager-loading is set.
 	Edges                         EquipmentPositionEdges `json:"edges"`
-	equipment_positions           *string
-	equipment_position_definition *string
+	equipment_positions           *int
+	equipment_position_definition *int
 }
 
 // EquipmentPositionEdges holds the relations/edges for other nodes in the graph.
@@ -116,7 +115,7 @@ func (ep *EquipmentPosition) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	ep.ID = strconv.FormatInt(value.Int64, 10)
+	ep.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -133,14 +132,14 @@ func (ep *EquipmentPosition) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_positions", value)
 		} else if value.Valid {
-			ep.equipment_positions = new(string)
-			*ep.equipment_positions = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_positions = new(int)
+			*ep.equipment_positions = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_position_definition", value)
 		} else if value.Valid {
-			ep.equipment_position_definition = new(string)
-			*ep.equipment_position_definition = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_position_definition = new(int)
+			*ep.equipment_position_definition = int(value.Int64)
 		}
 	}
 	return nil
@@ -190,12 +189,6 @@ func (ep *EquipmentPosition) String() string {
 	builder.WriteString(ep.UpdateTime.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (ep *EquipmentPosition) id() int {
-	id, _ := strconv.Atoi(ep.ID)
-	return id
 }
 
 // EquipmentPositions is a parsable slice of EquipmentPosition.

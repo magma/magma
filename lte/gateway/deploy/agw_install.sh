@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Setting up env variable, user and project path
 MAGMA_USER="magma"
 AGW_INSTALL_CONFIG="/etc/systemd/system/multi-user.target.wants/agw_installation.service"

@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -31,13 +30,13 @@ type ServiceCreate struct {
 	name        *string
 	external_id *string
 	status      *string
-	_type       map[string]struct{}
-	downstream  map[string]struct{}
-	upstream    map[string]struct{}
-	properties  map[string]struct{}
-	links       map[string]struct{}
-	customer    map[string]struct{}
-	endpoints   map[string]struct{}
+	_type       map[int]struct{}
+	downstream  map[int]struct{}
+	upstream    map[int]struct{}
+	properties  map[int]struct{}
+	links       map[int]struct{}
+	customer    map[int]struct{}
+	endpoints   map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -95,9 +94,9 @@ func (sc *ServiceCreate) SetStatus(s string) *ServiceCreate {
 }
 
 // SetTypeID sets the type edge to ServiceType by id.
-func (sc *ServiceCreate) SetTypeID(id string) *ServiceCreate {
+func (sc *ServiceCreate) SetTypeID(id int) *ServiceCreate {
 	if sc._type == nil {
-		sc._type = make(map[string]struct{})
+		sc._type = make(map[int]struct{})
 	}
 	sc._type[id] = struct{}{}
 	return sc
@@ -109,9 +108,9 @@ func (sc *ServiceCreate) SetType(s *ServiceType) *ServiceCreate {
 }
 
 // AddDownstreamIDs adds the downstream edge to Service by ids.
-func (sc *ServiceCreate) AddDownstreamIDs(ids ...string) *ServiceCreate {
+func (sc *ServiceCreate) AddDownstreamIDs(ids ...int) *ServiceCreate {
 	if sc.downstream == nil {
-		sc.downstream = make(map[string]struct{})
+		sc.downstream = make(map[int]struct{})
 	}
 	for i := range ids {
 		sc.downstream[ids[i]] = struct{}{}
@@ -121,7 +120,7 @@ func (sc *ServiceCreate) AddDownstreamIDs(ids ...string) *ServiceCreate {
 
 // AddDownstream adds the downstream edges to Service.
 func (sc *ServiceCreate) AddDownstream(s ...*Service) *ServiceCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -129,9 +128,9 @@ func (sc *ServiceCreate) AddDownstream(s ...*Service) *ServiceCreate {
 }
 
 // AddUpstreamIDs adds the upstream edge to Service by ids.
-func (sc *ServiceCreate) AddUpstreamIDs(ids ...string) *ServiceCreate {
+func (sc *ServiceCreate) AddUpstreamIDs(ids ...int) *ServiceCreate {
 	if sc.upstream == nil {
-		sc.upstream = make(map[string]struct{})
+		sc.upstream = make(map[int]struct{})
 	}
 	for i := range ids {
 		sc.upstream[ids[i]] = struct{}{}
@@ -141,7 +140,7 @@ func (sc *ServiceCreate) AddUpstreamIDs(ids ...string) *ServiceCreate {
 
 // AddUpstream adds the upstream edges to Service.
 func (sc *ServiceCreate) AddUpstream(s ...*Service) *ServiceCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -149,9 +148,9 @@ func (sc *ServiceCreate) AddUpstream(s ...*Service) *ServiceCreate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (sc *ServiceCreate) AddPropertyIDs(ids ...string) *ServiceCreate {
+func (sc *ServiceCreate) AddPropertyIDs(ids ...int) *ServiceCreate {
 	if sc.properties == nil {
-		sc.properties = make(map[string]struct{})
+		sc.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		sc.properties[ids[i]] = struct{}{}
@@ -161,7 +160,7 @@ func (sc *ServiceCreate) AddPropertyIDs(ids ...string) *ServiceCreate {
 
 // AddProperties adds the properties edges to Property.
 func (sc *ServiceCreate) AddProperties(p ...*Property) *ServiceCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -169,9 +168,9 @@ func (sc *ServiceCreate) AddProperties(p ...*Property) *ServiceCreate {
 }
 
 // AddLinkIDs adds the links edge to Link by ids.
-func (sc *ServiceCreate) AddLinkIDs(ids ...string) *ServiceCreate {
+func (sc *ServiceCreate) AddLinkIDs(ids ...int) *ServiceCreate {
 	if sc.links == nil {
-		sc.links = make(map[string]struct{})
+		sc.links = make(map[int]struct{})
 	}
 	for i := range ids {
 		sc.links[ids[i]] = struct{}{}
@@ -181,7 +180,7 @@ func (sc *ServiceCreate) AddLinkIDs(ids ...string) *ServiceCreate {
 
 // AddLinks adds the links edges to Link.
 func (sc *ServiceCreate) AddLinks(l ...*Link) *ServiceCreate {
-	ids := make([]string, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -189,9 +188,9 @@ func (sc *ServiceCreate) AddLinks(l ...*Link) *ServiceCreate {
 }
 
 // AddCustomerIDs adds the customer edge to Customer by ids.
-func (sc *ServiceCreate) AddCustomerIDs(ids ...string) *ServiceCreate {
+func (sc *ServiceCreate) AddCustomerIDs(ids ...int) *ServiceCreate {
 	if sc.customer == nil {
-		sc.customer = make(map[string]struct{})
+		sc.customer = make(map[int]struct{})
 	}
 	for i := range ids {
 		sc.customer[ids[i]] = struct{}{}
@@ -201,7 +200,7 @@ func (sc *ServiceCreate) AddCustomerIDs(ids ...string) *ServiceCreate {
 
 // AddCustomer adds the customer edges to Customer.
 func (sc *ServiceCreate) AddCustomer(c ...*Customer) *ServiceCreate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -209,9 +208,9 @@ func (sc *ServiceCreate) AddCustomer(c ...*Customer) *ServiceCreate {
 }
 
 // AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
-func (sc *ServiceCreate) AddEndpointIDs(ids ...string) *ServiceCreate {
+func (sc *ServiceCreate) AddEndpointIDs(ids ...int) *ServiceCreate {
 	if sc.endpoints == nil {
-		sc.endpoints = make(map[string]struct{})
+		sc.endpoints = make(map[int]struct{})
 	}
 	for i := range ids {
 		sc.endpoints[ids[i]] = struct{}{}
@@ -221,7 +220,7 @@ func (sc *ServiceCreate) AddEndpointIDs(ids ...string) *ServiceCreate {
 
 // AddEndpoints adds the endpoints edges to ServiceEndpoint.
 func (sc *ServiceCreate) AddEndpoints(s ...*ServiceEndpoint) *ServiceCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -276,7 +275,7 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: service.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: service.FieldID,
 			},
 		}
@@ -330,16 +329,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -353,16 +348,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -376,16 +367,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -399,16 +386,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -422,16 +405,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -445,16 +424,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: customer.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -468,16 +443,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: serviceendpoint.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -489,6 +460,6 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	s.ID = strconv.FormatInt(id, 10)
+	s.ID = int(id)
 	return s, nil
 }

@@ -337,7 +337,7 @@ jobs:
           name: Collect tests results
           command: |
             mv integration/tests/integration.xml ~/test-results/
-            mv integration/pytests/*.xml ~/test-results/
+            mv cli/tests/*.xml ~/test-results/
           when: always
       - run:
           name: Stop and remove containers

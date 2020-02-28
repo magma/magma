@@ -67,7 +67,7 @@ type PageInfo struct {
 
 // Cursor of an edge type.
 type Cursor struct {
-	ID string
+	ID int
 }
 
 // ErrInvalidPagination error is returned when paginating with invalid parameters.

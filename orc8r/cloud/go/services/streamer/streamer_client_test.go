@@ -6,19 +6,22 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package streamer
+package streamer_test
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/services/streamer"
+	"magma/orc8r/lib/go/definitions"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
+	streamer_client "magma/gateway/streamer"
+	"magma/orc8r/cloud/go/services/streamer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
 	"magma/orc8r/lib/go/protos"
@@ -35,6 +38,7 @@ const (
 type mockStreamProvider struct {
 	name   string
 	retVal []*protos.DataUpdate
+	extra  *any.Any
 	retErr error
 }
 
@@ -43,6 +47,7 @@ func (m *mockStreamProvider) GetStreamName() string {
 }
 
 func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+	m.extra = extraArgs
 	return m.retVal, m.retErr
 }
 
@@ -59,6 +64,11 @@ type testListener struct {
 
 func (l testListener) GetName() string {
 	return testStreamName
+}
+
+func (l testListener) GetExtraArgs() *any.Any {
+	extra, _ := ptypes.MarshalAny(expected[0])
+	return extra
 }
 
 func (l testListener) ReportError(e error) error {
@@ -86,7 +96,7 @@ func (l testListener) Update(ub *protos.DataUpdateBatch) bool {
 type mockedCloudRegistry struct{}
 
 func (cr mockedCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
-	if service != StreamerServiceName {
+	if service != definitions.StreamerServiceName {
 		return nil, fmt.Errorf("Not Implemented")
 	}
 	return platform_registry.GetConnection(streamer.ServiceName)
@@ -101,20 +111,26 @@ func (cr mockedCloudRegistry) GetCloudConnectionFromServiceConfig(serviceConfig 
 func TestStreamerClient(t *testing.T) {
 	streamer_test_init.StartTestService(t)
 
-	streamerClient := NewStreamerClient(mockedCloudRegistry{})
+	streamerClient := streamer_client.NewStreamerClient(mockedCloudRegistry{})
+	mockProvider := &mockStreamProvider{name: testStreamName, retVal: expected}
 
-	providers.RegisterStreamProvider(&mockStreamProvider{name: testStreamName, retVal: expected})
+	providers.RegisterStreamProvider(mockProvider)
 
 	l := testListener{}
 	l.err = make(chan error)
 	l.updateErr = make(chan error)
 	assert.NoError(t, streamerClient.AddListener(l))
+	go streamerClient.Stream(l)
 
 	select {
 	case e := <-l.err:
 		assert.NoError(t, e)
 	case e := <-l.updateErr:
 		assert.NoError(t, e)
+		var extra protos.DataUpdate
+		err := ptypes.UnmarshalAny(mockProvider.extra, &extra)
+		assert.NoError(t, err)
+		assert.Equal(t, protos.TestMarshal(expected[0]), protos.TestMarshal(&extra))
 	case <-time.After(10 * time.Second):
 		assert.Fail(t, "Test Timeout")
 	}

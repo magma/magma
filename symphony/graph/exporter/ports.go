@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -27,7 +28,7 @@ type portFilterInput struct {
 	Name          models.EquipmentFilterType `json:"name"`
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
-	IDSet         []string                   `json:"idSet"`
+	IDSet         []int                      `json:"idSet"`
 	StringSet     []string                   `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
 	BoolValue     bool                       `json:"boolValue"`
@@ -77,7 +78,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		return nil
 	})
 	cg.Go(func(ctx context.Context) error {
-		portIDs := make([]string, len(portsList))
+		portIDs := make([]int, len(portsList))
 		for i, p := range portsList {
 			portIDs[i] = p.ID
 		}
@@ -129,7 +130,7 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	)
 	parentEquip, err := port.QueryParent().Only(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "querying equipment for port (id=%s)", port.ID)
+		return nil, errors.Wrapf(err, "querying equipment for port (id=%d)", port.ID)
 	}
 	portDefinition := port.QueryDefinition().OnlyX(ctx)
 	g := ctxgroup.WithContext(ctx)
@@ -175,7 +176,12 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 				return err
 			}
 			otherEquip := otherPort.QueryParent().OnlyX(ctx)
-			linkData = []string{otherPort.ID, otherPort.QueryDefinition().OnlyX(ctx).Name, otherEquip.ID, otherEquip.Name}
+			linkData = []string{
+				strconv.Itoa(otherPort.ID),
+				otherPort.QueryDefinition().OnlyX(ctx).Name,
+				strconv.Itoa(otherEquip.ID),
+				otherEquip.Name,
+			}
 		}
 		return nil
 	})
@@ -200,7 +206,7 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	if err == nil {
 		portType = pt.Name
 	}
-	row := []string{port.ID, portDefinition.Name, portType, parentEquip.Name, parentEquip.QueryType().OnlyX(ctx).Name}
+	row := []string{strconv.Itoa(port.ID), portDefinition.Name, portType, parentEquip.Name, parentEquip.QueryType().OnlyX(ctx).Name}
 	row = append(row, lParents...)
 	row = append(row, eParents...)
 	row = append(row, posName)
@@ -218,7 +224,7 @@ func getServicesOfPortAsEndpoint(ctx context.Context, port *ent.EquipmentPort, r
 		QueryService().
 		All(ctx)
 	if err != nil {
-		return "", errors.Wrapf(err, "querying port for services (id=%s)", port.ID)
+		return "", errors.Wrapf(err, "querying port for services (id=%d)", port.ID)
 	}
 	var servicesList []string
 	for _, service := range services {

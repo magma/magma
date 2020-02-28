@@ -24,10 +24,10 @@ func writeModifiedLinksCSV(t *testing.T, r *csv.Reader, method method, skipLines
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 	if skipLines {
-		bw.WriteField("skip_lines", "[1]")
+		_ = bw.WriteField("skip_lines", "[1]")
 	}
 	if withVerify {
-		bw.WriteField("verify_before_commit", "true")
+		_ = bw.WriteField("verify_before_commit", "true")
 	}
 	fileWriter, err := bw.CreateFormFile("file_0", "name1")
 	require.Nil(t, err)
@@ -79,13 +79,12 @@ func writeModifiedLinksCSV(t *testing.T, r *csv.Reader, method method, skipLines
 func TestExportAndEditLinks(t *testing.T) {
 	for _, withVerify := range []bool{true, false} {
 		for _, skipLines := range []bool{true, false} {
-			r, err := newExporterTestResolver(t)
-			require.NoError(t, err)
+			r := newExporterTestResolver(t)
 			log := r.exporter.log
 			e := &exporter{log, linksRower{log}}
 			ctx, res := prepareHandlerAndExport(t, r, e)
-			defer res.Body.Close()
 			importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityLink, MethodEdit, skipLines, withVerify)
+			res.Body.Close()
 
 			locs := r.client.Location.Query().AllX(ctx)
 			require.Len(t, locs, 3)
@@ -119,13 +118,10 @@ func TestExportAndEditLinks(t *testing.T) {
 func TestExportAndAddLinks(t *testing.T) {
 	for _, withVerify := range []bool{true, false} {
 		for _, skipLines := range []bool{true, false} {
-			r, err := newExporterTestResolver(t)
-			require.NoError(t, err)
+			r := newExporterTestResolver(t)
 			log := r.exporter.log
 			e := &exporter{log, linksRower{log}}
 			ctx, res := prepareHandlerAndExport(t, r, e)
-			defer res.Body.Close()
-
 			locs := r.client.Location.Query().AllX(ctx)
 			require.Len(t, locs, 3)
 			// Deleting link and of side's equipment to verify it creates it on import
@@ -134,6 +130,7 @@ func TestExportAndAddLinks(t *testing.T) {
 			equips := r.client.Equipment.Query().AllX(ctx)
 			require.Len(t, equips, 1)
 			importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityLink, MethodAdd, skipLines, withVerify)
+			res.Body.Close()
 			links, err := r.Query().LinkSearch(ctx, nil, nil)
 			require.NoError(t, err)
 			if skipLines || withVerify {

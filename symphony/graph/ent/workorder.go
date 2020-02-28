@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,7 +23,7 @@ import (
 type WorkOrder struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -50,10 +49,10 @@ type WorkOrder struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderQuery when eager-loading is set.
 	Edges                 WorkOrderEdges `json:"edges"`
-	project_work_orders   *string
-	work_order_type       *string
-	work_order_location   *string
-	work_order_technician *string
+	project_work_orders   *int
+	work_order_type       *int
+	work_order_location   *int
+	work_order_technician *int
 }
 
 // WorkOrderEdges holds the relations/edges for other nodes in the graph.
@@ -253,7 +252,7 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	wo.ID = strconv.FormatInt(value.Int64, 10)
+	wo.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -315,26 +314,26 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_work_orders", value)
 		} else if value.Valid {
-			wo.project_work_orders = new(string)
-			*wo.project_work_orders = strconv.FormatInt(value.Int64, 10)
+			wo.project_work_orders = new(int)
+			*wo.project_work_orders = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_type", value)
 		} else if value.Valid {
-			wo.work_order_type = new(string)
-			*wo.work_order_type = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_type = new(int)
+			*wo.work_order_type = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_location", value)
 		} else if value.Valid {
-			wo.work_order_location = new(string)
-			*wo.work_order_location = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_location = new(int)
+			*wo.work_order_location = int(value.Int64)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_technician", value)
 		} else if value.Valid {
-			wo.work_order_technician = new(string)
-			*wo.work_order_technician = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_technician = new(int)
+			*wo.work_order_technician = int(value.Int64)
 		}
 	}
 	return nil
@@ -447,12 +446,6 @@ func (wo *WorkOrder) String() string {
 	builder.WriteString(fmt.Sprintf("%v", wo.Index))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (wo *WorkOrder) id() int {
-	id, _ := strconv.Atoi(wo.ID)
-	return id
 }
 
 // WorkOrders is a parsable slice of WorkOrder.

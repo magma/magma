@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type Comment struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -29,8 +28,8 @@ type Comment struct {
 	AuthorName string `json:"author_name,omitempty"`
 	// Text holds the value of the "text" field.
 	Text                string `json:"text,omitempty"`
-	project_comments    *string
-	work_order_comments *string
+	project_comments    *int
+	work_order_comments *int
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -62,7 +61,7 @@ func (c *Comment) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	c.ID = strconv.FormatInt(value.Int64, 10)
+	c.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -89,14 +88,14 @@ func (c *Comment) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_comments", value)
 		} else if value.Valid {
-			c.project_comments = new(string)
-			*c.project_comments = strconv.FormatInt(value.Int64, 10)
+			c.project_comments = new(int)
+			*c.project_comments = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_comments", value)
 		} else if value.Valid {
-			c.work_order_comments = new(string)
-			*c.work_order_comments = strconv.FormatInt(value.Int64, 10)
+			c.work_order_comments = new(int)
+			*c.work_order_comments = int(value.Int64)
 		}
 	}
 	return nil
@@ -135,12 +134,6 @@ func (c *Comment) String() string {
 	builder.WriteString(c.Text)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (c *Comment) id() int {
-	id, _ := strconv.Atoi(c.ID)
-	return id
 }
 
 // Comments is a parsable slice of Comment.

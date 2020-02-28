@@ -85,7 +85,7 @@ func (m *importer) processPortConnectionCSV(w http.ResponseWriter, r *http.Reque
 				line[equipNameBIndex],
 			}
 
-			ids := make([]string, len(names))
+			ids := make([]int, len(names))
 			{
 				g := ctxgroup.WithContext(ctx)
 				for i := range names {
@@ -139,14 +139,14 @@ func (m *importer) processPortConnectionCSV(w http.ResponseWriter, r *http.Reque
 					},
 				}); err != nil {
 				log.Warn("cannot connect ports",
-					zap.Strings("ids", ids),
+					zap.Ints("ids", ids),
 					zap.Strings("names", names),
 					zap.Error(err),
 				)
 				continue
 			}
 			log.Info("connected ports",
-				zap.Strings("ids", ids),
+				zap.Ints("ids", ids),
 				zap.Strings("names", names),
 			)
 		}

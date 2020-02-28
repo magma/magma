@@ -47,7 +47,7 @@ func (wodd *WorkOrderDefinitionDelete) sqlExec(ctx context.Context) (int, error)
 		Node: &sqlgraph.NodeSpec{
 			Table: workorderdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workorderdefinition.FieldID,
 			},
 		},

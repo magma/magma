@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -25,8 +24,8 @@ type ServiceEndpointCreate struct {
 	create_time *time.Time
 	update_time *time.Time
 	role        *string
-	port        map[string]struct{}
-	service     map[string]struct{}
+	port        map[int]struct{}
+	service     map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -64,16 +63,16 @@ func (sec *ServiceEndpointCreate) SetRole(s string) *ServiceEndpointCreate {
 }
 
 // SetPortID sets the port edge to EquipmentPort by id.
-func (sec *ServiceEndpointCreate) SetPortID(id string) *ServiceEndpointCreate {
+func (sec *ServiceEndpointCreate) SetPortID(id int) *ServiceEndpointCreate {
 	if sec.port == nil {
-		sec.port = make(map[string]struct{})
+		sec.port = make(map[int]struct{})
 	}
 	sec.port[id] = struct{}{}
 	return sec
 }
 
 // SetNillablePortID sets the port edge to EquipmentPort by id if the given value is not nil.
-func (sec *ServiceEndpointCreate) SetNillablePortID(id *string) *ServiceEndpointCreate {
+func (sec *ServiceEndpointCreate) SetNillablePortID(id *int) *ServiceEndpointCreate {
 	if id != nil {
 		sec = sec.SetPortID(*id)
 	}
@@ -86,16 +85,16 @@ func (sec *ServiceEndpointCreate) SetPort(e *EquipmentPort) *ServiceEndpointCrea
 }
 
 // SetServiceID sets the service edge to Service by id.
-func (sec *ServiceEndpointCreate) SetServiceID(id string) *ServiceEndpointCreate {
+func (sec *ServiceEndpointCreate) SetServiceID(id int) *ServiceEndpointCreate {
 	if sec.service == nil {
-		sec.service = make(map[string]struct{})
+		sec.service = make(map[int]struct{})
 	}
 	sec.service[id] = struct{}{}
 	return sec
 }
 
 // SetNillableServiceID sets the service edge to Service by id if the given value is not nil.
-func (sec *ServiceEndpointCreate) SetNillableServiceID(id *string) *ServiceEndpointCreate {
+func (sec *ServiceEndpointCreate) SetNillableServiceID(id *int) *ServiceEndpointCreate {
 	if id != nil {
 		sec = sec.SetServiceID(*id)
 	}
@@ -144,7 +143,7 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 		_spec = &sqlgraph.CreateSpec{
 			Table: serviceendpoint.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: serviceendpoint.FieldID,
 			},
 		}
@@ -182,16 +181,12 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -205,16 +200,12 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -226,6 +217,6 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	se.ID = strconv.FormatInt(id, 10)
+	se.ID = int(id)
 	return se, nil
 }

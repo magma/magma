@@ -9,7 +9,6 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type ActionsRule struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -60,7 +59,7 @@ func (ar *ActionsRule) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	ar.ID = strconv.FormatInt(value.Int64, 10)
+	ar.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -138,12 +137,6 @@ func (ar *ActionsRule) String() string {
 	builder.WriteString(fmt.Sprintf("%v", ar.RuleActions))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (ar *ActionsRule) id() int {
-	id, _ := strconv.Atoi(ar.ID)
-	return id
 }
 
 // ActionsRules is a parsable slice of ActionsRule.

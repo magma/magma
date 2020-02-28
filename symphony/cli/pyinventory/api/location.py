@@ -385,10 +385,7 @@ def edit_location(
         name=new_name if new_name is not None else location.name,
         latitude=new_lat if new_lat is not None else location.latitude,
         longitude=new_long if new_long is not None else location.longitude,
-        properties=[
-            from_dict(data_class=PropertyInput, data=p, config=Config(strict=True))
-            for p in properties
-        ],
+        properties=properties,
         externalID=new_external_id,
     )
 

@@ -6,6 +6,7 @@ package importer
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -42,19 +43,19 @@ const (
 )
 
 type portData struct {
-	equipParentID   string
-	equipParent2ID  string
-	equipParent3ID  string
-	equipChildID    string
-	equipChild2ID   string
-	portDef1        string
-	parentPortInst1 string
-	parentPortInst2 string
-	parentPortInst3 string
-	portDef2        string
-	childPortInst1  string
-	childPortInst2  string
-	linkID          string
+	equipParentID   int
+	equipParent2ID  int
+	equipParent3ID  int
+	equipChildID    int
+	equipChild2ID   int
+	portDef1        int
+	parentPortInst1 int
+	parentPortInst2 int
+	parentPortInst3 int
+	portDef2        int
+	childPortInst1  int
+	childPortInst2  int
+	linkID          int
 }
 
 func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolver) portData {
@@ -275,10 +276,10 @@ func TestGeneralPortsImport(t *testing.T) {
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
 		linkDataHeader = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
 		servicesHeader = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
-		row1           = []string{ids.parentPortInst1, def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", strings.Join([]string{svcName, svc2Name}, ";"), svc3Name, "updateVal", "54"}
-		row2           = []string{ids.parentPortInst2, def1.Name, typ1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", ids.childPortInst1, def2.Name, childEquip.ID, childEquip.Name,
+		row1           = []string{strconv.Itoa(ids.parentPortInst1), def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", strings.Join([]string{svcName, svc2Name}, ";"), svc3Name, "updateVal", "54"}
+		row2           = []string{strconv.Itoa(ids.parentPortInst2), def1.Name, typ1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", strconv.Itoa(ids.childPortInst1), def2.Name, strconv.Itoa(childEquip.ID), childEquip.Name,
 			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc3Name, svc4Name}, ";"), "updateVal2", "55", "", ""}
-		row3 = []string{ids.childPortInst1, def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, posName, ids.parentPortInst2, def1.Name, equip2.ID, equip2.Name,
+		row3 = []string{strconv.Itoa(ids.childPortInst1), def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, posName, strconv.Itoa(ids.parentPortInst2), def1.Name, strconv.Itoa(equip2.ID), equip2.Name,
 			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc2Name, svc3Name}, ";"), "", "", "1988-01-01", "true"}
 	)
 

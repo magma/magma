@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -33,12 +32,12 @@ type SurveyUpdate struct {
 	creation_timestamp      *time.Time
 	clearcreation_timestamp bool
 	completion_timestamp    *time.Time
-	location                map[string]struct{}
-	source_file             map[string]struct{}
-	questions               map[string]struct{}
+	location                map[int]struct{}
+	source_file             map[int]struct{}
+	questions               map[int]struct{}
 	clearedLocation         bool
 	clearedSourceFile       bool
-	removedQuestions        map[string]struct{}
+	removedQuestions        map[int]struct{}
 	predicates              []predicate.Survey
 }
 
@@ -103,16 +102,16 @@ func (su *SurveyUpdate) SetCompletionTimestamp(t time.Time) *SurveyUpdate {
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (su *SurveyUpdate) SetLocationID(id string) *SurveyUpdate {
+func (su *SurveyUpdate) SetLocationID(id int) *SurveyUpdate {
 	if su.location == nil {
-		su.location = make(map[string]struct{})
+		su.location = make(map[int]struct{})
 	}
 	su.location[id] = struct{}{}
 	return su
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (su *SurveyUpdate) SetNillableLocationID(id *string) *SurveyUpdate {
+func (su *SurveyUpdate) SetNillableLocationID(id *int) *SurveyUpdate {
 	if id != nil {
 		su = su.SetLocationID(*id)
 	}
@@ -125,16 +124,16 @@ func (su *SurveyUpdate) SetLocation(l *Location) *SurveyUpdate {
 }
 
 // SetSourceFileID sets the source_file edge to File by id.
-func (su *SurveyUpdate) SetSourceFileID(id string) *SurveyUpdate {
+func (su *SurveyUpdate) SetSourceFileID(id int) *SurveyUpdate {
 	if su.source_file == nil {
-		su.source_file = make(map[string]struct{})
+		su.source_file = make(map[int]struct{})
 	}
 	su.source_file[id] = struct{}{}
 	return su
 }
 
 // SetNillableSourceFileID sets the source_file edge to File by id if the given value is not nil.
-func (su *SurveyUpdate) SetNillableSourceFileID(id *string) *SurveyUpdate {
+func (su *SurveyUpdate) SetNillableSourceFileID(id *int) *SurveyUpdate {
 	if id != nil {
 		su = su.SetSourceFileID(*id)
 	}
@@ -147,9 +146,9 @@ func (su *SurveyUpdate) SetSourceFile(f *File) *SurveyUpdate {
 }
 
 // AddQuestionIDs adds the questions edge to SurveyQuestion by ids.
-func (su *SurveyUpdate) AddQuestionIDs(ids ...string) *SurveyUpdate {
+func (su *SurveyUpdate) AddQuestionIDs(ids ...int) *SurveyUpdate {
 	if su.questions == nil {
-		su.questions = make(map[string]struct{})
+		su.questions = make(map[int]struct{})
 	}
 	for i := range ids {
 		su.questions[ids[i]] = struct{}{}
@@ -159,7 +158,7 @@ func (su *SurveyUpdate) AddQuestionIDs(ids ...string) *SurveyUpdate {
 
 // AddQuestions adds the questions edges to SurveyQuestion.
 func (su *SurveyUpdate) AddQuestions(s ...*SurveyQuestion) *SurveyUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -179,9 +178,9 @@ func (su *SurveyUpdate) ClearSourceFile() *SurveyUpdate {
 }
 
 // RemoveQuestionIDs removes the questions edge to SurveyQuestion by ids.
-func (su *SurveyUpdate) RemoveQuestionIDs(ids ...string) *SurveyUpdate {
+func (su *SurveyUpdate) RemoveQuestionIDs(ids ...int) *SurveyUpdate {
 	if su.removedQuestions == nil {
-		su.removedQuestions = make(map[string]struct{})
+		su.removedQuestions = make(map[int]struct{})
 	}
 	for i := range ids {
 		su.removedQuestions[ids[i]] = struct{}{}
@@ -191,7 +190,7 @@ func (su *SurveyUpdate) RemoveQuestionIDs(ids ...string) *SurveyUpdate {
 
 // RemoveQuestions removes questions edges to SurveyQuestion.
 func (su *SurveyUpdate) RemoveQuestions(s ...*SurveyQuestion) *SurveyUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -241,7 +240,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   survey.Table,
 			Columns: survey.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: survey.FieldID,
 			},
 		},
@@ -309,7 +308,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
@@ -325,16 +324,12 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -348,7 +343,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
@@ -364,16 +359,12 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -387,16 +378,12 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -410,16 +397,12 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -438,7 +421,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // SurveyUpdateOne is the builder for updating a single Survey entity.
 type SurveyUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time             *time.Time
 	name                    *string
@@ -447,12 +430,12 @@ type SurveyUpdateOne struct {
 	creation_timestamp      *time.Time
 	clearcreation_timestamp bool
 	completion_timestamp    *time.Time
-	location                map[string]struct{}
-	source_file             map[string]struct{}
-	questions               map[string]struct{}
+	location                map[int]struct{}
+	source_file             map[int]struct{}
+	questions               map[int]struct{}
 	clearedLocation         bool
 	clearedSourceFile       bool
-	removedQuestions        map[string]struct{}
+	removedQuestions        map[int]struct{}
 }
 
 // SetName sets the name field.
@@ -510,16 +493,16 @@ func (suo *SurveyUpdateOne) SetCompletionTimestamp(t time.Time) *SurveyUpdateOne
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (suo *SurveyUpdateOne) SetLocationID(id string) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetLocationID(id int) *SurveyUpdateOne {
 	if suo.location == nil {
-		suo.location = make(map[string]struct{})
+		suo.location = make(map[int]struct{})
 	}
 	suo.location[id] = struct{}{}
 	return suo
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (suo *SurveyUpdateOne) SetNillableLocationID(id *string) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetNillableLocationID(id *int) *SurveyUpdateOne {
 	if id != nil {
 		suo = suo.SetLocationID(*id)
 	}
@@ -532,16 +515,16 @@ func (suo *SurveyUpdateOne) SetLocation(l *Location) *SurveyUpdateOne {
 }
 
 // SetSourceFileID sets the source_file edge to File by id.
-func (suo *SurveyUpdateOne) SetSourceFileID(id string) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetSourceFileID(id int) *SurveyUpdateOne {
 	if suo.source_file == nil {
-		suo.source_file = make(map[string]struct{})
+		suo.source_file = make(map[int]struct{})
 	}
 	suo.source_file[id] = struct{}{}
 	return suo
 }
 
 // SetNillableSourceFileID sets the source_file edge to File by id if the given value is not nil.
-func (suo *SurveyUpdateOne) SetNillableSourceFileID(id *string) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetNillableSourceFileID(id *int) *SurveyUpdateOne {
 	if id != nil {
 		suo = suo.SetSourceFileID(*id)
 	}
@@ -554,9 +537,9 @@ func (suo *SurveyUpdateOne) SetSourceFile(f *File) *SurveyUpdateOne {
 }
 
 // AddQuestionIDs adds the questions edge to SurveyQuestion by ids.
-func (suo *SurveyUpdateOne) AddQuestionIDs(ids ...string) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) AddQuestionIDs(ids ...int) *SurveyUpdateOne {
 	if suo.questions == nil {
-		suo.questions = make(map[string]struct{})
+		suo.questions = make(map[int]struct{})
 	}
 	for i := range ids {
 		suo.questions[ids[i]] = struct{}{}
@@ -566,7 +549,7 @@ func (suo *SurveyUpdateOne) AddQuestionIDs(ids ...string) *SurveyUpdateOne {
 
 // AddQuestions adds the questions edges to SurveyQuestion.
 func (suo *SurveyUpdateOne) AddQuestions(s ...*SurveyQuestion) *SurveyUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -586,9 +569,9 @@ func (suo *SurveyUpdateOne) ClearSourceFile() *SurveyUpdateOne {
 }
 
 // RemoveQuestionIDs removes the questions edge to SurveyQuestion by ids.
-func (suo *SurveyUpdateOne) RemoveQuestionIDs(ids ...string) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) RemoveQuestionIDs(ids ...int) *SurveyUpdateOne {
 	if suo.removedQuestions == nil {
-		suo.removedQuestions = make(map[string]struct{})
+		suo.removedQuestions = make(map[int]struct{})
 	}
 	for i := range ids {
 		suo.removedQuestions[ids[i]] = struct{}{}
@@ -598,7 +581,7 @@ func (suo *SurveyUpdateOne) RemoveQuestionIDs(ids ...string) *SurveyUpdateOne {
 
 // RemoveQuestions removes questions edges to SurveyQuestion.
 func (suo *SurveyUpdateOne) RemoveQuestions(s ...*SurveyQuestion) *SurveyUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -649,7 +632,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Columns: survey.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  suo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: survey.FieldID,
 			},
 		},
@@ -710,7 +693,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
@@ -726,16 +709,12 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -749,7 +728,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
@@ -765,16 +744,12 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -788,16 +763,12 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -811,16 +782,12 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

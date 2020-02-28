@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type SurveyQuestion struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -65,7 +64,7 @@ type SurveyQuestion struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuestionQuery when eager-loading is set.
 	Edges                  SurveyQuestionEdges `json:"edges"`
-	survey_question_survey *string
+	survey_question_survey *int
 }
 
 // SurveyQuestionEdges holds the relations/edges for other nodes in the graph.
@@ -168,7 +167,7 @@ func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	sq.ID = strconv.FormatInt(value.Int64, 10)
+	sq.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -275,8 +274,8 @@ func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_question_survey", value)
 		} else if value.Valid {
-			sq.survey_question_survey = new(string)
-			*sq.survey_question_survey = strconv.FormatInt(value.Int64, 10)
+			sq.survey_question_survey = new(int)
+			*sq.survey_question_survey = int(value.Int64)
 		}
 	}
 	return nil
@@ -367,12 +366,6 @@ func (sq *SurveyQuestion) String() string {
 	builder.WriteString(sq.DateData.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (sq *SurveyQuestion) id() int {
-	id, _ := strconv.Atoi(sq.ID)
-	return id
 }
 
 // SurveyQuestions is a parsable slice of SurveyQuestion.

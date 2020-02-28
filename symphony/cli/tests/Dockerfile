@@ -7,7 +7,7 @@ FROM python:3.6
 COPY cli/ ./
 RUN python setup.py -q install
 
-# Switch to intergration pytests directory
-WORKDIR /src/symphony/integration/pytests
+# Switch to pyinventory tests directory
+WORKDIR /src/symphony/cli/tests
 
 CMD ["python", "runner.py"]

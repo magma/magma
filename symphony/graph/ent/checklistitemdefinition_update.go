@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -34,7 +33,7 @@ type CheckListItemDefinitionUpdate struct {
 	clearenum_values     bool
 	help_text            *string
 	clearhelp_text       bool
-	work_order_type      map[string]struct{}
+	work_order_type      map[int]struct{}
 	clearedWorkOrderType bool
 	predicates           []predicate.CheckListItemDefinition
 }
@@ -132,16 +131,16 @@ func (clidu *CheckListItemDefinitionUpdate) ClearHelpText() *CheckListItemDefini
 }
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
-func (clidu *CheckListItemDefinitionUpdate) SetWorkOrderTypeID(id string) *CheckListItemDefinitionUpdate {
+func (clidu *CheckListItemDefinitionUpdate) SetWorkOrderTypeID(id int) *CheckListItemDefinitionUpdate {
 	if clidu.work_order_type == nil {
-		clidu.work_order_type = make(map[string]struct{})
+		clidu.work_order_type = make(map[int]struct{})
 	}
 	clidu.work_order_type[id] = struct{}{}
 	return clidu
 }
 
 // SetNillableWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id if the given value is not nil.
-func (clidu *CheckListItemDefinitionUpdate) SetNillableWorkOrderTypeID(id *string) *CheckListItemDefinitionUpdate {
+func (clidu *CheckListItemDefinitionUpdate) SetNillableWorkOrderTypeID(id *int) *CheckListItemDefinitionUpdate {
 	if id != nil {
 		clidu = clidu.SetWorkOrderTypeID(*id)
 	}
@@ -199,7 +198,7 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 			Table:   checklistitemdefinition.Table,
 			Columns: checklistitemdefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistitemdefinition.FieldID,
 			},
 		},
@@ -287,7 +286,7 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
@@ -303,16 +302,12 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -331,7 +326,7 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 // CheckListItemDefinitionUpdateOne is the builder for updating a single CheckListItemDefinition entity.
 type CheckListItemDefinitionUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time          *time.Time
 	title                *string
@@ -343,7 +338,7 @@ type CheckListItemDefinitionUpdateOne struct {
 	clearenum_values     bool
 	help_text            *string
 	clearhelp_text       bool
-	work_order_type      map[string]struct{}
+	work_order_type      map[int]struct{}
 	clearedWorkOrderType bool
 }
 
@@ -434,16 +429,16 @@ func (cliduo *CheckListItemDefinitionUpdateOne) ClearHelpText() *CheckListItemDe
 }
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
-func (cliduo *CheckListItemDefinitionUpdateOne) SetWorkOrderTypeID(id string) *CheckListItemDefinitionUpdateOne {
+func (cliduo *CheckListItemDefinitionUpdateOne) SetWorkOrderTypeID(id int) *CheckListItemDefinitionUpdateOne {
 	if cliduo.work_order_type == nil {
-		cliduo.work_order_type = make(map[string]struct{})
+		cliduo.work_order_type = make(map[int]struct{})
 	}
 	cliduo.work_order_type[id] = struct{}{}
 	return cliduo
 }
 
 // SetNillableWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id if the given value is not nil.
-func (cliduo *CheckListItemDefinitionUpdateOne) SetNillableWorkOrderTypeID(id *string) *CheckListItemDefinitionUpdateOne {
+func (cliduo *CheckListItemDefinitionUpdateOne) SetNillableWorkOrderTypeID(id *int) *CheckListItemDefinitionUpdateOne {
 	if id != nil {
 		cliduo = cliduo.SetWorkOrderTypeID(*id)
 	}
@@ -502,7 +497,7 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 			Columns: checklistitemdefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  cliduo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistitemdefinition.FieldID,
 			},
 		},
@@ -583,7 +578,7 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
@@ -599,16 +594,12 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

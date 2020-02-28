@@ -19,13 +19,13 @@ import (
 
 	"google.golang.org/grpc"
 
-	"magma/feg/gateway/registry"
+	"magma/gateway/cloud_registry"
+	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 )
 
 const (
-	StreamerServiceName = "streamer"
-	StreamingInterval   = time.Second * 20
+	StreamingInterval = time.Second * 20
 )
 
 type listener struct {
@@ -36,20 +36,20 @@ type listener struct {
 type streamerClient struct {
 	listeners       map[string]*listener
 	listenersMu     sync.Mutex
-	serviceRegistry registry.CloudRegistry
+	serviceRegistry cloud_registry.CloudRegistry
 }
 
 // NewStreamerClient creates new streamer client with an empty listeners list and provided cloud registry
 // The created streamer is ready to serve new listeners after they are added via AddListener() call
-func NewStreamerClient(cr registry.CloudRegistry) Client {
+func NewStreamerClient(cr cloud_registry.CloudRegistry) Client {
 	if cr == nil {
-		cr = registry.NewCloudRegistry()
+		cr = cloud_registry.New()
 	}
 	return &streamerClient{listeners: map[string]*listener{}, serviceRegistry: cr}
 }
 
 // AddListener registers a new streaming updates listener for the
-// listener.GetName() stream and starts stream loop routine for it.
+// listener.GetName() stream
 // The stream name must be unique and AddListener will error out if a listener
 // for the same stream is already registered.
 func (cl *streamerClient) AddListener(l Listener) error {
@@ -65,7 +65,6 @@ func (cl *streamerClient) AddListener(l Listener) error {
 
 	lis := &listener{Listener: l, done: 0}
 	cl.listeners[stream] = lis
-	go cl.streamUpdates(lis)
 
 	return nil
 }
@@ -87,12 +86,34 @@ func (cl *streamerClient) RemoveListener(l Listener) bool {
 	return false
 }
 
+// Stream starts streaming loop for a registered by AddListener listener
+// If successful, Stream never return and should be called in it's own go routine or main()
+// If the provided Listener is not registered, Stream will try to register it prior to starting streaming
+func (cl *streamerClient) Stream(l Listener) error {
+	if cl == nil {
+		return fmt.Errorf("Invalid (nil) Stream Client")
+	}
+	if l == nil {
+		return fmt.Errorf("Invalid (nil) Listener")
+	}
+	stream := l.GetName()
+	cl.listenersMu.Lock()
+	lis, exist := cl.listeners[stream]
+	if !exist && lis == nil {
+		lis = &listener{Listener: l, done: 0}
+		cl.listeners[stream] = lis
+	}
+	cl.listenersMu.Unlock()
+	cl.streamUpdates(lis)
+	return nil
+}
+
 func (cl *streamerClient) streamUpdates(l *listener) {
 	for {
 		conn, grpcStreamClient, err := cl.startStreaming(l)
 		if err != nil {
 			// Notify Listener & Check if it wants to continue
-			l.notifyError(fmt.Errorf("Failed to create stream for %s: %v", StreamerServiceName, err))
+			l.notifyError(fmt.Errorf("Failed to create stream for %s: %v", definitions.StreamerServiceName, err))
 		} else {
 			for !l.isDone() {
 				updatesBatch, err := grpcStreamClient.Recv()
@@ -100,12 +121,16 @@ func (cl *streamerClient) streamUpdates(l *listener) {
 					// Don't notify on EOF, streaming service may have closed stream due to
 					// being idle 4 too long/restart/etc. In this case we'll just reconnect
 					if err != io.EOF {
-						l.notifyError(fmt.Errorf("Stream %s receive error: %v", StreamerServiceName, err))
+						l.notifyError(fmt.Errorf("Stream %s receive error: %v", definitions.StreamerServiceName, err))
 					}
 					break // reconnect and continue or exit
 				}
 				if !l.Update(updatesBatch) {
-					l.setDone() // Listener indicated not to continue streaming, cleanup and return
+					// Listener indicated not to continue streaming
+					// send io.EOF to Listener's ReportError receiver to give it an option to terminate streaming
+					// break & cleanup and depending on the result of ReportError reopen stream or terminate
+					l.notifyError(io.EOF)
+					break
 				} else {
 					time.Sleep(StreamingInterval)
 				}
@@ -121,14 +146,12 @@ func (cl *streamerClient) streamUpdates(l *listener) {
 }
 
 func (cl *streamerClient) startStreaming(l *listener) (*grpc.ClientConn, protos.Streamer_GetUpdatesClient, error) {
-	conn, err := cl.serviceRegistry.GetCloudConnection(StreamerServiceName)
+	conn, err := cl.serviceRegistry.GetCloudConnection(definitions.StreamerServiceName)
 	if err != nil {
 		return nil, nil, err
 	}
-	grpcStreamerClient, err := protos.NewStreamerClient(conn).GetUpdates(
-		context.Background(),
-		&protos.StreamRequest{GatewayId: "", StreamName: l.GetName()},
-	)
+	req := &protos.StreamRequest{GatewayId: "", StreamName: l.GetName(), ExtraArgs: l.GetExtraArgs()}
+	grpcStreamerClient, err := protos.NewStreamerClient(conn).GetUpdates(context.Background(), req)
 	if err != nil {
 		conn.Close()
 		return nil, nil, err

@@ -6,6 +6,7 @@ package importer
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/AlekSi/pointer"
@@ -127,18 +128,18 @@ func TestImportLocationHierarchy(t *testing.T) {
 	require.NoError(t, err)
 
 	rec1 := NewImportRecord(test1, title)
-	parentIndex, err := importer.getParentOfLocationIndex(ctx, rec1)
+	parentIndex, err := importer.getParentOfLocationIndex(rec1)
 	require.NoError(t, err)
 	require.Equal(t, parentIndex, -1)
-	currIndex, err := importer.getCurrentLocationIndex(ctx, rec1)
+	currIndex, err := importer.getCurrentLocationIndex(rec1)
 	require.NoError(t, err)
 	require.Equal(t, currIndex, 1)
 
 	rec2 := NewImportRecord(test2, title)
-	parentIndex, err = importer.getParentOfLocationIndex(ctx, rec2)
+	parentIndex, err = importer.getParentOfLocationIndex(rec2)
 	require.NoError(t, err)
 	require.Equal(t, parentIndex, 2)
-	currIndex, err = importer.getCurrentLocationIndex(ctx, rec2)
+	currIndex, err = importer.getCurrentLocationIndex(rec2)
 	require.NoError(t, err)
 	require.Equal(t, currIndex, 3)
 
@@ -149,18 +150,18 @@ func TestImportLocationHierarchy(t *testing.T) {
 	require.Equal(t, parentLoc2.QueryParent().OnlyX(ctx).Name, "locNameL")
 
 	rec3 := NewImportRecord(test3, title)
-	parentIndex, err = importer.getParentOfLocationIndex(ctx, rec3)
+	parentIndex, err = importer.getParentOfLocationIndex(rec3)
 	require.NoError(t, err)
 	require.Equal(t, parentIndex, -1)
-	currIndex, err = importer.getCurrentLocationIndex(ctx, rec3)
+	currIndex, err = importer.getCurrentLocationIndex(rec3)
 	require.NoError(t, err)
 	require.Equal(t, currIndex, 2)
 
 	rec4 := NewImportRecord(test4, title)
-	parentIndex, err = importer.getParentOfLocationIndex(ctx, rec4)
+	parentIndex, err = importer.getParentOfLocationIndex(rec4)
 	require.NoError(t, err)
 	require.Equal(t, parentIndex, 1)
-	currIndex, err = importer.getCurrentLocationIndex(ctx, rec4)
+	currIndex, err = importer.getCurrentLocationIndex(rec4)
 	require.NoError(t, err)
 	require.Equal(t, currIndex, 3)
 
@@ -302,15 +303,15 @@ func TestValidateForExistingLocation(t *testing.T) {
 			IntValue:       pointer.ToInt(16),
 			PropertyTypeID: r.client.PropertyType.Query().Where(propertytype.Name(propName2)).OnlyXID(ctx),
 		}},
-		Parent:     pointer.ToString(loc1.ID),
+		Parent:     pointer.ToInt(loc1.ID),
 		ExternalID: pointer.ToString("123"),
 	})
 	require.NoError(t, err)
 
 	var (
-		test1 = []string{loc1.ID, "loc1L", "", "", "external_2", "", "", "", "", "", "", "30.23-50", ""}
-		test2 = []string{loc2.ID, "", "loc2M", "", "", "32", "33", "", "", "29/03/88", "", "", ""}
-		test3 = []string{loc3.ID, "loc1L", "", "loc3S", "external_1", "32", "33", "abc", "19", "", "", "", ""}
+		test1 = []string{strconv.Itoa(loc1.ID), "loc1L", "", "", "external_2", "", "", "", "", "", "", "30.23-50", ""}
+		test2 = []string{strconv.Itoa(loc2.ID), "", "loc2M", "", "", "32", "33", "", "", "29/03/88", "", "", ""}
+		test3 = []string{strconv.Itoa(loc3.ID), "loc1L", "", "loc3S", "external_1", "32", "33", "abc", "19", "", "", "", ""}
 	)
 
 	rec1 := NewImportRecord(test1, fl)

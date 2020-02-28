@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type FloorPlanScale struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -61,7 +60,7 @@ func (fps *FloorPlanScale) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	fps.ID = strconv.FormatInt(value.Int64, 10)
+	fps.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -140,12 +139,6 @@ func (fps *FloorPlanScale) String() string {
 	builder.WriteString(fmt.Sprintf("%v", fps.ScaleInMeters))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (fps *FloorPlanScale) id() int {
-	id, _ := strconv.Atoi(fps.ID)
-	return id
 }
 
 // FloorPlanScales is a parsable slice of FloorPlanScale.

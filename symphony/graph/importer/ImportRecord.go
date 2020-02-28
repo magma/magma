@@ -7,6 +7,7 @@ package importer
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/facebookincubator/symphony/graph/ent/service"
 
@@ -25,10 +26,10 @@ type ImportRecord struct {
 
 // PortData is the data structure for PortData function
 type PortData struct {
-	ID                string
+	ID                int
 	Name              string
 	TypeName          string
-	EquipmentID       *string
+	EquipmentID       *int
 	EquipmentName     string
 	EquipmentTypeName string
 }
@@ -161,10 +162,12 @@ func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, 
 	}
 	value := l.line[idx]
 
-	if pTyp.Type == "service" && value != "" {
-		if value, err = client.Service.Query().Where(service.Name(value)).OnlyID(ctx); err != nil {
-			return nil, errors.Wrapf(err, "service name does not exist %q", l.line[idx])
+	if pTyp.Type == models.PropertyKindService.String() && value != "" {
+		id, err := client.Service.Query().Where(service.Name(value)).OnlyID(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "cannot query service by name: %q", l.line[idx])
 		}
+		value = strconv.Itoa(id)
 	}
 	return getPropInput(*pTyp, value)
 }
@@ -173,8 +176,9 @@ func (l ImportRecord) entity() ImportEntity {
 	return l.Header().entity
 }
 
-func (l ImportRecord) ID() string {
-	return l.line[0]
+func (l ImportRecord) ID() int {
+	id, _ := strconv.Atoi(l.line[0])
+	return id
 }
 
 func (l ImportRecord) Name() string {
@@ -267,7 +271,7 @@ func (l ImportRecord) Status() string {
 }
 
 // PortData returns the relevant info for the port from the CSV
-func (l ImportRecord) PortData(side *string) (*PortData, error) {
+func (l ImportRecord) PortData() (*PortData, error) {
 	if l.entity() == ImportEntityPort {
 		return &PortData{
 			ID:                l.ID(),

@@ -27,10 +27,10 @@ func writeModifiedPortsCSV(t *testing.T, r *csv.Reader, skipLines, withVerify bo
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 	if skipLines {
-		bw.WriteField("skip_lines", "[2]")
+		_ = bw.WriteField("skip_lines", "[2]")
 	}
 	if withVerify {
-		bw.WriteField("verify_before_commit", "true")
+		_ = bw.WriteField("verify_before_commit", "true")
 	}
 	fileWriter, err := bw.CreateFormFile("file_0", "name1")
 	require.Nil(t, err)
@@ -77,15 +77,13 @@ func writeModifiedPortsCSV(t *testing.T, r *csv.Reader, skipLines, withVerify bo
 func TestImportAndEditPorts(t *testing.T) {
 	for _, withVerify := range []bool{true, false} {
 		for _, skipLines := range []bool{true, false} {
-			r, err := newExporterTestResolver(t)
-			require.NoError(t, err)
-
+			r := newExporterTestResolver(t)
 			log := r.exporter.log
 			e := &exporter{log, portsRower{log}}
 			ctx, res := prepareHandlerAndExport(t, r, e)
 
-			defer res.Body.Close()
 			importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityPort, MethodEdit, skipLines, withVerify)
+			res.Body.Close()
 			locs := r.client.Location.Query().AllX(ctx)
 			require.Len(t, locs, 3)
 			ports, err := r.Query().PortSearch(ctx, nil, nil)
@@ -119,6 +117,7 @@ func TestImportAndEditPorts(t *testing.T) {
 						require.Error(t, err)
 						require.Nil(t, s)
 					} else {
+						require.NotNil(t, s)
 						require.Equal(t, s.Name, secondServiceName)
 						require.False(t, port.QueryEndpoints().Where(serviceendpoint.Role(models.ServiceEndpointRoleProvider.String())).ExistX(ctx))
 					}

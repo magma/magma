@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"sync"
 
 	"github.com/AlekSi/pointer"
@@ -195,11 +196,11 @@ func (t *topologist) nestedNodes(ctx context.Context, eq *ent.Equipment, depth i
 	return posEqs, nil
 }
 
-func (*topologist) hkey(id1, id2 string) string {
-	if id1 < id2 {
-		return id1 + id2
+func (*topologist) hkey(id1, id2 int) string {
+	if id2 > id1 {
+		id1, id2 = id2, id1
 	}
-	return id2 + id1
+	return strconv.Itoa(id1) + ":" + strconv.Itoa(id2)
 }
 
 func (t *topologist) build(ctx context.Context, eq *ent.Equipment, depth int) error {

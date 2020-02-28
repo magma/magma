@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type WorkOrderDefinition struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -32,8 +31,8 @@ type WorkOrderDefinition struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderDefinitionQuery when eager-loading is set.
 	Edges                      WorkOrderDefinitionEdges `json:"edges"`
-	project_type_work_orders   *string
-	work_order_definition_type *string
+	project_type_work_orders   *int
+	work_order_definition_type *int
 }
 
 // WorkOrderDefinitionEdges holds the relations/edges for other nodes in the graph.
@@ -103,7 +102,7 @@ func (wod *WorkOrderDefinition) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	wod.ID = strconv.FormatInt(value.Int64, 10)
+	wod.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -125,14 +124,14 @@ func (wod *WorkOrderDefinition) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_type_work_orders", value)
 		} else if value.Valid {
-			wod.project_type_work_orders = new(string)
-			*wod.project_type_work_orders = strconv.FormatInt(value.Int64, 10)
+			wod.project_type_work_orders = new(int)
+			*wod.project_type_work_orders = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_definition_type", value)
 		} else if value.Valid {
-			wod.work_order_definition_type = new(string)
-			*wod.work_order_definition_type = strconv.FormatInt(value.Int64, 10)
+			wod.work_order_definition_type = new(int)
+			*wod.work_order_definition_type = int(value.Int64)
 		}
 	}
 	return nil
@@ -179,12 +178,6 @@ func (wod *WorkOrderDefinition) String() string {
 	builder.WriteString(fmt.Sprintf("%v", wod.Index))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (wod *WorkOrderDefinition) id() int {
-	id, _ := strconv.Atoi(wod.ID)
-	return id
 }
 
 // WorkOrderDefinitions is a parsable slice of WorkOrderDefinition.

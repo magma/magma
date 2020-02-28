@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -122,8 +121,8 @@ func (ltq *LocationTypeQuery) FirstX(ctx context.Context) *LocationType {
 }
 
 // FirstID returns the first LocationType id in the query. Returns *NotFoundError when no id was found.
-func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ltq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -135,7 +134,7 @@ func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id string, err error
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (ltq *LocationTypeQuery) FirstXID(ctx context.Context) string {
+func (ltq *LocationTypeQuery) FirstXID(ctx context.Context) int {
 	id, err := ltq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -169,8 +168,8 @@ func (ltq *LocationTypeQuery) OnlyX(ctx context.Context) *LocationType {
 }
 
 // OnlyID returns the only LocationType id in the query, returns an error if not exactly one id was returned.
-func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ltq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -186,7 +185,7 @@ func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id string, err error)
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (ltq *LocationTypeQuery) OnlyXID(ctx context.Context) string {
+func (ltq *LocationTypeQuery) OnlyXID(ctx context.Context) int {
 	id, err := ltq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -209,8 +208,8 @@ func (ltq *LocationTypeQuery) AllX(ctx context.Context) []*LocationType {
 }
 
 // IDs executes the query and returns a list of LocationType ids.
-func (ltq *LocationTypeQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (ltq *LocationTypeQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := ltq.Select(locationtype.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -218,7 +217,7 @@ func (ltq *LocationTypeQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ltq *LocationTypeQuery) IDsX(ctx context.Context) []string {
+func (ltq *LocationTypeQuery) IDsX(ctx context.Context) []int {
 	ids, err := ltq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -376,13 +375,9 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 
 	if query := ltq.withLocations; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*LocationType)
+		nodeids := make(map[int]*LocationType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -408,13 +403,9 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 
 	if query := ltq.withPropertyTypes; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*LocationType)
+		nodeids := make(map[int]*LocationType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -440,13 +431,9 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 
 	if query := ltq.withSurveyTemplateCategories; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*LocationType)
+		nodeids := make(map[int]*LocationType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -492,7 +479,7 @@ func (ltq *LocationTypeQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   locationtype.Table,
 			Columns: locationtype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: locationtype.FieldID,
 			},
 		},

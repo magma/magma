@@ -119,7 +119,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					continue
 				}
 				id := importLine.ID()
-				if id == "" {
+				if id == 0 {
 					client := m.ClientFrom(ctx)
 					var linkPropertyInputs []*models.PropertyInput
 					linkInput := make(map[int]*models.LinkSide, 2)
@@ -165,7 +165,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 						log.Info(fmt.Sprintf("(row #%d) creating link", numRows))
 					}
 				} else {
-					//edit existing link - only properties
+					// edit existing link - only properties
 					l, err := m.validateLineForExistingLink(ctx, id, importLine)
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating existing port: id %v", id)})
@@ -184,7 +184,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					}
 					if len(allPropInputs) == 0 {
 						modifiedCount++
-						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port types or link properties", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port types or link properties", numRows), zap.String("name", importLine.Name()), zap.Int("id", importLine.ID()))
 						continue
 					}
 
@@ -199,7 +199,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 							continue
 						}
 						modifiedCount++
-						log.Info(fmt.Sprintf("(row #%d) editing link", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+						log.Info(fmt.Sprintf("(row #%d) editing link", numRows), zap.String("name", importLine.Name()), zap.Int("id", importLine.ID()))
 					}
 				}
 			}
@@ -287,7 +287,7 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 		equipment, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
 
 	} else {
-		equipment, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
+		equipment, err = m.getEquipmentIfExist(ctx, en, equipmentType, parentLoc, pos)
 		if equipment == nil && err == nil {
 			return nil, "", nil, nil
 		}
@@ -334,7 +334,7 @@ func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *I
 	return &portA, &portB, nil
 }
 
-func (m *importer) validateLineForExistingLink(ctx context.Context, linkID string, importLine ImportRecord) (*ent.Link, error) {
+func (m *importer) validateLineForExistingLink(ctx context.Context, linkID int, importLine ImportRecord) (*ent.Link, error) {
 	link, err := m.ClientFrom(ctx).Link.Query().Where(link.ID(linkID)).Only(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching link")
@@ -444,9 +444,9 @@ func (m *importer) inputValidationsLinks(ctx context.Context, importHeader Impor
 	return nil
 }
 
-func (m *importer) validateServicesForLinks(ctx context.Context, line ImportRecord) ([]string, error) {
+func (m *importer) validateServicesForLinks(ctx context.Context, line ImportRecord) ([]int, error) {
 	serviceNamesMap := make(map[string]bool)
-	var serviceIds []string
+	var serviceIds []int
 	serviceNames := strings.Split(line.ServiceNames(), ";")
 	for _, serviceName := range serviceNames {
 		if serviceName != "" {

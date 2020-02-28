@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -150,8 +149,8 @@ func (wotq *WorkOrderTypeQuery) FirstX(ctx context.Context) *WorkOrderType {
 }
 
 // FirstID returns the first WorkOrderType id in the query. Returns *NotFoundError when no id was found.
-func (wotq *WorkOrderTypeQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (wotq *WorkOrderTypeQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = wotq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -163,7 +162,7 @@ func (wotq *WorkOrderTypeQuery) FirstID(ctx context.Context) (id string, err err
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (wotq *WorkOrderTypeQuery) FirstXID(ctx context.Context) string {
+func (wotq *WorkOrderTypeQuery) FirstXID(ctx context.Context) int {
 	id, err := wotq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -197,8 +196,8 @@ func (wotq *WorkOrderTypeQuery) OnlyX(ctx context.Context) *WorkOrderType {
 }
 
 // OnlyID returns the only WorkOrderType id in the query, returns an error if not exactly one id was returned.
-func (wotq *WorkOrderTypeQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (wotq *WorkOrderTypeQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = wotq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -214,7 +213,7 @@ func (wotq *WorkOrderTypeQuery) OnlyID(ctx context.Context) (id string, err erro
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (wotq *WorkOrderTypeQuery) OnlyXID(ctx context.Context) string {
+func (wotq *WorkOrderTypeQuery) OnlyXID(ctx context.Context) int {
 	id, err := wotq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -237,8 +236,8 @@ func (wotq *WorkOrderTypeQuery) AllX(ctx context.Context) []*WorkOrderType {
 }
 
 // IDs executes the query and returns a list of WorkOrderType ids.
-func (wotq *WorkOrderTypeQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (wotq *WorkOrderTypeQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := wotq.Select(workordertype.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -246,7 +245,7 @@ func (wotq *WorkOrderTypeQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (wotq *WorkOrderTypeQuery) IDsX(ctx context.Context) []string {
+func (wotq *WorkOrderTypeQuery) IDsX(ctx context.Context) []int {
 	ids, err := wotq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -428,13 +427,9 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 
 	if query := wotq.withWorkOrders; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrderType)
+		nodeids := make(map[int]*WorkOrderType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -460,13 +455,9 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 
 	if query := wotq.withPropertyTypes; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrderType)
+		nodeids := make(map[int]*WorkOrderType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -492,13 +483,9 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 
 	if query := wotq.withDefinitions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrderType)
+		nodeids := make(map[int]*WorkOrderType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -524,13 +511,9 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 
 	if query := wotq.withCheckListCategories; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrderType)
+		nodeids := make(map[int]*WorkOrderType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -556,13 +539,9 @@ func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, e
 
 	if query := wotq.withCheckListDefinitions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrderType)
+		nodeids := make(map[int]*WorkOrderType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -608,7 +587,7 @@ func (wotq *WorkOrderTypeQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   workordertype.Table,
 			Columns: workordertype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workordertype.FieldID,
 			},
 		},

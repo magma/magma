@@ -8,4 +8,9 @@ LICENSE file in the root directory of this source tree.
 
 package streamer
 
-const ServiceName = "STREAMER"
+import "syscall"
+
+const (
+	ServiceName = "STREAMER"
+	EAGAIN      = syscall.EAGAIN
+)

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,7 +28,7 @@ type woFilterInput struct {
 	Name          models.EquipmentFilterType `json:"name"`
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
-	IDSet         []string                   `json:"idSet"`
+	IDSet         []int                      `json:"idSet"`
 	StringSet     []string                   `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
 	BoolValue     bool                       `json:"boolValue"`
@@ -64,7 +65,7 @@ func (er woRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
 	wosList := searchResult.WorkOrders
 	allrows := make([][]string, len(wosList)+1)
 
-	woIDs := make([]string, len(wosList))
+	woIDs := make([]int, len(wosList))
 	for i, w := range wosList {
 		woIDs[i] = w.ID
 	}
@@ -124,8 +125,11 @@ func woToSlice(ctx context.Context, wo *ent.WorkOrder, propertyTypes []string) (
 		}
 	}
 
-	row := []string{wo.ID, wo.Name, projName, wo.Status, wo.Assignee, wo.OwnerName, wo.Priority, getStringDate(wo.CreationDate), getStringDate(wo.InstallDate), locName}
-
+	row := []string{
+		strconv.Itoa(wo.ID), wo.Name, projName, wo.Status, wo.Assignee,
+		wo.OwnerName, wo.Priority, getStringDate(wo.CreationDate),
+		getStringDate(wo.InstallDate), locName,
+	}
 	row = append(row, properties...)
 
 	return row, nil

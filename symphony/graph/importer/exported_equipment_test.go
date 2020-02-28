@@ -6,6 +6,7 @@ package importer
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -34,17 +35,17 @@ const (
 )
 
 type locTypeIDs struct {
-	locTypeIDL string
-	locTypeIDM string
-	locTypeIDS string
+	locTypeIDL int
+	locTypeIDM int
+	locTypeIDS int
 }
 type ids struct {
-	locTypeIDL   string
-	locTypeIDM   string
-	locTypeIDS   string
-	equipTypeID  string
-	equipTypeID2 string
-	equipTypeID3 string
+	locTypeIDL   int
+	locTypeIDM   int
+	locTypeIDS   int
+	equipTypeID  int
+	equipTypeID2 int
+	equipTypeID3 int
 }
 
 func prepareEquipmentTypeData(ctx context.Context, t *testing.T, r TestImporterResolver) ids {
@@ -167,7 +168,7 @@ func TestTitleLocationTypeInputValidation(t *testing.T) {
 	header, _ = NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err = importer.inputValidations(ctx, header)
 	require.NoError(t, err)
-	require.EqualValues(t, ic.indexToLocationTypeID, map[int]string{
+	require.EqualValues(t, ic.indexToLocationTypeID, map[int]int{
 		4: locTypeIDS.locTypeIDL,
 		5: locTypeIDS.locTypeIDM,
 		6: locTypeIDS.locTypeIDS,
@@ -198,7 +199,7 @@ func TestTitleEquipmentTypeInputValidation(t *testing.T) {
 	header, _ := NewImportHeader(titleWithProperties, ImportEntityEquipment)
 	err := importer.populateEquipmentTypeNameToIDMap(ctx, header, true)
 	require.NoError(t, err)
-	require.EqualValues(t, ic.equipmentTypeNameToID, map[string]string{
+	require.EqualValues(t, ic.equipmentTypeNameToID, map[string]int{
 		equipmentTypeName:  ids.equipTypeID,
 		equipmentType2Name: ids.equipTypeID2,
 		equipmentType3Name: ids.equipTypeID3,
@@ -461,8 +462,8 @@ func TestValidateForExistingEquipment(t *testing.T) {
 	})
 	require.NoError(t, err)
 	var (
-		test1 = []string{child.ID, "c_new_name", "type1", "1id", "locNameL", "locNameM", "", "", "", "", "", "parent", "pos1"}
-		test2 = []string{grandchild.ID, "gc_new_name", "type1", "1id", "locNameL", "locNameM", "", "", "", "parent", "pos1", "child", "pos2"}
+		test1 = []string{strconv.Itoa(child.ID), "c_new_name", "type1", "1id", "locNameL", "locNameM", "", "", "", "", "", "parent", "pos1"}
+		test2 = []string{strconv.Itoa(grandchild.ID), "gc_new_name", "type1", "1id", "locNameL", "locNameM", "", "", "", "parent", "pos1", "child", "pos2"}
 	)
 	_, err = importer.validateLineForExistingEquipment(ctx, child.ID, NewImportRecord(test1, title))
 	require.NoError(t, err)

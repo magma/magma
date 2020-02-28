@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,7 +23,7 @@ import (
 type FloorPlan struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -34,10 +33,10 @@ type FloorPlan struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FloorPlanQuery when eager-loading is set.
 	Edges                      FloorPlanEdges `json:"edges"`
-	floor_plan_location        *string
-	floor_plan_reference_point *string
-	floor_plan_scale           *string
-	floor_plan_image           *string
+	floor_plan_location        *int
+	floor_plan_reference_point *int
+	floor_plan_scale           *int
+	floor_plan_image           *int
 }
 
 // FloorPlanEdges holds the relations/edges for other nodes in the graph.
@@ -141,7 +140,7 @@ func (fp *FloorPlan) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	fp.ID = strconv.FormatInt(value.Int64, 10)
+	fp.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -163,26 +162,26 @@ func (fp *FloorPlan) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field floor_plan_location", value)
 		} else if value.Valid {
-			fp.floor_plan_location = new(string)
-			*fp.floor_plan_location = strconv.FormatInt(value.Int64, 10)
+			fp.floor_plan_location = new(int)
+			*fp.floor_plan_location = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field floor_plan_reference_point", value)
 		} else if value.Valid {
-			fp.floor_plan_reference_point = new(string)
-			*fp.floor_plan_reference_point = strconv.FormatInt(value.Int64, 10)
+			fp.floor_plan_reference_point = new(int)
+			*fp.floor_plan_reference_point = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field floor_plan_scale", value)
 		} else if value.Valid {
-			fp.floor_plan_scale = new(string)
-			*fp.floor_plan_scale = strconv.FormatInt(value.Int64, 10)
+			fp.floor_plan_scale = new(int)
+			*fp.floor_plan_scale = int(value.Int64)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field floor_plan_image", value)
 		} else if value.Valid {
-			fp.floor_plan_image = new(string)
-			*fp.floor_plan_image = strconv.FormatInt(value.Int64, 10)
+			fp.floor_plan_image = new(int)
+			*fp.floor_plan_image = int(value.Int64)
 		}
 	}
 	return nil
@@ -239,12 +238,6 @@ func (fp *FloorPlan) String() string {
 	builder.WriteString(fp.Name)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (fp *FloorPlan) id() int {
-	id, _ := strconv.Atoi(fp.ID)
-	return id
 }
 
 // FloorPlans is a parsable slice of FloorPlan.

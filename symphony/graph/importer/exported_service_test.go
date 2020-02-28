@@ -6,12 +6,12 @@ package importer
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,10 +23,10 @@ const (
 )
 
 type serviceIds struct {
-	serviceTypeID  string
-	serviceTypeID2 string
-	serviceTypeID3 string
-	serviceTypeID4 string
+	serviceTypeID  int
+	serviceTypeID2 int
+	serviceTypeID3 int
+	serviceTypeID4 int
 }
 
 func prepareServiceTypeData(ctx context.Context, t *testing.T, r TestImporterResolver) serviceIds {
@@ -123,7 +123,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 		row1       = []string{"", "s1", serviceTypeName, "M123", "", "", "IN_SERVICE", "strVal", "54", "", "", "", "", "", ""}
 		row2       = []string{"", "s2", serviceType2Name, "M456", "", "", "MAINTENANCE", "", "", "29/03/88", "false", "", "", "", ""}
 		row3       = []string{"", "s3", serviceType3Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "30.23-50", "45.8,88.9", "", ""}
-		row4       = []string{"", "s3", serviceType4Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "", "", loc.ID, service.Name}
+		row4       = []string{"", "s3", serviceType4Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "", "", strconv.Itoa(loc.ID), service.Name}
 	)
 
 	titleWithProperties := append(dataHeader[:], propName1, propName2, propName3, propName4, propName5, propName6, propName7, propName8)
@@ -238,7 +238,7 @@ func TestValidateForExistingService(t *testing.T) {
 	})
 	require.NoError(t, err)
 	var (
-		test = []string{service.ID, "myService", "type1", "", "", "", "", models.ServiceStatusPending.String()}
+		test = []string{strconv.Itoa(service.ID), "myService", "type1", "", "", "", "", models.ServiceStatusPending.String()}
 	)
 	_, err = importer.validateLineForExistingService(ctx, service.ID, NewImportRecord(test, title))
 	require.NoError(t, err)

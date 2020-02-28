@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
+# pyre-strict
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
 import sys
-from unittest import TestLoader, TestSuite, TextTestRunner
+from typing import List
+from unittest import TestCase, TestLoader, TestSuite, TextTestRunner
 
-from test_equipment import TestEquipment
-from test_link import TestLink
-from test_location import TestLocation
-from test_port_type import TestEquipmentPortType
-from test_service import TestService
-from test_site_survey import TestSiteSurvey
-from utils.constant import XML_OUTPUT_DIRECTORY
+from pyinventory_tests.test_equipment import TestEquipment
+from pyinventory_tests.test_link import TestLink
+from pyinventory_tests.test_location import TestLocation
+from pyinventory_tests.test_port_type import TestEquipmentPortType
+from pyinventory_tests.test_service import TestService
+from pyinventory_tests.test_site_survey import TestSiteSurvey
+from pyinventory_tests.utils.constant import XML_OUTPUT_DIRECTORY
 from xmlrunner import XMLTestRunner
 
 
-TEST_CASES = [
+TEST_CASES: List[TestCase] = [
     TestLocation,
     TestEquipment,
     TestLink,

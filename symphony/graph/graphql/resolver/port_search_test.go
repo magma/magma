@@ -31,8 +31,8 @@ type portSearchDataModels struct {
 	e2   *ent.Equipment
 	e3   *ent.Equipment
 	e4   *ent.Equipment
-	loc1 string
-	loc2 string
+	loc1 int
+	loc2 int
 }
 
 /*
@@ -219,7 +219,7 @@ func TestSearchPortDefinition(t *testing.T) {
 	f1 := models.PortFilterInput{
 		FilterType: models.PortFilterTypePortDef,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{defs[0].ID, defs[1].ID},
+		IDSet:      []int{defs[0].ID, defs[1].ID},
 	}
 	res1, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f1}, &limit)
 	require.NoError(t, err)
@@ -239,7 +239,7 @@ func TestSearchPortLocation(t *testing.T) {
 	f1 := models.PortFilterInput{
 		FilterType: models.PortFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{d.loc1},
+		IDSet:      []int{d.loc1},
 		MaxDepth:   pointer.ToInt(2),
 	}
 	res1, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f1}, &limit)
@@ -401,7 +401,7 @@ func TestSearchPortsByService(t *testing.T) {
 	f1 := models.PortFilterInput{
 		FilterType: models.PortFilterTypeServiceInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{s1.ID},
+		IDSet:      []int{s1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f1}, &limit)
@@ -412,7 +412,7 @@ func TestSearchPortsByService(t *testing.T) {
 	f2 := models.PortFilterInput{
 		FilterType: models.PortFilterTypeServiceInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{s2.ID},
+		IDSet:      []int{s2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f2}, &limit)
@@ -422,7 +422,7 @@ func TestSearchPortsByService(t *testing.T) {
 	f3 := models.PortFilterInput{
 		FilterType: models.PortFilterTypeServiceInst,
 		Operator:   models.FilterOperatorIsNotOneOf,
-		IDSet:      []string{s1.ID},
+		IDSet:      []int{s1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res3, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f3}, &limit)
@@ -432,7 +432,7 @@ func TestSearchPortsByService(t *testing.T) {
 	f4 := models.PortFilterInput{
 		FilterType: models.PortFilterTypeServiceInst,
 		Operator:   models.FilterOperatorIsNotOneOf,
-		IDSet:      []string{s2.ID},
+		IDSet:      []int{s2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res4, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f4}, &limit)

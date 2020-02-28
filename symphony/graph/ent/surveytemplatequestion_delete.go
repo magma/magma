@@ -47,7 +47,7 @@ func (stqd *SurveyTemplateQuestionDelete) sqlExec(ctx context.Context) (int, err
 		Node: &sqlgraph.NodeSpec{
 			Table: surveytemplatequestion.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveytemplatequestion.FieldID,
 			},
 		},

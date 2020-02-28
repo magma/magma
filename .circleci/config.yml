@@ -214,6 +214,7 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
             python3 build.py -g
+      - run: sudo chown -R circleci $MAGMA_ROOT/*
       - run: git add .
       - run: git status
       - run: git diff-index --quiet HEAD

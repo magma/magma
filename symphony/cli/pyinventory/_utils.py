@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Callable, Dict, List, Optional, Tuple, Union, cast
 
 from dacite import Config, from_dict
+
 from .consts import (
     TYPE_AND_FIELD_NAME,
     DataTypeName,
@@ -158,7 +159,9 @@ def get_graphql_property_inputs(
                 value=value,
             )
         )
-        properties.append(result)
+        properties.append(
+            from_dict(data_class=PropertyInput, data=result, config=Config(strict=True))
+        )
 
     return properties
 
@@ -182,7 +185,7 @@ def _get_property_value(
 
 
 def _get_property_default_value(
-    name: str, type: str, value: PropertyValue
+    name: str, type: str, value: Optional[PropertyValue]
 ) -> Dict[str, PropertyValue]:
     if value is None:
         return {}
@@ -190,7 +193,7 @@ def _get_property_default_value(
 
 
 def _make_property_types(
-    properties: List[PropertyDefinition]
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
 ) -> List[Dict[str, PropertyValue]]:
     property_types = [
         {
@@ -205,20 +208,40 @@ def _make_property_types(
     return property_types
 
 
+# TODO(T63055378): remove
 def property_type_to_kind(
     key: str, value: PropertyValue
 ) -> Union[PropertyValue, PropertyKind]:
     return value if key != "type" else PropertyKind(value)
 
 
+# TODO(T63055378): remove and change usage to format_property_definitions
 def format_properties(
-    properties: List[PropertyDefinition]
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
 ) -> List[Dict[str, Union[PropertyValue, PropertyKind]]]:
     property_types = _make_property_types(properties)
     return [
         {k: property_type_to_kind(k, v) for k, v in property_type.items()}
         for property_type in property_types
     ]
+
+
+def format_property_definitions(
+    properties: List[PropertyDefinition]
+) -> List[Dict[str, Union[PropertyValue, PropertyKind]]]:
+    property_types = [
+        {
+            "name": prop.property_name,
+            "type": prop.property_kind,
+            "index": i,
+            **_get_property_default_value(
+                prop.property_name, prop.property_kind.value, prop.default_value
+            ),
+            "isInstanceProperty": prop.is_fixed,
+        }
+        for i, prop in enumerate(properties)
+    ]
+    return property_types
 
 
 def deprecated(

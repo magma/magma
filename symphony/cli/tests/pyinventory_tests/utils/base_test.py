@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pyre-strict
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
@@ -9,21 +10,26 @@ import unittest
 
 import requests
 from pyinventory import InventoryClient
-from utils.constant import PLATFORM_SERVER_HEALTH_CHECK_URL, TEST_USER_EMAIL
+
+from .constant import PLATFORM_SERVER_HEALTH_CHECK_URL, TEST_USER_EMAIL
 
 
 class BaseTest(unittest.TestCase):
+    client: InventoryClient = InventoryClient(
+        TEST_USER_EMAIL, TEST_USER_EMAIL, is_dev_mode=True
+    )
+
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         cls._waitForPlatform()
         cls.client = InventoryClient(TEST_USER_EMAIL, TEST_USER_EMAIL, is_dev_mode=True)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
         cls.client.session.close()
 
     @classmethod
-    def _waitForPlatform(self):
+    def _waitForPlatform(cls) -> None:
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline:
             try:

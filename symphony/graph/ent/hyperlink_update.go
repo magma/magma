@@ -121,7 +121,7 @@ func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   hyperlink.Table,
 			Columns: hyperlink.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: hyperlink.FieldID,
 			},
 		},
@@ -187,7 +187,7 @@ func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // HyperlinkUpdateOne is the builder for updating a single Hyperlink entity.
 type HyperlinkUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time   *time.Time
 	url           *string
@@ -283,7 +283,7 @@ func (huo *HyperlinkUpdateOne) sqlSave(ctx context.Context) (h *Hyperlink, err e
 			Columns: hyperlink.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  huo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: hyperlink.FieldID,
 			},
 		},

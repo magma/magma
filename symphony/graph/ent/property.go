@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -28,7 +27,7 @@ import (
 type Property struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -52,17 +51,17 @@ type Property struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PropertyQuery when eager-loading is set.
 	Edges                     PropertyEdges `json:"edges"`
-	equipment_properties      *string
-	equipment_port_properties *string
-	link_properties           *string
-	location_properties       *string
-	project_properties        *string
-	property_type             *string
-	property_equipment_value  *string
-	property_location_value   *string
-	property_service_value    *string
-	service_properties        *string
-	work_order_properties     *string
+	equipment_properties      *int
+	equipment_port_properties *int
+	link_properties           *int
+	location_properties       *int
+	project_properties        *int
+	property_type             *int
+	property_equipment_value  *int
+	property_location_value   *int
+	property_service_value    *int
+	service_properties        *int
+	work_order_properties     *int
 }
 
 // PropertyEdges holds the relations/edges for other nodes in the graph.
@@ -292,7 +291,7 @@ func (pr *Property) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	pr.ID = strconv.FormatInt(value.Int64, 10)
+	pr.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -349,68 +348,68 @@ func (pr *Property) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_properties", value)
 		} else if value.Valid {
-			pr.equipment_properties = new(string)
-			*pr.equipment_properties = strconv.FormatInt(value.Int64, 10)
+			pr.equipment_properties = new(int)
+			*pr.equipment_properties = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_port_properties", value)
 		} else if value.Valid {
-			pr.equipment_port_properties = new(string)
-			*pr.equipment_port_properties = strconv.FormatInt(value.Int64, 10)
+			pr.equipment_port_properties = new(int)
+			*pr.equipment_port_properties = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field link_properties", value)
 		} else if value.Valid {
-			pr.link_properties = new(string)
-			*pr.link_properties = strconv.FormatInt(value.Int64, 10)
+			pr.link_properties = new(int)
+			*pr.link_properties = int(value.Int64)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field location_properties", value)
 		} else if value.Valid {
-			pr.location_properties = new(string)
-			*pr.location_properties = strconv.FormatInt(value.Int64, 10)
+			pr.location_properties = new(int)
+			*pr.location_properties = int(value.Int64)
 		}
 		if value, ok := values[4].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_properties", value)
 		} else if value.Valid {
-			pr.project_properties = new(string)
-			*pr.project_properties = strconv.FormatInt(value.Int64, 10)
+			pr.project_properties = new(int)
+			*pr.project_properties = int(value.Int64)
 		}
 		if value, ok := values[5].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field property_type", value)
 		} else if value.Valid {
-			pr.property_type = new(string)
-			*pr.property_type = strconv.FormatInt(value.Int64, 10)
+			pr.property_type = new(int)
+			*pr.property_type = int(value.Int64)
 		}
 		if value, ok := values[6].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field property_equipment_value", value)
 		} else if value.Valid {
-			pr.property_equipment_value = new(string)
-			*pr.property_equipment_value = strconv.FormatInt(value.Int64, 10)
+			pr.property_equipment_value = new(int)
+			*pr.property_equipment_value = int(value.Int64)
 		}
 		if value, ok := values[7].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field property_location_value", value)
 		} else if value.Valid {
-			pr.property_location_value = new(string)
-			*pr.property_location_value = strconv.FormatInt(value.Int64, 10)
+			pr.property_location_value = new(int)
+			*pr.property_location_value = int(value.Int64)
 		}
 		if value, ok := values[8].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field property_service_value", value)
 		} else if value.Valid {
-			pr.property_service_value = new(string)
-			*pr.property_service_value = strconv.FormatInt(value.Int64, 10)
+			pr.property_service_value = new(int)
+			*pr.property_service_value = int(value.Int64)
 		}
 		if value, ok := values[9].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field service_properties", value)
 		} else if value.Valid {
-			pr.service_properties = new(string)
-			*pr.service_properties = strconv.FormatInt(value.Int64, 10)
+			pr.service_properties = new(int)
+			*pr.service_properties = int(value.Int64)
 		}
 		if value, ok := values[10].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_properties", value)
 		} else if value.Valid {
-			pr.work_order_properties = new(string)
-			*pr.work_order_properties = strconv.FormatInt(value.Int64, 10)
+			pr.work_order_properties = new(int)
+			*pr.work_order_properties = int(value.Int64)
 		}
 	}
 	return nil
@@ -516,12 +515,6 @@ func (pr *Property) String() string {
 	builder.WriteString(pr.StringVal)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (pr *Property) id() int {
-	id, _ := strconv.Atoi(pr.ID)
-	return id
 }
 
 // Properties is a parsable slice of Property.

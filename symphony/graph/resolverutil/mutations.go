@@ -14,7 +14,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ValidateAndGetPositionIfExists(ctx context.Context, client *ent.Client, parentEquipmentID, positionDefinitionID *string, mustBeEmpty bool) (*ent.EquipmentPosition, error) {
+func ValidateAndGetPositionIfExists(
+	ctx context.Context, client *ent.Client, parentEquipmentID, positionDefinitionID *int, mustBeEmpty bool,
+) (*ent.EquipmentPosition, error) {
 	if parentEquipmentID == nil || positionDefinitionID == nil {
 		if parentEquipmentID == nil && positionDefinitionID == nil {
 			return nil, nil
@@ -48,7 +50,9 @@ func ValidateAndGetPositionIfExists(ctx context.Context, client *ent.Client, par
 	return nil, nil
 }
 
-func GetOrCreatePosition(ctx context.Context, client *ent.Client, parentEquipmentID, positionDefinitionID *string, mustBeEmpty bool) (*ent.EquipmentPosition, error) {
+func GetOrCreatePosition(
+	ctx context.Context, client *ent.Client, parentEquipmentID, positionDefinitionID *int, mustBeEmpty bool,
+) (*ent.EquipmentPosition, error) {
 	if parentEquipmentID == nil && positionDefinitionID == nil {
 		return nil, nil
 	}
@@ -61,17 +65,17 @@ func GetOrCreatePosition(ctx context.Context, client *ent.Client, parentEquipmen
 	}
 	if ep, err = client.EquipmentPosition.Create().
 		SetDefinitionID(*positionDefinitionID).
-		SetParentID(*parentEquipmentID).
+		SetNillableParentID(parentEquipmentID).
 		Save(ctx); err != nil {
 		return nil, errors.Wrap(err, "creating equipment position")
 	}
 	return ep, nil
 }
 
-func GetDifferenceBetweenSlices(left, right []string) ([]string, []string) {
+func GetDifferenceBetweenSlices(left, right []int) ([]int, []int) {
 	var (
-		added, deleted []string
-		seen           = map[string]bool{}
+		added, deleted []int
+		seen           = map[int]bool{}
 	)
 	for _, str := range left {
 		seen[str] = false

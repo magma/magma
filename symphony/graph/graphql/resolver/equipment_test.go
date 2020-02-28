@@ -21,9 +21,11 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
 
 	"github.com/99designs/gqlgen/client"
@@ -178,17 +180,17 @@ func TestAddAndDeleteEquipmentHyperlink(t *testing.T) {
 	require.Equal(t, equipmentType.ID, equipment.QueryType().OnlyXID(ctx))
 
 	category := "TSS"
-	url := "http://some.url"
+	u := "http://some.url"
 	displayName := "link to some url"
 	hyperlink, err := mr.AddHyperlink(ctx, models.AddHyperlinkInput{
 		EntityType:  models.ImageEntityEquipment,
 		EntityID:    equipment.ID,
-		URL:         url,
+		URL:         u,
 		DisplayName: &displayName,
 		Category:    &category,
 	})
 	require.NoError(t, err)
-	require.Equal(t, url, hyperlink.URL, "verifying hyperlink url")
+	require.Equal(t, u, hyperlink.URL, "verifying hyperlink url")
 	require.Equal(t, displayName, hyperlink.Name, "verifying hyperlink display name")
 	require.Equal(t, category, hyperlink.Category, "verifying 1st hyperlink category")
 
@@ -264,37 +266,49 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 	})
 	require.Error(t, err)
 
-	graphHandler := handler.GraphQL(
+	c := client.New(handler.GraphQL(
 		generated.NewExecutableSchema(
 			generated.Config{
-				Resolvers: r,
+				Resolvers:  r,
+				Directives: directive.New(logtest.NewTestLogger(t)),
 			},
 		),
 		handler.RequestMiddleware(
-			func(ctx2 context.Context, next func(context.Context) []byte) []byte {
+			func(ctx context.Context, next func(context.Context) []byte) []byte {
+				ctx = ent.NewContext(ctx, r.client)
 				return next(ctx)
 			},
 		),
-	)
+	))
 
-	var rsp struct {
-		Equipment struct {
-			Device struct {
-				ID string
-				Up bool
+	const query = `query($id: ID!) {
+		equipment: node(id: $id) {
+			... on Equipment {
+				device {
+					id
+					up
+				}
 			}
 		}
-	}
+	}`
+	var (
+		rsp struct {
+			Equipment struct {
+				Device struct {
+					ID string
+					Up bool
+				}
+			}
+		}
+		arg = client.Var("id", equipment.ID)
+	)
 
-	query := `query { equipment(id: "` + equipment.ID + `") { device {id up} } }`
-	err = client.New(graphHandler).Post(query, &rsp)
-	require.NoError(t, err)
+	c.MustPost(query, &rsp, arg)
 	assert.Equal(t, equipment.DeviceID, rsp.Equipment.Device.ID)
 	assert.True(t, rsp.Equipment.Device.Up)
 
 	ts = 500
-	err = client.New(graphHandler).Post(query, &rsp)
-	require.NoError(t, err)
+	c.MustPost(query, &rsp, arg)
 	assert.Equal(t, equipment.DeviceID, rsp.Equipment.Device.ID)
 	assert.False(t, rsp.Equipment.Device.Up)
 }
@@ -417,7 +431,7 @@ func TestRemoveEquipment(t *testing.T) {
 	_, err = mr.RemoveEquipment(ctx, equipment.ID, nil)
 	require.NoError(t, err)
 
-	for _, id := range []string{equipment.ID, pid} {
+	for _, id := range []int{equipment.ID, pid} {
 		n, err := qr.Node(ctx, id)
 		assert.Nil(t, n)
 		assert.NoError(t, err)

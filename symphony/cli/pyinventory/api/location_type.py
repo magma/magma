@@ -2,7 +2,7 @@
 # pyre-strict
 
 from dataclasses import asdict
-from typing import List
+from typing import List, Optional, Tuple
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
@@ -10,7 +10,7 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties
 from ..client import SymphonyClient
-from ..consts import Location, LocationType, PropertyDefinition
+from ..consts import Location, LocationType, PropertyValue
 from ..graphql.add_location_type_input import AddLocationTypeInput
 from ..graphql.add_location_type_mutation import AddLocationTypeMutation
 from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
@@ -37,7 +37,7 @@ def _populate_location_types(client: SymphonyClient) -> None:
 def add_location_type(
     client: SymphonyClient,
     name: str,
-    properties: List[PropertyDefinition],
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     map_zoom_level: int = 8,
 ) -> LocationType:
 

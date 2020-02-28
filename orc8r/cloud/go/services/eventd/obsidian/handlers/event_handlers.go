@@ -9,10 +9,13 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/olivere/elastic/v7"
 )
@@ -24,6 +27,7 @@ const (
 	queryParamEventType  = "event_type"
 	queryParamHardwareID = "hardware_id"
 	queryParamTag        = "tag"
+	defaultQuerySize     = 50
 )
 
 // Returns a Hander that uses the provided elastic client
@@ -39,8 +43,21 @@ func EventsHandler(c echo.Context, client *elastic.Client) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	// TODO retrieve events from ES
-	return c.JSON(http.StatusOK, [1]string{queryParams.StreamName})
+
+	elasticQuery := queryParams.ToElasticBoolQuery()
+
+	result, err := client.Search().
+		Index("").
+		Size(defaultQuerySize).
+		Query(elasticQuery).
+		Do(context.Background())
+	if err != nil {
+		glog.Fatalf("Error getting response: %s", err)
+	}
+	if result.Error != nil {
+		return obsidian.HttpError(fmt.Errorf("Elastic Error Type: %s, Reason: %s", result.Error.Type, result.Error.Reason))
+	}
+	return c.JSON(http.StatusOK, result.Hits.Hits)
 }
 
 func getQueryParameters(c echo.Context) (eventQueryParams, error) {
@@ -63,4 +80,19 @@ type eventQueryParams struct {
 	EventType  string
 	HardwareID string
 	Tag        string
+}
+
+func (b *eventQueryParams) ToElasticBoolQuery() *elastic.BoolQuery {
+	query := elastic.NewBoolQuery()
+	query.Filter(elastic.NewTermQuery(pathParamStreamName, b.StreamName))
+	if len(b.EventType) > 0 {
+		query.Filter(elastic.NewTermQuery(queryParamEventType, b.EventType))
+	}
+	if len(b.HardwareID) > 0 {
+		query.Filter(elastic.NewTermQuery(queryParamHardwareID, b.HardwareID))
+	}
+	if len(b.Tag) > 0 {
+		query.Filter(elastic.NewTermQuery(queryParamTag, b.Tag))
+	}
+	return query
 }

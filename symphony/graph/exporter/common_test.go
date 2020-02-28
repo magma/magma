@@ -90,14 +90,14 @@ type TestExporterResolver struct {
 	exporter exporter
 }
 
-func newExporterTestResolver(t *testing.T) (*TestExporterResolver, error) {
+func newExporterTestResolver(t *testing.T) *TestExporterResolver {
 	db, name, err := testdb.Open()
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
 	return newResolver(t, sql.OpenDB(name, db))
 }
 
-func newResolver(t *testing.T, drv dialect.Driver) (*TestExporterResolver, error) {
+func newResolver(t *testing.T, drv dialect.Driver) *TestExporterResolver {
 	if *debug {
 		drv = dialect.Debug(drv)
 	}
@@ -114,7 +114,7 @@ func newResolver(t *testing.T, drv dialect.Driver) (*TestExporterResolver, error
 	})
 
 	e := exporter{logger, equipmentRower{logger}}
-	return &TestExporterResolver{r, drv, client, e}, nil
+	return &TestExporterResolver{r, drv, client, e}
 }
 
 func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {

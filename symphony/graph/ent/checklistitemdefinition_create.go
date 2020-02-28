@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -28,7 +27,7 @@ type CheckListItemDefinitionCreate struct {
 	index           *int
 	enum_values     *string
 	help_text       *string
-	work_order_type map[string]struct{}
+	work_order_type map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -114,16 +113,16 @@ func (clidc *CheckListItemDefinitionCreate) SetNillableHelpText(s *string) *Chec
 }
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
-func (clidc *CheckListItemDefinitionCreate) SetWorkOrderTypeID(id string) *CheckListItemDefinitionCreate {
+func (clidc *CheckListItemDefinitionCreate) SetWorkOrderTypeID(id int) *CheckListItemDefinitionCreate {
 	if clidc.work_order_type == nil {
-		clidc.work_order_type = make(map[string]struct{})
+		clidc.work_order_type = make(map[int]struct{})
 	}
 	clidc.work_order_type[id] = struct{}{}
 	return clidc
 }
 
 // SetNillableWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id if the given value is not nil.
-func (clidc *CheckListItemDefinitionCreate) SetNillableWorkOrderTypeID(id *string) *CheckListItemDefinitionCreate {
+func (clidc *CheckListItemDefinitionCreate) SetNillableWorkOrderTypeID(id *int) *CheckListItemDefinitionCreate {
 	if id != nil {
 		clidc = clidc.SetWorkOrderTypeID(*id)
 	}
@@ -172,7 +171,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		_spec = &sqlgraph.CreateSpec{
 			Table: checklistitemdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistitemdefinition.FieldID,
 			},
 		}
@@ -242,16 +241,12 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -263,6 +258,6 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	clid.ID = strconv.FormatInt(id, 10)
+	clid.ID = int(id)
 	return clid, nil
 }

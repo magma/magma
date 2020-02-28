@@ -14,10 +14,61 @@ import (
 	"testing"
 
 	"github.com/labstack/echo"
+	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
 )
 
+type elasticTestCase struct {
+	name     string
+	params   eventQueryParams
+	expected *elastic.BoolQuery
+}
+
+type queryParamTestCase struct {
+	name           string
+	urlString      string
+	paramNames     []string
+	paramValues    []string
+	expectsError   bool
+	expectedParams eventQueryParams
+}
+
 var (
+	elasticCases = []elasticTestCase{
+		{
+			name: "full query params",
+			params: eventQueryParams{
+				StreamName: "streamOne",
+				EventType:  "an_event",
+				HardwareID: "hardware-2",
+				Tag:        "critical",
+			},
+			expected: elastic.NewBoolQuery().
+				Filter(elastic.NewTermQuery("stream_name", "streamOne")).
+				Filter(elastic.NewTermQuery("event_type", "an_event")).
+				Filter(elastic.NewTermQuery("hardware_id", "hardware-2")).
+				Filter(elastic.NewTermQuery("tag", "critical")),
+		},
+		{
+			name: "partial query params",
+			params: eventQueryParams{
+				StreamName: "streamTwo",
+				EventType:  "an_event",
+			},
+			expected: elastic.NewBoolQuery().
+				Filter(elastic.NewTermQuery("stream_name", "streamTwo")).
+				Filter(elastic.NewTermQuery("event_type", "an_event")),
+		},
+		{
+			name: "only StreamName",
+			params: eventQueryParams{
+				StreamName: "streamThree",
+			},
+			expected: elastic.NewBoolQuery().
+				Filter(elastic.NewTermQuery("stream_name", "streamThree")),
+		},
+	}
+
 	queryParamsTestCases = []queryParamTestCase{
 		{
 			name:           "no params will error",
@@ -59,6 +110,19 @@ var (
 	}
 )
 
+func TestElasticBoolQuery(t *testing.T) {
+	for _, test := range elasticCases {
+		t.Run(test.name, func(t *testing.T) {
+			runToElasticBoolQueryTestCase(t, test)
+		})
+	}
+}
+
+func runToElasticBoolQueryTestCase(t *testing.T, tc elasticTestCase) {
+	query := tc.params.ToElasticBoolQuery()
+	assert.Equal(t, tc.expected, query)
+}
+
 // TestGetQueryParams tests that parameters in the url are parsed correctly
 func TestGetQueryParams(t *testing.T) {
 	for _, test := range queryParamsTestCases {
@@ -66,15 +130,6 @@ func TestGetQueryParams(t *testing.T) {
 			runQueryParamTestCase(t, test)
 		})
 	}
-}
-
-type queryParamTestCase struct {
-	name           string
-	urlString      string
-	paramNames     []string
-	paramValues    []string
-	expectsError   bool
-	expectedParams eventQueryParams
 }
 
 func runQueryParamTestCase(t *testing.T, tc queryParamTestCase) {

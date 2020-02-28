@@ -19,22 +19,22 @@ import (
 )
 
 type linkSearchDataModels struct {
-	e1   string
-	e2   string
-	e3   string
-	e4   string
-	loc1 string
-	l1   string
-	l2   string
+	e1   int
+	e2   int
+	e3   int
+	e4   int
+	loc1 int
+	l1   int
+	l2   int
 }
 
 type linkSearchHirerchyDataModels struct {
-	e1 string
-	e2 string
-	e3 string
-	e4 string
-	e5 string
-	e6 string
+	e1 int
+	e2 int
+	e3 int
+	e4 int
+	e5 int
+	e6 int
 }
 
 func prepareLinkData(ctx context.Context, r *TestResolver, props []*models.PropertyInput) linkSearchDataModels {
@@ -305,7 +305,7 @@ func TestSearchLinksFutureState(t *testing.T) {
 	require.NotEqual(t, ports[0].QueryParent().OnlyX(ctx).ID, ports[1].QueryParent().OnlyX(ctx).ID)
 	for _, port := range ports {
 		id := port.QueryParent().OnlyXID(ctx)
-		require.Contains(t, []string{data.e2, data.e4}, id)
+		require.Contains(t, []int{data.e2, data.e4}, id)
 	}
 }
 
@@ -333,7 +333,7 @@ func TestSearchLinksByLocation(t *testing.T) {
 	f1 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc1},
+		IDSet:      []int{data.loc1},
 		MaxDepth:   &maxDepth,
 	}
 	typ, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -350,7 +350,7 @@ func TestSearchLinksByLocation(t *testing.T) {
 	f2 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{loc.ID},
+		IDSet:      []int{loc.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f2}, &limit)
@@ -388,7 +388,7 @@ func TestSearchLinksByEquipmentTyp(t *testing.T) {
 	f1 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeEquipmentType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{typ1.ID},
+		IDSet:      []int{typ1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1}, &limit)
@@ -398,7 +398,7 @@ func TestSearchLinksByEquipmentTyp(t *testing.T) {
 	f2 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeEquipmentType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{typ2.ID},
+		IDSet:      []int{typ2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f2}, &limit)
@@ -408,7 +408,7 @@ func TestSearchLinksByEquipmentTyp(t *testing.T) {
 	f3 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{emptyTyp.ID},
+		IDSet:      []int{emptyTyp.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res3, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f3}, &limit)
@@ -441,7 +441,7 @@ func TestSearchLinksByEquipment(t *testing.T) {
 	f1 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeEquipmentInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.e1, data.e2},
+		IDSet:      []int{data.e1, data.e2},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1}, &limit)
@@ -451,7 +451,7 @@ func TestSearchLinksByEquipment(t *testing.T) {
 	f2 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeEquipmentInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.e2, data.e4},
+		IDSet:      []int{data.e2, data.e4},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f2}, &limit)
@@ -489,7 +489,7 @@ func TestSearchLinksByEquipmentHirerchy(t *testing.T) {
 	f1 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeEquipmentInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.e1},
+		IDSet:      []int{data.e1},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1}, &limit)
@@ -499,7 +499,7 @@ func TestSearchLinksByEquipmentHirerchy(t *testing.T) {
 	f2 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeEquipmentInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.e6},
+		IDSet:      []int{data.e6},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f2}, &limit)
@@ -557,7 +557,7 @@ func TestSearchLinksByService(t *testing.T) {
 	f1 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeServiceInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{s1.ID},
+		IDSet:      []int{s1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1}, &limit)
@@ -567,7 +567,7 @@ func TestSearchLinksByService(t *testing.T) {
 	f2 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeServiceInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{s2.ID},
+		IDSet:      []int{s2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f2}, &limit)
@@ -577,7 +577,7 @@ func TestSearchLinksByService(t *testing.T) {
 	f3 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeServiceInst,
 		Operator:   models.FilterOperatorIsNotOneOf,
-		IDSet:      []string{s1.ID},
+		IDSet:      []int{s1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res3, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f3}, &limit)
@@ -587,7 +587,7 @@ func TestSearchLinksByService(t *testing.T) {
 	f4 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeServiceInst,
 		Operator:   models.FilterOperatorIsNotOneOf,
-		IDSet:      []string{s2.ID},
+		IDSet:      []int{s2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res4, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f4}, &limit)
