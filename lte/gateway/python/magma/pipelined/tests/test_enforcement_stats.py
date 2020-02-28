@@ -16,6 +16,7 @@ from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     RedirectInformation
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
+from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -58,7 +59,7 @@ class EnforcementStatsTest(unittest.TestCase):
         self._static_rule_dict = {}
         self.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
         self._main_tbl_num = self.service_manager.get_table_num(
-            EnforcementStatsController.APP_NAME)
+            EnforcementController.APP_NAME)
 
         enforcement_controller_reference = Future()
         testing_controller_reference = Future()
