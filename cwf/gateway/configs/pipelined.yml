@@ -76,7 +76,7 @@ subscriber:
   poll_interval: 5
 
 dpi:
-  enabled: false
+  enabled: true
   mon_port: mon1
   mon_port_number: 32769
 
