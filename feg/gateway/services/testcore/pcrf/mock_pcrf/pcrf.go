@@ -32,7 +32,7 @@ type PCRFConfig struct {
 	ServerConfig *diameter.DiameterServerConfig
 }
 
-type creditByMkey map[string]*protos.UsageMonitorCredit
+type creditByMkey map[string]*protos.UsageMonitor
 
 type subscriberAccount struct {
 	RuleNames       []string
@@ -170,7 +170,7 @@ func (srv *PCRFDiamServer) SetRules(
 
 func (srv *PCRFDiamServer) SetUsageMonitors(
 	ctx context.Context,
-	usageMonitorInfo *protos.UsageMonitorInfo,
+	usageMonitorInfo *protos.SetUsageMonitorRequest,
 ) (*orcprotos.Void, error) {
 	account, ok := srv.subscribers[usageMonitorInfo.Imsi]
 	if !ok {
@@ -178,7 +178,7 @@ func (srv *PCRFDiamServer) SetUsageMonitors(
 	}
 	account.UsageMonitors = make(creditByMkey)
 	for _, monitor := range usageMonitorInfo.UsageMonitorCredits {
-		account.UsageMonitors[monitor.MonitoringKey] = monitor
+		account.UsageMonitors[string(monitor.MonitorInfoPerRequest.MonitoringKey)] = monitor
 	}
 	return &orcprotos.Void{}, nil
 }
@@ -226,4 +226,12 @@ func (srv *PCRFDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos
 	srv.subscribers = map[string]*subscriberAccount{}
 	glog.V(2).Info("All accounts deleted.")
 	return &orcprotos.Void{}, nil
+}
+
+func (srv *PCRFDiamServer) SetExpectations(ctx context.Context, expectations *protos.SetExpectationsRequest) (*orcprotos.Void, error) {
+	return &orcprotos.Void{}, nil
+}
+
+func (srv *PCRFDiamServer) AssertExpectations(ctx context.Context, void *orcprotos.Void) (*protos.AssertExpectationsResult, error) {
+	return &protos.AssertExpectationsResult{}, nil
 }

@@ -28,7 +28,7 @@ type RuleManager struct {
 	// List of dynamic rules successfully installed into PCRF
 	dynamicRules []*fegProtos.AccountRules
 	// List of usage monitors successfully installed into PCRF
-	monitors []*fegProtos.UsageMonitorInfo
+	monitors []*fegProtos.SetUsageMonitorRequest
 	// List of network wide static rules successfully inserted into the policyDB store
 	omniPresentRules []*lteProtos.AssignedPolicies
 	// Wrapper around redis operations for policyDB objects
@@ -178,15 +178,17 @@ func makeAssignedRules(ruleNames []string, baseNames []string) *lteProtos.Assign
 	}
 }
 
-func makeUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) *fegProtos.UsageMonitorInfo {
-	return &fegProtos.UsageMonitorInfo{
+func makeUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) *fegProtos.SetUsageMonitorRequest {
+	return &fegProtos.SetUsageMonitorRequest{
 		Imsi: imsi,
-		UsageMonitorCredits: []*fegProtos.UsageMonitorCredit{
+		UsageMonitorCredits: []*fegProtos.UsageMonitor{
 			{
-				MonitoringKey:        monitoringKey,
-				TotalQuota:           &fegProtos.Octets{TotalOctets: volume},
-				QuotaGrantPerRequest: &fegProtos.Octets{TotalOctets: bytesPerGrant},
-				MonitoringLevel:      fegProtos.UsageMonitorCredit_RuleLevel,
+				MonitorInfoPerRequest: &fegProtos.UsageMonitoringInformation{
+					MonitoringKey:   []byte(monitoringKey),
+					MonitoringLevel: fegProtos.MonitoringLevel_RuleLevel,
+					Octets:          &fegProtos.Octets{TotalOctets: bytesPerGrant},
+				},
+				TotalQuota: &fegProtos.Octets{TotalOctets: volume},
 			},
 		},
 	}

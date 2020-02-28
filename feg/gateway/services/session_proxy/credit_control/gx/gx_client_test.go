@@ -376,20 +376,24 @@ func startServer(
 		)
 		pcrf.SetUsageMonitors(
 			ctx,
-			&fegprotos.UsageMonitorInfo{
+			&fegprotos.SetUsageMonitorRequest{
 				Imsi: testIMSI4,
-				UsageMonitorCredits: []*fegprotos.UsageMonitorCredit{
+				UsageMonitorCredits: []*fegprotos.UsageMonitor{
 					{
-						MonitoringKey:        monitoringKey,
-						TotalQuota:           &fegprotos.Octets{TotalOctets: 4096},
-						QuotaGrantPerRequest: &fegprotos.Octets{TotalOctets: 1024},
-						MonitoringLevel:      fegprotos.UsageMonitorCredit_RuleLevel,
+						MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
+							MonitoringKey:   []byte(monitoringKey),
+							MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
+							Octets:          &fegprotos.Octets{TotalOctets: 1024},
+						},
+						TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
 					},
 					{
-						MonitoringKey:        monitoringKey3,
-						TotalQuota:           &fegprotos.Octets{TotalOctets: 4096},
-						QuotaGrantPerRequest: &fegprotos.Octets{TotalOctets: 2048},
-						MonitoringLevel:      fegprotos.UsageMonitorCredit_SessionLevel,
+						MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
+							MonitoringKey:   []byte(monitoringKey3),
+							MonitoringLevel: fegprotos.MonitoringLevel_SessionLevel,
+							Octets:          &fegprotos.Octets{TotalOctets: 2048},
+						},
+						TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
 					},
 				},
 			},
