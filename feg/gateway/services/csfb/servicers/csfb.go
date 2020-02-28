@@ -15,6 +15,8 @@ import (
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 	"golang.org/x/net/context"
 )
 
@@ -268,8 +270,8 @@ func (srv *CsfbServer) MMEStatus(
 // Different from the MMEResetAck invoked by the gateway through GRPC,
 // SendResetAck is invoked in the FeG as soon as the SGsAP-RESET-INDICATION
 // is received and decoded.
-func (srv *CsfbServer) SendResetAck() error {
-	req, err := constructResetAck()
+func (srv *CsfbServer) SendResetAck(decodedMsg *any.Any) error {
+	req, err := constructResetAck(decodedMsg)
 	if err != nil {
 		glog.Errorf("Failed to construct SGsAP-RESET-ACK: %s", err)
 		return err
@@ -282,11 +284,20 @@ func (srv *CsfbServer) SendResetAck() error {
 	return srv.Conn.Send(encodedMsg)
 }
 
-func constructResetAck() (*protos.ResetAck, error) {
-	mmeName, err := ConstructMMEName()
-	if err != nil {
-		glog.Errorf("Failed to construct MME name: %s", err)
-		return nil, err
+func constructResetAck(decodedMsg *any.Any) (*protos.ResetAck, error) {
+	unmarshalledMsg := &protos.ResetIndication{}
+	ptypes.UnmarshalAny(decodedMsg, unmarshalledMsg)
+
+	// TODO: MME should be sending MME name in the gRPC call. Guess shouldn't be done
+	if len(unmarshalledMsg.MmeName) == 0 {
+		glog.Warning("SGsAPResetIndication didn't include MME name. Trying to guess it.")
+		var err error
+		unmarshalledMsg.MmeName, err = ConstructMMEName()
+		if err != nil {
+			glog.Errorf("Couldnt guess the MME name: %s", err)
+		}
 	}
-	return &protos.ResetAck{MmeName: mmeName}, nil
+	return &protos.ResetAck{
+		MmeName: unmarshalledMsg.MmeName,
+		VlrName: unmarshalledMsg.VlrName}, nil
 }

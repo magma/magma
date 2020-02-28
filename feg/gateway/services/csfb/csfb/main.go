@@ -83,7 +83,7 @@ func main() {
 				}
 				if msgType == decode.SGsAPResetIndication {
 					glog.V(2).Info("Sending Reset Ack to VLR")
-					err = servicer.SendResetAck()
+					err = servicer.SendResetAck(decodedMsg)
 					if err != nil {
 						glog.Errorf(
 							"Failed to send Reset Ack to VLR: %s",
