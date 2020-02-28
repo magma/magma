@@ -13,10 +13,12 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/testcore/expectations"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 
@@ -43,9 +45,12 @@ type subscriberAccount struct {
 
 // PCRFDiamServer wraps an PCRF storing subscribers and their rules
 type PCRFDiamServer struct {
-	diameterSettings *diameter.DiameterClientConfig
-	pcrfConfig       *PCRFConfig
-	subscribers      map[string]*subscriberAccount // map of imsi to to rules
+	diameterSettings      *diameter.DiameterClientConfig
+	pcrfConfig            *PCRFConfig
+	subscribers           map[string]*subscriberAccount
+	expectationsLock      *sync.RWMutex
+	expectationsSet       bool
+	expectationManagement *expectations.ExpectationManagement
 }
 
 // NewPCRFDiamServer initializes an PCRF with an empty rule map
@@ -58,9 +63,12 @@ func NewPCRFDiamServer(
 	pcrfConfig *PCRFConfig,
 ) *PCRFDiamServer {
 	return &PCRFDiamServer{
-		diameterSettings: diameterSettings,
-		pcrfConfig:       pcrfConfig,
-		subscribers:      map[string]*subscriberAccount{},
+		diameterSettings:      diameterSettings,
+		pcrfConfig:            pcrfConfig,
+		subscribers:           map[string]*subscriberAccount{},
+		expectationsLock:      &sync.RWMutex{},
+		expectationsSet:       false,
+		expectationManagement: &expectations.ExpectationManagement{},
 	}
 }
 
@@ -111,15 +119,8 @@ func (srv *PCRFDiamServer) Start(lis net.Listener) error {
 // If ServerConfig did not have valid values, default values would be used
 func (srv *PCRFDiamServer) StartListener() (net.Listener, error) {
 	serverConfig := srv.pcrfConfig.ServerConfig
-
 	network := serverConfig.Protocol
-	if len(network) == 0 {
-		network = "tcp"
-	}
 	addr := serverConfig.Addr
-	if len(addr) == 0 {
-		addr = ":3870"
-	}
 	l, e := diam.Listen(network, addr)
 	if e != nil {
 		return nil, e
@@ -228,10 +229,26 @@ func (srv *PCRFDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *PCRFDiamServer) SetExpectations(ctx context.Context, expectations *protos.SetExpectationsRequest) (*orcprotos.Void, error) {
+func (srv *PCRFDiamServer) SetExpectations(_ context.Context, req *protos.SetExpectationsRequest) (*orcprotos.Void, error) {
+	srv.expectationsLock.Lock()
+	defer srv.expectationsLock.Unlock()
+
+	srv.expectationsSet = true
+	srv.expectationManagement.InitializeExpectations(req.Expectations, req.GetUnexpectedRequestBehavior(), req.GetGxDefaultCca())
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *PCRFDiamServer) AssertExpectations(ctx context.Context, void *orcprotos.Void) (*protos.AssertExpectationsResult, error) {
-	return &protos.AssertExpectationsResult{}, nil
+func (srv *PCRFDiamServer) AssertExpectations(_ context.Context, _ *orcprotos.Void) (*protos.AssertExpectationsResult, error) {
+	srv.expectationsLock.Lock()
+	defer srv.expectationsLock.Unlock()
+	expectationResults, unexpectedRequests := srv.expectationManagement.GetResultsAndClear()
+	unexpectedGxRequests := make([]*protos.GxCreditControlRequest, len(unexpectedRequests))
+	for i, req := range unexpectedRequests {
+		unexpectedGxRequests[i] = req.(*protos.GxCreditControlRequest)
+	}
+	srv.expectationsSet = false
+	return &protos.AssertExpectationsResult{
+		Results:              expectationResults,
+		GxUnexpectedRequests: unexpectedGxRequests,
+	}, nil
 }

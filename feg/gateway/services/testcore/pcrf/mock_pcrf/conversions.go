@@ -18,18 +18,18 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 )
 
-func toStaticRuleNameInstallAVP(ruleName string) *diam.AVP {
-	return diam.NewAVP(avp.ChargingRuleInstall, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+func toStaticRuleNameAVP(ruleName string, action uint32) *diam.AVP {
+	return diam.NewAVP(action, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.ChargingRuleName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ruleName)),
 		},
 	})
 }
 
-func toStaticBaseNameInstallAVP(baseName string) *diam.AVP {
-	return diam.NewAVP(avp.ChargingRuleInstall, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+func toStaticBaseNameAVP(ruleName string, action uint32) *diam.AVP {
+	return diam.NewAVP(action, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
-			diam.NewAVP(avp.ChargingRuleBaseName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(baseName)),
+			diam.NewAVP(avp.ChargingRuleBaseName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ruleName)),
 		},
 	})
 }
@@ -122,11 +122,11 @@ func toRuleInstallAVPs(
 ) []*diam.AVP {
 	avps := make([]*diam.AVP, 0, len(ruleNames)+len(ruleBaseNames)+len(ruleDefs))
 	for _, ruleName := range ruleNames {
-		avps = append(avps, toStaticRuleNameInstallAVP(ruleName))
+		avps = append(avps, toStaticRuleNameAVP(ruleName, avp.ChargingRuleInstall))
 	}
 
 	for _, baseName := range ruleBaseNames {
-		avps = append(avps, toStaticBaseNameInstallAVP(baseName))
+		avps = append(avps, toStaticBaseNameAVP(baseName, avp.ChargingRuleInstall))
 	}
 
 	for _, rule := range ruleDefs {
@@ -140,6 +140,18 @@ func toUsageMonitorAVPs(monitors map[string]*protos.UsageMonitor) []*diam.AVP {
 	for key, monitor := range monitors {
 		avps = append(avps,
 			toUsageMonitoringInfoAVP(key, getQuotaGrant(monitor), monitor.GetMonitorInfoPerRequest().GetMonitoringLevel()))
+	}
+	return avps
+}
+
+func toRuleRemovalAVPs(ruleNames, ruleBaseNames []string) []*diam.AVP {
+	avps := make([]*diam.AVP, 0, len(ruleNames)+len(ruleBaseNames))
+	for _, ruleName := range ruleNames {
+		avps = append(avps, toStaticRuleNameAVP(ruleName, avp.ChargingRuleRemove))
+	}
+
+	for _, baseName := range ruleBaseNames {
+		avps = append(avps, toStaticBaseNameAVP(baseName, avp.ChargingRuleRemove))
 	}
 	return avps
 }

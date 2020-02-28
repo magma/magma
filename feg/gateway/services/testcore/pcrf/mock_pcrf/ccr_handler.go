@@ -67,9 +67,27 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
 			return
 		}
+
+		srv.expectationsLock.Lock()
+		if srv.expectationsSet {
+			answer, _ := srv.expectationManagement.GetNextAnswer(matchesExpectation, ccr)
+			srv.expectationsLock.Unlock()
+
+			if answer != nil {
+				gxAnswer := answer.(*protos.GxCreditControlAnswer)
+				avps, resultCode := expectationGxCCAToAVPs(gxAnswer)
+				sendAnswer(ccr, c, m, resultCode, avps...)
+				return
+			}
+			glog.Errorf("Received an unexpected request for subscriber %v", imsi)
+			sendAnswer(ccr, c, m, diam.UnableToComply)
+			return
+		}
+		srv.expectationsLock.Unlock()
+
 		account, found := srv.subscribers[imsi]
 		if !found {
-			glog.Error("IMSI not found in subscribers")
+			glog.Errorf("IMSI %v not found in subscribers", imsi)
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
 			return
 		}
@@ -176,4 +194,65 @@ func getMin(first, second uint64) uint64 {
 		return second
 	}
 	return first
+}
+
+func matchesExpectation(iCcr interface{}, expectation *protos.Expectation) (bool, interface{}) {
+	ccr := iCcr.(ccrMessage)
+	imsi, _ := getIMSI(ccr)
+	gxExpectation := expectation.GetGxCcExpectation()
+	if gxExpectation == nil {
+		glog.Errorf("Expectation is not a GxCcExpectation")
+		return false, nil
+	}
+	expectedCCR := gxExpectation.GetExpectedRequest()
+	if expectedCCR == nil {
+		glog.Errorf("ExpectedRequest field is nil")
+		return false, nil
+	}
+	if expectedCCR.Imsi != imsi ||
+		expectedCCR.RequestNumber != uint32(ccr.RequestNumber) ||
+		uint32(expectedCCR.RequestType) != uint32(ccr.RequestType) {
+		return false, nil
+	}
+	return true, gxExpectation.Answer
+}
+
+func (ccr ccrMessage) toGxCCR(imsi string) *protos.GxCreditControlRequest {
+	return &protos.GxCreditControlRequest{
+		Imsi:          imsi,
+		RequestType:   protos.CCRequestType(ccr.RequestType),
+		RequestNumber: uint32(ccr.RequestNumber),
+		// Todo Fill in UsageMonitorInfo.
+	}
+}
+
+func expectationGxCCAToAVPs(gxCCA *protos.GxCreditControlAnswer) ([]*diam.AVP, uint32) {
+	avps := []*diam.AVP{}
+	ruleInstalls := gxCCA.GetRuleInstalls()
+	if ruleInstalls != nil {
+		ruleInstallAVPs := toRuleInstallAVPs(
+			gxCCA.RuleInstalls.GetRuleNames(),
+			gxCCA.RuleInstalls.GetRuleBaseNames(),
+			gxCCA.RuleInstalls.GetRuleDefinitions())
+		avps = append(avps, ruleInstallAVPs...)
+	}
+	ruleRemovals := gxCCA.GetRuleRemovals()
+	if ruleRemovals != nil {
+		ruleRemovalAVPs := toRuleRemovalAVPs(
+			ruleRemovals.GetRuleNames(),
+			ruleRemovals.GetRuleBaseNames())
+		avps = append(avps, ruleRemovalAVPs...)
+	}
+	monitorInstalls := gxCCA.GetUsageMonitoringInfos()
+	if monitorInstalls != nil {
+		for _, monitor := range monitorInstalls {
+			octets := monitor.GetOctets()
+			if octets == nil {
+				glog.Errorf("Monitor Octets is nil, skipping.")
+				continue
+			}
+			avps = append(avps, toUsageMonitoringInfoAVP(string(monitor.MonitoringKey), octets, monitor.MonitoringLevel))
+		}
+	}
+	return avps, gxCCA.GetResultCode()
 }
