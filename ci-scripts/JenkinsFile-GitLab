@@ -1,0 +1,369 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+ * except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.openairinterface.org/?page_id=698
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+// Location of the executor node
+def nodeExecutor = params.nodeExecutor
+
+// lock mechanism
+def cn_ci_resource = params.MagmaVmDockerResources
+
+// Location of the 2nd CN executor
+def new_host_flag = false
+def new_host = ""
+def new_host_user = ""
+
+pipeline {
+  agent {
+    label nodeExecutor
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+    lock(cn_ci_resource)
+    gitLabConnection('OAI GitLab')
+    gitlabBuilds(builds: [
+      "Activate-AGW-VM",
+      "Build-Run-AGW",
+      //"Build-Orchestrator",
+      //"Run-Orchestrator",
+      "Activate-Test-VM",
+      "Test-AGW-VM",
+      "Activate-Traffic-VM",
+      "Start-Traffic-Server"
+    ])
+  }
+
+  stages {
+    stage ("Verify Parameters") {
+      steps {
+        script {
+          JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
+          JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
+
+          echo '\u2705 \u001B[32mVerify Parameters\u001B[0m'
+          if (params.Host_CN_CI_2nd_Server_Flag != null) {
+            new_host_flag = params.Host_CN_CI_2nd_Server_Flag
+            if (new_host_flag) {
+              new_host = params.Host_CN_CI_2nd_Server
+              new_host_user = params.Host_CN_CI_2nd_Server_Login
+              echo "1st Node   is ${NODE_NAME}"
+              echo "2nd Node   is ${new_host}"
+            } else {
+              echo "Node       is ${NODE_NAME}"
+            }
+          } else {
+            echo "Node       is ${NODE_NAME}"
+          }
+        }
+      }
+    }
+    stage ("Retrieve and Prepare Source Code") {
+      steps {
+        script {
+          echo "Git URL         is ${GIT_URL}"
+          echo "GitLab Act      is ${env.gitlabActionType}"
+          sh "git clean -x -d -f > /dev/null 2>&1"
+          if ("MERGE".equals(env.gitlabActionType)) {
+            // since a bit, in push events, gitlabUserEmail is not populated
+            gitCommitAuthorEmailAddr = env.gitlabUserEmail
+            echo "GitLab Usermail is ${gitCommitAuthorEmailAddr}"
+            // GitLab-Jenkins plugin integration is lacking to perform the merge by itself
+            // Doing it manually --> it may have merge conflicts
+            gitlabCommitStatus(name: "Mergeability") {
+              sh "./ci-scripts/doGitLabMerge.sh --src-branch ${env.gitlabSourceBranch} --src-commit ${env.gitlabMergeRequestLastCommit} --target-branch ${env.gitlabTargetBranch} --target-commit ${GIT_COMMIT}"
+            }
+          } else {
+            echo "Git Branch      is ${GIT_BRANCH}"
+            echo "Git Commit      is ${GIT_COMMIT}"
+            // since a bit, in push events, gitlabUserEmail is not populated
+            gitCommitAuthorEmailAddr = sh returnStdout: true, script: 'git log -n1 --pretty=format:%ae ${GIT_COMMIT}'
+            gitCommitAuthorEmailAddr = gitCommitAuthorEmailAddr.trim()
+            echo "GitLab Usermail is ${gitCommitAuthorEmailAddr}"
+            sh "git log -n1 --pretty=format:\"%s\" > .git/CI_COMMIT_MSG"
+          }
+          TEMP_COMMIT = sh returnStdout: true, script: 'git log -n1 --pretty=format:"%H"'
+          TEMP_COMMIT = TEMP_COMMIT.trim()
+
+          sh "tar -cjhf /tmp/converged_mme.tar.bz2 .git"
+          sh "mv /tmp/converged_mme.tar.bz2 ."
+          copyTo2ndServer('converged_mme.tar.bz2', new_host_flag, new_host_user, new_host)
+          myShCmd('git checkout -f ' + TEMP_COMMIT, new_host_flag, new_host_user, new_host)
+          sh "mkdir -p archives"
+        }
+      }
+      post {
+        failure {
+          script {
+            def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): Merge Conflicts -- Cannot perform CI"
+            addGitLabMRComment comment: message
+            currentBuild.result = 'FAILURE'
+          }
+        }
+      }
+    }
+    stage ("Building") {
+      parallel {
+        stage ("Provision the AGW VM") {
+          steps {
+            script {
+              gitlabCommitStatus(name: "Activate-AGW-VM") {
+                myShCmdWithLog('cd lte/gateway && vagrant up magma', 'archives/magma_vagrant_up.log', new_host_flag, new_host_user, new_host)
+              }
+            }
+          }
+        }
+        stage ("Build Orchestrator") {
+          steps {
+            script {
+              //gitlabCommitStatus(name: "Build-Orchestrator") {
+              //  myShCmdWithLog('cd orc8r/cloud/docker && ./build.py -a', 'archives/orchestrator_build.log', new_host_flag, new_host_user, new_host)
+              //}
+              echo "Not at the moment"
+            }
+          }
+        }
+      }
+    }
+    stage ("Running") {
+      parallel {
+        stage ("Run the AGW VM") {
+          steps {
+            script {
+              gitlabCommitStatus(name: "Build-Run-AGW") {
+                // Manual removal of build dirs
+                myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo rm -Rf build/c build/python"', new_host_flag, new_host_user, new_host)
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make clean"', 'archives/magma_vagrant_make_clean.log', new_host_flag, new_host_user, new_host)
+                // Manually creating the c build dir
+                myShCmd('cd lte/gateway && vagrant ssh magma -c "mkdir build/c"', new_host_flag, new_host_user, new_host)
+                // removing the magma/.cache/gateway folder with speed down build from 3 minutes to 27 minutes
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make run"', 'archives/magma_vagrant_make_run.log', new_host_flag, new_host_user, new_host)
+                // check the magma status --> non-blocking (even if OK it might fail from a bash script point of view)
+                try {
+                  myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo service magma@* status > magma/archives/magma_status.log"', new_host_flag, new_host_user, new_host)
+                } catch (Exception e) {
+                  echo "Checking magma@* status failed but still moving on!"
+                }
+              }
+            }
+          }
+          post {
+            always {
+              script {
+                copyFrom2ndServer('archives/magma_status.log', 'archives', new_host_flag, new_host_user, new_host)
+              }
+            }
+          }
+        }
+        stage ("Run Orchestrator") {
+          steps {
+            script {
+              //gitlabCommitStatus(name: "Run-Orchestrator") {
+              //  myShCmdWithLog('cd orc8r/cloud/docker && ./run.sh',  'archives/orchestrator_start.log', new_host_flag, new_host_user, new_host)
+              //}
+              echo "Not at the moment"
+            }
+          }
+        }
+        stage ("Provision the Test VM") {
+          steps {
+            script {
+              gitlabCommitStatus(name: "Activate-Test-VM") {
+                myShCmdWithLog('cd lte/gateway && vagrant up magma_test', 'archives/magma_vagrant_test_up.log', new_host_flag, new_host_user, new_host)
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/ && make"', 'archives/magma_vagrant_test_make1.log', new_host_flag, new_host_user, new_host)
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && make"', 'archives/magma_vagrant_test_make2.log', new_host_flag, new_host_user, new_host)
+              }
+            }
+          }
+        }
+        stage ("Provision the Traffic VM") {
+          steps {
+            script {
+              sh "sleep 60"
+              gitlabCommitStatus(name: "Activate-Traffic-VM") {
+                myShCmdWithLog('cd lte/gateway && vagrant up magma_trfserver', 'archives/magma_vagrant_trfserver_up.log', new_host_flag, new_host_user, new_host)
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo apt install --yes psmisc"', 'archives/magma_vagrant_trfserver_killall_install.log', new_host_flag, new_host_user, new_host)
+              }
+            }
+          }
+        }
+      }
+    }
+    stage ("Testing") {
+      parallel {
+        stage ("Start Traffic Server") {
+          steps {
+            script {
+              echo "Disabling TCP checksumming on Traffic VM"
+              gitlabCommitStatus(name: "Start-Traffic-Server") {
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"', 'archives/magma_vagrant_trfserve_disable_tcp_checksumming.log', new_host_flag, new_host_user, new_host)
+                echo "Starting the Traffic server in foreground"
+                try {
+                  myShCmd('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo traffic_server.py 192.168.60.144 62462 > magma/archives/magma_trfserver_run0.log 2>&1"', new_host_flag, new_host_user, new_host)
+                } catch (Exception e) {
+                  echo "Moving on!"
+                }
+              }
+            }
+          }
+        }
+        stage ("Test-AGW-VM") {
+          steps {
+            script {
+              gitlabCommitStatus(name: "Test-AGW-VM") {
+                echo "Disabling TCP checksumming on all VMs"
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"', 'archives/magma_vagrant_disable_tcp_checksumming.log', new_host_flag, new_host_user, new_host)
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"', 'archives/magma_vagrant_test_disable_tcp_checksumming.log', new_host_flag, new_host_user, new_host)
+
+                // Making sure the Traffic server is up and running
+                sh "sleep 20"
+
+                echo "Starting the integration Tests - S1AP Tester"
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
+
+                echo "Stopping the Traffic server in background"
+                myShCmd('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo killall python3"', new_host_flag, new_host_user, new_host)
+              }
+            }
+          }
+          post {
+            success {
+              sh "echo 'AGW-VM-S1AP-TESTS: OK' >> archives/magma_run_s1ap_tester.log"
+            }
+            unsuccessful {
+              sh "echo 'AGW-VM-S1AP-TESTS: KO' >> archives/magma_run_s1ap_tester.log"
+            }
+          }
+        }
+      }
+      post {
+        always {
+          script {
+            copyFrom2ndServer('archives/magma_trfserver_run0.log', 'archives', new_host_flag, new_host_user, new_host)
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      script {
+        // Stopping the VMs and the Containers
+        myShCmdWithLog('cd lte/gateway && vagrant halt magma', 'archives/magma_vagrant_halt.log', new_host_flag, new_host_user, new_host)
+        myShCmdWithLog('cd lte/gateway && vagrant halt magma_test', 'archives/magma_test_vagrant_halt.log', new_host_flag, new_host_user, new_host)
+        myShCmdWithLog('cd lte/gateway && vagrant halt magma_trfserver', 'archives/magma_test_vagrant_halt.log', new_host_flag, new_host_user, new_host)
+        myShCmdWithLog('cd lte/gateway && vagrant global-status', 'archives/magma_vagrant_global_status.log', new_host_flag, new_host_user, new_host)
+
+        //myShCmdWithLog('docker rm -f fluentd orc8r_proxy_1 orc8r_controller_1 orc8r_kibana_1 orc8r_maria_1 orc8r_postgres_1 elasticsearch', 'archives/orchestrator_stop.log', new_host_flag, new_host_user, new_host)
+        //myShCmdWithLog('docker network prune --force', 'archives/orchestrator_network_prune.log', new_host_flag, new_host_user, new_host)
+
+        // Generate HTML report
+        if ("MERGE".equals(env.gitlabActionType)) {
+          sh "python3 ci-scripts/generateHtmlReport.py --job_name=${JOB_NAME} --job_id=${BUILD_ID} --job_url=${BUILD_URL} --git_url=${GIT_URL} --git_src_branch=${env.gitlabSourceBranch} --git_src_commit=${env.gitlabMergeRequestLastCommit} --git_merge_request=True --git_target_branch=${env.gitlabTargetBranch} --git_target_commit=${GIT_COMMIT}"
+        } else {
+          sh "python3 ci-scripts/generateHtmlReport.py --job_name=${JOB_NAME} --job_id=${BUILD_ID} --job_url=${BUILD_URL} --git_url=${GIT_URL} --git_src_branch=${GIT_BRANCH} --git_src_commit=${GIT_COMMIT}"
+        }
+        sh "sed -i -e 's#TEMPLATE_TIME#${JOB_TIMESTAMP}#' test_results_magma_converged_mme.html"
+        if (fileExists('test_results_magma_converged_mme.html')) {
+          archiveArtifacts artifacts: 'test_results_magma_converged_mme.html'
+        }
+
+        // Zipping all archived log files
+        sh "zip -r -qq magma_logs.zip archives"
+        if (fileExists('magma_logs.zip')) {
+          archiveArtifacts artifacts: 'magma_logs.zip'
+        }
+
+        // Sending an email to the contributor
+        emailext attachmentsPattern: '*results*.html',
+          body: '''Hi,
+
+Here are attached HTML report files for $PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!
+
+Regards,
+OAI CI Team''',
+          replyTo: 'no-reply@openairinterface.org',
+          subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!',
+          to: gitCommitAuthorEmailAddr
+      }
+    }
+  }
+}
+
+def copyTo2ndServer(filename, flag, user, host) {
+  if (flag) {
+    if ("converged_mme.tar.bz2".equals(filename)) {
+      sh "ssh ${user}@${host} 'mkdir -p /home/${user}/CI-Magma'"
+      sh "ssh ${user}@${host} 'sudo rm -Rf /home/${user}/CI-Magma/.git'"
+    }
+    sh "scp ${filename} ${user}@${host}:/home/${user}/CI-Magma"
+    if ("converged_mme.tar.bz2".equals(filename)) {
+      sh "ssh ${user}@${host} 'cd /home/${user}/CI-Magma && tar -xjf ${filename}'"
+      sh "ssh ${user}@${host} 'mkdir -p /home/${user}/CI-Magma/archives'"
+      sh "ssh ${user}@${host} 'rm -f /home/${user}/CI-Magma/converged_mme.tar.bz2'"
+    }
+  }
+}
+
+def copyFrom2ndServer(filename, target, flag, user, host) {
+  if (flag) {
+    sh "scp ${user}@${host}:/home/${user}/CI-Magma/${filename} ${target}"
+  }
+}
+
+def myShCmd(cmd, flag, user, host) {
+  if (flag) {
+    sh "ssh -t -t ${user}@${host} 'cd /home/${user}/CI-Magma && ${cmd}'"
+  } else {
+    sh "${cmd}"
+  }
+}
+
+def myShCmdWithLog(cmd, logFile, flag, user, host) {
+  if (flag) {
+    sh "ssh -t -t ${user}@${host} 'cd /home/${user}/CI-Magma && ${cmd}' > ${logFile} 2>&1"
+  } else {
+    sh "${cmd} > ${logFile} 2>&1"
+  }
+}
+
+def myShRetCmd(cmd, flag, user, host) {
+  if (flag) {
+    ret = sh returnStdout: true, script: "ssh -t -t ${user}@${host} 'cd /home/${user}/CI-Magma && ${cmd}'"
+  } else {
+    ret = sh returnStdout: true, script: "${cmd}"
+  }
+  ret = ret.trim()
+  return ret
+}
+
+//-------------------------------------------------------------------------------
+// Abstraction function to send social media messages:
+// like on Slack or Mattermost
+def sendSocialMediaMessage(pipeChannel, pipeColor, pipeMessage) {
+  if (params.pipelineUsesSlack != null) {
+    if (params.pipelineUsesSlack) {
+      slackSend channel: pipeChannel, color: pipeColor, message: pipeMessage
+    }
+  }
+}
