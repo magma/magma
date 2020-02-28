@@ -47,7 +47,7 @@ func (ptd *ProjectTypeDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: projecttype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: projecttype.FieldID,
 			},
 		},

@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -206,8 +205,8 @@ func (eq *EquipmentQuery) FirstX(ctx context.Context) *Equipment {
 }
 
 // FirstID returns the first Equipment id in the query. Returns *NotFoundError when no id was found.
-func (eq *EquipmentQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (eq *EquipmentQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = eq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -219,7 +218,7 @@ func (eq *EquipmentQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (eq *EquipmentQuery) FirstXID(ctx context.Context) string {
+func (eq *EquipmentQuery) FirstXID(ctx context.Context) int {
 	id, err := eq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -253,8 +252,8 @@ func (eq *EquipmentQuery) OnlyX(ctx context.Context) *Equipment {
 }
 
 // OnlyID returns the only Equipment id in the query, returns an error if not exactly one id was returned.
-func (eq *EquipmentQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (eq *EquipmentQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = eq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -270,7 +269,7 @@ func (eq *EquipmentQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (eq *EquipmentQuery) OnlyXID(ctx context.Context) string {
+func (eq *EquipmentQuery) OnlyXID(ctx context.Context) int {
 	id, err := eq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -293,8 +292,8 @@ func (eq *EquipmentQuery) AllX(ctx context.Context) []*Equipment {
 }
 
 // IDs executes the query and returns a list of Equipment ids.
-func (eq *EquipmentQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (eq *EquipmentQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := eq.Select(equipment.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -302,7 +301,7 @@ func (eq *EquipmentQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (eq *EquipmentQuery) IDsX(ctx context.Context) []string {
+func (eq *EquipmentQuery) IDsX(ctx context.Context) []int {
 	ids, err := eq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -541,8 +540,8 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	}
 
 	if query := eq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Equipment)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Equipment)
 		for i := range nodes {
 			if fk := nodes[i].equipment_type; fk != nil {
 				ids = append(ids, *fk)
@@ -566,8 +565,8 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	}
 
 	if query := eq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Equipment)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Equipment)
 		for i := range nodes {
 			if fk := nodes[i].location_equipment; fk != nil {
 				ids = append(ids, *fk)
@@ -591,8 +590,8 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	}
 
 	if query := eq.withParentPosition; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Equipment)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Equipment)
 		for i := range nodes {
 			if fk := nodes[i].equipment_position_attachment; fk != nil {
 				ids = append(ids, *fk)
@@ -617,13 +616,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withPositions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -649,13 +644,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withPorts; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -680,8 +671,8 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	}
 
 	if query := eq.withWorkOrder; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Equipment)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Equipment)
 		for i := range nodes {
 			if fk := nodes[i].equipment_work_order; fk != nil {
 				ids = append(ids, *fk)
@@ -706,13 +697,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -738,13 +725,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withFiles; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -770,13 +753,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withHyperlinks; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -822,7 +801,7 @@ func (eq *EquipmentQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   equipment.Table,
 			Columns: equipment.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipment.FieldID,
 			},
 		},

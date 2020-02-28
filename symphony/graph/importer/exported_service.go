@@ -7,12 +7,10 @@ package importer
 import (
 	"context"
 	"fmt"
-
 	"io"
 	"net/http"
 
 	"github.com/AlekSi/pointer"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -78,11 +76,6 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 			http.Error(w, fmt.Sprintf("first line validation error: %q", err), http.StatusBadRequest)
 			return
 		}
-		if err != nil {
-			log.Warn("data fetching error", zap.Error(err))
-			http.Error(w, fmt.Sprintf("data fetching error: %s", err.Error()), http.StatusInternalServerError)
-			return
-		}
 		for _, commit := range commitRuns {
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
 			if commit && pointer.GetBool(verifyBeforeCommit) && len(errs) != 0 {
@@ -123,7 +116,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 					continue
 				}
 
-				var customerID *string = nil
+				var customerID *int
 				customerName := importLine.CustomerName()
 				if customerName != "" {
 					var customer *ent.Customer
@@ -158,7 +151,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 						continue
 					}
 				}
-				if id == "" {
+				if id == 0 {
 					var (
 						created bool
 						service *ent.Service
@@ -176,7 +169,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 							}
 						}
 					} else {
-						service, err = m.getServiceIfExist(ctx, m.r.Mutation(), name, serviceType, propInputs, customerID, externalID, *status)
+						service, err = m.getServiceIfExist(ctx, name, serviceType)
 						if service != nil {
 							err = errors.Errorf("service %v already exists", name)
 						}
@@ -241,7 +234,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (m *importer) validateLineForExistingService(ctx context.Context, serviceID string, importLine ImportRecord) (*ent.Service, error) {
+func (m *importer) validateLineForExistingService(ctx context.Context, serviceID int, importLine ImportRecord) (*ent.Service, error) {
 	service, err := m.r.Query().Service(ctx, serviceID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching service")

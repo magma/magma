@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type EquipmentPortDefinition struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -38,8 +37,8 @@ type EquipmentPortDefinition struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPortDefinitionQuery when eager-loading is set.
 	Edges                                         EquipmentPortDefinitionEdges `json:"edges"`
-	equipment_port_definition_equipment_port_type *string
-	equipment_type_port_definitions               *string
+	equipment_port_definition_equipment_port_type *int
+	equipment_type_port_definitions               *int
 }
 
 // EquipmentPortDefinitionEdges holds the relations/edges for other nodes in the graph.
@@ -123,7 +122,7 @@ func (epd *EquipmentPortDefinition) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	epd.ID = strconv.FormatInt(value.Int64, 10)
+	epd.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -160,14 +159,14 @@ func (epd *EquipmentPortDefinition) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_port_definition_equipment_port_type", value)
 		} else if value.Valid {
-			epd.equipment_port_definition_equipment_port_type = new(string)
-			*epd.equipment_port_definition_equipment_port_type = strconv.FormatInt(value.Int64, 10)
+			epd.equipment_port_definition_equipment_port_type = new(int)
+			*epd.equipment_port_definition_equipment_port_type = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_type_port_definitions", value)
 		} else if value.Valid {
-			epd.equipment_type_port_definitions = new(string)
-			*epd.equipment_type_port_definitions = strconv.FormatInt(value.Int64, 10)
+			epd.equipment_type_port_definitions = new(int)
+			*epd.equipment_type_port_definitions = int(value.Int64)
 		}
 	}
 	return nil
@@ -225,12 +224,6 @@ func (epd *EquipmentPortDefinition) String() string {
 	builder.WriteString(epd.VisibilityLabel)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (epd *EquipmentPortDefinition) id() int {
-	id, _ := strconv.Atoi(epd.ID)
-	return id
 }
 
 // EquipmentPortDefinitions is a parsable slice of EquipmentPortDefinition.

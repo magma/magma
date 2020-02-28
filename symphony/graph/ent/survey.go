@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type Survey struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -38,8 +37,8 @@ type Survey struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuery when eager-loading is set.
 	Edges              SurveyEdges `json:"edges"`
-	survey_location    *string
-	survey_source_file *string
+	survey_location    *int
+	survey_source_file *int
 }
 
 // SurveyEdges holds the relations/edges for other nodes in the graph.
@@ -123,7 +122,7 @@ func (s *Survey) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	s.ID = strconv.FormatInt(value.Int64, 10)
+	s.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -160,14 +159,14 @@ func (s *Survey) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_location", value)
 		} else if value.Valid {
-			s.survey_location = new(string)
-			*s.survey_location = strconv.FormatInt(value.Int64, 10)
+			s.survey_location = new(int)
+			*s.survey_location = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_source_file", value)
 		} else if value.Valid {
-			s.survey_source_file = new(string)
-			*s.survey_source_file = strconv.FormatInt(value.Int64, 10)
+			s.survey_source_file = new(int)
+			*s.survey_source_file = int(value.Int64)
 		}
 	}
 	return nil
@@ -225,12 +224,6 @@ func (s *Survey) String() string {
 	builder.WriteString(s.CompletionTimestamp.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (s *Survey) id() int {
-	id, _ := strconv.Atoi(s.ID)
-	return id
 }
 
 // Surveys is a parsable slice of Survey.

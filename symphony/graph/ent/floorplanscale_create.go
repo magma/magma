@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -130,7 +129,7 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		_spec = &sqlgraph.CreateSpec{
 			Table: floorplanscale.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanscale.FieldID,
 			},
 		}
@@ -198,6 +197,6 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	fps.ID = strconv.FormatInt(id, 10)
+	fps.ID = int(id)
 	return fps, nil
 }

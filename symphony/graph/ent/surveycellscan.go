@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type SurveyCellScan struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -70,8 +69,8 @@ type SurveyCellScan struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyCellScanQuery when eager-loading is set.
 	Edges                            SurveyCellScanEdges `json:"edges"`
-	survey_cell_scan_survey_question *string
-	survey_cell_scan_location        *string
+	survey_cell_scan_survey_question *int
+	survey_cell_scan_location        *int
 }
 
 // SurveyCellScanEdges holds the relations/edges for other nodes in the graph.
@@ -160,7 +159,7 @@ func (scs *SurveyCellScan) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	scs.ID = strconv.FormatInt(value.Int64, 10)
+	scs.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -277,14 +276,14 @@ func (scs *SurveyCellScan) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_cell_scan_survey_question", value)
 		} else if value.Valid {
-			scs.survey_cell_scan_survey_question = new(string)
-			*scs.survey_cell_scan_survey_question = strconv.FormatInt(value.Int64, 10)
+			scs.survey_cell_scan_survey_question = new(int)
+			*scs.survey_cell_scan_survey_question = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_cell_scan_location", value)
 		} else if value.Valid {
-			scs.survey_cell_scan_location = new(string)
-			*scs.survey_cell_scan_location = strconv.FormatInt(value.Int64, 10)
+			scs.survey_cell_scan_location = new(int)
+			*scs.survey_cell_scan_location = int(value.Int64)
 		}
 	}
 	return nil
@@ -369,12 +368,6 @@ func (scs *SurveyCellScan) String() string {
 	builder.WriteString(fmt.Sprintf("%v", scs.Longitude))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (scs *SurveyCellScan) id() int {
-	id, _ := strconv.Atoi(scs.ID)
-	return id
 }
 
 // SurveyCellScans is a parsable slice of SurveyCellScan.

@@ -149,7 +149,6 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 			RangeToValue:   &to,
 		}, nil
 	case "bool":
-		var b bool
 		b, err := strconv.ParseBool(strings.ToLower(value))
 		if err != nil {
 			return nil, errors.WithMessagef(err, "failed parsing bool property %s", value)
@@ -160,40 +159,46 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 		}, nil
 	case "location":
 		if value != "" {
+			id, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, err
+			}
 			return &models.PropertyInput{
 				PropertyTypeID:  propertyType.ID,
-				LocationIDValue: &value,
-			}, nil
-		} else {
-			return &models.PropertyInput{
-				PropertyTypeID:  propertyType.ID,
-				LocationIDValue: nil,
+				LocationIDValue: &id,
 			}, nil
 		}
+		return &models.PropertyInput{
+			PropertyTypeID: propertyType.ID,
+		}, nil
 	case "equipment":
 		if value != "" {
+			id, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, err
+			}
 			return &models.PropertyInput{
 				PropertyTypeID:   propertyType.ID,
-				EquipmentIDValue: &value,
-			}, nil
-		} else {
-			return &models.PropertyInput{
-				PropertyTypeID:   propertyType.ID,
-				EquipmentIDValue: nil,
+				EquipmentIDValue: &id,
 			}, nil
 		}
+		return &models.PropertyInput{
+			PropertyTypeID: propertyType.ID,
+		}, nil
 	case "service":
 		if value != "" {
+			id, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, err
+			}
 			return &models.PropertyInput{
 				PropertyTypeID: propertyType.ID,
-				ServiceIDValue: &value,
-			}, nil
-		} else {
-			return &models.PropertyInput{
-				PropertyTypeID: propertyType.ID,
-				ServiceIDValue: nil,
+				ServiceIDValue: &id,
 			}, nil
 		}
+		return &models.PropertyInput{
+			PropertyTypeID: propertyType.ID,
+		}, nil
 	default:
 		return &models.PropertyInput{
 			PropertyTypeID: propertyType.ID,
@@ -332,38 +337,38 @@ func (m *importer) ClientFrom(ctx context.Context) *ent.Client {
 	return client
 }
 
-func (m *importer) getOrCreatePropTypeForLocation(ctx context.Context, lTypeID string, pname string) (*ent.PropertyType, error) {
-	ptype, err := m.ClientFrom(ctx).LocationType.Query().
-		Where(locationtype.ID(lTypeID)).
+func (m *importer) getOrCreatePropTypeForLocation(ctx context.Context, id int, name string) (*ent.PropertyType, error) {
+	typ, err := m.ClientFrom(ctx).LocationType.Query().
+		Where(locationtype.ID(id)).
 		QueryPropertyTypes().
-		Where(propertytype.Name(pname)).
+		Where(propertytype.Name(name)).
 		Only(ctx)
 	if ent.IsNotFound(err) {
-		ptype, err = m.ClientFrom(ctx).PropertyType.Create().
-			SetName(pname).
+		typ, err = m.ClientFrom(ctx).PropertyType.Create().
+			SetName(name).
 			// TODO T40408163. get "Type" from model
 			SetType("string").
-			SetLocationTypeID(lTypeID).
+			SetLocationTypeID(id).
 			Save(ctx)
 	}
-	return ptype, err
+	return typ, err
 }
 
-func (m *importer) getOrCreatePropTypeForEquipment(ctx context.Context, eTypeID string, pname string) (*ent.PropertyType, error) {
-	ptype, err := m.ClientFrom(ctx).EquipmentType.Query().
-		Where(equipmenttype.ID(eTypeID)).
+func (m *importer) getOrCreatePropTypeForEquipment(ctx context.Context, id int, name string) (*ent.PropertyType, error) {
+	typ, err := m.ClientFrom(ctx).EquipmentType.Query().
+		Where(equipmenttype.ID(id)).
 		QueryPropertyTypes().
-		Where(propertytype.Name(pname)).
+		Where(propertytype.Name(name)).
 		Only(ctx)
 	if ent.IsNotFound(err) {
-		ptype, err = m.ClientFrom(ctx).PropertyType.Create().
-			SetName(pname).
+		typ, err = m.ClientFrom(ctx).PropertyType.Create().
+			SetName(name).
 			// TODO T40408163. get "Type" from model
 			SetType("string").
-			SetEquipmentTypeID(eTypeID).
+			SetEquipmentTypeID(id).
 			Save(ctx)
 	}
-	return ptype, err
+	return typ, err
 }
 
 func (m *importer) trimLine(line []string) []string {

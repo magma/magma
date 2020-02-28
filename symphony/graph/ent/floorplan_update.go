@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -29,10 +28,10 @@ type FloorPlanUpdate struct {
 
 	update_time           *time.Time
 	name                  *string
-	location              map[string]struct{}
-	reference_point       map[string]struct{}
-	scale                 map[string]struct{}
-	image                 map[string]struct{}
+	location              map[int]struct{}
+	reference_point       map[int]struct{}
+	scale                 map[int]struct{}
+	image                 map[int]struct{}
 	clearedLocation       bool
 	clearedReferencePoint bool
 	clearedScale          bool
@@ -53,16 +52,16 @@ func (fpu *FloorPlanUpdate) SetName(s string) *FloorPlanUpdate {
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (fpu *FloorPlanUpdate) SetLocationID(id string) *FloorPlanUpdate {
+func (fpu *FloorPlanUpdate) SetLocationID(id int) *FloorPlanUpdate {
 	if fpu.location == nil {
-		fpu.location = make(map[string]struct{})
+		fpu.location = make(map[int]struct{})
 	}
 	fpu.location[id] = struct{}{}
 	return fpu
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (fpu *FloorPlanUpdate) SetNillableLocationID(id *string) *FloorPlanUpdate {
+func (fpu *FloorPlanUpdate) SetNillableLocationID(id *int) *FloorPlanUpdate {
 	if id != nil {
 		fpu = fpu.SetLocationID(*id)
 	}
@@ -75,16 +74,16 @@ func (fpu *FloorPlanUpdate) SetLocation(l *Location) *FloorPlanUpdate {
 }
 
 // SetReferencePointID sets the reference_point edge to FloorPlanReferencePoint by id.
-func (fpu *FloorPlanUpdate) SetReferencePointID(id string) *FloorPlanUpdate {
+func (fpu *FloorPlanUpdate) SetReferencePointID(id int) *FloorPlanUpdate {
 	if fpu.reference_point == nil {
-		fpu.reference_point = make(map[string]struct{})
+		fpu.reference_point = make(map[int]struct{})
 	}
 	fpu.reference_point[id] = struct{}{}
 	return fpu
 }
 
 // SetNillableReferencePointID sets the reference_point edge to FloorPlanReferencePoint by id if the given value is not nil.
-func (fpu *FloorPlanUpdate) SetNillableReferencePointID(id *string) *FloorPlanUpdate {
+func (fpu *FloorPlanUpdate) SetNillableReferencePointID(id *int) *FloorPlanUpdate {
 	if id != nil {
 		fpu = fpu.SetReferencePointID(*id)
 	}
@@ -97,16 +96,16 @@ func (fpu *FloorPlanUpdate) SetReferencePoint(f *FloorPlanReferencePoint) *Floor
 }
 
 // SetScaleID sets the scale edge to FloorPlanScale by id.
-func (fpu *FloorPlanUpdate) SetScaleID(id string) *FloorPlanUpdate {
+func (fpu *FloorPlanUpdate) SetScaleID(id int) *FloorPlanUpdate {
 	if fpu.scale == nil {
-		fpu.scale = make(map[string]struct{})
+		fpu.scale = make(map[int]struct{})
 	}
 	fpu.scale[id] = struct{}{}
 	return fpu
 }
 
 // SetNillableScaleID sets the scale edge to FloorPlanScale by id if the given value is not nil.
-func (fpu *FloorPlanUpdate) SetNillableScaleID(id *string) *FloorPlanUpdate {
+func (fpu *FloorPlanUpdate) SetNillableScaleID(id *int) *FloorPlanUpdate {
 	if id != nil {
 		fpu = fpu.SetScaleID(*id)
 	}
@@ -119,16 +118,16 @@ func (fpu *FloorPlanUpdate) SetScale(f *FloorPlanScale) *FloorPlanUpdate {
 }
 
 // SetImageID sets the image edge to File by id.
-func (fpu *FloorPlanUpdate) SetImageID(id string) *FloorPlanUpdate {
+func (fpu *FloorPlanUpdate) SetImageID(id int) *FloorPlanUpdate {
 	if fpu.image == nil {
-		fpu.image = make(map[string]struct{})
+		fpu.image = make(map[int]struct{})
 	}
 	fpu.image[id] = struct{}{}
 	return fpu
 }
 
 // SetNillableImageID sets the image edge to File by id if the given value is not nil.
-func (fpu *FloorPlanUpdate) SetNillableImageID(id *string) *FloorPlanUpdate {
+func (fpu *FloorPlanUpdate) SetNillableImageID(id *int) *FloorPlanUpdate {
 	if id != nil {
 		fpu = fpu.SetImageID(*id)
 	}
@@ -213,7 +212,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   floorplan.Table,
 			Columns: floorplan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplan.FieldID,
 			},
 		},
@@ -248,7 +247,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
@@ -264,16 +263,12 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -287,7 +282,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: floorplanreferencepoint.FieldID,
 				},
 			},
@@ -303,16 +298,12 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: floorplanreferencepoint.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -326,7 +317,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: floorplanscale.FieldID,
 				},
 			},
@@ -342,16 +333,12 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: floorplanscale.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -365,7 +352,7 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
@@ -381,16 +368,12 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -409,14 +392,14 @@ func (fpu *FloorPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // FloorPlanUpdateOne is the builder for updating a single FloorPlan entity.
 type FloorPlanUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time           *time.Time
 	name                  *string
-	location              map[string]struct{}
-	reference_point       map[string]struct{}
-	scale                 map[string]struct{}
-	image                 map[string]struct{}
+	location              map[int]struct{}
+	reference_point       map[int]struct{}
+	scale                 map[int]struct{}
+	image                 map[int]struct{}
 	clearedLocation       bool
 	clearedReferencePoint bool
 	clearedScale          bool
@@ -430,16 +413,16 @@ func (fpuo *FloorPlanUpdateOne) SetName(s string) *FloorPlanUpdateOne {
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (fpuo *FloorPlanUpdateOne) SetLocationID(id string) *FloorPlanUpdateOne {
+func (fpuo *FloorPlanUpdateOne) SetLocationID(id int) *FloorPlanUpdateOne {
 	if fpuo.location == nil {
-		fpuo.location = make(map[string]struct{})
+		fpuo.location = make(map[int]struct{})
 	}
 	fpuo.location[id] = struct{}{}
 	return fpuo
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (fpuo *FloorPlanUpdateOne) SetNillableLocationID(id *string) *FloorPlanUpdateOne {
+func (fpuo *FloorPlanUpdateOne) SetNillableLocationID(id *int) *FloorPlanUpdateOne {
 	if id != nil {
 		fpuo = fpuo.SetLocationID(*id)
 	}
@@ -452,16 +435,16 @@ func (fpuo *FloorPlanUpdateOne) SetLocation(l *Location) *FloorPlanUpdateOne {
 }
 
 // SetReferencePointID sets the reference_point edge to FloorPlanReferencePoint by id.
-func (fpuo *FloorPlanUpdateOne) SetReferencePointID(id string) *FloorPlanUpdateOne {
+func (fpuo *FloorPlanUpdateOne) SetReferencePointID(id int) *FloorPlanUpdateOne {
 	if fpuo.reference_point == nil {
-		fpuo.reference_point = make(map[string]struct{})
+		fpuo.reference_point = make(map[int]struct{})
 	}
 	fpuo.reference_point[id] = struct{}{}
 	return fpuo
 }
 
 // SetNillableReferencePointID sets the reference_point edge to FloorPlanReferencePoint by id if the given value is not nil.
-func (fpuo *FloorPlanUpdateOne) SetNillableReferencePointID(id *string) *FloorPlanUpdateOne {
+func (fpuo *FloorPlanUpdateOne) SetNillableReferencePointID(id *int) *FloorPlanUpdateOne {
 	if id != nil {
 		fpuo = fpuo.SetReferencePointID(*id)
 	}
@@ -474,16 +457,16 @@ func (fpuo *FloorPlanUpdateOne) SetReferencePoint(f *FloorPlanReferencePoint) *F
 }
 
 // SetScaleID sets the scale edge to FloorPlanScale by id.
-func (fpuo *FloorPlanUpdateOne) SetScaleID(id string) *FloorPlanUpdateOne {
+func (fpuo *FloorPlanUpdateOne) SetScaleID(id int) *FloorPlanUpdateOne {
 	if fpuo.scale == nil {
-		fpuo.scale = make(map[string]struct{})
+		fpuo.scale = make(map[int]struct{})
 	}
 	fpuo.scale[id] = struct{}{}
 	return fpuo
 }
 
 // SetNillableScaleID sets the scale edge to FloorPlanScale by id if the given value is not nil.
-func (fpuo *FloorPlanUpdateOne) SetNillableScaleID(id *string) *FloorPlanUpdateOne {
+func (fpuo *FloorPlanUpdateOne) SetNillableScaleID(id *int) *FloorPlanUpdateOne {
 	if id != nil {
 		fpuo = fpuo.SetScaleID(*id)
 	}
@@ -496,16 +479,16 @@ func (fpuo *FloorPlanUpdateOne) SetScale(f *FloorPlanScale) *FloorPlanUpdateOne 
 }
 
 // SetImageID sets the image edge to File by id.
-func (fpuo *FloorPlanUpdateOne) SetImageID(id string) *FloorPlanUpdateOne {
+func (fpuo *FloorPlanUpdateOne) SetImageID(id int) *FloorPlanUpdateOne {
 	if fpuo.image == nil {
-		fpuo.image = make(map[string]struct{})
+		fpuo.image = make(map[int]struct{})
 	}
 	fpuo.image[id] = struct{}{}
 	return fpuo
 }
 
 // SetNillableImageID sets the image edge to File by id if the given value is not nil.
-func (fpuo *FloorPlanUpdateOne) SetNillableImageID(id *string) *FloorPlanUpdateOne {
+func (fpuo *FloorPlanUpdateOne) SetNillableImageID(id *int) *FloorPlanUpdateOne {
 	if id != nil {
 		fpuo = fpuo.SetImageID(*id)
 	}
@@ -591,7 +574,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			Columns: floorplan.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  fpuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplan.FieldID,
 			},
 		},
@@ -619,7 +602,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
@@ -635,16 +618,12 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -658,7 +637,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: floorplanreferencepoint.FieldID,
 				},
 			},
@@ -674,16 +653,12 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: floorplanreferencepoint.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -697,7 +672,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: floorplanscale.FieldID,
 				},
 			},
@@ -713,16 +688,12 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: floorplanscale.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -736,7 +707,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
@@ -752,16 +723,12 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -26,7 +27,7 @@ type locationsFilterInput struct {
 	Name          models.LocationFilterType `json:"name"`
 	Operator      models.FilterOperator     `jsons:"operator"`
 	StringValue   string                    `json:"stringValue"`
-	IDSet         []string                  `json:"idSet"`
+	IDSet         []int                     `json:"idSet"`
 	StringSet     []string                  `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                      `json:"maxDepth"`
@@ -64,7 +65,7 @@ func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 	locationsList := locations.Locations
 	allRows := make([][]string, len(locationsList)+1)
 
-	locationIDs := make([]string, len(locationsList))
+	locationIDs := make([]int, len(locationsList))
 	for i, l := range locationsList {
 		locationIDs[i] = l.ID
 	}
@@ -80,7 +81,7 @@ func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		return nil
 	})
 	cg.Go(func(ctx context.Context) (err error) {
-		locationIDs := make([]string, len(locationsList))
+		locationIDs := make([]int, len(locationsList))
 		for i, l := range locationsList {
 			locationIDs[i] = l.ID
 		}
@@ -140,7 +141,7 @@ func locationToSlice(ctx context.Context, location *ent.Location, orderedLocType
 
 	fixedData := []string{location.ExternalID, lat, long}
 
-	row := []string{location.ID}
+	row := []string{strconv.Itoa(location.ID)}
 	row = append(row, lParents...)
 	row = append(row, fixedData...)
 	row = append(row, properties...)

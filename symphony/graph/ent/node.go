@@ -10,7 +10,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"sync"
 	"sync/atomic"
 
@@ -66,7 +65,7 @@ type Noder interface {
 
 // Node in the graph.
 type Node struct {
-	ID     string   `json:"id,omitemty"`      // node id.
+	ID     int      `json:"id,omitemty"`      // node id.
 	Type   string   `json:"type,omitempty"`   // node type.
 	Fields []*Field `json:"fields,omitempty"` // node fields.
 	Edges  []*Edge  `json:"edges,omitempty"`  // node edges.
@@ -81,9 +80,9 @@ type Field struct {
 
 // Edges between two nodes.
 type Edge struct {
-	Type string   `json:"type,omitempty"` // edge type.
-	Name string   `json:"name,omitempty"` // edge name.
-	IDs  []string `json:"ids,omitempty"`  // node ids (where this edge point to).
+	Type string `json:"type,omitempty"` // edge type.
+	Name string `json:"name,omitempty"` // edge name.
+	IDs  []int  `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
 func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
@@ -185,10 +184,10 @@ func (clc *CheckListCategory) Node(ctx context.Context) (node *Node, err error) 
 		Name:  "Description",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = clc.QueryCheckListItems().
 		Select(checklistitem.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -264,10 +263,10 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "HelpText",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = cli.QueryWorkOrder().
 		Select(workorder.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -343,10 +342,10 @@ func (clid *CheckListItemDefinition) Node(ctx context.Context) (node *Node, err 
 		Name:  "HelpText",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = clid.QueryWorkOrderType().
 		Select(workordertype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -441,10 +440,10 @@ func (c *Customer) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "ExternalID",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = c.QueryServices().
 		Select(service.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -512,10 +511,10 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "ExternalID",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = e.QueryType().
 		Select(equipmenttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -526,7 +525,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = e.QueryLocation().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +536,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = e.QueryParentPosition().
 		Select(equipmentposition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -548,7 +547,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = e.QueryPositions().
 		Select(equipmentposition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -559,7 +558,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = e.QueryPorts().
 		Select(equipmentport.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -570,7 +569,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = e.QueryWorkOrder().
 		Select(workorder.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -581,7 +580,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = e.QueryProperties().
 		Select(property.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -592,7 +591,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = e.QueryFiles().
 		Select(file.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -603,7 +602,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = e.QueryHyperlinks().
 		Select(hyperlink.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -647,10 +646,10 @@ func (ec *EquipmentCategory) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Name",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = ec.QueryTypes().
 		Select(equipmenttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -686,10 +685,10 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "UpdateTime",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = ep.QueryDefinition().
 		Select(equipmentportdefinition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -700,7 +699,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = ep.QueryParent().
 		Select(equipment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -711,7 +710,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = ep.QueryLink().
 		Select(link.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -722,7 +721,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = ep.QueryProperties().
 		Select(property.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -733,7 +732,7 @@ func (ep *EquipmentPort) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = ep.QueryEndpoints().
 		Select(serviceendpoint.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -801,10 +800,10 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 		Name:  "VisibilityLabel",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = epd.QueryEquipmentPortType().
 		Select(equipmentporttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -815,7 +814,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	}
 	ids, err = epd.QueryPorts().
 		Select(equipmentport.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -826,7 +825,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	}
 	ids, err = epd.QueryEquipmentType().
 		Select(equipmenttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -870,10 +869,10 @@ func (ept *EquipmentPortType) Node(ctx context.Context) (node *Node, err error) 
 		Name:  "Name",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = ept.QueryPropertyTypes().
 		Select(propertytype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -884,7 +883,7 @@ func (ept *EquipmentPortType) Node(ctx context.Context) (node *Node, err error) 
 	}
 	ids, err = ept.QueryLinkPropertyTypes().
 		Select(propertytype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -895,7 +894,7 @@ func (ept *EquipmentPortType) Node(ctx context.Context) (node *Node, err error) 
 	}
 	ids, err = ept.QueryPortDefinitions().
 		Select(equipmentportdefinition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -931,10 +930,10 @@ func (ep *EquipmentPosition) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "UpdateTime",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = ep.QueryDefinition().
 		Select(equipmentpositiondefinition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -945,7 +944,7 @@ func (ep *EquipmentPosition) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = ep.QueryParent().
 		Select(equipment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -956,7 +955,7 @@ func (ep *EquipmentPosition) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = ep.QueryAttachment().
 		Select(equipment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1016,10 +1015,10 @@ func (epd *EquipmentPositionDefinition) Node(ctx context.Context) (node *Node, e
 		Name:  "VisibilityLabel",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = epd.QueryPositions().
 		Select(equipmentposition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1030,7 +1029,7 @@ func (epd *EquipmentPositionDefinition) Node(ctx context.Context) (node *Node, e
 	}
 	ids, err = epd.QueryEquipmentType().
 		Select(equipmenttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1074,10 +1073,10 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Name",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = et.QueryPortDefinitions().
 		Select(equipmentportdefinition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1088,7 +1087,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = et.QueryPositionDefinitions().
 		Select(equipmentpositiondefinition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1099,7 +1098,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = et.QueryPropertyTypes().
 		Select(propertytype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1110,7 +1109,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = et.QueryEquipment().
 		Select(equipment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1121,7 +1120,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = et.QueryCategory().
 		Select(equipmentcategory.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1256,10 +1255,10 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Name",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = fp.QueryLocation().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1270,7 +1269,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = fp.QueryReferencePoint().
 		Select(floorplanreferencepoint.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1281,7 +1280,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = fp.QueryScale().
 		Select(floorplanscale.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1292,7 +1291,7 @@ func (fp *FloorPlan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = fp.QueryImage().
 		Select(file.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1513,10 +1512,10 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "FutureState",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = l.QueryPorts().
 		Select(equipmentport.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1527,7 +1526,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryWorkOrder().
 		Select(workorder.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1538,7 +1537,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryProperties().
 		Select(property.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1549,7 +1548,7 @@ func (l *Link) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryService().
 		Select(service.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1625,10 +1624,10 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "SiteSurveyNeeded",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = l.QueryType().
 		Select(locationtype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1639,7 +1638,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryParent().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1650,7 +1649,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryChildren().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1661,7 +1660,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryFiles().
 		Select(file.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1672,7 +1671,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryHyperlinks().
 		Select(hyperlink.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1683,7 +1682,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryEquipment().
 		Select(equipment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1694,7 +1693,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryProperties().
 		Select(property.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1705,7 +1704,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QuerySurvey().
 		Select(survey.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1716,7 +1715,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryWifiScan().
 		Select(surveywifiscan.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1727,7 +1726,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryCellScan().
 		Select(surveycellscan.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1738,7 +1737,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryWorkOrders().
 		Select(workorder.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1749,7 +1748,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = l.QueryFloorPlans().
 		Select(floorplan.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1825,10 +1824,10 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Index",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = lt.QueryLocations().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1839,7 +1838,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = lt.QueryPropertyTypes().
 		Select(propertytype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1850,7 +1849,7 @@ func (lt *LocationType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = lt.QuerySurveyTemplateCategories().
 		Select(surveytemplatecategory.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1910,10 +1909,10 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Creator",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = pr.QueryType().
 		Select(projecttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1924,7 +1923,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryLocation().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1935,7 +1934,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryComments().
 		Select(comment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1946,7 +1945,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryWorkOrders().
 		Select(workorder.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1957,7 +1956,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryProperties().
 		Select(property.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2009,10 +2008,10 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Description",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = pt.QueryProjects().
 		Select(project.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2023,7 +2022,7 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pt.QueryProperties().
 		Select(propertytype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2034,7 +2033,7 @@ func (pt *ProjectType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pt.QueryWorkOrders().
 		Select(workorderdefinition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2134,10 +2133,10 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "StringVal",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = pr.QueryType().
 		Select(propertytype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2148,7 +2147,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryLocation().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2159,7 +2158,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryEquipment().
 		Select(equipment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2170,7 +2169,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryService().
 		Select(service.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2181,7 +2180,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryEquipmentPort().
 		Select(equipmentport.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2192,7 +2191,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryLink().
 		Select(link.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2203,7 +2202,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryWorkOrder().
 		Select(workorder.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2214,7 +2213,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryProject().
 		Select(project.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2225,7 +2224,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryEquipmentValue().
 		Select(equipment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2236,7 +2235,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryLocationValue().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2247,7 +2246,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pr.QueryServiceValue().
 		Select(service.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2411,10 +2410,10 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Deleted",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = pt.QueryProperties().
 		Select(property.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2425,7 +2424,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pt.QueryLocationType().
 		Select(locationtype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2436,7 +2435,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pt.QueryEquipmentPortType().
 		Select(equipmentporttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2447,7 +2446,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pt.QueryLinkEquipmentPortType().
 		Select(equipmentporttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2458,7 +2457,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pt.QueryEquipmentType().
 		Select(equipmenttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2469,7 +2468,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pt.QueryServiceType().
 		Select(servicetype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2480,7 +2479,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pt.QueryWorkOrderType().
 		Select(workordertype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2491,7 +2490,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = pt.QueryProjectType().
 		Select(projecttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2551,10 +2550,10 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Status",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = s.QueryType().
 		Select(servicetype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2565,7 +2564,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = s.QueryDownstream().
 		Select(service.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2576,7 +2575,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = s.QueryUpstream().
 		Select(service.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2587,7 +2586,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = s.QueryProperties().
 		Select(property.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2598,7 +2597,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = s.QueryLinks().
 		Select(link.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2609,7 +2608,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = s.QueryCustomer().
 		Select(customer.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2620,7 +2619,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = s.QueryEndpoints().
 		Select(serviceendpoint.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2664,10 +2663,10 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Role",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = se.QueryPort().
 		Select(equipmentport.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2678,7 +2677,7 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = se.QueryService().
 		Select(service.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2730,10 +2729,10 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "HasCustomer",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = st.QueryServices().
 		Select(service.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2744,7 +2743,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = st.QueryPropertyTypes().
 		Select(propertytype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2812,10 +2811,10 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "CompletionTimestamp",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = s.QueryLocation().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2826,7 +2825,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = s.QuerySourceFile().
 		Select(file.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2837,7 +2836,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = s.QueryQuestions().
 		Select(surveyquestion.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3033,10 +3032,10 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Longitude",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = scs.QuerySurveyQuestion().
 		Select(surveyquestion.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3047,7 +3046,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = scs.QueryLocation().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3227,10 +3226,10 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "DateData",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = sq.QuerySurvey().
 		Select(survey.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3241,7 +3240,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = sq.QueryWifiScan().
 		Select(surveywifiscan.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3252,7 +3251,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = sq.QueryCellScan().
 		Select(surveycellscan.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3263,7 +3262,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = sq.QueryPhotoData().
 		Select(file.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3315,10 +3314,10 @@ func (stc *SurveyTemplateCategory) Node(ctx context.Context) (node *Node, err er
 		Name:  "CategoryDescription",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = stc.QuerySurveyTemplateQuestions().
 		Select(surveytemplatequestion.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3386,10 +3385,10 @@ func (stq *SurveyTemplateQuestion) Node(ctx context.Context) (node *Node, err er
 		Name:  "Index",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = stq.QueryCategory().
 		Select(surveytemplatecategory.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3513,10 +3512,10 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Longitude",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = swfs.QuerySurveyQuestion().
 		Select(surveyquestion.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3527,7 +3526,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = swfs.QueryLocation().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3579,10 +3578,10 @@ func (t *Technician) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Email",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = t.QueryWorkOrders().
 		Select(workorder.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3690,10 +3689,10 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Index",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = wo.QueryType().
 		Select(workordertype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3704,7 +3703,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryEquipment().
 		Select(equipment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3715,7 +3714,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryLinks().
 		Select(link.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3726,7 +3725,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryFiles().
 		Select(file.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3737,7 +3736,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryHyperlinks().
 		Select(hyperlink.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3748,7 +3747,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryLocation().
 		Select(location.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3759,7 +3758,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryComments().
 		Select(comment.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3770,7 +3769,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryProperties().
 		Select(property.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3781,7 +3780,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryCheckListCategories().
 		Select(checklistcategory.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3792,7 +3791,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryCheckListItems().
 		Select(checklistitem.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3803,7 +3802,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryTechnician().
 		Select(technician.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3814,7 +3813,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wo.QueryProject().
 		Select(project.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3858,10 +3857,10 @@ func (wod *WorkOrderDefinition) Node(ctx context.Context) (node *Node, err error
 		Name:  "Index",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = wod.QueryType().
 		Select(workordertype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3872,7 +3871,7 @@ func (wod *WorkOrderDefinition) Node(ctx context.Context) (node *Node, err error
 	}
 	ids, err = wod.QueryProjectType().
 		Select(projecttype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3924,10 +3923,10 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Description",
 		Value: string(buf),
 	}
-	var ids []string
+	var ids []int
 	ids, err = wot.QueryWorkOrders().
 		Select(workorder.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3938,7 +3937,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wot.QueryPropertyTypes().
 		Select(propertytype.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3949,7 +3948,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wot.QueryDefinitions().
 		Select(workorderdefinition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3960,7 +3959,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wot.QueryCheckListCategories().
 		Select(checklistcategory.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3971,7 +3970,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	}
 	ids, err = wot.QueryCheckListDefinitions().
 		Select(checklistitemdefinition.FieldID).
-		Strings(ctx)
+		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -3983,7 +3982,7 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-func (c *Client) Node(ctx context.Context, id string) (*Node, error) {
+func (c *Client) Node(ctx context.Context, id int) (*Node, error) {
 	n, err := c.Noder(ctx, id)
 	if err != nil {
 		return nil, err
@@ -3991,23 +3990,19 @@ func (c *Client) Node(ctx context.Context, id string) (*Node, error) {
 	return n.Node(ctx)
 }
 
-func (c *Client) Noder(ctx context.Context, id string) (Noder, error) {
+func (c *Client) Noder(ctx context.Context, id int) (Noder, error) {
 	tables, err := c.tables.Load(ctx, c.driver)
 	if err != nil {
 		return nil, err
 	}
-	idv, err := strconv.Atoi(id)
-	if err != nil {
-		return nil, fmt.Errorf("%v: %w", err, &NotFoundError{"invalid/unknown"})
-	}
-	idx := idv / (1<<32 - 1)
+	idx := id / (1<<32 - 1)
 	if idx < 0 || idx >= len(tables) {
 		return nil, fmt.Errorf("cannot resolve table from id %v: %w", id, &NotFoundError{"invalid/unknown"})
 	}
 	return c.noder(ctx, tables[idx], id)
 }
 
-func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error) {
+func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 	switch tbl {
 	case actionsrule.Table:
 		n, err := c.ActionsRule.Query().

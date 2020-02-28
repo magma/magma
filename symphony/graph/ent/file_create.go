@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -186,7 +185,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: file.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: file.FieldID,
 			},
 		}
@@ -278,6 +277,6 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	f.ID = strconv.FormatInt(id, 10)
+	f.ID = int(id)
 	return f, nil
 }

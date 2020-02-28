@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -71,8 +70,8 @@ type SurveyCellScanUpdate struct {
 	longitude                    *float64
 	addlongitude                 *float64
 	clearlongitude               bool
-	survey_question              map[string]struct{}
-	location                     map[string]struct{}
+	survey_question              map[int]struct{}
+	location                     map[int]struct{}
 	clearedSurveyQuestion        bool
 	clearedLocation              bool
 	predicates                   []predicate.SurveyCellScan
@@ -552,16 +551,16 @@ func (scsu *SurveyCellScanUpdate) ClearLongitude() *SurveyCellScanUpdate {
 }
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
-func (scsu *SurveyCellScanUpdate) SetSurveyQuestionID(id string) *SurveyCellScanUpdate {
+func (scsu *SurveyCellScanUpdate) SetSurveyQuestionID(id int) *SurveyCellScanUpdate {
 	if scsu.survey_question == nil {
-		scsu.survey_question = make(map[string]struct{})
+		scsu.survey_question = make(map[int]struct{})
 	}
 	scsu.survey_question[id] = struct{}{}
 	return scsu
 }
 
 // SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
-func (scsu *SurveyCellScanUpdate) SetNillableSurveyQuestionID(id *string) *SurveyCellScanUpdate {
+func (scsu *SurveyCellScanUpdate) SetNillableSurveyQuestionID(id *int) *SurveyCellScanUpdate {
 	if id != nil {
 		scsu = scsu.SetSurveyQuestionID(*id)
 	}
@@ -574,16 +573,16 @@ func (scsu *SurveyCellScanUpdate) SetSurveyQuestion(s *SurveyQuestion) *SurveyCe
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (scsu *SurveyCellScanUpdate) SetLocationID(id string) *SurveyCellScanUpdate {
+func (scsu *SurveyCellScanUpdate) SetLocationID(id int) *SurveyCellScanUpdate {
 	if scsu.location == nil {
-		scsu.location = make(map[string]struct{})
+		scsu.location = make(map[int]struct{})
 	}
 	scsu.location[id] = struct{}{}
 	return scsu
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (scsu *SurveyCellScanUpdate) SetNillableLocationID(id *string) *SurveyCellScanUpdate {
+func (scsu *SurveyCellScanUpdate) SetNillableLocationID(id *int) *SurveyCellScanUpdate {
 	if id != nil {
 		scsu = scsu.SetLocationID(*id)
 	}
@@ -650,7 +649,7 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Table:   surveycellscan.Table,
 			Columns: surveycellscan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveycellscan.FieldID,
 			},
 		},
@@ -975,7 +974,7 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
@@ -991,16 +990,12 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -1014,7 +1009,7 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
@@ -1030,16 +1025,12 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -1058,7 +1049,7 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 // SurveyCellScanUpdateOne is the builder for updating a single SurveyCellScan entity.
 type SurveyCellScanUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time                  *time.Time
 	network_type                 *string
@@ -1106,8 +1097,8 @@ type SurveyCellScanUpdateOne struct {
 	longitude                    *float64
 	addlongitude                 *float64
 	clearlongitude               bool
-	survey_question              map[string]struct{}
-	location                     map[string]struct{}
+	survey_question              map[int]struct{}
+	location                     map[int]struct{}
 	clearedSurveyQuestion        bool
 	clearedLocation              bool
 }
@@ -1580,16 +1571,16 @@ func (scsuo *SurveyCellScanUpdateOne) ClearLongitude() *SurveyCellScanUpdateOne 
 }
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
-func (scsuo *SurveyCellScanUpdateOne) SetSurveyQuestionID(id string) *SurveyCellScanUpdateOne {
+func (scsuo *SurveyCellScanUpdateOne) SetSurveyQuestionID(id int) *SurveyCellScanUpdateOne {
 	if scsuo.survey_question == nil {
-		scsuo.survey_question = make(map[string]struct{})
+		scsuo.survey_question = make(map[int]struct{})
 	}
 	scsuo.survey_question[id] = struct{}{}
 	return scsuo
 }
 
 // SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
-func (scsuo *SurveyCellScanUpdateOne) SetNillableSurveyQuestionID(id *string) *SurveyCellScanUpdateOne {
+func (scsuo *SurveyCellScanUpdateOne) SetNillableSurveyQuestionID(id *int) *SurveyCellScanUpdateOne {
 	if id != nil {
 		scsuo = scsuo.SetSurveyQuestionID(*id)
 	}
@@ -1602,16 +1593,16 @@ func (scsuo *SurveyCellScanUpdateOne) SetSurveyQuestion(s *SurveyQuestion) *Surv
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (scsuo *SurveyCellScanUpdateOne) SetLocationID(id string) *SurveyCellScanUpdateOne {
+func (scsuo *SurveyCellScanUpdateOne) SetLocationID(id int) *SurveyCellScanUpdateOne {
 	if scsuo.location == nil {
-		scsuo.location = make(map[string]struct{})
+		scsuo.location = make(map[int]struct{})
 	}
 	scsuo.location[id] = struct{}{}
 	return scsuo
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (scsuo *SurveyCellScanUpdateOne) SetNillableLocationID(id *string) *SurveyCellScanUpdateOne {
+func (scsuo *SurveyCellScanUpdateOne) SetNillableLocationID(id *int) *SurveyCellScanUpdateOne {
 	if id != nil {
 		scsuo = scsuo.SetLocationID(*id)
 	}
@@ -1679,7 +1670,7 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Columns: surveycellscan.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  scsuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveycellscan.FieldID,
 			},
 		},
@@ -1997,7 +1988,7 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
@@ -2013,16 +2004,12 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -2036,7 +2023,7 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
@@ -2052,16 +2039,12 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

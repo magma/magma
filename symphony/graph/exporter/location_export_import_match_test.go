@@ -112,8 +112,7 @@ func importLocationsFile(t *testing.T, client *ent.Client, r io.Reader, method m
 func TestExportAndEditLocations(t *testing.T) {
 	for _, withVerify := range []bool{true, false} {
 		for _, skipLines := range []bool{true, false} {
-			r, err := newExporterTestResolver(t)
-			require.NoError(t, err)
+			r := newExporterTestResolver(t)
 			log := r.exporter.log
 			e := &exporter{log, locationsRower{log}}
 			ctx, res := prepareHandlerAndExport(t, r, e)
@@ -161,8 +160,7 @@ func TestExportAndEditLocations(t *testing.T) {
 func TestExportAndAddLocations(t *testing.T) {
 	for _, withVerify := range []bool{true, false} {
 		for _, skipLines := range []bool{true, false} {
-			r, err := newExporterTestResolver(t)
-			require.NoError(t, err)
+			r := newExporterTestResolver(t)
 			log := r.exporter.log
 			e := &exporter{log, locationsRower{log}}
 			ctx, res := prepareHandlerAndExport(t, r, e)

@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -45,14 +44,14 @@ type PropertyTypeCreate struct {
 	editable                 *bool
 	mandatory                *bool
 	deleted                  *bool
-	properties               map[string]struct{}
-	location_type            map[string]struct{}
-	equipment_port_type      map[string]struct{}
-	link_equipment_port_type map[string]struct{}
-	equipment_type           map[string]struct{}
-	service_type             map[string]struct{}
-	work_order_type          map[string]struct{}
-	project_type             map[string]struct{}
+	properties               map[int]struct{}
+	location_type            map[int]struct{}
+	equipment_port_type      map[int]struct{}
+	link_equipment_port_type map[int]struct{}
+	equipment_type           map[int]struct{}
+	service_type             map[int]struct{}
+	work_order_type          map[int]struct{}
+	project_type             map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -292,9 +291,9 @@ func (ptc *PropertyTypeCreate) SetNillableDeleted(b *bool) *PropertyTypeCreate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (ptc *PropertyTypeCreate) AddPropertyIDs(ids ...string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) AddPropertyIDs(ids ...int) *PropertyTypeCreate {
 	if ptc.properties == nil {
-		ptc.properties = make(map[string]struct{})
+		ptc.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptc.properties[ids[i]] = struct{}{}
@@ -304,7 +303,7 @@ func (ptc *PropertyTypeCreate) AddPropertyIDs(ids ...string) *PropertyTypeCreate
 
 // AddProperties adds the properties edges to Property.
 func (ptc *PropertyTypeCreate) AddProperties(p ...*Property) *PropertyTypeCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -312,16 +311,16 @@ func (ptc *PropertyTypeCreate) AddProperties(p ...*Property) *PropertyTypeCreate
 }
 
 // SetLocationTypeID sets the location_type edge to LocationType by id.
-func (ptc *PropertyTypeCreate) SetLocationTypeID(id string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetLocationTypeID(id int) *PropertyTypeCreate {
 	if ptc.location_type == nil {
-		ptc.location_type = make(map[string]struct{})
+		ptc.location_type = make(map[int]struct{})
 	}
 	ptc.location_type[id] = struct{}{}
 	return ptc
 }
 
 // SetNillableLocationTypeID sets the location_type edge to LocationType by id if the given value is not nil.
-func (ptc *PropertyTypeCreate) SetNillableLocationTypeID(id *string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetNillableLocationTypeID(id *int) *PropertyTypeCreate {
 	if id != nil {
 		ptc = ptc.SetLocationTypeID(*id)
 	}
@@ -334,16 +333,16 @@ func (ptc *PropertyTypeCreate) SetLocationType(l *LocationType) *PropertyTypeCre
 }
 
 // SetEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id.
-func (ptc *PropertyTypeCreate) SetEquipmentPortTypeID(id string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetEquipmentPortTypeID(id int) *PropertyTypeCreate {
 	if ptc.equipment_port_type == nil {
-		ptc.equipment_port_type = make(map[string]struct{})
+		ptc.equipment_port_type = make(map[int]struct{})
 	}
 	ptc.equipment_port_type[id] = struct{}{}
 	return ptc
 }
 
 // SetNillableEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id if the given value is not nil.
-func (ptc *PropertyTypeCreate) SetNillableEquipmentPortTypeID(id *string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetNillableEquipmentPortTypeID(id *int) *PropertyTypeCreate {
 	if id != nil {
 		ptc = ptc.SetEquipmentPortTypeID(*id)
 	}
@@ -356,16 +355,16 @@ func (ptc *PropertyTypeCreate) SetEquipmentPortType(e *EquipmentPortType) *Prope
 }
 
 // SetLinkEquipmentPortTypeID sets the link_equipment_port_type edge to EquipmentPortType by id.
-func (ptc *PropertyTypeCreate) SetLinkEquipmentPortTypeID(id string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetLinkEquipmentPortTypeID(id int) *PropertyTypeCreate {
 	if ptc.link_equipment_port_type == nil {
-		ptc.link_equipment_port_type = make(map[string]struct{})
+		ptc.link_equipment_port_type = make(map[int]struct{})
 	}
 	ptc.link_equipment_port_type[id] = struct{}{}
 	return ptc
 }
 
 // SetNillableLinkEquipmentPortTypeID sets the link_equipment_port_type edge to EquipmentPortType by id if the given value is not nil.
-func (ptc *PropertyTypeCreate) SetNillableLinkEquipmentPortTypeID(id *string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetNillableLinkEquipmentPortTypeID(id *int) *PropertyTypeCreate {
 	if id != nil {
 		ptc = ptc.SetLinkEquipmentPortTypeID(*id)
 	}
@@ -378,16 +377,16 @@ func (ptc *PropertyTypeCreate) SetLinkEquipmentPortType(e *EquipmentPortType) *P
 }
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
-func (ptc *PropertyTypeCreate) SetEquipmentTypeID(id string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetEquipmentTypeID(id int) *PropertyTypeCreate {
 	if ptc.equipment_type == nil {
-		ptc.equipment_type = make(map[string]struct{})
+		ptc.equipment_type = make(map[int]struct{})
 	}
 	ptc.equipment_type[id] = struct{}{}
 	return ptc
 }
 
 // SetNillableEquipmentTypeID sets the equipment_type edge to EquipmentType by id if the given value is not nil.
-func (ptc *PropertyTypeCreate) SetNillableEquipmentTypeID(id *string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetNillableEquipmentTypeID(id *int) *PropertyTypeCreate {
 	if id != nil {
 		ptc = ptc.SetEquipmentTypeID(*id)
 	}
@@ -400,16 +399,16 @@ func (ptc *PropertyTypeCreate) SetEquipmentType(e *EquipmentType) *PropertyTypeC
 }
 
 // SetServiceTypeID sets the service_type edge to ServiceType by id.
-func (ptc *PropertyTypeCreate) SetServiceTypeID(id string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetServiceTypeID(id int) *PropertyTypeCreate {
 	if ptc.service_type == nil {
-		ptc.service_type = make(map[string]struct{})
+		ptc.service_type = make(map[int]struct{})
 	}
 	ptc.service_type[id] = struct{}{}
 	return ptc
 }
 
 // SetNillableServiceTypeID sets the service_type edge to ServiceType by id if the given value is not nil.
-func (ptc *PropertyTypeCreate) SetNillableServiceTypeID(id *string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetNillableServiceTypeID(id *int) *PropertyTypeCreate {
 	if id != nil {
 		ptc = ptc.SetServiceTypeID(*id)
 	}
@@ -422,16 +421,16 @@ func (ptc *PropertyTypeCreate) SetServiceType(s *ServiceType) *PropertyTypeCreat
 }
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
-func (ptc *PropertyTypeCreate) SetWorkOrderTypeID(id string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetWorkOrderTypeID(id int) *PropertyTypeCreate {
 	if ptc.work_order_type == nil {
-		ptc.work_order_type = make(map[string]struct{})
+		ptc.work_order_type = make(map[int]struct{})
 	}
 	ptc.work_order_type[id] = struct{}{}
 	return ptc
 }
 
 // SetNillableWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id if the given value is not nil.
-func (ptc *PropertyTypeCreate) SetNillableWorkOrderTypeID(id *string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetNillableWorkOrderTypeID(id *int) *PropertyTypeCreate {
 	if id != nil {
 		ptc = ptc.SetWorkOrderTypeID(*id)
 	}
@@ -444,16 +443,16 @@ func (ptc *PropertyTypeCreate) SetWorkOrderType(w *WorkOrderType) *PropertyTypeC
 }
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
-func (ptc *PropertyTypeCreate) SetProjectTypeID(id string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetProjectTypeID(id int) *PropertyTypeCreate {
 	if ptc.project_type == nil {
-		ptc.project_type = make(map[string]struct{})
+		ptc.project_type = make(map[int]struct{})
 	}
 	ptc.project_type[id] = struct{}{}
 	return ptc
 }
 
 // SetNillableProjectTypeID sets the project_type edge to ProjectType by id if the given value is not nil.
-func (ptc *PropertyTypeCreate) SetNillableProjectTypeID(id *string) *PropertyTypeCreate {
+func (ptc *PropertyTypeCreate) SetNillableProjectTypeID(id *int) *PropertyTypeCreate {
 	if id != nil {
 		ptc = ptc.SetProjectTypeID(*id)
 	}
@@ -536,7 +535,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 		_spec = &sqlgraph.CreateSpec{
 			Table: propertytype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: propertytype.FieldID,
 			},
 		}
@@ -694,16 +693,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -717,16 +712,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: locationtype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -740,16 +731,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -763,16 +750,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -786,16 +769,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -809,16 +788,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -832,16 +807,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -855,16 +826,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -876,6 +843,6 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	pt.ID = strconv.FormatInt(id, 10)
+	pt.ID = int(id)
 	return pt, nil
 }

@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type SurveyTemplateQuestion struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -37,7 +36,7 @@ type SurveyTemplateQuestion struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyTemplateQuestionQuery when eager-loading is set.
 	Edges                                              SurveyTemplateQuestionEdges `json:"edges"`
-	survey_template_category_survey_template_questions *string
+	survey_template_category_survey_template_questions *int
 }
 
 // SurveyTemplateQuestionEdges holds the relations/edges for other nodes in the graph.
@@ -93,7 +92,7 @@ func (stq *SurveyTemplateQuestion) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	stq.ID = strconv.FormatInt(value.Int64, 10)
+	stq.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -130,8 +129,8 @@ func (stq *SurveyTemplateQuestion) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_template_category_survey_template_questions", value)
 		} else if value.Valid {
-			stq.survey_template_category_survey_template_questions = new(string)
-			*stq.survey_template_category_survey_template_questions = strconv.FormatInt(value.Int64, 10)
+			stq.survey_template_category_survey_template_questions = new(int)
+			*stq.survey_template_category_survey_template_questions = int(value.Int64)
 		}
 	}
 	return nil
@@ -179,12 +178,6 @@ func (stq *SurveyTemplateQuestion) String() string {
 	builder.WriteString(fmt.Sprintf("%v", stq.Index))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (stq *SurveyTemplateQuestion) id() int {
-	id, _ := strconv.Atoi(stq.ID)
-	return id
 }
 
 // SurveyTemplateQuestions is a parsable slice of SurveyTemplateQuestion.

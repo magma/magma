@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -28,8 +27,8 @@ type CustomerUpdate struct {
 	name             *string
 	external_id      *string
 	clearexternal_id bool
-	services         map[string]struct{}
-	removedServices  map[string]struct{}
+	services         map[int]struct{}
+	removedServices  map[int]struct{}
 	predicates       []predicate.Customer
 }
 
@@ -67,9 +66,9 @@ func (cu *CustomerUpdate) ClearExternalID() *CustomerUpdate {
 }
 
 // AddServiceIDs adds the services edge to Service by ids.
-func (cu *CustomerUpdate) AddServiceIDs(ids ...string) *CustomerUpdate {
+func (cu *CustomerUpdate) AddServiceIDs(ids ...int) *CustomerUpdate {
 	if cu.services == nil {
-		cu.services = make(map[string]struct{})
+		cu.services = make(map[int]struct{})
 	}
 	for i := range ids {
 		cu.services[ids[i]] = struct{}{}
@@ -79,7 +78,7 @@ func (cu *CustomerUpdate) AddServiceIDs(ids ...string) *CustomerUpdate {
 
 // AddServices adds the services edges to Service.
 func (cu *CustomerUpdate) AddServices(s ...*Service) *CustomerUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -87,9 +86,9 @@ func (cu *CustomerUpdate) AddServices(s ...*Service) *CustomerUpdate {
 }
 
 // RemoveServiceIDs removes the services edge to Service by ids.
-func (cu *CustomerUpdate) RemoveServiceIDs(ids ...string) *CustomerUpdate {
+func (cu *CustomerUpdate) RemoveServiceIDs(ids ...int) *CustomerUpdate {
 	if cu.removedServices == nil {
-		cu.removedServices = make(map[string]struct{})
+		cu.removedServices = make(map[int]struct{})
 	}
 	for i := range ids {
 		cu.removedServices[ids[i]] = struct{}{}
@@ -99,7 +98,7 @@ func (cu *CustomerUpdate) RemoveServiceIDs(ids ...string) *CustomerUpdate {
 
 // RemoveServices removes services edges to Service.
 func (cu *CustomerUpdate) RemoveServices(s ...*Service) *CustomerUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -153,7 +152,7 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   customer.Table,
 			Columns: customer.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: customer.FieldID,
 			},
 		},
@@ -201,16 +200,12 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -224,16 +219,12 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -252,14 +243,14 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // CustomerUpdateOne is the builder for updating a single Customer entity.
 type CustomerUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time      *time.Time
 	name             *string
 	external_id      *string
 	clearexternal_id bool
-	services         map[string]struct{}
-	removedServices  map[string]struct{}
+	services         map[int]struct{}
+	removedServices  map[int]struct{}
 }
 
 // SetName sets the name field.
@@ -290,9 +281,9 @@ func (cuo *CustomerUpdateOne) ClearExternalID() *CustomerUpdateOne {
 }
 
 // AddServiceIDs adds the services edge to Service by ids.
-func (cuo *CustomerUpdateOne) AddServiceIDs(ids ...string) *CustomerUpdateOne {
+func (cuo *CustomerUpdateOne) AddServiceIDs(ids ...int) *CustomerUpdateOne {
 	if cuo.services == nil {
-		cuo.services = make(map[string]struct{})
+		cuo.services = make(map[int]struct{})
 	}
 	for i := range ids {
 		cuo.services[ids[i]] = struct{}{}
@@ -302,7 +293,7 @@ func (cuo *CustomerUpdateOne) AddServiceIDs(ids ...string) *CustomerUpdateOne {
 
 // AddServices adds the services edges to Service.
 func (cuo *CustomerUpdateOne) AddServices(s ...*Service) *CustomerUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -310,9 +301,9 @@ func (cuo *CustomerUpdateOne) AddServices(s ...*Service) *CustomerUpdateOne {
 }
 
 // RemoveServiceIDs removes the services edge to Service by ids.
-func (cuo *CustomerUpdateOne) RemoveServiceIDs(ids ...string) *CustomerUpdateOne {
+func (cuo *CustomerUpdateOne) RemoveServiceIDs(ids ...int) *CustomerUpdateOne {
 	if cuo.removedServices == nil {
-		cuo.removedServices = make(map[string]struct{})
+		cuo.removedServices = make(map[int]struct{})
 	}
 	for i := range ids {
 		cuo.removedServices[ids[i]] = struct{}{}
@@ -322,7 +313,7 @@ func (cuo *CustomerUpdateOne) RemoveServiceIDs(ids ...string) *CustomerUpdateOne
 
 // RemoveServices removes services edges to Service.
 func (cuo *CustomerUpdateOne) RemoveServices(s ...*Service) *CustomerUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -377,7 +368,7 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 			Columns: customer.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  cuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: customer.FieldID,
 			},
 		},
@@ -418,16 +409,12 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -441,16 +428,12 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

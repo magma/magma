@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 
@@ -94,8 +95,8 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 		Name:            "WO1",
 		Description:     pointer.ToString("WO1 - description"),
 		WorkOrderTypeID: typ1.ID,
-		LocationID:      pointer.ToString(r.client.Location.Query().Where(location.Name(parentLocation)).OnlyX(ctx).ID),
-		ProjectID:       pointer.ToString(proj.ID),
+		LocationID:      pointer.ToInt(r.client.Location.Query().Where(location.Name(parentLocation)).OnlyX(ctx).ID),
+		ProjectID:       pointer.ToInt(proj.ID),
 		Properties: []*models.PropertyInput{
 			{
 				PropertyTypeID: propStrEnt.ID,
@@ -118,7 +119,7 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 		Name:            "WO2",
 		Description:     pointer.ToString("WO2 - description"),
 		WorkOrderTypeID: typ2.ID,
-		LocationID:      pointer.ToString(r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx).ID),
+		LocationID:      pointer.ToInt(r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx).ID),
 		Properties: []*models.PropertyInput{
 			{
 				PropertyTypeID: propIntEnt.ID,
@@ -146,9 +147,8 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 }
 
 func TestEmptyDataExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, woRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -175,16 +175,16 @@ func TestEmptyDataExport(t *testing.T) {
 }
 
 func TestWOExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, woRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
 	ctx := viewertest.NewContext(r.client)
@@ -205,7 +205,7 @@ func TestWOExport(t *testing.T) {
 		switch {
 		case ln[1] == "Work Order Name":
 			require.EqualValues(t, append(woDataHeader, []string{propNameBool, propNameInt, propStr, propStr2}...), ln)
-		case ln[0] == data.wo1.ID:
+		case ln[0] == strconv.Itoa(data.wo1.ID):
 			wo = data.wo1
 			require.EqualValues(t, ln[1:], []string{
 				"WO1",
@@ -222,7 +222,7 @@ func TestWOExport(t *testing.T) {
 				"string1",
 				"string2",
 			})
-		case ln[0] == data.wo2.ID:
+		case ln[0] == strconv.Itoa(data.wo2.ID):
 			wo = data.wo2
 			require.EqualValues(t, ln[1:], []string{
 				"WO2",
@@ -246,9 +246,8 @@ func TestWOExport(t *testing.T) {
 }
 
 func TestExportWOWithFilters(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 	ctx := viewertest.NewContext(r.client)
 	e := &exporter{log, woRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -257,7 +256,7 @@ func TestExportWOWithFilters(t *testing.T) {
 
 	data := prepareWOData(ctx, t, *r)
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
@@ -291,7 +290,7 @@ func TestExportWOWithFilters(t *testing.T) {
 		}
 		linesCount++
 		require.NoError(t, err, "error reading row")
-		if ln[0] == data.wo1.ID {
+		if ln[0] == strconv.Itoa(data.wo1.ID) {
 			wo := data.wo1
 			require.EqualValues(t, ln[1:], []string{
 				"WO1",

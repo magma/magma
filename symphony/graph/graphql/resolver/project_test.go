@@ -217,7 +217,7 @@ func TestProjectMutation(t *testing.T) {
 		assert.Error(t, err, "project name must be unique under type")
 		_, err = mutation.CreateProject(ctx, models.AddProjectInput{Type: input.Type})
 		assert.Error(t, err, "project name cannot be empty")
-		_, err = mutation.CreateProject(ctx, models.AddProjectInput{Name: "another", Type: "42424242"})
+		_, err = mutation.CreateProject(ctx, models.AddProjectInput{Name: "another", Type: 42424242})
 		assert.Error(t, err, "project type id must be valid")
 	}
 
@@ -396,9 +396,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(propInputs), len(fetchedProps))
 
-	failProp := models.PropertyInput{
-		PropertyTypeID: "someFakeTypeID",
-	}
+	failProp := models.PropertyInput{PropertyTypeID: -1}
 	failEditInput := models.EditProjectInput{
 		ID:         p.ID,
 		Name:       "test",

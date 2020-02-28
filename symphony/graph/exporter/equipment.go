@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -29,7 +30,7 @@ type equipmentFilterInput struct {
 	Name          models.EquipmentFilterType `json:"name"`
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
-	IDSet         []string                   `json:"idSet"`
+	IDSet         []int                      `json:"idSet"`
 	StringSet     []string                   `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
 }
@@ -76,7 +77,7 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		return nil
 	})
 	cg.Go(func(ctx context.Context) (err error) {
-		equipIDs := make([]string, len(equipList))
+		equipIDs := make([]int, len(equipList))
 		for i, e := range equips.Equipment {
 			equipIDs[i] = e.ID
 		}
@@ -169,7 +170,7 @@ func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
-	row := []string{equipment.ID, equipment.Name, equipment.QueryType().OnlyX(ctx).Name, equipment.ExternalID}
+	row := []string{strconv.Itoa(equipment.ID), equipment.Name, equipment.QueryType().OnlyX(ctx).Name, equipment.ExternalID}
 	row = append(row, lParents...)
 	row = append(row, eParents...)
 	row = append(row, properties...)

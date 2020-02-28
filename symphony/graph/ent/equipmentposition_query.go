@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -122,8 +121,8 @@ func (epq *EquipmentPositionQuery) FirstX(ctx context.Context) *EquipmentPositio
 }
 
 // FirstID returns the first EquipmentPosition id in the query. Returns *NotFoundError when no id was found.
-func (epq *EquipmentPositionQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (epq *EquipmentPositionQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = epq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -135,7 +134,7 @@ func (epq *EquipmentPositionQuery) FirstID(ctx context.Context) (id string, err 
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (epq *EquipmentPositionQuery) FirstXID(ctx context.Context) string {
+func (epq *EquipmentPositionQuery) FirstXID(ctx context.Context) int {
 	id, err := epq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -169,8 +168,8 @@ func (epq *EquipmentPositionQuery) OnlyX(ctx context.Context) *EquipmentPosition
 }
 
 // OnlyID returns the only EquipmentPosition id in the query, returns an error if not exactly one id was returned.
-func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = epq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -186,7 +185,7 @@ func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id string, err e
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (epq *EquipmentPositionQuery) OnlyXID(ctx context.Context) string {
+func (epq *EquipmentPositionQuery) OnlyXID(ctx context.Context) int {
 	id, err := epq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -209,8 +208,8 @@ func (epq *EquipmentPositionQuery) AllX(ctx context.Context) []*EquipmentPositio
 }
 
 // IDs executes the query and returns a list of EquipmentPosition ids.
-func (epq *EquipmentPositionQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (epq *EquipmentPositionQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := epq.Select(equipmentposition.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -218,7 +217,7 @@ func (epq *EquipmentPositionQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (epq *EquipmentPositionQuery) IDsX(ctx context.Context) []string {
+func (epq *EquipmentPositionQuery) IDsX(ctx context.Context) []int {
 	ids, err := epq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -385,8 +384,8 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 	}
 
 	if query := epq.withDefinition; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*EquipmentPosition)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*EquipmentPosition)
 		for i := range nodes {
 			if fk := nodes[i].equipment_position_definition; fk != nil {
 				ids = append(ids, *fk)
@@ -410,8 +409,8 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 	}
 
 	if query := epq.withParent; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*EquipmentPosition)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*EquipmentPosition)
 		for i := range nodes {
 			if fk := nodes[i].equipment_positions; fk != nil {
 				ids = append(ids, *fk)
@@ -436,13 +435,9 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 
 	if query := epq.withAttachment; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentPosition)
+		nodeids := make(map[int]*EquipmentPosition)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -488,7 +483,7 @@ func (epq *EquipmentPositionQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   equipmentposition.Table,
 			Columns: equipmentposition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentposition.FieldID,
 			},
 		},

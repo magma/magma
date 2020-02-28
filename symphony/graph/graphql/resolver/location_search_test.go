@@ -66,7 +66,7 @@ func prepareLocationData(ctx context.Context, r *TestResolver) locationSearchDat
 	loc2, _ := mr.AddLocation(ctx, models.AddLocationInput{
 		Name:   "loc_inst2",
 		Type:   locType2.ID,
-		Parent: pointer.ToString(loc1.ID),
+		Parent: pointer.ToInt(loc1.ID),
 	})
 
 	equType, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -109,7 +109,7 @@ func TestSearchLocationAncestors(t *testing.T) {
 	f1 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc1.ID},
+		IDSet:      []int{data.loc1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, &limit)
@@ -120,7 +120,7 @@ func TestSearchLocationAncestors(t *testing.T) {
 	f2 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc2.ID},
+		IDSet:      []int{data.loc2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res, err = qr.LocationSearch(ctx, []*models.LocationFilterInput{&f2}, &limit)
@@ -145,7 +145,7 @@ func TestSearchLocationByType(t *testing.T) {
 	f1 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.locType2.ID},
+		IDSet:      []int{data.locType2.ID},
 	}
 	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, pointer.ToInt(100))
 	require.NoError(t, err)
@@ -203,7 +203,7 @@ func TestSearchMultipleFilters(t *testing.T) {
 	f1 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc1.ID},
+		IDSet:      []int{data.loc1.ID},
 		MaxDepth:   pointer.ToInt(2),
 	}
 	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, pointer.ToInt(100))
@@ -214,7 +214,7 @@ func TestSearchMultipleFilters(t *testing.T) {
 	f2 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.locType2.ID},
+		IDSet:      []int{data.locType2.ID},
 	}
 	res, err = qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1, &f2}, pointer.ToInt(100))
 	require.NoError(t, err)

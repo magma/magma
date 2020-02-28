@@ -47,7 +47,7 @@ func (ard *ActionsRuleDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: actionsrule.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: actionsrule.FieldID,
 			},
 		},

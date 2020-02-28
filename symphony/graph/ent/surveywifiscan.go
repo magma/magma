@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type SurveyWiFiScan struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -52,8 +51,8 @@ type SurveyWiFiScan struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyWiFiScanQuery when eager-loading is set.
 	Edges                             SurveyWiFiScanEdges `json:"edges"`
-	survey_wi_fi_scan_survey_question *string
-	survey_wi_fi_scan_location        *string
+	survey_wi_fi_scan_survey_question *int
+	survey_wi_fi_scan_location        *int
 }
 
 // SurveyWiFiScanEdges holds the relations/edges for other nodes in the graph.
@@ -133,7 +132,7 @@ func (swfs *SurveyWiFiScan) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	swfs.ID = strconv.FormatInt(value.Int64, 10)
+	swfs.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -205,14 +204,14 @@ func (swfs *SurveyWiFiScan) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_wi_fi_scan_survey_question", value)
 		} else if value.Valid {
-			swfs.survey_wi_fi_scan_survey_question = new(string)
-			*swfs.survey_wi_fi_scan_survey_question = strconv.FormatInt(value.Int64, 10)
+			swfs.survey_wi_fi_scan_survey_question = new(int)
+			*swfs.survey_wi_fi_scan_survey_question = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_wi_fi_scan_location", value)
 		} else if value.Valid {
-			swfs.survey_wi_fi_scan_location = new(string)
-			*swfs.survey_wi_fi_scan_location = strconv.FormatInt(value.Int64, 10)
+			swfs.survey_wi_fi_scan_location = new(int)
+			*swfs.survey_wi_fi_scan_location = int(value.Int64)
 		}
 	}
 	return nil
@@ -279,12 +278,6 @@ func (swfs *SurveyWiFiScan) String() string {
 	builder.WriteString(fmt.Sprintf("%v", swfs.Longitude))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (swfs *SurveyWiFiScan) id() int {
-	id, _ := strconv.Atoi(swfs.ID)
-	return id
 }
 
 // SurveyWiFiScans is a parsable slice of SurveyWiFiScan.

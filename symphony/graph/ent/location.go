@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type Location struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -39,8 +38,8 @@ type Location struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LocationQuery when eager-loading is set.
 	Edges             LocationEdges `json:"edges"`
-	location_type     *string
-	location_children *string
+	location_type     *int
+	location_children *int
 }
 
 // LocationEdges holds the relations/edges for other nodes in the graph.
@@ -224,7 +223,7 @@ func (l *Location) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	l.ID = strconv.FormatInt(value.Int64, 10)
+	l.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -266,14 +265,14 @@ func (l *Location) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field location_type", value)
 		} else if value.Valid {
-			l.location_type = new(string)
-			*l.location_type = strconv.FormatInt(value.Int64, 10)
+			l.location_type = new(int)
+			*l.location_type = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field location_children", value)
 		} else if value.Valid {
-			l.location_children = new(string)
-			*l.location_children = strconv.FormatInt(value.Int64, 10)
+			l.location_children = new(int)
+			*l.location_children = int(value.Int64)
 		}
 	}
 	return nil
@@ -378,12 +377,6 @@ func (l *Location) String() string {
 	builder.WriteString(fmt.Sprintf("%v", l.SiteSurveyNeeded))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (l *Location) id() int {
-	id, _ := strconv.Atoi(l.ID)
-	return id
 }
 
 // Locations is a parsable slice of Location.

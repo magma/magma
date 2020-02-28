@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -94,8 +93,8 @@ func (tq *TechnicianQuery) FirstX(ctx context.Context) *Technician {
 }
 
 // FirstID returns the first Technician id in the query. Returns *NotFoundError when no id was found.
-func (tq *TechnicianQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TechnicianQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -107,7 +106,7 @@ func (tq *TechnicianQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (tq *TechnicianQuery) FirstXID(ctx context.Context) string {
+func (tq *TechnicianQuery) FirstXID(ctx context.Context) int {
 	id, err := tq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -141,8 +140,8 @@ func (tq *TechnicianQuery) OnlyX(ctx context.Context) *Technician {
 }
 
 // OnlyID returns the only Technician id in the query, returns an error if not exactly one id was returned.
-func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = tq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -158,7 +157,7 @@ func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (tq *TechnicianQuery) OnlyXID(ctx context.Context) string {
+func (tq *TechnicianQuery) OnlyXID(ctx context.Context) int {
 	id, err := tq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -181,8 +180,8 @@ func (tq *TechnicianQuery) AllX(ctx context.Context) []*Technician {
 }
 
 // IDs executes the query and returns a list of Technician ids.
-func (tq *TechnicianQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (tq *TechnicianQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := tq.Select(technician.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -190,7 +189,7 @@ func (tq *TechnicianQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tq *TechnicianQuery) IDsX(ctx context.Context) []string {
+func (tq *TechnicianQuery) IDsX(ctx context.Context) []int {
 	ids, err := tq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -324,13 +323,9 @@ func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 
 	if query := tq.withWorkOrders; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Technician)
+		nodeids := make(map[int]*Technician)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -376,7 +371,7 @@ func (tq *TechnicianQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   technician.Table,
 			Columns: technician.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		},

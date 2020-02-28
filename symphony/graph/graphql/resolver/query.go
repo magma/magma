@@ -30,20 +30,20 @@ func (queryResolver) Me(ctx context.Context) (*viewer.Viewer, error) {
 	return viewer.FromContext(ctx), nil
 }
 
-func (r queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
+func (r queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
 	n, err := r.ClientFrom(ctx).Noder(ctx, id)
 	if err == nil {
 		return n, nil
 	}
 	r.logger.For(ctx).
 		Debug("cannot query node",
-			zap.String("id", id),
+			zap.Int("id", id),
 			zap.Error(err),
 		)
 	return nil, ent.MaskNotFound(err)
 }
 
-func (r queryResolver) Location(ctx context.Context, id string) (*ent.Location, error) {
+func (r queryResolver) Location(ctx context.Context, id int) (*ent.Location, error) {
 	l, err := r.ClientFrom(ctx).Location.Get(ctx, id)
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "querying location: id=%q", id)
@@ -51,7 +51,7 @@ func (r queryResolver) Location(ctx context.Context, id string) (*ent.Location, 
 	return l, nil
 }
 
-func (r queryResolver) LocationType(ctx context.Context, id string) (*ent.LocationType, error) {
+func (r queryResolver) LocationType(ctx context.Context, id int) (*ent.LocationType, error) {
 	lt, err := r.ClientFrom(ctx).LocationType.Get(ctx, id)
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "querying location type: id=%q", id)
@@ -70,7 +70,7 @@ func (r queryResolver) LocationTypes(
 
 func (r queryResolver) Locations(
 	ctx context.Context, onlyTopLevel *bool,
-	types []string, name *string, needsSiteSurvey *bool,
+	types []int, name *string, needsSiteSurvey *bool,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
 ) (*ent.LocationConnection, error) {
@@ -104,7 +104,7 @@ func (r queryResolver) NearestSites(ctx context.Context, latitude, longitude flo
 	return sites[:first], nil
 }
 
-func (r queryResolver) Equipment(ctx context.Context, id string) (*ent.Equipment, error) {
+func (r queryResolver) Equipment(ctx context.Context, id int) (*ent.Equipment, error) {
 	e, err := r.ClientFrom(ctx).Equipment.Get(ctx, id)
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "querying equipment: id=%q", id)
@@ -112,7 +112,7 @@ func (r queryResolver) Equipment(ctx context.Context, id string) (*ent.Equipment
 	return e, nil
 }
 
-func (r queryResolver) EquipmentType(ctx context.Context, id string) (*ent.EquipmentType, error) {
+func (r queryResolver) EquipmentType(ctx context.Context, id int) (*ent.EquipmentType, error) {
 	et, err := r.ClientFrom(ctx).EquipmentType.Get(ctx, id)
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "querying equipment type: id=%q", id)
@@ -129,7 +129,7 @@ func (r queryResolver) EquipmentTypes(
 		Paginate(ctx, after, first, before, last)
 }
 
-func (r queryResolver) EquipmentPortType(ctx context.Context, id string) (*ent.EquipmentPortType, error) {
+func (r queryResolver) EquipmentPortType(ctx context.Context, id int) (*ent.EquipmentPortType, error) {
 	e, err := r.ClientFrom(ctx).EquipmentPortType.Get(ctx, id)
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "querying equipment port type: id=%q", id)
@@ -155,7 +155,7 @@ func (r queryResolver) EquipmentPortDefinitions(
 		Paginate(ctx, after, first, before, last)
 }
 
-func (r queryResolver) WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error) {
+func (r queryResolver) WorkOrder(ctx context.Context, id int) (*ent.WorkOrder, error) {
 	noder, err := r.Node(ctx, id)
 	if err != nil {
 		return nil, err
@@ -296,7 +296,7 @@ func (r queryResolver) Surveys(ctx context.Context) ([]*ent.Survey, error) {
 	return surveys, nil
 }
 
-func (r queryResolver) Service(ctx context.Context, id string) (*ent.Service, error) {
+func (r queryResolver) Service(ctx context.Context, id int) (*ent.Service, error) {
 	s, err := r.ClientFrom(ctx).Service.Get(ctx, id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "querying service: id=%q", id)
@@ -304,7 +304,7 @@ func (r queryResolver) Service(ctx context.Context, id string) (*ent.Service, er
 	return s, nil
 }
 
-func (r queryResolver) ServiceType(ctx context.Context, id string) (*ent.ServiceType, error) {
+func (r queryResolver) ServiceType(ctx context.Context, id int) (*ent.ServiceType, error) {
 	st, err := r.ClientFrom(ctx).ServiceType.Get(ctx, id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "querying service type: id=%q", id)
@@ -395,6 +395,6 @@ func (queryResolver) LatestPythonPackage(context.Context) (*models.LatestPythonP
 	}, nil
 }
 
-func (r queryResolver) Vertex(ctx context.Context, id string) (*ent.Node, error) {
+func (r queryResolver) Vertex(ctx context.Context, id int) (*ent.Node, error) {
 	return r.ClientFrom(ctx).Node(ctx, id)
 }

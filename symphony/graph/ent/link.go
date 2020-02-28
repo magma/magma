@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type Link struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -31,7 +30,7 @@ type Link struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LinkQuery when eager-loading is set.
 	Edges           LinkEdges `json:"edges"`
-	link_work_order *string
+	link_work_order *int
 }
 
 // LinkEdges holds the relations/edges for other nodes in the graph.
@@ -117,7 +116,7 @@ func (l *Link) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	l.ID = strconv.FormatInt(value.Int64, 10)
+	l.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -139,8 +138,8 @@ func (l *Link) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field link_work_order", value)
 		} else if value.Valid {
-			l.link_work_order = new(string)
-			*l.link_work_order = strconv.FormatInt(value.Int64, 10)
+			l.link_work_order = new(int)
+			*l.link_work_order = int(value.Int64)
 		}
 	}
 	return nil
@@ -197,12 +196,6 @@ func (l *Link) String() string {
 	builder.WriteString(l.FutureState)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (l *Link) id() int {
-	id, _ := strconv.Atoi(l.ID)
-	return id
 }
 
 // Links is a parsable slice of Link.

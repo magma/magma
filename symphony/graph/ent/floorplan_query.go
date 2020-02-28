@@ -135,8 +135,8 @@ func (fpq *FloorPlanQuery) FirstX(ctx context.Context) *FloorPlan {
 }
 
 // FirstID returns the first FloorPlan id in the query. Returns *NotFoundError when no id was found.
-func (fpq *FloorPlanQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fpq *FloorPlanQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fpq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -148,7 +148,7 @@ func (fpq *FloorPlanQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (fpq *FloorPlanQuery) FirstXID(ctx context.Context) string {
+func (fpq *FloorPlanQuery) FirstXID(ctx context.Context) int {
 	id, err := fpq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -182,8 +182,8 @@ func (fpq *FloorPlanQuery) OnlyX(ctx context.Context) *FloorPlan {
 }
 
 // OnlyID returns the only FloorPlan id in the query, returns an error if not exactly one id was returned.
-func (fpq *FloorPlanQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fpq *FloorPlanQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fpq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -199,7 +199,7 @@ func (fpq *FloorPlanQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (fpq *FloorPlanQuery) OnlyXID(ctx context.Context) string {
+func (fpq *FloorPlanQuery) OnlyXID(ctx context.Context) int {
 	id, err := fpq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -222,8 +222,8 @@ func (fpq *FloorPlanQuery) AllX(ctx context.Context) []*FloorPlan {
 }
 
 // IDs executes the query and returns a list of FloorPlan ids.
-func (fpq *FloorPlanQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (fpq *FloorPlanQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := fpq.Select(floorplan.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func (fpq *FloorPlanQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fpq *FloorPlanQuery) IDsX(ctx context.Context) []string {
+func (fpq *FloorPlanQuery) IDsX(ctx context.Context) []int {
 	ids, err := fpq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -410,8 +410,8 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 	}
 
 	if query := fpq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*FloorPlan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*FloorPlan)
 		for i := range nodes {
 			if fk := nodes[i].floor_plan_location; fk != nil {
 				ids = append(ids, *fk)
@@ -435,8 +435,8 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 	}
 
 	if query := fpq.withReferencePoint; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*FloorPlan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*FloorPlan)
 		for i := range nodes {
 			if fk := nodes[i].floor_plan_reference_point; fk != nil {
 				ids = append(ids, *fk)
@@ -460,8 +460,8 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 	}
 
 	if query := fpq.withScale; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*FloorPlan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*FloorPlan)
 		for i := range nodes {
 			if fk := nodes[i].floor_plan_scale; fk != nil {
 				ids = append(ids, *fk)
@@ -485,8 +485,8 @@ func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
 	}
 
 	if query := fpq.withImage; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*FloorPlan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*FloorPlan)
 		for i := range nodes {
 			if fk := nodes[i].floor_plan_image; fk != nil {
 				ids = append(ids, *fk)
@@ -531,7 +531,7 @@ func (fpq *FloorPlanQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   floorplan.Table,
 			Columns: floorplan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplan.FieldID,
 			},
 		},

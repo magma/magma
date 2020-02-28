@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"strconv"
 	"sync"
 	"testing"
 
@@ -60,11 +61,13 @@ func TestSubscriptionWorkOrder(t *testing.T) {
 
 	var id string
 	{
+		input := models.AddWorkOrderInput{Name: "clean"}
+		input.WorkOrderTypeID, _ = strconv.Atoi(typ)
 		var rsp struct{ AddWorkOrder struct{ ID string } }
 		c.MustPost(
 			`mutation($input: AddWorkOrderInput!) { addWorkOrder(input: $input) { id } }`,
 			&rsp,
-			client.Var("input", models.AddWorkOrderInput{Name: "clean", WorkOrderTypeID: typ}),
+			client.Var("input", input),
 		)
 		id = rsp.AddWorkOrder.ID
 	}
@@ -86,14 +89,15 @@ func TestSubscriptionWorkOrder(t *testing.T) {
 
 	{
 		var rsp struct{ EditWorkOrder struct{ ID string } }
+		input := models.EditWorkOrderInput{
+			Name:     "foo",
+			Status:   models.WorkOrderStatusDone,
+			Priority: models.WorkOrderPriorityNone,
+		}
+		input.ID, _ = strconv.Atoi(id)
 		c.MustPost(`mutation($input: EditWorkOrderInput!) { editWorkOrder(input: $input) { id } }`,
 			&rsp,
-			client.Var("input", models.EditWorkOrderInput{
-				ID:       id,
-				Name:     "foo",
-				Status:   models.WorkOrderStatusDone,
-				Priority: models.WorkOrderPriorityNone,
-			}),
+			client.Var("input", input),
 		)
 		id = rsp.EditWorkOrder.ID
 	}

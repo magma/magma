@@ -326,10 +326,10 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 
 	source, err := res.Links[0].Source.Node(ctx)
 	require.NoError(t, err)
-	require.Contains(t, []string{router1.ID, router2.ID}, source.ID)
+	require.Contains(t, []int{router1.ID, router2.ID}, source.ID)
 	target, err := res.Links[0].Target.Node(ctx)
 	require.NoError(t, err)
-	require.Contains(t, []string{router1.ID, router2.ID}, target.ID)
+	require.Contains(t, []int{router1.ID, router2.ID}, target.ID)
 }
 
 func TestEditService(t *testing.T) {

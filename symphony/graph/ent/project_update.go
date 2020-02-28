@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -35,16 +34,16 @@ type ProjectUpdate struct {
 	cleardescription  bool
 	creator           *string
 	clearcreator      bool
-	_type             map[string]struct{}
-	location          map[string]struct{}
-	comments          map[string]struct{}
-	work_orders       map[string]struct{}
-	properties        map[string]struct{}
+	_type             map[int]struct{}
+	location          map[int]struct{}
+	comments          map[int]struct{}
+	work_orders       map[int]struct{}
+	properties        map[int]struct{}
 	clearedType       bool
 	clearedLocation   bool
-	removedComments   map[string]struct{}
-	removedWorkOrders map[string]struct{}
-	removedProperties map[string]struct{}
+	removedComments   map[int]struct{}
+	removedWorkOrders map[int]struct{}
+	removedProperties map[int]struct{}
 	predicates        []predicate.Project
 }
 
@@ -103,9 +102,9 @@ func (pu *ProjectUpdate) ClearCreator() *ProjectUpdate {
 }
 
 // SetTypeID sets the type edge to ProjectType by id.
-func (pu *ProjectUpdate) SetTypeID(id string) *ProjectUpdate {
+func (pu *ProjectUpdate) SetTypeID(id int) *ProjectUpdate {
 	if pu._type == nil {
-		pu._type = make(map[string]struct{})
+		pu._type = make(map[int]struct{})
 	}
 	pu._type[id] = struct{}{}
 	return pu
@@ -117,16 +116,16 @@ func (pu *ProjectUpdate) SetType(p *ProjectType) *ProjectUpdate {
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (pu *ProjectUpdate) SetLocationID(id string) *ProjectUpdate {
+func (pu *ProjectUpdate) SetLocationID(id int) *ProjectUpdate {
 	if pu.location == nil {
-		pu.location = make(map[string]struct{})
+		pu.location = make(map[int]struct{})
 	}
 	pu.location[id] = struct{}{}
 	return pu
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (pu *ProjectUpdate) SetNillableLocationID(id *string) *ProjectUpdate {
+func (pu *ProjectUpdate) SetNillableLocationID(id *int) *ProjectUpdate {
 	if id != nil {
 		pu = pu.SetLocationID(*id)
 	}
@@ -139,9 +138,9 @@ func (pu *ProjectUpdate) SetLocation(l *Location) *ProjectUpdate {
 }
 
 // AddCommentIDs adds the comments edge to Comment by ids.
-func (pu *ProjectUpdate) AddCommentIDs(ids ...string) *ProjectUpdate {
+func (pu *ProjectUpdate) AddCommentIDs(ids ...int) *ProjectUpdate {
 	if pu.comments == nil {
-		pu.comments = make(map[string]struct{})
+		pu.comments = make(map[int]struct{})
 	}
 	for i := range ids {
 		pu.comments[ids[i]] = struct{}{}
@@ -151,7 +150,7 @@ func (pu *ProjectUpdate) AddCommentIDs(ids ...string) *ProjectUpdate {
 
 // AddComments adds the comments edges to Comment.
 func (pu *ProjectUpdate) AddComments(c ...*Comment) *ProjectUpdate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -159,9 +158,9 @@ func (pu *ProjectUpdate) AddComments(c ...*Comment) *ProjectUpdate {
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (pu *ProjectUpdate) AddWorkOrderIDs(ids ...string) *ProjectUpdate {
+func (pu *ProjectUpdate) AddWorkOrderIDs(ids ...int) *ProjectUpdate {
 	if pu.work_orders == nil {
-		pu.work_orders = make(map[string]struct{})
+		pu.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		pu.work_orders[ids[i]] = struct{}{}
@@ -171,7 +170,7 @@ func (pu *ProjectUpdate) AddWorkOrderIDs(ids ...string) *ProjectUpdate {
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (pu *ProjectUpdate) AddWorkOrders(w ...*WorkOrder) *ProjectUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -179,9 +178,9 @@ func (pu *ProjectUpdate) AddWorkOrders(w ...*WorkOrder) *ProjectUpdate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (pu *ProjectUpdate) AddPropertyIDs(ids ...string) *ProjectUpdate {
+func (pu *ProjectUpdate) AddPropertyIDs(ids ...int) *ProjectUpdate {
 	if pu.properties == nil {
-		pu.properties = make(map[string]struct{})
+		pu.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		pu.properties[ids[i]] = struct{}{}
@@ -191,7 +190,7 @@ func (pu *ProjectUpdate) AddPropertyIDs(ids ...string) *ProjectUpdate {
 
 // AddProperties adds the properties edges to Property.
 func (pu *ProjectUpdate) AddProperties(p ...*Property) *ProjectUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -211,9 +210,9 @@ func (pu *ProjectUpdate) ClearLocation() *ProjectUpdate {
 }
 
 // RemoveCommentIDs removes the comments edge to Comment by ids.
-func (pu *ProjectUpdate) RemoveCommentIDs(ids ...string) *ProjectUpdate {
+func (pu *ProjectUpdate) RemoveCommentIDs(ids ...int) *ProjectUpdate {
 	if pu.removedComments == nil {
-		pu.removedComments = make(map[string]struct{})
+		pu.removedComments = make(map[int]struct{})
 	}
 	for i := range ids {
 		pu.removedComments[ids[i]] = struct{}{}
@@ -223,7 +222,7 @@ func (pu *ProjectUpdate) RemoveCommentIDs(ids ...string) *ProjectUpdate {
 
 // RemoveComments removes comments edges to Comment.
 func (pu *ProjectUpdate) RemoveComments(c ...*Comment) *ProjectUpdate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -231,9 +230,9 @@ func (pu *ProjectUpdate) RemoveComments(c ...*Comment) *ProjectUpdate {
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (pu *ProjectUpdate) RemoveWorkOrderIDs(ids ...string) *ProjectUpdate {
+func (pu *ProjectUpdate) RemoveWorkOrderIDs(ids ...int) *ProjectUpdate {
 	if pu.removedWorkOrders == nil {
-		pu.removedWorkOrders = make(map[string]struct{})
+		pu.removedWorkOrders = make(map[int]struct{})
 	}
 	for i := range ids {
 		pu.removedWorkOrders[ids[i]] = struct{}{}
@@ -243,7 +242,7 @@ func (pu *ProjectUpdate) RemoveWorkOrderIDs(ids ...string) *ProjectUpdate {
 
 // RemoveWorkOrders removes work_orders edges to WorkOrder.
 func (pu *ProjectUpdate) RemoveWorkOrders(w ...*WorkOrder) *ProjectUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -251,9 +250,9 @@ func (pu *ProjectUpdate) RemoveWorkOrders(w ...*WorkOrder) *ProjectUpdate {
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (pu *ProjectUpdate) RemovePropertyIDs(ids ...string) *ProjectUpdate {
+func (pu *ProjectUpdate) RemovePropertyIDs(ids ...int) *ProjectUpdate {
 	if pu.removedProperties == nil {
-		pu.removedProperties = make(map[string]struct{})
+		pu.removedProperties = make(map[int]struct{})
 	}
 	for i := range ids {
 		pu.removedProperties[ids[i]] = struct{}{}
@@ -263,7 +262,7 @@ func (pu *ProjectUpdate) RemovePropertyIDs(ids ...string) *ProjectUpdate {
 
 // RemoveProperties removes properties edges to Property.
 func (pu *ProjectUpdate) RemoveProperties(p ...*Property) *ProjectUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -321,7 +320,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   project.Table,
 			Columns: project.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: project.FieldID,
 			},
 		},
@@ -382,7 +381,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
@@ -398,16 +397,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -421,7 +416,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
@@ -437,16 +432,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -460,16 +451,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: comment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -483,16 +470,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: comment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -506,16 +489,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -529,16 +508,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -552,16 +527,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -575,16 +546,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -603,7 +570,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ProjectUpdateOne is the builder for updating a single Project entity.
 type ProjectUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time       *time.Time
 	name              *string
@@ -611,16 +578,16 @@ type ProjectUpdateOne struct {
 	cleardescription  bool
 	creator           *string
 	clearcreator      bool
-	_type             map[string]struct{}
-	location          map[string]struct{}
-	comments          map[string]struct{}
-	work_orders       map[string]struct{}
-	properties        map[string]struct{}
+	_type             map[int]struct{}
+	location          map[int]struct{}
+	comments          map[int]struct{}
+	work_orders       map[int]struct{}
+	properties        map[int]struct{}
 	clearedType       bool
 	clearedLocation   bool
-	removedComments   map[string]struct{}
-	removedWorkOrders map[string]struct{}
-	removedProperties map[string]struct{}
+	removedComments   map[int]struct{}
+	removedWorkOrders map[int]struct{}
+	removedProperties map[int]struct{}
 }
 
 // SetName sets the name field.
@@ -672,9 +639,9 @@ func (puo *ProjectUpdateOne) ClearCreator() *ProjectUpdateOne {
 }
 
 // SetTypeID sets the type edge to ProjectType by id.
-func (puo *ProjectUpdateOne) SetTypeID(id string) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) SetTypeID(id int) *ProjectUpdateOne {
 	if puo._type == nil {
-		puo._type = make(map[string]struct{})
+		puo._type = make(map[int]struct{})
 	}
 	puo._type[id] = struct{}{}
 	return puo
@@ -686,16 +653,16 @@ func (puo *ProjectUpdateOne) SetType(p *ProjectType) *ProjectUpdateOne {
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (puo *ProjectUpdateOne) SetLocationID(id string) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) SetLocationID(id int) *ProjectUpdateOne {
 	if puo.location == nil {
-		puo.location = make(map[string]struct{})
+		puo.location = make(map[int]struct{})
 	}
 	puo.location[id] = struct{}{}
 	return puo
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (puo *ProjectUpdateOne) SetNillableLocationID(id *string) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) SetNillableLocationID(id *int) *ProjectUpdateOne {
 	if id != nil {
 		puo = puo.SetLocationID(*id)
 	}
@@ -708,9 +675,9 @@ func (puo *ProjectUpdateOne) SetLocation(l *Location) *ProjectUpdateOne {
 }
 
 // AddCommentIDs adds the comments edge to Comment by ids.
-func (puo *ProjectUpdateOne) AddCommentIDs(ids ...string) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddCommentIDs(ids ...int) *ProjectUpdateOne {
 	if puo.comments == nil {
-		puo.comments = make(map[string]struct{})
+		puo.comments = make(map[int]struct{})
 	}
 	for i := range ids {
 		puo.comments[ids[i]] = struct{}{}
@@ -720,7 +687,7 @@ func (puo *ProjectUpdateOne) AddCommentIDs(ids ...string) *ProjectUpdateOne {
 
 // AddComments adds the comments edges to Comment.
 func (puo *ProjectUpdateOne) AddComments(c ...*Comment) *ProjectUpdateOne {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -728,9 +695,9 @@ func (puo *ProjectUpdateOne) AddComments(c ...*Comment) *ProjectUpdateOne {
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (puo *ProjectUpdateOne) AddWorkOrderIDs(ids ...string) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddWorkOrderIDs(ids ...int) *ProjectUpdateOne {
 	if puo.work_orders == nil {
-		puo.work_orders = make(map[string]struct{})
+		puo.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		puo.work_orders[ids[i]] = struct{}{}
@@ -740,7 +707,7 @@ func (puo *ProjectUpdateOne) AddWorkOrderIDs(ids ...string) *ProjectUpdateOne {
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (puo *ProjectUpdateOne) AddWorkOrders(w ...*WorkOrder) *ProjectUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -748,9 +715,9 @@ func (puo *ProjectUpdateOne) AddWorkOrders(w ...*WorkOrder) *ProjectUpdateOne {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (puo *ProjectUpdateOne) AddPropertyIDs(ids ...string) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) AddPropertyIDs(ids ...int) *ProjectUpdateOne {
 	if puo.properties == nil {
-		puo.properties = make(map[string]struct{})
+		puo.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		puo.properties[ids[i]] = struct{}{}
@@ -760,7 +727,7 @@ func (puo *ProjectUpdateOne) AddPropertyIDs(ids ...string) *ProjectUpdateOne {
 
 // AddProperties adds the properties edges to Property.
 func (puo *ProjectUpdateOne) AddProperties(p ...*Property) *ProjectUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -780,9 +747,9 @@ func (puo *ProjectUpdateOne) ClearLocation() *ProjectUpdateOne {
 }
 
 // RemoveCommentIDs removes the comments edge to Comment by ids.
-func (puo *ProjectUpdateOne) RemoveCommentIDs(ids ...string) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemoveCommentIDs(ids ...int) *ProjectUpdateOne {
 	if puo.removedComments == nil {
-		puo.removedComments = make(map[string]struct{})
+		puo.removedComments = make(map[int]struct{})
 	}
 	for i := range ids {
 		puo.removedComments[ids[i]] = struct{}{}
@@ -792,7 +759,7 @@ func (puo *ProjectUpdateOne) RemoveCommentIDs(ids ...string) *ProjectUpdateOne {
 
 // RemoveComments removes comments edges to Comment.
 func (puo *ProjectUpdateOne) RemoveComments(c ...*Comment) *ProjectUpdateOne {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -800,9 +767,9 @@ func (puo *ProjectUpdateOne) RemoveComments(c ...*Comment) *ProjectUpdateOne {
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (puo *ProjectUpdateOne) RemoveWorkOrderIDs(ids ...string) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemoveWorkOrderIDs(ids ...int) *ProjectUpdateOne {
 	if puo.removedWorkOrders == nil {
-		puo.removedWorkOrders = make(map[string]struct{})
+		puo.removedWorkOrders = make(map[int]struct{})
 	}
 	for i := range ids {
 		puo.removedWorkOrders[ids[i]] = struct{}{}
@@ -812,7 +779,7 @@ func (puo *ProjectUpdateOne) RemoveWorkOrderIDs(ids ...string) *ProjectUpdateOne
 
 // RemoveWorkOrders removes work_orders edges to WorkOrder.
 func (puo *ProjectUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *ProjectUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -820,9 +787,9 @@ func (puo *ProjectUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *ProjectUpdateOne
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (puo *ProjectUpdateOne) RemovePropertyIDs(ids ...string) *ProjectUpdateOne {
+func (puo *ProjectUpdateOne) RemovePropertyIDs(ids ...int) *ProjectUpdateOne {
 	if puo.removedProperties == nil {
-		puo.removedProperties = make(map[string]struct{})
+		puo.removedProperties = make(map[int]struct{})
 	}
 	for i := range ids {
 		puo.removedProperties[ids[i]] = struct{}{}
@@ -832,7 +799,7 @@ func (puo *ProjectUpdateOne) RemovePropertyIDs(ids ...string) *ProjectUpdateOne 
 
 // RemoveProperties removes properties edges to Property.
 func (puo *ProjectUpdateOne) RemoveProperties(p ...*Property) *ProjectUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -891,7 +858,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Columns: project.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  puo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: project.FieldID,
 			},
 		},
@@ -945,7 +912,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
@@ -961,16 +928,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -984,7 +947,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
@@ -1000,16 +963,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -1023,16 +982,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: comment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1046,16 +1001,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: comment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -1069,16 +1020,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1092,16 +1039,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -1115,16 +1058,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1138,16 +1077,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -29,8 +28,8 @@ type WorkOrderDefinitionUpdate struct {
 	index              *int
 	addindex           *int
 	clearindex         bool
-	_type              map[string]struct{}
-	project_type       map[string]struct{}
+	_type              map[int]struct{}
+	project_type       map[int]struct{}
 	clearedType        bool
 	clearedProjectType bool
 	predicates         []predicate.WorkOrderDefinition
@@ -75,16 +74,16 @@ func (wodu *WorkOrderDefinitionUpdate) ClearIndex() *WorkOrderDefinitionUpdate {
 }
 
 // SetTypeID sets the type edge to WorkOrderType by id.
-func (wodu *WorkOrderDefinitionUpdate) SetTypeID(id string) *WorkOrderDefinitionUpdate {
+func (wodu *WorkOrderDefinitionUpdate) SetTypeID(id int) *WorkOrderDefinitionUpdate {
 	if wodu._type == nil {
-		wodu._type = make(map[string]struct{})
+		wodu._type = make(map[int]struct{})
 	}
 	wodu._type[id] = struct{}{}
 	return wodu
 }
 
 // SetNillableTypeID sets the type edge to WorkOrderType by id if the given value is not nil.
-func (wodu *WorkOrderDefinitionUpdate) SetNillableTypeID(id *string) *WorkOrderDefinitionUpdate {
+func (wodu *WorkOrderDefinitionUpdate) SetNillableTypeID(id *int) *WorkOrderDefinitionUpdate {
 	if id != nil {
 		wodu = wodu.SetTypeID(*id)
 	}
@@ -97,16 +96,16 @@ func (wodu *WorkOrderDefinitionUpdate) SetType(w *WorkOrderType) *WorkOrderDefin
 }
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
-func (wodu *WorkOrderDefinitionUpdate) SetProjectTypeID(id string) *WorkOrderDefinitionUpdate {
+func (wodu *WorkOrderDefinitionUpdate) SetProjectTypeID(id int) *WorkOrderDefinitionUpdate {
 	if wodu.project_type == nil {
-		wodu.project_type = make(map[string]struct{})
+		wodu.project_type = make(map[int]struct{})
 	}
 	wodu.project_type[id] = struct{}{}
 	return wodu
 }
 
 // SetNillableProjectTypeID sets the project_type edge to ProjectType by id if the given value is not nil.
-func (wodu *WorkOrderDefinitionUpdate) SetNillableProjectTypeID(id *string) *WorkOrderDefinitionUpdate {
+func (wodu *WorkOrderDefinitionUpdate) SetNillableProjectTypeID(id *int) *WorkOrderDefinitionUpdate {
 	if id != nil {
 		wodu = wodu.SetProjectTypeID(*id)
 	}
@@ -173,7 +172,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 			Table:   workorderdefinition.Table,
 			Columns: workorderdefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workorderdefinition.FieldID,
 			},
 		},
@@ -221,7 +220,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
@@ -237,16 +236,12 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -260,7 +255,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
@@ -276,16 +271,12 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -304,14 +295,14 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 // WorkOrderDefinitionUpdateOne is the builder for updating a single WorkOrderDefinition entity.
 type WorkOrderDefinitionUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time        *time.Time
 	index              *int
 	addindex           *int
 	clearindex         bool
-	_type              map[string]struct{}
-	project_type       map[string]struct{}
+	_type              map[int]struct{}
+	project_type       map[int]struct{}
 	clearedType        bool
 	clearedProjectType bool
 }
@@ -349,16 +340,16 @@ func (woduo *WorkOrderDefinitionUpdateOne) ClearIndex() *WorkOrderDefinitionUpda
 }
 
 // SetTypeID sets the type edge to WorkOrderType by id.
-func (woduo *WorkOrderDefinitionUpdateOne) SetTypeID(id string) *WorkOrderDefinitionUpdateOne {
+func (woduo *WorkOrderDefinitionUpdateOne) SetTypeID(id int) *WorkOrderDefinitionUpdateOne {
 	if woduo._type == nil {
-		woduo._type = make(map[string]struct{})
+		woduo._type = make(map[int]struct{})
 	}
 	woduo._type[id] = struct{}{}
 	return woduo
 }
 
 // SetNillableTypeID sets the type edge to WorkOrderType by id if the given value is not nil.
-func (woduo *WorkOrderDefinitionUpdateOne) SetNillableTypeID(id *string) *WorkOrderDefinitionUpdateOne {
+func (woduo *WorkOrderDefinitionUpdateOne) SetNillableTypeID(id *int) *WorkOrderDefinitionUpdateOne {
 	if id != nil {
 		woduo = woduo.SetTypeID(*id)
 	}
@@ -371,16 +362,16 @@ func (woduo *WorkOrderDefinitionUpdateOne) SetType(w *WorkOrderType) *WorkOrderD
 }
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
-func (woduo *WorkOrderDefinitionUpdateOne) SetProjectTypeID(id string) *WorkOrderDefinitionUpdateOne {
+func (woduo *WorkOrderDefinitionUpdateOne) SetProjectTypeID(id int) *WorkOrderDefinitionUpdateOne {
 	if woduo.project_type == nil {
-		woduo.project_type = make(map[string]struct{})
+		woduo.project_type = make(map[int]struct{})
 	}
 	woduo.project_type[id] = struct{}{}
 	return woduo
 }
 
 // SetNillableProjectTypeID sets the project_type edge to ProjectType by id if the given value is not nil.
-func (woduo *WorkOrderDefinitionUpdateOne) SetNillableProjectTypeID(id *string) *WorkOrderDefinitionUpdateOne {
+func (woduo *WorkOrderDefinitionUpdateOne) SetNillableProjectTypeID(id *int) *WorkOrderDefinitionUpdateOne {
 	if id != nil {
 		woduo = woduo.SetProjectTypeID(*id)
 	}
@@ -448,7 +439,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 			Columns: workorderdefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  woduo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workorderdefinition.FieldID,
 			},
 		},
@@ -489,7 +480,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
@@ -505,16 +496,12 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -528,7 +515,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
@@ -544,16 +531,12 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

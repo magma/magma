@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,7 +23,7 @@ import (
 type Equipment struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -40,10 +39,10 @@ type Equipment struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges                         EquipmentEdges `json:"edges"`
-	equipment_type                *string
-	equipment_work_order          *string
-	equipment_position_attachment *string
-	location_equipment            *string
+	equipment_type                *int
+	equipment_work_order          *int
+	equipment_position_attachment *int
+	location_equipment            *int
 }
 
 // EquipmentEdges holds the relations/edges for other nodes in the graph.
@@ -205,7 +204,7 @@ func (e *Equipment) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	e.ID = strconv.FormatInt(value.Int64, 10)
+	e.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -242,26 +241,26 @@ func (e *Equipment) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_type", value)
 		} else if value.Valid {
-			e.equipment_type = new(string)
-			*e.equipment_type = strconv.FormatInt(value.Int64, 10)
+			e.equipment_type = new(int)
+			*e.equipment_type = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_work_order", value)
 		} else if value.Valid {
-			e.equipment_work_order = new(string)
-			*e.equipment_work_order = strconv.FormatInt(value.Int64, 10)
+			e.equipment_work_order = new(int)
+			*e.equipment_work_order = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_position_attachment", value)
 		} else if value.Valid {
-			e.equipment_position_attachment = new(string)
-			*e.equipment_position_attachment = strconv.FormatInt(value.Int64, 10)
+			e.equipment_position_attachment = new(int)
+			*e.equipment_position_attachment = int(value.Int64)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field location_equipment", value)
 		} else if value.Valid {
-			e.location_equipment = new(string)
-			*e.location_equipment = strconv.FormatInt(value.Int64, 10)
+			e.location_equipment = new(int)
+			*e.location_equipment = int(value.Int64)
 		}
 	}
 	return nil
@@ -349,12 +348,6 @@ func (e *Equipment) String() string {
 	builder.WriteString(e.ExternalID)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (e *Equipment) id() int {
-	id, _ := strconv.Atoi(e.ID)
-	return id
 }
 
 // EquipmentSlice is a parsable slice of Equipment.

@@ -454,7 +454,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddActionsRule                           func(childComplexity int, input models.AddActionsRuleInput) int
-		AddCellScans                             func(childComplexity int, data []*models.SurveyCellScanData, locationID string) int
+		AddCellScans                             func(childComplexity int, data []*models.SurveyCellScanData, locationID int) int
 		AddComment                               func(childComplexity int, input models.CommentInput) int
 		AddCustomer                              func(childComplexity int, input models.AddCustomerInput) int
 		AddEquipment                             func(childComplexity int, input models.AddEquipmentInput) int
@@ -468,21 +468,21 @@ type ComplexityRoot struct {
 		AddLocationType                          func(childComplexity int, input models.AddLocationTypeInput) int
 		AddService                               func(childComplexity int, data models.ServiceCreateData) int
 		AddServiceEndpoint                       func(childComplexity int, input models.AddServiceEndpointInput) int
-		AddServiceLink                           func(childComplexity int, id string, linkID string) int
+		AddServiceLink                           func(childComplexity int, id int, linkID int) int
 		AddServiceType                           func(childComplexity int, data models.ServiceTypeCreateData) int
 		AddTechnician                            func(childComplexity int, input models.TechnicianInput) int
-		AddWiFiScans                             func(childComplexity int, data []*models.SurveyWiFiScanData, locationID string) int
+		AddWiFiScans                             func(childComplexity int, data []*models.SurveyWiFiScanData, locationID int) int
 		AddWorkOrder                             func(childComplexity int, input models.AddWorkOrderInput) int
 		AddWorkOrderType                         func(childComplexity int, input models.AddWorkOrderTypeInput) int
 		CreateProject                            func(childComplexity int, input models.AddProjectInput) int
 		CreateProjectType                        func(childComplexity int, input models.AddProjectTypeInput) int
 		CreateSurvey                             func(childComplexity int, data models.SurveyCreateData) int
-		DeleteFloorPlan                          func(childComplexity int, id string) int
-		DeleteHyperlink                          func(childComplexity int, id string) int
-		DeleteImage                              func(childComplexity int, entityType models.ImageEntity, entityID string, id string) int
-		DeleteProject                            func(childComplexity int, id string) int
-		DeleteProjectType                        func(childComplexity int, id string) int
-		EditActionsRule                          func(childComplexity int, id string, input models.AddActionsRuleInput) int
+		DeleteFloorPlan                          func(childComplexity int, id int) int
+		DeleteHyperlink                          func(childComplexity int, id int) int
+		DeleteImage                              func(childComplexity int, entityType models.ImageEntity, entityID int, id int) int
+		DeleteProject                            func(childComplexity int, id int) int
+		DeleteProjectType                        func(childComplexity int, id int) int
+		EditActionsRule                          func(childComplexity int, id int, input models.AddActionsRuleInput) int
 		EditEquipment                            func(childComplexity int, input models.EditEquipmentInput) int
 		EditEquipmentPort                        func(childComplexity int, input models.EditEquipmentPortInput) int
 		EditEquipmentPortType                    func(childComplexity int, input models.EditEquipmentPortTypeInput) int
@@ -490,7 +490,7 @@ type ComplexityRoot struct {
 		EditLink                                 func(childComplexity int, input models.EditLinkInput) int
 		EditLocation                             func(childComplexity int, input models.EditLocationInput) int
 		EditLocationType                         func(childComplexity int, input models.EditLocationTypeInput) int
-		EditLocationTypeSurveyTemplateCategories func(childComplexity int, id string, surveyTemplateCategories []*models.SurveyTemplateCategoryInput) int
+		EditLocationTypeSurveyTemplateCategories func(childComplexity int, id int, surveyTemplateCategories []*models.SurveyTemplateCategoryInput) int
 		EditLocationTypesIndex                   func(childComplexity int, locationTypesIndex []*models.LocationTypeIndex) int
 		EditProject                              func(childComplexity int, input models.EditProjectInput) int
 		EditProjectType                          func(childComplexity int, input models.EditProjectTypeInput) int
@@ -498,28 +498,28 @@ type ComplexityRoot struct {
 		EditServiceType                          func(childComplexity int, data models.ServiceTypeEditData) int
 		EditWorkOrder                            func(childComplexity int, input models.EditWorkOrderInput) int
 		EditWorkOrderType                        func(childComplexity int, input models.EditWorkOrderTypeInput) int
-		ExecuteWorkOrder                         func(childComplexity int, id string) int
+		ExecuteWorkOrder                         func(childComplexity int, id int) int
 		MarkLocationPropertyAsExternalID         func(childComplexity int, propertyName string) int
-		MarkSiteSurveyNeeded                     func(childComplexity int, locationID string, needed bool) int
-		MoveEquipmentToPosition                  func(childComplexity int, parentEquipmentID *string, positionDefinitionID *string, equipmentID string) int
-		MoveLocation                             func(childComplexity int, locationID string, parentLocationID *string) int
-		RemoveActionsRule                        func(childComplexity int, id string) int
-		RemoveCustomer                           func(childComplexity int, id string) int
-		RemoveEquipment                          func(childComplexity int, id string, workOrderID *string) int
-		RemoveEquipmentFromPosition              func(childComplexity int, positionID string, workOrderID *string) int
-		RemoveEquipmentPortType                  func(childComplexity int, id string) int
-		RemoveEquipmentType                      func(childComplexity int, id string) int
-		RemoveLink                               func(childComplexity int, id string, workOrderID *string) int
-		RemoveLocation                           func(childComplexity int, id string) int
-		RemoveLocationType                       func(childComplexity int, id string) int
-		RemoveService                            func(childComplexity int, id string) int
-		RemoveServiceEndpoint                    func(childComplexity int, serviceEndpointID string) int
-		RemoveServiceLink                        func(childComplexity int, id string, linkID string) int
-		RemoveServiceType                        func(childComplexity int, id string) int
-		RemoveSiteSurvey                         func(childComplexity int, id string) int
-		RemoveWorkOrder                          func(childComplexity int, id string) int
-		RemoveWorkOrderType                      func(childComplexity int, id string) int
-		TechnicianWorkOrderCheckIn               func(childComplexity int, workOrderID string) int
+		MarkSiteSurveyNeeded                     func(childComplexity int, locationID int, needed bool) int
+		MoveEquipmentToPosition                  func(childComplexity int, parentEquipmentID *int, positionDefinitionID *int, equipmentID int) int
+		MoveLocation                             func(childComplexity int, locationID int, parentLocationID *int) int
+		RemoveActionsRule                        func(childComplexity int, id int) int
+		RemoveCustomer                           func(childComplexity int, id int) int
+		RemoveEquipment                          func(childComplexity int, id int, workOrderID *int) int
+		RemoveEquipmentFromPosition              func(childComplexity int, positionID int, workOrderID *int) int
+		RemoveEquipmentPortType                  func(childComplexity int, id int) int
+		RemoveEquipmentType                      func(childComplexity int, id int) int
+		RemoveLink                               func(childComplexity int, id int, workOrderID *int) int
+		RemoveLocation                           func(childComplexity int, id int) int
+		RemoveLocationType                       func(childComplexity int, id int) int
+		RemoveService                            func(childComplexity int, id int) int
+		RemoveServiceEndpoint                    func(childComplexity int, serviceEndpointID int) int
+		RemoveServiceLink                        func(childComplexity int, id int, linkID int) int
+		RemoveServiceType                        func(childComplexity int, id int) int
+		RemoveSiteSurvey                         func(childComplexity int, id int) int
+		RemoveWorkOrder                          func(childComplexity int, id int) int
+		RemoveWorkOrderType                      func(childComplexity int, id int) int
+		TechnicianWorkOrderCheckIn               func(childComplexity int, workOrderID int) int
 	}
 
 	NetworkTopology struct {
@@ -620,35 +620,35 @@ type ComplexityRoot struct {
 		ActionsTriggers          func(childComplexity int) int
 		CustomerSearch           func(childComplexity int, limit *int) int
 		Customers                func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Equipment                func(childComplexity int, id string) int
+		Equipment                func(childComplexity int, id int) int
 		EquipmentPortDefinitions func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentPortTypes       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentSearch          func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
-		EquipmentType            func(childComplexity int, id string) int
+		EquipmentType            func(childComplexity int, id int) int
 		EquipmentTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		LatestPythonPackage      func(childComplexity int) int
 		LinkSearch               func(childComplexity int, filters []*models.LinkFilterInput, limit *int) int
-		Location                 func(childComplexity int, id string) int
+		Location                 func(childComplexity int, id int) int
 		LocationSearch           func(childComplexity int, filters []*models.LocationFilterInput, limit *int) int
-		LocationType             func(childComplexity int, id string) int
+		LocationType             func(childComplexity int, id int) int
 		LocationTypes            func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Locations                func(childComplexity int, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Locations                func(childComplexity int, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Me                       func(childComplexity int) int
 		NearestSites             func(childComplexity int, latitude float64, longitude float64, first int) int
-		Node                     func(childComplexity int, id string) int
+		Node                     func(childComplexity int, id int) int
 		PortSearch               func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
 		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
 		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
-		ProjectType              func(childComplexity int, id string) int
+		ProjectType              func(childComplexity int, id int) int
 		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		SearchForEntity          func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Service                  func(childComplexity int, id string) int
+		Service                  func(childComplexity int, id int) int
 		ServiceSearch            func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
-		ServiceType              func(childComplexity int, id string) int
+		ServiceType              func(childComplexity int, id int) int
 		ServiceTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Surveys                  func(childComplexity int) int
-		Vertex                   func(childComplexity int, id string) int
-		WorkOrder                func(childComplexity int, id string) int
+		Vertex                   func(childComplexity int, id int) int
+		WorkOrder                func(childComplexity int, id int) int
 		WorkOrderSearch          func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
 		WorkOrderTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		WorkOrders               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
@@ -986,7 +986,7 @@ type FileResolver interface {
 	FileType(ctx context.Context, obj *ent.File) (*models.FileType, error)
 }
 type FloorPlanResolver interface {
-	LocationID(ctx context.Context, obj *ent.FloorPlan) (string, error)
+	LocationID(ctx context.Context, obj *ent.FloorPlan) (int, error)
 	Image(ctx context.Context, obj *ent.FloorPlan) (*ent.File, error)
 	ReferencePoint(ctx context.Context, obj *ent.FloorPlan) (*ent.FloorPlanReferencePoint, error)
 	Scale(ctx context.Context, obj *ent.FloorPlan) (*ent.FloorPlanScale, error)
@@ -1025,53 +1025,53 @@ type LocationTypeResolver interface {
 	SurveyTemplateCategories(ctx context.Context, obj *ent.LocationType) ([]*ent.SurveyTemplateCategory, error)
 }
 type MutationResolver interface {
-	CreateSurvey(ctx context.Context, data models.SurveyCreateData) (*string, error)
+	CreateSurvey(ctx context.Context, data models.SurveyCreateData) (*int, error)
 	AddLocation(ctx context.Context, input models.AddLocationInput) (*ent.Location, error)
 	EditLocation(ctx context.Context, input models.EditLocationInput) (*ent.Location, error)
-	RemoveLocation(ctx context.Context, id string) (string, error)
+	RemoveLocation(ctx context.Context, id int) (int, error)
 	AddLocationType(ctx context.Context, input models.AddLocationTypeInput) (*ent.LocationType, error)
 	EditLocationType(ctx context.Context, input models.EditLocationTypeInput) (*ent.LocationType, error)
-	RemoveLocationType(ctx context.Context, id string) (string, error)
+	RemoveLocationType(ctx context.Context, id int) (int, error)
 	AddEquipment(ctx context.Context, input models.AddEquipmentInput) (*ent.Equipment, error)
 	EditEquipment(ctx context.Context, input models.EditEquipmentInput) (*ent.Equipment, error)
-	RemoveEquipment(ctx context.Context, id string, workOrderID *string) (string, error)
+	RemoveEquipment(ctx context.Context, id int, workOrderID *int) (int, error)
 	AddEquipmentType(ctx context.Context, input models.AddEquipmentTypeInput) (*ent.EquipmentType, error)
 	EditEquipmentType(ctx context.Context, input models.EditEquipmentTypeInput) (*ent.EquipmentType, error)
-	RemoveEquipmentType(ctx context.Context, id string) (string, error)
+	RemoveEquipmentType(ctx context.Context, id int) (int, error)
 	AddEquipmentPortType(ctx context.Context, input models.AddEquipmentPortTypeInput) (*ent.EquipmentPortType, error)
 	EditEquipmentPortType(ctx context.Context, input models.EditEquipmentPortTypeInput) (*ent.EquipmentPortType, error)
-	RemoveEquipmentPortType(ctx context.Context, id string) (string, error)
+	RemoveEquipmentPortType(ctx context.Context, id int) (int, error)
 	AddLink(ctx context.Context, input models.AddLinkInput) (*ent.Link, error)
 	EditLink(ctx context.Context, input models.EditLinkInput) (*ent.Link, error)
-	RemoveLink(ctx context.Context, id string, workOrderID *string) (*ent.Link, error)
+	RemoveLink(ctx context.Context, id int, workOrderID *int) (*ent.Link, error)
 	AddService(ctx context.Context, data models.ServiceCreateData) (*ent.Service, error)
 	EditService(ctx context.Context, data models.ServiceEditData) (*ent.Service, error)
-	AddServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error)
-	RemoveServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error)
+	AddServiceLink(ctx context.Context, id int, linkID int) (*ent.Service, error)
+	RemoveServiceLink(ctx context.Context, id int, linkID int) (*ent.Service, error)
 	AddServiceEndpoint(ctx context.Context, input models.AddServiceEndpointInput) (*ent.Service, error)
-	RemoveServiceEndpoint(ctx context.Context, serviceEndpointID string) (*ent.Service, error)
+	RemoveServiceEndpoint(ctx context.Context, serviceEndpointID int) (*ent.Service, error)
 	AddServiceType(ctx context.Context, data models.ServiceTypeCreateData) (*ent.ServiceType, error)
 	EditServiceType(ctx context.Context, data models.ServiceTypeEditData) (*ent.ServiceType, error)
-	RemoveEquipmentFromPosition(ctx context.Context, positionID string, workOrderID *string) (*ent.EquipmentPosition, error)
-	MoveEquipmentToPosition(ctx context.Context, parentEquipmentID *string, positionDefinitionID *string, equipmentID string) (*ent.EquipmentPosition, error)
+	RemoveEquipmentFromPosition(ctx context.Context, positionID int, workOrderID *int) (*ent.EquipmentPosition, error)
+	MoveEquipmentToPosition(ctx context.Context, parentEquipmentID *int, positionDefinitionID *int, equipmentID int) (*ent.EquipmentPosition, error)
 	AddComment(ctx context.Context, input models.CommentInput) (*ent.Comment, error)
 	AddImage(ctx context.Context, input models.AddImageInput) (*ent.File, error)
 	AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error)
-	DeleteHyperlink(ctx context.Context, id string) (*ent.Hyperlink, error)
-	DeleteImage(ctx context.Context, entityType models.ImageEntity, entityID string, id string) (*ent.File, error)
-	RemoveWorkOrder(ctx context.Context, id string) (string, error)
-	ExecuteWorkOrder(ctx context.Context, id string) (*models.WorkOrderExecutionResult, error)
-	RemoveWorkOrderType(ctx context.Context, id string) (string, error)
-	MarkSiteSurveyNeeded(ctx context.Context, locationID string, needed bool) (*ent.Location, error)
-	RemoveService(ctx context.Context, id string) (string, error)
-	RemoveServiceType(ctx context.Context, id string) (string, error)
-	EditLocationTypeSurveyTemplateCategories(ctx context.Context, id string, surveyTemplateCategories []*models.SurveyTemplateCategoryInput) ([]*ent.SurveyTemplateCategory, error)
+	DeleteHyperlink(ctx context.Context, id int) (*ent.Hyperlink, error)
+	DeleteImage(ctx context.Context, entityType models.ImageEntity, entityID int, id int) (*ent.File, error)
+	RemoveWorkOrder(ctx context.Context, id int) (int, error)
+	ExecuteWorkOrder(ctx context.Context, id int) (*models.WorkOrderExecutionResult, error)
+	RemoveWorkOrderType(ctx context.Context, id int) (int, error)
+	MarkSiteSurveyNeeded(ctx context.Context, locationID int, needed bool) (*ent.Location, error)
+	RemoveService(ctx context.Context, id int) (int, error)
+	RemoveServiceType(ctx context.Context, id int) (int, error)
+	EditLocationTypeSurveyTemplateCategories(ctx context.Context, id int, surveyTemplateCategories []*models.SurveyTemplateCategoryInput) ([]*ent.SurveyTemplateCategory, error)
 	EditEquipmentPort(ctx context.Context, input models.EditEquipmentPortInput) (*ent.EquipmentPort, error)
 	MarkLocationPropertyAsExternalID(ctx context.Context, propertyName string) (*string, error)
-	RemoveSiteSurvey(ctx context.Context, id string) (string, error)
-	AddWiFiScans(ctx context.Context, data []*models.SurveyWiFiScanData, locationID string) ([]*ent.SurveyWiFiScan, error)
-	AddCellScans(ctx context.Context, data []*models.SurveyCellScanData, locationID string) ([]*ent.SurveyCellScan, error)
-	MoveLocation(ctx context.Context, locationID string, parentLocationID *string) (*ent.Location, error)
+	RemoveSiteSurvey(ctx context.Context, id int) (int, error)
+	AddWiFiScans(ctx context.Context, data []*models.SurveyWiFiScanData, locationID int) ([]*ent.SurveyWiFiScan, error)
+	AddCellScans(ctx context.Context, data []*models.SurveyCellScanData, locationID int) ([]*ent.SurveyCellScan, error)
+	MoveLocation(ctx context.Context, locationID int, parentLocationID *int) (*ent.Location, error)
 	EditLocationTypesIndex(ctx context.Context, locationTypesIndex []*models.LocationTypeIndex) ([]*ent.LocationType, error)
 	AddTechnician(ctx context.Context, input models.TechnicianInput) (*ent.Technician, error)
 	AddWorkOrder(ctx context.Context, input models.AddWorkOrderInput) (*ent.WorkOrder, error)
@@ -1080,18 +1080,18 @@ type MutationResolver interface {
 	EditWorkOrderType(ctx context.Context, input models.EditWorkOrderTypeInput) (*ent.WorkOrderType, error)
 	CreateProjectType(ctx context.Context, input models.AddProjectTypeInput) (*ent.ProjectType, error)
 	EditProjectType(ctx context.Context, input models.EditProjectTypeInput) (*ent.ProjectType, error)
-	DeleteProjectType(ctx context.Context, id string) (bool, error)
+	DeleteProjectType(ctx context.Context, id int) (bool, error)
 	CreateProject(ctx context.Context, input models.AddProjectInput) (*ent.Project, error)
 	EditProject(ctx context.Context, input models.EditProjectInput) (*ent.Project, error)
-	DeleteProject(ctx context.Context, id string) (bool, error)
+	DeleteProject(ctx context.Context, id int) (bool, error)
 	AddCustomer(ctx context.Context, input models.AddCustomerInput) (*ent.Customer, error)
-	RemoveCustomer(ctx context.Context, id string) (string, error)
+	RemoveCustomer(ctx context.Context, id int) (int, error)
 	AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error)
-	DeleteFloorPlan(ctx context.Context, id string) (bool, error)
+	DeleteFloorPlan(ctx context.Context, id int) (bool, error)
 	AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
-	EditActionsRule(ctx context.Context, id string, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
-	RemoveActionsRule(ctx context.Context, id string) (bool, error)
-	TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID string) (*ent.WorkOrder, error)
+	EditActionsRule(ctx context.Context, id int, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
+	RemoveActionsRule(ctx context.Context, id int) (bool, error)
+	TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID int) (*ent.WorkOrder, error)
 }
 type ProjectResolver interface {
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
@@ -1119,20 +1119,20 @@ type PropertyTypeResolver interface {
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*viewer.Viewer, error)
-	Node(ctx context.Context, id string) (ent.Noder, error)
-	Location(ctx context.Context, id string) (*ent.Location, error)
-	LocationType(ctx context.Context, id string) (*ent.LocationType, error)
+	Node(ctx context.Context, id int) (ent.Noder, error)
+	Location(ctx context.Context, id int) (*ent.Location, error)
+	LocationType(ctx context.Context, id int) (*ent.LocationType, error)
 	LocationTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationTypeConnection, error)
-	Locations(ctx context.Context, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationConnection, error)
-	Equipment(ctx context.Context, id string) (*ent.Equipment, error)
-	EquipmentType(ctx context.Context, id string) (*ent.EquipmentType, error)
+	Locations(ctx context.Context, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationConnection, error)
+	Equipment(ctx context.Context, id int) (*ent.Equipment, error)
+	EquipmentType(ctx context.Context, id int) (*ent.EquipmentType, error)
 	EquipmentPortTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortTypeConnection, error)
 	EquipmentPortDefinitions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortDefinitionConnection, error)
 	EquipmentTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentTypeConnection, error)
-	Service(ctx context.Context, id string) (*ent.Service, error)
-	ServiceType(ctx context.Context, id string) (*ent.ServiceType, error)
+	Service(ctx context.Context, id int) (*ent.Service, error)
+	ServiceType(ctx context.Context, id int) (*ent.ServiceType, error)
 	ServiceTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ServiceTypeConnection, error)
-	WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error)
+	WorkOrder(ctx context.Context, id int) (*ent.WorkOrder, error)
 	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) (*ent.WorkOrderConnection, error)
 	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
 	SearchForEntity(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchEntriesConnection, error)
@@ -1148,8 +1148,8 @@ type QueryResolver interface {
 	Surveys(ctx context.Context) ([]*ent.Survey, error)
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
-	Vertex(ctx context.Context, id string) (*ent.Node, error)
-	ProjectType(ctx context.Context, id string) (*ent.ProjectType, error)
+	Vertex(ctx context.Context, id int) (*ent.Node, error)
+	ProjectType(ctx context.Context, id int) (*ent.ProjectType, error)
 	ProjectTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectTypeConnection, error)
 	Customers(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.CustomerConnection, error)
 	ActionsRules(ctx context.Context) (*models.ActionsRulesSearchResult, error)
@@ -1183,7 +1183,7 @@ type SubscriptionResolver interface {
 type SurveyResolver interface {
 	CreationTimestamp(ctx context.Context, obj *ent.Survey) (*int, error)
 	CompletionTimestamp(ctx context.Context, obj *ent.Survey) (int, error)
-	LocationID(ctx context.Context, obj *ent.Survey) (string, error)
+	LocationID(ctx context.Context, obj *ent.Survey) (int, error)
 	SourceFile(ctx context.Context, obj *ent.Survey) (*ent.File, error)
 	SurveyResponses(ctx context.Context, obj *ent.Survey) ([]*ent.SurveyQuestion, error)
 }
@@ -2800,7 +2800,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddCellScans(childComplexity, args["data"].([]*models.SurveyCellScanData), args["locationID"].(string)), true
+		return e.complexity.Mutation.AddCellScans(childComplexity, args["data"].([]*models.SurveyCellScanData), args["locationID"].(int)), true
 
 	case "Mutation.addComment":
 		if e.complexity.Mutation.AddComment == nil {
@@ -2968,7 +2968,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddServiceLink(childComplexity, args["id"].(string), args["linkId"].(string)), true
+		return e.complexity.Mutation.AddServiceLink(childComplexity, args["id"].(int), args["linkId"].(int)), true
 
 	case "Mutation.addServiceType":
 		if e.complexity.Mutation.AddServiceType == nil {
@@ -3004,7 +3004,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddWiFiScans(childComplexity, args["data"].([]*models.SurveyWiFiScanData), args["locationID"].(string)), true
+		return e.complexity.Mutation.AddWiFiScans(childComplexity, args["data"].([]*models.SurveyWiFiScanData), args["locationID"].(int)), true
 
 	case "Mutation.addWorkOrder":
 		if e.complexity.Mutation.AddWorkOrder == nil {
@@ -3076,7 +3076,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteFloorPlan(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteFloorPlan(childComplexity, args["id"].(int)), true
 
 	case "Mutation.deleteHyperlink":
 		if e.complexity.Mutation.DeleteHyperlink == nil {
@@ -3088,7 +3088,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteHyperlink(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteHyperlink(childComplexity, args["id"].(int)), true
 
 	case "Mutation.deleteImage":
 		if e.complexity.Mutation.DeleteImage == nil {
@@ -3100,7 +3100,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteImage(childComplexity, args["entityType"].(models.ImageEntity), args["entityId"].(string), args["id"].(string)), true
+		return e.complexity.Mutation.DeleteImage(childComplexity, args["entityType"].(models.ImageEntity), args["entityId"].(int), args["id"].(int)), true
 
 	case "Mutation.deleteProject":
 		if e.complexity.Mutation.DeleteProject == nil {
@@ -3112,7 +3112,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteProject(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteProject(childComplexity, args["id"].(int)), true
 
 	case "Mutation.deleteProjectType":
 		if e.complexity.Mutation.DeleteProjectType == nil {
@@ -3124,7 +3124,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteProjectType(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteProjectType(childComplexity, args["id"].(int)), true
 
 	case "Mutation.editActionsRule":
 		if e.complexity.Mutation.EditActionsRule == nil {
@@ -3136,7 +3136,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditActionsRule(childComplexity, args["id"].(string), args["input"].(models.AddActionsRuleInput)), true
+		return e.complexity.Mutation.EditActionsRule(childComplexity, args["id"].(int), args["input"].(models.AddActionsRuleInput)), true
 
 	case "Mutation.editEquipment":
 		if e.complexity.Mutation.EditEquipment == nil {
@@ -3232,7 +3232,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditLocationTypeSurveyTemplateCategories(childComplexity, args["id"].(string), args["surveyTemplateCategories"].([]*models.SurveyTemplateCategoryInput)), true
+		return e.complexity.Mutation.EditLocationTypeSurveyTemplateCategories(childComplexity, args["id"].(int), args["surveyTemplateCategories"].([]*models.SurveyTemplateCategoryInput)), true
 
 	case "Mutation.editLocationTypesIndex":
 		if e.complexity.Mutation.EditLocationTypesIndex == nil {
@@ -3328,7 +3328,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ExecuteWorkOrder(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.ExecuteWorkOrder(childComplexity, args["id"].(int)), true
 
 	case "Mutation.markLocationPropertyAsExternalID":
 		if e.complexity.Mutation.MarkLocationPropertyAsExternalID == nil {
@@ -3352,7 +3352,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MarkSiteSurveyNeeded(childComplexity, args["locationId"].(string), args["needed"].(bool)), true
+		return e.complexity.Mutation.MarkSiteSurveyNeeded(childComplexity, args["locationId"].(int), args["needed"].(bool)), true
 
 	case "Mutation.moveEquipmentToPosition":
 		if e.complexity.Mutation.MoveEquipmentToPosition == nil {
@@ -3364,7 +3364,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MoveEquipmentToPosition(childComplexity, args["parentEquipmentId"].(*string), args["positionDefinitionId"].(*string), args["equipmentId"].(string)), true
+		return e.complexity.Mutation.MoveEquipmentToPosition(childComplexity, args["parentEquipmentId"].(*int), args["positionDefinitionId"].(*int), args["equipmentId"].(int)), true
 
 	case "Mutation.moveLocation":
 		if e.complexity.Mutation.MoveLocation == nil {
@@ -3376,7 +3376,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MoveLocation(childComplexity, args["locationID"].(string), args["parentLocationID"].(*string)), true
+		return e.complexity.Mutation.MoveLocation(childComplexity, args["locationID"].(int), args["parentLocationID"].(*int)), true
 
 	case "Mutation.removeActionsRule":
 		if e.complexity.Mutation.RemoveActionsRule == nil {
@@ -3388,7 +3388,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveActionsRule(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveActionsRule(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeCustomer":
 		if e.complexity.Mutation.RemoveCustomer == nil {
@@ -3400,7 +3400,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveCustomer(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveCustomer(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeEquipment":
 		if e.complexity.Mutation.RemoveEquipment == nil {
@@ -3412,7 +3412,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveEquipment(childComplexity, args["id"].(string), args["workOrderId"].(*string)), true
+		return e.complexity.Mutation.RemoveEquipment(childComplexity, args["id"].(int), args["workOrderId"].(*int)), true
 
 	case "Mutation.removeEquipmentFromPosition":
 		if e.complexity.Mutation.RemoveEquipmentFromPosition == nil {
@@ -3424,7 +3424,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveEquipmentFromPosition(childComplexity, args["positionId"].(string), args["workOrderId"].(*string)), true
+		return e.complexity.Mutation.RemoveEquipmentFromPosition(childComplexity, args["positionId"].(int), args["workOrderId"].(*int)), true
 
 	case "Mutation.removeEquipmentPortType":
 		if e.complexity.Mutation.RemoveEquipmentPortType == nil {
@@ -3436,7 +3436,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveEquipmentPortType(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveEquipmentPortType(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeEquipmentType":
 		if e.complexity.Mutation.RemoveEquipmentType == nil {
@@ -3448,7 +3448,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveEquipmentType(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveEquipmentType(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeLink":
 		if e.complexity.Mutation.RemoveLink == nil {
@@ -3460,7 +3460,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveLink(childComplexity, args["id"].(string), args["workOrderId"].(*string)), true
+		return e.complexity.Mutation.RemoveLink(childComplexity, args["id"].(int), args["workOrderId"].(*int)), true
 
 	case "Mutation.removeLocation":
 		if e.complexity.Mutation.RemoveLocation == nil {
@@ -3472,7 +3472,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveLocation(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveLocation(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeLocationType":
 		if e.complexity.Mutation.RemoveLocationType == nil {
@@ -3484,7 +3484,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveLocationType(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveLocationType(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeService":
 		if e.complexity.Mutation.RemoveService == nil {
@@ -3496,7 +3496,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveService(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveService(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeServiceEndpoint":
 		if e.complexity.Mutation.RemoveServiceEndpoint == nil {
@@ -3508,7 +3508,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveServiceEndpoint(childComplexity, args["serviceEndpointId"].(string)), true
+		return e.complexity.Mutation.RemoveServiceEndpoint(childComplexity, args["serviceEndpointId"].(int)), true
 
 	case "Mutation.removeServiceLink":
 		if e.complexity.Mutation.RemoveServiceLink == nil {
@@ -3520,7 +3520,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveServiceLink(childComplexity, args["id"].(string), args["linkId"].(string)), true
+		return e.complexity.Mutation.RemoveServiceLink(childComplexity, args["id"].(int), args["linkId"].(int)), true
 
 	case "Mutation.removeServiceType":
 		if e.complexity.Mutation.RemoveServiceType == nil {
@@ -3532,7 +3532,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveServiceType(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveServiceType(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeSiteSurvey":
 		if e.complexity.Mutation.RemoveSiteSurvey == nil {
@@ -3544,7 +3544,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveSiteSurvey(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveSiteSurvey(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeWorkOrder":
 		if e.complexity.Mutation.RemoveWorkOrder == nil {
@@ -3556,7 +3556,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveWorkOrder(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveWorkOrder(childComplexity, args["id"].(int)), true
 
 	case "Mutation.removeWorkOrderType":
 		if e.complexity.Mutation.RemoveWorkOrderType == nil {
@@ -3568,7 +3568,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveWorkOrderType(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.RemoveWorkOrderType(childComplexity, args["id"].(int)), true
 
 	case "Mutation.technicianWorkOrderCheckIn":
 		if e.complexity.Mutation.TechnicianWorkOrderCheckIn == nil {
@@ -3580,7 +3580,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.TechnicianWorkOrderCheckIn(childComplexity, args["workOrderId"].(string)), true
+		return e.complexity.Mutation.TechnicianWorkOrderCheckIn(childComplexity, args["workOrderId"].(int)), true
 
 	case "NetworkTopology.links":
 		if e.complexity.NetworkTopology.Links == nil {
@@ -4071,7 +4071,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Equipment(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Equipment(childComplexity, args["id"].(int)), true
 
 	case "Query.equipmentPortDefinitions":
 		if e.complexity.Query.EquipmentPortDefinitions == nil {
@@ -4119,7 +4119,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EquipmentType(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.EquipmentType(childComplexity, args["id"].(int)), true
 
 	case "Query.equipmentTypes":
 		if e.complexity.Query.EquipmentTypes == nil {
@@ -4162,7 +4162,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Location(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Location(childComplexity, args["id"].(int)), true
 
 	case "Query.locationSearch":
 		if e.complexity.Query.LocationSearch == nil {
@@ -4186,7 +4186,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LocationType(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.LocationType(childComplexity, args["id"].(int)), true
 
 	case "Query.locationTypes":
 		if e.complexity.Query.LocationTypes == nil {
@@ -4210,7 +4210,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Locations(childComplexity, args["onlyTopLevel"].(*bool), args["types"].([]string), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.Locations(childComplexity, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
@@ -4241,7 +4241,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Node(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Node(childComplexity, args["id"].(int)), true
 
 	case "Query.portSearch":
 		if e.complexity.Query.PortSearch == nil {
@@ -4289,7 +4289,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ProjectType(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.ProjectType(childComplexity, args["id"].(int)), true
 
 	case "Query.projectTypes":
 		if e.complexity.Query.ProjectTypes == nil {
@@ -4325,7 +4325,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Service(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Service(childComplexity, args["id"].(int)), true
 
 	case "Query.serviceSearch":
 		if e.complexity.Query.ServiceSearch == nil {
@@ -4349,7 +4349,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ServiceType(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.ServiceType(childComplexity, args["id"].(int)), true
 
 	case "Query.serviceTypes":
 		if e.complexity.Query.ServiceTypes == nil {
@@ -4380,7 +4380,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Vertex(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Vertex(childComplexity, args["id"].(int)), true
 
 	case "Query.workOrder":
 		if e.complexity.Query.WorkOrder == nil {
@@ -4392,7 +4392,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.WorkOrder(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.WorkOrder(childComplexity, args["id"].(int)), true
 
 	case "Query.workOrderSearch":
 		if e.complexity.Query.WorkOrderSearch == nil {
@@ -8036,9 +8036,9 @@ func (ec *executionContext) field_Mutation_addCellScans_args(ctx context.Context
 		}
 	}
 	args["data"] = arg0
-	var arg1 string
+	var arg1 int
 	if tmp, ok := rawArgs["locationID"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8218,17 +8218,17 @@ func (ec *executionContext) field_Mutation_addServiceEndpoint_args(ctx context.C
 func (ec *executionContext) field_Mutation_addServiceLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["id"] = arg0
-	var arg1 string
+	var arg1 int
 	if tmp, ok := rawArgs["linkId"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8290,9 +8290,9 @@ func (ec *executionContext) field_Mutation_addWiFiScans_args(ctx context.Context
 		}
 	}
 	args["data"] = arg0
-	var arg1 string
+	var arg1 int
 	if tmp, ok := rawArgs["locationID"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8374,9 +8374,9 @@ func (ec *executionContext) field_Mutation_createSurvey_args(ctx context.Context
 func (ec *executionContext) field_Mutation_deleteFloorPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8388,9 +8388,9 @@ func (ec *executionContext) field_Mutation_deleteFloorPlan_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_deleteHyperlink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8410,17 +8410,17 @@ func (ec *executionContext) field_Mutation_deleteImage_args(ctx context.Context,
 		}
 	}
 	args["entityType"] = arg0
-	var arg1 string
+	var arg1 int
 	if tmp, ok := rawArgs["entityId"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["entityId"] = arg1
-	var arg2 string
+	var arg2 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg2, err = ec.unmarshalNID2string(ctx, tmp)
+		arg2, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8432,9 +8432,9 @@ func (ec *executionContext) field_Mutation_deleteImage_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_deleteProjectType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8446,9 +8446,9 @@ func (ec *executionContext) field_Mutation_deleteProjectType_args(ctx context.Co
 func (ec *executionContext) field_Mutation_deleteProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8460,9 +8460,9 @@ func (ec *executionContext) field_Mutation_deleteProject_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_editActionsRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8552,9 +8552,9 @@ func (ec *executionContext) field_Mutation_editLink_args(ctx context.Context, ra
 func (ec *executionContext) field_Mutation_editLocationTypeSurveyTemplateCategories_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8700,9 +8700,9 @@ func (ec *executionContext) field_Mutation_editWorkOrder_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_executeWorkOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8728,9 +8728,9 @@ func (ec *executionContext) field_Mutation_markLocationPropertyAsExternalID_args
 func (ec *executionContext) field_Mutation_markSiteSurveyNeeded_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["locationId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8750,25 +8750,25 @@ func (ec *executionContext) field_Mutation_markSiteSurveyNeeded_args(ctx context
 func (ec *executionContext) field_Mutation_moveEquipmentToPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *string
+	var arg0 *int
 	if tmp, ok := rawArgs["parentEquipmentId"]; ok {
-		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["parentEquipmentId"] = arg0
-	var arg1 *string
+	var arg1 *int
 	if tmp, ok := rawArgs["positionDefinitionId"]; ok {
-		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["positionDefinitionId"] = arg1
-	var arg2 string
+	var arg2 int
 	if tmp, ok := rawArgs["equipmentId"]; ok {
-		arg2, err = ec.unmarshalNID2string(ctx, tmp)
+		arg2, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8780,17 +8780,17 @@ func (ec *executionContext) field_Mutation_moveEquipmentToPosition_args(ctx cont
 func (ec *executionContext) field_Mutation_moveLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["locationID"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["locationID"] = arg0
-	var arg1 *string
+	var arg1 *int
 	if tmp, ok := rawArgs["parentLocationID"]; ok {
-		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8802,9 +8802,9 @@ func (ec *executionContext) field_Mutation_moveLocation_args(ctx context.Context
 func (ec *executionContext) field_Mutation_removeActionsRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8816,9 +8816,9 @@ func (ec *executionContext) field_Mutation_removeActionsRule_args(ctx context.Co
 func (ec *executionContext) field_Mutation_removeCustomer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8830,17 +8830,17 @@ func (ec *executionContext) field_Mutation_removeCustomer_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_removeEquipmentFromPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["positionId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["positionId"] = arg0
-	var arg1 *string
+	var arg1 *int
 	if tmp, ok := rawArgs["workOrderId"]; ok {
-		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8852,9 +8852,9 @@ func (ec *executionContext) field_Mutation_removeEquipmentFromPosition_args(ctx 
 func (ec *executionContext) field_Mutation_removeEquipmentPortType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8866,9 +8866,9 @@ func (ec *executionContext) field_Mutation_removeEquipmentPortType_args(ctx cont
 func (ec *executionContext) field_Mutation_removeEquipmentType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8880,17 +8880,17 @@ func (ec *executionContext) field_Mutation_removeEquipmentType_args(ctx context.
 func (ec *executionContext) field_Mutation_removeEquipment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["id"] = arg0
-	var arg1 *string
+	var arg1 *int
 	if tmp, ok := rawArgs["workOrderId"]; ok {
-		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8902,17 +8902,17 @@ func (ec *executionContext) field_Mutation_removeEquipment_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_removeLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["id"] = arg0
-	var arg1 *string
+	var arg1 *int
 	if tmp, ok := rawArgs["workOrderId"]; ok {
-		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8924,9 +8924,9 @@ func (ec *executionContext) field_Mutation_removeLink_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_removeLocationType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8938,9 +8938,9 @@ func (ec *executionContext) field_Mutation_removeLocationType_args(ctx context.C
 func (ec *executionContext) field_Mutation_removeLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8952,9 +8952,9 @@ func (ec *executionContext) field_Mutation_removeLocation_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_removeServiceEndpoint_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["serviceEndpointId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8966,17 +8966,17 @@ func (ec *executionContext) field_Mutation_removeServiceEndpoint_args(ctx contex
 func (ec *executionContext) field_Mutation_removeServiceLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["id"] = arg0
-	var arg1 string
+	var arg1 int
 	if tmp, ok := rawArgs["linkId"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8988,9 +8988,9 @@ func (ec *executionContext) field_Mutation_removeServiceLink_args(ctx context.Co
 func (ec *executionContext) field_Mutation_removeServiceType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9002,9 +9002,9 @@ func (ec *executionContext) field_Mutation_removeServiceType_args(ctx context.Co
 func (ec *executionContext) field_Mutation_removeService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9016,9 +9016,9 @@ func (ec *executionContext) field_Mutation_removeService_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_removeSiteSurvey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9030,9 +9030,9 @@ func (ec *executionContext) field_Mutation_removeSiteSurvey_args(ctx context.Con
 func (ec *executionContext) field_Mutation_removeWorkOrderType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9044,9 +9044,9 @@ func (ec *executionContext) field_Mutation_removeWorkOrderType_args(ctx context.
 func (ec *executionContext) field_Mutation_removeWorkOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9058,9 +9058,9 @@ func (ec *executionContext) field_Mutation_removeWorkOrder_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_technicianWorkOrderCheckIn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["workOrderId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9236,9 +9236,9 @@ func (ec *executionContext) field_Query_equipmentSearch_args(ctx context.Context
 func (ec *executionContext) field_Query_equipmentType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9288,9 +9288,9 @@ func (ec *executionContext) field_Query_equipmentTypes_args(ctx context.Context,
 func (ec *executionContext) field_Query_equipment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9346,9 +9346,9 @@ func (ec *executionContext) field_Query_locationSearch_args(ctx context.Context,
 func (ec *executionContext) field_Query_locationType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9398,9 +9398,9 @@ func (ec *executionContext) field_Query_locationTypes_args(ctx context.Context, 
 func (ec *executionContext) field_Query_location_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9420,9 +9420,9 @@ func (ec *executionContext) field_Query_locations_args(ctx context.Context, rawA
 		}
 	}
 	args["onlyTopLevel"] = arg0
-	var arg1 []string
+	var arg1 []int
 	if tmp, ok := rawArgs["types"]; ok {
-		arg1, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚕintᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9512,9 +9512,9 @@ func (ec *executionContext) field_Query_nearestSites_args(ctx context.Context, r
 func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9584,9 +9584,9 @@ func (ec *executionContext) field_Query_projectSearch_args(ctx context.Context, 
 func (ec *executionContext) field_Query_projectType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9704,9 +9704,9 @@ func (ec *executionContext) field_Query_serviceSearch_args(ctx context.Context, 
 func (ec *executionContext) field_Query_serviceType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9756,9 +9756,9 @@ func (ec *executionContext) field_Query_serviceTypes_args(ctx context.Context, r
 func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9770,9 +9770,9 @@ func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArg
 func (ec *executionContext) field_Query_vertex_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9844,9 +9844,9 @@ func (ec *executionContext) field_Query_workOrderTypes_args(ctx context.Context,
 func (ec *executionContext) field_Query_workOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -10301,10 +10301,10 @@ func (ec *executionContext) _ActionsRule_id(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_name(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -10850,10 +10850,10 @@ func (ec *executionContext) _ActionsTrigger_id(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsTrigger_triggerID(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTrigger) (ret graphql.Marshaler) {
@@ -11109,10 +11109,10 @@ func (ec *executionContext) _CheckListCategory_id(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListCategory_title(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListCategory) (ret graphql.Marshaler) {
@@ -11254,10 +11254,10 @@ func (ec *executionContext) _CheckListItem_id(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListItem_title(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
@@ -11535,10 +11535,10 @@ func (ec *executionContext) _CheckListItemDefinition_id(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListItemDefinition_title(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItemDefinition) (ret graphql.Marshaler) {
@@ -11748,10 +11748,10 @@ func (ec *executionContext) _Comment_id(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_authorName(ctx context.Context, field graphql.CollectedField, obj *ent.Comment) (ret graphql.Marshaler) {
@@ -11896,10 +11896,10 @@ func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Customer_name(ctx context.Context, field graphql.CollectedField, obj *ent.Customer) (ret graphql.Marshaler) {
@@ -12331,10 +12331,10 @@ func (ec *executionContext) _Edge_ids(ctx context.Context, field graphql.Collect
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNID2ᚕintᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Equipment_id(ctx context.Context, field graphql.CollectedField, obj *ent.Equipment) (ret graphql.Marshaler) {
@@ -12368,10 +12368,10 @@ func (ec *executionContext) _Equipment_id(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Equipment_externalId(ctx context.Context, field graphql.CollectedField, obj *ent.Equipment) (ret graphql.Marshaler) {
@@ -13060,10 +13060,10 @@ func (ec *executionContext) _EquipmentPort_id(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPort_definition(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPort) (ret graphql.Marshaler) {
@@ -13279,10 +13279,10 @@ func (ec *executionContext) _EquipmentPortDefinition_id(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPortDefinition_name(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinition) (ret graphql.Marshaler) {
@@ -13634,10 +13634,10 @@ func (ec *executionContext) _EquipmentPortType_id(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPortType_name(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortType) (ret graphql.Marshaler) {
@@ -13964,10 +13964,10 @@ func (ec *executionContext) _EquipmentPosition_id(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPosition_definition(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPosition) (ret graphql.Marshaler) {
@@ -14109,10 +14109,10 @@ func (ec *executionContext) _EquipmentPositionDefinition_id(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPositionDefinition_name(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPositionDefinition) (ret graphql.Marshaler) {
@@ -14325,10 +14325,10 @@ func (ec *executionContext) _EquipmentType_id(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentType_name(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentType) (ret graphql.Marshaler) {
@@ -14874,10 +14874,10 @@ func (ec *executionContext) _File_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _File_fileName(ctx context.Context, field graphql.CollectedField, obj *ent.File) (ret graphql.Marshaler) {
@@ -15152,10 +15152,10 @@ func (ec *executionContext) _FloorPlan_id(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FloorPlan_name(ctx context.Context, field graphql.CollectedField, obj *ent.FloorPlan) (ret graphql.Marshaler) {
@@ -15226,10 +15226,10 @@ func (ec *executionContext) _FloorPlan_locationID(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FloorPlan_image(ctx context.Context, field graphql.CollectedField, obj *ent.FloorPlan) (ret graphql.Marshaler) {
@@ -15707,10 +15707,10 @@ func (ec *executionContext) _Hyperlink_id(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Hyperlink_url(ctx context.Context, field graphql.CollectedField, obj *ent.Hyperlink) (ret graphql.Marshaler) {
@@ -15954,10 +15954,10 @@ func (ec *executionContext) _Link_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Link_ports(ctx context.Context, field graphql.CollectedField, obj *ent.Link) (ret graphql.Marshaler) {
@@ -16244,10 +16244,10 @@ func (ec *executionContext) _Location_id(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Location_externalId(ctx context.Context, field graphql.CollectedField, obj *ent.Location) (ret graphql.Marshaler) {
@@ -17285,10 +17285,10 @@ func (ec *executionContext) _LocationType_id(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LocationType_name(ctx context.Context, field graphql.CollectedField, obj *ent.LocationType) (ret graphql.Marshaler) {
@@ -17796,10 +17796,10 @@ func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17910,7 +17910,7 @@ func (ec *executionContext) _Mutation_removeLocation(ctx context.Context, field 
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveLocation(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveLocation(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17922,10 +17922,10 @@ func (ec *executionContext) _Mutation_removeLocation(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addLocationType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18036,7 +18036,7 @@ func (ec *executionContext) _Mutation_removeLocationType(ctx context.Context, fi
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveLocationType(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveLocationType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18048,10 +18048,10 @@ func (ec *executionContext) _Mutation_removeLocationType(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addEquipment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18162,7 +18162,7 @@ func (ec *executionContext) _Mutation_removeEquipment(ctx context.Context, field
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveEquipment(rctx, args["id"].(string), args["workOrderId"].(*string))
+		return ec.resolvers.Mutation().RemoveEquipment(rctx, args["id"].(int), args["workOrderId"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18174,10 +18174,10 @@ func (ec *executionContext) _Mutation_removeEquipment(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addEquipmentType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18288,7 +18288,7 @@ func (ec *executionContext) _Mutation_removeEquipmentType(ctx context.Context, f
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveEquipmentType(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveEquipmentType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18300,10 +18300,10 @@ func (ec *executionContext) _Mutation_removeEquipmentType(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addEquipmentPortType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18414,7 +18414,7 @@ func (ec *executionContext) _Mutation_removeEquipmentPortType(ctx context.Contex
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveEquipmentPortType(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveEquipmentPortType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18426,10 +18426,10 @@ func (ec *executionContext) _Mutation_removeEquipmentPortType(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18540,7 +18540,7 @@ func (ec *executionContext) _Mutation_removeLink(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveLink(rctx, args["id"].(string), args["workOrderId"].(*string))
+		return ec.resolvers.Mutation().RemoveLink(rctx, args["id"].(int), args["workOrderId"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18663,7 +18663,7 @@ func (ec *executionContext) _Mutation_addServiceLink(ctx context.Context, field 
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddServiceLink(rctx, args["id"].(string), args["linkId"].(string))
+		return ec.resolvers.Mutation().AddServiceLink(rctx, args["id"].(int), args["linkId"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18704,7 +18704,7 @@ func (ec *executionContext) _Mutation_removeServiceLink(ctx context.Context, fie
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveServiceLink(rctx, args["id"].(string), args["linkId"].(string))
+		return ec.resolvers.Mutation().RemoveServiceLink(rctx, args["id"].(int), args["linkId"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18786,7 +18786,7 @@ func (ec *executionContext) _Mutation_removeServiceEndpoint(ctx context.Context,
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveServiceEndpoint(rctx, args["serviceEndpointId"].(string))
+		return ec.resolvers.Mutation().RemoveServiceEndpoint(rctx, args["serviceEndpointId"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18909,7 +18909,7 @@ func (ec *executionContext) _Mutation_removeEquipmentFromPosition(ctx context.Co
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveEquipmentFromPosition(rctx, args["positionId"].(string), args["workOrderId"].(*string))
+		return ec.resolvers.Mutation().RemoveEquipmentFromPosition(rctx, args["positionId"].(int), args["workOrderId"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18950,7 +18950,7 @@ func (ec *executionContext) _Mutation_moveEquipmentToPosition(ctx context.Contex
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MoveEquipmentToPosition(rctx, args["parentEquipmentId"].(*string), args["positionDefinitionId"].(*string), args["equipmentId"].(string))
+		return ec.resolvers.Mutation().MoveEquipmentToPosition(rctx, args["parentEquipmentId"].(*int), args["positionDefinitionId"].(*int), args["equipmentId"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19120,7 +19120,7 @@ func (ec *executionContext) _Mutation_deleteHyperlink(ctx context.Context, field
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteHyperlink(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().DeleteHyperlink(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19164,7 +19164,7 @@ func (ec *executionContext) _Mutation_deleteImage(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteImage(rctx, args["entityType"].(models.ImageEntity), args["entityId"].(string), args["id"].(string))
+		return ec.resolvers.Mutation().DeleteImage(rctx, args["entityType"].(models.ImageEntity), args["entityId"].(int), args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19205,7 +19205,7 @@ func (ec *executionContext) _Mutation_removeWorkOrder(ctx context.Context, field
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveWorkOrder(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveWorkOrder(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19217,10 +19217,10 @@ func (ec *executionContext) _Mutation_removeWorkOrder(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_executeWorkOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19249,7 +19249,7 @@ func (ec *executionContext) _Mutation_executeWorkOrder(ctx context.Context, fiel
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ExecuteWorkOrder(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().ExecuteWorkOrder(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19290,7 +19290,7 @@ func (ec *executionContext) _Mutation_removeWorkOrderType(ctx context.Context, f
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveWorkOrderType(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveWorkOrderType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19302,10 +19302,10 @@ func (ec *executionContext) _Mutation_removeWorkOrderType(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_markSiteSurveyNeeded(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19334,7 +19334,7 @@ func (ec *executionContext) _Mutation_markSiteSurveyNeeded(ctx context.Context, 
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkSiteSurveyNeeded(rctx, args["locationId"].(string), args["needed"].(bool))
+		return ec.resolvers.Mutation().MarkSiteSurveyNeeded(rctx, args["locationId"].(int), args["needed"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19378,7 +19378,7 @@ func (ec *executionContext) _Mutation_removeService(ctx context.Context, field g
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveService(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveService(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19390,10 +19390,10 @@ func (ec *executionContext) _Mutation_removeService(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeServiceType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19422,7 +19422,7 @@ func (ec *executionContext) _Mutation_removeServiceType(ctx context.Context, fie
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveServiceType(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveServiceType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19434,10 +19434,10 @@ func (ec *executionContext) _Mutation_removeServiceType(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editLocationTypeSurveyTemplateCategories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19466,7 +19466,7 @@ func (ec *executionContext) _Mutation_editLocationTypeSurveyTemplateCategories(c
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditLocationTypeSurveyTemplateCategories(rctx, args["id"].(string), args["surveyTemplateCategories"].([]*models.SurveyTemplateCategoryInput))
+		return ec.resolvers.Mutation().EditLocationTypeSurveyTemplateCategories(rctx, args["id"].(int), args["surveyTemplateCategories"].([]*models.SurveyTemplateCategoryInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19589,7 +19589,7 @@ func (ec *executionContext) _Mutation_removeSiteSurvey(ctx context.Context, fiel
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveSiteSurvey(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveSiteSurvey(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19601,10 +19601,10 @@ func (ec *executionContext) _Mutation_removeSiteSurvey(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addWiFiScans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19633,7 +19633,7 @@ func (ec *executionContext) _Mutation_addWiFiScans(ctx context.Context, field gr
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddWiFiScans(rctx, args["data"].([]*models.SurveyWiFiScanData), args["locationID"].(string))
+		return ec.resolvers.Mutation().AddWiFiScans(rctx, args["data"].([]*models.SurveyWiFiScanData), args["locationID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19674,7 +19674,7 @@ func (ec *executionContext) _Mutation_addCellScans(ctx context.Context, field gr
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddCellScans(rctx, args["data"].([]*models.SurveyCellScanData), args["locationID"].(string))
+		return ec.resolvers.Mutation().AddCellScans(rctx, args["data"].([]*models.SurveyCellScanData), args["locationID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19715,7 +19715,7 @@ func (ec *executionContext) _Mutation_moveLocation(ctx context.Context, field gr
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MoveLocation(rctx, args["locationID"].(string), args["parentLocationID"].(*string))
+		return ec.resolvers.Mutation().MoveLocation(rctx, args["locationID"].(int), args["parentLocationID"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20084,7 +20084,7 @@ func (ec *executionContext) _Mutation_deleteProjectType(ctx context.Context, fie
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteProjectType(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().DeleteProjectType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20210,7 +20210,7 @@ func (ec *executionContext) _Mutation_deleteProject(ctx context.Context, field g
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteProject(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().DeleteProject(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20295,7 +20295,7 @@ func (ec *executionContext) _Mutation_removeCustomer(ctx context.Context, field 
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveCustomer(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveCustomer(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20307,10 +20307,10 @@ func (ec *executionContext) _Mutation_removeCustomer(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addFloorPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20380,7 +20380,7 @@ func (ec *executionContext) _Mutation_deleteFloorPlan(ctx context.Context, field
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteFloorPlan(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().DeleteFloorPlan(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20465,7 +20465,7 @@ func (ec *executionContext) _Mutation_editActionsRule(ctx context.Context, field
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditActionsRule(rctx, args["id"].(string), args["input"].(models.AddActionsRuleInput))
+		return ec.resolvers.Mutation().EditActionsRule(rctx, args["id"].(int), args["input"].(models.AddActionsRuleInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20506,7 +20506,7 @@ func (ec *executionContext) _Mutation_removeActionsRule(ctx context.Context, fie
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveActionsRule(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().RemoveActionsRule(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20550,7 +20550,7 @@ func (ec *executionContext) _Mutation_technicianWorkOrderCheckIn(ctx context.Con
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().TechnicianWorkOrderCheckIn(rctx, args["workOrderId"].(string))
+		return ec.resolvers.Mutation().TechnicianWorkOrderCheckIn(rctx, args["workOrderId"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20886,10 +20886,10 @@ func (ec *executionContext) _Project_id(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Project_name(ctx context.Context, field graphql.CollectedField, obj *ent.Project) (ret graphql.Marshaler) {
@@ -21271,10 +21271,10 @@ func (ec *executionContext) _ProjectType_id(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ProjectType_name(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectType) (ret graphql.Marshaler) {
@@ -21696,10 +21696,10 @@ func (ec *executionContext) _Property_id(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_propertyType(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -22144,10 +22144,10 @@ func (ec *executionContext) _PropertyType_id(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_name(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -22908,7 +22908,7 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Node(rctx, args["id"].(string))
+		return ec.resolvers.Query().Node(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22949,7 +22949,7 @@ func (ec *executionContext) _Query_location(ctx context.Context, field graphql.C
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Location(rctx, args["id"].(string))
+		return ec.resolvers.Query().Location(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22990,7 +22990,7 @@ func (ec *executionContext) _Query_locationType(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LocationType(rctx, args["id"].(string))
+		return ec.resolvers.Query().LocationType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23072,7 +23072,7 @@ func (ec *executionContext) _Query_locations(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Locations(rctx, args["onlyTopLevel"].(*bool), args["types"].([]string), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().Locations(rctx, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23113,7 +23113,7 @@ func (ec *executionContext) _Query_equipment(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Equipment(rctx, args["id"].(string))
+		return ec.resolvers.Query().Equipment(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23154,7 +23154,7 @@ func (ec *executionContext) _Query_equipmentType(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EquipmentType(rctx, args["id"].(string))
+		return ec.resolvers.Query().EquipmentType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23327,7 +23327,7 @@ func (ec *executionContext) _Query_service(ctx context.Context, field graphql.Co
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Service(rctx, args["id"].(string))
+		return ec.resolvers.Query().Service(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23368,7 +23368,7 @@ func (ec *executionContext) _Query_serviceType(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ServiceType(rctx, args["id"].(string))
+		return ec.resolvers.Query().ServiceType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23450,7 +23450,7 @@ func (ec *executionContext) _Query_workOrder(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().WorkOrder(rctx, args["id"].(string))
+		return ec.resolvers.Query().WorkOrder(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24131,7 +24131,7 @@ func (ec *executionContext) _Query_vertex(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Vertex(rctx, args["id"].(string))
+		return ec.resolvers.Query().Vertex(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24172,7 +24172,7 @@ func (ec *executionContext) _Query_projectType(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ProjectType(rctx, args["id"].(string))
+		return ec.resolvers.Query().ProjectType(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24514,10 +24514,10 @@ func (ec *executionContext) _SearchEntry_entityId(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchEntry_entityType(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntry) (ret graphql.Marshaler) {
@@ -24767,10 +24767,10 @@ func (ec *executionContext) _Service_id(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Service_name(ctx context.Context, field graphql.CollectedField, obj *ent.Service) (ret graphql.Marshaler) {
@@ -25205,10 +25205,10 @@ func (ec *executionContext) _ServiceEndpoint_id(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceEndpoint_port(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpoint) (ret graphql.Marshaler) {
@@ -25427,10 +25427,10 @@ func (ec *executionContext) _ServiceType_id(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceType_name(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceType) (ret graphql.Marshaler) {
@@ -25880,10 +25880,10 @@ func (ec *executionContext) _Survey_id(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_name(ctx context.Context, field graphql.CollectedField, obj *ent.Survey) (ret graphql.Marshaler) {
@@ -26059,10 +26059,10 @@ func (ec *executionContext) _Survey_locationID(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_sourceFile(ctx context.Context, field graphql.CollectedField, obj *ent.Survey) (ret graphql.Marshaler) {
@@ -26167,10 +26167,10 @@ func (ec *executionContext) _SurveyCellScan_id(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SurveyCellScan_networkType(ctx context.Context, field graphql.CollectedField, obj *ent.SurveyCellScan) (ret graphql.Marshaler) {
@@ -26890,10 +26890,10 @@ func (ec *executionContext) _SurveyQuestion_id(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SurveyQuestion_formName(ctx context.Context, field graphql.CollectedField, obj *ent.SurveyQuestion) (ret graphql.Marshaler) {
@@ -27616,10 +27616,10 @@ func (ec *executionContext) _SurveyTemplateCategory_id(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SurveyTemplateCategory_categoryTitle(ctx context.Context, field graphql.CollectedField, obj *ent.SurveyTemplateCategory) (ret graphql.Marshaler) {
@@ -27761,10 +27761,10 @@ func (ec *executionContext) _SurveyTemplateQuestion_id(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SurveyTemplateQuestion_questionTitle(ctx context.Context, field graphql.CollectedField, obj *ent.SurveyTemplateQuestion) (ret graphql.Marshaler) {
@@ -27946,10 +27946,10 @@ func (ec *executionContext) _SurveyWiFiScan_id(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SurveyWiFiScan_timestamp(ctx context.Context, field graphql.CollectedField, obj *ent.SurveyWiFiScan) (ret graphql.Marshaler) {
@@ -28557,10 +28557,10 @@ func (ec *executionContext) _Vertex_id(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Vertex_type(ctx context.Context, field graphql.CollectedField, obj *ent.Node) (ret graphql.Marshaler) {
@@ -28779,10 +28779,10 @@ func (ec *executionContext) _WorkOrder_id(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrder_workOrderType(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
@@ -29726,10 +29726,10 @@ func (ec *executionContext) _WorkOrderDefinition_id(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderDefinition_index(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderDefinition) (ret graphql.Marshaler) {
@@ -29905,10 +29905,10 @@ func (ec *executionContext) _WorkOrderExecutionResult_id(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderExecutionResult_name(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderExecutionResult) (ret graphql.Marshaler) {
@@ -30016,10 +30016,10 @@ func (ec *executionContext) _WorkOrderExecutionResult_equipmentRemoved(ctx conte
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNID2ᚕintᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderExecutionResult_linkAdded(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderExecutionResult) (ret graphql.Marshaler) {
@@ -30090,10 +30090,10 @@ func (ec *executionContext) _WorkOrderExecutionResult_linkRemoved(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNID2ᚕintᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderSearchResult_workOrders(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderSearchResult) (ret graphql.Marshaler) {
@@ -30201,10 +30201,10 @@ func (ec *executionContext) _WorkOrderType_id(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderType_name(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderType) (ret graphql.Marshaler) {
@@ -31867,25 +31867,25 @@ func (ec *executionContext) unmarshalInputAddEquipmentInput(ctx context.Context,
 			}
 		case "type":
 			var err error
-			it.Type, err = ec.unmarshalNID2string(ctx, v)
+			it.Type, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "location":
 			var err error
-			it.Location, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.Location, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "parent":
 			var err error
-			it.Parent, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.Parent, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "positionDefinition":
 			var err error
-			it.PositionDefinition, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.PositionDefinition, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -31897,7 +31897,7 @@ func (ec *executionContext) unmarshalInputAddEquipmentInput(ctx context.Context,
 			}
 		case "workOrder":
 			var err error
-			it.WorkOrder, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.WorkOrder, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32068,7 +32068,7 @@ func (ec *executionContext) unmarshalInputAddFloorPlanInput(ctx context.Context,
 			}
 		case "locationID":
 			var err error
-			it.LocationID, err = ec.unmarshalNID2string(ctx, v)
+			it.LocationID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32152,7 +32152,7 @@ func (ec *executionContext) unmarshalInputAddHyperlinkInput(ctx context.Context,
 			}
 		case "entityId":
 			var err error
-			it.EntityID, err = ec.unmarshalNID2string(ctx, v)
+			it.EntityID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32194,7 +32194,7 @@ func (ec *executionContext) unmarshalInputAddImageInput(ctx context.Context, obj
 			}
 		case "entityId":
 			var err error
-			it.EntityID, err = ec.unmarshalNID2string(ctx, v)
+			it.EntityID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32277,7 +32277,7 @@ func (ec *executionContext) unmarshalInputAddLinkInput(ctx context.Context, obj 
 			}
 		case "workOrder":
 			var err error
-			it.WorkOrder, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.WorkOrder, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32289,7 +32289,7 @@ func (ec *executionContext) unmarshalInputAddLinkInput(ctx context.Context, obj 
 			}
 		case "serviceIds":
 			var err error
-			it.ServiceIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			it.ServiceIds, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32313,13 +32313,13 @@ func (ec *executionContext) unmarshalInputAddLocationInput(ctx context.Context, 
 			}
 		case "type":
 			var err error
-			it.Type, err = ec.unmarshalNID2string(ctx, v)
+			it.Type, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "parent":
 			var err error
-			it.Parent, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.Parent, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32467,13 +32467,13 @@ func (ec *executionContext) unmarshalInputAddProjectInput(ctx context.Context, o
 			}
 		case "type":
 			var err error
-			it.Type, err = ec.unmarshalNID2string(ctx, v)
+			it.Type, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "location":
 			var err error
-			it.Location, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.Location, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32573,13 +32573,13 @@ func (ec *executionContext) unmarshalInputAddServiceEndpointInput(ctx context.Co
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "portId":
 			var err error
-			it.PortID, err = ec.unmarshalNID2string(ctx, v)
+			it.PortID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32615,19 +32615,19 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			}
 		case "workOrderTypeId":
 			var err error
-			it.WorkOrderTypeID, err = ec.unmarshalNID2string(ctx, v)
+			it.WorkOrderTypeID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "locationId":
 			var err error
-			it.LocationID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.LocationID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "projectId":
 			var err error
-			it.ProjectID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ProjectID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32781,7 +32781,7 @@ func (ec *executionContext) unmarshalInputCheckListCategoryInput(ctx context.Con
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32817,7 +32817,7 @@ func (ec *executionContext) unmarshalInputCheckListDefinitionInput(ctx context.C
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32865,7 +32865,7 @@ func (ec *executionContext) unmarshalInputCheckListItemInput(ctx context.Context
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32931,7 +32931,7 @@ func (ec *executionContext) unmarshalInputCommentInput(ctx context.Context, obj 
 			}
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32955,7 +32955,7 @@ func (ec *executionContext) unmarshalInputEditEquipmentInput(ctx context.Context
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33021,7 +33021,7 @@ func (ec *executionContext) unmarshalInputEditEquipmentPortTypeInput(ctx context
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33103,7 +33103,7 @@ func (ec *executionContext) unmarshalInputEditEquipmentTypeInput(ctx context.Con
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33174,7 +33174,7 @@ func (ec *executionContext) unmarshalInputEditLinkInput(ctx context.Context, obj
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33186,7 +33186,7 @@ func (ec *executionContext) unmarshalInputEditLinkInput(ctx context.Context, obj
 			}
 		case "serviceIds":
 			var err error
-			it.ServiceIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			it.ServiceIds, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33204,7 +33204,7 @@ func (ec *executionContext) unmarshalInputEditLocationInput(ctx context.Context,
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33252,7 +33252,7 @@ func (ec *executionContext) unmarshalInputEditLocationTypeInput(ctx context.Cont
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33323,7 +33323,7 @@ func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, 
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33364,13 +33364,13 @@ func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, 
 			}
 		case "type":
 			var err error
-			it.Type, err = ec.unmarshalNID2string(ctx, v)
+			it.Type, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "location":
 			var err error
-			it.Location, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.Location, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33394,7 +33394,7 @@ func (ec *executionContext) unmarshalInputEditProjectTypeInput(ctx context.Conte
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33476,7 +33476,7 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33530,7 +33530,7 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			}
 		case "projectId":
 			var err error
-			it.ProjectID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ProjectID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33554,7 +33554,7 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			}
 		case "locationId":
 			var err error
-			it.LocationID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.LocationID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33572,7 +33572,7 @@ func (ec *executionContext) unmarshalInputEditWorkOrderTypeInput(ctx context.Con
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33694,7 +33694,7 @@ func (ec *executionContext) unmarshalInputEquipmentFilterInput(ctx context.Conte
 			}
 		case "idSet":
 			var err error
-			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			it.IDSet, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33724,7 +33724,7 @@ func (ec *executionContext) unmarshalInputEquipmentPortInput(ctx context.Context
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33748,7 +33748,7 @@ func (ec *executionContext) unmarshalInputEquipmentPortInput(ctx context.Context
 			}
 		case "portTypeID":
 			var err error
-			it.PortTypeID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.PortTypeID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33772,7 +33772,7 @@ func (ec *executionContext) unmarshalInputEquipmentPositionInput(ctx context.Con
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33808,7 +33808,7 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33890,7 +33890,7 @@ func (ec *executionContext) unmarshalInputLinkFilterInput(ctx context.Context, o
 			}
 		case "idSet":
 			var err error
-			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			it.IDSet, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33920,13 +33920,13 @@ func (ec *executionContext) unmarshalInputLinkSide(ctx context.Context, obj inte
 		switch k {
 		case "equipment":
 			var err error
-			it.Equipment, err = ec.unmarshalNID2string(ctx, v)
+			it.Equipment, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "port":
 			var err error
-			it.Port, err = ec.unmarshalNID2string(ctx, v)
+			it.Port, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33978,7 +33978,7 @@ func (ec *executionContext) unmarshalInputLocationFilterInput(ctx context.Contex
 			}
 		case "idSet":
 			var err error
-			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			it.IDSet, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34008,7 +34008,7 @@ func (ec *executionContext) unmarshalInputLocationTypeIndex(ctx context.Context,
 		switch k {
 		case "locationTypeID":
 			var err error
-			it.LocationTypeID, err = ec.unmarshalNID2string(ctx, v)
+			it.LocationTypeID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34066,7 +34066,7 @@ func (ec *executionContext) unmarshalInputPortFilterInput(ctx context.Context, o
 			}
 		case "idSet":
 			var err error
-			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			it.IDSet, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34126,13 +34126,13 @@ func (ec *executionContext) unmarshalInputPropertyInput(ctx context.Context, obj
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "propertyTypeID":
 			var err error
-			it.PropertyTypeID, err = ec.unmarshalNID2string(ctx, v)
+			it.PropertyTypeID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34186,19 +34186,19 @@ func (ec *executionContext) unmarshalInputPropertyInput(ctx context.Context, obj
 			}
 		case "equipmentIDValue":
 			var err error
-			it.EquipmentIDValue, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.EquipmentIDValue, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "locationIDValue":
 			var err error
-			it.LocationIDValue, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.LocationIDValue, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "serviceIDValue":
 			var err error
-			it.ServiceIDValue, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ServiceIDValue, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34228,7 +34228,7 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34364,19 +34364,19 @@ func (ec *executionContext) unmarshalInputServiceCreateData(ctx context.Context,
 			}
 		case "serviceTypeId":
 			var err error
-			it.ServiceTypeID, err = ec.unmarshalNID2string(ctx, v)
+			it.ServiceTypeID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "customerId":
 			var err error
-			it.CustomerID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.CustomerID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "upstreamServiceIds":
 			var err error
-			it.UpstreamServiceIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			it.UpstreamServiceIds, err = ec.unmarshalNID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34400,7 +34400,7 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34424,13 +34424,13 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 			}
 		case "customerId":
 			var err error
-			it.CustomerID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.CustomerID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "upstreamServiceIds":
 			var err error
-			it.UpstreamServiceIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			it.UpstreamServiceIds, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34482,7 +34482,7 @@ func (ec *executionContext) unmarshalInputServiceFilterInput(ctx context.Context
 			}
 		case "idSet":
 			var err error
-			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			it.IDSet, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34565,7 +34565,7 @@ func (ec *executionContext) unmarshalInputServiceTypeEditData(ctx context.Contex
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34786,7 +34786,7 @@ func (ec *executionContext) unmarshalInputSurveyCreateData(ctx context.Context, 
 			}
 		case "locationID":
 			var err error
-			it.LocationID, err = ec.unmarshalNID2string(ctx, v)
+			it.LocationID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34942,7 +34942,7 @@ func (ec *executionContext) unmarshalInputSurveyTemplateCategoryInput(ctx contex
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34978,7 +34978,7 @@ func (ec *executionContext) unmarshalInputSurveyTemplateQuestionInput(ctx contex
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35122,7 +35122,7 @@ func (ec *executionContext) unmarshalInputWorkOrderDefinitionInput(ctx context.C
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35134,7 +35134,7 @@ func (ec *executionContext) unmarshalInputWorkOrderDefinitionInput(ctx context.C
 			}
 		case "type":
 			var err error
-			it.Type, err = ec.unmarshalNID2string(ctx, v)
+			it.Type, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35174,7 +35174,7 @@ func (ec *executionContext) unmarshalInputWorkOrderFilterInput(ctx context.Conte
 			}
 		case "idSet":
 			var err error
-			it.IDSet, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			it.IDSet, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43067,12 +43067,12 @@ func (ec *executionContext) marshalNHyperlink2ᚖgithubᚗcomᚋfacebookincubato
 	return ec._Hyperlink(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalID(v)
+func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalIntID(v)
 }
 
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
+func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalIntID(v)
 	if res == graphql.Null {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -43081,7 +43081,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+func (ec *executionContext) unmarshalNID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -43091,9 +43091,9 @@ func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v int
 		}
 	}
 	var err error
-	res := make([]string, len(vSlice))
+	res := make([]int, len(vSlice))
 	for i := range vSlice {
-		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNID2int(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -43101,10 +43101,10 @@ func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v int
 	return res, nil
 }
 
-func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+func (ec *executionContext) marshalNID2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	for i := range v {
-		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
 	}
 
 	return ret
@@ -46001,15 +46001,15 @@ func (ec *executionContext) marshalOFutureState2ᚖgithubᚗcomᚋfacebookincuba
 	return v
 }
 
-func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalID(v)
+func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalIntID(v)
 }
 
-func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	return graphql.MarshalID(v)
+func (ec *executionContext) marshalOID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalIntID(v)
 }
 
-func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+func (ec *executionContext) unmarshalOID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -46019,9 +46019,9 @@ func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v int
 		}
 	}
 	var err error
-	res := make([]string, len(vSlice))
+	res := make([]int, len(vSlice))
 	for i := range vSlice {
-		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNID2int(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -46029,31 +46029,31 @@ func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v int
 	return res, nil
 }
 
-func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+func (ec *executionContext) marshalOID2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := make(graphql.Array, len(v))
 	for i := range v {
-		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
 	}
 
 	return ret
 }
 
-func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOID2string(ctx, v)
+	res, err := ec.unmarshalOID2int(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOID2string(ctx, sel, *v)
+	return ec.marshalOID2int(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {

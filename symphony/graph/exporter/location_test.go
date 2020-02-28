@@ -23,9 +23,8 @@ import (
 )
 
 func TestEmptyLocationDataExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, locationsRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -57,9 +56,8 @@ func TestEmptyLocationDataExport(t *testing.T) {
 }
 
 func TestLocationsExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, locationsRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -67,6 +65,7 @@ func TestLocationsExport(t *testing.T) {
 	defer server.Close()
 
 	req, err := http.NewRequest("GET", server.URL, nil)
+	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
 	ctx := viewertest.NewContext(r.client)
@@ -140,9 +139,8 @@ func TestLocationsExport(t *testing.T) {
 }
 
 func TestExportLocationWithFilters(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 	ctx := viewertest.NewContext(r.client)
 	e := &exporter{log, locationsRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -211,9 +209,8 @@ func TestExportLocationWithFilters(t *testing.T) {
 }
 
 func TestExportLocationWithPropertyFilters(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 	ctx := viewertest.NewContext(r.client)
 	e := &exporter{log, locationsRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))

@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -94,8 +93,8 @@ func (ecq *EquipmentCategoryQuery) FirstX(ctx context.Context) *EquipmentCategor
 }
 
 // FirstID returns the first EquipmentCategory id in the query. Returns *NotFoundError when no id was found.
-func (ecq *EquipmentCategoryQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ecq *EquipmentCategoryQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ecq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -107,7 +106,7 @@ func (ecq *EquipmentCategoryQuery) FirstID(ctx context.Context) (id string, err 
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (ecq *EquipmentCategoryQuery) FirstXID(ctx context.Context) string {
+func (ecq *EquipmentCategoryQuery) FirstXID(ctx context.Context) int {
 	id, err := ecq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -141,8 +140,8 @@ func (ecq *EquipmentCategoryQuery) OnlyX(ctx context.Context) *EquipmentCategory
 }
 
 // OnlyID returns the only EquipmentCategory id in the query, returns an error if not exactly one id was returned.
-func (ecq *EquipmentCategoryQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ecq *EquipmentCategoryQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ecq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -158,7 +157,7 @@ func (ecq *EquipmentCategoryQuery) OnlyID(ctx context.Context) (id string, err e
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (ecq *EquipmentCategoryQuery) OnlyXID(ctx context.Context) string {
+func (ecq *EquipmentCategoryQuery) OnlyXID(ctx context.Context) int {
 	id, err := ecq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -181,8 +180,8 @@ func (ecq *EquipmentCategoryQuery) AllX(ctx context.Context) []*EquipmentCategor
 }
 
 // IDs executes the query and returns a list of EquipmentCategory ids.
-func (ecq *EquipmentCategoryQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (ecq *EquipmentCategoryQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := ecq.Select(equipmentcategory.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -190,7 +189,7 @@ func (ecq *EquipmentCategoryQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ecq *EquipmentCategoryQuery) IDsX(ctx context.Context) []string {
+func (ecq *EquipmentCategoryQuery) IDsX(ctx context.Context) []int {
 	ids, err := ecq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -324,13 +323,9 @@ func (ecq *EquipmentCategoryQuery) sqlAll(ctx context.Context) ([]*EquipmentCate
 
 	if query := ecq.withTypes; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentCategory)
+		nodeids := make(map[int]*EquipmentCategory)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -376,7 +371,7 @@ func (ecq *EquipmentCategoryQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   equipmentcategory.Table,
 			Columns: equipmentcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentcategory.FieldID,
 			},
 		},

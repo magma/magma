@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -25,8 +24,8 @@ type WorkOrderDefinitionCreate struct {
 	create_time  *time.Time
 	update_time  *time.Time
 	index        *int
-	_type        map[string]struct{}
-	project_type map[string]struct{}
+	_type        map[int]struct{}
+	project_type map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -72,16 +71,16 @@ func (wodc *WorkOrderDefinitionCreate) SetNillableIndex(i *int) *WorkOrderDefini
 }
 
 // SetTypeID sets the type edge to WorkOrderType by id.
-func (wodc *WorkOrderDefinitionCreate) SetTypeID(id string) *WorkOrderDefinitionCreate {
+func (wodc *WorkOrderDefinitionCreate) SetTypeID(id int) *WorkOrderDefinitionCreate {
 	if wodc._type == nil {
-		wodc._type = make(map[string]struct{})
+		wodc._type = make(map[int]struct{})
 	}
 	wodc._type[id] = struct{}{}
 	return wodc
 }
 
 // SetNillableTypeID sets the type edge to WorkOrderType by id if the given value is not nil.
-func (wodc *WorkOrderDefinitionCreate) SetNillableTypeID(id *string) *WorkOrderDefinitionCreate {
+func (wodc *WorkOrderDefinitionCreate) SetNillableTypeID(id *int) *WorkOrderDefinitionCreate {
 	if id != nil {
 		wodc = wodc.SetTypeID(*id)
 	}
@@ -94,16 +93,16 @@ func (wodc *WorkOrderDefinitionCreate) SetType(w *WorkOrderType) *WorkOrderDefin
 }
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
-func (wodc *WorkOrderDefinitionCreate) SetProjectTypeID(id string) *WorkOrderDefinitionCreate {
+func (wodc *WorkOrderDefinitionCreate) SetProjectTypeID(id int) *WorkOrderDefinitionCreate {
 	if wodc.project_type == nil {
-		wodc.project_type = make(map[string]struct{})
+		wodc.project_type = make(map[int]struct{})
 	}
 	wodc.project_type[id] = struct{}{}
 	return wodc
 }
 
 // SetNillableProjectTypeID sets the project_type edge to ProjectType by id if the given value is not nil.
-func (wodc *WorkOrderDefinitionCreate) SetNillableProjectTypeID(id *string) *WorkOrderDefinitionCreate {
+func (wodc *WorkOrderDefinitionCreate) SetNillableProjectTypeID(id *int) *WorkOrderDefinitionCreate {
 	if id != nil {
 		wodc = wodc.SetProjectTypeID(*id)
 	}
@@ -149,7 +148,7 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 		_spec = &sqlgraph.CreateSpec{
 			Table: workorderdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workorderdefinition.FieldID,
 			},
 		}
@@ -187,16 +186,12 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -210,16 +205,12 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -231,6 +222,6 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	wod.ID = strconv.FormatInt(id, 10)
+	wod.ID = int(id)
 	return wod, nil
 }

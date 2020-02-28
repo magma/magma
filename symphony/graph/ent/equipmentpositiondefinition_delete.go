@@ -47,7 +47,7 @@ func (epdd *EquipmentPositionDefinitionDelete) sqlExec(ctx context.Context) (int
 		Node: &sqlgraph.NodeSpec{
 			Table: equipmentpositiondefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentpositiondefinition.FieldID,
 			},
 		},

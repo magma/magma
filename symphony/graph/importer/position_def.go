@@ -66,7 +66,7 @@ func (m *importer) processPositionDefinitionsCSV(w http.ResponseWriter, r *http.
 			positionLabel := line[positionLabelIndex]
 			equipTypeID := equipmentTypeNameToID[equipmentTypeName]
 
-			if equipTypeID == "" {
+			if equipTypeID == 0 {
 				log.Warn("cannot get equipment for position",
 					zap.String("name", name),
 					zap.String("equipment", equipmentTypeName),

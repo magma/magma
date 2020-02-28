@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type Project struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -36,8 +35,8 @@ type Project struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
 	Edges                 ProjectEdges `json:"edges"`
-	project_location      *string
-	project_type_projects *string
+	project_location      *int
+	project_type_projects *int
 }
 
 // ProjectEdges holds the relations/edges for other nodes in the graph.
@@ -142,7 +141,7 @@ func (pr *Project) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	pr.ID = strconv.FormatInt(value.Int64, 10)
+	pr.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -176,14 +175,14 @@ func (pr *Project) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_location", value)
 		} else if value.Valid {
-			pr.project_location = new(string)
-			*pr.project_location = strconv.FormatInt(value.Int64, 10)
+			pr.project_location = new(int)
+			*pr.project_location = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_type_projects", value)
 		} else if value.Valid {
-			pr.project_type_projects = new(string)
-			*pr.project_type_projects = strconv.FormatInt(value.Int64, 10)
+			pr.project_type_projects = new(int)
+			*pr.project_type_projects = int(value.Int64)
 		}
 	}
 	return nil
@@ -253,12 +252,6 @@ func (pr *Project) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (pr *Project) id() int {
-	id, _ := strconv.Atoi(pr.ID)
-	return id
 }
 
 // Projects is a parsable slice of Project.
