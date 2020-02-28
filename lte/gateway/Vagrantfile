@@ -56,7 +56,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_trfserver.vm.network "private_network", ip: "192.168.60.144", nic_type: "82540EM"
     # iperf3 server IP.
     magma_trfserver.vm.network "private_network", ip: "192.168.129.42", nic_type: "82540EM"
-    magma_trfserver.vbguest.auto_update = false
+    #magma_trfserver.vbguest.auto_update = false
 
     magma_trfserver.vm.provider "virtualbox" do |vb|
       vb.name = "magma-trfserver"

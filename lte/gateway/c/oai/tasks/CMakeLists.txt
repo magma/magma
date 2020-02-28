@@ -7,7 +7,7 @@ add_subdirectory(service303) # TASK_SERVICE303
 add_subdirectory(sgs) # TASK_SGS
 add_subdirectory(grpc_service) # TASK_GRPC_SERVICE
 
-if ( EMBEDDED_SGW)
+if (EMBEDDED_SGW)
 add_subdirectory(gtpv1-u) # TASK_GTPV1U
 add_subdirectory(sgw) # TASK_SGW
 endif (EMBEDDED_SGW)
