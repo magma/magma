@@ -485,7 +485,10 @@ int spgw_handle_nw_initiated_bearer_actv_req(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
-  // Fetch S11 MME TEID using IMSI and LBI
+  /* On reception of Dedicated Bearer Activation Request from PCRF,
+   * SPGW shall identify whether valid PDN session exists for the UE
+   * using IMSI and LBI, for which Dedicated Bearer Activation is requested.
+   */
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
          (!is_lbi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
@@ -726,7 +729,7 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
 //------------------------------------------------------------------------------
 int spgw_send_nw_init_activate_bearer_rsp(
   gtpv2c_cause_value_t cause,
-  Imsi_t imsi,
+  imsi64_t imsi64,
   uint8_t eps_bearer_id)
 {
   OAILOG_FUNC_IN(LOG_PGW_APP);
