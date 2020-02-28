@@ -12,4 +12,5 @@ package definitions
 const (
 	MagmadServiceName       = "magmad"
 	ControlProxyServiceName = "control_proxy"
+	MconfigStreamName       = "configs"
 )

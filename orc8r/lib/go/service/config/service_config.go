@@ -11,12 +11,12 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 
-	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
 )
 
@@ -54,7 +54,7 @@ func (cfgMap *ConfigMap) GetStringParam(key string) (string, error) {
 func (cfgMap *ConfigMap) GetRequiredStringParam(key string) string {
 	str, err := getStringParamImpl(cfgMap, key)
 	if err != nil {
-		glog.Fatalf("Error retrieving %s: %v\n", key, err)
+		log.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return str
 }
@@ -80,7 +80,7 @@ func (cfgMap *ConfigMap) GetIntParam(key string) (int, error) {
 func (cfgMap *ConfigMap) GetRequiredIntParam(key string) int {
 	param, err := getIntParamImpl(cfgMap, key)
 	if err != nil {
-		glog.Fatalf("Error retrieving %s: %v\n", key, err)
+		log.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }
@@ -107,7 +107,7 @@ func (cfgMap *ConfigMap) GetStringArrayParam(key string) ([]string, error) {
 func (cfgMap *ConfigMap) GetRequiredStringArrayParam(key string) []string {
 	param, err := getStringArrayParamImpl(cfgMap, key)
 	if err != nil {
-		glog.Fatalf("Error retrieving %s: %v\n", key, err)
+		log.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }
@@ -121,7 +121,7 @@ func (cfgMap *ConfigMap) GetMapParam(key string) (map[interface{}]interface{}, e
 func (cfgMap *ConfigMap) GetRequiredMapParam(key string) map[interface{}]interface{} {
 	param, err := cfgMap.getMapParamImpl(key)
 	if err != nil {
-		glog.Fatalf("Error retrieving %s: %v\n", key, err)
+		log.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
 	return param
 }
@@ -144,13 +144,13 @@ func GetStructuredServiceConfigExt(moduleName, serviceName, configDir, oldConfig
 	if err == nil {
 		err = yaml.Unmarshal([]byte(yamlFileData), out)
 		if err != nil {
-			glog.Infof("Structured CFG: Error Unmarshaling '%s' into type %T: %v", configFileName, out, err)
+			log.Printf("Structured CFG: Error Unmarshaling '%s' into type %T: %v", configFileName, out, err)
 		} else {
-			glog.Infof("Successfully loaded structured '%s::%s' service configs from '%s'",
+			log.Printf("Successfully loaded structured '%s::%s' service configs from '%s'",
 				moduleName, serviceName, configFileName)
 		}
 	} else {
-		glog.Infof("Structured CFG: Error Reading '%s': %v", configFileName, err)
+		log.Printf("Structured CFG: Error Reading '%s': %v", configFileName, err)
 	}
 	// Overwrite params from override configs
 	var oerr error
@@ -160,14 +160,14 @@ func GetStructuredServiceConfigExt(moduleName, serviceName, configDir, oldConfig
 		if oerr == nil {
 			oerr = yaml.Unmarshal([]byte(yamlFileData), out)
 			if oerr != nil {
-				glog.Infof("Structured CFG: Error Unmarshaling Override file '%s' into type %T: %v",
+				log.Printf("Structured CFG: Error Unmarshaling Override file '%s' into type %T: %v",
 					configFileName, out, err)
 			} else {
-				glog.Infof("Successfully loaded Override configs for service %s:%s from '%s'",
+				log.Printf("Successfully loaded Override configs for service %s:%s from '%s'",
 					moduleName, serviceName, overrideFileName)
 			}
 		} else {
-			glog.Infof("Structured CFG:Error Loading Override configs from '%s': %v", overrideFileName, err)
+			log.Printf("Structured CFG:Error Loading Override configs from '%s': %v", overrideFileName, err)
 		}
 	}
 	if err == nil || oerr == nil { // fully or partially succeeded
@@ -186,20 +186,20 @@ func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, conf
 	if err != nil {
 		// If error - try Override cfg
 		config = &ConfigMap{RawMap: map[interface{}]interface{}{}}
-		glog.Infof("Error Loading %s::%s configs from '%s': %v", moduleName, serviceName, configFileName, err)
+		log.Printf("Error Loading %s::%s configs from '%s': %v", moduleName, serviceName, configFileName, err)
 	} else {
-		glog.Infof("Successfully loaded '%s::%s' service configs from '%s'", moduleName, serviceName, configFileName)
+		log.Printf("Successfully loaded '%s::%s' service configs from '%s'", moduleName, serviceName, configFileName)
 	}
 
 	overrideFileName := filepath.Join(configOverrideDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
 	if fi, serr := os.Stat(overrideFileName); serr == nil && !fi.IsDir() {
 		overrides, oerr := loadYamlFile(overrideFileName)
 		if oerr != nil {
-			glog.Infof("Error Loading %s Override configs from '%s': %v", serviceName, overrideFileName, oerr)
+			log.Printf("Error Loading %s Override configs from '%s': %v", serviceName, overrideFileName, oerr)
 			return config, err
 		}
 		config = updateMap(config, overrides)
-		glog.Infof("Successfully loaded Override configs for service %s:%s from '%s'",
+		log.Printf("Successfully loaded Override configs for service %s:%s from '%s'",
 			moduleName, serviceName, overrideFileName)
 	}
 	return config, err
@@ -215,7 +215,7 @@ func getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir s
 		old := configFileName
 		configFileName = filepath.Join(oldConfigDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
 		if fi, err := os.Stat(configFileName); err != nil || fi.IsDir() {
-			glog.Infof("Cannot find '%s': %v, or Legacy Service Registry Configuration: '%s': %v",
+			log.Printf("Cannot find '%s': %v, or Legacy Service Registry Configuration: '%s': %v",
 				old, nerr, configFileName, err)
 		}
 	}

@@ -11,6 +11,8 @@ package streamer
 
 import (
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/golang/protobuf/ptypes/any"
 )
 
 // Listener interface defines Stream Listener which will become
@@ -28,5 +30,10 @@ type Listener interface {
 	// u is guaranteed to be of a type returned by New(), so - myUpdate := u.(MyDataType) should never panic
 	// Update() returns bool indicating whether to continue streaming:
 	//   true - continue streaming; false - stop streaming
+	//   If Update() returns false -> ReportError() will be called with io.EOF,
+	//   in this case, if ReportError() returns nil, streaming will continue with the new connection & stream
 	Update(u *protos.DataUpdateBatch) bool
+	// GetExtraArgs will be called prior to each stream request and its returned value will be used to initialize
+	// ExtraArgs field in GetUpdates request payload. Most listeners may just return nil
+	GetExtraArgs() *any.Any
 }
