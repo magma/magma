@@ -14,6 +14,12 @@ import (
 	"net"
 	"time"
 
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/session_proxy/credit_control/gy"
+	lteprotos "magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
+
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
@@ -21,13 +27,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/session_proxy/credit_control"
-	"magma/feg/gateway/services/session_proxy/credit_control/gy"
-	lteprotos "magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -37,7 +36,7 @@ const (
 
 type CreditBucket struct {
 	Unit   protos.CreditInfo_UnitType
-	Volume uint64
+	Volume *protos.Octets
 }
 
 type SubscriberSessionState struct {
@@ -51,11 +50,11 @@ type SubscriberAccount struct {
 }
 
 type OCSConfig struct {
-	MaxUsageBytes uint32
-	MaxUsageTime  uint32
-	ValidityTime  uint32
-	ServerConfig  *diameter.DiameterServerConfig
-	GyInitMethod  gy.InitMethod
+	MaxUsageOctets *protos.Octets
+	MaxUsageTime   uint32
+	ValidityTime   uint32
+	ServerConfig   *diameter.DiameterServerConfig
+	GyInitMethod   gy.InitMethod
 }
 
 // OCSDiamServer wraps an OCS storing subscriber accounts and their credit
@@ -64,34 +63,6 @@ type OCSDiamServer struct {
 	ocsConfig        *OCSConfig
 	accounts         map[string]*SubscriberAccount // map of IMSI to subscriber account
 	mux              *sm.StateMachine
-}
-
-type CCRMessage struct {
-	SessionID        datatype.UTF8String       `avp:"Session-Id"`
-	OriginHost       datatype.DiameterIdentity `avp:"Origin-Host"`
-	OriginRealm      datatype.DiameterIdentity `avp:"Origin-Realm"`
-	DestinationRealm datatype.DiameterIdentity `avp:"Destination-Realm"`
-	DestinationHost  datatype.DiameterIdentity `avp:"Destination-Host"`
-	RequestType      datatype.Enumerated       `avp:"CC-Request-Type"`
-	RequestNumber    datatype.Unsigned32       `avp:"CC-Request-Number"`
-	CreditControl    []*CCRCreditDiam          `avp:"Multiple-Services-Credit-Control"`
-	SubscriptionIDs  []*SubscriptionIDDiam     `avp:"Subscription-Id"`
-}
-
-type SubscriptionIDDiam struct {
-	IDType credit_control.SubscriptionIDType `avp:"Subscription-Id-Type"`
-	IDData string                            `avp:"Subscription-Id-Data"`
-}
-
-type UsedServiceUnitDiam struct {
-	InputOctets  uint64 `avp:"CC-Input-Octets"`
-	OutputOctets uint64 `avp:"CC-Output-Octets"`
-	TotalOctets  uint64 `avp:"CC-Total-Octets"`
-}
-
-type CCRCreditDiam struct {
-	RatingGroup     uint32               `avp:"Rating-Group"`
-	UsedServiceUnit *UsedServiceUnitDiam `avp:"Used-Service-Unit"`
 }
 
 // NewOCSDiamServer initializes an OCS with an empty account map
@@ -192,7 +163,7 @@ func (srv *OCSDiamServer) SetOCSSettings(
 	ocsConfig *protos.OCSConfig,
 ) (*orcprotos.Void, error) {
 	config := srv.ocsConfig
-	config.MaxUsageBytes = ocsConfig.MaxUsageBytes
+	config.MaxUsageOctets = ocsConfig.MaxUsageOctets
 	config.MaxUsageTime = ocsConfig.MaxUsageTime
 	config.ValidityTime = ocsConfig.ValidityTime
 	return &orcprotos.Void{}, nil
@@ -290,158 +261,4 @@ func handleRAA(done chan *gy.ReAuthAnswer) diam.HandlerFunc {
 		}
 		done <- &raa
 	}
-}
-
-// getCCRHandler returns a handler to be called when the server receives a CCR
-func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
-	return func(c diam.Conn, m *diam.Message) {
-		glog.V(2).Infof("Received CCR from %s\n", c.RemoteAddr())
-		var ccr CCRMessage
-		if err := m.Unmarshal(&ccr); err != nil {
-			glog.Errorf("Failed to unmarshal CCR %s", err)
-			return
-		}
-		imsi := getIMSI(ccr)
-		if len(imsi) == 0 {
-			glog.Errorf("Could not find IMSI in CCR")
-			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
-			return
-		}
-		account, found := srv.accounts[imsi]
-		if !found {
-			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
-			return
-		}
-		account.CurrentState = &SubscriberSessionState{
-			Connection: c,
-			SessionID:  string(ccr.SessionID),
-		}
-
-		if !shouldReturnCredit(credit_control.CreditRequestType(ccr.RequestType)) {
-			sendAnswer(ccr, c, m, diam.Success)
-			return
-		}
-
-		if len(ccr.CreditControl) == 0 {
-			sendAnswer(ccr, c, m, diam.Success)
-			return
-		}
-
-		creditAnswers := make([]*diam.AVP, 0, len(ccr.CreditControl))
-		for _, mscc := range ccr.CreditControl {
-			if mscc.UsedServiceUnit != nil {
-				decrementUsedCredit(
-					account.ChargingCredit[mscc.RatingGroup],
-					mscc.UsedServiceUnit.TotalOctets,
-				)
-			}
-			returnBytes, final := getReturnBytes(srv, account.ChargingCredit[mscc.RatingGroup])
-			if returnBytes <= 0 {
-				sendAnswer(ccr, c, m, DiameterCreditLimitReached)
-				return
-			}
-			creditAnswers = append(creditAnswers, getGrantedUnitAVP(
-				mscc.RatingGroup,
-				srv.ocsConfig.ValidityTime,
-				returnBytes,
-				final,
-			))
-		}
-
-		sendAnswer(ccr, c, m, diam.Success, creditAnswers...)
-	}
-}
-
-func getGrantedUnitAVP(ratingGroup uint32, validityTime uint32, returnBytes uint32, isFinal bool) *diam.AVP {
-	creditGroup := &diam.GroupedAVP{
-		AVP: []*diam.AVP{
-			diam.NewAVP(avp.GrantedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{
-				AVP: []*diam.AVP{
-					diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(returnBytes)),
-				},
-			}),
-			diam.NewAVP(avp.ValidityTime, avp.Mbit, 0, datatype.Unsigned32(validityTime)),
-			diam.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(ratingGroup)),
-		},
-	}
-	if isFinal {
-		creditGroup.AddAVP(
-			diam.NewAVP(avp.FinalUnitIndication, avp.Mbit, 0, &diam.GroupedAVP{
-				AVP: []*diam.AVP{
-					// TODO support other final unit actions
-					diam.NewAVP(avp.FinalUnitAction, avp.Mbit, 0, datatype.Enumerated(TerminateAction)),
-				},
-			}),
-		)
-	}
-	return diam.NewAVP(avp.MultipleServicesCreditControl, avp.Mbit, 0, creditGroup)
-}
-
-func shouldReturnCredit(requestType credit_control.CreditRequestType) bool {
-	return requestType == credit_control.CRTUpdate || requestType == credit_control.CRTInit
-}
-
-func decrementUsedCredit(creditBucket *CreditBucket, totalOctets uint64) {
-	if totalOctets > creditBucket.Volume {
-		creditBucket.Volume = 0
-		return
-	}
-	creditBucket.Volume -= totalOctets
-}
-
-// getIMSI finds the account IMSI in a CCR message
-func getIMSI(message CCRMessage) string {
-	for _, subID := range message.SubscriptionIDs {
-		if subID.IDType == credit_control.EndUserIMSI {
-			return subID.IDData
-		}
-	}
-	return ""
-}
-
-// sendAnswer sends a CCA to the connection given
-func sendAnswer(
-	ccr CCRMessage,
-	conn diam.Conn,
-	message *diam.Message,
-	statusCode uint32,
-	additionalAVPs ...*diam.AVP,
-) {
-	a := message.Answer(statusCode)
-	a.NewAVP(avp.OriginHost, avp.Mbit, 0, ccr.DestinationHost)
-	a.NewAVP(avp.OriginRealm, avp.Mbit, 0, ccr.DestinationRealm)
-	a.NewAVP(avp.DestinationRealm, avp.Mbit, 0, ccr.OriginRealm)
-	a.NewAVP(avp.DestinationHost, avp.Mbit, 0, ccr.OriginHost)
-	a.NewAVP(avp.CCRequestType, avp.Mbit, 0, ccr.RequestType)
-	a.NewAVP(avp.CCRequestNumber, avp.Mbit, 0, ccr.RequestNumber)
-	a.NewAVP(avp.SessionID, avp.Mbit, 0, ccr.SessionID)
-	for _, avp := range additionalAVPs {
-		a.InsertAVP(avp)
-	}
-	// SessionID must be the first AVP
-	a.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, ccr.SessionID))
-
-	_, err := a.WriteTo(conn)
-	if err != nil {
-		glog.Errorf("Failed to write message to %s: %s\n%s\n",
-			conn.RemoteAddr(), err, a)
-		return
-	}
-	glog.V(2).Infof("Sent CCA to %s:\n", conn.RemoteAddr())
-}
-
-// getReturnBytes gets how much credit to return in a CCA-update, which is the
-// minimum between the max usage and how much credit is in the account
-// Returns credits to return and true if these are the final bytes
-func getReturnBytes(srv *OCSDiamServer, bucket *CreditBucket) (uint32, bool) {
-	var maxUsage uint32
-	if bucket.Unit == protos.CreditInfo_Bytes {
-		maxUsage = srv.ocsConfig.MaxUsageBytes
-	} else {
-		maxUsage = srv.ocsConfig.MaxUsageTime
-	}
-	if bucket.Volume <= uint64(maxUsage) {
-		return uint32(bucket.Volume), true
-	}
-	return maxUsage, false
 }
