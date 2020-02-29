@@ -230,9 +230,22 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
         resp = FlowResponse()
-        self._loop.call_soon_threadsafe(
-            self._dpi_app.classify_flow,
-            request.match, request.app_name)
+        self._loop.call_soon_threadsafe(self._dpi_app.add_classify_flow,
+                                        request.match, request.app_name)
+        return resp
+
+    def RemoveFlow(self, request, context):
+        """
+        Add dpi flow
+        """
+        if not self._service_manager.is_app_enabled(
+                DPIController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+        resp = FlowResponse()
+        self._loop.call_soon_threadsafe(self._dpi_app.remove_classify_flow,
+                                        request.match)
         return resp
 
     def UpdateFlowStats(self, request, context):

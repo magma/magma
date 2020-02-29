@@ -185,6 +185,9 @@ service Pipelined {
   // Add new dpi flow
   rpc CreateFlow (FlowRequest) returns (FlowResponse) {};
 
+  // Remove dpi flow
+  rpc RemoveFlow (FlowRequest) returns (FlowResponse) {};
+
   // Update flow stats
   rpc UpdateFlowStats (FlowRequest) returns (FlowResponse) {};
 
