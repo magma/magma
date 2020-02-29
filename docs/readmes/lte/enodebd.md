@@ -35,6 +35,8 @@ debug the S1 interface between the enodeB and the AGW (filter for SCTP).
 * Baicells mBS1100 LTE-TDD Base Station
   - Firmware Version: BaiStation_V100R001C00B110SPC003
 * Baicells Neutrino-244 ID FDD/TDD enodeB
+* MikroTik Intercell 10 B38 + B39
+  - Firmware Version: V1.0.0
 
 *Magma supports the following management protocols:*
 * TR-069 (CWMP)

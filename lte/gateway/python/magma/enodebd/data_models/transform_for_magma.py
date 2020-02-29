@@ -24,10 +24,21 @@ BANDWIDTH_RBS_TO_MHZ_MAP = {
     'n50': 10,
     'n75': 15,
     'n100': 20,
+    '6': 1.4,
+    '15': 3,
+    '25': 5,
+    '50': 10,
+    '75': 15,
+    '100': 20,
 }
 
 BANDWIDTH_MHZ_LIST = {1.4, 3, 5, 10, 15, 20}
 
+def gps_bool(value: str) -> str:
+    if value == 'false':
+        return '0'
+    else:
+        return '1'
 
 def duplex_mode(value: str) -> Optional[str]:
     return DUPLEX_MAP.get(value)

@@ -43,6 +43,33 @@ def invert_cell_barred(value: bool):
     return not value
 
 
+def bandwidth_tr196(bandwidth_mhz):
+    """
+    Map bandwidth in MHz to number of RBs
+
+    Args:
+        bandwidth_mhz (int): Bandwidth in MHz
+    Returns:
+        str: Bandwidth in RBS
+    """
+    if bandwidth_mhz == 1.4:
+        bandwidth_rbs = '6'
+    elif bandwidth_mhz == 3:
+        bandwidth_rbs = '15'
+    elif bandwidth_mhz == 5:
+        bandwidth_rbs = '25'
+    elif bandwidth_mhz == 10:
+        bandwidth_rbs = '50'
+    elif bandwidth_mhz == 15:
+        bandwidth_rbs = '75'
+    elif bandwidth_mhz == 20:
+        bandwidth_rbs = '100'
+    else:
+        raise ConfigurationError('Unknown bandwidth_mhz (%s)' %
+                                 str(bandwidth_mhz))
+    return bandwidth_rbs
+
+
 def bandwidth(bandwidth_mhz):
     """
     Map bandwidth in MHz to number of RBs

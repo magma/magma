@@ -7,33 +7,32 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from typing import Any, Callable, Dict, List, Optional, Type
-
+from magma.enodebd.logger import EnodebdLogger as logger
+from typing import Optional, Callable, Dict, Any, List, Type
 from magma.common.service import MagmaService
-from magma.enodebd.data_models import transform_for_enb, transform_for_magma
-from magma.enodebd.data_models.data_model import DataModel, TrParam
-from magma.enodebd.data_models.data_model_parameters import ParameterName, \
-    TrParameterType
+from magma.enodebd.data_models.data_model import TrParam, DataModel
+from magma.enodebd.data_models.data_model_parameters import TrParameterType, \
+    ParameterName
+from magma.enodebd.data_models import transform_for_magma, transform_for_enb
 from magma.enodebd.device_config.enodeb_config_postprocessor import \
     EnodebConfigurationPostProcessor
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import Tr069Error
-from magma.enodebd.logger import EnodebdLogger as logger
-from magma.enodebd.state_machines.acs_state_utils import \
-    get_all_objects_to_add, get_all_objects_to_delete
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_states import AcsMsgAndTransition, \
-    AcsReadMsgResult, AddObjectsState, DeleteObjectsState, EndSessionState, \
-    EnodebAcsState, ErrorState, GetParametersState, GetRPCMethodsState, \
-    SendGetTransientParametersState, SendRebootState, \
-    SetParameterValuesNotAdminState, WaitEmptyMessageState, \
-    WaitGetObjectParametersState, WaitGetParametersState, \
-    WaitGetTransientParametersState, WaitInformMRebootState, WaitInformState, \
-    WaitRebootResponseState, WaitSetParameterValuesState
+from magma.enodebd.state_machines.enb_acs_states import WaitInformState, \
+    SendGetTransientParametersState, WaitGetTransientParametersState, \
+    GetParametersState, WaitGetParametersState, DeleteObjectsState, \
+    AddObjectsState, SetParameterValuesNotAdminState, \
+    WaitSetParameterValuesState, SendRebootState, WaitRebootResponseState, \
+    WaitInformMRebootState, EnodebAcsState, AcsMsgAndTransition, \
+    AcsReadMsgResult, WaitEmptyMessageState, ErrorState, EndSessionState, \
+    GetRPCMethodsState, WaitGetObjectParametersState
+from magma.enodebd.state_machines.acs_state_utils import \
+     get_all_objects_to_delete, get_all_objects_to_add
 from magma.enodebd.tr069 import models
 
 
@@ -55,21 +54,20 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
         self._state_map = {
             'wait_inform': WaitInformState(self, when_done='get_rpc_methods'),
             'get_rpc_methods': GetRPCMethodsState(self, when_done='wait_empty', when_skip='get_transient_params'),
-            'wait_empty': WaitEmptyMessageState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
             'wait_get_transient_params': WaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='end_session'),
             'get_params': GetParametersState(self, when_done='wait_get_params'),
             'wait_get_params': WaitGetParametersState(self, when_done='get_obj_params'),
             'get_obj_params': CaviumGetObjectParametersState(self, when_done='wait_get_obj_params'),
             'wait_get_obj_params': CaviumWaitGetObjectParametersState(self, when_edit='disable_admin', when_skip='get_transient_params'),
-            'disable_admin': CaviumDisableAdminEnableState(self, admin_value=False, when_done='wait_disable_admin'),
-            'wait_disable_admin': CaviumWaitDisableAdminEnableState(self, admin_value=False, when_add='add_objs', when_delete='delete_objs', when_done='set_params'),
+            'disable_admin': CaviumDisableAdminEnableState(self, admin_value='0', when_done='wait_disable_admin'),
+            'wait_disable_admin': CaviumWaitDisableAdminEnableState(self, admin_value='0', when_add='add_objs', when_delete='delete_objs', when_done='set_params'),
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
             'add_objs': AddObjectsState(self, when_done='set_params'),
             'set_params': SetParameterValuesNotAdminState(self, when_done='wait_set_params'),
             'wait_set_params': WaitSetParameterValuesState(self, when_done='enable_admin', when_apply_invasive='enable_admin'),
-            'enable_admin': CaviumDisableAdminEnableState(self, admin_value=True, when_done='wait_enable_admin'),
-            'wait_enable_admin': CaviumWaitDisableAdminEnableState(self, admin_value=True, when_done='check_get_params', when_add='check_get_params', when_delete='check_get_params'),
+            'enable_admin': CaviumDisableAdminEnableState(self, admin_value='1', when_done='wait_enable_admin'),
+            'wait_enable_admin': CaviumWaitDisableAdminEnableState(self, admin_value='1', when_done='check_get_params', when_add='check_get_params', when_delete='check_get_params'),
             'check_get_params': GetParametersState(self, when_done='check_wait_get_params', request_all_params=True),
             'check_wait_get_params': WaitGetParametersState(self, when_done='end_session'),
             'end_session': EndSessionState(self),
@@ -79,7 +77,7 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_reboot_delay', when_timeout='wait_inform'),
             # The states below are entered when an unexpected message type is
             # received
-            'unexpected_fault': ErrorState(self, inform_transition_target='wait_inform')
+            'unexpected_fault': ErrorState(self)
         }
 
     @property
@@ -118,7 +116,7 @@ class CaviumGetObjectParametersState(EnodebAcsState):
         self.acs = acs
         self.done_transition = when_done
 
-    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+    def get_msg(self) -> AcsMsgAndTransition:
         """ Respond with GetParameterValuesRequest """
         names = [ParameterName.PLMN_LIST]
 
@@ -168,7 +166,7 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+    def get_msg(self) -> AcsMsgAndTransition:
         """
         Returns:
             A SetParameterValueRequest for setting 'Admin Enable' to False
@@ -264,13 +262,17 @@ class CaviumTrDataModel(DataModel):
     # Mapping of TR parameter paths to aliases
     DEVICE_PATH = 'Device.'
     FAPSERVICE_PATH = DEVICE_PATH + 'Services.FAPService.1.'
+    PERFMGMT_PATH = DEVICE_PATH + 'FAP.PerfMgmt.Config.1.'
+
     PARAMETERS = {
         # Top-level objects
         ParameterName.DEVICE: TrParam(DEVICE_PATH, True, TrParameterType.OBJECT, False),
         ParameterName.FAP_SERVICE: TrParam(FAPSERVICE_PATH, True, TrParameterType.OBJECT, False),
 
         # Device info parameters
-        ParameterName.GPS_STATUS: TrParam(DEVICE_PATH + 'FAP.GPS.ContinuousGPSStatus.GotFix', True, TrParameterType.BOOLEAN, False),
+        ParameterName.MME_STATUS: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.OpState', True, TrParameterType.UNSIGNED_INT, False),
+        ParameterName.PTP_STATUS: TrParam(DEVICE_PATH + 'Time.Enable', True, TrParameterType.BOOLEAN, False),
+        ParameterName.GPS_STATUS: TrParam(DEVICE_PATH + 'FAP.GPS.ContinuousGPSStatus.CurrentFix', True, TrParameterType.BOOLEAN, False),
         ParameterName.GPS_LAT: TrParam(DEVICE_PATH + 'FAP.GPS.LockedLatitude', True, TrParameterType.INT, False),
         ParameterName.GPS_LONG: TrParam(DEVICE_PATH + 'FAP.GPS.LockedLongitude', True, TrParameterType.INT, False),
         ParameterName.SW_VERSION: TrParam(DEVICE_PATH + 'DeviceInfo.SoftwareVersion', True, TrParameterType.STRING, False),
@@ -289,6 +291,12 @@ class CaviumTrDataModel(DataModel):
         ParameterName.DL_BANDWIDTH: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.DLBandwidth', True, TrParameterType.STRING, False),
         ParameterName.UL_BANDWIDTH: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.ULBandwidth', True, TrParameterType.STRING, False),
         ParameterName.CELL_ID: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Common.CellIdentity', True, TrParameterType.UNSIGNED_INT, False),
+        ParameterName.SUBFRAME_ASSIGNMENT: TrParam(
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.RAN.PHY.TDDFrame.SubFrameAssignment', True, TrParameterType.INT, False),
+        ParameterName.SPECIAL_SUBFRAME_PATTERN: TrParam(
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.RAN.PHY.TDDFrame.SpecialSubframePatterns', True, TrParameterType.INT, False),
 
         # Other LTE parameters
         ParameterName.ADMIN_STATE: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.AdminState', False, TrParameterType.BOOLEAN, False),
@@ -308,7 +316,7 @@ class CaviumTrDataModel(DataModel):
             FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False),
         ParameterName.MME_PORT: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkPort', True, TrParameterType.UNSIGNED_INT, False),
         ParameterName.NUM_PLMNS: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True, TrParameterType.UNSIGNED_INT, False),
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.MaxPLMNListEntries', True, TrParameterType.UNSIGNED_INT, False),
         ParameterName.PLMN: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.', True, TrParameterType.OBJECT, False),
         # PLMN arrays are added below
         ParameterName.TAC: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.TAC', True, TrParameterType.UNSIGNED_INT, False),
@@ -327,16 +335,16 @@ class CaviumTrDataModel(DataModel):
 
         # Performance management parameters
         ParameterName.PERF_MGMT_ENABLE: TrParam(
-            FAPSERVICE_PATH + 'PerfMgmt.Config.1.Enable', False, TrParameterType.BOOLEAN, False),
+            PERFMGMT_PATH + 'Enable', False, TrParameterType.BOOLEAN, False),
         ParameterName.PERF_MGMT_UPLOAD_INTERVAL: TrParam(
-            FAPSERVICE_PATH + 'PerfMgmt.Config.1.PeriodicUploadInterval', False, TrParameterType.UNSIGNED_INT, False),
+            PERFMGMT_PATH + 'PeriodicUploadInterval', False, TrParameterType.UNSIGNED_INT, False),
         ParameterName.PERF_MGMT_UPLOAD_URL: TrParam(
-            FAPSERVICE_PATH + 'PerfMgmt.Config.1.URL', False, TrParameterType.STRING, False),
+            PERFMGMT_PATH + 'URL', False, TrParameterType.STRING, False),
         ParameterName.PERF_MGMT_USER: TrParam(
-            FAPSERVICE_PATH + 'PerfMgmt.Config.1.Username',
+            PERFMGMT_PATH + 'Username',
             False, TrParameterType.STRING, False),
         ParameterName.PERF_MGMT_PASSWORD: TrParam(
-            FAPSERVICE_PATH + 'PerfMgmt.Config.1.Password',
+            PERFMGMT_PATH + 'Password',
             False, TrParameterType.STRING, False),
 
         #PLMN Info
@@ -344,7 +352,7 @@ class CaviumTrDataModel(DataModel):
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.', False, TrParameterType.OBJECT, False),
     }
 
-    NUM_PLMNS_IN_CONFIG = 6
+    NUM_PLMNS_IN_CONFIG = 1
     for i in range(1, NUM_PLMNS_IN_CONFIG + 1):
         PARAMETERS[ParameterName.PLMN_N % i] = TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.' % i, True, TrParameterType.OBJECT, False)
@@ -359,13 +367,14 @@ class CaviumTrDataModel(DataModel):
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False)
 
     TRANSFORMS_FOR_ENB = {
-        ParameterName.DL_BANDWIDTH: transform_for_enb.bandwidth,
-        ParameterName.UL_BANDWIDTH: transform_for_enb.bandwidth
+        ParameterName.DL_BANDWIDTH: transform_for_enb.bandwidth_tr196,
+        ParameterName.UL_BANDWIDTH: transform_for_enb.bandwidth_tr196
     }
     TRANSFORMS_FOR_MAGMA = {
         ParameterName.DL_BANDWIDTH: transform_for_magma.bandwidth,
         ParameterName.UL_BANDWIDTH: transform_for_magma.bandwidth,
         # We don't set GPS, so we don't need transform for enb
+        ParameterName.GPS_STATUS: transform_for_magma.gps_bool,
         ParameterName.GPS_LAT: transform_for_magma.gps_tr181,
         ParameterName.GPS_LONG: transform_for_magma.gps_tr181
     }
