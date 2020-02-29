@@ -149,14 +149,12 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 	safeBuffer.WriteChunk(chunk)
 }
 
-
 /*
 	TODO: Re-enable this test.
 	This test has temporary been removed for 2 reasons:
 		- Flackiness in CI
 		- csfb implementation needs rework
 */
-
 
 // func TestReadSuccessAndFailWithTimeout(t *testing.T) {
 // 	safeBuffer, err := servicers.NewSafeBuffer()
