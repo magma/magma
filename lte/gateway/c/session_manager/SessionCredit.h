@@ -91,7 +91,7 @@ class SessionCredit {
     uint64_t tx_volume,
     uint64_t rx_volume,
     uint32_t validity_time,
-    bool is_final,
+    bool is_final_grant,
     FinalActionInfo final_action_info);
 
   /**
@@ -131,11 +131,6 @@ class SessionCredit {
   void reauth();
 
   /**
-   * Returns true when there will be no more quota granted
-   */
-  bool no_more_grant();
-
-  /**
    * Returns
    */
   RedirectServer get_redirect_server();
@@ -143,9 +138,9 @@ class SessionCredit {
   /**
    * Mark SessionCredit as having been given the final grant.
    * NOTE: Use only for merging updates into SessionStore
-   * @param is_final
+   * @param is_final_grant
    */
-  void set_is_final(bool is_final);
+  void set_is_final_grant(bool is_final_grant);
 
   /**
    * Set ReAuthState.
@@ -202,7 +197,7 @@ class SessionCredit {
 
  private:
   bool reporting_;
-  bool is_final_;
+  bool is_final_grant_;
   bool unlimited_quota_;
   FinalActionInfo final_action_info_;
   ReAuthState reauth_state_;

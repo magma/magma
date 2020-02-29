@@ -26,7 +26,7 @@ std::unique_ptr<SessionCredit> SessionCredit::unmarshal(
   auto session_credit = std::make_unique<SessionCredit>(credit_type);
 
   session_credit->reporting_ = marshaled.reporting;
-  session_credit->is_final_ = marshaled.is_final;
+  session_credit->is_final_grant_ = marshaled.is_final;
   session_credit->unlimited_quota_ = marshaled.unlimited_quota;
 
   // FinalActionInfo
@@ -56,7 +56,7 @@ StoredSessionCredit SessionCredit::marshal()
 {
   StoredSessionCredit marshaled{};
   marshaled.reporting = reporting_;
-  marshaled.is_final = is_final_;
+  marshaled.is_final = is_final_grant_;
   marshaled.unlimited_quota = unlimited_quota_;
 
   marshaled.final_action_info.final_action = final_action_info_.final_action;
@@ -151,7 +151,7 @@ void SessionCredit::receive_credit(
   uint64_t tx_volume,
   uint64_t rx_volume,
   uint32_t validity_time,
-  bool is_final,
+  bool is_final_grant,
   FinalActionInfo final_action_info)
 {
   MLOG(MDEBUG) << "receive_credit:"
@@ -191,7 +191,7 @@ void SessionCredit::receive_credit(
                << buckets_[REPORTED_TX] << "reporting_rx "
                << buckets_[REPORTING_RX] << "reporting_tx "
                << buckets_[REPORTING_TX];
-  is_final_ = is_final;
+  is_final_grant_ = is_final_grant;
   final_action_info_ = final_action_info;
 
   if (reauth_state_ == REAUTH_PROCESSING) {
@@ -271,7 +271,7 @@ bool SessionCredit::should_deactivate_service()
     // configured in sessiond.yml
     return false;
   }
-  if (no_more_grant() && quota_exhausted()) {
+  if (is_final_grant_ && quota_exhausted()) {
     // If we've exhausted the last grant, we should terminate
     return true;
   }
@@ -297,7 +297,7 @@ CreditUpdateType SessionCredit::get_update_type()
     return CREDIT_NO_UPDATE;
   } else if (is_reauth_required()) {
     return CREDIT_REAUTH_REQUIRED;
-  } else if (is_final_ && quota_exhausted()) {
+  } else if (is_final_grant_ && quota_exhausted()) {
     // Don't request updates if there's no quota left
     return CREDIT_NO_UPDATE;
   } else if (quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD, 0)) {
@@ -317,7 +317,7 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(bool is_termination)
   report = buckets_[REPORTED_RX] - buckets_[REPORTING_RX];
   uint64_t rx = buckets_[USED_RX] > report ? buckets_[USED_RX] - report : 0;
 
-  if (!is_termination && !is_final_) {
+  if (!is_termination && !is_final_grant_) {
     // Apply reporting limits since the user is not getting terminated.
     // The limits are applied on total usage (ie. tx + rx)
     tx = std::min(tx, usage_reporting_limit_);
@@ -360,10 +360,10 @@ ServiceActionType SessionCredit::get_action()
 
 ServiceActionType SessionCredit::get_action_for_deactivating_service()
 {
-  if (no_more_grant() &&
+  if (is_final_grant_ &&
     final_action_info_.final_action == ChargingCredit_FinalAction_REDIRECT) {
     return REDIRECT;
-  } else if (no_more_grant() &&
+  } else if (is_final_grant_ &&
     final_action_info_.final_action == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
     return RESTRICT_ACCESS;
   } else {
@@ -391,17 +391,12 @@ void SessionCredit::reauth()
   reauth_state_ = REAUTH_REQUIRED;
 }
 
-bool SessionCredit::no_more_grant()
-{
-  return is_final_;
-}
-
 RedirectServer SessionCredit::get_redirect_server() {
   return final_action_info_.redirect_server;
 }
 
-void SessionCredit::set_is_final(bool is_final) {
-  is_final_ = is_final;
+void SessionCredit::set_is_final_grant(bool is_final_grant) {
+  is_final_grant_ = is_final_grant;
 }
 
 void SessionCredit::set_reauth(ReAuthState reauth_state) {
