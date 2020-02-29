@@ -19,7 +19,7 @@ from magma.pipelined.policy_converters import FlowMatchError, \
 
 from ryu.lib.packet import ether_types
 
-# TBD: Add more apps and make it dynamic
+# TODO might move to config file
 appMap = {"facebook_messenger": 1, "instagram": 1, "facebook": 3, "youtube": 4,
           "gmail": 5, "google": 6, "google_docs": 7, "viber": 8, "imo": 9,
           "netflix": 10, "apple": 11, "microsoft": 12}
