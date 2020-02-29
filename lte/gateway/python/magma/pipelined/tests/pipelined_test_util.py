@@ -328,7 +328,8 @@ def get_enforcement_stats(enforcement_stats):
     return stats
 
 
-def create_service_manager(services: List[int], static_services: List[str]):
+def create_service_manager(services: List[int],
+                           static_services: List[str] = None):
     """
     Creates a service manager from the given list of services.
     Args:
@@ -339,6 +340,8 @@ def create_service_manager(services: List[int], static_services: List[str]):
     mconfig = PipelineD(relay_enabled=True, services=services)
     magma_service = MagicMock()
     magma_service.mconfig = mconfig
+    if static_services is None:
+        static_services = []
     magma_service.config = {
         'static_services': static_services
     }
