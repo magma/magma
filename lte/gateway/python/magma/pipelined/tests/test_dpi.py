@@ -67,6 +67,7 @@ class DPITest(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
+                'setup_type': 'LTE',
                 'dpi': {
                     'enabled': False,
                     'mon_port': 'mon1',
@@ -90,7 +91,7 @@ class DPITest(unittest.TestCase):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    def testDPI(self):
+    def test_add_app_rules(self):
         """
         Test DPI classifier flows are properly added
 
@@ -109,6 +110,23 @@ class DPITest(unittest.TestCase):
         )
         self.dpi_controller.add_classify_flow(flow_match1, 'facebook')
         self.dpi_controller.add_classify_flow(flow_match2, 'instagram')
+        hub.sleep(5)
+        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
+
+    def test_remove_app_rules(self):
+        """
+        Test DPI classifier flows are properly removed
+
+        Assert:
+            Initial state has (`facebook` and `instagram`), remove (`facebook`)
+            App type matches on (`instagram`)
+        """
+        flow_match1 = FlowMatch(
+            ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.0/24',
+            ipv4_src='1.2.3.0/24', tcp_dst=80, tcp_src=51115,
+            direction=FlowMatch.UPLINK
+        )
+        self.dpi_controller.remove_classify_flow(flow_match1, 'facebook')
         hub.sleep(5)
         assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
 
