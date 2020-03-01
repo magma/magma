@@ -215,7 +215,6 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: msg})
 						continue
 					}
-					modifiedCount++
 					if commit {
 						_, err = m.r.Mutation().EditLocation(ctx, models.EditLocationInput{
 							ID:         id,
@@ -230,6 +229,7 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 							continue
 						}
 					}
+					modifiedCount++
 				}
 			}
 		}
