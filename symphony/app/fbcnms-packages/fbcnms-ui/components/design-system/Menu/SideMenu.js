@@ -86,6 +86,7 @@ export default function SideMenu(props: Props) {
       <div className={classes.menuItemsContainer}>
         {items.map((item, itemIndex) => (
           <div
+            key={`sideMenuItem_${itemIndex}`}
             title={item.tooltip}
             onClick={() =>
               onActiveItemChanged &&
