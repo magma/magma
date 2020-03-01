@@ -9,13 +9,12 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class MoveLocationMutation:
-    __QUERY__ = """
+class MoveLocationMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation MoveLocationMutation($locationID: ID!, $parentLocationID: ID) {
   moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {
     id
@@ -31,15 +30,12 @@ class MoveLocationMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class MoveLocationMutationData:
-        @dataclass_json
+    class MoveLocationMutationData(DataClassJsonMixin):
         @dataclass
-        class Location:
-            @dataclass_json
+        class Location(DataClassJsonMixin):
             @dataclass
-            class LocationType:
+            class LocationType(DataClassJsonMixin):
                 name: str
 
             id: str
@@ -52,7 +48,6 @@ class MoveLocationMutation:
         moveLocation: Optional[Location] = None
 
     data: Optional[MoveLocationMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

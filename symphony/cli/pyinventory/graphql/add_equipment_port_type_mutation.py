@@ -9,7 +9,7 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .property_kind_enum import PropertyKind
@@ -17,10 +17,9 @@ from .property_kind_enum import PropertyKind
 from .add_equipment_port_type_input import AddEquipmentPortTypeInput
 
 
-@dataclass_json
 @dataclass
-class AddEquipmentPortTypeMutation:
-    __QUERY__ = """
+class AddEquipmentPortTypeMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
   addEquipmentPortType(input: $input) {
     id
@@ -58,15 +57,12 @@ class AddEquipmentPortTypeMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddEquipmentPortTypeMutationData:
-        @dataclass_json
+    class AddEquipmentPortTypeMutationData(DataClassJsonMixin):
         @dataclass
-        class EquipmentPortType:
-            @dataclass_json
+        class EquipmentPortType(DataClassJsonMixin):
             @dataclass
-            class PropertyType:
+            class PropertyType(DataClassJsonMixin):
                 id: str
                 name: str
                 type: PropertyKind = enum_field(PropertyKind)
@@ -88,7 +84,6 @@ class AddEquipmentPortTypeMutation:
         addEquipmentPortType: Optional[EquipmentPortType] = None
 
     data: Optional[AddEquipmentPortTypeMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

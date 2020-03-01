@@ -8,12 +8,11 @@ from gql.gql.datetime_utils import DATETIME_FIELD
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .property_input import PropertyInput
-@dataclass_json
 @dataclass
-class EditLocationInput:
+class EditLocationInput(DataClassJsonMixin):
     id: str
     name: str
     latitude: Number

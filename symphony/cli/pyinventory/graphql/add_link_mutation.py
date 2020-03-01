@@ -9,15 +9,14 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .add_link_input import AddLinkInput
 
 
-@dataclass_json
 @dataclass
-class AddLinkMutation:
-    __QUERY__ = """
+class AddLinkMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddLinkMutation($input: AddLinkInput!) {
   addLink(input: $input) {
     id
@@ -26,18 +25,15 @@ class AddLinkMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddLinkMutationData:
-        @dataclass_json
+    class AddLinkMutationData(DataClassJsonMixin):
         @dataclass
-        class Link:
+        class Link(DataClassJsonMixin):
             id: str
 
         addLink: Optional[Link] = None
 
     data: Optional[AddLinkMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

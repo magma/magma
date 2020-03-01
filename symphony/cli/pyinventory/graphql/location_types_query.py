@@ -9,16 +9,15 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .property_kind_enum import PropertyKind
 
 
-@dataclass_json
 @dataclass
-class LocationTypesQuery:
-    __QUERY__ = """
+class LocationTypesQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query LocationTypesQuery {
   locationTypes {
     edges {
@@ -47,21 +46,16 @@ class LocationTypesQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class LocationTypesQueryData:
-        @dataclass_json
+    class LocationTypesQueryData(DataClassJsonMixin):
         @dataclass
-        class LocationTypeConnection:
-            @dataclass_json
+        class LocationTypeConnection(DataClassJsonMixin):
             @dataclass
-            class LocationTypeEdge:
-                @dataclass_json
+            class LocationTypeEdge(DataClassJsonMixin):
                 @dataclass
-                class LocationType:
-                    @dataclass_json
+                class LocationType(DataClassJsonMixin):
                     @dataclass
-                    class PropertyType:
+                    class PropertyType(DataClassJsonMixin):
                         id: str
                         name: str
                         type: PropertyKind = enum_field(PropertyKind)
@@ -87,12 +81,11 @@ class LocationTypesQuery:
         locationTypes: Optional[LocationTypeConnection] = None
 
     data: Optional[LocationTypesQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient):
         # fmt: off
-        variables = None
+        variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)
         return cls.from_json(response_text).data

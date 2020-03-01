@@ -9,16 +9,15 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .property_kind_enum import PropertyKind
 
 
-@dataclass_json
 @dataclass
-class EquipmentTypesQuery:
-    __QUERY__ = """
+class EquipmentTypesQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query EquipmentTypesQuery {
   equipmentTypes {
     edges {
@@ -59,21 +58,16 @@ class EquipmentTypesQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class EquipmentTypesQueryData:
-        @dataclass_json
+    class EquipmentTypesQueryData(DataClassJsonMixin):
         @dataclass
-        class EquipmentTypeConnection:
-            @dataclass_json
+        class EquipmentTypeConnection(DataClassJsonMixin):
             @dataclass
-            class EquipmentTypeEdge:
-                @dataclass_json
+            class EquipmentTypeEdge(DataClassJsonMixin):
                 @dataclass
-                class EquipmentType:
-                    @dataclass_json
+                class EquipmentType(DataClassJsonMixin):
                     @dataclass
-                    class PropertyType:
+                    class PropertyType(DataClassJsonMixin):
                         id: str
                         name: str
                         type: PropertyKind = enum_field(PropertyKind)
@@ -87,17 +81,15 @@ class EquipmentTypesQuery:
                         isEditable: Optional[bool] = None
                         isInstanceProperty: Optional[bool] = None
 
-                    @dataclass_json
                     @dataclass
-                    class EquipmentPositionDefinition:
+                    class EquipmentPositionDefinition(DataClassJsonMixin):
                         id: str
                         name: str
                         index: Optional[int] = None
                         visibleLabel: Optional[str] = None
 
-                    @dataclass_json
                     @dataclass
-                    class EquipmentPortDefinition:
+                    class EquipmentPortDefinition(DataClassJsonMixin):
                         id: str
                         name: str
                         index: Optional[int] = None
@@ -117,12 +109,11 @@ class EquipmentTypesQuery:
         equipmentTypes: EquipmentTypeConnection
 
     data: Optional[EquipmentTypesQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient):
         # fmt: off
-        variables = None
+        variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)
         return cls.from_json(response_text).data

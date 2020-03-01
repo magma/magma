@@ -9,15 +9,14 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .edit_location_input import EditLocationInput
 
 
-@dataclass_json
 @dataclass
-class EditLocationMutation:
-    __QUERY__ = """
+class EditLocationMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation EditLocationMutation($input: EditLocationInput!) {
   editLocation(input: $input) {
     id
@@ -33,15 +32,12 @@ class EditLocationMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class EditLocationMutationData:
-        @dataclass_json
+    class EditLocationMutationData(DataClassJsonMixin):
         @dataclass
-        class Location:
-            @dataclass_json
+        class Location(DataClassJsonMixin):
             @dataclass
-            class LocationType:
+            class LocationType(DataClassJsonMixin):
                 name: str
 
             id: str
@@ -54,7 +50,6 @@ class EditLocationMutation:
         editLocation: Optional[Location] = None
 
     data: Optional[EditLocationMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

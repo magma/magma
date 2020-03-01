@@ -9,7 +9,7 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .property_kind_enum import PropertyKind
@@ -17,10 +17,9 @@ from .property_kind_enum import PropertyKind
 from .edit_equipment_type_input import EditEquipmentTypeInput
 
 
-@dataclass_json
 @dataclass
-class EditEquipmentTypeMutation:
-    __QUERY__ = """
+class EditEquipmentTypeMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation EditEquipmentTypeMutation($input: EditEquipmentTypeInput!) {
   editEquipmentType(input: $input) {
     id
@@ -57,15 +56,12 @@ class EditEquipmentTypeMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class EditEquipmentTypeMutationData:
-        @dataclass_json
+    class EditEquipmentTypeMutationData(DataClassJsonMixin):
         @dataclass
-        class EquipmentType:
-            @dataclass_json
+        class EquipmentType(DataClassJsonMixin):
             @dataclass
-            class PropertyType:
+            class PropertyType(DataClassJsonMixin):
                 id: str
                 name: str
                 type: PropertyKind = enum_field(PropertyKind)
@@ -79,17 +75,15 @@ class EditEquipmentTypeMutation:
                 isEditable: Optional[bool] = None
                 isInstanceProperty: Optional[bool] = None
 
-            @dataclass_json
             @dataclass
-            class EquipmentPositionDefinition:
+            class EquipmentPositionDefinition(DataClassJsonMixin):
                 id: str
                 name: str
                 index: Optional[int] = None
                 visibleLabel: Optional[str] = None
 
-            @dataclass_json
             @dataclass
-            class EquipmentPortDefinition:
+            class EquipmentPortDefinition(DataClassJsonMixin):
                 id: str
                 name: str
                 index: Optional[int] = None
@@ -105,7 +99,6 @@ class EditEquipmentTypeMutation:
         editEquipmentType: Optional[EquipmentType] = None
 
     data: Optional[EditEquipmentTypeMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

@@ -9,16 +9,15 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .service_endpoint_role_enum import ServiceEndpointRole
 
 
-@dataclass_json
 @dataclass
-class AddServiceLinkMutation:
-    __QUERY__ = """
+class AddServiceLinkMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
   addServiceLink(id: $id, linkId: $linkId) {
     id
@@ -44,34 +43,28 @@ class AddServiceLinkMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddServiceLinkMutationData:
-        @dataclass_json
+    class AddServiceLinkMutationData(DataClassJsonMixin):
         @dataclass
-        class Service:
-            @dataclass_json
+        class Service(DataClassJsonMixin):
             @dataclass
-            class Customer:
+            class Customer(DataClassJsonMixin):
                 id: str
                 name: str
                 externalId: Optional[str] = None
 
-            @dataclass_json
             @dataclass
-            class ServiceEndpoint:
-                @dataclass_json
+            class ServiceEndpoint(DataClassJsonMixin):
                 @dataclass
-                class EquipmentPort:
+                class EquipmentPort(DataClassJsonMixin):
                     id: str
 
                 id: str
                 port: EquipmentPort
                 role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
 
-            @dataclass_json
             @dataclass
-            class Link:
+            class Link(DataClassJsonMixin):
                 id: str
 
             id: str
@@ -84,7 +77,6 @@ class AddServiceLinkMutation:
         addServiceLink: Optional[Service] = None
 
     data: Optional[AddServiceLinkMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

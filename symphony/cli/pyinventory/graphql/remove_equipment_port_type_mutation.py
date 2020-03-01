@@ -9,26 +9,23 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class RemoveEquipmentPortTypeMutation:
-    __QUERY__ = """
+class RemoveEquipmentPortTypeMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation RemoveEquipmentPortTypeMutation($id: ID!) {
   removeEquipmentPortType(id: $id)
 }
 
     """
 
-    @dataclass_json
     @dataclass
-    class RemoveEquipmentPortTypeMutationData:
+    class RemoveEquipmentPortTypeMutationData(DataClassJsonMixin):
         removeEquipmentPortType: str
 
     data: Optional[RemoveEquipmentPortTypeMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

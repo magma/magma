@@ -9,16 +9,15 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .image_entity_enum import ImageEntity
 
 
-@dataclass_json
 @dataclass
-class DeleteImageMutation:
-    __QUERY__ = """
+class DeleteImageMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation DeleteImageMutation(
   $entityType: ImageEntity!
   $entityId: ID!
@@ -32,19 +31,16 @@ class DeleteImageMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class DeleteImageMutationData:
-        @dataclass_json
+    class DeleteImageMutationData(DataClassJsonMixin):
         @dataclass
-        class File:
+        class File(DataClassJsonMixin):
             id: str
             fileName: str
 
         deleteImage: Optional[File] = None
 
     data: Optional[DeleteImageMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

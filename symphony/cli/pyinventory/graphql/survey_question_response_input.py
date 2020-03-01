@@ -8,7 +8,7 @@ from gql.gql.datetime_utils import DATETIME_FIELD
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .survey_question_type_enum import SurveyQuestionType
@@ -16,9 +16,8 @@ from .survey_question_type_enum import SurveyQuestionType
 from .file_input import FileInput
 from .survey_cell_scan_data_input import SurveyCellScanData
 from .survey_wi_fi_scan_data_input import SurveyWiFiScanData
-@dataclass_json
 @dataclass
-class SurveyQuestionResponse:
+class SurveyQuestionResponse(DataClassJsonMixin):
     formIndex: int
     questionText: str
     questionIndex: int

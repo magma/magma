@@ -9,7 +9,7 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .service_endpoint_role_enum import ServiceEndpointRole
@@ -17,10 +17,9 @@ from .service_endpoint_role_enum import ServiceEndpointRole
 from .service_create_data_input import ServiceCreateData
 
 
-@dataclass_json
 @dataclass
-class AddServiceMutation:
-    __QUERY__ = """
+class AddServiceMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddServiceMutation($data: ServiceCreateData!) {
   addService(data: $data) {
     id
@@ -46,34 +45,28 @@ class AddServiceMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddServiceMutationData:
-        @dataclass_json
+    class AddServiceMutationData(DataClassJsonMixin):
         @dataclass
-        class Service:
-            @dataclass_json
+        class Service(DataClassJsonMixin):
             @dataclass
-            class Customer:
+            class Customer(DataClassJsonMixin):
                 id: str
                 name: str
                 externalId: Optional[str] = None
 
-            @dataclass_json
             @dataclass
-            class ServiceEndpoint:
-                @dataclass_json
+            class ServiceEndpoint(DataClassJsonMixin):
                 @dataclass
-                class EquipmentPort:
+                class EquipmentPort(DataClassJsonMixin):
                     id: str
 
                 id: str
                 port: EquipmentPort
                 role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
 
-            @dataclass_json
             @dataclass
-            class Link:
+            class Link(DataClassJsonMixin):
                 id: str
 
             id: str
@@ -86,7 +79,6 @@ class AddServiceMutation:
         addService: Optional[Service] = None
 
     data: Optional[AddServiceMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

@@ -9,28 +9,25 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .survey_create_data_input import SurveyCreateData
 
 
-@dataclass_json
 @dataclass
-class CreateSurveyMutation:
-    __QUERY__ = """
+class CreateSurveyMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation CreateSurveyMutation($data: SurveyCreateData!) {
   createSurvey(data: $data)
 }
 
     """
 
-    @dataclass_json
     @dataclass
-    class CreateSurveyMutationData:
+    class CreateSurveyMutationData(DataClassJsonMixin):
         createSurvey: Optional[str] = None
 
     data: Optional[CreateSurveyMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

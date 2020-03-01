@@ -9,16 +9,15 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .property_kind_enum import PropertyKind
 
 
-@dataclass_json
 @dataclass
-class EquipmentPortTypesQuery:
-    __QUERY__ = """
+class EquipmentPortTypesQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query EquipmentPortTypesQuery {
   equipmentPortTypes {
     edges {
@@ -60,21 +59,16 @@ class EquipmentPortTypesQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class EquipmentPortTypesQueryData:
-        @dataclass_json
+    class EquipmentPortTypesQueryData(DataClassJsonMixin):
         @dataclass
-        class EquipmentPortTypeConnection:
-            @dataclass_json
+        class EquipmentPortTypeConnection(DataClassJsonMixin):
             @dataclass
-            class EquipmentPortTypeEdge:
-                @dataclass_json
+            class EquipmentPortTypeEdge(DataClassJsonMixin):
                 @dataclass
-                class EquipmentPortType:
-                    @dataclass_json
+                class EquipmentPortType(DataClassJsonMixin):
                     @dataclass
-                    class PropertyType:
+                    class PropertyType(DataClassJsonMixin):
                         id: str
                         name: str
                         type: PropertyKind = enum_field(PropertyKind)
@@ -100,12 +94,11 @@ class EquipmentPortTypesQuery:
         equipmentPortTypes: EquipmentPortTypeConnection
 
     data: Optional[EquipmentPortTypesQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient):
         # fmt: off
-        variables = None
+        variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)
         return cls.from_json(response_text).data

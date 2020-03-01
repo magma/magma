@@ -8,13 +8,12 @@ from gql.gql.datetime_utils import DATETIME_FIELD
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .property_type_input import PropertyTypeInput
 from .survey_template_category_input import SurveyTemplateCategoryInput
-@dataclass_json
 @dataclass
-class AddLocationTypeInput:
+class AddLocationTypeInput(DataClassJsonMixin):
     name: str
     properties: List[PropertyTypeInput]
     surveyTemplateCategories: List[SurveyTemplateCategoryInput]

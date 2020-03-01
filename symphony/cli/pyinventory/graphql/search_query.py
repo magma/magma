@@ -9,13 +9,12 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class SearchQuery:
-    __QUERY__ = """
+class SearchQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query SearchQuery(
   $name: String!
   $after: Cursor
@@ -43,18 +42,14 @@ class SearchQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class SearchQueryData:
-        @dataclass_json
+    class SearchQueryData(DataClassJsonMixin):
         @dataclass
-        class SearchEntriesConnection:
-            @dataclass_json
+        class SearchEntriesConnection(DataClassJsonMixin):
             @dataclass
-            class SearchEntryEdge:
-                @dataclass_json
+            class SearchEntryEdge(DataClassJsonMixin):
                 @dataclass
-                class SearchEntry:
+                class SearchEntry(DataClassJsonMixin):
                     entityId: str
                     entityType: str
                     name: str
@@ -67,7 +62,6 @@ class SearchQuery:
         searchForEntity: SearchEntriesConnection
 
     data: Optional[SearchQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

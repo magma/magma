@@ -9,15 +9,14 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .add_image_input import AddImageInput
 
 
-@dataclass_json
 @dataclass
-class AddImageMutation:
-    __QUERY__ = """
+class AddImageMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddImageMutation($input: AddImageInput!) {
   addImage(input: $input) {
     id
@@ -27,19 +26,16 @@ class AddImageMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddImageMutationData:
-        @dataclass_json
+    class AddImageMutationData(DataClassJsonMixin):
         @dataclass
-        class File:
+        class File(DataClassJsonMixin):
             id: str
             fileName: str
 
         addImage: Optional[File] = None
 
     data: Optional[AddImageMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

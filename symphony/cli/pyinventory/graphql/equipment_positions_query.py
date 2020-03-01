@@ -9,13 +9,12 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class EquipmentPositionsQuery:
-    __QUERY__ = """
+class EquipmentPositionsQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query EquipmentPositionsQuery($id: ID!) {
   equipment: node(id: $id) {
     ... on Equipment {
@@ -41,35 +40,28 @@ class EquipmentPositionsQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class EquipmentPositionsQueryData:
-        @dataclass_json
+    class EquipmentPositionsQueryData(DataClassJsonMixin):
         @dataclass
-        class Node:
-            @dataclass_json
+        class Node(DataClassJsonMixin):
             @dataclass
-            class EquipmentType:
-                @dataclass_json
+            class EquipmentType(DataClassJsonMixin):
                 @dataclass
-                class EquipmentPositionDefinition:
+                class EquipmentPositionDefinition(DataClassJsonMixin):
                     id: str
                     name: str
 
                 positionDefinitions: List[EquipmentPositionDefinition]
 
-            @dataclass_json
             @dataclass
-            class EquipmentPosition:
-                @dataclass_json
+            class EquipmentPosition(DataClassJsonMixin):
                 @dataclass
-                class EquipmentPositionDefinition:
+                class EquipmentPositionDefinition(DataClassJsonMixin):
                     id: str
                     name: str
 
-                @dataclass_json
                 @dataclass
-                class Equipment:
+                class Equipment(DataClassJsonMixin):
                     id: str
                     name: str
 
@@ -82,7 +74,6 @@ class EquipmentPositionsQuery:
         equipment: Optional[Node] = None
 
     data: Optional[EquipmentPositionsQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

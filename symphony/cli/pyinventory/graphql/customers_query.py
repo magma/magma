@@ -9,13 +9,12 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class CustomersQuery:
-    __QUERY__ = """
+class CustomersQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query CustomersQuery {
   customers {
     edges {
@@ -30,18 +29,14 @@ class CustomersQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class CustomersQueryData:
-        @dataclass_json
+    class CustomersQueryData(DataClassJsonMixin):
         @dataclass
-        class CustomerConnection:
-            @dataclass_json
+        class CustomerConnection(DataClassJsonMixin):
             @dataclass
-            class CustomerEdge:
-                @dataclass_json
+            class CustomerEdge(DataClassJsonMixin):
                 @dataclass
-                class Customer:
+                class Customer(DataClassJsonMixin):
                     id: str
                     name: str
                     externalId: Optional[str] = None
@@ -53,12 +48,11 @@ class CustomersQuery:
         customers: Optional[CustomerConnection] = None
 
     data: Optional[CustomersQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient):
         # fmt: off
-        variables = None
+        variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)
         return cls.from_json(response_text).data

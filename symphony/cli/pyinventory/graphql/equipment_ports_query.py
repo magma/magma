@@ -9,13 +9,12 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class EquipmentPortsQuery:
-    __QUERY__ = """
+class EquipmentPortsQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query EquipmentPortsQuery($id: ID!) {
   equipment: node(id: $id) {
     ... on Equipment {
@@ -35,24 +34,19 @@ class EquipmentPortsQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class EquipmentPortsQueryData:
-        @dataclass_json
+    class EquipmentPortsQueryData(DataClassJsonMixin):
         @dataclass
-        class Node:
-            @dataclass_json
+        class Node(DataClassJsonMixin):
             @dataclass
-            class EquipmentPort:
-                @dataclass_json
+            class EquipmentPort(DataClassJsonMixin):
                 @dataclass
-                class EquipmentPortDefinition:
+                class EquipmentPortDefinition(DataClassJsonMixin):
                     id: str
                     name: str
 
-                @dataclass_json
                 @dataclass
-                class Link:
+                class Link(DataClassJsonMixin):
                     id: str
 
                 id: str
@@ -64,7 +58,6 @@ class EquipmentPortsQuery:
         equipment: Optional[Node] = None
 
     data: Optional[EquipmentPortsQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

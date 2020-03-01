@@ -9,13 +9,12 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class ServiceTypeServicesQuery:
-    __QUERY__ = """
+class ServiceTypeServicesQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query ServiceTypeServicesQuery($id: ID!) {
   serviceType: node(id: $id) {
     ... on ServiceType {
@@ -35,18 +34,14 @@ class ServiceTypeServicesQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class ServiceTypeServicesQueryData:
-        @dataclass_json
+    class ServiceTypeServicesQueryData(DataClassJsonMixin):
         @dataclass
-        class Node:
-            @dataclass_json
+        class Node(DataClassJsonMixin):
             @dataclass
-            class Service:
-                @dataclass_json
+            class Service(DataClassJsonMixin):
                 @dataclass
-                class Customer:
+                class Customer(DataClassJsonMixin):
                     id: str
                     name: str
                     externalId: Optional[str] = None
@@ -61,7 +56,6 @@ class ServiceTypeServicesQuery:
         serviceType: Optional[Node] = None
 
     data: Optional[ServiceTypeServicesQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

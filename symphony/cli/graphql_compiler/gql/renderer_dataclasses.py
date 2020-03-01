@@ -32,7 +32,7 @@ class DataclassesRenderer:
         buffer.write("from numbers import Number")
         buffer.write("from typing import Any, Callable, List, Mapping, Optional")
         buffer.write("")
-        buffer.write("from dataclasses_json import dataclass_json")
+        buffer.write("from dataclasses_json import DataClassJsonMixin")
         buffer.write("")
         enum_names = set()
         for enum in parsed_query.enums:
@@ -85,7 +85,9 @@ class DataclassesRenderer:
                 buffer.write('MISSING_ENUM = ""')
                 buffer.write("")
                 buffer.write("@classmethod")
-                with buffer.write_block("def _missing_(cls, value):"):
+                with buffer.write_block(
+                    f'def _missing_(cls, value: str) -> "{enum.name}":'
+                ):
                     buffer.write("return cls.MISSING_ENUM")
             buffer.write("")
             result[enum.name] = str(buffer)
@@ -109,7 +111,7 @@ class DataclassesRenderer:
             buffer.write("from numbers import Number")
             buffer.write("from typing import Any, Callable, List, Mapping, Optional")
             buffer.write("")
-            buffer.write("from dataclasses_json import dataclass_json")
+            buffer.write("from dataclasses_json import DataClassJsonMixin")
             buffer.write("")
             enum_names = set()
             for enum in input_object.input_enums:
@@ -139,9 +141,10 @@ class DataclassesRenderer:
     def __render_object(
         self, parsed_query: ParsedQuery, buffer: CodeChunk, obj: ParsedObject
     ) -> None:
-        class_parents = "" if not obj.parents else f'({", ".join(obj.parents)})'
+        class_parents = (
+            "(DataClassJsonMixin)" if not obj.parents else f'({", ".join(obj.parents)})'
+        )
 
-        buffer.write("@dataclass_json")
         buffer.write("@dataclass")
         with buffer.write_block(f"class {obj.name}{class_parents}:"):
             # render child objects
@@ -165,10 +168,9 @@ class DataclassesRenderer:
     def __render_operation(
         self, parsed_query: ParsedQuery, buffer: CodeChunk, parsed_op: ParsedOperation
     ) -> None:
-        buffer.write("@dataclass_json")
         buffer.write("@dataclass")
-        with buffer.write_block(f"class {parsed_op.name}:"):
-            buffer.write('__QUERY__ = """')
+        with buffer.write_block(f"class {parsed_op.name}(DataClassJsonMixin):"):
+            buffer.write('__QUERY__: str = """')
             buffer.write(parsed_query.query)
             buffer.write('"""')
             buffer.write("")
@@ -179,7 +181,6 @@ class DataclassesRenderer:
 
             # operation fields
             buffer.write(f"data: Optional[{parsed_op.name}Data] = None")
-            buffer.write("errors: Optional[Any] = None")
             buffer.write("")
 
             # Execution functions
@@ -199,7 +200,7 @@ class DataclassesRenderer:
                 )
             else:
                 vars_args = ""
-                variables_dict = "None"
+                variables_dict = "{}"
 
             buffer.write("@classmethod")
             buffer.write("# fmt: off")

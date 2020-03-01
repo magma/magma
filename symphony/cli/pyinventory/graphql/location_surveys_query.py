@@ -9,16 +9,15 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .survey_question_type_enum import SurveyQuestionType
 
 
-@dataclass_json
 @dataclass
-class LocationSurveysQuery:
-    __QUERY__ = """
+class LocationSurveysQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query LocationSurveysQuery($id: ID!) {
   location: node(id: $id) {
     ... on Location {
@@ -52,25 +51,20 @@ class LocationSurveysQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class LocationSurveysQueryData:
-        @dataclass_json
+    class LocationSurveysQueryData(DataClassJsonMixin):
         @dataclass
-        class Node:
-            @dataclass_json
+        class Node(DataClassJsonMixin):
             @dataclass
-            class Survey:
-                @dataclass_json
+            class Survey(DataClassJsonMixin):
                 @dataclass
-                class File:
+                class File(DataClassJsonMixin):
                     id: str
                     fileName: str
                     storeKey: Optional[str] = None
 
-                @dataclass_json
                 @dataclass
-                class SurveyQuestion:
+                class SurveyQuestion(DataClassJsonMixin):
                     questionText: str
                     formName: Optional[str] = None
                     questionFormat: Optional[SurveyQuestionType] = None
@@ -95,7 +89,6 @@ class LocationSurveysQuery:
         location: Optional[Node] = None
 
     data: Optional[LocationSurveysQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

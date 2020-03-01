@@ -8,11 +8,10 @@ from gql.gql.datetime_utils import DATETIME_FIELD
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
-@dataclass_json
 @dataclass
-class AddCustomerInput:
+class AddCustomerInput(DataClassJsonMixin):
     name: str
     externalId: Optional[str] = None
 

@@ -9,15 +9,14 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .add_equipment_input import AddEquipmentInput
 
 
-@dataclass_json
 @dataclass
-class AddEquipmentMutation:
-    __QUERY__ = """
+class AddEquipmentMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddEquipmentMutation($input: AddEquipmentInput!) {
   addEquipment(input: $input) {
     id
@@ -27,19 +26,16 @@ class AddEquipmentMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddEquipmentMutationData:
-        @dataclass_json
+    class AddEquipmentMutationData(DataClassJsonMixin):
         @dataclass
-        class Equipment:
+        class Equipment(DataClassJsonMixin):
             id: str
             name: str
 
         addEquipment: Optional[Equipment] = None
 
     data: Optional[AddEquipmentMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

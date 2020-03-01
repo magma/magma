@@ -9,16 +9,15 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .property_kind_enum import PropertyKind
 
 
-@dataclass_json
 @dataclass
-class EquipmentPortTypeQuery:
-    __QUERY__ = """
+class EquipmentPortTypeQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query EquipmentPortTypeQuery($id: ID!) {
   port_type: node(id: $id) {
     ... on EquipmentPortType {
@@ -58,15 +57,12 @@ class EquipmentPortTypeQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class EquipmentPortTypeQueryData:
-        @dataclass_json
+    class EquipmentPortTypeQueryData(DataClassJsonMixin):
         @dataclass
-        class Node:
-            @dataclass_json
+        class Node(DataClassJsonMixin):
             @dataclass
-            class PropertyType:
+            class PropertyType(DataClassJsonMixin):
                 id: str
                 name: str
                 type: PropertyKind = enum_field(PropertyKind)
@@ -88,7 +84,6 @@ class EquipmentPortTypeQuery:
         port_type: Optional[Node] = None
 
     data: Optional[EquipmentPortTypeQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

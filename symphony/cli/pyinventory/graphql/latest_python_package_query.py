@@ -9,13 +9,12 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class LatestPythonPackageQuery:
-    __QUERY__ = """
+class LatestPythonPackageQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query LatestPythonPackageQuery {
   latestPythonPackage {
     lastPythonPackage {
@@ -29,15 +28,12 @@ class LatestPythonPackageQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class LatestPythonPackageQueryData:
-        @dataclass_json
+    class LatestPythonPackageQueryData(DataClassJsonMixin):
         @dataclass
-        class LatestPythonPackageResult:
-            @dataclass_json
+        class LatestPythonPackageResult(DataClassJsonMixin):
             @dataclass
-            class PythonPackage:
+            class PythonPackage(DataClassJsonMixin):
                 version: str
 
             lastPythonPackage: Optional[PythonPackage] = None
@@ -46,12 +42,11 @@ class LatestPythonPackageQuery:
         latestPythonPackage: Optional[LatestPythonPackageResult] = None
 
     data: Optional[LatestPythonPackageQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient):
         # fmt: off
-        variables = None
+        variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)
         return cls.from_json(response_text).data

@@ -9,7 +9,7 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .property_kind_enum import PropertyKind
@@ -17,10 +17,9 @@ from .property_kind_enum import PropertyKind
 from .service_type_create_data_input import ServiceTypeCreateData
 
 
-@dataclass_json
 @dataclass
-class AddServiceTypeMutation:
-    __QUERY__ = """
+class AddServiceTypeMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {
   addServiceType(data: $data) {
     id
@@ -45,15 +44,12 @@ class AddServiceTypeMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddServiceTypeMutationData:
-        @dataclass_json
+    class AddServiceTypeMutationData(DataClassJsonMixin):
         @dataclass
-        class ServiceType:
-            @dataclass_json
+        class ServiceType(DataClassJsonMixin):
             @dataclass
-            class PropertyType:
+            class PropertyType(DataClassJsonMixin):
                 id: str
                 name: str
                 type: PropertyKind = enum_field(PropertyKind)
@@ -75,7 +71,6 @@ class AddServiceTypeMutation:
         addServiceType: Optional[ServiceType] = None
 
     data: Optional[AddServiceTypeMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

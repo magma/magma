@@ -9,7 +9,7 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from gql.gql.enum_utils import enum_field
 from .property_kind_enum import PropertyKind
@@ -17,10 +17,9 @@ from .property_kind_enum import PropertyKind
 from .add_location_type_input import AddLocationTypeInput
 
 
-@dataclass_json
 @dataclass
-class AddLocationTypeMutation:
-    __QUERY__ = """
+class AddLocationTypeMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddLocationTypeMutation($input: AddLocationTypeInput!) {
   addLocationType(input: $input) {
     id
@@ -44,15 +43,12 @@ class AddLocationTypeMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddLocationTypeMutationData:
-        @dataclass_json
+    class AddLocationTypeMutationData(DataClassJsonMixin):
         @dataclass
-        class LocationType:
-            @dataclass_json
+        class LocationType(DataClassJsonMixin):
             @dataclass
-            class PropertyType:
+            class PropertyType(DataClassJsonMixin):
                 id: str
                 name: str
                 type: PropertyKind = enum_field(PropertyKind)
@@ -73,7 +69,6 @@ class AddLocationTypeMutation:
         addLocationType: Optional[LocationType] = None
 
     data: Optional[AddLocationTypeMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

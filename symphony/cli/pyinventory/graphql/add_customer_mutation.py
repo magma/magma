@@ -9,15 +9,14 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .add_customer_input import AddCustomerInput
 
 
-@dataclass_json
 @dataclass
-class AddCustomerMutation:
-    __QUERY__ = """
+class AddCustomerMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddCustomerMutation($input: AddCustomerInput!) {
   addCustomer(input: $input) {
     id
@@ -28,12 +27,10 @@ class AddCustomerMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddCustomerMutationData:
-        @dataclass_json
+    class AddCustomerMutationData(DataClassJsonMixin):
         @dataclass
-        class Customer:
+        class Customer(DataClassJsonMixin):
             id: str
             name: str
             externalId: Optional[str] = None
@@ -41,7 +38,6 @@ class AddCustomerMutation:
         addCustomer: Optional[Customer] = None
 
     data: Optional[AddCustomerMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

@@ -9,15 +9,14 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .add_location_input import AddLocationInput
 
 
-@dataclass_json
 @dataclass
-class AddLocationMutation:
-    __QUERY__ = """
+class AddLocationMutation(DataClassJsonMixin):
+    __QUERY__: str = """
     mutation AddLocationMutation($input: AddLocationInput!) {
   addLocation(input: $input) {
     id
@@ -33,15 +32,12 @@ class AddLocationMutation:
 
     """
 
-    @dataclass_json
     @dataclass
-    class AddLocationMutationData:
-        @dataclass_json
+    class AddLocationMutationData(DataClassJsonMixin):
         @dataclass
-        class Location:
-            @dataclass_json
+        class Location(DataClassJsonMixin):
             @dataclass
-            class LocationType:
+            class LocationType(DataClassJsonMixin):
                 name: str
 
             id: str
@@ -54,7 +50,6 @@ class AddLocationMutation:
         addLocation: Optional[Location] = None
 
     data: Optional[AddLocationMutationData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

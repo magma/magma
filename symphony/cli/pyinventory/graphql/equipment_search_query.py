@@ -9,15 +9,14 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .equipment_filter_input import EquipmentFilterInput
 
 
-@dataclass_json
 @dataclass
-class EquipmentSearchQuery:
-    __QUERY__ = """
+class EquipmentSearchQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
   equipmentSearch(filters: $filters, limit: $limit) {
     equipment {
@@ -30,15 +29,12 @@ class EquipmentSearchQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class EquipmentSearchQueryData:
-        @dataclass_json
+    class EquipmentSearchQueryData(DataClassJsonMixin):
         @dataclass
-        class EquipmentSearchResult:
-            @dataclass_json
+        class EquipmentSearchResult(DataClassJsonMixin):
             @dataclass
-            class Equipment:
+            class Equipment(DataClassJsonMixin):
                 id: str
                 name: str
 
@@ -48,7 +44,6 @@ class EquipmentSearchQuery:
         equipmentSearch: EquipmentSearchResult
 
     data: Optional[EquipmentSearchQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

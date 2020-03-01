@@ -9,13 +9,12 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class LocationDepsQuery:
-    __QUERY__ = """
+class LocationDepsQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query LocationDepsQuery($id: ID!) {
   location: node(id: $id) {
     ... on Location {
@@ -37,30 +36,24 @@ class LocationDepsQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class LocationDepsQueryData:
-        @dataclass_json
+    class LocationDepsQueryData(DataClassJsonMixin):
         @dataclass
-        class Node:
-            @dataclass_json
+        class Node(DataClassJsonMixin):
             @dataclass
-            class File:
+            class File(DataClassJsonMixin):
                 id: str
 
-            @dataclass_json
             @dataclass
-            class Location:
+            class Location(DataClassJsonMixin):
                 id: str
 
-            @dataclass_json
             @dataclass
-            class Survey:
+            class Survey(DataClassJsonMixin):
                 id: str
 
-            @dataclass_json
             @dataclass
-            class Equipment:
+            class Equipment(DataClassJsonMixin):
                 id: str
 
             files: List[File]
@@ -71,7 +64,6 @@ class LocationDepsQuery:
         location: Optional[Node] = None
 
     data: Optional[LocationDepsQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off

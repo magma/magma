@@ -9,13 +9,12 @@ from functools import partial
 from numbers import Number
 from typing import Any, Callable, List, Mapping, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class EquipmentTypeEquipmentQuery:
-    __QUERY__ = """
+class EquipmentTypeEquipmentQuery(DataClassJsonMixin):
+    __QUERY__: str = """
     query EquipmentTypeEquipmentQuery($id: ID!) {
   equipmentType: node(id: $id) {
     ... on EquipmentType {
@@ -29,15 +28,12 @@ class EquipmentTypeEquipmentQuery:
 
     """
 
-    @dataclass_json
     @dataclass
-    class EquipmentTypeEquipmentQueryData:
-        @dataclass_json
+    class EquipmentTypeEquipmentQueryData(DataClassJsonMixin):
         @dataclass
-        class Node:
-            @dataclass_json
+        class Node(DataClassJsonMixin):
             @dataclass
-            class Equipment:
+            class Equipment(DataClassJsonMixin):
                 id: str
                 name: str
 
@@ -46,7 +42,6 @@ class EquipmentTypeEquipmentQuery:
         equipmentType: Optional[Node] = None
 
     data: Optional[EquipmentTypeEquipmentQueryData] = None
-    errors: Optional[Any] = None
 
     @classmethod
     # fmt: off
