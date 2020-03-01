@@ -34,11 +34,15 @@ type PortData struct {
 	EquipmentTypeName string
 }
 
-func NewImportRecord(line []string, title ImportHeader) ImportRecord {
+// NewImportRecord returns a new record object (or an error) to represent each row
+func NewImportRecord(line []string, title ImportHeader) (ImportRecord, error) {
+	if isEmptyRow(line) {
+		return ImportRecord{}, errors.New("found an empty row. skipping")
+	}
 	return ImportRecord{
 		line:  line,
 		title: title,
-	}
+	}, nil
 }
 
 func (l ImportRecord) ZapField() zap.Field {

@@ -111,7 +111,11 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 				}
 
 				ln := m.trimLine(untrimmedLine)
-				importLine := NewImportRecord(ln, importHeader)
+				importLine, err := NewImportRecord(ln, importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				portARecord, portBRecord, err := m.getTwoPortRecords(importLine)
 
 				if err != nil {
@@ -332,8 +336,14 @@ func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *I
 		return nil, nil, errors.New("ports are identical")
 	}
 
-	portA := NewImportRecord(portASlice, headerA)
-	portB := NewImportRecord(portBSlice, headerB)
+	portA, err := NewImportRecord(portASlice, headerA)
+	if err != nil {
+		return nil, nil, err
+	}
+	portB, err := NewImportRecord(portBSlice, headerB)
+	if err != nil {
+		return nil, nil, err
+	}
 	return &portA, &portB, nil
 }
 

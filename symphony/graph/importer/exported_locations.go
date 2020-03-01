@@ -111,8 +111,11 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 					continue
 				}
 
-				importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
-
+				importLine, err := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				var parentLoc *ent.Location
 				currLocIndex, err := m.getCurrentLocationIndex(importLine)
 				if err != nil || currLocIndex <= 0 {

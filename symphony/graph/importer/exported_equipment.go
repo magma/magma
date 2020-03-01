@@ -123,7 +123,11 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					continue
 				}
 
-				importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				importLine, err := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				name := importLine.Name()
 				equipTypName := importLine.TypeName()
 				equipType, err := client.EquipmentType.Query().Where(equipmenttype.Name(equipTypName)).Only(ctx)

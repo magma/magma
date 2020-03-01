@@ -121,8 +121,11 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 					nextLineToSkipIndex++
 					continue
 				}
-				importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
-
+				importLine, err := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				id := importLine.ID()
 				if id == 0 {
 					errs = append(errs, ErrorLine{Line: numRows, Error: "no id provided for row", Message: "supporting only port editing"})
