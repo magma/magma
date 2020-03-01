@@ -11,6 +11,7 @@
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {ContextRouter} from 'react-router-dom';
 import type {PowerSearchLocationsResultsTable_locations} from './__generated__/PowerSearchLocationsResultsTable_locations.graphql';
+import type {TableIndex, TableSize} from './FilterUtils';
 import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
@@ -158,17 +159,19 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
 
     return locations.length > 0 ? (
       <AutoSizer>
-        {(height: number, width: number) => (
+        {({height, width}: TableSize) => (
           <Table
             className={classes.table}
             height={height}
             width={width}
             headerHeight={50}
-            rowHeight={(index: number) => this._getRowHeight(locations[index])}
+            rowHeight={({index}: TableIndex) =>
+              this._getRowHeight(locations[index])
+            }
             rowCount={locations.length}
-            rowGetter={(index: number) => locations[index]}
+            rowGetter={({index}: TableIndex) => locations[index]}
             gridClassName={classes.table}
-            rowClassName={(index: number) =>
+            rowClassName={({index}: TableIndex) =>
               index === -1 ? classes.header : ''
             }>
             <Column

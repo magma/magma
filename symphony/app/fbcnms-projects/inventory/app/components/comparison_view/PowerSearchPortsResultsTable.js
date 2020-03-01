@@ -10,6 +10,7 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {PowerSearchPortsResultsTable_ports} from './__generated__/PowerSearchPortsResultsTable_ports.graphql';
+import type {TableIndex, TableSize} from './FilterUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -146,17 +147,19 @@ class PowerSearchPortsResultsTable extends React.Component<Props> {
     }
     return ports.length > 0 ? (
       <AutoSizer>
-        {(height: number, width: number) => (
+        {({height, width}: TableSize) => (
           <Table
             className={classes.table}
             height={height}
             width={width}
             headerHeight={50}
-            rowHeight={(index: number) => this._getRowHeight(ports[index])}
+            rowHeight={({index}: TableIndex) =>
+              this._getRowHeight(ports[index])
+            }
             rowCount={ports.length}
-            rowGetter={(index: number) => ports[index]}
+            rowGetter={({index}: TableIndex) => ports[index]}
             gridClassName={classes.table}
-            rowClassName={(index: number) =>
+            rowClassName={({index}: TableIndex) =>
               index === -1 ? classes.header : ''
             }>
             <Column

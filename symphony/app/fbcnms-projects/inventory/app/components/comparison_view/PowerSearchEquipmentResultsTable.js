@@ -12,6 +12,7 @@ import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {ContextRouter} from 'react-router-dom';
 import type {Equipment} from '../../common/Equipment';
 import type {PowerSearchEquipmentResultsTable_equipment} from './__generated__/PowerSearchEquipmentResultsTable_equipment.graphql';
+import type {TableIndex, TableSize} from './FilterUtils';
 import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
@@ -187,7 +188,7 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
 
     return equipment.length > 0 ? (
       <AutoSizer>
-        {(height: number, width: number) => (
+        {({height, width}: TableSize) => (
           <Table
             className={classes.table}
             height={height}
@@ -195,9 +196,9 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
             headerHeight={50}
             rowHeight={50}
             rowCount={equipment.length}
-            rowGetter={(index: number) => equipment[index]}
+            rowGetter={({index}: TableIndex) => equipment[index]}
             gridClassName={classes.table}
-            rowClassName={({index}) =>
+            rowClassName={({index}: TableIndex) =>
               classNames({
                 [classes.header]: index === -1,
                 [classes.row]: index !== -1,

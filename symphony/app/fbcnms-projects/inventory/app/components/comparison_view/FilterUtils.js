@@ -37,6 +37,15 @@ export const dateValues = [
   },
 ];
 
+export type TableSize = {
+  height: number,
+  width: number,
+};
+
+export type TableIndex = {
+  index: number,
+};
+
 export function getOperatorLabel(operator: Operator): string {
   switch (operator) {
     case 'is':
