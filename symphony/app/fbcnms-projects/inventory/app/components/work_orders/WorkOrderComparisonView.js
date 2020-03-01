@@ -13,7 +13,7 @@ import type {FilterConfig} from '../comparison_view/ComparisonViewTypes';
 import AddWorkOrderCard from './AddWorkOrderCard';
 import AddWorkOrderDialog from './AddWorkOrderDialog';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
-import InventoryViewHeader, {DisplayOptions} from '../InventoryViewHeader';
+import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useMemo, useState} from 'react';
 import WorkOrderCard from './WorkOrderCard';
@@ -116,82 +116,80 @@ const WorkOrderComparisonView = () => {
     );
   }
 
+  const header = {
+    title: 'Work Orders',
+    onViewToggleClicked: setResultsDisplayMode,
+    searchBar: (
+      <div className={classes.powerSearchBarWrapper}>
+        <PowerSearchBar
+          placeholder="Filter work orders"
+          className={classes.powerSearchBar}
+          filterConfigs={filterConfigs}
+          searchConfig={WorkOrderSearchConfig}
+          getSelectedFilter={(filterConfig: FilterConfig) =>
+            getInitialFilterValue(
+              filterConfig.key,
+              filterConfig.name,
+              filterConfig.defaultOperator,
+              null,
+            )
+          }
+          onFiltersChanged={filters => setFilters(filters)}
+          exportPath={'/work_orders'}
+          footer={
+            count !== 0
+              ? count > QUERY_LIMIT
+                ? fbt(
+                    '1 to ' +
+                      fbt.param('size of page', QUERY_LIMIT) +
+                      ' of ' +
+                      fbt.param('total number possible rows', count),
+                    'header to indicate partial results',
+                  )
+                : fbt(
+                    '1 to ' + fbt.param('number of results in page', count),
+                    'header to indicate number of results',
+                  )
+              : null
+          }
+        />
+      </div>
+    ),
+    actionButtons: [
+      {
+        title: 'Add Work Order',
+        action: showDialog,
+      },
+    ],
+  };
+
   return (
     <ErrorBoundary>
-      <div className={classes.root}>
-        <InventoryViewHeader
-          title="Work Orders"
-          onViewToggleClicked={setResultsDisplayMode}
-          searchBar={
-            <div className={classes.powerSearchBarWrapper}>
-              <PowerSearchBar
-                placeholder="Filter work orders"
-                className={classes.powerSearchBar}
-                filterConfigs={filterConfigs}
-                searchConfig={WorkOrderSearchConfig}
-                getSelectedFilter={(filterConfig: FilterConfig) =>
-                  getInitialFilterValue(
-                    filterConfig.key,
-                    filterConfig.name,
-                    filterConfig.defaultOperator,
-                    null,
-                  )
-                }
-                onFiltersChanged={filters => setFilters(filters)}
-                exportPath={'/work_orders'}
-                footer={
-                  count !== 0
-                    ? count > QUERY_LIMIT
-                      ? fbt(
-                          '1 to ' +
-                            fbt.param('size of page', QUERY_LIMIT) +
-                            ' of ' +
-                            fbt.param('total number possible rows', count),
-                          'header to indicate partial results',
-                        )
-                      : fbt(
-                          '1 to ' +
-                            fbt.param('number of results in page', count),
-                          'header to indicate number of results',
-                        )
-                    : null
-                }
-              />
-            </div>
+      <InventoryView header={header}>
+        <WorkOrderComparisonViewQueryRenderer
+          limit={50}
+          filters={filters}
+          onWorkOrderSelected={selectedWorkOrderCardId =>
+            navigateToWorkOrder(selectedWorkOrderCardId)
           }
-          actionButtons={[
-            {
-              title: 'Add Work Order',
-              action: showDialog,
-            },
-          ]}
+          workOrderKey={workOrderKey}
+          displayMode={
+            resultsDisplayMode === DisplayOptions.map
+              ? DisplayOptions.map
+              : DisplayOptions.table
+          }
+          onQueryReturn={c => setCount(c)}
         />
-        <div className={classes.searchResults}>
-          <WorkOrderComparisonViewQueryRenderer
-            limit={50}
-            filters={filters}
-            onWorkOrderSelected={selectedWorkOrderCardId =>
-              navigateToWorkOrder(selectedWorkOrderCardId)
-            }
-            workOrderKey={workOrderKey}
-            displayMode={
-              resultsDisplayMode === DisplayOptions.map
-                ? DisplayOptions.map
-                : DisplayOptions.table
-            }
-            onQueryReturn={c => setCount(c)}
-          />
-        </div>
-      </div>
-      <AddWorkOrderDialog
-        key={`new_work_order_${dialogKey}`}
-        open={dialogOpen}
-        onClose={hideDialog}
-        onWorkOrderTypeSelected={typeId => {
-          navigateToAddWorkOrder(typeId);
-          setDialogOpen(false);
-        }}
-      />
+        <AddWorkOrderDialog
+          key={`new_work_order_${dialogKey}`}
+          open={dialogOpen}
+          onClose={hideDialog}
+          onWorkOrderTypeSelected={typeId => {
+            navigateToAddWorkOrder(typeId);
+            setDialogOpen(false);
+          }}
+        />
+      </InventoryView>
     </ErrorBoundary>
   );
 };
