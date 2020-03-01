@@ -313,7 +313,10 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 
 func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *ImportRecord, error) {
 	header := importLine.Header()
-	headerSlices := header.LinkGetTwoPortsSlices()
+	headerSlices, err := header.LinkGetTwoPortsSlices()
+	if err != nil {
+		return nil, nil, err
+	}
 	ahead, bhead := headerSlices[0], headerSlices[1]
 	headerA, err := NewImportHeader(ahead, ImportEntityPortInLink)
 	if err != nil {
@@ -407,7 +410,11 @@ func (m *importer) inputValidationsLinks(ctx context.Context, importHeader Impor
 	if firstLine[0] != "Link ID" {
 		return errors.Errorf("first cell should be 'Link ID' ")
 	}
-	portsSlices := importHeader.LinkGetTwoPortsSlices()
+
+	portsSlices, err := importHeader.LinkGetTwoPortsSlices()
+	if err != nil {
+		return err
+	}
 	ha, err := NewImportHeader(portsSlices[0], ImportEntityPortInLink)
 	if err != nil {
 		return err
