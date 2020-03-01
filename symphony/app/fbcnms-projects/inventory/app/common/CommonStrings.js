@@ -49,6 +49,14 @@ const Strings = {
       },
     },
   },
+  admin: {
+    users: {
+      viewHeader: `${fbt(
+        'User Management',
+        'Header for view showing and managing all system user and permissions settings',
+      )}`,
+    },
+  },
   documents: {
     viewHeader: `${fbt(
       'Documents',
