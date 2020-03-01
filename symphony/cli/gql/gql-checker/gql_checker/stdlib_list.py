@@ -1,4 +1,6 @@
-STDLIB_NAMES = set((
+#!/usr/bin/env python3
+
+STDLIB_NAMES = {
     "AL",
     "BaseHTTPServer",
     "Bastion",
@@ -327,4 +329,4 @@ STDLIB_NAMES = set((
     "zipfile",
     "zipimport",
     "zlib",
-))
+}

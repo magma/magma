@@ -65,7 +65,7 @@ class RequestsHTTPSessionTransport(HTTPTransport):
         request = self.session.post(
             self.url,
             data=json.dumps(payload, default=encode_variable).encode("utf-8"),
-            headers=self.headers
+            headers=self.headers,
         )
 
         result = request.json()
