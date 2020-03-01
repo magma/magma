@@ -8,8 +8,8 @@
  * @format
  */
 
-import type PowerSearchPortsResultsTable_ports from './__generated__/PowerSearchPortsResultsTable_ports.graphql';
 import type {ContextRouter} from 'react-router-dom';
+import type {PowerSearchPortsResultsTable_ports} from './__generated__/PowerSearchPortsResultsTable_ports.graphql';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -71,15 +71,15 @@ type Props = WithAlert &
 
 class PowerSearchPortsResultsTable extends React.Component<Props> {
   _getConnectedPort = (
-    port: PowerSearchPortsResultsTable_ports,
-  ): ?PowerSearchPortsResultsTable_ports => {
+    port: $ElementType<PowerSearchPortsResultsTable_ports, number>,
+  ) => {
     if (!port || !port.link || port.link.ports.length < 2) {
       return null;
     }
-    if (port.link.ports[0].id != port.id) {
+    if (port.link.ports[0] && port.link.ports[0].id != port.id) {
       return port.link.ports[0];
     }
-    if (port.link.ports[1].id != port.id) {
+    if (port.link.ports[1] && port.link.ports[1].id != port.id) {
       return port.link.ports[1];
     }
   };
@@ -134,8 +134,8 @@ class PowerSearchPortsResultsTable extends React.Component<Props> {
   };
 
   _getRowHeight = rowData => {
-    return rowData.link?.properties.length > 3
-      ? 40 + rowData.link?.properties.length * 10
+    return (rowData.link?.properties.length ?? 0) > 3
+      ? 40 + (rowData.link?.properties.length ?? 0) * 10
       : 50;
   };
 
@@ -146,17 +146,19 @@ class PowerSearchPortsResultsTable extends React.Component<Props> {
     }
     return ports.length > 0 ? (
       <AutoSizer>
-        {({height, width}) => (
+        {(height: number, width: number) => (
           <Table
             className={classes.table}
             height={height}
             width={width}
             headerHeight={50}
-            rowHeight={({index}) => this._getRowHeight(ports[index])}
+            rowHeight={(index: number) => this._getRowHeight(ports[index])}
             rowCount={ports.length}
-            rowGetter={({index}) => ports[index]}
+            rowGetter={(index: number) => ports[index]}
             gridClassName={classes.table}
-            rowClassName={({index}) => (index === -1 ? classes.header : '')}>
+            rowClassName={(index: number) =>
+              index === -1 ? classes.header : ''
+            }>
             <Column
               label="Equipment"
               dataKey="equipment"

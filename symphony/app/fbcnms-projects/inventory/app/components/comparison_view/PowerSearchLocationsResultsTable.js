@@ -8,9 +8,10 @@
  * @format
  */
 
-import type PowerSearchLocationsResultsTable_locations from './__generated__/PowerSearchLocationsResultsTable_locations.graphql';
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {ContextRouter} from 'react-router-dom';
+import type {PowerSearchLocationsResultsTable_locations} from './__generated__/PowerSearchLocationsResultsTable_locations.graphql';
+import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -30,7 +31,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import 'react-virtualized/styles.css';
 
-const styles = theme => ({
+const styles = (theme: Theme) => ({
   root: {
     width: '100%',
     marginTop: theme.spacing(3),
@@ -157,17 +158,19 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
 
     return locations.length > 0 ? (
       <AutoSizer>
-        {({height, width}) => (
+        {(height: number, width: number) => (
           <Table
             className={classes.table}
             height={height}
             width={width}
             headerHeight={50}
-            rowHeight={({index}) => this._getRowHeight(locations[index])}
+            rowHeight={(index: number) => this._getRowHeight(locations[index])}
             rowCount={locations.length}
-            rowGetter={({index}) => locations[index]}
+            rowGetter={(index: number) => locations[index]}
             gridClassName={classes.table}
-            rowClassName={({index}) => (index === -1 ? classes.header : '')}>
+            rowClassName={(index: number) =>
+              index === -1 ? classes.header : ''
+            }>
             <Column
               label="Location Name"
               dataKey="name"
