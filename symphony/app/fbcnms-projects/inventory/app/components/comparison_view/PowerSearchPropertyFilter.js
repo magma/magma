@@ -54,7 +54,7 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
       name: 'property',
       operator: editedOperator,
       propertyValue: {
-        id: 'tmp@propertyType',
+        id: '0',
         name: newValue.propertyType
           ? newValue.propertyType.name
           : newValue.name,
