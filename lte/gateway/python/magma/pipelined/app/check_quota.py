@@ -103,7 +103,12 @@ class CheckQuotaController(MagmaController):
             elif update.update_type == SubscriberQuotaUpdate.NO_QUOTA:
                 self._add_subscriber_flow(imsi, update.mac_addr, False)
             elif update.update_type == SubscriberQuotaUpdate.TERMINATE:
-                self._remove_subscriber_flow(imsi)
+                self.remove_subscriber_flow(imsi)
+
+    def remove_subscriber_flow(self, imsi: str):
+        match = MagmaMatch(imsi=encode_imsi(imsi))
+        flows.delete_flow(self._datapath, self.tbl_num, match)
+        flows.delete_flow(self._datapath, self.ip_rewrite_scratch, match)
 
     def _add_subscriber_flow(self, imsi: str, ue_mac: str, has_quota: bool):
         """
@@ -230,28 +235,6 @@ class CheckQuotaController(MagmaController):
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.set_incoming_arp_flows(self._datapath, fake_ip,
                                                       ue_mac)
-
-    def _remove_subscriber_flow(self, imsi: str):
-        match = MagmaMatch(
-            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
-            ip_proto=IPPROTO_TCP, direction=Direction.OUT,
-            ipv4_dst=self.config.quota_check_ip
-        )
-        flows.delete_flow(self._datapath, self.tbl_num, match)
-
-        match = MagmaMatch(
-            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
-            ip_proto=IPPROTO_TCP, direction=Direction.IN,
-            ipv4_src=self.config.bridge_ip)
-        flows.delete_flow(self._datapath, self.tbl_num, match)
-
-        match = MagmaMatch(
-            imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
-            ip_proto=IPPROTO_TCP, direction=Direction.OUT,
-            vlan_vid=(0x1000, 0x1000),
-            ipv4_dst=self.config.quota_check_ip
-        )
-        flows.delete_flow(self._datapath, self.tbl_num, match)
 
     def _install_default_flows(self, datapath: Datapath):
         """

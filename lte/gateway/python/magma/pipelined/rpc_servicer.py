@@ -345,6 +345,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._ue_mac_app.delete_ue_mac_flow,
             request.sid.id, request.mac_addr)
 
+        if self._service_manager.is_app_enabled(CheckQuotaController.APP_NAME):
+            self._loop.call_soon_threadsafe(
+                self._check_quota_app.remove_subscriber_flow, request.sid.id)
+
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
             # Delete trace flow
             self._loop.call_soon_threadsafe(
