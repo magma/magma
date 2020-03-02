@@ -75,13 +75,20 @@ function Subscribers() {
     {networkId: nullthrows(match.params.networkId)},
   );
 
-  if (isLoading || subProfilesLoading) {
+  const {isLoading: apnsLoading, response: networkAPNs} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdApns,
+    {networkId: nullthrows(match.params.networkId)},
+  );
+
+  if (isLoading || subProfilesLoading || apnsLoading) {
     return <LoadingFiller />;
   }
 
   const subProfiles = new Set(Object.keys(epcConfigs?.sub_profiles || {})).add(
     'default',
   );
+
+  const apns = new Set(Object.keys(networkAPNs || {}));
 
   const onSave = () => {
     history.push(relativeUrl(''));
@@ -98,6 +105,7 @@ function Subscribers() {
       subscriber={row}
       onSave={onSave}
       subProfiles={subProfiles}
+      apns={apns}
     />
   ));
 
@@ -121,6 +129,7 @@ function Subscribers() {
               <TableCell>IMSI</TableCell>
               <TableCell>LTE Subscription State</TableCell>
               <TableCell>Data Plan</TableCell>
+              <TableCell>Active APNs</TableCell>
               <TableCell />
             </TableRow>
           </TableHead>
@@ -167,6 +176,7 @@ function Subscribers() {
             onSave={onSave}
             onSaveError={onError}
             subProfiles={Array.from(subProfiles)}
+            apns={Array.from(apns)}
           />
         )}
       />
@@ -177,6 +187,7 @@ function Subscribers() {
 type Props = WithAlert & {
   subscriber: subscriber,
   subProfiles: Set<string>,
+  apns: Set<string>,
   onSave: () => void,
 };
 
@@ -211,6 +222,7 @@ function SubscriberTableRowComponent(props: Props) {
         <TableCell>{displayID}</TableCell>
         <TableCell>{subscriber.lte.state}</TableCell>
         <TableCell>{subProfile}</TableCell>
+        <TableCell>{subscriber.active_apns?.join(', ')}</TableCell>
         <TableCell>
           <NestedRouteLink to={`/edit/${subscriber.id}`}>
             <IconButton>
@@ -233,6 +245,7 @@ function SubscriberTableRowComponent(props: Props) {
               enqueueSnackbar(error.response.data.message, {variant: 'error'});
             }}
             subProfiles={Array.from(props.subProfiles)}
+            apns={Array.from(props.apns)}
           />
         )}
       />

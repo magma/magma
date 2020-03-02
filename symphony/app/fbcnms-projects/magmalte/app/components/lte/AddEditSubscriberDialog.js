@@ -10,7 +10,7 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
-import type {subscriber} from '@fbcnms/magma-api';
+import type {apn_list, subscriber} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -45,6 +45,7 @@ type EditingSubscriber = {
   authKey: string,
   authOpc: string,
   subProfile: string,
+  apnList: apn_list,
 };
 
 type Props = ContextRouter &
@@ -54,6 +55,7 @@ type Props = ContextRouter &
     onSaveError: (reason: any) => void,
     editingSubscriber?: subscriber,
     subProfiles: Array<string>,
+    apns: apn_list,
   };
 
 type State = {
@@ -76,6 +78,7 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
         authKey: '',
         authOpc: '',
         subProfile: 'default',
+        apnList: [],
       };
     }
 
@@ -93,6 +96,7 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
       authKey,
       authOpc,
       subProfile: editingSubscriber.lte.sub_profile,
+      apnList: editingSubscriber.active_apns || [],
     };
   }
 
@@ -151,6 +155,20 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
               ))}
             </Select>
           </FormControl>
+          <FormControl className={classes.input}>
+            <InputLabel htmlFor="apnList">Access Point Names</InputLabel>
+            <Select
+              inputProps={{id: 'apnList'}}
+              value={this.state.editingSubscriber.apnList}
+              multiple={true}
+              onChange={this.apnListChanged}>
+              {this.props.apns.map(apn => (
+                <MenuItem value={apn} key={apn}>
+                  {apn}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={this.props.onClose} skin="regular">
@@ -185,6 +203,7 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
         auth_opc: this.state.editingSubscriber.authOpc || undefined,
         sub_profile: this.state.editingSubscriber.subProfile,
       },
+      active_apns: this.state.editingSubscriber.apnList,
     };
     if (data.lte.auth_key && isValidHex(data.lte.auth_key)) {
       data.lte.auth_key = hexToBase64(data.lte.auth_key);
@@ -211,7 +230,7 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
   };
 
   fieldChangedHandler = (
-    field: 'imsiID' | 'authKey' | 'authOpc' | 'subProfile',
+    field: 'imsiID' | 'authKey' | 'authOpc' | 'subProfile' | 'apnList',
   ) => event =>
     this.setState({
       editingSubscriber: {
@@ -232,6 +251,7 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
   authKeyChanged = this.fieldChangedHandler('authKey');
   authOpcChanged = this.fieldChangedHandler('authOpc');
   subProfileChanged = this.fieldChangedHandler('subProfile');
+  apnListChanged = this.fieldChangedHandler('apnList');
 }
 
 export default withStyles(styles)(withRouter(AddEditSubscriberDialog));
