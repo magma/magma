@@ -43,7 +43,7 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	// 3. Install a dynamic rule that points to the static rule above
 	err = ruleManager.AddUsageMonitor(imsi, "mkey1", 1000*KiloBytes, 250*KiloBytes)
 	assert.NoError(t, err)
-	err = ruleManager.AddStaticPassAll("static-pass-all", "mkey1", models.PolicyRuleTrackingTypeONLYPCRF, 3)
+	err = ruleManager.AddStaticPassAll("static-pass-all", "mkey1", 0, models.PolicyRuleTrackingTypeONLYPCRF, 3)
 	assert.NoError(t, err)
 	err = ruleManager.AddDynamicRules(imsi, []string{"static-pass-all"}, nil)
 	assert.NoError(t, err)
