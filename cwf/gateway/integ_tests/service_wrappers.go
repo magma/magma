@@ -178,6 +178,17 @@ func getOCSClient() (*ocsClient, error) {
 	}, err
 }
 
+// setNewOCSConfig tries to override the default ocs settings
+// Input: ocsConfig data
+func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
+	cli, err := getOCSClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetOCSSettings(context.Background(), ocsConfig)
+	return err
+}
+
 // addSubscriber tries to add this subscriber to the OCS server.
 // Input: The subscriber data which will be added.
 func addSubscriberToOCS(sub *lteprotos.SubscriberID) error {
@@ -195,6 +206,17 @@ func clearSubscribersFromOCS() error {
 		return err
 	}
 	_, err = cli.ClearSubscribers(context.Background(), &protos.Void{})
+	return err
+}
+
+// setCreditOCS tries to set a credit for this subscriber to the OCS server
+// Input: The credit info data which will be set
+func setCreditOnOCS(creditInfo *fegprotos.CreditInfo) error {
+	cli, err := getOCSClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetCredit(context.Background(), creditInfo)
 	return err
 }
 
