@@ -71,6 +71,46 @@ TEST_F(PathTest, path) {
       R"(/openconfig-interfaces:interfaces/openconfig-interfaces:interface[id='ethernet 0/1']/openconfig-interfaces:subinterfaces/openconfig-interfaces:subinterface[index=0]/openconfig-if-ip:ip/openconfig-if-ip:ipv4/openconfig-if-ip:address[ip='4:4:4:4'])");
 }
 
+TEST_F(PathTest, unprefixAllSegments) {
+  Path ip =
+      "/openconfig-interfaces:interfaces/interface[id='ethernet 0/1']/subinterfaces/subinterface[index=0]/openconfig-if-ip:ip/ipv4/address[ip='4:4:4:4']";
+  ASSERT_EQ(
+      ip.unprefixAllSegments().str(),
+      "/interfaces/interface[id='ethernet 0/1']/subinterfaces/subinterface[index=0]/ip/ipv4/address[ip='4:4:4:4']");
+}
+
+TEST_F(PathTest, isChildOfUnprefixed) {
+  Path ip =
+      "/openconfig-interfaces:interfaces/interface[id='ethernet 0/1']/subinterfaces/subinterface[index=0]/openconfig-if-ip:ip/ipv4/address[ip='4:4:4:4']";
+  Path unprefixedSame =
+      "/interfaces/interface[id='ethernet 0/1']/subinterfaces/subinterface[index=0]/ip/ipv4/address[ip='4:4:4:4']";
+  ASSERT_TRUE(ip.isChildOfUnprefixed(unprefixedSame));
+  ASSERT_TRUE(unprefixedSame.isChildOfUnprefixed(ip));
+
+  Path unprefixedParent =
+      "/interfaces/interface[id='ethernet 0/1']/subinterfaces/subinterface[index=0]/ip/ipv4";
+  ASSERT_TRUE(ip.isChildOfUnprefixed(unprefixedParent));
+  ASSERT_FALSE(unprefixedParent.isChildOfUnprefixed(ip));
+
+  Path unprefixedChild =
+      "/interfaces/interface[id='ethernet 0/1']/subinterfaces/subinterface[index=0]/ip/ipv4/address[ip='4:4:4:4']/foo";
+  ASSERT_TRUE(unprefixedChild.isChildOfUnprefixed(ip));
+  ASSERT_FALSE(ip.isChildOfUnprefixed(unprefixedChild));
+}
+
+TEST_F(PathTest, isLastSegmentKeyed) {
+  ASSERT_FALSE(Path::ROOT.isLastSegmentKeyed());
+  ASSERT_FALSE(Path("/foo").isLastSegmentKeyed());
+  ASSERT_TRUE(Path("/foo/bar[key='val']").isLastSegmentKeyed());
+}
+
+TEST_F(PathTest, getFirstModuleName) {
+  ASSERT_EQ(Path::ROOT.getFirstModuleName(), none);
+  ASSERT_EQ(Path("/foo").getFirstModuleName(), none);
+  ASSERT_EQ(
+      Path("/foo/m1:bar/m2:baz").getFirstModuleName(), Optional<string>("m1"));
+}
+
 TEST_F(PathTest, invalidPath) {
   EXPECT_THROW(Path(""), InvalidPathException);
   EXPECT_THROW(Path("openconfig-interfaces:interfaces"), InvalidPathException);
