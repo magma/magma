@@ -156,6 +156,7 @@ AsyncPipelinedClient::AsyncPipelinedClient():
 
 bool AsyncPipelinedClient::setup_cwf(
    const std::vector<SessionState::SessionInfo>& infos,
+   const std::vector<SubscriberQuotaUpdate>& quota_updates,
    const std::vector<std::string> ue_mac_addrs,
    const std::vector<std::string> msisdns,
    const std::vector<std::string> apn_mac_addrs,
@@ -169,6 +170,8 @@ bool AsyncPipelinedClient::setup_cwf(
   SetupUEMacRequest setup_ue_mac_req = create_setup_ue_mac_req(infos,
     ue_mac_addrs, msisdns, apn_mac_addrs, apn_names, epoch);
   setup_ue_mac_rpc(setup_ue_mac_req, callback);
+
+  update_subscriber_quota_state(quota_updates);
   return true;
 }
 
