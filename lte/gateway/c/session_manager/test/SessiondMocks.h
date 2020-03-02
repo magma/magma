@@ -64,7 +64,7 @@ class MockPipelinedClient : public PipelinedClient {
  public:
   MockPipelinedClient()
   {
-    ON_CALL(*this, setup_cwf(_,_,_,_,_,_,_)).WillByDefault(Return(true));
+    ON_CALL(*this, setup_cwf(_,_,_,_,_,_,_,_)).WillByDefault(Return(true));
     ON_CALL(*this, setup_lte(_,_,_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _))
@@ -77,9 +77,10 @@ class MockPipelinedClient : public PipelinedClient {
       .WillByDefault(Return(true));
   }
 
-  MOCK_METHOD7(setup_cwf,
+  MOCK_METHOD8(setup_cwf,
     bool(
       const std::vector<SessionState::SessionInfo>& infos,
+      const std::vector<SubscriberQuotaUpdate>& quota_updates,
       const std::vector<std::string> ue_mac_addrs,
       const std::vector<std::string> msisdns,
       const std::vector<std::string> apn_mac_addrs,
