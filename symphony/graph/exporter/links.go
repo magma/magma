@@ -7,6 +7,7 @@ package exporter
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -26,7 +27,7 @@ type linksFilterInput struct {
 	Name          models.LinkFilterType    `json:"name"`
 	Operator      models.FilterOperator    `jsons:"operator"`
 	StringValue   string                   `json:"stringValue"`
-	IDSet         []int                    `json:"idSet"`
+	IDSet         []string                 `json:"idSet"`
 	StringSet     []string                 `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput `json:"propertyValue"`
 	MaxDepth      *int                     `json:"maxDepth"`
@@ -209,12 +210,16 @@ func paramToLinkFilterInput(params string) ([]*models.LinkFilterInput, error) {
 		if f.MaxDepth != nil {
 			maxDepth = *f.MaxDepth
 		}
+		intIDSet, err := toIntSlice(f.IDSet)
+		if err != nil {
+			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+		}
 		inp := models.LinkFilterInput{
 			FilterType:    models.LinkFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
 			StringValue:   pointer.ToString(f.StringValue),
 			PropertyValue: &propVal,
-			IDSet:         f.IDSet,
+			IDSet:         intIDSet,
 			StringSet:     f.StringSet,
 			MaxDepth:      &maxDepth,
 		}

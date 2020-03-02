@@ -7,6 +7,7 @@ package exporter
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -28,7 +29,7 @@ type portFilterInput struct {
 	Name          models.EquipmentFilterType `json:"name"`
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
-	IDSet         []int                      `json:"idSet"`
+	IDSet         []string                   `json:"idSet"`
 	StringSet     []string                   `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
 	BoolValue     bool                       `json:"boolValue"`
@@ -245,13 +246,17 @@ func paramToPortFilterInput(params string) ([]*models.PortFilterInput, error) {
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
 		propertyValue := f.PropertyValue
+		intIDSet, err := toIntSlice(f.IDSet)
+		if err != nil {
+			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+		}
 		inp := models.PortFilterInput{
 			FilterType:    models.PortFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
 			StringValue:   pointer.ToString(f.StringValue),
 			PropertyValue: &propertyValue,
 			BoolValue:     pointer.ToBool(f.BoolValue),
-			IDSet:         f.IDSet,
+			IDSet:         intIDSet,
 			StringSet:     f.StringSet,
 			MaxDepth:      pointer.ToInt(5),
 		}

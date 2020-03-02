@@ -171,7 +171,7 @@ func TestExportWithFilters(t *testing.T) {
 		{
 			Name:     "LOCATION_INST",
 			Operator: "IS_ONE_OF",
-			IDSet:    []int{loc.ID},
+			IDSet:    []string{strconv.Itoa(loc.ID)},
 		},
 		{
 			Name:        "EQUIP_INST_NAME",

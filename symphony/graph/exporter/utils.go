@@ -45,6 +45,18 @@ const (
 	serviceVal          = "service"
 )
 
+func toIntSlice(a []string) ([]int, error) {
+	var intSlice []int
+	for _, i := range a {
+		j, err := strconv.Atoi(i)
+		if err != nil {
+			return nil, err
+		}
+		intSlice = append(intSlice, j)
+	}
+	return intSlice, nil
+}
+
 func index(a []string, x string) int {
 	for i, n := range a {
 		if strings.EqualFold(x, n) {

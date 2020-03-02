@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/AlekSi/pointer"
@@ -204,12 +205,12 @@ func TestPortWithFilters(t *testing.T) {
 		{
 			Name:     "LOCATION_INST",
 			Operator: "IS_ONE_OF",
-			IDSet:    []int{loc.ID},
+			IDSet:    []string{strconv.Itoa(loc.ID)},
 		},
 		{
 			Name:     "PORT_DEF",
 			Operator: "IS_ONE_OF",
-			IDSet:    []int{pDef2.ID},
+			IDSet:    []string{strconv.Itoa(pDef2.ID)},
 		},
 		{
 			Name:      "PORT_INST_HAS_LINK",
