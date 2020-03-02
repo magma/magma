@@ -64,15 +64,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         super(EnforcementStatsController, self).__init__(*args, **kwargs)
         # No need to report usage if relay mode is not enabled.
         self._relay_enabled = kwargs['mconfig'].relay_enabled
-        if not self._relay_enabled:
-            self.logger.info('Relay mode is not enabled. '
-                             'enforcement_stats will not report usage.')
-            return
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
             self._service_manager.get_next_table_num(self.APP_NAME)
         self.dpset = kwargs['dpset']
         self.loop = kwargs['loop']
+        if not self._relay_enabled:
+            self.logger.info('Relay mode is not enabled. '
+                             'enforcement_stats will not report usage.')
+            return
         # Spawn a thread to poll for flow stats
         poll_interval = kwargs['config']['enforcement']['poll_interval']
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
@@ -104,6 +104,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
+        if not self._relay_enabled:
+            self._install_default_flows_if_not_installed(datapath, [])
 
     def _install_default_flows_if_not_installed(self, datapath,
             existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
