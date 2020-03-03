@@ -306,7 +306,11 @@ function UpgradeConfig(props: WithAlert & {}) {
         path={relativePath('/tier/edit/:tierId')}
         component={({match}) => (
           <UpgradeTierEditDialog
-            tierId={match.params.tierId}
+            tier={nullthrows(
+              (networkUpgradeTiers || []).find(
+                t => t.id === match.params.tierId,
+              ),
+            )}
             onCancel={() => history.push(relativeUrl(''))}
             onSave={() => {
               history.push(relativeUrl(''));

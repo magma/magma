@@ -4,11 +4,10 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
 import type {tier} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -22,133 +21,92 @@ import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {withRouter} from 'react-router-dom';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
-type Props = ContextRouter & {
+type Props = {
   onSave: tier => void,
   onCancel: () => void,
-  tierId?: string,
+  tier?: tier,
 };
 
-type State = {
-  isLoading: boolean,
-  tier: tier,
-};
-
-class UpgradeTierEditDialog extends React.Component<Props, State> {
-  state = {
-    isLoading: !this.isNewTier(),
-    tier: {
-      id: this.props.tierId || '',
+export default function UpgradeTierEditDialog(props: Props) {
+  const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [tier, setTier] = useState(
+    props.tier || {
+      id: '',
       name: '',
       version: '',
       images: [],
       gateways: [],
     },
-  };
+  );
 
-  componentDidMount() {
-    const {tierId, match} = this.props;
-    if (tierId) {
-      MagmaV1API.getNetworksByNetworkIdTiersByTierId({
-        networkId: nullthrows(match.params.networkId),
-        tierId,
-      }).then(tier =>
-        this.setState({
-          isLoading: false,
-          tier,
-        }),
-      );
-    }
-  }
-
-  _handleFieldChange = (evt: SyntheticInputEvent<*>, field: string): void => {
-    this.setState({
-      tier: {
-        ...this.state.tier,
-        [field]: evt.target.value,
-      },
-    });
-  };
-
-  handleIdChanged = evt => this._handleFieldChange(evt, 'id');
-  handleNameChanged = evt => this._handleFieldChange(evt, 'name');
-  handleVersionChanged = evt => this._handleFieldChange(evt, 'version');
-
-  isNewTier() {
-    return !this.props.tierId;
-  }
-
-  render() {
-    const {tierId: initialTierId} = this.props;
-    const {isLoading, tier} = this.state;
-    return (
-      <Dialog open={!isLoading} onClose={this.props.onCancel} scroll="body">
-        <DialogTitle>
-          {this.isNewTier() ? 'Add Upgrade Tier' : 'Edit Upgrade Tier'}
-        </DialogTitle>
-        <DialogContent>
-          <FormGroup row>
-            <TextField
-              required
-              label="Tier ID"
-              placeholder="E.g. t1"
-              margin="normal"
-              disabled={!!initialTierId}
-              value={tier.id}
-              onChange={this.handleIdChanged}
-            />
-          </FormGroup>
-          <FormGroup row>
-            <TextField
-              required
-              label="Tier Name"
-              placeholder="E.g. Example Tier"
-              margin="normal"
-              value={tier.name}
-              onChange={this.handleNameChanged}
-            />
-          </FormGroup>
-          <FormGroup row>
-            <TextField
-              required
-              label="Tier Version"
-              placeholder="E.g. 1.0.0-0"
-              margin="normal"
-              value={tier.version}
-              onChange={this.handleVersionChanged}
-            />
-          </FormGroup>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onCancel} skin="regular">
-            Cancel
-          </Button>
-          <Button onClick={this.onSave}>Save</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
-
-  onSave = () => {
-    const {tier} = this.state;
-    if (this.isNewTier()) {
+  const onSave = () => {
+    if (!props.tier) {
       MagmaV1API.postNetworksByNetworkIdTiers({
-        networkId: nullthrows(this.props.match.params.networkId),
+        networkId: nullthrows(match.params.networkId),
         tier,
       })
-        .then(() => this.props.onSave(tier))
-        .catch(console.error);
+        .then(() => props.onSave(tier))
+        .catch(e => enqueueSnackbar(e.response.data.message));
     } else {
       MagmaV1API.putNetworksByNetworkIdTiersByTierId({
-        networkId: nullthrows(this.props.match.params.networkId),
+        networkId: nullthrows(match.params.networkId),
         tierId: tier.id,
         tier,
       })
-        .then(_resp => this.props.onSave(tier))
-        .catch(console.error);
+        .then(_resp => props.onSave(tier))
+        .catch(e => enqueueSnackbar(e.response.data.message));
     }
   };
-}
 
-export default withRouter(UpgradeTierEditDialog);
+  return (
+    <Dialog open={true} onClose={props.onCancel} scroll="body">
+      <DialogTitle>
+        {props.tier ? 'Edit Upgrade Tier' : 'Add Upgrade Tier'}
+      </DialogTitle>
+      <DialogContent>
+        <FormGroup row>
+          <TextField
+            required
+            label="Tier ID"
+            placeholder="E.g. t1"
+            margin="normal"
+            disabled={Boolean(props.tier)}
+            value={tier.id}
+            onChange={({target}) => setTier({...tier, id: target.value})}
+          />
+        </FormGroup>
+        <FormGroup row>
+          <TextField
+            required
+            label="Tier Name"
+            placeholder="E.g. Example Tier"
+            margin="normal"
+            value={tier.name}
+            onChange={({target}) => setTier({...tier, name: target.value})}
+          />
+        </FormGroup>
+        <FormGroup row>
+          <TextField
+            required
+            label="Tier Version"
+            placeholder="E.g. 1.0.0-0"
+            margin="normal"
+            value={tier.version}
+            onChange={({target}) => setTier({...tier, version: target.value})}
+          />
+        </FormGroup>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onCancel} skin="regular">
+          Cancel
+        </Button>
+        <Button onClick={onSave}>Save</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
