@@ -4,17 +4,12 @@ import os
 
 import mock
 import pkg_resources
-from fbc.symphony.cli.graphql_compiler.gql.query_parser import QueryParser
-from fbc.symphony.cli.graphql_compiler.gql.renderer_dataclasses import (
-    DataclassesRenderer,
-)
-from fbc.symphony.cli.graphql_compiler.gql.utils_codegen import (
-    get_enum_filename,
-    get_input_filename,
-)
-from graphql import build_ast_schema
 from graphql.language.parser import parse
 from graphql.utilities.find_deprecated_usages import find_deprecated_usages
+from graphql_compiler.gql.query_parser import QueryParser
+from graphql_compiler.gql.renderer_dataclasses import DataclassesRenderer
+from graphql_compiler.gql.utils_codegen import get_enum_filename, get_input_filename
+from graphql_compiler.gql.utils_schema import compile_schema_library
 from libfb.py import testutil
 
 
@@ -65,15 +60,14 @@ class PyinventoryGraphqlCompilationTest(testutil.BaseFacebookTestCase):
     @mock.patch("os.path.exists", return_value=True)
     @mock.patch("subprocess.Popen")
     def test_graphql_compilation(self, mock_popen, mock_path_exists):
-        graphql_library = pkg_resources.resource_filename(__name__, "graphql")
-        schema_filepath = pkg_resources.resource_filename(
-            __name__, "schema/symphony.graphql"
-        )
+        schema_library = pkg_resources.resource_filename(__name__, "schema")
+        schema = compile_schema_library(schema_library)
 
-        schema = build_ast_schema(parse((open(schema_filepath).read())))
+        graphql_library = pkg_resources.resource_filename(__name__, "graphql")
         filenames = glob.glob(
             os.path.join(graphql_library, "**/*.graphql"), recursive=True
         )
+
         query_parser = QueryParser(schema)
         query_renderer = DataclassesRenderer(schema)
 

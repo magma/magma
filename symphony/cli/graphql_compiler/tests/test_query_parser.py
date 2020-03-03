@@ -3,7 +3,7 @@
 from dataclasses import asdict
 
 from deepdiff import DeepDiff
-from fbc.symphony.cli.graphql_compiler.gql.query_parser import (
+from graphql_compiler.gql.query_parser import (
     AnonymousQueryError,
     InvalidQueryError,
     ParsedEnum,

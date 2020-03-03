@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from fbc.symphony.cli.graphql_compiler.gql.utils_codegen import CodeChunk
+from graphql_compiler.gql.utils_codegen import CodeChunk
 
 from .base_test import BaseTest
 
