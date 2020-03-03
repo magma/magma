@@ -25,6 +25,10 @@ const Strings = {
       'OK',
       'Text for button approving message or dialog content',
     )}`,
+    saveButton: `${fbt(
+      'Save',
+      'Text for button that saves current view changes',
+    )}`,
     cancelButton: `${fbt(
       'Cancel',
       'Text for button that cancels current operation',

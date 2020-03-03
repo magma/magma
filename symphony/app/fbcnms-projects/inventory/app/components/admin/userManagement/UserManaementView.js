@@ -11,10 +11,13 @@ import type {NavigatableView} from '@fbcnms/ui/components/design-system/View/Nav
 
 import * as React from 'react';
 import NavigatableViews from '@fbcnms/ui/components/design-system/View/NavigatableViews';
+import NewUserDialog from './NewUserDialog';
 import PermissionsGroupsView from './PermissionsGroupsView';
 import Strings from '../../../common/CommonStrings';
 import UsersView from './UsersView';
+import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
+import {useState} from 'react';
 
 const USERS_HEADER = fbt(
   'Users & Roles',
@@ -38,7 +41,7 @@ const VIEWS: Array<NavigatableView> = [
       actionButtons: [
         {
           title: fbt('Add User', ''),
-          action: () => {},
+          action: emptyFunction,
         },
       ],
     },
@@ -56,7 +59,7 @@ const VIEWS: Array<NavigatableView> = [
       actionButtons: [
         {
           title: fbt('Create Group', ''),
-          action: () => {},
+          action: emptyFunction,
         },
       ],
     },
@@ -65,7 +68,22 @@ const VIEWS: Array<NavigatableView> = [
 ];
 
 export default function UserManaementView() {
+  const [addingNewUser, setAddingNewUser] = useState(false);
+
+  const userActions = VIEWS[0].header?.actionButtons;
+  if (userActions != null && userActions.length > 0) {
+    userActions[0].action = () => setAddingNewUser(true);
+  }
+
   return (
-    <NavigatableViews header={Strings.admin.users.viewHeader} views={VIEWS} />
+    <>
+      <NavigatableViews header={Strings.admin.users.viewHeader} views={VIEWS} />
+      {addingNewUser && (
+        <NewUserDialog
+          isOpened={addingNewUser}
+          onClose={() => setAddingNewUser(false)}
+        />
+      )}
+    </>
   );
 }
