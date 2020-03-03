@@ -214,14 +214,25 @@ class SessionCredit {
 
  private:
   /**
-   * quota_exhausted checks whether usage reported from pipelined since the
-   * last SessionUpdate exceeds the quota received from the reporter.
+   * is_quota_exhausted checks if any of the tx, rx, or combined tx+rx are
+   * exhausted. The exception to this is if ALLOWED_RX or ALLOWED_TX are 0,
+   * which occurs for an OCS/PCRF which do not individually track tx/rx. In this
+   * scenario, only the total matters.
+   *
+   * Quota usage is measured by reporting from pipelined since the last
+   * SessionUpdate.
    * We mark quota as exhausted if usage_reporting_threshold * available quota
    * is reached. (so the default is 100% of quota)
    * We will also add a extra_quota_margin on to the available quota if it is
    * specified.
+   * Check if the session has exhausted its quota granted since the last report.
+   *
+   * @param usage_reporting_threshold
+   * @param extra_quota_margin Extra bytes of usage allowable before quota
+   *        is exhausted.
+   * @return true if quota is exhausted for the session
    */
-  bool quota_exhausted(
+  bool is_quota_exhausted(
     float usage_reporting_threshold = 1, uint64_t extra_quota_margin = 0);
 
   bool should_deactivate_service();
