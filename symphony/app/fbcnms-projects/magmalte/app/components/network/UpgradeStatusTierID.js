@@ -25,7 +25,7 @@ const styles = {
 
 type Props = WithStyles<typeof styles> & {
   gatewayID: string,
-  onChange: (gatewayID: string, newTierID: string) => void,
+  onChange: (gatewayID: string, newTierID: string) => Promise<void>,
   tierID: ?string,
   networkUpgradeTiers: ?(tier[]),
 };

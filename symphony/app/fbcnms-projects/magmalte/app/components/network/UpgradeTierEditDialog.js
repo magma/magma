@@ -27,7 +27,7 @@ import {withRouter} from 'react-router-dom';
 type Props = ContextRouter & {
   onSave: tier => void,
   onCancel: () => void,
-  tierId: ?string,
+  tierId?: string,
 };
 
 type State = {
