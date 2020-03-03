@@ -69,13 +69,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             self._service_manager.get_next_table_num(self.APP_NAME)
         self.dpset = kwargs['dpset']
         self.loop = kwargs['loop']
-        if not self._relay_enabled:
-            self.logger.info('Relay mode is not enabled. '
-                             'enforcement_stats will not report usage.')
-            return
         # Spawn a thread to poll for flow stats
         poll_interval = kwargs['config']['enforcement']['poll_interval']
-        self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
         # Create a rpc channel to sessiond
         self.sessiond = kwargs['rpc_stubs']['sessiond']
         self._msg_hub = MessageHub(self.logger)
@@ -85,6 +80,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self.last_usage_for_delta = {}
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
         self._clean_restart = kwargs['config']['clean_restart']
+        if not self._relay_enabled:
+            self.logger.info('Relay mode is not enabled. '
+                             'enforcement_stats will not report usage.')
+            return
+        self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
