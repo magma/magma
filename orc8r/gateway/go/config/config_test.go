@@ -7,22 +7,21 @@ LICENSE file in the root directory of this source tree.
 */
 
 // package service_test
-package service_test
+package config_test
 
 import (
 	"io/ioutil"
 	"os"
-	"path"
-	"strings"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"magma/gateway/config"
-	platform_config "magma/orc8r/lib/go/service/config"
+	platform_cfg "magma/orc8r/lib/go/service/config"
 )
 
-const testConfigYaml = `
+const testCPConfigYaml = `
 #
 # Copyright (c) ...
 # All rights reserved.
@@ -58,27 +57,17 @@ proxy_cloud_connections: False
 allow_http_proxy: True
 `
 
-func TestConfig(t *testing.T) {
-	tmpfile, err := ioutil.TempFile("", "test_control_proxy*.yml")
+func TestControlProxyConfig(t *testing.T) {
+	dir, err := ioutil.TempDir("", "magma_cfg_test")
 	assert.NoError(t, err)
-	defer os.Remove(tmpfile.Name()) // clean up
+	defer os.RemoveAll(dir)
 
-	if _, err := tmpfile.Write([]byte(testConfigYaml)); err != nil {
-		t.Fatal(err)
-	}
-	dir := path.Dir(tmpfile.Name())
-	serviceName := strings.TrimSuffix(path.Base(tmpfile.Name()), ".yml")
-	if err := tmpfile.Close(); err != nil {
-		t.Fatal(err)
-	}
-	cfg := config.NewDefaultControlProxyCfg()
-	file1, file2, err := platform_config.GetStructuredServiceConfigExt(
-		"", serviceName, dir, "", "", cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, tmpfile.Name(), file1)
-	assert.Equal(t, "", file2)
+	cfgFilePath := filepath.Join(dir, "control_proxy.yml")
+	err = ioutil.WriteFile(cfgFilePath, []byte(testCPConfigYaml), os.ModePerm)
+	assert.NoError(t, err)
+
+	platform_cfg.SetConfigDirectories(dir, dir+"/foo", dir+"/bar")
+	cfg := config.GetControlProxyConfigs()
 	assert.Equal(t, "/var/opt/magma/secrets/certs/gateway.crt", cfg.GwCertFile)
 	assert.Equal(t, "/var/opt/magma/certs/rootCA.pem", cfg.RootCaFile)
 	assert.Equal(t, "controller.magma.foobar.com", cfg.CloudAddr)
