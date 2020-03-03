@@ -33,6 +33,13 @@ type queryParamTestCase struct {
 	expectedParams eventQueryParams
 }
 
+type eventMapTestCase struct {
+	name         string
+	jsonSource   string
+	expectedMaps []map[string]interface{}
+	expectsError bool
+}
+
 var (
 	elasticCases = []elasticTestCase{
 		{
@@ -108,6 +115,55 @@ var (
 			},
 		},
 	}
+
+	eventMapTestCases = []eventMapTestCase{
+		{
+			name: "all fields",
+			jsonSource: `{
+				"stream_name": "a",
+				"event_type": "b",
+				"hw_id": "c",
+				"tag": "d",
+				"value":"{ \"some_property\": true }"
+			}`,
+			expectedMaps: []map[string]interface{}{
+				{
+					"stream_name":   "a",
+					"event_type":    "b",
+					"hardware_id":   "c",
+					"tag":           "d",
+					"some_property": true,
+					"timestamp":     "",
+				},
+			},
+		},
+		{
+			name: "partial fields with value present",
+			jsonSource: `{
+				"stream_name": "a",
+				"event_type": "b",
+				"value":"{}"
+			}`,
+			expectedMaps: []map[string]interface{}{
+				{
+					"stream_name": "a",
+					"event_type":  "b",
+					"hardware_id": "",
+					"tag":         "",
+					"timestamp":   "",
+				},
+			},
+		},
+		{
+			name: "partial fields without a value",
+			jsonSource: `{
+				"stream_name": "a",
+				"event_type": "b"
+			}`,
+			expectedMaps: []map[string]interface{}{},
+			expectsError: true,
+		},
+	}
 )
 
 func TestElasticBoolQuery(t *testing.T) {
@@ -145,4 +201,25 @@ func runQueryParamTestCase(t *testing.T, tc queryParamTestCase) {
 		assert.NoError(t, err)
 	}
 	assert.Equal(t, tc.expectedParams, params)
+}
+
+func TestGetEventMap(t *testing.T) {
+	for _, test := range eventMapTestCases {
+		t.Run(test.name, func(t *testing.T) {
+			runEventMapTestCase(t, test)
+		})
+	}
+}
+
+func runEventMapTestCase(t *testing.T, tc eventMapTestCase) {
+	hit := elastic.SearchHit{
+		Source: []byte(tc.jsonSource),
+	}
+	maps, err := getEventMaps([]*elastic.SearchHit{&hit})
+	if tc.expectsError {
+		assert.Error(t, err)
+	} else {
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expectedMaps, maps)
+	}
 }
