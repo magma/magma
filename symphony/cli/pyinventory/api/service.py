@@ -12,7 +12,6 @@ from ..consts import (
     Customer,
     EquipmentPort,
     Link,
-    PropertyDefinition,
     Service,
     ServiceEndpoint,
     ServiceType,
@@ -115,7 +114,16 @@ def add_service(
         if result.customer is not None
         else None,
         endpoints=[
-            ServiceEndpoint(id=e.id, port=EquipmentPort(id=e.port.id), role=e.role)
+            ServiceEndpoint(
+                id=e.id,
+                port=EquipmentPort(
+                    id=e.port.id,
+                    properties=[asdict(p) for p in e.port.properties],
+                    definition=e.port.definition,
+                    link=e.port.link,
+                ),
+                role=e.role,
+            )
             for e in result.endpoints
         ],
         links=[Link(id=l.id) for l in result.links],
@@ -147,7 +155,16 @@ def get_service(client: SymphonyClient, id: str) -> Service:
         if result.customer is not None
         else None,
         endpoints=[
-            ServiceEndpoint(id=e.id, port=EquipmentPort(id=e.port.id), role=e.role)
+            ServiceEndpoint(
+                id=e.id,
+                port=EquipmentPort(
+                    id=e.port.id,
+                    properties=[asdict(p) for p in e.port.properties],
+                    definition=e.port.definition,
+                    link=e.port.link,
+                ),
+                role=e.role,
+            )
             for e in result.endpoints
         ],
         links=[Link(id=l.id) for l in result.links],

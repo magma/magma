@@ -84,7 +84,6 @@ class InventoryClient(SymphonyClient):
         add_link,
         get_link_in_port_of_equipment,
         get_all_links_and_port_names_of_equipment,
-        get_port,
     )
     from .api.service import (
         add_service,
@@ -110,6 +109,7 @@ class InventoryClient(SymphonyClient):
         edit_equipment_port_type,
         delete_equipment_port_type,
     )
+    from .api.port import get_port
 
     def __init__(
         self,

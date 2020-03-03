@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # pyre-strict
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import List, Tuple
 
@@ -7,17 +10,13 @@ from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 
 from ..client import SymphonyClient
-from ..consts import Equipment, EquipmentPort, Link
-from ..exceptions import (
-    EquipmentPortIsNotUniqueException,
-    EquipmentPortNotFoundException,
-    LinkNotFoundException,
-    PortAlreadyOccupiedException,
-)
+from ..consts import Equipment, Link
+from ..exceptions import LinkNotFoundException, PortAlreadyOccupiedException
 from ..graphql.add_link_input import AddLinkInput
 from ..graphql.add_link_mutation import AddLinkMutation
 from ..graphql.equipment_ports_query import EquipmentPortsQuery
 from ..graphql.link_side_input import LinkSide
+from .port import get_port
 
 
 ADD_LINK_MUTATION_NAME = "addLink"
@@ -32,36 +31,6 @@ def get_all_links_and_port_names_of_equipment(
         for port in ports
         if port.link is not None
     ]
-
-
-def _find_port_info(
-    client: SymphonyClient, equipment: Equipment, port_name: str
-) -> EquipmentPortsQuery.EquipmentPortsQueryData.Node.EquipmentPort:
-    ports = EquipmentPortsQuery.execute(client, id=equipment.id).equipment.ports
-
-    ports = [port for port in ports if port.definition.name == port_name]
-    if len(ports) > 1:
-        raise EquipmentPortIsNotUniqueException(equipment.name, port_name)
-    if len(ports) == 0:
-        raise EquipmentPortNotFoundException(equipment.name, port_name)
-    return ports[0]
-
-
-def _find_port_definition_id(
-    client: SymphonyClient, equipment: Equipment, port_name: str
-) -> str:
-    port = _find_port_info(client, equipment, port_name)
-    if port.link is not None:
-        raise PortAlreadyOccupiedException(equipment.name, port_name)
-
-    return port.definition.id
-
-
-def get_port(
-    client: SymphonyClient, equipment: Equipment, port_name: str
-) -> EquipmentPort:
-    port = _find_port_info(client, equipment, port_name)
-    return EquipmentPort(id=port.id)
 
 
 def add_link(
@@ -109,13 +78,17 @@ def add_link(
         ```
     """
 
-    port_id_a = _find_port_definition_id(client, equipment_a, port_name_a)
-    port_id_b = _find_port_definition_id(client, equipment_b, port_name_b)
+    port_a = get_port(client, equipment_a, port_name_a)
+    if port_a.link is not None:
+        raise PortAlreadyOccupiedException(equipment_a.name, port_a.definition.name)
+    port_b = get_port(client, equipment_b, port_name_b)
+    if port_b.link is not None:
+        raise PortAlreadyOccupiedException(equipment_b.name, port_b.definition.name)
 
     add_link_input = AddLinkInput(
         sides=[
-            LinkSide(equipment=equipment_a.id, port=port_id_a),
-            LinkSide(equipment=equipment_b.id, port=port_id_b),
+            LinkSide(equipment=equipment_a.id, port=port_a.definition.id),
+            LinkSide(equipment=equipment_b.id, port=port_b.definition.id),
         ],
         properties=[],
         serviceIds=[],
@@ -142,7 +115,7 @@ def add_link(
 def get_link_in_port_of_equipment(
     client: SymphonyClient, equipment: Equipment, port_name: str
 ) -> Link:
-    port = _find_port_info(client, equipment, port_name)
+    port = get_port(client, equipment, port_name)
     link = port.link
     if link is not None:
         return Link(id=link.id)

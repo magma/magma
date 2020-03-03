@@ -6,6 +6,8 @@
 
 from typing import Optional
 
+from .consts import Entity
+
 
 class CustomException(Exception):
     pass
@@ -29,11 +31,11 @@ def get_location_id_msg(
 class EntityNotFoundError(Exception):
     def __init__(
         self,
-        entity: str,
+        entity: Entity,
         entity_id: Optional[str] = None,
         entity_name: Optional[str] = None,
     ) -> None:
-        self.entity: str = entity
+        self.entity: Entity = entity
         self.entity_id: Optional[str] = entity_id
         self.entity_name: Optional[str] = entity_name
 
