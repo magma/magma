@@ -53,8 +53,8 @@ var (
 			expected: elastic.NewBoolQuery().
 				Filter(elastic.NewTermQuery("stream_name", "streamOne")).
 				Filter(elastic.NewTermQuery("event_type", "an_event")).
-				Filter(elastic.NewTermQuery("hardware_id", "hardware-2")).
-				Filter(elastic.NewTermQuery("tag", "critical")),
+				Filter(elastic.NewTermQuery("hw_id.keyword", "hardware-2")).
+				Filter(elastic.NewTermQuery("event_tag", "critical")),
 		},
 		{
 			name: "partial query params",
