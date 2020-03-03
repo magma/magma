@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -47,18 +47,31 @@ const useStyles = makeStyles(() => ({
   removeIcon: {alignSelf: 'baseline'},
 }));
 
-type ActionType = $Keys<typeof ACTION>;
 type Props = {
   index: number,
   flow: flow_description,
-  handleActionChange: (number, ActionType) => void,
-  handleFieldChange: (number, string, string | number) => void,
   handleDelete: number => void,
+  onChange: (number, flow_description) => void,
 };
 
 export default function PolicyFlowFields(props: Props) {
   const classes = useStyles();
   const {flow} = props;
+
+  const handleActionChange = action =>
+    props.onChange(props.index, {
+      ...props.flow,
+      action,
+    });
+
+  const handleFieldChange = (field: string, value: number | string) =>
+    props.onChange(props.index, {
+      ...props.flow,
+      match: {
+        ...props.flow.match,
+        [field]: value,
+      },
+    });
 
   return (
     <div className={classes.flex}>
@@ -78,7 +91,7 @@ export default function PolicyFlowFields(props: Props) {
                   [ACTION.DENY]: 'Deny',
                 }}
                 value={flow.action}
-                onChange={val => props.handleActionChange(props.index, val)}
+                onChange={handleActionChange}
                 input={<Input id="action" />}
               />
             </FormControl>
@@ -90,9 +103,7 @@ export default function PolicyFlowFields(props: Props) {
                   [DIRECTION.DOWNLINK]: 'Downllink',
                 }}
                 value={flow.match.direction}
-                onChange={val =>
-                  props.handleFieldChange(props.index, 'direction', val)
-                }
+                onChange={val => handleFieldChange('direction', val)}
                 input={<Input id="direction" />}
               />
             </FormControl>
@@ -106,9 +117,7 @@ export default function PolicyFlowFields(props: Props) {
                   [PROTOCOL.IPPROTO_ICMP]: 'ICMP',
                 }}
                 value={flow.match.ip_proto}
-                onChange={val =>
-                  props.handleFieldChange(props.index, 'ip_proto', val)
-                }
+                onChange={val => handleFieldChange('ip_proto', val)}
                 input={<Input id="protocol" />}
               />
             </FormControl>
@@ -121,7 +130,7 @@ export default function PolicyFlowFields(props: Props) {
                 margin="normal"
                 value={flow.match.ipv4_src}
                 onChange={({target}) =>
-                  props.handleFieldChange(props.index, 'ipv4_src', target.value)
+                  handleFieldChange('ipv4_src', target.value)
                 }
               />
               <TextField
@@ -130,7 +139,7 @@ export default function PolicyFlowFields(props: Props) {
                 margin="normal"
                 value={flow.match.ipv4_dst}
                 onChange={({target}) =>
-                  props.handleFieldChange(props.index, 'ipv4_dst', target.value)
+                  handleFieldChange('ipv4_dst', target.value)
                 }
               />
             </div>
@@ -143,11 +152,7 @@ export default function PolicyFlowFields(props: Props) {
                 margin="normal"
                 value={flow.match.udp_src}
                 onChange={({target}) =>
-                  props.handleFieldChange(
-                    props.index,
-                    'udp_src',
-                    parseInt(target.value),
-                  )
+                  handleFieldChange('udp_src', parseInt(target.value))
                 }
               />
               <TextField
@@ -156,11 +161,7 @@ export default function PolicyFlowFields(props: Props) {
                 margin="normal"
                 value={flow.match.udp_dst}
                 onChange={({target}) =>
-                  props.handleFieldChange(
-                    props.index,
-                    'udp_dst',
-                    parseInt(target.value),
-                  )
+                  handleFieldChange('udp_dst', parseInt(target.value))
                 }
               />
             </div>
@@ -173,11 +174,7 @@ export default function PolicyFlowFields(props: Props) {
                 margin="normal"
                 value={flow.match.tcp_src}
                 onChange={({target}) =>
-                  props.handleFieldChange(
-                    props.index,
-                    'tcp_src',
-                    parseInt(target.value),
-                  )
+                  handleFieldChange('tcp_src', parseInt(target.value))
                 }
               />
               <TextField
@@ -186,11 +183,7 @@ export default function PolicyFlowFields(props: Props) {
                 margin="normal"
                 value={flow.match.tcp_dst}
                 onChange={({target}) =>
-                  props.handleFieldChange(
-                    props.index,
-                    'tcp_dst',
-                    parseInt(target.value),
-                  )
+                  handleFieldChange('tcp_dst', parseInt(target.value))
                 }
               />
             </div>
