@@ -96,7 +96,7 @@ function Subscribers() {
   };
 
   const onError = reason => {
-    enqueueSnackbar(reason.response.data.message, {variant: 'error'});
+    enqueueSnackbar(reason, {variant: 'error'});
   };
 
   const rows = map(subscribers, row => (
@@ -241,8 +241,8 @@ function SubscriberTableRowComponent(props: Props) {
             editingSubscriber={subscriber}
             onClose={() => history.push(relativeUrl(''))}
             onSave={props.onSave}
-            onSaveError={error => {
-              enqueueSnackbar(error.response.data.message, {variant: 'error'});
+            onSaveError={reason => {
+              enqueueSnackbar(reason, {variant: 'error'});
             }}
             subProfiles={Array.from(props.subProfiles)}
             apns={Array.from(props.apns)}
