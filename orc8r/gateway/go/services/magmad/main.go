@@ -17,18 +17,23 @@ import (
 
 	"magma/gateway/config"
 	"magma/gateway/services/bootstrapper/gateway_info"
-	"magma/gateway/services/bootstrapper/service"
+	bootstrapper "magma/gateway/services/bootstrapper/service"
+	configurator "magma/gateway/services/configurator/service"
+)
+
+const (
+	BOOTSTRAP_RESTART_INTERVAL = time.Second * 120
 )
 
 const usageExamples string = `
 Examples:
 
-  1. Run Bootstrapper as a service:
+  1. Run magmad as a service:
 
     $> %s
 
-    The command will run Bootstrapper service which will periodically 
-    check the gateway certificats and update them when needed
+    The command will run magmad service which will periodically 
+    check and update the gateway certificats and cloud managed GW configs
 
   2. Show the gateway information needed for the gateway registration and exit:
 
@@ -62,7 +67,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	b := service.NewBootstrapper(nil)
+	eventChan := make(chan interface{}, 2)
+	b := bootstrapper.NewBootstrapper(eventChan)
 	if err := b.Initialize(); err != nil {
 		controlProxyConfigJson, _ := json.MarshalIndent(config.GetControlProxyConfigs(), "", "  ")
 		magmadProxyConfigJson, _ := json.MarshalIndent(config.GetMagmadConfigs(), "", "  ")
@@ -70,16 +76,43 @@ func main() {
 			"gateway '%s' bootstrap initialization error: %v, for configuration:\ncontrol_proxy: %s\nmagmad: %s",
 			b.HardwareId, err, string(controlProxyConfigJson), string(magmadProxyConfigJson))
 	}
+
+	go func() {
+		for i := range eventChan {
+			switch e := i.(type) {
+			case bootstrapper.BootstrapCompletion:
+				if e.Result != nil {
+					log.Printf("bootstrap failure: %v for Gateway ID: %s", e.Result, e.HardwareId)
+				} else {
+					log.Printf("bootstrapped GW %s", e.HardwareId)
+				}
+			case configurator.UpdateCompletion:
+				log.Printf("mconfigs updated successfully for services: %v", e)
+			default:
+				log.Printf("unknown completion type: %T", e)
+			}
+		}
+	}()
+
 	// Main bootstrapper loop
 	log.Print("Starting Bootstrapper")
-	for {
-		err := b.Start() // Start will only return on error
-		if err != nil {
-			log.Print(err)
-			time.Sleep(service.BOOTSTRAP_RETRY_INTERVAL)
-			b.RefreshConfigs()
-		} else {
-			log.Fatal("unexpected Bootstrapper state")
+	go func() {
+		for {
+			err := b.Start() // Start will only return on error
+			if err != nil {
+				log.Print(err)
+				time.Sleep(BOOTSTRAP_RESTART_INTERVAL)
+				b.RefreshConfigs()
+			} else {
+				log.Fatal("unexpected Bootstrapper state")
+			}
 		}
+	}()
+
+	// Start configurator
+	cfg := configurator.NewConfigurator(eventChan)
+	log.Printf("Starting Configurator")
+	if err := cfg.Start(); err != nil {
+		log.Fatalf("configurator start error: %v", err)
 	}
 }

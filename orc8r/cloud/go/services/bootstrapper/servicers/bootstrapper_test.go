@@ -22,19 +22,18 @@ import (
 	"testing"
 	"time"
 
-	bootstrap_client "magma/gateway/services/bootstrapper/service"
-	"magma/orc8r/cloud/go/services/bootstrapper"
-	"magma/orc8r/cloud/go/test_utils"
-
 	"github.com/emakeev/snowflake"
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 
+	"magma/gateway/config"
+	bootstrap_client "magma/gateway/services/bootstrapper/service"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	certifierTestInit "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -42,6 +41,7 @@ import (
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/csr"
 	"magma/orc8r/lib/go/security/key"
@@ -213,21 +213,36 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	defer os.RemoveAll(dir)
 
 	completed := false
-	b := &bootstrap_client.Bootstrapper{
-		ChallengeKeyFile: dir + "/gw_challenge.key",
-		CpConfig: bootstrap_client.ControlProxyCfg{
-			RootCaFile:           "",
-			GwCertFile:           dir + "/gateway.crt",
-			GwCertKeyFile:        dir + "/gateway.key",
-			BootstrapAddr:        srvIp,
-			BootstrapPort:        srvPortInt,
-			ProxyCloudConnection: true,
-		},
-		BootstrapCompletionNotifier: func(b *bootstrap_client.Bootstrapper, calbackErr error) {
-			assert.NoError(t, calbackErr)
-			completed = true
-		},
-	}
+	completedPtr := &completed
+	completeChan := make(chan interface{})
+	go func(t *testing.T) {
+		for i := range completeChan {
+			*completedPtr = true
+			switch u := i.(type) {
+			case bootstrap_client.BootstrapCompletion:
+				t.Logf("bootstrap comnpleted with result: %v", u.Result)
+				assert.NoError(t, err)
+			case struct{}:
+			default:
+				t.Errorf("unknown completion type: %T", u)
+			}
+		}
+	}(t)
+
+	config.OverwriteControlProxyConfigs(&config.ControlProxyCfg{
+		RootCaFile:           "",
+		GwCertFile:           dir + "/gateway.crt",
+		GwCertKeyFile:        dir + "/gateway.key",
+		BootstrapAddr:        srvIp,
+		BootstrapPort:        srvPortInt,
+		ProxyCloudConnection: true,
+	})
+
+	mdc := &config.MagmadCfg{}
+	mdc.BootstrapConfig.ChallengeKey = dir + "/gw_challenge.key"
+	config.OverwriteMagmadConfigs(mdc)
+
+	b := bootstrap_client.NewBootstrapper(completeChan)
 	err = b.Initialize()
 	assert.NoError(t, err)
 
@@ -235,7 +250,7 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	assert.NoError(t, err)
 	gwHwId := uuid.String()
 
-	ck, err := key.ReadKey(b.ChallengeKeyFile)
+	ck, err := key.ReadKey(mdc.BootstrapConfig.ChallengeKey)
 	assert.NoError(t, err)
 	pubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(ck))
 	assert.NoError(t, err)
@@ -256,7 +271,12 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 
 	err = b.PeriodicCheck(time.Now())
 	assert.NoError(t, err)
+	completeChan <- struct{}{} // 'flush' the chan
 	assert.True(t, completed)
+
+	// reset configs
+	config.OverwriteMagmadConfigs(nil)
+	config.OverwriteControlProxyConfigs(nil)
 }
 
 func testNegative(
