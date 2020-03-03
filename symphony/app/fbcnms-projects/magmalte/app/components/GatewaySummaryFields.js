@@ -4,14 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
 import type {GatewayV1} from './GatewayUtils';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Check from '@material-ui/icons/Check';
@@ -28,164 +25,66 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
-type Props = ContextRouter &
-  WithAlert &
-  WithStyles<typeof styles> & {
-    onClose: () => void,
-    onSave: (gatewayID: string) => void,
-    gateway: GatewayV1,
-  };
-
-type State = {
-  name: string,
-  showRebootCheck: boolean,
-  showRestartCheck: boolean,
+type Props = {
+  onClose: () => void,
+  onSave: (gatewayID: string) => void,
+  gateway: GatewayV1,
 };
 
-const styles = {
+const useStyles = makeStyles(() => ({
   input: {
     width: '100%',
   },
   divider: {
     margin: '10px 0',
   },
-};
+}));
 
-class GatewaySummaryFields extends React.Component<Props, State> {
-  state = {
-    name: this.props.gateway.name,
-    showRebootCheck: false,
-    showRestartCheck: false,
-  };
+export default function GatewaySummaryFields(props: Props) {
+  const classes = useStyles();
+  const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const {gateway} = props;
+  const [name, setName] = useState(gateway.name);
+  const [showRebootCheck, setShowRebootCheck] = useState(false);
+  const [showRestartCheck, setShowRestartCheck] = useState(false);
 
-  render() {
-    const {gateway} = this.props;
-    return (
-      <>
-        <DialogContent>
-          <FormField label="Name">
-            <Input
-              className={this.props.classes.input}
-              value={this.state.name}
-              onChange={this.nameChanged}
-              placeholder="E.g. Gateway 1234"
-            />
-          </FormField>
-          <FormField label="Hardware UUID">{gateway.hardware_id}</FormField>
-          <FormField label="Gateway ID">{gateway.logicalID}</FormField>
-          <FormField label="Last Checkin">
-            {moment(parseInt(gateway.lastCheckin, 10)).fromNow()}
-          </FormField>
-          <FormField label="Version">{gateway.version}</FormField>
-          <FormField label="VPN IP">{gateway.vpnIP}</FormField>
-          <FormField label="RF Transmitter">
-            <DeviceStatusCircle
-              isGrey={false}
-              isActive={gateway.enodebRFTXEnabled}
-            />
-            {gateway.enodebRFTXEnabled ? '' : 'Not '}
-            Allowed
-            {'  '}
-            <DeviceStatusCircle
-              isGrey={gateway.isBackhaulDown}
-              isActive={gateway.enodebConnected && gateway.enodebRFTXOn}
-            />
-            {gateway.enodebRFTXOn ? '' : 'Not '}
-            Connected
-          </FormField>
-          <FormField label="GPS synchronized">
-            <DeviceStatusCircle
-              isGrey={gateway.isBackhaulDown}
-              isActive={gateway.enodebConnected && gateway.gpsConnected}
-            />
-            {gateway.gpsConnected ? '' : 'Not '}
-            Synced
-          </FormField>
-          <FormField label="MME">
-            <DeviceStatusCircle
-              isGrey={gateway.isBackhaulDown}
-              isActive={gateway.enodebConnected && gateway.mmeConnected}
-            />
-            {gateway.mmeConnected ? '' : 'Not '}
-            Connected
-          </FormField>
-          <Divider className={this.props.classes.divider} />
-          <Text variant="subtitle1">Commands</Text>
-          <FormField label="Reboot Gateway">
-            <Button
-              onClick={this.handleRebootGateway}
-              variant="text"
-              color="primary">
-              Reboot
-            </Button>
-            <Fade in={this.state.showRebootCheck} timeout={500}>
-              <Check style={{verticalAlign: 'middle'}} htmlColor="green" />
-            </Fade>
-          </FormField>
-          <FormField label="">
-            <Button
-              onClick={this.handleRestartServices}
-              variant="text"
-              color="primary">
-              Restart services
-            </Button>
-            <Fade in={this.state.showRestartCheck} timeout={500}>
-              <Check style={{verticalAlign: 'middle'}} htmlColor="green" />
-            </Fade>
-          </FormField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onClose} skin="regular">
-            Cancel
-          </Button>
-          <Button onClick={this.onSave}>Save</Button>
-        </DialogActions>
-      </>
-    );
-  }
-
-  onSave = () => {
-    const {match, gateway} = this.props;
-    const id = gateway.logicalID;
-
+  const id = gateway.logicalID;
+  const onSave = () => {
     MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdName({
       networkId: nullthrows(match.params.networkId),
       gatewayId: id,
-      name: JSON.stringify(`"${this.state.name}"`),
+      name: JSON.stringify(`"${name}"`),
     })
-      .then(() => this.props.onSave(id))
-      .catch(error => this.props.alert(error.response.data.message));
+      .then(() => props.onSave(id))
+      .catch(error =>
+        enqueueSnackbar(error.response.data.message, {variant: 'error'}),
+      );
   };
 
-  nameChanged = ({target}: SyntheticInputEvent<*>) =>
-    this.setState({name: target.value});
-
-  handleRebootGateway = () => {
-    const {match, gateway} = this.props;
-    const id = gateway.logicalID;
+  const handleRebootGateway = () => {
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot({
       networkId: nullthrows(match.params.networkId),
       gatewayId: id,
     })
       .then(_resp => {
-        this.props.alert('Successfully initiated reboot');
-        this.setState({showRebootCheck: true}, () => {
-          setTimeout(() => this.setState({showRebootCheck: false}), 5000);
-        });
+        enqueueSnackbar('Successfully initiated reboot', {variant: 'success'});
+        setShowRebootCheck(true);
+        setTimeout(() => setShowRebootCheck(false), 5000);
       })
       .catch(error =>
-        this.props.alert('Reboot failed: ' + error.response.data.message),
+        enqueueSnackbar('Reboot failed: ' + error.response.data.message, {
+          variant: 'error',
+        }),
       );
   };
 
-  handleRestartServices = () => {
-    const {match, gateway} = this.props;
-    const id = gateway.logicalID;
-
+  const handleRestartServices = () => {
     MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandRestartServices(
       {
         networkId: nullthrows(match.params.networkId),
@@ -194,17 +93,97 @@ class GatewaySummaryFields extends React.Component<Props, State> {
       },
     )
       .then(_resp => {
-        this.props.alert('Successfully initiated service restart');
-        this.setState({showRestartCheck: true}, () => {
-          setTimeout(() => this.setState({showRestartCheck: false}), 5000);
+        enqueueSnackbar('Successfully initiated service restart', {
+          variant: 'success',
         });
+        setShowRestartCheck(true);
+        setTimeout(() => setShowRestartCheck(false), 5000);
       })
       .catch(error =>
-        this.props.alert(
+        enqueueSnackbar(
           'Restart services failed: ' + error.response.data.message,
+          {variant: 'error'},
         ),
       );
   };
-}
 
-export default withStyles(styles)(withRouter(withAlert(GatewaySummaryFields)));
+  return (
+    <>
+      <DialogContent>
+        <FormField label="Name">
+          <Input
+            className={classes.input}
+            value={name}
+            onChange={({target}) => setName(target.value)}
+            placeholder="E.g. Gateway 1234"
+          />
+        </FormField>
+        <FormField label="Hardware UUID">{gateway.hardware_id}</FormField>
+        <FormField label="Gateway ID">{gateway.logicalID}</FormField>
+        <FormField label="Last Checkin">
+          {moment(parseInt(gateway.lastCheckin, 10)).fromNow()}
+        </FormField>
+        <FormField label="Version">{gateway.version}</FormField>
+        <FormField label="VPN IP">{gateway.vpnIP}</FormField>
+        <FormField label="RF Transmitter">
+          <DeviceStatusCircle
+            isGrey={false}
+            isActive={gateway.enodebRFTXEnabled}
+          />
+          {gateway.enodebRFTXEnabled ? '' : 'Not '}
+          Allowed
+          {'  '}
+          <DeviceStatusCircle
+            isGrey={gateway.isBackhaulDown}
+            isActive={gateway.enodebConnected && gateway.enodebRFTXOn}
+          />
+          {gateway.enodebRFTXOn ? '' : 'Not '}
+          Connected
+        </FormField>
+        <FormField label="GPS synchronized">
+          <DeviceStatusCircle
+            isGrey={gateway.isBackhaulDown}
+            isActive={gateway.enodebConnected && gateway.gpsConnected}
+          />
+          {gateway.gpsConnected ? '' : 'Not '}
+          Synced
+        </FormField>
+        <FormField label="MME">
+          <DeviceStatusCircle
+            isGrey={gateway.isBackhaulDown}
+            isActive={gateway.enodebConnected && gateway.mmeConnected}
+          />
+          {gateway.mmeConnected ? '' : 'Not '}
+          Connected
+        </FormField>
+        <Divider className={classes.divider} />
+        <Text variant="subtitle1">Commands</Text>
+        <FormField label="Reboot Gateway">
+          <Button onClick={handleRebootGateway} variant="text" color="primary">
+            Reboot
+          </Button>
+          <Fade in={showRebootCheck} timeout={500}>
+            <Check style={{verticalAlign: 'middle'}} htmlColor="green" />
+          </Fade>
+        </FormField>
+        <FormField label="">
+          <Button
+            onClick={handleRestartServices}
+            variant="text"
+            color="primary">
+            Restart services
+          </Button>
+          <Fade in={showRestartCheck} timeout={500}>
+            <Check style={{verticalAlign: 'middle'}} htmlColor="green" />
+          </Fade>
+        </FormField>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose} skin="regular">
+          Cancel
+        </Button>
+        <Button onClick={onSave}>Save</Button>
+      </DialogActions>
+    </>
+  );
+}
