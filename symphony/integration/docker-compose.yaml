@@ -90,7 +90,7 @@ services:
   migrate:
     image: integration_graph
     entrypoint: /bin/migrate
-    command: "-db-dsn=root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true"
+    command: "--db-dsn=root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true"
     networks:
       - private
     depends_on:

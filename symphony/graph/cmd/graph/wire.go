@@ -27,7 +27,7 @@ import (
 func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	wire.Build(
 		wire.FieldsOf(new(*cliFlags), "Log", "Census", "MySQL", "Event", "Orc8r"),
-		log.Set,
+		log.Provide,
 		newApplication,
 		newTenancy,
 		newAuthURL,

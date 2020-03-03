@@ -6,33 +6,34 @@ package main
 
 import (
 	"context"
-	"flag"
 	"os"
 
+	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	entmigrate "github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/migrate"
 	"github.com/facebookincubator/symphony/pkg/log"
-
-	"github.com/facebookincubator/ent/dialect"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes/empty"
 	"go.uber.org/zap"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func main() {
-	drv := flag.String("db-driver", "mysql", "driver name")
-	dsn := flag.String("db-dsn", "", "data source name")
-	dropColumn := flag.Bool("drop-column", false, "enable column drop")
-	dropIndex := flag.Bool("drop-index", false, "enable index drop")
-	fixture := flag.Bool("fixture", false, "run ent@v0.1.0 migrate fixture")
-	dryRun := flag.Bool("dry-run", false, "run in dry run mode")
-	tenantName := flag.String("tenant", "", "target specific tenant")
-	flag.Parse()
+	kingpin.HelpFlag.Short('h')
+	drv := kingpin.Flag("db-driver", "database driver name").Default("mysql").String()
+	dsn := kingpin.Flag("db-dsn", "data source name").Required().String()
+	dropColumn := kingpin.Flag("drop-column", "enable column drop").Bool()
+	dropIndex := kingpin.Flag("drop-index", "enable index drop").Bool()
+	fixture := kingpin.Flag("fixture", "run ent@v0.1.0 migrate fixture").Bool()
+	dryRun := kingpin.Flag("dry-run", "run in dry run mode").Bool()
+	tenantName := kingpin.Flag("tenant", "target specific tenant").String()
+	logcfg := log.AddFlags(kingpin.CommandLine)
+	kingpin.Parse()
 
-	logger, _, _ := log.New(log.Config{Format: "console"})
+	logger, _, _ := log.Provide(*logcfg)
 	driver, err := sql.Open(*drv, *dsn)
 	if err != nil {
 		logger.Background().Fatal("opening database", zap.Error(err))

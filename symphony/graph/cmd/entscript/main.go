@@ -6,7 +6,6 @@ package main
 
 import (
 	"context"
-	"os"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/event"
@@ -15,67 +14,60 @@ import (
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
-
-	"github.com/jessevdk/go-flags"
 	"go.uber.org/zap"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type cliFlags struct {
-	Dsn    string `env:"MYSQL_DSN" long:"dsn" description:"data source name"`
-	Tenant string `long:"tenant" required:"true" description:"target specific tenant"`
-	User   string `long:"user" required:"true" description:"target specific user"`
-}
-
 func main() {
-	logger, _ := log.Config{Format: "console"}.Build()
+	kingpin.HelpFlag.Short('h')
+	dsn := kingpin.Flag("db-dsn", "data source name").Envar("MYSQL_DSN").Required().String()
+	tenant := kingpin.Flag("tenant", "tenant name to target").Required().String()
+	user := kingpin.Flag("user", "user name to target").Required().String()
+	logcfg := log.AddFlags(kingpin.CommandLine)
+	kingpin.Parse()
+
+	logger, _, _ := log.Provide(*logcfg)
 	ctx := context.Background()
 
-	var cf cliFlags
-	if _, err := flags.Parse(&cf); err != nil {
-		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
-			os.Exit(0)
-		}
-		os.Exit(1)
-	}
-
-	logger.For(ctx).Info("params", zap.String("dsn", cf.Dsn), zap.String("tenant", cf.Tenant), zap.String("user", cf.User))
-
-	tenancy, err := viewer.NewMySQLTenancy(cf.Dsn)
+	logger.For(ctx).Info("params",
+		zap.Stringp("dsn", dsn),
+		zap.Stringp("tenant", tenant),
+		zap.Stringp("user", user),
+	)
+	tenancy, err := viewer.NewMySQLTenancy(*dsn)
 	if err != nil {
-		logger.For(ctx).Fatal("cannot connect to graph database", zap.String("dsn", cf.Dsn), zap.Error(err))
-		return
+		logger.For(ctx).Fatal("cannot connect to graph database",
+			zap.Stringp("dsn", dsn),
+			zap.Error(err),
+		)
 	}
-
 	mysql.SetLogger(logger)
 
-	v := &viewer.Viewer{Tenant: cf.Tenant, User: cf.User}
-
+	v := &viewer.Viewer{Tenant: *tenant, User: *user}
 	ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
 	ctx = viewer.NewContext(ctx, v)
-
-	client, err := tenancy.ClientFor(ctx, cf.Tenant)
+	client, err := tenancy.ClientFor(ctx, *tenant)
 	if err != nil {
-		logger.For(ctx).Fatal("cannot get ent client for tenant", zap.String("tenant", cf.Tenant), zap.Error(err))
-		return
+		logger.For(ctx).Fatal("cannot get ent client for tenant",
+			zap.Stringp("tenant", tenant),
+			zap.Error(err),
+		)
 	}
 
 	tx, err := client.Tx(ctx)
 	if err != nil {
-		logger.For(ctx).Error("cannot begin transaction", zap.Error(err))
-		return
+		logger.For(ctx).Fatal("cannot begin transaction", zap.Error(err))
 	}
-
 	defer func() {
 		if r := recover(); r != nil {
 			if err := tx.Rollback(); err != nil {
 				logger.For(ctx).Error("cannot rollback transaction", zap.Error(err))
 			}
-			panic(r)
+			logger.For(ctx).Panic("application panic", zap.Reflect("error", r))
 		}
 	}()
 
 	ctx = ent.NewContext(ctx, tx.Client())
-
 	// Since the client is already uses transaction we can't have transactions on graphql also
 	r := resolver.New(
 		resolver.Config{
