@@ -171,7 +171,7 @@ prometheusQueryAddress: "http://orc8r-prometheus:9090"
 prometheusPushAddresses:
   - "http://orc8r-prometheus-cache:9091/metrics"
 
-alertmanagerApiURL: "http://orc8r-alertmanager:9093/api/v2/alerts"
+alertmanagerApiURL: "http://orc8r-alertmanager:9093/api/v2"
 prometheusConfigServiceURL: "http://orc8r-prometheus-configurer:9100"
 alertmanagerConfigServiceURL: "http://orc8r-alertmanager-configurer:9101"
 ```
