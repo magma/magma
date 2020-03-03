@@ -22,14 +22,18 @@ import (
 )
 
 const (
-	Events               = "events"
-	EventsPath           = obsidian.V1Root + Events + obsidian.UrlSep + ":" + pathParamStreamName
+	Events     = "events"
+	EventsPath = obsidian.V1Root + Events + obsidian.UrlSep + ":" + pathParamStreamName
+
 	pathParamStreamName  = "stream_name"
 	queryParamEventType  = "event_type"
 	queryParamHardwareID = "hardware_id"
 	queryParamTag        = "tag"
-	defaultQuerySize     = 50
-	timestamp            = "timestamp"
+
+	defaultQuerySize        = 50
+	timestamp               = "timestamp"
+	elasticFilterEventTag   = "event_tag"
+	elasticFilterHardwareID = "hw_id.keyword" // Uses the ES "keyword" type for exact match
 )
 
 // Returns a Hander that uses the provided elastic client
@@ -149,10 +153,10 @@ func (b *eventQueryParams) ToElasticBoolQuery() *elastic.BoolQuery {
 		query.Filter(elastic.NewTermQuery(queryParamEventType, b.EventType))
 	}
 	if len(b.HardwareID) > 0 {
-		query.Filter(elastic.NewTermQuery(queryParamHardwareID, b.HardwareID))
+		query.Filter(elastic.NewTermQuery(elasticFilterHardwareID, b.HardwareID))
 	}
 	if len(b.Tag) > 0 {
-		query.Filter(elastic.NewTermQuery(queryParamTag, b.Tag))
+		query.Filter(elastic.NewTermQuery(elasticFilterEventTag, b.Tag))
 	}
 	return query
 }
