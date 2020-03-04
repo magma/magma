@@ -118,7 +118,6 @@ const WorkOrderComparisonView = () => {
 
   const header = {
     title: 'Work Orders',
-    onViewToggleClicked: setResultsDisplayMode,
     searchBar: (
       <div className={classes.powerSearchBarWrapper}>
         <PowerSearchBar
@@ -165,7 +164,9 @@ const WorkOrderComparisonView = () => {
 
   return (
     <ErrorBoundary>
-      <InventoryView header={header}>
+      <InventoryView
+        header={header}
+        onViewToggleClicked={setResultsDisplayMode}>
         <WorkOrderComparisonViewQueryRenderer
           limit={50}
           filters={filters}
