@@ -264,6 +264,11 @@ void SessionState::mark_as_awaiting_termination()
   curr_state_ = SESSION_TERMINATION_SCHEDULED;
 }
 
+SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const
+{
+  return subscriber_quota_state_;
+}
+
 void SessionState::complete_termination()
 {
   if (curr_state_ == SESSION_TERMINATED) {

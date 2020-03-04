@@ -23,6 +23,12 @@ import {RAW_GATEWAY} from '../test/GatewayMock';
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
+jest.mock('@fbcnms/ui/hooks/useSnackbar');
+
+const enqueueSnackbarMock = jest.fn();
+jest
+  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .mockReturnValue(enqueueSnackbarMock);
 
 const Wrapper = props => (
   <MemoryRouter

@@ -9,6 +9,7 @@
  */
 
 // import type {OptionsToggleProps} from '../Buttons/OptionsToggleButton';
+import type {ButtonProps} from '../Button';
 import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 import type {ToggleButtonProps} from '../ToggleButton/ToggleButtonGroup';
 
@@ -59,6 +60,7 @@ const useStyles = makeStyles(() => ({
     flexGrow: 1,
     display: 'flex',
     justifyContent: 'flex-end',
+    paddingBottom: '8px',
   },
   groupButtons: {
     display: 'flex',
@@ -71,21 +73,22 @@ const useStyles = makeStyles(() => ({
     flexGrow: 1,
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   actionButton: {
     '&:not(:first-child)': {
-      marginLeft: '8px',
+      marginLeft: '12px',
     },
   },
 }));
 
-export type ActionButtonProps = {
-  title: string,
+export type ActionButtonProps = {|
+  title: React.Node,
   action: () => void,
   ...PermissionHandlingProps,
-};
+  ...ButtonProps,
+|};
 
 export type ViewHeaderProps = {
   title: React.Node,
@@ -138,18 +141,28 @@ const ViewHeader = (props: FullViewHeaderProps) => {
         {actionButtons != null && (
           <FormValidationContextProvider>
             <div className={classes.actionButtons}>
-              {actionButtons.map(actionButton => (
-                <FormAction
-                  key={actionButton.title}
-                  ignorePermissions={actionButton.ignorePermissions}
-                  hideWhenDisabled={actionButton.hideWhenDisabled}>
-                  <Button
-                    className={classes.actionButton}
-                    onClick={actionButton.action}>
-                    {actionButton.title}
-                  </Button>
-                </FormAction>
-              ))}
+              {actionButtons.map((actionButton, index) => {
+                const {
+                  ignorePermissions,
+                  hideWhenDisabled,
+                  action,
+                  title,
+                  ...restButtonProps
+                } = actionButton;
+                return (
+                  <FormAction
+                    key={`viewHeaderAction${index}`}
+                    ignorePermissions={ignorePermissions}
+                    hideWhenDisabled={hideWhenDisabled}>
+                    <Button
+                      className={classes.actionButton}
+                      {...restButtonProps}
+                      onClick={action}>
+                      {title}
+                    </Button>
+                  </FormAction>
+                );
+              })}
             </div>
           </FormValidationContextProvider>
         )}

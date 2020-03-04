@@ -13,7 +13,7 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_property_definitions, get_graphql_property_type_inputs
 from ..client import SymphonyClient
-from ..consts import EquipmentPortType, PropertyDefinition, PropertyValue
+from ..consts import Entity, EquipmentPortType, PropertyDefinition, PropertyValue
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_port_type_mutation import (
     AddEquipmentPortTypeInput,
@@ -135,7 +135,7 @@ def get_equipment_port_type(
     result = EquipmentPortTypeQuery.execute(client, id=equipment_port_type_id).port_type
     if not result:
         raise EntityNotFoundError(
-            entity="Equipment Port Type", entity_id=equipment_port_type_id
+            entity=Entity.EquipmentPortType, entity_id=equipment_port_type_id
         )
 
     return EquipmentPortType(

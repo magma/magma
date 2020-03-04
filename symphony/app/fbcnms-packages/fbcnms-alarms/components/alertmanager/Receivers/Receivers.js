@@ -10,10 +10,13 @@
 
 import * as React from 'react';
 import AddEditReceiver from './AddEditReceiver';
+import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import GlobalConfig from './GlobalConfig';
 import Grid from '@material-ui/core/Grid';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import SettingsIcon from '@material-ui/icons/Settings';
 import SimpleTable from '../../table/SimpleTable';
 import TableActionDialog from '../../table/TableActionDialog';
 import TableAddButton from '../../table/TableAddButton';
@@ -36,8 +39,9 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function Receivers() {
-  const {apiUtil} = useAlarmContext();
+  const {apiUtil, alertManagerGlobalConfigEnabled} = useAlarmContext();
   const [isAddEditReceiver, setIsAddEditReceiver] = React.useState(false);
+  const [isEditGlobalSettings, setIsEditGlobalSettings] = React.useState(false);
   const [isNewReceiver, setIsNewReceiver] = React.useState(false);
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -138,23 +142,46 @@ export default function Receivers() {
     );
   }
 
-  return (
-    <Grid className={classes.root}>
-      <SimpleTable
-        tableData={receiversData}
-        onActionsClick={handleActionsMenuOpen}
-        columnStruct={[
-          {
-            title: 'name',
-            getValue: row => row.name,
-          },
-          {
-            title: 'notifications',
-            render: 'labels',
-            getValue: getNotificationsSummary,
-          },
-        ]}
+  if (isEditGlobalSettings) {
+    return (
+      <GlobalConfig
+        onExit={() => {
+          setIsEditGlobalSettings(false);
+          setLastRefreshTime(new Date().toLocaleString());
+        }}
       />
+    );
+  }
+
+  return (
+    <Grid className={classes.root} container spacing={2} direction="column">
+      {alertManagerGlobalConfigEnabled === true && (
+        <Grid item>
+          <Button
+            onClick={() => setIsEditGlobalSettings(true)}
+            startIcon={<SettingsIcon />}
+            variant="outlined">
+            Settings
+          </Button>
+        </Grid>
+      )}
+      <Grid item>
+        <SimpleTable
+          tableData={receiversData}
+          onActionsClick={handleActionsMenuOpen}
+          columnStruct={[
+            {
+              title: 'name',
+              getValue: row => row.name,
+            },
+            {
+              title: 'notifications',
+              render: 'labels',
+              getValue: getNotificationsSummary,
+            },
+          ]}
+        />
+      </Grid>
       {isLoading && receiversData.length === 0 && (
         <div className={classes.loading}>
           <CircularProgress />

@@ -26,7 +26,7 @@ func NewServer(flags *cliFlags) (*server.Server, func(), error) {
 	handlerProxyTarget := proxyTarget(flags)
 	handlerStaticTarget := staticTarget(flags)
 	config := flags.Log
-	logger, cleanup, err := log.New(config)
+	logger, cleanup, err := log.Provide(config)
 	if err != nil {
 		return nil, nil, err
 	}

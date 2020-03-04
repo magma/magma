@@ -128,7 +128,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 
 	titleWithProperties := append(dataHeader[:], propName1, propName2, propName3, propName4, propName5, propName6, propName7, propName8)
 	fl, _ := NewImportHeader(titleWithProperties, ImportEntityService)
-	r1 := NewImportRecord(row1, fl)
+	r1, _ := NewImportRecord(row1, fl)
 	require.NoError(t, err)
 	styp1, err := q.ServiceType(ctx, data.serviceTypeID)
 	require.NoError(t, err)
@@ -152,7 +152,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	styp2, err := q.ServiceType(ctx, data.serviceTypeID2)
 	require.NoError(t, err)
 
-	r2 := NewImportRecord(row2, fl)
+	r2, _ := NewImportRecord(row2, fl)
 	ptypes2, err := importer.validatePropertiesForServiceType(ctx, r2, styp2)
 	require.NoError(t, err)
 	require.Len(t, ptypes2, 2)
@@ -173,7 +173,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	styp3, err := q.ServiceType(ctx, data.serviceTypeID3)
 	require.NoError(t, err)
 
-	r3 := NewImportRecord(row3, fl)
+	r3, _ := NewImportRecord(row3, fl)
 	ptypes3, err := importer.validatePropertiesForServiceType(ctx, r3, styp3)
 	require.NoError(t, err)
 	require.Len(t, ptypes3, 2)
@@ -197,7 +197,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	styp4, err := q.ServiceType(ctx, data.serviceTypeID4)
 	require.NoError(t, err)
 
-	r4 := NewImportRecord(row4, fl)
+	r4, _ := NewImportRecord(row4, fl)
 	ptypes4, err := importer.validatePropertiesForServiceType(ctx, r4, styp4)
 	require.NoError(t, err)
 	require.Len(t, ptypes4, 2)
@@ -240,6 +240,7 @@ func TestValidateForExistingService(t *testing.T) {
 	var (
 		test = []string{strconv.Itoa(service.ID), "myService", "type1", "", "", "", "", models.ServiceStatusPending.String()}
 	)
-	_, err = importer.validateLineForExistingService(ctx, service.ID, NewImportRecord(test, title))
+	rec, _ := NewImportRecord(test, title)
+	_, err = importer.validateLineForExistingService(ctx, service.ID, rec)
 	require.NoError(t, err)
 }

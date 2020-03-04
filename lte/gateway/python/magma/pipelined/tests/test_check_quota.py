@@ -47,7 +47,8 @@ class UEMacAddressTest(unittest.TestCase):
         """
         super(UEMacAddressTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([], include_ue_mac=True)
+        cls.service_manager = create_service_manager([],
+            ['arpd', 'check_quota'])
         check_quota_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(

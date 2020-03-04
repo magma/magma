@@ -130,7 +130,7 @@ func TestGetConfigWithOverride(t *testing.T) {
 	}
 
 	var testStruct ConfigTestStruct
-	err = GetStructuredServiceConfigExt(
+	_, _, err = GetStructuredServiceConfigExt(
 		"", "test_service", TestConfigDir, "", TestConfigOverrideDir, &testStruct)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(testStruct.Baz))
@@ -146,7 +146,7 @@ func TestGetConfigWithOverride(t *testing.T) {
 	var testIndirectStruct ConfigTestStruct
 	testIndirectStruct.Fooint = 54321
 	var testInterface interface{} = &testIndirectStruct
-	err = GetStructuredServiceConfigExt(
+	_, _, err = GetStructuredServiceConfigExt(
 		"", "test_service", TestConfigDir, "", TestConfigOverrideDir, testInterface)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(testIndirectStruct.Baz))

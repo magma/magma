@@ -3,11 +3,6 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from fbc.symphony.cli.graphql_compiler.gql.query_parser import QueryParser
-from fbc.symphony.cli.graphql_compiler.gql.renderer_dataclasses import (
-    DataclassesRenderer,
-)
-from fbc.symphony.cli.graphql_compiler.gql.utils_codegen import get_enum_filename
 from graphql import (
     GraphQLArgument,
     GraphQLEnumType,
@@ -20,6 +15,9 @@ from graphql import (
     GraphQLSchema,
     GraphQLString,
 )
+from graphql_compiler.gql.query_parser import QueryParser
+from graphql_compiler.gql.renderer_dataclasses import DataclassesRenderer
+from graphql_compiler.gql.utils_codegen import get_enum_filename
 
 from .base_test import BaseTest
 

@@ -8,9 +8,11 @@
  * @format
  */
 
-import type PowerSearchLinksResultsTable_links from './__generated__/PowerSearchLinksResultsTable_links.graphql';
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {ContextRouter} from 'react-router-dom';
+import type {PowerSearchLinksResultsTable_links} from './__generated__/PowerSearchLinksResultsTable_links.graphql';
+import type {TableIndex, TableSize} from './FilterUtils';
+import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -32,7 +34,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import 'react-virtualized/styles.css';
 
-const styles = theme => ({
+const styles = (theme: Theme) => ({
   root: {
     width: '100%',
     marginTop: theme.spacing(3),
@@ -174,17 +176,21 @@ class PowerSearchLinksResultsTable extends React.Component<Props> {
 
     return links.length > 0 ? (
       <AutoSizer>
-        {({height, width}) => (
+        {({height, width}: TableSize) => (
           <Table
             className={classes.table}
             height={height}
             width={width}
             headerHeight={50}
-            rowHeight={({index}) => this._getRowHeight(links[index])}
+            rowHeight={({index}: TableIndex) =>
+              this._getRowHeight(links[index])
+            }
             rowCount={links.length}
-            rowGetter={({index}) => links[index]}
+            rowGetter={({index}: TableIndex) => links[index]}
             gridClassName={classes.table}
-            rowClassName={({index}) => (index === -1 ? classes.header : '')}>
+            rowClassName={({index}: TableIndex) =>
+              index === -1 ? classes.header : ''
+            }>
             <Column
               label="Equipment A"
               dataKey="equipmentA"

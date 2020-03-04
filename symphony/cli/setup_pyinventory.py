@@ -22,6 +22,7 @@ def find_version(*file_paths):
 
 GQL_PACKAGES = ["gql", "gql.*"]
 PYINVENTORY_PACKAGES = ["pyinventory", "pyinventory.*"]
+PYHUB_PACKAGES = ["pyhub", "pyhub.*"]
 
 
 setuptools.setup(

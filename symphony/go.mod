@@ -15,7 +15,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/agnivade/levenshtein v1.0.3 // indirect
-	github.com/aws/aws-sdk-go v1.29.0
+	github.com/aws/aws-sdk-go v1.29.14
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/bobesa/go-domain-util v0.0.0-20190911083921-4033b5f7dd89
 	github.com/cenkalti/backoff v2.2.1+incompatible
@@ -46,9 +46,8 @@ require (
 	github.com/vektah/gqlparser v1.3.1
 	github.com/volatiletech/authboss v2.3.2+incompatible
 	go.opencensus.io v0.22.3
-	go.uber.org/atomic v1.5.1 // indirect
-	go.uber.org/multierr v1.4.0 // indirect
-	go.uber.org/zap v1.13.0
+	go.uber.org/multierr v1.5.0 // indirect
+	go.uber.org/zap v1.14.0
 	gocloud.dev v0.19.0
 	gocloud.dev/pubsub/natspubsub v0.19.0
 	golang.org/x/lint v0.0.0-20200130185559-910be7a94367 // indirect
@@ -57,11 +56,13 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20200211205636-11eff242d136 // indirect
+	golang.org/x/tools v0.0.0-20200228224639-71482053b885 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 	google.golang.org/api v0.17.0 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/genproto v0.0.0-20200211111953-2dc5924e3898 // indirect
 	google.golang.org/grpc v1.27.1
+	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.2.8 // indirect
+	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 )

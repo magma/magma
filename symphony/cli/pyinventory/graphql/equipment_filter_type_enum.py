@@ -11,5 +11,5 @@ class EquipmentFilterType(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, value: str) -> "EquipmentFilterType":
         return cls.MISSING_ENUM

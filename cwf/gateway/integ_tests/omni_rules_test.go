@@ -34,13 +34,13 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 
 	ue := ues[0]
 	// Set a block all rule to be installed by the PCRF
-	err = ruleManager.AddStaticRule(getStaticDenyAll("static-block-all", "mkey-1", models.PolicyRuleConfigTrackingTypeONLYPCRF, 30))
+	err = ruleManager.AddStaticRule(getStaticDenyAll("static-block-all", "mkey1", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 30))
 	assert.NoError(t, err)
 	err = ruleManager.AddDynamicRules(ue.Imsi, []string{"static-block-all"}, nil)
 	assert.NoError(t, err)
 
 	// Override with an omni pass all static rule with a higher priority
-	err = ruleManager.AddStaticPassAll("omni-pass-all-1", "", models.PolicyRuleTrackingTypeNOTRACKING, 20)
+	err = ruleManager.AddStaticPassAll("omni-pass-all-1", "", 0, models.PolicyRuleTrackingTypeNOTRACKING, 20)
 	assert.NoError(t, err)
 	// Apply a network wide rule that points to the static rule above
 	err = ruleManager.AddOmniPresentRules("onmi", []string{"omni-pass-all-1"}, []string{""})

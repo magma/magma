@@ -8,9 +8,7 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
-import type {subscriber} from '@fbcnms/magma-api';
+import type {apn_list, subscriber} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -18,26 +16,28 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
-const styles = {
+const useStyles = makeStyles(() => ({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
     width: '100%',
   },
-};
+}));
 
 type EditingSubscriber = {
   imsiID: string,
@@ -45,133 +45,66 @@ type EditingSubscriber = {
   authKey: string,
   authOpc: string,
   subProfile: string,
+  apnList: apn_list,
 };
 
-type Props = ContextRouter &
-  WithStyles<typeof styles> & {
-    onClose: () => void,
-    onSave: (subscriberID: string) => void,
-    onSaveError: (reason: any) => void,
-    editingSubscriber?: subscriber,
-    subProfiles: Array<string>,
-  };
-
-type State = {
-  error: string,
-  editingSubscriber: EditingSubscriber,
+type Props = {
+  onClose: () => void,
+  onSave: (subscriberID: string) => void,
+  onSaveError: (reason: string) => void,
+  editingSubscriber?: subscriber,
+  subProfiles: Array<string>,
+  apns: apn_list,
 };
 
-class AddEditSubscriberDialog extends React.Component<Props, State> {
-  state = {
-    error: '',
-    editingSubscriber: this.getEditingSubscriber(),
-  };
-
-  getEditingSubscriber(): EditingSubscriber {
-    const {editingSubscriber} = this.props;
-    if (!editingSubscriber) {
-      return {
-        imsiID: '',
-        lteState: 'ACTIVE',
-        authKey: '',
-        authOpc: '',
-        subProfile: 'default',
-      };
-    }
-
-    const authKey = editingSubscriber.lte.auth_key
-      ? base64ToHex(editingSubscriber.lte.auth_key)
-      : '';
-
-    const authOpc = editingSubscriber.lte.auth_opc
-      ? base64ToHex(editingSubscriber.lte.auth_opc)
-      : '';
-
+function buildEditingSubscriber(
+  editingSubscriber: ?subscriber,
+): EditingSubscriber {
+  if (!editingSubscriber) {
     return {
-      imsiID: editingSubscriber.id,
-      lteState: editingSubscriber.lte.state,
-      authKey,
-      authOpc,
-      subProfile: editingSubscriber.lte.sub_profile,
+      imsiID: '',
+      lteState: 'ACTIVE',
+      authKey: '',
+      authOpc: '',
+      subProfile: 'default',
+      apnList: [],
     };
   }
 
-  render() {
-    const {classes} = this.props;
-    const error = this.state.error ? (
-      <FormLabel error>{this.state.error}</FormLabel>
-    ) : null;
+  const authKey = editingSubscriber.lte.auth_key
+    ? base64ToHex(editingSubscriber.lte.auth_key)
+    : '';
 
-    return (
-      <Dialog open={true} onClose={this.props.onClose}>
-        <DialogTitle>
-          {this.props.editingSubscriber ? 'Edit Subscriber' : 'Add Subscriber'}
-        </DialogTitle>
-        <DialogContent>
-          {error}
-          <TextField
-            label="IMSI"
-            className={classes.input}
-            disabled={!!this.props.editingSubscriber}
-            value={this.state.editingSubscriber.imsiID}
-            onChange={this.imsiChanged}
-          />
-          <FormControl className={classes.input}>
-            <InputLabel htmlFor="lteState">LTE Subscription State</InputLabel>
-            <Select
-              inputProps={{id: 'lteState'}}
-              value={this.state.editingSubscriber.lteState}
-              onChange={this.lteStateChanged}>
-              <MenuItem value="ACTIVE">Active</MenuItem>
-              <MenuItem value="INACTIVE">Inactive</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            label="LTE Auth Key"
-            className={classes.input}
-            value={this.state.editingSubscriber.authKey}
-            onChange={this.authKeyChanged}
-          />
-          <TextField
-            label="LTE Auth OPc"
-            className={classes.input}
-            value={this.state.editingSubscriber.authOpc}
-            onChange={this.authOpcChanged}
-          />
-          <FormControl className={classes.input}>
-            <InputLabel htmlFor="subProfile">Data Plan</InputLabel>
-            <Select
-              inputProps={{id: 'subProfile'}}
-              value={this.state.editingSubscriber.subProfile}
-              onChange={this.subProfileChanged}>
-              {this.props.subProfiles.map(p => (
-                <MenuItem value={p} key={p}>
-                  {p}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onClose} skin="regular">
-            Cancel
-          </Button>
-          <Button onClick={this.onSave}>Save</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
+  const authOpc =
+    editingSubscriber.lte.auth_opc != undefined
+      ? base64ToHex(editingSubscriber.lte.auth_opc)
+      : '';
 
-  onSave = () => {
-    if (
-      !this.state.editingSubscriber.imsiID ||
-      !this.state.editingSubscriber.authKey
-    ) {
-      this.setState({error: 'Please complete all fields'});
+  return {
+    imsiID: editingSubscriber.id,
+    lteState: editingSubscriber.lte.state,
+    authKey,
+    authOpc,
+    subProfile: editingSubscriber.lte.sub_profile,
+    apnList: editingSubscriber.active_apns || [],
+  };
+}
+
+export default function AddEditSubscriberDialog(props: Props) {
+  const classes = useStyles();
+  const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [editingSubscriber, setEditingSubscriber] = useState(
+    buildEditingSubscriber(props.editingSubscriber),
+  );
+
+  const onSave = () => {
+    if (!editingSubscriber.imsiID || !editingSubscriber.authKey) {
+      enqueueSnackbar('Please complete all fields', {variant: 'error'});
       return;
     }
 
-    let {imsiID} = this.state.editingSubscriber;
+    let {imsiID} = editingSubscriber;
     if (!imsiID.startsWith('IMSI')) {
       imsiID = `IMSI${imsiID}`;
     }
@@ -179,59 +112,136 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
     const data = {
       id: imsiID,
       lte: {
-        state: this.state.editingSubscriber.lteState,
+        state: editingSubscriber.lteState,
         auth_algo: 'MILENAGE', // default auth algo
-        auth_key: this.state.editingSubscriber.authKey,
-        auth_opc: this.state.editingSubscriber.authOpc || undefined,
-        sub_profile: this.state.editingSubscriber.subProfile,
+        auth_key: editingSubscriber.authKey,
+        auth_opc: editingSubscriber.authOpc || undefined,
+        sub_profile: editingSubscriber.subProfile,
       },
+      active_apns: editingSubscriber.apnList,
     };
     if (data.lte.auth_key && isValidHex(data.lte.auth_key)) {
       data.lte.auth_key = hexToBase64(data.lte.auth_key);
     }
-    if (data.lte.auth_opc && isValidHex(data.lte.auth_opc)) {
+    if (data.lte.auth_opc != undefined && isValidHex(data.lte.auth_opc)) {
       data.lte.auth_opc = hexToBase64(data.lte.auth_opc);
     }
-    if (this.props.editingSubscriber) {
+    if (props.editingSubscriber) {
       MagmaV1API.putLteByNetworkIdSubscribersBySubscriberId({
-        networkId: nullthrows(this.props.match.params.networkId),
+        networkId: nullthrows(match.params.networkId),
         subscriberId: data.id,
         subscriber: data,
       })
-        .then(() => this.props.onSave(data.id))
-        .catch(this.props.onSaveError);
+        .then(() => props.onSave(data.id))
+        .catch(e => props.onSaveError(e.response.data.message));
     } else {
       MagmaV1API.postLteByNetworkIdSubscribers({
-        networkId: this.props.match.params.networkId || '',
+        networkId: match.params.networkId || '',
         subscriber: data,
       })
-        .then(() => this.props.onSave(data.id))
-        .catch(this.props.onSaveError);
+        .then(() => props.onSave(data.id))
+        .catch(e => props.onSaveError(e.response.data.message));
     }
   };
 
-  fieldChangedHandler = (
-    field: 'imsiID' | 'authKey' | 'authOpc' | 'subProfile',
-  ) => event =>
-    this.setState({
-      editingSubscriber: {
-        ...this.state.editingSubscriber,
-        // $FlowFixMe Set state for each field
-        [field]: event.target.value,
-      },
-    });
-
-  imsiChanged = this.fieldChangedHandler('imsiID');
-  lteStateChanged = event =>
-    this.setState({
-      editingSubscriber: {
-        ...this.state.editingSubscriber,
-        lteState: event.target.value === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
-      },
-    });
-  authKeyChanged = this.fieldChangedHandler('authKey');
-  authOpcChanged = this.fieldChangedHandler('authOpc');
-  subProfileChanged = this.fieldChangedHandler('subProfile');
+  return (
+    <Dialog open={true} onClose={props.onClose}>
+      <DialogTitle>
+        {props.editingSubscriber ? 'Edit Subscriber' : 'Add Subscriber'}
+      </DialogTitle>
+      <DialogContent>
+        <TextField
+          label="IMSI"
+          className={classes.input}
+          disabled={!!props.editingSubscriber}
+          value={editingSubscriber.imsiID}
+          onChange={({target}) =>
+            setEditingSubscriber({
+              ...editingSubscriber,
+              imsiID: target.value,
+            })
+          }
+        />
+        <FormControl className={classes.input}>
+          <InputLabel htmlFor="lteState">LTE Subscription State</InputLabel>
+          <TypedSelect
+            inputProps={{id: 'lteState'}}
+            value={editingSubscriber.lteState}
+            items={{
+              ACTIVE: 'Active',
+              INACTIVE: 'Inactive',
+            }}
+            onChange={lteState =>
+              setEditingSubscriber({...editingSubscriber, lteState})
+            }
+          />
+        </FormControl>
+        <TextField
+          label="LTE Auth Key"
+          className={classes.input}
+          value={editingSubscriber.authKey}
+          onChange={({target}) =>
+            setEditingSubscriber({
+              ...editingSubscriber,
+              authKey: target.value,
+            })
+          }
+        />
+        <TextField
+          label="LTE Auth OPc"
+          className={classes.input}
+          value={editingSubscriber.authOpc}
+          onChange={({target}) =>
+            setEditingSubscriber({
+              ...editingSubscriber,
+              authOpc: target.value,
+            })
+          }
+        />
+        <FormControl className={classes.input}>
+          <InputLabel htmlFor="subProfile">Data Plan</InputLabel>
+          <Select
+            inputProps={{id: 'subProfile'}}
+            value={editingSubscriber.subProfile}
+            onChange={({target}) =>
+              setEditingSubscriber({
+                ...editingSubscriber,
+                subProfile: target.value,
+              })
+            }>
+            {props.subProfiles.map(p => (
+              <MenuItem value={p} key={p}>
+                {p}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl className={classes.input}>
+          <InputLabel htmlFor="apnList">Access Point Names</InputLabel>
+          <Select
+            inputProps={{id: 'apnList'}}
+            value={editingSubscriber.apnList}
+            multiple={true}
+            onChange={({target}) =>
+              setEditingSubscriber({
+                ...editingSubscriber,
+                apnList: ((target.value: any): apn_list),
+              })
+            }>
+            {props.apns.map(apn => (
+              <MenuItem value={apn} key={apn}>
+                {apn}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose} skin="regular">
+          Cancel
+        </Button>
+        <Button onClick={onSave}>Save</Button>
+      </DialogActions>
+    </Dialog>
+  );
 }
-
-export default withStyles(styles)(withRouter(AddEditSubscriberDialog));

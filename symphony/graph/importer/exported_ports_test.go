@@ -290,7 +290,7 @@ func TestGeneralPortsImport(t *testing.T) {
 	err := importer.inputValidationsPorts(ctx, fl)
 	require.NoError(t, err)
 
-	r1 := NewImportRecord(row1, fl)
+	r1, _ := NewImportRecord(row1, fl)
 	port1, err := importer.validateLineForExistingPort(ctx, ids.parentPortInst1, r1)
 	require.NoError(t, err)
 	ptypes, err := importer.validatePropertiesForPortType(ctx, r1, port1.QueryDefinition().QueryEquipmentPortType().OnlyX(ctx), ImportEntityPort)
@@ -315,7 +315,7 @@ func TestGeneralPortsImport(t *testing.T) {
 	require.Len(t, consumers, 2)
 	require.Len(t, providers, 1)
 
-	r2 := NewImportRecord(row2, fl)
+	r2, _ := NewImportRecord(row2, fl)
 
 	port2, err := importer.validateLineForExistingPort(ctx, ids.parentPortInst2, r2)
 	require.NoError(t, err)
@@ -339,7 +339,7 @@ func TestGeneralPortsImport(t *testing.T) {
 	_, _, err = importer.validateServicesForPortEndpoints(ctx, r2)
 	require.Error(t, err)
 
-	r3 := NewImportRecord(row3, fl)
+	r3, _ := NewImportRecord(row3, fl)
 
 	port3, err := importer.validateLineForExistingPort(ctx, ids.childPortInst1, r3)
 	require.NoError(t, err)

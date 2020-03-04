@@ -1,10 +1,14 @@
+#!/usr/bin/env python3
+
 from __future__ import absolute_import
+
+import json
 
 from graphql.execution import ExecutionResult
 from graphql.language.printer import print_ast
 
 from .http import HTTPTransport
-import json
+
 
 class RequestsHTTPTransport(HTTPTransport):
     def __init__(self, session, url, auth=None, use_json=False, timeout=None, **kwargs):
@@ -22,15 +26,11 @@ class RequestsHTTPTransport(HTTPTransport):
 
     def execute(self, document, variable_values=None, timeout=None):
         query_str = print_ast(document)
-        payload = {
-            'query': query_str,
-            'variables': variable_values or {}
-        }
+        payload = {"query": query_str, "variables": variable_values or {}}
 
         request = self.session.post(
-            self.url,
-            data=json.dumps(payload).encode('utf-8'),
-            headers=self.headers)
+            self.url, data=json.dumps(payload).encode("utf-8"), headers=self.headers
+        )
         request.raise_for_status()
 
         result = request.json()
@@ -39,10 +39,9 @@ class RequestsHTTPTransport(HTTPTransport):
         if "x-correlation-id" in request.headers:
             extensions["trace_id"] = request.headers["x-correlation-id"]
 
-        assert 'errors' in result or 'data' in result, \
-            'Received non-compatible response "{}"'.format(result)
+        assert (
+            "errors" in result or "data" in result
+        ), 'Received non-compatible response "{}"'.format(result)
         return ExecutionResult(
-            errors=result.get('errors'),
-            data=result.get('data'),
-            extensions=extensions
+            errors=result.get("errors"), data=result.get("data"), extensions=extensions
         )

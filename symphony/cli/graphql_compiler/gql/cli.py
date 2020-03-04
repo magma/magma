@@ -3,13 +3,13 @@ import argparse
 import glob
 import os
 
-from graphql import build_ast_schema
 from graphql.language.parser import parse
 from graphql.utilities.find_deprecated_usages import find_deprecated_usages
 
 from .query_parser import AnonymousQueryError, InvalidQueryError, QueryParser
 from .renderer_dataclasses import DataclassesRenderer
 from .utils_codegen import get_enum_filename, get_input_filename
+from .utils_schema import compile_schema_library
 
 
 DEFAULT_CONFIG_FNAME = ".gql.json"
@@ -57,42 +57,36 @@ def process_file(
             raise
 
 
-def run(schema_filepath: str, graphql_library: str):
-    with open(schema_filepath) as schema_file:
-        schema = build_ast_schema(parse((schema_file.read())))
+def run(schema_library: str, graphql_library: str):
+    schema = compile_schema_library(schema_library)
+    filenames = glob.glob(os.path.join(graphql_library, "**/*.graphql"), recursive=True)
 
-        filenames = glob.glob(
-            os.path.join(graphql_library, "**/*.graphql"), recursive=True
-        )
+    query_parser = QueryParser(schema)
+    query_renderer = DataclassesRenderer(schema)
 
-        query_parser = QueryParser(schema)
-        query_renderer = DataclassesRenderer(schema)
+    py_filenames = glob.glob(os.path.join(graphql_library, "**/*.py"), recursive=True)
+    for py_filename in py_filenames:
+        if os.path.basename(py_filename) != "__init__.py":
+            os.unlink(py_filename)
 
-        py_filenames = glob.glob(
-            os.path.join(graphql_library, "**/*.py"), recursive=True
-        )
-        for py_filename in py_filenames:
-            if os.path.basename(py_filename) != "__init__.py":
-                os.unlink(py_filename)
+    for filename in filenames:
+        with open(filename) as f:
+            query = parse(f.read())
+            usages = find_deprecated_usages(schema, query)
+            assert (
+                len(usages) == 0
+            ), f"Graphql file name {filename} uses deprecated fields {usages}"
 
-        for filename in filenames:
-            with open(filename) as f:
-                query = parse(f.read())
-                usages = find_deprecated_usages(schema, query)
-                assert len(usages) == 0, (
-                    f"Graphql file name {filename} uses " f"deprecated fields {usages}"
-                )
-
-            process_file(filename, query_parser, query_renderer)
+        process_file(filename, query_parser, query_renderer)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "schema_filepath", help="the path of grahql schema file", type=str
+        "schema_library", help="the graphql schemas storage path", type=str
     )
     parser.add_argument(
         "graphql_library", help="path where all queries files are stored", type=str
     )
     args = parser.parse_args()
-    run(args.schema_filepath, args.graphql_library)
+    run(args.schema_library, args.graphql_library)

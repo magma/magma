@@ -127,7 +127,7 @@ func TestImportLocationHierarchy(t *testing.T) {
 	err := importer.inputValidationsLocation(ctx, title)
 	require.NoError(t, err)
 
-	rec1 := NewImportRecord(test1, title)
+	rec1, _ := NewImportRecord(test1, title)
 	parentIndex, err := importer.getParentOfLocationIndex(rec1)
 	require.NoError(t, err)
 	require.Equal(t, parentIndex, -1)
@@ -135,7 +135,7 @@ func TestImportLocationHierarchy(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, currIndex, 1)
 
-	rec2 := NewImportRecord(test2, title)
+	rec2, _ := NewImportRecord(test2, title)
 	parentIndex, err = importer.getParentOfLocationIndex(rec2)
 	require.NoError(t, err)
 	require.Equal(t, parentIndex, 2)
@@ -149,7 +149,7 @@ func TestImportLocationHierarchy(t *testing.T) {
 	require.Equal(t, parentLoc2.QueryType().OnlyXID(ctx), ids.locTypeIDM)
 	require.Equal(t, parentLoc2.QueryParent().OnlyX(ctx).Name, "locNameL")
 
-	rec3 := NewImportRecord(test3, title)
+	rec3, _ := NewImportRecord(test3, title)
 	parentIndex, err = importer.getParentOfLocationIndex(rec3)
 	require.NoError(t, err)
 	require.Equal(t, parentIndex, -1)
@@ -157,7 +157,7 @@ func TestImportLocationHierarchy(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, currIndex, 2)
 
-	rec4 := NewImportRecord(test4, title)
+	rec4, _ := NewImportRecord(test4, title)
 	parentIndex, err = importer.getParentOfLocationIndex(rec4)
 	require.NoError(t, err)
 	require.Equal(t, parentIndex, 1)
@@ -194,7 +194,7 @@ func TestValidateLocationPropertiesForType(t *testing.T) {
 	require.NoError(t, err)
 
 	fl, _ = NewImportHeader(finalFirstRow, ImportEntityLocation)
-	r1 := NewImportRecord(test1, fl)
+	r1, _ := NewImportRecord(test1, fl)
 	require.NoError(t, err)
 	lType1, err := q.LocationType(ctx, data.locTypeIDS)
 	require.NoError(t, err)
@@ -219,7 +219,7 @@ func TestValidateLocationPropertiesForType(t *testing.T) {
 	lType2, err := q.LocationType(ctx, data.locTypeIDM)
 	require.NoError(t, err)
 
-	r2 := NewImportRecord(test2, fl)
+	r2, _ := NewImportRecord(test2, fl)
 	ptypes2, err := importer.validatePropertiesForLocationType(ctx, r2, lType2)
 	require.NoError(t, err)
 	require.Len(t, ptypes2, 2)
@@ -240,7 +240,7 @@ func TestValidateLocationPropertiesForType(t *testing.T) {
 	lType3, err := q.LocationType(ctx, data.locTypeIDL)
 	require.NoError(t, err)
 
-	r3 := NewImportRecord(test3, fl)
+	r3, _ := NewImportRecord(test3, fl)
 	ptypes3, err := importer.validatePropertiesForLocationType(ctx, r3, lType3)
 	require.NoError(t, err)
 	require.Len(t, ptypes3, 2)
@@ -314,7 +314,7 @@ func TestValidateForExistingLocation(t *testing.T) {
 		test3 = []string{strconv.Itoa(loc3.ID), "loc1L", "", "loc3S", "external_1", "32", "33", "abc", "19", "", "", "", ""}
 	)
 
-	rec1 := NewImportRecord(test1, fl)
+	rec1, _ := NewImportRecord(test1, fl)
 	_, err = importer.validateLineForExistingLocation(ctx, loc1.ID, rec1)
 	require.NoError(t, err)
 
@@ -326,7 +326,7 @@ func TestValidateForExistingLocation(t *testing.T) {
 	require.Equal(t, 30.23, *propInput.RangeFromValue)
 	require.Equal(t, 50.0, *propInput.RangeToValue)
 
-	rec2 := NewImportRecord(test2, fl)
+	rec2, _ := NewImportRecord(test2, fl)
 	_, err = importer.validateLineForExistingLocation(ctx, loc2.ID, rec2)
 	require.NoError(t, err)
 
@@ -336,7 +336,7 @@ func TestValidateForExistingLocation(t *testing.T) {
 	require.Equal(t, propName3, r.client.PropertyType.Query().Where(propertytype.ID(propInput.PropertyTypeID)).OnlyX(ctx).Name)
 	require.Equal(t, "29/03/88", *propInput.StringValue)
 
-	rec3 := NewImportRecord(test3, fl)
+	rec3, _ := NewImportRecord(test3, fl)
 	_, err = importer.validateLineForExistingLocation(ctx, loc3.ID, rec3)
 	require.NoError(t, err)
 	inputs, _, err = importer.getLocationPropertyInputs(ctx, rec3, loc3)

@@ -9,6 +9,7 @@ from typing import Optional
 
 
 XML_OUTPUT_DIRECTORY: Optional[str] = os.getenv("XML_OUTPUT_DIRECTORY")
+TESTS_PATTERN: Optional[str] = os.getenv("TESTS_PATTERN", "*")
 TEST_USER_EMAIL = "fbuser@fb.com"
 PLATFORM_SERVER_HEALTH_CHECK_URL: str = os.getenv(
     "PLATFORM_SERVER_HEALTH_CHECK_URL", "http://platform-server/healthz"

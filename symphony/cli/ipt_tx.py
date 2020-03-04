@@ -32,7 +32,9 @@ def import_tx_row(client, data_identifier, data):
             )
         if data.MWModel != "":
             equipment_type = "MW{}".format(data.MWModel)
-            mw_equipment = client.add_equipment(data.MWModel, equipment_type, location, {})
+            mw_equipment = client.add_equipment(
+                data.MWModel, equipment_type, location, {}
+            )
         if vsat_equipment is not None and mw_equipment is not None:
             client.add_link(vsat_equipment, "Port A", mw_equipment, "Port A")
     except FailedOperationException as e:

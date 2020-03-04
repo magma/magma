@@ -59,7 +59,7 @@ const (
 	AnonymityKeyBytes = 16
 
 	// The highest valid sequence number (since sequence numbers are 48 bits).
-	maxSqn      = (1 << 47) - 1
+	maxSqn      = (1 << 48) - 1
 	sqnMaxBytes = 6
 )
 

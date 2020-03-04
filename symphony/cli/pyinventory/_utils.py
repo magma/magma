@@ -13,6 +13,7 @@ from dacite import Config, from_dict
 from .consts import (
     TYPE_AND_FIELD_NAME,
     DataTypeName,
+    Entity,
     PropertyDefinition,
     PropertyValue,
     ReturnType,
@@ -89,7 +90,7 @@ def get_graphql_property_type_inputs(
 
     for name, value in properties_dict.items():
         if name not in property_type_names:
-            raise EntityNotFoundError(entity="PropertyType", entity_name=name)
+            raise EntityNotFoundError(entity=Entity.PropertyType, entity_name=name)
         assert property_type_names[name][
             "isInstanceProperty"
         ], f"property {name} is not instance property"
@@ -147,7 +148,7 @@ def get_graphql_property_inputs(
 
     for name, value in properties_dict.items():
         if name not in property_type_names:
-            raise EntityNotFoundError(entity="PropertyType", entity_name=name)
+            raise EntityNotFoundError(entity=Entity.PropertyType, entity_name=name)
         assert property_type_names[name][
             "isInstanceProperty"
         ], f"property {name} is not instance property"

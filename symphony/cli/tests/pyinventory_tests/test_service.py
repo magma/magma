@@ -126,7 +126,7 @@ class TestService(BaseTest):
         )
         service = get_service(self.client, service.id)
 
-        self.assertEqual([endpoint_port], [e.port for e in service.endpoints])
+        self.assertEqual([endpoint_port.id], [e.port.id for e in service.endpoints])
         self.assertEqual([link1, link2], service.links)
 
     def test_service_with_customer_created(self) -> None:

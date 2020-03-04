@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+from dataclasses import field
 from datetime import datetime, timedelta, timezone
+
+from marshmallow import fields as marshmallow_fields
 
 
 # Helpers for parsing the result of isoformat()
@@ -127,3 +130,14 @@ def fromisoformat(date_string):
         time_components = [0, 0, 0, 0, None]
 
     return datetime(*(date_components + time_components))
+
+
+DATETIME_FIELD = field(
+    metadata={
+        "dataclasses_json": {
+            "encoder": datetime.isoformat,
+            "decoder": fromisoformat,
+            "mm_field": marshmallow_fields.DateTime(format="iso"),
+        }
+    }
+)

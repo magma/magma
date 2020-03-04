@@ -374,3 +374,12 @@ func (m *importer) parseImportArgs(r *http.Request) ([]int, *bool, error) {
 	}
 	return skipLines, verifyBeforeCommit, nil
 }
+
+func isEmptyRow(s []string) bool {
+	for _, v := range s {
+		if v != "" {
+			return false
+		}
+	}
+	return true
+}

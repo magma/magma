@@ -100,17 +100,22 @@ class ArpController(MagmaController):
         self._install_default_forward_flow(datapath)
         self._install_default_arp_drop_flow(datapath)
 
-    # pylint:disable=unused-argument
-    def handle_restart(self, req: SetupUEMacRequest) -> SetupFlowsResult:
+    def handle_restart(self,
+                       ue_requests: SetupUEMacRequest) -> SetupFlowsResult:
         """
         Setup the arp flows for the controller, this is used when the controller
-        restarts.
+        restarts. Only setup those UEs that are passed from sessiond.
         """
         self.delete_all_flows(self._datapath)
         self._install_default_flows(self._datapath)
         records = get_all_records()
+        attached_ues = [ue.sid.id for ue in ue_requests]
         for rec in records:
-            self.logger.debug("Restoring arp for imsi %s, ip %s mac %s", rec.id,
+            if rec not in attached_ues:
+                self.logger.warning(
+                    "IMSI %s is in directoryd, but not and active UE", rec.id)
+                continue
+            self.logger.debug("Restoring arp for IMSI %s, ip %s mac %s", rec.id,
                               rec.fields['ipv4_addr'], rec.fields['mac_addr'])
 
             self.arp_contoller.add_ue_arp_flows(self._datapath,

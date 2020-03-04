@@ -11,5 +11,5 @@ class CellularNetworkType(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, value: str) -> "CellularNetworkType":
         return cls.MISSING_ENUM

@@ -116,8 +116,6 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
             return
 
         try:
-            # TODO use a different name, tag doesn't work because of fluentbit
-            # using the "tag" field.
             with closing(socket.create_connection(
                     ('localhost', self.fluent_bit_port),
                     timeout=self.tcp_timeout)) as sock:
@@ -125,7 +123,8 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
                 sock.sendall(json.dumps({
                     'stream_name': request.stream_name,
                     'event_type': request.event_type,
-                    'tag': request.tag,
+                    # We use event_tag as fluentd uses the "tag" field
+                    'event_tag': request.tag,
                     'value': request.value
                 }).encode('utf-8'))
         except socket.error as e:

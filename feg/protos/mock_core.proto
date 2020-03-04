@@ -100,7 +100,7 @@ service MockOCS {
 }
 
 message OCSConfig {
-    uint32 max_usage_bytes = 1;
+    Octets max_usage_octets = 1;
     uint32 max_usage_time = 2;
     uint32 validity_time = 3;
 }
@@ -112,7 +112,7 @@ message CreditInfo {
     }
     string imsi = 1;
     uint32 charging_key = 2;
-    uint64 volume = 3;
+    Octets volume = 3;
     UnitType unit_type = 4;
 }
 

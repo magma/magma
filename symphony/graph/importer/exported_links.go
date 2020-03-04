@@ -111,7 +111,11 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 				}
 
 				ln := m.trimLine(untrimmedLine)
-				importLine := NewImportRecord(ln, importHeader)
+				importLine, err := NewImportRecord(ln, importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				portARecord, portBRecord, err := m.getTwoPortRecords(importLine)
 
 				if err != nil {
@@ -313,7 +317,10 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 
 func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *ImportRecord, error) {
 	header := importLine.Header()
-	headerSlices := header.LinkGetTwoPortsSlices()
+	headerSlices, err := header.LinkGetTwoPortsSlices()
+	if err != nil {
+		return nil, nil, err
+	}
 	ahead, bhead := headerSlices[0], headerSlices[1]
 	headerA, err := NewImportHeader(ahead, ImportEntityPortInLink)
 	if err != nil {
@@ -329,8 +336,14 @@ func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *I
 		return nil, nil, errors.New("ports are identical")
 	}
 
-	portA := NewImportRecord(portASlice, headerA)
-	portB := NewImportRecord(portBSlice, headerB)
+	portA, err := NewImportRecord(portASlice, headerA)
+	if err != nil {
+		return nil, nil, err
+	}
+	portB, err := NewImportRecord(portBSlice, headerB)
+	if err != nil {
+		return nil, nil, err
+	}
 	return &portA, &portB, nil
 }
 
@@ -407,7 +420,11 @@ func (m *importer) inputValidationsLinks(ctx context.Context, importHeader Impor
 	if firstLine[0] != "Link ID" {
 		return errors.Errorf("first cell should be 'Link ID' ")
 	}
-	portsSlices := importHeader.LinkGetTwoPortsSlices()
+
+	portsSlices, err := importHeader.LinkGetTwoPortsSlices()
+	if err != nil {
+		return err
+	}
 	ha, err := NewImportHeader(portsSlices[0], ImportEntityPortInLink)
 	if err != nil {
 		return err

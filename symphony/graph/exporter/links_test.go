@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/AlekSi/pointer"
@@ -383,13 +384,13 @@ func TestLinksWithFilters(t *testing.T) {
 		{
 			Name:     "LOCATION_INST",
 			Operator: "IS_ONE_OF",
-			IDSet:    []int{loc.ID},
+			IDSet:    []string{strconv.Itoa(loc.ID)},
 			MaxDepth: &maxDepth,
 		},
 		{
 			Name:     "EQUIPMENT_TYPE",
 			Operator: "IS_ONE_OF",
-			IDSet:    []int{equipType.ID},
+			IDSet:    []string{strconv.Itoa(equipType.ID)},
 			MaxDepth: &maxDepth,
 		},
 	})

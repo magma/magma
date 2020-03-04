@@ -141,6 +141,7 @@ bool LocalEnforcer::setup(
   std::function<void(Status status, SetupFlowsResult)> callback)
 {
   std::vector<SessionState::SessionInfo> session_infos;
+  std::vector<SubscriberQuotaUpdate> quota_updates;
   std::vector<std::string> msisdns;
   std::vector<std::string> ue_mac_addrs;
   std::vector<std::string> apn_mac_addrs;
@@ -168,12 +169,17 @@ bool LocalEnforcer::setup(
       apn_names.push_back(apn_name);
       if (session->is_radius_cwf_session()) {
         cwf = true;
+        SubscriberQuotaUpdate update = make_subscriber_quota_update(
+            session_info.imsi,
+            ue_mac_addr,
+            session->get_subscriber_quota_state());
+        quota_updates.push_back(update);
       }
     }
   }
   if (cwf){
-    return pipelined_client_->setup_cwf(session_infos, ue_mac_addrs, msisdns,
-        apn_mac_addrs, apn_names, epoch, callback);
+    return pipelined_client_->setup_cwf(session_infos, quota_updates,
+        ue_mac_addrs, msisdns, apn_mac_addrs, apn_names, epoch, callback);
   } else {
     return pipelined_client_->setup_lte(session_infos, epoch, callback);
   }

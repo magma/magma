@@ -7,6 +7,7 @@ package exporter
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -30,7 +31,7 @@ type equipmentFilterInput struct {
 	Name          models.EquipmentFilterType `json:"name"`
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
-	IDSet         []int                      `json:"idSet"`
+	IDSet         []string                   `json:"idSet"`
 	StringSet     []string                   `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
 }
@@ -122,18 +123,21 @@ func paramToFilterInput(params string) ([]*models.EquipmentFilterInput, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	returnType := make([]*models.EquipmentFilterInput, 0, len(inputs))
 	for _, f := range inputs {
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
 		propertyValue := f.PropertyValue
+		intIDSet, err := toIntSlice(f.IDSet)
+		if err != nil {
+			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+		}
 		inp := models.EquipmentFilterInput{
 			FilterType:    models.EquipmentFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
 			StringValue:   pointer.ToString(f.StringValue),
 			PropertyValue: &propertyValue,
-			IDSet:         f.IDSet,
+			IDSet:         intIDSet,
 			StringSet:     f.StringSet,
 			MaxDepth:      pointer.ToInt(5),
 		}

@@ -16,33 +16,35 @@ import (
 	"os"
 	"path/filepath"
 
+	"magma/gateway/config"
 	"magma/orc8r/lib/go/security/key"
 )
 
 func (b *Bootstrapper) getChallengeKey() (privKey interface{}, err error) {
-	privKey, err = key.ReadKey(b.ChallengeKeyFile)
+	challengeKeyFile := config.GetMagmadConfigs().BootstrapConfig.ChallengeKey
+	privKey, err = key.ReadKey(challengeKeyFile)
 	if err == nil {
 		return // all good, return the key
 	}
-	log.Printf("Bootstrapper ReadKey(%s) error: %v", b.ChallengeKeyFile, err)
+	log.Printf("Bootstrapper ReadKey(%s) error: %v", challengeKeyFile, err)
 	privKey, err = key.GenerateKey(PrivateKeyType, 0)
 	if err != nil {
 		err = fmt.Errorf("Bootstrapper Generate Key error: %v", err)
 		return
 	}
-	dir := filepath.Dir(b.ChallengeKeyFile)
+	dir := filepath.Dir(challengeKeyFile)
 	if len(dir) > 3 {
 		os.MkdirAll(dir, os.ModePerm)
 	}
-	err = key.WriteKey(b.ChallengeKeyFile, privKey)
+	err = key.WriteKey(challengeKeyFile, privKey)
 	if err != nil {
-		err = fmt.Errorf("Bootstrapper Write Key (%s) error: %v", b.ChallengeKeyFile, err)
+		err = fmt.Errorf("Bootstrapper Write Key (%s) error: %v", challengeKeyFile, err)
 		return
 	}
-	privKey, err = key.ReadKey(b.ChallengeKeyFile)
+	privKey, err = key.ReadKey(challengeKeyFile)
 	if err != nil {
 		err = fmt.Errorf(
-			"Bootstrapper Failed to read recently created key from (%s) error: %v", b.ChallengeKeyFile, err)
+			"Bootstrapper Failed to read recently created key from (%s) error: %v", challengeKeyFile, err)
 		return
 	}
 	return

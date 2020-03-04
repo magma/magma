@@ -71,7 +71,7 @@ func TestGeneralLinksEditImport(t *testing.T) {
 	err := importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)
 
-	r1 := NewImportRecord(row1, fl)
+	r1, _ := NewImportRecord(row1, fl)
 
 	link, err := importer.validateLineForExistingLink(ctx, ids.linkID, r1)
 	require.NoError(t, err)
@@ -137,7 +137,7 @@ func TestGeneralLinksAddImport(t *testing.T) {
 	fl, _ := NewImportHeader(header, ImportEntityLink)
 	err := importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)
-	r1 := NewImportRecord(row1, fl)
+	r1, _ := NewImportRecord(row1, fl)
 
 	pr1, pr2, err := importer.getTwoPortRecords(r1)
 	require.NoError(t, err)

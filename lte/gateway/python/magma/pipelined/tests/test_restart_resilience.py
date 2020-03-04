@@ -68,9 +68,6 @@ class RestartResilienceTest(unittest.TestCase):
         cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
         cls._enforcement_tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
-        cls._enf_stats_tbl_num = cls.service_manager.get_table_num(
-            EnforcementStatsController.APP_NAME)
-
         cls._tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
 
@@ -344,7 +341,7 @@ class RestartResilienceTest(unittest.TestCase):
         self._static_rule_dict[policies[1].id] = policies[1]
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
-            self._enf_stats_tbl_num, self.enforcement_stats_controller,
+            self._enforcement_tbl_num, self.enforcement_stats_controller,
             nuke_flows_on_exit=False
         ).add_static_rule(policies[0].id).add_static_rule(policies[1].id)
         isolator = RyuDirectTableIsolator(

@@ -24,6 +24,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 
+	"magma/gateway/config"
 	"magma/gateway/streamer"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
@@ -33,7 +34,6 @@ import (
 // Configurator - magma configurator implementation
 type Configurator struct {
 	sync.RWMutex
-	Cfg                *MagmadCfg
 	streamerClient     streamer.Client
 	latestConfigDigest *protos.GatewayConfigsDigest
 	updateChan         chan interface{}
@@ -46,7 +46,6 @@ type UpdateCompletion []string
 // NewConfigurator returns a new Configuration & attempts to feel in its configs from magmad.yml
 func NewConfigurator(updateCompletionChan chan interface{}) *Configurator {
 	return &Configurator{
-		Cfg:            NewDefaultMgmadCfg().updateFromMagmadCfg(),
 		streamerClient: streamer.NewStreamerClient(nil),
 		updateChan:     updateCompletionChan}
 }
@@ -68,9 +67,7 @@ func (c *Configurator) GetName() string {
 func (c *Configurator) ReportError(e error) error {
 	if e != io.EOF {
 		log.Printf("gateway mconfig streaming error: %v", e)
-		c.RLock()
-		sleepDuration := time.Second * time.Duration(c.Cfg.ConfigStreamErrorRetryInterval)
-		c.RUnlock()
+		sleepDuration := time.Second * time.Duration(config.GetMagmadConfigs().ConfigStreamErrorRetryInterval)
 		time.Sleep(sleepDuration)
 	}
 	return nil // continue streaming anyway
@@ -119,7 +116,6 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	oldCfgJson, err := c.saveConfigs(u.GetValue(), updateChan != nil)
 	if err != err {
 		log.Printf("error saving new gateway mconfig: %v", err)
-		c.Cfg.updateFromMagmadCfg() // refresh Configurator settings on error
 		c.Unlock()
 		return false
 	}

@@ -26,7 +26,7 @@ std::unique_ptr<SessionCredit> SessionCredit::unmarshal(
   auto session_credit = std::make_unique<SessionCredit>(credit_type);
 
   session_credit->reporting_ = marshaled.reporting;
-  session_credit->is_final_ = marshaled.is_final;
+  session_credit->is_final_grant_ = marshaled.is_final;
   session_credit->unlimited_quota_ = marshaled.unlimited_quota;
 
   // FinalActionInfo
@@ -54,9 +54,9 @@ std::unique_ptr<SessionCredit> SessionCredit::unmarshal(
 
 StoredSessionCredit SessionCredit::marshal()
 {
-  StoredSessionCredit marshaled{};
+  StoredSessionCredit marshaled {};
   marshaled.reporting = reporting_;
-  marshaled.is_final = is_final_;
+  marshaled.is_final = is_final_grant_;
   marshaled.unlimited_quota = unlimited_quota_;
 
   marshaled.final_action_info.final_action = final_action_info_.final_action;
@@ -151,7 +151,7 @@ void SessionCredit::receive_credit(
   uint64_t tx_volume,
   uint64_t rx_volume,
   uint32_t validity_time,
-  bool is_final,
+  bool is_final_grant,
   FinalActionInfo final_action_info)
 {
   MLOG(MDEBUG) << "receive_credit:"
@@ -191,13 +191,13 @@ void SessionCredit::receive_credit(
                << buckets_[REPORTED_TX] << "reporting_rx "
                << buckets_[REPORTING_RX] << "reporting_tx "
                << buckets_[REPORTING_TX];
-  is_final_ = is_final;
+  is_final_grant_ = is_final_grant;
   final_action_info_ = final_action_info;
 
   if (reauth_state_ == REAUTH_PROCESSING) {
     reauth_state_ = REAUTH_NOT_NEEDED; // done
   }
-  if (!quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
+  if (!is_quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
                              service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
     // if quota no longer exhausted, reenable services as needed
     MLOG(MDEBUG) << "Quota available. Activating service";
@@ -205,43 +205,39 @@ void SessionCredit::receive_credit(
   }
 }
 
-bool SessionCredit::quota_exhausted(
-  float usage_reporting_threshold, uint64_t extra_quota_margin)
+bool SessionCredit::is_quota_exhausted(
+  float usage_reporting_threshold,
+  uint64_t extra_quota_margin)
 {
   // used quota since last report
-  uint64_t total_reported_usage =
-    buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
-  uint64_t total_usage_since_report = buckets_[USED_TX] + buckets_[USED_RX];
-  if (total_usage_since_report > total_reported_usage) {
-    total_usage_since_report -= total_reported_usage;
-  } else {
-    total_usage_since_report = 0;
-  }
-  uint64_t tx_usage_since_report = buckets_[USED_TX] > buckets_[REPORTED_TX] ?
-    buckets_[USED_TX] - buckets_[REPORTED_TX] : 0;
-  uint64_t rx_usage_since_report = buckets_[USED_RX] > buckets_[REPORTED_RX] ?
-    buckets_[USED_RX] - buckets_[REPORTED_RX] : 0;
+  uint64_t total_reported_usage = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
+  uint64_t total_usage_since_report = std::max(
+    uint64_t(0), buckets_[USED_TX] + buckets_[USED_RX] - total_reported_usage);
+  uint64_t tx_usage_since_report =
+    std::max(uint64_t(0), buckets_[USED_TX] - buckets_[REPORTED_TX]);
+  uint64_t rx_usage_since_report =
+    std::max(uint64_t(0), buckets_[USED_RX] - buckets_[REPORTED_RX]);
 
   // available quota since last report
-  auto total_usage_reporting_threshold = extra_quota_margin +
-    (buckets_[ALLOWED_TOTAL] > total_reported_usage ?
-      (buckets_[ALLOWED_TOTAL] -
-       total_reported_usage) * usage_reporting_threshold : 0);
+  auto total_usage_reporting_threshold =
+    extra_quota_margin + std::max(
+                           0.0f,
+                           (buckets_[ALLOWED_TOTAL] - total_reported_usage) *
+                             usage_reporting_threshold);
 
   // reported tx/rx could be greater than allowed tx/rx
   // because some OCS/PCRF might not track tx/rx,
   // and 0 is added to the allowed credit when an credit update is received
   auto tx_usage_reporting_threshold =
-    buckets_[ALLOWED_TX] > buckets_[REPORTED_TX] ?
-      (buckets_[ALLOWED_TX] -
-       buckets_[REPORTED_TX]) * usage_reporting_threshold : 0;
+    extra_quota_margin + std::max(
+                           0.0f,
+                           (buckets_[ALLOWED_TX] - buckets_[REPORTED_TX]) *
+                             usage_reporting_threshold);
   auto rx_usage_reporting_threshold =
-    buckets_[ALLOWED_RX] > buckets_[REPORTED_RX] ?
-      (buckets_[ALLOWED_RX] -
-       buckets_[REPORTED_RX]) * usage_reporting_threshold : 0;
-
-  tx_usage_reporting_threshold += extra_quota_margin;
-  rx_usage_reporting_threshold += extra_quota_margin;
+    extra_quota_margin + std::max(
+                           0.0f,
+                           (buckets_[ALLOWED_RX] - buckets_[REPORTED_RX]) *
+                             usage_reporting_threshold);
 
   MLOG(MDEBUG) << " Is Quota exhausted?"
                << "\n Total used: " << buckets_[USED_TX] + buckets_[USED_RX]
@@ -249,10 +245,18 @@ bool SessionCredit::quota_exhausted(
                << "\n Reported total: " << total_reported_usage;
 
   bool is_exhausted = false;
-  is_exhausted = total_usage_since_report >= total_usage_reporting_threshold ||
-    (buckets_[ALLOWED_TX] > 0) && (tx_usage_since_report >= tx_usage_reporting_threshold) ||
-    (buckets_[ALLOWED_RX] > 0) && (rx_usage_since_report >= rx_usage_reporting_threshold);
-  if (is_exhausted == true) {
+  if (total_usage_since_report >= total_usage_reporting_threshold) {
+    is_exhausted = true;
+  } else if (
+    (buckets_[ALLOWED_TX] > 0) &&
+    (tx_usage_since_report >= tx_usage_reporting_threshold)) {
+    is_exhausted = true;
+  } else if (
+    (buckets_[ALLOWED_RX] > 0) &&
+    (rx_usage_since_report >= rx_usage_reporting_threshold)) {
+    is_exhausted = true;
+  }
+  if (is_exhausted) {
     MLOG(MDEBUG) << " YES Quota exhausted ";
   }
   return is_exhausted;
@@ -271,11 +275,11 @@ bool SessionCredit::should_deactivate_service()
     // configured in sessiond.yml
     return false;
   }
-  if (no_more_grant() && quota_exhausted()) {
+  if (is_final_grant_ && is_quota_exhausted()) {
     // If we've exhausted the last grant, we should terminate
     return true;
   }
-  if (quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN)) {
+  if (is_quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN)) {
     // extra quota margin is configured in sessiond.yml
     // We will terminate if we've exceeded (given quota + extra quota margin).
     // If the gateway loses connection to the reporter, we should not allow the
@@ -297,10 +301,10 @@ CreditUpdateType SessionCredit::get_update_type()
     return CREDIT_NO_UPDATE;
   } else if (is_reauth_required()) {
     return CREDIT_REAUTH_REQUIRED;
-  } else if (is_final_ && quota_exhausted()) {
+  } else if (is_final_grant_ && is_quota_exhausted()) {
     // Don't request updates if there's no quota left
     return CREDIT_NO_UPDATE;
-  } else if (quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD, 0)) {
+  } else if (is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD, 0)) {
     return CREDIT_QUOTA_EXHAUSTED;
   } else if (validity_timer_expired()) {
     return CREDIT_VALIDITY_TIMER_EXPIRED;
@@ -317,7 +321,7 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(bool is_termination)
   report = buckets_[REPORTED_RX] - buckets_[REPORTING_RX];
   uint64_t rx = buckets_[USED_RX] > report ? buckets_[USED_RX] - report : 0;
 
-  if (!is_termination && !is_final_) {
+  if (!is_termination && !is_final_grant_) {
     // Apply reporting limits since the user is not getting terminated.
     // The limits are applied on total usage (ie. tx + rx)
     tx = std::min(tx, usage_reporting_limit_);
@@ -360,10 +364,10 @@ ServiceActionType SessionCredit::get_action()
 
 ServiceActionType SessionCredit::get_action_for_deactivating_service()
 {
-  if (no_more_grant() &&
+  if (is_final_grant_ &&
     final_action_info_.final_action == ChargingCredit_FinalAction_REDIRECT) {
     return REDIRECT;
-  } else if (no_more_grant() &&
+  } else if (is_final_grant_ &&
     final_action_info_.final_action == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
     return RESTRICT_ACCESS;
   } else {
@@ -391,17 +395,12 @@ void SessionCredit::reauth()
   reauth_state_ = REAUTH_REQUIRED;
 }
 
-bool SessionCredit::no_more_grant()
-{
-  return is_final_;
-}
-
 RedirectServer SessionCredit::get_redirect_server() {
   return final_action_info_.redirect_server;
 }
 
-void SessionCredit::set_is_final(bool is_final) {
-  is_final_ = is_final;
+void SessionCredit::set_is_final_grant(bool is_final_grant) {
+  is_final_grant_ = is_final_grant;
 }
 
 void SessionCredit::set_reauth(ReAuthState reauth_state) {

@@ -8,64 +8,58 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
 import type {tier} from '@fbcnms/magma-api';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
 
-const styles = {
+const useStyles = makeStyles(() => ({
   select: {
     width: 200,
   },
-};
+}));
 
-type Props = WithStyles<typeof styles> & {
+type Props = {
   gatewayID: string,
-  onChange: (gatewayID: string, newTierID: string) => void,
+  onChange: (gatewayID: string, newTierID: string) => Promise<void>,
   tierID: ?string,
   networkUpgradeTiers: ?(tier[]),
 };
 
-class UpgradeStatusTierID extends React.Component<Props> {
-  handleChange = (newValue: SyntheticInputEvent<EventTarget>) => {
-    this.props.onChange(this.props.gatewayID, newValue.target.value);
-  };
+export default function UpgradeStatusTierID(props: Props) {
+  const classes = useStyles();
+  const {networkUpgradeTiers} = props;
+  const tierID = props.tierID || '';
 
-  render() {
-    const {classes, networkUpgradeTiers} = this.props;
-    const tierID = this.props.tierID || '';
-
-    let options;
-    if (!networkUpgradeTiers) {
-      options = [
-        <MenuItem key={1} value="default" disabled>
-          <em>Default</em>
-        </MenuItem>,
-      ];
-    } else {
-      options = networkUpgradeTiers.map((data, i) => (
-        <MenuItem key={i + 1} value={data.id}>
-          {data.name}
-        </MenuItem>
-      ));
-    }
-
-    return (
-      <Select
-        value={tierID}
-        onChange={this.handleChange}
-        className={classes.select}>
-        <MenuItem key={0} value="" disabled>
-          <em>Not Specified</em>
-        </MenuItem>
-        {options}
-      </Select>
-    );
+  let options;
+  if (!networkUpgradeTiers) {
+    options = [
+      <MenuItem key={1} value="default" disabled>
+        <em>Default</em>
+      </MenuItem>,
+    ];
+  } else {
+    options = networkUpgradeTiers.map((data, i) => (
+      <MenuItem key={i + 1} value={data.id}>
+        {data.name}
+      </MenuItem>
+    ));
   }
-}
 
-export default withStyles(styles)(UpgradeStatusTierID);
+  return (
+    <Select
+      value={tierID}
+      onChange={({target}) => {
+        props.onChange(props.gatewayID, target.value);
+      }}
+      className={classes.select}>
+      <MenuItem key={0} value="" disabled>
+        <em>Not Specified</em>
+      </MenuItem>
+      {options}
+    </Select>
+  );
+}

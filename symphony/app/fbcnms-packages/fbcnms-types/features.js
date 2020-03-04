@@ -34,4 +34,5 @@ export type FeatureID =
   | 'logged_out_alert'
   | 'deprecated_imports'
   | 'external_id'
-  | 'checklistcategories';
+  | 'checklistcategories'
+  | 'user_management';

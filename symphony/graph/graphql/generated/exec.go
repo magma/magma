@@ -5731,7 +5731,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
 #    %> yarn relay
 #  Pyinventory API:
 #    %> cd ~/fbsource/fbcode/fbc/symphony/cli
-#    %> sudo python3 setup.py develop
+#    %> sudo python3 setup_pyinventory.py develop
 #    %> ./compile_graphql.sh
 
 type Viewer
