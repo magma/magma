@@ -100,7 +100,7 @@ function TimeEditor(props: {
   timeUnit: string,
 }) {
   return (
-    <Grid container spacing={1} alignItems="flex-end">
+    <Grid container spacing={1} alignItems="flex-end" justify="space-between">
       <Grid item xs={6}>
         <TimeNumberEditor
           onChange={props.onChange}
@@ -114,7 +114,7 @@ function TimeEditor(props: {
           timeUnits={timeUnits}
         />
       </Grid>
-      <Grid item xs={1}>
+      <Grid item>
         <Tooltip
           title={
             'Enter the amount of time the alert expression needs to be ' +
@@ -288,7 +288,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
           onToggleChange={val => setAdvancedEditorMode(val)}
         />
       ) : (
-        <Grid item xs={4}>
+        <Grid item>
           <AdvancedExpressionEditor
             expression={formState.expression}
             onChange={handleInputChange}
@@ -319,10 +319,10 @@ function fromAlertConfig(rule: ?AlertConfig): FormState {
     return {
       ruleName: '',
       expression: '',
-      severity: '',
+      severity: SEVERITY.WARNING.name,
       description: '',
       timeNumber: 0,
-      timeUnit: '',
+      timeUnit: 's',
       labels: {},
     };
   }
