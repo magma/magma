@@ -18,7 +18,9 @@ import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import type {
+  // $FlowFixMe (T62907961) Relay flow types
   CheckListCategoryTable_list,
+  // $FlowFixMe (T62907961) Relay flow types
   ChecklistViewer_checkListItems,
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';

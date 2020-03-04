@@ -376,7 +376,9 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
       },
     };
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const rootQuery = store.getRoot();
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addLocationType');
       if (!newNode) {
         return;
@@ -386,11 +388,14 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
         'Catalog_locationTypes',
       );
       const edge = ConnectionHandler.createEdge(
+        // $FlowFixMe (T62907961) Relay flow types
         store,
+        // $FlowFixMe (T62907961) Relay flow types
         types,
         newNode,
         'LocationTypesEdge',
       );
+      // $FlowFixMe - Surfaced when Relay flow types were added. Help fix.
       ConnectionHandler.insertEdgeBefore(types, edge);
     };
     AddLocationTypeMutation(variables, callbacks, updater);

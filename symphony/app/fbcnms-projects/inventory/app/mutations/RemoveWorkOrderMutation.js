@@ -13,7 +13,9 @@ import {commitMutation, graphql} from 'react-relay';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
   RemoveWorkOrderMutation,
+  // $FlowFixMe (T62907961) Relay flow types
   RemoveWorkOrderMutationMutationResponse,
+  // $FlowFixMe (T62907961) Relay flow types
   RemoveWorkOrderMutationMutationVariables,
 } from './__generated__/RemoveWorkOrderMutation.graphql';
 import type {StoreUpdater} from '../common/RelayEnvironment';

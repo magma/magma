@@ -208,6 +208,7 @@ class EquipmentTable extends React.Component<Props> {
 
           RemoveEquipmentMutation(variables, callbacks, store => {
             if (!this.props.selectedWorkOrderId) {
+              // $FlowFixMe (T62907961) Relay flow types
               store.delete(equipment.id);
             }
           });

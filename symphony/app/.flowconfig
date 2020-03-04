@@ -59,6 +59,10 @@ suppress_comment= \\(.\\|\n\\)*\\$FlowIssue
 node_modules/mapbox-gl/flow-typed
 node_modules/mapbox-gl/dist/mapbox-gl.js.flow
 
+[declarations]
+<PROJECT_ROOT>/fbcnms-projects/inventory/node_modules/relay-runtime/.*
+<PROJECT_ROOT>/fbcnms-packages/fbcnms-ui/node_modules/relay-runtime/.*
+
 [lints]
 all=warn
 

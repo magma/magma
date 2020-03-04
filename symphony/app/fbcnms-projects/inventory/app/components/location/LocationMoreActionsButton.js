@@ -80,27 +80,36 @@ class LocationMoreActionsButton extends React.Component<Props> {
         const updater = store => {
           const {parentLocation} = location;
           if (!!parentLocation) {
+            // $FlowFixMe (T62907961) Relay flow types
             const parentProxy = store.get(parentLocation.id);
+            // $FlowFixMe (T62907961) Relay flow types
             const currNodes = parentProxy.getLinkedRecords('children') || [];
             const withoutCurrentLocation = currNodes.filter(
+              // $FlowFixMe (T62907961) Relay flow types
               child => child.getDataID() !== location.id,
             );
+            // $FlowFixMe (T62907961) Relay flow types
             parentProxy.setLinkedRecords(withoutCurrentLocation, 'children');
+            // $FlowFixMe (T62907961) Relay flow types
             parentProxy.setValue(
+              // $FlowFixMe (T62907961) Relay flow types
               parentProxy.getValue('numChildren') - 1,
               'numChildren',
             );
           } else {
+            // $FlowFixMe (T62907961) Relay flow types
             const rootQuery = store.getRoot();
             const locations = ConnectionHandler.getConnection(
               rootQuery,
               'LocationsTree_locations',
               {onlyTopLevel: true},
             );
+            // $FlowFixMe (T62907961) Relay flow types
             ConnectionHandler.deleteNode(locations, location.id);
           }
 
           this.props.onLocationRemoved(location);
+          // $FlowFixMe (T62907961) Relay flow types
           store.delete(location.id);
         };
 

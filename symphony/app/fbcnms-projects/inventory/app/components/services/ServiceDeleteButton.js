@@ -69,6 +69,7 @@ class ServiceDeleteButton extends React.Component<Props> {
 
         const updater = store => {
           this.props.onServiceRemoved();
+          // $FlowFixMe (T62907961) Relay flow types
           store.delete(serviceId);
         };
 

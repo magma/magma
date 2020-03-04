@@ -126,9 +126,12 @@ class PortsConnectedStateDialog extends React.Component<Props> {
     };
     const updater = store => {
       const {port} = this.props;
+      // $FlowFixMe (T62907961) Relay flow types
       const newLink = store.getRootField('addLink');
       if (port.id.includes('@tmp')) {
+        // $FlowFixMe (T62907961) Relay flow types
         const equipmentProxy = store.get(this.props.equipment.id);
+        // $FlowFixMe (T62907961) Relay flow types
         const eqPorts = equipmentProxy.getLinkedRecords('ports') ?? [];
         const linkPorts = newLink.getLinkedRecords('ports');
         linkPorts.map(lp => lp.setLinkedRecord(newLink, 'link'));
@@ -136,6 +139,7 @@ class PortsConnectedStateDialog extends React.Component<Props> {
           lp =>
             lp.getLinkedRecord('definition').getDataID() === port.definition.id,
         );
+        // $FlowFixMe (T62907961) Relay flow types
         equipmentProxy.setLinkedRecords([...eqPorts, newPort], 'ports');
       } else {
         const linkPorts = newLink.getLinkedRecords('ports');
@@ -160,12 +164,17 @@ class PortsConnectedStateDialog extends React.Component<Props> {
       },
     };
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const sourcePortProxy = store.get(this.props.port.id);
       if (this.props.workOrderId) {
+        // $FlowFixMe (T62907961) Relay flow types
         const deletedLink = store.getRootField('removeLink');
+        // $FlowFixMe (T62907961) Relay flow types
         sourcePortProxy.setLinkedRecord(deletedLink, 'link');
       } else {
+        // $FlowFixMe (T62907961) Relay flow types
         sourcePortProxy.setValue(null, 'connectedPort');
+        // $FlowFixMe (T62907961) Relay flow types
         sourcePortProxy.setValue(null, 'link');
       }
     };

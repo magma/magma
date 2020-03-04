@@ -17,6 +17,7 @@ import {createFragmentContainer, graphql} from 'react-relay';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
 
 type Props = {
+  // $FlowFixMe (T62907961) Relay flow types
   endpoints: ServiceEndpointsView_endpoints,
   onDeleteEndpoint: (endpoint: ServiceEndpoint) => void,
 };
