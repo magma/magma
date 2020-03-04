@@ -154,43 +154,45 @@ void SessionCredit::receive_credit(
   bool is_final_grant,
   FinalActionInfo final_action_info)
 {
-  MLOG(MDEBUG) << "receive_credit:"
-               << "total allowed octets: " << buckets_[ALLOWED_TOTAL]
-               << "total_tx allowed: " << buckets_[ALLOWED_TX]
-               << "total_rx allowed: " << buckets_[ALLOWED_RX]
-               << "adding total: " << total_volume
-               << "adding tx: " << tx_volume
-               << "adding rx: " << rx_volume;
+  MLOG(MDEBUG) << "Received the following credit"
+               << " total_volume=" << total_volume
+               << " tx_volume=" << tx_volume
+               << " rx_volume=" << rx_volume
+               << " w/ validity time=" << validity_time;
+  if (is_final_grant) {
+    MLOG(MDEBUG) << "This credit received is the final grant, with final "
+                 << "action=" << final_action_info_.final_action;
+  }
+
   buckets_[ALLOWED_TOTAL] += total_volume;
   buckets_[ALLOWED_TX] += tx_volume;
   buckets_[ALLOWED_RX] += rx_volume;
-  MLOG(MDEBUG) << "receive_credit result:"
-               << "total allowed octets " << buckets_[ALLOWED_TOTAL]
-               << "total_tx allowed " << buckets_[ALLOWED_TX]
-               << "total_rx allowed " << buckets_[ALLOWED_RX];
+  MLOG(MDEBUG) << "Total amount received since start of session is "
+               << " total=" << buckets_[ALLOWED_TOTAL]
+               << " tx=" << buckets_[ALLOWED_TX]
+               << " rx=" << buckets_[ALLOWED_RX];
   // transfer reporting usage to reported
-  MLOG(MDEBUG) << "receive_credit:"
-               << "reported rx " << buckets_[REPORTED_RX] << "reported_tx "
-               << buckets_[REPORTED_TX] << "reporting_rx "
-               << buckets_[REPORTING_RX] << "reporting_tx "
-               << buckets_[REPORTING_TX];
   buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
   buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
+  MLOG(MDEBUG) << "Total amount reported since start of session is "
+               << " total=" << buckets_[REPORTED_RX] + buckets_[REPORTED_TX]
+               << " rx=" << buckets_[REPORTED_RX]
+               << " tx=" << buckets_[REPORTED_TX];
+
+  // Set the usage_reporting_limit so that we never report more than grant
+  // we've received.
   auto reported_sum = buckets_[REPORTED_RX] + buckets_[REPORTED_TX];
-  usage_reporting_limit_ = buckets_[ALLOWED_TOTAL] > reported_sum ?
-    buckets_[ALLOWED_TOTAL] - reported_sum : 0;
-  MLOG(MDEBUG) << "receive_credit:"
-               << "reported rx " << buckets_[REPORTED_RX] << "reported_tx "
-               << buckets_[REPORTED_TX] << "reporting_rx "
-               << buckets_[REPORTING_RX] << "reporting_tx "
-               << buckets_[REPORTING_TX];
+  if (buckets_[ALLOWED_TOTAL] > reported_sum) {
+    usage_reporting_limit_ = buckets_[ALLOWED_TOTAL] - reported_sum;
+  } else if (usage_reporting_limit_ != 0) {
+    MLOG(MINFO) << "We have reported data usage for all credit received, the "
+                 << "upper limit for reporting is now 0.";
+    usage_reporting_limit_ = 0;
+  }
+
   set_expiry_time(validity_time);
   reset_reporting_credit();
-  MLOG(MDEBUG) << "receive_credit:"
-               << "reported rx " << buckets_[REPORTED_RX] << "reported_tx "
-               << buckets_[REPORTED_TX] << "reporting_rx "
-               << buckets_[REPORTING_RX] << "reporting_tx "
-               << buckets_[REPORTING_TX];
+
   is_final_grant_ = is_final_grant;
   final_action_info_ = final_action_info;
 
@@ -239,7 +241,7 @@ bool SessionCredit::is_quota_exhausted(
                            (buckets_[ALLOWED_RX] - buckets_[REPORTED_RX]) *
                              usage_reporting_threshold);
 
-  MLOG(MDEBUG) << " Is Quota exhausted?"
+   MLOG(MDEBUG) << " Is Quota exhausted?"
                << "\n Total used: " << buckets_[USED_TX] + buckets_[USED_RX]
                << "\n Allowed total: " << buckets_[ALLOWED_TOTAL]
                << "\n Reported total: " << total_reported_usage;
@@ -280,6 +282,9 @@ bool SessionCredit::should_deactivate_service()
     return true;
   }
   if (is_quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN)) {
+    MLOG(MINFO) << "Terminating service because we have exhausted the "
+                << "given quota AND the extra quota margin="
+                << SessionCredit::EXTRA_QUOTA_MARGIN;
     // extra quota margin is configured in sessiond.yml
     // We will terminate if we've exceeded (given quota + extra quota margin).
     // If the gateway loses connection to the reporter, we should not allow the
@@ -321,29 +326,31 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(bool is_termination)
   report = buckets_[REPORTED_RX] - buckets_[REPORTING_RX];
   uint64_t rx = buckets_[USED_RX] > report ? buckets_[USED_RX] - report : 0;
 
+  MLOG(MDEBUG) << "Data usage since last report is tx=" << tx
+               << " rx=" << rx;
   if (!is_termination && !is_final_grant_) {
     // Apply reporting limits since the user is not getting terminated.
     // The limits are applied on total usage (ie. tx + rx)
     tx = std::min(tx, usage_reporting_limit_);
     rx = std::min(rx, usage_reporting_limit_ - tx);
+    MLOG(MDEBUG) << "Since this is not the last report, we will only report "
+                 << "min(usage, usage_reporting_limit="
+                 << usage_reporting_limit_ << ")";
   }
 
   if (get_update_type() == CREDIT_REAUTH_REQUIRED) {
     reauth_state_ = REAUTH_PROCESSING;
   }
-  MLOG(MDEBUG) << "get Usage for reporting:"
-               << " Used TX:  " << tx << " Used Rx: " << rx
-               << "Reporting Tx: " << buckets_[REPORTING_TX]
-               << "Reporting Tx: " << buckets_[REPORTING_RX];
 
   buckets_[REPORTING_TX] += tx;
   buckets_[REPORTING_RX] += rx;
   reporting_ = true;
 
-  MLOG(MDEBUG) << "get Usage for reporting:"
-               << " Used TX:  " << tx << " Used Rx: " << rx
-               << "Reporting Tx: " << buckets_[REPORTING_TX]
-               << "Reporting Tx: " << buckets_[REPORTING_RX];
+  MLOG(MDEBUG) << "Amount reporting for this report:"
+               << " tx=" << tx << " rx=" << rx;
+  MLOG(MDEBUG) << "The total amount currently being reported:"
+               << " tx=" << buckets_[REPORTING_TX]
+               << " rx=" << buckets_[REPORTING_RX];
 
   return SessionCredit::Usage {.bytes_tx = tx, .bytes_rx = rx};
 }
