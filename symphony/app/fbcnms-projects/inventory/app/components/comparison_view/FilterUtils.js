@@ -180,11 +180,11 @@ export function getPossibleProperties(
     data.possibleProperties
       .filter(prop => prop.type !== 'gps_location' && prop.type !== 'range')
       .map((prop, index) => ({
-        id: prop.name + prop.type,
+        id: '@tmp',
         type: prop.type,
         name: prop.name,
         index: index,
-        stringValue: prop.stringValue,
+        stringValue: '',
       })),
     prop => prop.name + prop.type,
   );
@@ -192,5 +192,6 @@ export function getPossibleProperties(
   for (const k in propertiesGroup) {
     supportedProperties.push(propertiesGroup[k][0]);
   }
+
   return supportedProperties;
 }
