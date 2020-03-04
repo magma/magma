@@ -5,14 +5,20 @@ GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
 
 # FEATURES: What kind of flavours do you want your MME or AGW have in it
+# MME is MME as described in 3GPP specs, it has at least S1AP, S11, S6a 
+# interfaces.
+# AGW means Acces GateWay, is the result of the aggregation of MME, SGW and PGW.
 # First in FEATURES, select what to you want to build : mme or agw with libgtpnl
 # or agw with OVS (OpenFlow): FEATURE=mme or agw_gtpnl or agw_of
 # Then you can have other features that can be built for mme or agw : 
 # s6a with fd (freeDiameter)
 
-# Default is agw with OpenFlow, no freeDiameter for s6a 
+# Default is agw with OpenFlow, gRPC over S6a , (no freeDiameter over s6a).
 FEATURES ?= agw_of
+# EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested 
+# together.
 EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
+# AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
 AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
