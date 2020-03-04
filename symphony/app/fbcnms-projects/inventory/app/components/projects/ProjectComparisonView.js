@@ -71,7 +71,6 @@ const ProjectComparisonView = () => {
   }
   const header = {
     title: 'Projects',
-    onViewToggleClicked: setResultsDisplayMode,
     actionButtons: [
       {
         title: 'Add Project',
@@ -85,7 +84,9 @@ const ProjectComparisonView = () => {
   };
   return (
     <ErrorBoundary>
-      <InventoryView header={header}>
+      <InventoryView
+        header={header}
+        onViewToggleClicked={setResultsDisplayMode}>
         <ProjectComparisonViewQueryRenderer
           limit={50}
           filters={[]}
