@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from datetime import date, datetime
 from enum import Enum

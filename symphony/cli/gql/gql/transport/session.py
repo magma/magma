@@ -5,10 +5,14 @@ from __future__ import absolute_import
 import json
 from datetime import datetime, timedelta, tzinfo
 from enum import Enum
-from typing import Optional
+from typing import Any, Dict, Optional, Union
 
 from gql.gql.transport.http import HTTPTransport
+from graphql.language.ast import DocumentNode
 from graphql.language.printer import print_ast
+from requests.sessions import Session
+
+from .transport import ExtendedExecutionResult
 
 
 class MissingEnumException(Exception):
@@ -27,7 +31,9 @@ class simple_utc(tzinfo):
         return timedelta(0)
 
 
-def encode_variable(variable):
+def encode_variable(
+    variable: Union[datetime, Enum, object]
+) -> Union[str, Dict[str, Any]]:
     if isinstance(variable, datetime):
         return datetime.isoformat(variable.replace(tzinfo=simple_utc()))
     elif isinstance(variable, Enum):
@@ -38,47 +44,41 @@ def encode_variable(variable):
         return variable.__dict__
 
 
-class ExtendedExecutionResult:
-    def __init__(self, errors, data, extensions):
-        self.errors = errors
-        self.data = data
-        self.extensions = extensions
-
-
 class RequestsHTTPSessionTransport(HTTPTransport):
-    def __init__(self, session, url, use_json=False, timeout=None, **kwargs):
+    def __init__(
+        self, session: Session, url: str, headers: Optional[Dict[str, str]] = None
+    ) -> None:
         """
         :param session: The session
-        :param auth: Auth tuple or callable to enable Basic/Digest/Custom HTTP Auth
-        :param use_json: Send request body as JSON instead of form-urlencoded
-        :param timeout: Specifies a default timeout for requests (Default: None)
         """
-        super(RequestsHTTPSessionTransport, self).__init__(url, **kwargs)
-        self.session = session
-        self.default_timeout = timeout
-        self.use_json = use_json
+        super(RequestsHTTPSessionTransport, self).__init__(url, headers)
+        self.session: Session = session
 
-    def execute(self, document, variable_values=None, timeout=None, return_json=True):
+    def execute(
+        self, document: DocumentNode, variable_values: Dict[str, Any] = {}  # noqa: B006
+    ) -> ExtendedExecutionResult:
         query_str = print_ast(document)
-        payload = {"query": query_str, "variables": variable_values or {}}
+        payload = {"query": query_str, "variables": variable_values}
 
-        request = self.session.post(
+        response = self.session.post(
             self.url,
             data=json.dumps(payload, default=encode_variable).encode("utf-8"),
             headers=self.headers,
         )
 
-        result = request.json()
+        result = response.json()
 
         extensions = {}
-        if "x-correlation-id" in request.headers:
-            extensions["trace_id"] = request.headers["x-correlation-id"]
+        if "x-correlation-id" in response.headers:
+            extensions["trace_id"] = response.headers["x-correlation-id"]
 
         assert (
             "errors" in result or "data" in result
         ), 'Received non-compatible response "{}"'.format(result)
 
-        data = result.get("data") if return_json else request.text
         return ExtendedExecutionResult(
-            errors=result.get("errors"), data=data, extensions=extensions
+            response=response.text,
+            errors=result.get("errors"),
+            data=result.get("data"),
+            extensions=extensions,
         )

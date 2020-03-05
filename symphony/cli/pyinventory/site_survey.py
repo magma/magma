@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 import math
 from datetime import datetime

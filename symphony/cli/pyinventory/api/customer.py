@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from typing import List, Optional
 

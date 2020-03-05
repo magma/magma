@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 from dataclasses import field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, tzinfo
+from typing import Optional, Tuple
 
 from marshmallow import fields as marshmallow_fields
 
 
 # Helpers for parsing the result of isoformat()
-def _parse_isoformat_date(dtstr):
+def _parse_isoformat_date(dtstr: str) -> Tuple[int, int, int]:
     # It is assumed that this function will only be called with a
     # string of length exactly 10, and (though this is not used) ASCII-only
     year = int(dtstr[0:4])
@@ -20,10 +21,10 @@ def _parse_isoformat_date(dtstr):
 
     day = int(dtstr[8:10])
 
-    return [year, month, day]
+    return (year, month, day)
 
 
-def _parse_hh_mm_ss_ff(tstr):
+def _parse_hh_mm_ss_ff(tstr: str) -> Tuple[int, int, int, int]:
     # Parses things of the form HH[:MM[:SS[.fff[fff]]]]
     len_str = len(tstr)
 
@@ -60,10 +61,10 @@ def _parse_hh_mm_ss_ff(tstr):
             if len_remainder == 3:
                 time_comps[3] *= 1000
 
-    return time_comps
+    return (time_comps[0], time_comps[1], time_comps[2], time_comps[3])
 
 
-def _parse_isoformat_time(tstr):
+def _parse_isoformat_time(tstr: str) -> Tuple[int, int, int, int, Optional[tzinfo]]:
     # Format supported is HH[:MM[:SS[.fff[fff]]]][+HH:MM[:SS[.ffffff]]]
     len_str = len(tstr)
     if len_str < 2:
@@ -102,12 +103,11 @@ def _parse_isoformat_time(tstr):
 
             tzi = timezone(tzsign * td)
 
-    time_comps.append(tzi)
-
-    return time_comps
+    return (*time_comps, tzi)
 
 
-def fromisoformat(date_string):
+# TODO(T63529698): Remove this function and use builtin fromisoformat
+def fromisoformat(date_string: str) -> datetime:
     """Construct a datetime from the output of datetime.isoformat()."""
     if not isinstance(date_string, str):
         raise TypeError("fromisoformat: argument must be str")
@@ -127,11 +127,12 @@ def fromisoformat(date_string):
         except ValueError:
             raise ValueError(f"Invalid isoformat string: {date_string!r}")
     else:
-        time_components = [0, 0, 0, 0, None]
+        time_components = (0, 0, 0, 0, None)
 
     return datetime(*(date_components + time_components))
 
 
+# pyre-ignore
 DATETIME_FIELD = field(
     metadata={
         "dataclasses_json": {

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from distutils.version import LooseVersion
 from typing import Any, Dict, Optional, Tuple
