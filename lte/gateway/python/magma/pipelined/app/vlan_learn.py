@@ -39,7 +39,6 @@ class VlanLearnController(MagmaController):
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 2)
         self.vlan_header_scratch = scratch_tables[0]
         self.vlan_id_scratch = scratch_tables[1]
-        self._service_manager.allocate_scratch_tables(self.APP_NAME, 2)
         self._datapath = None
 
     def initialize_on_connect(self, datapath):

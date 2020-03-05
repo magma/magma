@@ -82,6 +82,7 @@ class WorkOrderTypesList extends React.Component<Props, State> {
   };
 
   componentDidMount() {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, workOrderTypesQuery).then(response => {
       this.setState({
         workOrderTypes: response.workOrderTypes.edges.map(x => x.node),

@@ -86,6 +86,7 @@ const styles = (theme: Theme) => ({
 type Props = WithAlert &
   WithStyles<typeof styles> &
   ContextRouter & {
+    // $FlowFixMe (T62907961) Relay flow types
     locations: PowerSearchLocationsResultsTable_locations,
   };
 

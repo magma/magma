@@ -10,6 +10,7 @@
 
 import type {CheckListItemType} from '../../configure/__generated__/AddEditWorkOrderTypeCard_editingWorkOrderType.graphql.js';
 import type {CheckListTableDefinition_list} from './__generated__/CheckListTableDefinition_list.graphql';
+// $FlowFixMe (T62907961) Relay flow types
 import type {ChecklistItemInput} from '../../../mutations/__generated__/AddWorkOrderMutation.graphql';
 
 import Button from '@fbcnms/ui/components/design-system/Button';

@@ -125,6 +125,7 @@ function RuleRow(props: {rule: ActionsListCard_actionsRule$key}) {
           enqueueSnackbar('Rule deleted successfully', {variant: 'success'});
         },
       },
+      // $FlowFixMe (T62907961) Relay flow types
       store => store.delete(rule.id),
     );
   };

@@ -358,20 +358,22 @@ def _parse_flow(flow):
     return flow
 
 
-def _get_current_bridge_snapshot(bridge_name, service_manager) -> List[str]:
+def _get_current_bridge_snapshot(bridge_name, service_manager,
+                                 include_stats=True) -> List[str]:
     table_assignments = service_manager.get_all_table_assignments()
     # Currently, the unit test setup library does not set up the ryu api app.
     # For now, snapshots are created from the flow dump output using ovs and
     # parsed using regex. Once the ryu api works for unit tests, we can
     # directly parse the api response and avoid the regex.
     flows = BridgeTools.get_annotated_flows_for_bridge(bridge_name,
-                                                       table_assignments)
+        table_assignments, include_stats=include_stats)
     return [_parse_flow(flow) for flow in flows]
 
 
 def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
                                  service_manager: ServiceManager,
-                                 snapshot_name: Optional[str] = None):
+                                 snapshot_name: Optional[str] = None,
+                                 include_stats: bool = True):
     """
     Verifies the current bridge snapshot matches the snapshot saved in file for
     the given test case. Fails the test case if the snapshots differ.
@@ -394,7 +396,8 @@ def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
         SNAPSHOT_DIR,
         combined_name)
     current_snapshot = _get_current_bridge_snapshot(bridge_name,
-                                                    service_manager)
+                                                    service_manager,
+                                                    include_stats=include_stats)
 
     def fail(err_msg: str):
         msg = 'Snapshot mismatch with error:\n' \

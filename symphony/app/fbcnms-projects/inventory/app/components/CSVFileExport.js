@@ -53,6 +53,21 @@ const CSVFileExport = (props: Props) => {
   const {classes, title, exportPath} = props;
   const [isDownloading, setIsDownloading] = useState(false);
 
+  const filters = props.filters?.map(f => {
+    if (f.name == 'property') {
+      const property = f.propertyValue;
+      if (
+        (property?.id && property.id.includes('@tmp')) ||
+        property?.id == '0'
+      ) {
+        const {id: _, ...newProp} = property;
+        return newProp;
+      }
+      f.propertyValue = property;
+    }
+    return f;
+  });
+
   const onClick = async () => {
     const path = PATH_PREFIX + exportPath;
     const fileName = exportPath.replace('/', '').replace(/\//g, '_') + '.csv';
@@ -61,7 +76,7 @@ const CSVFileExport = (props: Props) => {
       await axios
         .get(path, {
           params: {
-            filters: JSON.stringify(props.filters),
+            filters: JSON.stringify(filters),
           },
           responseType: 'blob',
         })

@@ -107,6 +107,7 @@ func (st *memSessionTable) AddSession(
 	imsi := pc.GetImsi()
 	s := &memSession{Context: pc, imsi: imsi}
 	st.rwl.Lock()
+	// Handle the case of old session with the same radius session ID
 	if oldSession, ok := st.sm[sid]; ok {
 		if len(overwrite) > 0 && overwrite[0] {
 			if oldSession != nil {
@@ -127,7 +128,16 @@ func (st *memSessionTable) AddSession(
 			return oldSession, fmt.Errorf("Session with SID: %s already exist", sid)
 		}
 	}
-
+	// Handle the case of old session with the same IMSI and diferent radius session ID (roaming?)
+	if oldSessionId, ok := st.sids[imsi]; ok && oldSessionId != sid {
+		if oldImsiSession, ok := st.sm[oldSessionId]; ok {
+			if oldImsiSession != nil {
+				oldImsiSession.StopTimeout()
+			}
+			delete(st.sids, oldSessionId)
+			log.Printf("old session with SID: %s found for IMSI: %s, will remove", oldSessionId, imsi)
+		}
+	}
 	st.sm[sid] = s
 	st.sids[imsi] = sid
 	apn := s.GetApn()

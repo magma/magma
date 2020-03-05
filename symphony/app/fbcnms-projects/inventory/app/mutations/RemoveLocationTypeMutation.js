@@ -13,6 +13,7 @@ import {commitMutation, graphql} from 'react-relay';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
   RemoveLocationTypeMutation,
+  // $FlowFixMe (T62907961) Relay flow types
   RemoveLocationTypeMutationMutationResponse,
   RemoveLocationTypeMutationVariables,
 } from './__generated__/RemoveLocationTypeMutation.graphql';

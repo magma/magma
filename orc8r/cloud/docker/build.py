@@ -13,13 +13,13 @@
 
 import argparse
 import glob
+import os
+import shutil
 import subprocess
 from collections import namedtuple
 from subprocess import PIPE
 from typing import Iterable, List
 
-import os
-import shutil
 import yaml
 
 BUILD_CONTEXT = '/tmp/magma_orc8r_build'
@@ -69,8 +69,10 @@ def main() -> None:
         )
     elif args.tests:
         # Run unit tests
+        _run_docker(['up', '-d', 'postgres_test'])
         _run_docker(['build', 'test'])
         _run_docker(['run', '--rm', 'test', 'make test'])
+        _run_docker(['down'])
     else:
         _run_docker(files_args + _get_docker_build_args(args))
 

@@ -70,6 +70,7 @@ const useStyles = makeStyles(() => ({
 
 type Props = {
   className?: string,
+  // $FlowFixMe (T62907961) Relay flow types
   projectType: ProjectTypeCard_projectType,
   onEditClicked: () => void,
 };

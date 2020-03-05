@@ -67,6 +67,7 @@ const styles = () => ({
 type Props = WithAlert &
   WithStyles<typeof styles> &
   ContextRouter & {
+    // $FlowFixMe (T62907961) Relay flow types
     ports: PowerSearchPortsResultsTable_ports,
   };
 
