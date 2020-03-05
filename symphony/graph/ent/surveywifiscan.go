@@ -219,19 +219,19 @@ func (swfs *SurveyWiFiScan) assignValues(values ...interface{}) error {
 
 // QuerySurveyQuestion queries the survey_question edge of the SurveyWiFiScan.
 func (swfs *SurveyWiFiScan) QuerySurveyQuestion() *SurveyQuestionQuery {
-	return (&SurveyWiFiScanClient{swfs.config}).QuerySurveyQuestion(swfs)
+	return (&SurveyWiFiScanClient{config: swfs.config}).QuerySurveyQuestion(swfs)
 }
 
 // QueryLocation queries the location edge of the SurveyWiFiScan.
 func (swfs *SurveyWiFiScan) QueryLocation() *LocationQuery {
-	return (&SurveyWiFiScanClient{swfs.config}).QueryLocation(swfs)
+	return (&SurveyWiFiScanClient{config: swfs.config}).QueryLocation(swfs)
 }
 
 // Update returns a builder for updating this SurveyWiFiScan.
 // Note that, you need to call SurveyWiFiScan.Unwrap() before calling this method, if this SurveyWiFiScan
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (swfs *SurveyWiFiScan) Update() *SurveyWiFiScanUpdateOne {
-	return (&SurveyWiFiScanClient{swfs.config}).UpdateOne(swfs)
+	return (&SurveyWiFiScanClient{config: swfs.config}).UpdateOne(swfs)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

@@ -394,49 +394,49 @@ func (pt *PropertyType) assignValues(values ...interface{}) error {
 
 // QueryProperties queries the properties edge of the PropertyType.
 func (pt *PropertyType) QueryProperties() *PropertyQuery {
-	return (&PropertyTypeClient{pt.config}).QueryProperties(pt)
+	return (&PropertyTypeClient{config: pt.config}).QueryProperties(pt)
 }
 
 // QueryLocationType queries the location_type edge of the PropertyType.
 func (pt *PropertyType) QueryLocationType() *LocationTypeQuery {
-	return (&PropertyTypeClient{pt.config}).QueryLocationType(pt)
+	return (&PropertyTypeClient{config: pt.config}).QueryLocationType(pt)
 }
 
 // QueryEquipmentPortType queries the equipment_port_type edge of the PropertyType.
 func (pt *PropertyType) QueryEquipmentPortType() *EquipmentPortTypeQuery {
-	return (&PropertyTypeClient{pt.config}).QueryEquipmentPortType(pt)
+	return (&PropertyTypeClient{config: pt.config}).QueryEquipmentPortType(pt)
 }
 
 // QueryLinkEquipmentPortType queries the link_equipment_port_type edge of the PropertyType.
 func (pt *PropertyType) QueryLinkEquipmentPortType() *EquipmentPortTypeQuery {
-	return (&PropertyTypeClient{pt.config}).QueryLinkEquipmentPortType(pt)
+	return (&PropertyTypeClient{config: pt.config}).QueryLinkEquipmentPortType(pt)
 }
 
 // QueryEquipmentType queries the equipment_type edge of the PropertyType.
 func (pt *PropertyType) QueryEquipmentType() *EquipmentTypeQuery {
-	return (&PropertyTypeClient{pt.config}).QueryEquipmentType(pt)
+	return (&PropertyTypeClient{config: pt.config}).QueryEquipmentType(pt)
 }
 
 // QueryServiceType queries the service_type edge of the PropertyType.
 func (pt *PropertyType) QueryServiceType() *ServiceTypeQuery {
-	return (&PropertyTypeClient{pt.config}).QueryServiceType(pt)
+	return (&PropertyTypeClient{config: pt.config}).QueryServiceType(pt)
 }
 
 // QueryWorkOrderType queries the work_order_type edge of the PropertyType.
 func (pt *PropertyType) QueryWorkOrderType() *WorkOrderTypeQuery {
-	return (&PropertyTypeClient{pt.config}).QueryWorkOrderType(pt)
+	return (&PropertyTypeClient{config: pt.config}).QueryWorkOrderType(pt)
 }
 
 // QueryProjectType queries the project_type edge of the PropertyType.
 func (pt *PropertyType) QueryProjectType() *ProjectTypeQuery {
-	return (&PropertyTypeClient{pt.config}).QueryProjectType(pt)
+	return (&PropertyTypeClient{config: pt.config}).QueryProjectType(pt)
 }
 
 // Update returns a builder for updating this PropertyType.
 // Note that, you need to call PropertyType.Unwrap() before calling this method, if this PropertyType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pt *PropertyType) Update() *PropertyTypeUpdateOne {
-	return (&PropertyTypeClient{pt.config}).UpdateOne(pt)
+	return (&PropertyTypeClient{config: pt.config}).UpdateOne(pt)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

@@ -174,24 +174,24 @@ func (epd *EquipmentPortDefinition) assignValues(values ...interface{}) error {
 
 // QueryEquipmentPortType queries the equipment_port_type edge of the EquipmentPortDefinition.
 func (epd *EquipmentPortDefinition) QueryEquipmentPortType() *EquipmentPortTypeQuery {
-	return (&EquipmentPortDefinitionClient{epd.config}).QueryEquipmentPortType(epd)
+	return (&EquipmentPortDefinitionClient{config: epd.config}).QueryEquipmentPortType(epd)
 }
 
 // QueryPorts queries the ports edge of the EquipmentPortDefinition.
 func (epd *EquipmentPortDefinition) QueryPorts() *EquipmentPortQuery {
-	return (&EquipmentPortDefinitionClient{epd.config}).QueryPorts(epd)
+	return (&EquipmentPortDefinitionClient{config: epd.config}).QueryPorts(epd)
 }
 
 // QueryEquipmentType queries the equipment_type edge of the EquipmentPortDefinition.
 func (epd *EquipmentPortDefinition) QueryEquipmentType() *EquipmentTypeQuery {
-	return (&EquipmentPortDefinitionClient{epd.config}).QueryEquipmentType(epd)
+	return (&EquipmentPortDefinitionClient{config: epd.config}).QueryEquipmentType(epd)
 }
 
 // Update returns a builder for updating this EquipmentPortDefinition.
 // Note that, you need to call EquipmentPortDefinition.Unwrap() before calling this method, if this EquipmentPortDefinition
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (epd *EquipmentPortDefinition) Update() *EquipmentPortDefinitionUpdateOne {
-	return (&EquipmentPortDefinitionClient{epd.config}).UpdateOne(epd)
+	return (&EquipmentPortDefinitionClient{config: epd.config}).UpdateOne(epd)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

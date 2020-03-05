@@ -100,14 +100,14 @@ func (c *Customer) assignValues(values ...interface{}) error {
 
 // QueryServices queries the services edge of the Customer.
 func (c *Customer) QueryServices() *ServiceQuery {
-	return (&CustomerClient{c.config}).QueryServices(c)
+	return (&CustomerClient{config: c.config}).QueryServices(c)
 }
 
 // Update returns a builder for updating this Customer.
 // Note that, you need to call Customer.Unwrap() before calling this method, if this Customer
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (c *Customer) Update() *CustomerUpdateOne {
-	return (&CustomerClient{c.config}).UpdateOne(c)
+	return (&CustomerClient{config: c.config}).UpdateOne(c)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

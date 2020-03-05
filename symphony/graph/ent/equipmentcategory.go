@@ -91,14 +91,14 @@ func (ec *EquipmentCategory) assignValues(values ...interface{}) error {
 
 // QueryTypes queries the types edge of the EquipmentCategory.
 func (ec *EquipmentCategory) QueryTypes() *EquipmentTypeQuery {
-	return (&EquipmentCategoryClient{ec.config}).QueryTypes(ec)
+	return (&EquipmentCategoryClient{config: ec.config}).QueryTypes(ec)
 }
 
 // Update returns a builder for updating this EquipmentCategory.
 // Note that, you need to call EquipmentCategory.Unwrap() before calling this method, if this EquipmentCategory
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ec *EquipmentCategory) Update() *EquipmentCategoryUpdateOne {
-	return (&EquipmentCategoryClient{ec.config}).UpdateOne(ec)
+	return (&EquipmentCategoryClient{config: ec.config}).UpdateOne(ec)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

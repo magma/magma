@@ -116,14 +116,14 @@ func (stc *SurveyTemplateCategory) assignValues(values ...interface{}) error {
 
 // QuerySurveyTemplateQuestions queries the survey_template_questions edge of the SurveyTemplateCategory.
 func (stc *SurveyTemplateCategory) QuerySurveyTemplateQuestions() *SurveyTemplateQuestionQuery {
-	return (&SurveyTemplateCategoryClient{stc.config}).QuerySurveyTemplateQuestions(stc)
+	return (&SurveyTemplateCategoryClient{config: stc.config}).QuerySurveyTemplateQuestions(stc)
 }
 
 // Update returns a builder for updating this SurveyTemplateCategory.
 // Note that, you need to call SurveyTemplateCategory.Unwrap() before calling this method, if this SurveyTemplateCategory
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (stc *SurveyTemplateCategory) Update() *SurveyTemplateCategoryUpdateOne {
-	return (&SurveyTemplateCategoryClient{stc.config}).UpdateOne(stc)
+	return (&SurveyTemplateCategoryClient{config: stc.config}).UpdateOne(stc)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

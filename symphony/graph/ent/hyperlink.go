@@ -121,7 +121,7 @@ func (h *Hyperlink) assignValues(values ...interface{}) error {
 // Note that, you need to call Hyperlink.Unwrap() before calling this method, if this Hyperlink
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (h *Hyperlink) Update() *HyperlinkUpdateOne {
-	return (&HyperlinkClient{h.config}).UpdateOne(h)
+	return (&HyperlinkClient{config: h.config}).UpdateOne(h)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

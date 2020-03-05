@@ -417,64 +417,64 @@ func (pr *Property) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the Property.
 func (pr *Property) QueryType() *PropertyTypeQuery {
-	return (&PropertyClient{pr.config}).QueryType(pr)
+	return (&PropertyClient{config: pr.config}).QueryType(pr)
 }
 
 // QueryLocation queries the location edge of the Property.
 func (pr *Property) QueryLocation() *LocationQuery {
-	return (&PropertyClient{pr.config}).QueryLocation(pr)
+	return (&PropertyClient{config: pr.config}).QueryLocation(pr)
 }
 
 // QueryEquipment queries the equipment edge of the Property.
 func (pr *Property) QueryEquipment() *EquipmentQuery {
-	return (&PropertyClient{pr.config}).QueryEquipment(pr)
+	return (&PropertyClient{config: pr.config}).QueryEquipment(pr)
 }
 
 // QueryService queries the service edge of the Property.
 func (pr *Property) QueryService() *ServiceQuery {
-	return (&PropertyClient{pr.config}).QueryService(pr)
+	return (&PropertyClient{config: pr.config}).QueryService(pr)
 }
 
 // QueryEquipmentPort queries the equipment_port edge of the Property.
 func (pr *Property) QueryEquipmentPort() *EquipmentPortQuery {
-	return (&PropertyClient{pr.config}).QueryEquipmentPort(pr)
+	return (&PropertyClient{config: pr.config}).QueryEquipmentPort(pr)
 }
 
 // QueryLink queries the link edge of the Property.
 func (pr *Property) QueryLink() *LinkQuery {
-	return (&PropertyClient{pr.config}).QueryLink(pr)
+	return (&PropertyClient{config: pr.config}).QueryLink(pr)
 }
 
 // QueryWorkOrder queries the work_order edge of the Property.
 func (pr *Property) QueryWorkOrder() *WorkOrderQuery {
-	return (&PropertyClient{pr.config}).QueryWorkOrder(pr)
+	return (&PropertyClient{config: pr.config}).QueryWorkOrder(pr)
 }
 
 // QueryProject queries the project edge of the Property.
 func (pr *Property) QueryProject() *ProjectQuery {
-	return (&PropertyClient{pr.config}).QueryProject(pr)
+	return (&PropertyClient{config: pr.config}).QueryProject(pr)
 }
 
 // QueryEquipmentValue queries the equipment_value edge of the Property.
 func (pr *Property) QueryEquipmentValue() *EquipmentQuery {
-	return (&PropertyClient{pr.config}).QueryEquipmentValue(pr)
+	return (&PropertyClient{config: pr.config}).QueryEquipmentValue(pr)
 }
 
 // QueryLocationValue queries the location_value edge of the Property.
 func (pr *Property) QueryLocationValue() *LocationQuery {
-	return (&PropertyClient{pr.config}).QueryLocationValue(pr)
+	return (&PropertyClient{config: pr.config}).QueryLocationValue(pr)
 }
 
 // QueryServiceValue queries the service_value edge of the Property.
 func (pr *Property) QueryServiceValue() *ServiceQuery {
-	return (&PropertyClient{pr.config}).QueryServiceValue(pr)
+	return (&PropertyClient{config: pr.config}).QueryServiceValue(pr)
 }
 
 // Update returns a builder for updating this Property.
 // Note that, you need to call Property.Unwrap() before calling this method, if this Property
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pr *Property) Update() *PropertyUpdateOne {
-	return (&PropertyClient{pr.config}).UpdateOne(pr)
+	return (&PropertyClient{config: pr.config}).UpdateOne(pr)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

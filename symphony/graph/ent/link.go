@@ -147,29 +147,29 @@ func (l *Link) assignValues(values ...interface{}) error {
 
 // QueryPorts queries the ports edge of the Link.
 func (l *Link) QueryPorts() *EquipmentPortQuery {
-	return (&LinkClient{l.config}).QueryPorts(l)
+	return (&LinkClient{config: l.config}).QueryPorts(l)
 }
 
 // QueryWorkOrder queries the work_order edge of the Link.
 func (l *Link) QueryWorkOrder() *WorkOrderQuery {
-	return (&LinkClient{l.config}).QueryWorkOrder(l)
+	return (&LinkClient{config: l.config}).QueryWorkOrder(l)
 }
 
 // QueryProperties queries the properties edge of the Link.
 func (l *Link) QueryProperties() *PropertyQuery {
-	return (&LinkClient{l.config}).QueryProperties(l)
+	return (&LinkClient{config: l.config}).QueryProperties(l)
 }
 
 // QueryService queries the service edge of the Link.
 func (l *Link) QueryService() *ServiceQuery {
-	return (&LinkClient{l.config}).QueryService(l)
+	return (&LinkClient{config: l.config}).QueryService(l)
 }
 
 // Update returns a builder for updating this Link.
 // Note that, you need to call Link.Unwrap() before calling this method, if this Link
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (l *Link) Update() *LinkUpdateOne {
-	return (&LinkClient{l.config}).UpdateOne(l)
+	return (&LinkClient{config: l.config}).UpdateOne(l)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

@@ -341,69 +341,69 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the WorkOrder.
 func (wo *WorkOrder) QueryType() *WorkOrderTypeQuery {
-	return (&WorkOrderClient{wo.config}).QueryType(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryType(wo)
 }
 
 // QueryEquipment queries the equipment edge of the WorkOrder.
 func (wo *WorkOrder) QueryEquipment() *EquipmentQuery {
-	return (&WorkOrderClient{wo.config}).QueryEquipment(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryEquipment(wo)
 }
 
 // QueryLinks queries the links edge of the WorkOrder.
 func (wo *WorkOrder) QueryLinks() *LinkQuery {
-	return (&WorkOrderClient{wo.config}).QueryLinks(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryLinks(wo)
 }
 
 // QueryFiles queries the files edge of the WorkOrder.
 func (wo *WorkOrder) QueryFiles() *FileQuery {
-	return (&WorkOrderClient{wo.config}).QueryFiles(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryFiles(wo)
 }
 
 // QueryHyperlinks queries the hyperlinks edge of the WorkOrder.
 func (wo *WorkOrder) QueryHyperlinks() *HyperlinkQuery {
-	return (&WorkOrderClient{wo.config}).QueryHyperlinks(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryHyperlinks(wo)
 }
 
 // QueryLocation queries the location edge of the WorkOrder.
 func (wo *WorkOrder) QueryLocation() *LocationQuery {
-	return (&WorkOrderClient{wo.config}).QueryLocation(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryLocation(wo)
 }
 
 // QueryComments queries the comments edge of the WorkOrder.
 func (wo *WorkOrder) QueryComments() *CommentQuery {
-	return (&WorkOrderClient{wo.config}).QueryComments(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryComments(wo)
 }
 
 // QueryProperties queries the properties edge of the WorkOrder.
 func (wo *WorkOrder) QueryProperties() *PropertyQuery {
-	return (&WorkOrderClient{wo.config}).QueryProperties(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryProperties(wo)
 }
 
 // QueryCheckListCategories queries the check_list_categories edge of the WorkOrder.
 func (wo *WorkOrder) QueryCheckListCategories() *CheckListCategoryQuery {
-	return (&WorkOrderClient{wo.config}).QueryCheckListCategories(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryCheckListCategories(wo)
 }
 
 // QueryCheckListItems queries the check_list_items edge of the WorkOrder.
 func (wo *WorkOrder) QueryCheckListItems() *CheckListItemQuery {
-	return (&WorkOrderClient{wo.config}).QueryCheckListItems(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryCheckListItems(wo)
 }
 
 // QueryTechnician queries the technician edge of the WorkOrder.
 func (wo *WorkOrder) QueryTechnician() *TechnicianQuery {
-	return (&WorkOrderClient{wo.config}).QueryTechnician(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryTechnician(wo)
 }
 
 // QueryProject queries the project edge of the WorkOrder.
 func (wo *WorkOrder) QueryProject() *ProjectQuery {
-	return (&WorkOrderClient{wo.config}).QueryProject(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryProject(wo)
 }
 
 // Update returns a builder for updating this WorkOrder.
 // Note that, you need to call WorkOrder.Unwrap() before calling this method, if this WorkOrder
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (wo *WorkOrder) Update() *WorkOrderUpdateOne {
-	return (&WorkOrderClient{wo.config}).UpdateOne(wo)
+	return (&WorkOrderClient{config: wo.config}).UpdateOne(wo)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

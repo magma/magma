@@ -169,7 +169,7 @@ func (f *File) assignValues(values ...interface{}) error {
 // Note that, you need to call File.Unwrap() before calling this method, if this File
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (f *File) Update() *FileUpdateOne {
-	return (&FileClient{f.config}).UpdateOne(f)
+	return (&FileClient{config: f.config}).UpdateOne(f)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

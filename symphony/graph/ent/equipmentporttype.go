@@ -113,24 +113,24 @@ func (ept *EquipmentPortType) assignValues(values ...interface{}) error {
 
 // QueryPropertyTypes queries the property_types edge of the EquipmentPortType.
 func (ept *EquipmentPortType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&EquipmentPortTypeClient{ept.config}).QueryPropertyTypes(ept)
+	return (&EquipmentPortTypeClient{config: ept.config}).QueryPropertyTypes(ept)
 }
 
 // QueryLinkPropertyTypes queries the link_property_types edge of the EquipmentPortType.
 func (ept *EquipmentPortType) QueryLinkPropertyTypes() *PropertyTypeQuery {
-	return (&EquipmentPortTypeClient{ept.config}).QueryLinkPropertyTypes(ept)
+	return (&EquipmentPortTypeClient{config: ept.config}).QueryLinkPropertyTypes(ept)
 }
 
 // QueryPortDefinitions queries the port_definitions edge of the EquipmentPortType.
 func (ept *EquipmentPortType) QueryPortDefinitions() *EquipmentPortDefinitionQuery {
-	return (&EquipmentPortTypeClient{ept.config}).QueryPortDefinitions(ept)
+	return (&EquipmentPortTypeClient{config: ept.config}).QueryPortDefinitions(ept)
 }
 
 // Update returns a builder for updating this EquipmentPortType.
 // Note that, you need to call EquipmentPortType.Unwrap() before calling this method, if this EquipmentPortType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ept *EquipmentPortType) Update() *EquipmentPortTypeUpdateOne {
-	return (&EquipmentPortTypeClient{ept.config}).UpdateOne(ept)
+	return (&EquipmentPortTypeClient{config: ept.config}).UpdateOne(ept)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

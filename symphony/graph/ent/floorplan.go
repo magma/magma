@@ -189,29 +189,29 @@ func (fp *FloorPlan) assignValues(values ...interface{}) error {
 
 // QueryLocation queries the location edge of the FloorPlan.
 func (fp *FloorPlan) QueryLocation() *LocationQuery {
-	return (&FloorPlanClient{fp.config}).QueryLocation(fp)
+	return (&FloorPlanClient{config: fp.config}).QueryLocation(fp)
 }
 
 // QueryReferencePoint queries the reference_point edge of the FloorPlan.
 func (fp *FloorPlan) QueryReferencePoint() *FloorPlanReferencePointQuery {
-	return (&FloorPlanClient{fp.config}).QueryReferencePoint(fp)
+	return (&FloorPlanClient{config: fp.config}).QueryReferencePoint(fp)
 }
 
 // QueryScale queries the scale edge of the FloorPlan.
 func (fp *FloorPlan) QueryScale() *FloorPlanScaleQuery {
-	return (&FloorPlanClient{fp.config}).QueryScale(fp)
+	return (&FloorPlanClient{config: fp.config}).QueryScale(fp)
 }
 
 // QueryImage queries the image edge of the FloorPlan.
 func (fp *FloorPlan) QueryImage() *FileQuery {
-	return (&FloorPlanClient{fp.config}).QueryImage(fp)
+	return (&FloorPlanClient{config: fp.config}).QueryImage(fp)
 }
 
 // Update returns a builder for updating this FloorPlan.
 // Note that, you need to call FloorPlan.Unwrap() before calling this method, if this FloorPlan
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (fp *FloorPlan) Update() *FloorPlanUpdateOne {
-	return (&FloorPlanClient{fp.config}).UpdateOne(fp)
+	return (&FloorPlanClient{config: fp.config}).UpdateOne(fp)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

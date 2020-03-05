@@ -143,34 +143,34 @@ func (wot *WorkOrderType) assignValues(values ...interface{}) error {
 
 // QueryWorkOrders queries the work_orders edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryWorkOrders() *WorkOrderQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryWorkOrders(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryWorkOrders(wot)
 }
 
 // QueryPropertyTypes queries the property_types edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryPropertyTypes(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryPropertyTypes(wot)
 }
 
 // QueryDefinitions queries the definitions edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryDefinitions() *WorkOrderDefinitionQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryDefinitions(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryDefinitions(wot)
 }
 
 // QueryCheckListCategories queries the check_list_categories edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryCheckListCategories() *CheckListCategoryQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryCheckListCategories(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryCheckListCategories(wot)
 }
 
 // QueryCheckListDefinitions queries the check_list_definitions edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryCheckListDefinitions() *CheckListItemDefinitionQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryCheckListDefinitions(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryCheckListDefinitions(wot)
 }
 
 // Update returns a builder for updating this WorkOrderType.
 // Note that, you need to call WorkOrderType.Unwrap() before calling this method, if this WorkOrderType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (wot *WorkOrderType) Update() *WorkOrderTypeUpdateOne {
-	return (&WorkOrderTypeClient{wot.config}).UpdateOne(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).UpdateOne(wot)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

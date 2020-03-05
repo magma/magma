@@ -104,7 +104,7 @@ func (fps *FloorPlanScale) assignValues(values ...interface{}) error {
 // Note that, you need to call FloorPlanScale.Unwrap() before calling this method, if this FloorPlanScale
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (fps *FloorPlanScale) Update() *FloorPlanScaleUpdateOne {
-	return (&FloorPlanScaleClient{fps.config}).UpdateOne(fps)
+	return (&FloorPlanScaleClient{config: fps.config}).UpdateOne(fps)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
