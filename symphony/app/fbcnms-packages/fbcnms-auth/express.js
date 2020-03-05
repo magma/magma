@@ -25,6 +25,7 @@ import {
 import {injectOrganizationParams} from './organization';
 import {isEmpty} from 'lodash';
 
+import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
 
@@ -104,13 +105,19 @@ function userMiddleware(options: Options): express.Router {
       logger.error('Error getting organization', e);
     }
 
+    const appData: AppContextAppData = {
+      csrfToken: req.csrfToken(),
+      ssoEnabled: isSSO,
+      csvCharset: null,
+      enabledFeatures: [],
+      tabs: [],
+      user: {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
+    };
+
     res.render('login', {
       staticDist,
       configJson: JSON.stringify({
-        appData: {
-          csrfToken: req.csrfToken(),
-          isSSO,
-        },
+        appData,
       }),
     });
   });

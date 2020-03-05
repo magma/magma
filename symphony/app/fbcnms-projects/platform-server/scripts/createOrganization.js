@@ -10,8 +10,10 @@
 'use strict';
 
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
+import type {Tab} from '@fbcnms/types/tabs';
 
 import {Organization} from '@fbcnms/sequelize-models';
+import {coerceToTab} from '@fbcnms/types/tabs';
 import {createGraphTenant} from '../src/graphgrpc/tenant';
 import {difference} from 'lodash';
 import {getProjectTabs} from '@fbcnms/magmalte/app/common/projects';
@@ -19,7 +21,7 @@ import {union} from 'lodash';
 
 type OrganizationObject = {
   name: string,
-  tabs: Array<string>,
+  tabs: Array<Tab>,
   networkIDs: Array<string>,
   csvCharset: '',
 };
@@ -87,7 +89,7 @@ function main() {
   }
 
   const validTabs = getProjectTabs();
-  const tabs = args[1].split(',');
+  const tabs = args[1].split(',').map(tab => coerceToTab(tab));
   const invalidTabs = difference(tabs, validTabs).join(', ');
   if (invalidTabs) {
     console.log(
