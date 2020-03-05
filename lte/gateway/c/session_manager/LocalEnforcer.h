@@ -167,11 +167,20 @@ class LocalEnforcer {
     PolicyReAuthRequest request,
     PolicyReAuthAnswer& answer_out);
 
-  bool is_imsi_duplicate(const std::string& imsi) const;
-  bool is_apn_duplicate(const std::string& imsi, const std::string& apn) const;
+  bool session_with_imsi_exists(const std::string& imsi) const;
+  bool session_with_apn_exists(const std::string& imsi, const std::string& apn) const;
 
-  std::string* duplicate_session_id(
-    const std::string& imsi, const magma::SessionState::Config& config) const;
+  bool session_with_same_config_exists(
+    const std::string& imsi,
+    const magma::SessionState::Config& config,
+    std::string* core_session_id) const;
+
+  /**
+   * Set session config for the IMSI.
+   * Should be only used for WIFI as it will apply it to all sessions with the
+   * IMSI
+   */
+  void set_cwf_session_config(const std::string& imsi, const magma::SessionState::Config& config);
 
   /**
    * Execute actions on subscriber's service, eg. terminate, redirect data, or

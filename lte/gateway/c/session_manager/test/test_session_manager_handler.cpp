@@ -72,7 +72,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
     SessionState::Config cfg = {.ue_ipv4 = "",
             .spgw_ipv4 = "",
             .msisdn = msisdn,
-            .apn = "",
+            .apn = "apn1",
             .imei = "",
             .plmn_id = "",
             .imsi_plmn_id = "",
@@ -90,11 +90,15 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
     request.set_hardware_addr(hardware_addr_bytes);
     request.set_msisdn(msisdn);
     request.set_radius_session_id(radius_session_id);
+    request.set_apn("apn2"); // Update APN
 
     // Ensure session is not reported as its a duplicate
     EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
     session_manager->CreateSession(&create_context, &request, [this](
             grpc::Status status, LocalCreateSessionResponse response_out) {});
+    // Assert the internal session config is updated to the new one
+    EXPECT_FALSE(local_enforcer->session_with_apn_exists("IMSI1", "apn1"));
+    EXPECT_TRUE(local_enforcer->session_with_apn_exists("IMSI1", "apn2"));
 }
 
 int main(int argc, char **argv)
