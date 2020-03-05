@@ -61,13 +61,15 @@
 #include "sgw_ie_defs.h"
 #include "pgw_procedures.h"
 
-static void get_session_req_data(
-  spgw_state_t *spgw_state,
-  const itti_s11_create_session_request_t *saved_req,
-  struct pcef_create_session_data *data);
-static char convert_digit_to_char(char digit);
 extern spgw_config_t spgw_config;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
+
+static void _get_session_req_data(
+  spgw_state_t* spgw_state,
+  const itti_s11_create_session_request_t* saved_req,
+  struct pcef_create_session_data* data);
+
+static char _convert_digit_to_char(char digit);
 
 static int _spgw_build_and_send_s11_create_bearer_request(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p,
@@ -252,7 +254,7 @@ void handle_s5_create_session_request(
     char ip_str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(inaddr.s_addr), ip_str, INET_ADDRSTRLEN);
     struct pcef_create_session_data session_data;
-    get_session_req_data(
+    _get_session_req_data(
       spgw_state,
       &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
       &session_data);
@@ -310,7 +312,7 @@ static int get_imeisv_from_session_req(
  * else if they are in [48,57] keep them the same
  * else log an error and return '0'=48 value
  */
-static char convert_digit_to_char(char digit)
+static char _convert_digit_to_char(char digit)
 {
   if ((digit >= 0) && (digit <= 9)) {
     return (digit + '0');
@@ -329,14 +331,15 @@ static void get_plmn_from_session_req(
   const itti_s11_create_session_request_t* saved_req,
   struct pcef_create_session_data* data)
 {
-  data->mcc_mnc[0] = convert_digit_to_char(saved_req->serving_network.mcc[0]);
-  data->mcc_mnc[1] = convert_digit_to_char(saved_req->serving_network.mcc[1]);
-  data->mcc_mnc[2] = convert_digit_to_char(saved_req->serving_network.mcc[2]);
-  data->mcc_mnc[3] = convert_digit_to_char(saved_req->serving_network.mnc[0]);
-  data->mcc_mnc[4] = convert_digit_to_char(saved_req->serving_network.mnc[1]);
+  data->mcc_mnc[0] = _convert_digit_to_char(saved_req->serving_network.mcc[0]);
+  data->mcc_mnc[1] = _convert_digit_to_char(saved_req->serving_network.mcc[1]);
+  data->mcc_mnc[2] = _convert_digit_to_char(saved_req->serving_network.mcc[2]);
+  data->mcc_mnc[3] = _convert_digit_to_char(saved_req->serving_network.mnc[0]);
+  data->mcc_mnc[4] = _convert_digit_to_char(saved_req->serving_network.mnc[1]);
   data->mcc_mnc_len = 5;
   if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->mcc_mnc[5] = convert_digit_to_char(saved_req->serving_network.mnc[2]);
+    data->mcc_mnc[5] =
+      _convert_digit_to_char(saved_req->serving_network.mnc[2]);
     data->mcc_mnc[6] = '\0';
     data->mcc_mnc_len += 1;
   } else {
@@ -348,15 +351,15 @@ static void get_imsi_plmn_from_session_req(
   const itti_s11_create_session_request_t* saved_req,
   struct pcef_create_session_data* data)
 {
-  data->imsi_mcc_mnc[0] = convert_digit_to_char(saved_req->imsi.digit[0]);
-  data->imsi_mcc_mnc[1] = convert_digit_to_char(saved_req->imsi.digit[1]);
-  data->imsi_mcc_mnc[2] = convert_digit_to_char(saved_req->imsi.digit[2]);
-  data->imsi_mcc_mnc[3] = convert_digit_to_char(saved_req->imsi.digit[3]);
-  data->imsi_mcc_mnc[4] = convert_digit_to_char(saved_req->imsi.digit[4]);
+  data->imsi_mcc_mnc[0] = _convert_digit_to_char(saved_req->imsi.digit[0]);
+  data->imsi_mcc_mnc[1] = _convert_digit_to_char(saved_req->imsi.digit[1]);
+  data->imsi_mcc_mnc[2] = _convert_digit_to_char(saved_req->imsi.digit[2]);
+  data->imsi_mcc_mnc[3] = _convert_digit_to_char(saved_req->imsi.digit[3]);
+  data->imsi_mcc_mnc[4] = _convert_digit_to_char(saved_req->imsi.digit[4]);
   data->imsi_mcc_mnc_len = 5;
   // Check if 2 or 3 digit by verifying mnc[2] has a valid value
   if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->imsi_mcc_mnc[5] = convert_digit_to_char(saved_req->imsi.digit[5]);
+    data->imsi_mcc_mnc[5] = _convert_digit_to_char(saved_req->imsi.digit[5]);
     data->imsi_mcc_mnc[6] = '\0';
     data->imsi_mcc_mnc_len += 1;
   } else {
@@ -419,10 +422,10 @@ static int get_msisdn_from_session_req(
   return len;
 }
 
-static void get_session_req_data(
-  spgw_state_t *spgw_state,
-  const itti_s11_create_session_request_t *saved_req,
-  struct pcef_create_session_data *data)
+static void _get_session_req_data(
+  spgw_state_t* spgw_state,
+  const itti_s11_create_session_request_t* saved_req,
+  struct pcef_create_session_data* data)
 {
   const bearer_qos_t *qos;
 
