@@ -178,6 +178,11 @@ const arrayConfigs = [
     title: 'User Management - Users and Permissions admin section',
     enabledByDefault: false,
   },
+  {
+    id: 'grafana_metrics',
+    title: 'Include tab for Grafana in the Metrics page',
+    enabledByDefault: false,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};

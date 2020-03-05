@@ -126,6 +126,10 @@ const proxyMiddleware = () => {
         return proxyReqOpts;
       },
       proxyReqPathResolver: req => req.originalUrl.replace(/^\/grafana/, ''),
+      userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+        userRes.set('X-Frame-Options', 'allow');
+        return proxyResData;
+      },
     })(req, res, next);
   };
 };

@@ -23,6 +23,7 @@ export type FeatureID =
   | 'equipment_export'
   | 'file_categories'
   | 'floor_plans'
+  | 'grafana_metrics'
   | 'work_order_map'
   | 'documents_site'
   | 'coverage_maps'
