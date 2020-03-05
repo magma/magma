@@ -12,9 +12,12 @@ import axios from 'axios';
 
 import type {
   AddOrgUserResponse,
+  CreateDatasourceResponse,
   CreateOrgResponse,
   CreateUserResponse,
+  Datasource,
   DeleteOrgResponse,
+  GetDatasourcesResponse,
   GetUserResponse,
   OrgUser,
   Organization,
@@ -39,6 +42,12 @@ export type GrafanaClient = {
     orgID: number,
     user: OrgUser,
   ) => GrafanaPromise<AddOrgUserResponse>,
+
+  createDatasource: (
+    ds: Datasource,
+    orgID: number,
+  ) => GrafanaPromise<CreateDatasourceResponse>,
+  getDatasources: (orgID: number) => GrafanaPromise<GetDatasourcesResponse>,
 };
 
 type axiosRequest = {
@@ -114,6 +123,26 @@ const client = (
       method: 'POST',
       data: user,
       headers: constHeaders,
+    });
+  },
+
+  async createDatasource(
+    ds: Datasource,
+    orgId: number,
+  ): GrafanaPromise<CreateDatasourceResponse> {
+    return request({
+      url: apiURL + `/api/datasources`,
+      method: 'POST',
+      data: ds,
+      headers: {...constHeaders, 'X-Grafana-Org-Id': orgId.toString()},
+    });
+  },
+
+  async getDatasources(orgID: number): GrafanaPromise<GetDatasourcesResponse> {
+    return request({
+      url: apiURL + `/api/datasources`,
+      method: 'GET',
+      headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
     });
   },
 });

@@ -57,3 +57,34 @@ export type CreateUserResponse = {
   id: number,
   message: string,
 };
+
+export type Datasource = {
+  id?: number,
+  orgId: number,
+  name: string,
+  type: string,
+  typeLogoUrl?: string,
+  access: string,
+  url: string,
+  password?: string,
+  user?: string,
+  database?: string,
+  basicAuth: boolean,
+  basicAuthUser?: string,
+  basicAuthPassword?: string,
+  withCredentials?: boolean,
+  isDefault: boolean,
+  jsonData: {tlsAuth: boolean, tlsSkipVerify: boolean},
+  secureJsonData: {tlsClientCert: string, tlsClientKey: string},
+  version?: number,
+  readOnly: boolean,
+};
+
+export type CreateDatasourceResponse = {
+  datasource: Datasource,
+  id: number,
+  message: string,
+  name: string,
+};
+
+export type GetDatasourcesResponse = Array<Datasource>;

@@ -13,10 +13,16 @@ import proxy from 'express-http-proxy';
 
 import Client from './GrafanaAPI';
 
-import {HandleNewGrafanaUser, makeGrafanaUsername} from './handlers';
+import {
+  HandleNewDatasource,
+  HandleNewGrafanaUser,
+  ORC8R_DATASOURCE_NAME,
+  makeGrafanaUsername,
+} from './handlers';
 
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
-import type {GrafanaError} from './handlers';
+import type {GetDatasourcesResponse} from './GrafanaAPIType';
+import type {GrafanaResponse} from './GrafanaAPI';
 
 const GRAFANA_PROTOCOL = 'http';
 const GRAFANA_HOST = process.env.USER_GRAFANA_HOSTNAME || 'user-grafana';
@@ -40,10 +46,7 @@ const checkGrafanaUser = () => {
       case 200:
         return next();
       case 404:
-        const err: ?GrafanaError = await HandleNewGrafanaUser(
-          grafanaAdminClient,
-          req,
-        );
+        const err = await HandleNewGrafanaUser(grafanaAdminClient, req);
         if (err) {
           const strData = JSON.stringify(err.response.data) || '';
           return res
@@ -63,6 +66,39 @@ const checkGrafanaUser = () => {
   };
 };
 
+const checkOrchestratorDatasource = () => {
+  return async function(req: FBCNMSRequest, res, next) {
+    // Get Grafana OrgID from this organization's Name
+    const nmsOrg = await req.organization();
+    const orgResp = await grafanaAdminClient.getOrg(nmsOrg.name);
+    const orgIDForUser = orgResp.data.id;
+
+    // Check if this organization has a datasource for Orchestrator
+    const getDSResp: GrafanaResponse<GetDatasourcesResponse> = await grafanaAdminClient.getDatasources(
+      orgIDForUser,
+    );
+    for (const ds of getDSResp.data) {
+      if (
+        ds.orgId == orgIDForUser &&
+        ds.name.startsWith(ORC8R_DATASOURCE_NAME)
+      ) {
+        return next();
+      }
+    }
+
+    // If not, create orchestrator datasource
+    const err = await HandleNewDatasource(grafanaAdminClient, req);
+    if (err) {
+      const strData = JSON.stringify(err.response.data) || '';
+      return res
+        .status(err.response.status)
+        .send(err.message + strData)
+        .end();
+    }
+    next();
+  };
+};
+
 const proxyMiddleware = () => {
   return async function(req: FBCNMSRequest, res, next) {
     const userID = req.user.id;
@@ -79,6 +115,7 @@ const proxyMiddleware = () => {
 
 // Only the root path should check for Grafana User
 router.all('/', checkGrafanaUser());
+router.all('/', checkOrchestratorDatasource());
 // Use proxy on all paths
 router.use('/', proxyMiddleware());
 
