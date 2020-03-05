@@ -19,8 +19,8 @@ import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {GrafanaError} from './handlers';
 
 const GRAFANA_PROTOCOL = 'http';
-const GRAFANA_HOST = 'user-grafana';
-const GRAFANA_PORT = 3000;
+const GRAFANA_HOST = process.env.USER_GRAFANA_HOSTNAME || 'user-grafana';
+const GRAFANA_PORT = process.env.USER_GRAFANA_PORT || '3000';
 const GRAFANA_URL = `${GRAFANA_PROTOCOL}://${GRAFANA_HOST}:${GRAFANA_PORT}`;
 
 const AUTH_PROXY_HEADER = 'X-WEBAUTH-USER';

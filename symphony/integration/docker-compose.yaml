@@ -39,6 +39,8 @@ services:
       MYSQL_USER: root
       MYSQL_PASS: root
       FB_TEST_USER: fbuser@fb.com
+      USER_GRAFANA_HOSTNAME: user-grafana
+      USER_GRAFANA_PORT: 3000
     networks:
       - public
       - private
