@@ -81,7 +81,7 @@ class AddEquipmentPortTypeMutation(DataClassJsonMixin):
             propertyTypes: List[PropertyType]
             linkPropertyTypes: List[PropertyType]
 
-        addEquipmentPortType: Optional[EquipmentPortType] = None
+        addEquipmentPortType: EquipmentPortType
 
     data: Optional[AddEquipmentPortTypeMutationData] = None
 

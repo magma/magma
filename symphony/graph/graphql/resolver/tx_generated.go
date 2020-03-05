@@ -44,8 +44,8 @@ func (tr txResolver) WithTransaction(ctx context.Context, f func(context.Context
 	return nil
 }
 
-func (tr txResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (*int, error) {
-	var result, zero *int
+func (tr txResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
+	var result, zero int
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
 		result, err = mr.CreateSurvey(ctx, data)
 		return
@@ -599,8 +599,8 @@ func (tr txResolver) EditEquipmentPort(ctx context.Context, input models.EditEqu
 	return result, nil
 }
 
-func (tr txResolver) MarkLocationPropertyAsExternalID(ctx context.Context, propertyName string) (*string, error) {
-	var result, zero *string
+func (tr txResolver) MarkLocationPropertyAsExternalID(ctx context.Context, propertyName string) (string, error) {
+	var result, zero string
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
 		result, err = mr.MarkLocationPropertyAsExternalID(ctx, propertyName)
 		return

@@ -33,7 +33,7 @@ class AddEquipmentMutation(DataClassJsonMixin):
             id: str
             name: str
 
-        addEquipment: Optional[Equipment] = None
+        addEquipment: Equipment
 
     data: Optional[AddEquipmentMutationData] = None
 

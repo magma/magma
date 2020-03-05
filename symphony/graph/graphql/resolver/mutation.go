@@ -51,6 +51,8 @@ func (mutationResolver) Me(ctx context.Context) *viewer.Viewer {
 	return viewer.FromContext(ctx)
 }
 
+var BadID = -1
+
 func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) (bool, error) {
 	var (
 		typ                           models.PropertyKind
@@ -312,7 +314,8 @@ func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.
 	return scans, nil
 }
 
-func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (*int, error) {
+func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
+
 	client := r.ClientFrom(ctx)
 	query := client.Survey.
 		Create().
@@ -325,7 +328,7 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 	}
 	srv, err := query.Save(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating survey")
+		return BadID, errors.Wrap(err, "creating survey")
 	}
 
 	for _, sr := range data.SurveyResponses {
@@ -369,14 +372,14 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 					},
 				)
 			if err != nil {
-				return nil, err
+				return BadID, err
 			}
 			query.AddPhotoData(f)
 		}
 
 		question, err := query.Save(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "creating survey question")
+			return BadID, errors.Wrap(err, "creating survey question")
 		}
 
 		switch *sr.QuestionFormat {
@@ -386,10 +389,10 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			_, err = r.CreateCellScans(ctx, sr.CellData, &question.ID, nil)
 		}
 		if err != nil {
-			return nil, err
+			return BadID, err
 		}
 	}
-	return &srv.ID, nil
+	return srv.ID, nil
 }
 
 func (r mutationResolver) validateRootLocationUniqueness(ctx context.Context, typeid int, name string) error {
@@ -2666,13 +2669,13 @@ func (r mutationResolver) updateSurveyTemplateQuestion(ctx context.Context, inpu
 	return nil
 }
 
-func (r mutationResolver) MarkLocationPropertyAsExternalID(ctx context.Context, name string) (*string, error) {
+func (r mutationResolver) MarkLocationPropertyAsExternalID(ctx context.Context, name string) (string, error) {
 	client := r.ClientFrom(ctx)
 	sites, err := client.Location.Query().
 		Where(location.HasPropertiesWith(property.HasTypeWith(propertytype.Name(name)))).
 		All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "querying locations with property")
+		return "", errors.Wrap(err, "querying locations with property")
 	}
 
 	for _, site := range sites {
@@ -2680,15 +2683,15 @@ func (r mutationResolver) MarkLocationPropertyAsExternalID(ctx context.Context, 
 			Where(property.HasTypeWith(propertytype.Name(name))).
 			Only(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "querying property type")
+			return "", errors.Wrap(err, "querying property type")
 		}
 		if err := client.Location.UpdateOne(site).
 			SetExternalID(p.StringVal).
 			Exec(ctx); err != nil {
-			return nil, errors.Wrap(err, "updating external id")
+			return "", errors.Wrap(err, "updating external id")
 		}
 	}
-	return &name, nil
+	return name, nil
 }
 
 func (r mutationResolver) deleteLocationHierarchy(ctx context.Context, l *ent.Location) error {

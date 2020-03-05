@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash bc169ac93090aa73d1b0071a9eb186eb
+ * @relayHash 0a064347d2a50d75db6f2074e241dc62
  */
 
 /* eslint-disable */
@@ -73,7 +73,7 @@ export type EditWorkOrderTypeMutationVariables = {|
   input: EditWorkOrderTypeInput
 |};
 export type EditWorkOrderTypeMutationResponse = {|
-  +editWorkOrderType: ?{|
+  +editWorkOrderType: {|
     +id: string,
     +name: string,
     +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,

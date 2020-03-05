@@ -31,7 +31,7 @@ class AddLinkMutation(DataClassJsonMixin):
         class Link(DataClassJsonMixin):
             id: str
 
-        addLink: Optional[Link] = None
+        addLink: Link
 
     data: Optional[AddLinkMutationData] = None
 

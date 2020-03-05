@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5f3f5882d185e559104b28a856daf83e
+ * @relayHash a596dc71f435d2bff63d0afdbee4a789
  */
 
 /* eslint-disable */
@@ -24,7 +24,7 @@ export type DeleteImageMutationVariables = {|
   id: string,
 |};
 export type DeleteImageMutationResponse = {|
-  +deleteImage: ?{|
+  +deleteImage: {|
     +$fragmentRefs: DocumentTable_files$ref & FileAttachment_file$ref
   |}
 |};

@@ -66,7 +66,7 @@ class AddLocationTypeMutation(DataClassJsonMixin):
             name: str
             propertyTypes: List[PropertyType]
 
-        addLocationType: Optional[LocationType] = None
+        addLocationType: LocationType
 
     data: Optional[AddLocationTypeMutationData] = None
 

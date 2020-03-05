@@ -96,7 +96,7 @@ class EditEquipmentTypeMutation(DataClassJsonMixin):
             portDefinitions: List[EquipmentPortDefinition]
             category: Optional[str] = None
 
-        editEquipmentType: Optional[EquipmentType] = None
+        editEquipmentType: EquipmentType
 
     data: Optional[EditEquipmentTypeMutationData] = None
 

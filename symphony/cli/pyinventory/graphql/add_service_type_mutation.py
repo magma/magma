@@ -68,7 +68,7 @@ class AddServiceTypeMutation(DataClassJsonMixin):
             hasCustomer: bool
             propertyTypes: List[PropertyType]
 
-        addServiceType: Optional[ServiceType] = None
+        addServiceType: ServiceType
 
     data: Optional[AddServiceTypeMutationData] = None
 

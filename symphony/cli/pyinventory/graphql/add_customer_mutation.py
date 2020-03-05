@@ -35,7 +35,7 @@ class AddCustomerMutation(DataClassJsonMixin):
             name: str
             externalId: Optional[str] = None
 
-        addCustomer: Optional[Customer] = None
+        addCustomer: Customer
 
     data: Optional[AddCustomerMutationData] = None
 

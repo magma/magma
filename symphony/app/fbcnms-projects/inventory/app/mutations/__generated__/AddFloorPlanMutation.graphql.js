@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 3e063a28ff0dd8efb50ebdb794660e85
+ * @relayHash 36ab7bd5f33d16c3f9f6c82b6718a340
  */
 
 /* eslint-disable */
@@ -45,7 +45,7 @@ export type AddFloorPlanMutationVariables = {|
   input: AddFloorPlanInput
 |};
 export type AddFloorPlanMutationResponse = {|
-  +addFloorPlan: ?{|
+  +addFloorPlan: {|
     +id: string,
     +name: string,
     +image: {|

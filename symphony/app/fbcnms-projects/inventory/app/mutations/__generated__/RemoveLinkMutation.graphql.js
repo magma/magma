@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash bca24b710d4cbb6069af839656e62c41
+ * @relayHash 22074b12a6c707273fe9f278c4723e80
  */
 
 /* eslint-disable */
@@ -24,7 +24,7 @@ export type RemoveLinkMutationVariables = {|
   workOrderId?: ?string,
 |};
 export type RemoveLinkMutationResponse = {|
-  +removeLink: ?{|
+  +removeLink: {|
     +id: string,
     +futureState: ?FutureState,
     +ports: $ReadOnlyArray<?{|

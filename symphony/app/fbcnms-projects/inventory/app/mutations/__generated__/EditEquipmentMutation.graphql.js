@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash d223129066ae359d914834d5a6a227e6
+ * @relayHash 47411fcd74b61711e55118dc82ad81ee
  */
 
 /* eslint-disable */
@@ -44,7 +44,7 @@ export type EditEquipmentMutationVariables = {|
   input: EditEquipmentInput
 |};
 export type EditEquipmentMutationResponse = {|
-  +editEquipment: ?{|
+  +editEquipment: {|
     +$fragmentRefs: EquipmentTable_equipment$ref
   |}
 |};

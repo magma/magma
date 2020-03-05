@@ -1025,7 +1025,7 @@ type LocationTypeResolver interface {
 	SurveyTemplateCategories(ctx context.Context, obj *ent.LocationType) ([]*ent.SurveyTemplateCategory, error)
 }
 type MutationResolver interface {
-	CreateSurvey(ctx context.Context, data models.SurveyCreateData) (*int, error)
+	CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error)
 	AddLocation(ctx context.Context, input models.AddLocationInput) (*ent.Location, error)
 	EditLocation(ctx context.Context, input models.EditLocationInput) (*ent.Location, error)
 	RemoveLocation(ctx context.Context, id int) (int, error)
@@ -1067,7 +1067,7 @@ type MutationResolver interface {
 	RemoveServiceType(ctx context.Context, id int) (int, error)
 	EditLocationTypeSurveyTemplateCategories(ctx context.Context, id int, surveyTemplateCategories []*models.SurveyTemplateCategoryInput) ([]*ent.SurveyTemplateCategory, error)
 	EditEquipmentPort(ctx context.Context, input models.EditEquipmentPortInput) (*ent.EquipmentPort, error)
-	MarkLocationPropertyAsExternalID(ctx context.Context, propertyName string) (*string, error)
+	MarkLocationPropertyAsExternalID(ctx context.Context, propertyName string) (string, error)
 	RemoveSiteSurvey(ctx context.Context, id int) (int, error)
 	AddWiFiScans(ctx context.Context, data []*models.SurveyWiFiScanData, locationID int) ([]*ent.SurveyWiFiScan, error)
 	AddCellScans(ctx context.Context, data []*models.SurveyCellScanData, locationID int) ([]*ent.SurveyCellScan, error)
@@ -7700,53 +7700,53 @@ type Query {
 }
 
 type Mutation {
-  createSurvey(data: SurveyCreateData!): ID
-  addLocation(input: AddLocationInput!): Location
-  editLocation(input: EditLocationInput!): Location
+  createSurvey(data: SurveyCreateData!): ID!
+  addLocation(input: AddLocationInput!): Location!
+  editLocation(input: EditLocationInput!): Location!
   removeLocation(id: ID!): ID!
-  addLocationType(input: AddLocationTypeInput!): LocationType
-  editLocationType(input: EditLocationTypeInput!): LocationType
+  addLocationType(input: AddLocationTypeInput!): LocationType!
+  editLocationType(input: EditLocationTypeInput!): LocationType!
   removeLocationType(id: ID!): ID!
-  addEquipment(input: AddEquipmentInput!): Equipment
-  editEquipment(input: EditEquipmentInput!): Equipment
+  addEquipment(input: AddEquipmentInput!): Equipment!
+  editEquipment(input: EditEquipmentInput!): Equipment!
   removeEquipment(id: ID!, workOrderId: ID): ID!
-  addEquipmentType(input: AddEquipmentTypeInput!): EquipmentType
-  editEquipmentType(input: EditEquipmentTypeInput!): EquipmentType
+  addEquipmentType(input: AddEquipmentTypeInput!): EquipmentType!
+  editEquipmentType(input: EditEquipmentTypeInput!): EquipmentType!
   removeEquipmentType(id: ID!): ID!
-  addEquipmentPortType(input: AddEquipmentPortTypeInput!): EquipmentPortType
-  editEquipmentPortType(input: EditEquipmentPortTypeInput!): EquipmentPortType
+  addEquipmentPortType(input: AddEquipmentPortTypeInput!): EquipmentPortType!
+  editEquipmentPortType(input: EditEquipmentPortTypeInput!): EquipmentPortType!
   removeEquipmentPortType(id: ID!): ID!
-  addLink(input: AddLinkInput!): Link
-  editLink(input: EditLinkInput!): Link
-  removeLink(id: ID!, workOrderId: ID): Link
+  addLink(input: AddLinkInput!): Link!
+  editLink(input: EditLinkInput!): Link!
+  removeLink(id: ID!, workOrderId: ID): Link!
   addService(
     """
     data to create service
     """
     data: ServiceCreateData!
-  ): Service
+  ): Service!
   editService(
     """
     data to edit service
     """
     data: ServiceEditData!
-  ): Service
-  addServiceLink(id: ID!, linkId: ID!): Service
-  removeServiceLink(id: ID!, linkId: ID!): Service
-  addServiceEndpoint(input: AddServiceEndpointInput!): Service
-  removeServiceEndpoint(serviceEndpointId: ID!): Service
+  ): Service!
+  addServiceLink(id: ID!, linkId: ID!): Service!
+  removeServiceLink(id: ID!, linkId: ID!): Service!
+  addServiceEndpoint(input: AddServiceEndpointInput!): Service!
+  removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
     """
     data to edit service type
     """
     data: ServiceTypeCreateData!
-  ): ServiceType
+  ): ServiceType!
   editServiceType(
     """
     data to edit service type
     """
     data: ServiceTypeEditData!
-  ): ServiceType
+  ): ServiceType!
   removeEquipmentFromPosition(
     positionId: ID!
 
@@ -7754,7 +7754,7 @@ type Mutation {
     id of the work order to remove this equipment
     """
     workOrderId: ID
-  ): EquipmentPosition
+  ): EquipmentPosition!
   moveEquipmentToPosition(
     """
     id of the equipment of the position definition to attach to
@@ -7770,9 +7770,9 @@ type Mutation {
     id of the equipment to that will be attached as a child to the position
     """
     equipmentId: ID!
-  ): EquipmentPosition
+  ): EquipmentPosition!
   addComment(input: CommentInput!): Comment!
-  addImage(input: AddImageInput!): File
+  addImage(input: AddImageInput!): File!
   addHyperlink(input: AddHyperlinkInput!): Hyperlink!
   deleteHyperlink(id: ID!): Hyperlink!
   deleteImage(
@@ -7790,9 +7790,9 @@ type Mutation {
     id of the image file
     """
     id: ID!
-  ): File
+  ): File!
   removeWorkOrder(id: ID!): ID!
-  executeWorkOrder(id: ID!): WorkOrderExecutionResult
+  executeWorkOrder(id: ID!): WorkOrderExecutionResult!
   removeWorkOrderType(id: ID!): ID!
   markSiteSurveyNeeded(locationId: ID!, needed: Boolean!): Location!
   removeService(id: ID!): ID!
@@ -7808,8 +7808,8 @@ type Mutation {
     """
     surveyTemplateCategories: [SurveyTemplateCategoryInput!]!
   ): [SurveyTemplateCategory!]
-  editEquipmentPort(input: EditEquipmentPortInput!): EquipmentPort
-  markLocationPropertyAsExternalID(propertyName: String!): String
+  editEquipmentPort(input: EditEquipmentPortInput!): EquipmentPort!
+  markLocationPropertyAsExternalID(propertyName: String!): String!
   removeSiteSurvey(id: ID!): ID!
   addWiFiScans(
     """
@@ -7842,32 +7842,32 @@ type Mutation {
     ID of the location to be the new parent
     """
     parentLocationID: ID
-  ): Location
+  ): Location!
   editLocationTypesIndex(
     """
     edit the location index to the location
     """
     locationTypesIndex: [LocationTypeIndex]!
   ): [LocationType]
-  addTechnician(input: TechnicianInput!): Technician
-  addWorkOrder(input: AddWorkOrderInput!): WorkOrder
-  editWorkOrder(input: EditWorkOrderInput!): WorkOrder
-  addWorkOrderType(input: AddWorkOrderTypeInput!): WorkOrderType
-  editWorkOrderType(input: EditWorkOrderTypeInput!): WorkOrderType
-  createProjectType(input: AddProjectTypeInput!): ProjectType
-  editProjectType(input: EditProjectTypeInput!): ProjectType
+  addTechnician(input: TechnicianInput!): Technician!
+  addWorkOrder(input: AddWorkOrderInput!): WorkOrder!
+  editWorkOrder(input: EditWorkOrderInput!): WorkOrder!
+  addWorkOrderType(input: AddWorkOrderTypeInput!): WorkOrderType!
+  editWorkOrderType(input: EditWorkOrderTypeInput!): WorkOrderType!
+  createProjectType(input: AddProjectTypeInput!): ProjectType!
+  editProjectType(input: EditProjectTypeInput!): ProjectType!
   deleteProjectType(id: ID!): Boolean!
-  createProject(input: AddProjectInput!): Project
-  editProject(input: EditProjectInput!): Project
+  createProject(input: AddProjectInput!): Project!
+  editProject(input: EditProjectInput!): Project!
   deleteProject(id: ID!): Boolean!
-  addCustomer(input: AddCustomerInput!): Customer
+  addCustomer(input: AddCustomerInput!): Customer!
   removeCustomer(id: ID!): ID!
-  addFloorPlan(input: AddFloorPlanInput!): FloorPlan
+  addFloorPlan(input: AddFloorPlanInput!): FloorPlan!
   deleteFloorPlan(id: ID!): Boolean!
-  addActionsRule(input: AddActionsRuleInput!): ActionsRule
-  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
+  addActionsRule(input: AddActionsRuleInput!): ActionsRule!
+  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
-  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
+  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
 }
 
 type Subscription {
@@ -17794,12 +17794,15 @@ func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17835,12 +17838,15 @@ func (ec *executionContext) _Mutation_addLocation(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Location)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
+	return ec.marshalNLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17876,12 +17882,15 @@ func (ec *executionContext) _Mutation_editLocation(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Location)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
+	return ec.marshalNLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17961,12 +17970,15 @@ func (ec *executionContext) _Mutation_addLocationType(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.LocationType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocationType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationType(ctx, field.Selections, res)
+	return ec.marshalNLocationType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editLocationType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18002,12 +18014,15 @@ func (ec *executionContext) _Mutation_editLocationType(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.LocationType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocationType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationType(ctx, field.Selections, res)
+	return ec.marshalNLocationType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeLocationType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18087,12 +18102,15 @@ func (ec *executionContext) _Mutation_addEquipment(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Equipment)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
+	return ec.marshalNEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editEquipment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18128,12 +18146,15 @@ func (ec *executionContext) _Mutation_editEquipment(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Equipment)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
+	return ec.marshalNEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeEquipment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18213,12 +18234,15 @@ func (ec *executionContext) _Mutation_addEquipmentType(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.EquipmentType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentType(ctx, field.Selections, res)
+	return ec.marshalNEquipmentType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editEquipmentType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18254,12 +18278,15 @@ func (ec *executionContext) _Mutation_editEquipmentType(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.EquipmentType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentType(ctx, field.Selections, res)
+	return ec.marshalNEquipmentType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeEquipmentType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18339,12 +18366,15 @@ func (ec *executionContext) _Mutation_addEquipmentPortType(ctx context.Context, 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.EquipmentPortType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentPortType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortType(ctx, field.Selections, res)
+	return ec.marshalNEquipmentPortType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editEquipmentPortType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18380,12 +18410,15 @@ func (ec *executionContext) _Mutation_editEquipmentPortType(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.EquipmentPortType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentPortType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortType(ctx, field.Selections, res)
+	return ec.marshalNEquipmentPortType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeEquipmentPortType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18465,12 +18498,15 @@ func (ec *executionContext) _Mutation_addLink(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Link)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLink(ctx, field.Selections, res)
+	return ec.marshalNLink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLink(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18506,12 +18542,15 @@ func (ec *executionContext) _Mutation_editLink(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Link)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLink(ctx, field.Selections, res)
+	return ec.marshalNLink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLink(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18547,12 +18586,15 @@ func (ec *executionContext) _Mutation_removeLink(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Link)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLink(ctx, field.Selections, res)
+	return ec.marshalNLink2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLink(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addService(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18588,12 +18630,15 @@ func (ec *executionContext) _Mutation_addService(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Service)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+	return ec.marshalNService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editService(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18629,12 +18674,15 @@ func (ec *executionContext) _Mutation_editService(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Service)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+	return ec.marshalNService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addServiceLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18670,12 +18718,15 @@ func (ec *executionContext) _Mutation_addServiceLink(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Service)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+	return ec.marshalNService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeServiceLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18711,12 +18762,15 @@ func (ec *executionContext) _Mutation_removeServiceLink(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Service)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+	return ec.marshalNService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addServiceEndpoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18752,12 +18806,15 @@ func (ec *executionContext) _Mutation_addServiceEndpoint(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Service)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+	return ec.marshalNService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeServiceEndpoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18793,12 +18850,15 @@ func (ec *executionContext) _Mutation_removeServiceEndpoint(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Service)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+	return ec.marshalNService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addServiceType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18834,12 +18894,15 @@ func (ec *executionContext) _Mutation_addServiceType(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.ServiceType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOServiceType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx, field.Selections, res)
+	return ec.marshalNServiceType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editServiceType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18875,12 +18938,15 @@ func (ec *executionContext) _Mutation_editServiceType(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.ServiceType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOServiceType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx, field.Selections, res)
+	return ec.marshalNServiceType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeEquipmentFromPosition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18916,12 +18982,15 @@ func (ec *executionContext) _Mutation_removeEquipmentFromPosition(ctx context.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.EquipmentPosition)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentPosition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPosition(ctx, field.Selections, res)
+	return ec.marshalNEquipmentPosition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPosition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_moveEquipmentToPosition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18957,12 +19026,15 @@ func (ec *executionContext) _Mutation_moveEquipmentToPosition(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.EquipmentPosition)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentPosition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPosition(ctx, field.Selections, res)
+	return ec.marshalNEquipmentPosition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPosition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19042,12 +19114,15 @@ func (ec *executionContext) _Mutation_addImage(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.File)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, field.Selections, res)
+	return ec.marshalNFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addHyperlink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19171,12 +19246,15 @@ func (ec *executionContext) _Mutation_deleteImage(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.File)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, field.Selections, res)
+	return ec.marshalNFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeWorkOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19256,12 +19334,15 @@ func (ec *executionContext) _Mutation_executeWorkOrder(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.WorkOrderExecutionResult)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOWorkOrderExecutionResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderExecutionResult(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderExecutionResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderExecutionResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeWorkOrderType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19514,12 +19595,15 @@ func (ec *executionContext) _Mutation_editEquipmentPort(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.EquipmentPort)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentPort2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPort(ctx, field.Selections, res)
+	return ec.marshalNEquipmentPort2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPort(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_markLocationPropertyAsExternalID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19555,12 +19639,15 @@ func (ec *executionContext) _Mutation_markLocationPropertyAsExternalID(ctx conte
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeSiteSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19722,12 +19809,15 @@ func (ec *executionContext) _Mutation_moveLocation(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Location)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
+	return ec.marshalNLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editLocationTypesIndex(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19804,12 +19894,15 @@ func (ec *executionContext) _Mutation_addTechnician(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Technician)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOTechnician2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx, field.Selections, res)
+	return ec.marshalNTechnician2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addWorkOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19845,12 +19938,15 @@ func (ec *executionContext) _Mutation_addWorkOrder(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.WorkOrder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
+	return ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editWorkOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19886,12 +19982,15 @@ func (ec *executionContext) _Mutation_editWorkOrder(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.WorkOrder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
+	return ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addWorkOrderType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19927,12 +20026,15 @@ func (ec *executionContext) _Mutation_addWorkOrderType(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.WorkOrderType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOWorkOrderType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderType(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editWorkOrderType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19968,12 +20070,15 @@ func (ec *executionContext) _Mutation_editWorkOrderType(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.WorkOrderType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOWorkOrderType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderType(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createProjectType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20009,12 +20114,15 @@ func (ec *executionContext) _Mutation_createProjectType(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.ProjectType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOProjectType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectType(ctx, field.Selections, res)
+	return ec.marshalNProjectType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editProjectType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20050,12 +20158,15 @@ func (ec *executionContext) _Mutation_editProjectType(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.ProjectType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOProjectType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectType(ctx, field.Selections, res)
+	return ec.marshalNProjectType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteProjectType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20135,12 +20246,15 @@ func (ec *executionContext) _Mutation_createProject(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Project)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, field.Selections, res)
+	return ec.marshalNProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20176,12 +20290,15 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Project)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, field.Selections, res)
+	return ec.marshalNProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20261,12 +20378,15 @@ func (ec *executionContext) _Mutation_addCustomer(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Customer)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCustomer2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomer(ctx, field.Selections, res)
+	return ec.marshalNCustomer2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeCustomer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20346,12 +20466,15 @@ func (ec *executionContext) _Mutation_addFloorPlan(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.FloorPlan)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
+	return ec.marshalNFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteFloorPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20431,12 +20554,15 @@ func (ec *executionContext) _Mutation_addActionsRule(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.ActionsRule)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOActionsRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx, field.Selections, res)
+	return ec.marshalNActionsRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editActionsRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20472,12 +20598,15 @@ func (ec *executionContext) _Mutation_editActionsRule(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.ActionsRule)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOActionsRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx, field.Selections, res)
+	return ec.marshalNActionsRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_removeActionsRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20557,12 +20686,15 @@ func (ec *executionContext) _Mutation_technicianWorkOrderCheckIn(ctx context.Con
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.WorkOrder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
+	return ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
@@ -38035,10 +38167,19 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createSurvey":
 			out.Values[i] = ec._Mutation_createSurvey(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addLocation":
 			out.Values[i] = ec._Mutation_addLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editLocation":
 			out.Values[i] = ec._Mutation_editLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeLocation":
 			out.Values[i] = ec._Mutation_removeLocation(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38046,8 +38187,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addLocationType":
 			out.Values[i] = ec._Mutation_addLocationType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editLocationType":
 			out.Values[i] = ec._Mutation_editLocationType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeLocationType":
 			out.Values[i] = ec._Mutation_removeLocationType(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38055,8 +38202,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addEquipment":
 			out.Values[i] = ec._Mutation_addEquipment(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editEquipment":
 			out.Values[i] = ec._Mutation_editEquipment(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeEquipment":
 			out.Values[i] = ec._Mutation_removeEquipment(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38064,8 +38217,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addEquipmentType":
 			out.Values[i] = ec._Mutation_addEquipmentType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editEquipmentType":
 			out.Values[i] = ec._Mutation_editEquipmentType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeEquipmentType":
 			out.Values[i] = ec._Mutation_removeEquipmentType(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38073,8 +38232,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addEquipmentPortType":
 			out.Values[i] = ec._Mutation_addEquipmentPortType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editEquipmentPortType":
 			out.Values[i] = ec._Mutation_editEquipmentPortType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeEquipmentPortType":
 			out.Values[i] = ec._Mutation_removeEquipmentPortType(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38082,30 +38247,69 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addLink":
 			out.Values[i] = ec._Mutation_addLink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editLink":
 			out.Values[i] = ec._Mutation_editLink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeLink":
 			out.Values[i] = ec._Mutation_removeLink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addService":
 			out.Values[i] = ec._Mutation_addService(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editService":
 			out.Values[i] = ec._Mutation_editService(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addServiceLink":
 			out.Values[i] = ec._Mutation_addServiceLink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeServiceLink":
 			out.Values[i] = ec._Mutation_removeServiceLink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addServiceEndpoint":
 			out.Values[i] = ec._Mutation_addServiceEndpoint(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeServiceEndpoint":
 			out.Values[i] = ec._Mutation_removeServiceEndpoint(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addServiceType":
 			out.Values[i] = ec._Mutation_addServiceType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editServiceType":
 			out.Values[i] = ec._Mutation_editServiceType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeEquipmentFromPosition":
 			out.Values[i] = ec._Mutation_removeEquipmentFromPosition(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "moveEquipmentToPosition":
 			out.Values[i] = ec._Mutation_moveEquipmentToPosition(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addComment":
 			out.Values[i] = ec._Mutation_addComment(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38113,6 +38317,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addImage":
 			out.Values[i] = ec._Mutation_addImage(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addHyperlink":
 			out.Values[i] = ec._Mutation_addHyperlink(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38125,6 +38332,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteImage":
 			out.Values[i] = ec._Mutation_deleteImage(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeWorkOrder":
 			out.Values[i] = ec._Mutation_removeWorkOrder(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38132,6 +38342,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "executeWorkOrder":
 			out.Values[i] = ec._Mutation_executeWorkOrder(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeWorkOrderType":
 			out.Values[i] = ec._Mutation_removeWorkOrderType(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38156,8 +38369,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_editLocationTypeSurveyTemplateCategories(ctx, field)
 		case "editEquipmentPort":
 			out.Values[i] = ec._Mutation_editEquipmentPort(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "markLocationPropertyAsExternalID":
 			out.Values[i] = ec._Mutation_markLocationPropertyAsExternalID(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeSiteSurvey":
 			out.Values[i] = ec._Mutation_removeSiteSurvey(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38169,22 +38388,46 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addCellScans(ctx, field)
 		case "moveLocation":
 			out.Values[i] = ec._Mutation_moveLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editLocationTypesIndex":
 			out.Values[i] = ec._Mutation_editLocationTypesIndex(ctx, field)
 		case "addTechnician":
 			out.Values[i] = ec._Mutation_addTechnician(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addWorkOrder":
 			out.Values[i] = ec._Mutation_addWorkOrder(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editWorkOrder":
 			out.Values[i] = ec._Mutation_editWorkOrder(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addWorkOrderType":
 			out.Values[i] = ec._Mutation_addWorkOrderType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editWorkOrderType":
 			out.Values[i] = ec._Mutation_editWorkOrderType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createProjectType":
 			out.Values[i] = ec._Mutation_createProjectType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editProjectType":
 			out.Values[i] = ec._Mutation_editProjectType(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "deleteProjectType":
 			out.Values[i] = ec._Mutation_deleteProjectType(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38192,8 +38435,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createProject":
 			out.Values[i] = ec._Mutation_createProject(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editProject":
 			out.Values[i] = ec._Mutation_editProject(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "deleteProject":
 			out.Values[i] = ec._Mutation_deleteProject(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38201,6 +38450,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addCustomer":
 			out.Values[i] = ec._Mutation_addCustomer(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeCustomer":
 			out.Values[i] = ec._Mutation_removeCustomer(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38208,6 +38460,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addFloorPlan":
 			out.Values[i] = ec._Mutation_addFloorPlan(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "deleteFloorPlan":
 			out.Values[i] = ec._Mutation_deleteFloorPlan(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38215,8 +38470,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addActionsRule":
 			out.Values[i] = ec._Mutation_addActionsRule(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "editActionsRule":
 			out.Values[i] = ec._Mutation_editActionsRule(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeActionsRule":
 			out.Values[i] = ec._Mutation_removeActionsRule(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -38224,6 +38485,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "technicianWorkOrderCheckIn":
 			out.Values[i] = ec._Mutation_technicianWorkOrderCheckIn(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41447,6 +41711,10 @@ func (ec *executionContext) marshalNActionsOperator2ᚖgithubᚗcomᚋfacebookin
 	return ec._ActionsOperator(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNActionsRule2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx context.Context, sel ast.SelectionSet, v ent.ActionsRule) graphql.Marshaler {
+	return ec._ActionsRule(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNActionsRule2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx context.Context, sel ast.SelectionSet, v []*ent.ActionsRule) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -41482,6 +41750,16 @@ func (ec *executionContext) marshalNActionsRule2ᚕᚖgithubᚗcomᚋfacebookinc
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNActionsRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx context.Context, sel ast.SelectionSet, v *ent.ActionsRule) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ActionsRule(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v []*core.ActionsRuleAction) graphql.Marshaler {
@@ -42026,6 +42304,10 @@ func (ec *executionContext) marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsy
 	return v
 }
 
+func (ec *executionContext) marshalNCustomer2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomer(ctx context.Context, sel ast.SelectionSet, v ent.Customer) graphql.Marshaler {
+	return ec._Customer(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNCustomer2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomer(ctx context.Context, sel ast.SelectionSet, v []*ent.Customer) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -42061,6 +42343,16 @@ func (ec *executionContext) marshalNCustomer2ᚕᚖgithubᚗcomᚋfacebookincuba
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNCustomer2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomer(ctx context.Context, sel ast.SelectionSet, v *ent.Customer) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Customer(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNCustomerEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomerEdge(ctx context.Context, sel ast.SelectionSet, v ent.CustomerEdge) graphql.Marshaler {
@@ -42517,6 +42809,20 @@ func (ec *executionContext) unmarshalNEquipmentPortInput2ᚖgithubᚗcomᚋfaceb
 	return &res, err
 }
 
+func (ec *executionContext) marshalNEquipmentPortType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortType(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPortType) graphql.Marshaler {
+	return ec._EquipmentPortType(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEquipmentPortType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortType(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentPortType) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EquipmentPortType(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNEquipmentPortTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortTypeConnection(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPortTypeConnection) graphql.Marshaler {
 	return ec._EquipmentPortTypeConnection(ctx, sel, &v)
 }
@@ -42951,6 +43257,10 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNFloorPlan2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx context.Context, sel ast.SelectionSet, v ent.FloorPlan) graphql.Marshaler {
+	return ec._FloorPlan(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNFloorPlan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx context.Context, sel ast.SelectionSet, v []*ent.FloorPlan) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -42986,6 +43296,16 @@ func (ec *executionContext) marshalNFloorPlan2ᚕᚖgithubᚗcomᚋfacebookincub
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx context.Context, sel ast.SelectionSet, v *ent.FloorPlan) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._FloorPlan(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNFloorPlanReferencePoint2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlanReferencePoint(ctx context.Context, sel ast.SelectionSet, v ent.FloorPlanReferencePoint) graphql.Marshaler {
@@ -44818,6 +45138,20 @@ func (ec *executionContext) unmarshalNSurveyWiFiScanData2ᚖgithubᚗcomᚋfaceb
 	return &res, err
 }
 
+func (ec *executionContext) marshalNTechnician2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx context.Context, sel ast.SelectionSet, v ent.Technician) graphql.Marshaler {
+	return ec._Technician(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTechnician2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx context.Context, sel ast.SelectionSet, v *ent.Technician) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Technician(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNTechnicianInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianInput(ctx context.Context, v interface{}) (models.TechnicianInput, error) {
 	return ec.unmarshalInputTechnicianInput(ctx, v)
 }
@@ -45105,6 +45439,20 @@ func (ec *executionContext) marshalNWorkOrderEdge2ᚖgithubᚗcomᚋfacebookincu
 		return graphql.Null
 	}
 	return ec._WorkOrderEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNWorkOrderExecutionResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderExecutionResult(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderExecutionResult) graphql.Marshaler {
+	return ec._WorkOrderExecutionResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWorkOrderExecutionResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderExecutionResult(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderExecutionResult) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._WorkOrderExecutionResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNWorkOrderFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderFilterInput(ctx context.Context, v interface{}) (models.WorkOrderFilterInput, error) {
@@ -46978,17 +47326,6 @@ func (ec *executionContext) unmarshalOSurveyWiFiScanData2ᚖgithubᚗcomᚋfaceb
 	return &res, err
 }
 
-func (ec *executionContext) marshalOTechnician2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx context.Context, sel ast.SelectionSet, v ent.Technician) graphql.Marshaler {
-	return ec._Technician(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOTechnician2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐTechnician(ctx context.Context, sel ast.SelectionSet, v *ent.Technician) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Technician(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	return graphql.UnmarshalTime(v)
 }
@@ -47074,17 +47411,6 @@ func (ec *executionContext) unmarshalOWorkOrderDefinitionInput2ᚕᚖgithubᚗco
 		}
 	}
 	return res, nil
-}
-
-func (ec *executionContext) marshalOWorkOrderExecutionResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderExecutionResult(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderExecutionResult) graphql.Marshaler {
-	return ec._WorkOrderExecutionResult(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOWorkOrderExecutionResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderExecutionResult(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderExecutionResult) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._WorkOrderExecutionResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx context.Context, v interface{}) (models.WorkOrderPriority, error) {

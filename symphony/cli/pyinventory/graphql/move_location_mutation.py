@@ -45,7 +45,7 @@ class MoveLocationMutation(DataClassJsonMixin):
             locationType: LocationType
             externalId: Optional[str] = None
 
-        moveLocation: Optional[Location] = None
+        moveLocation: Location
 
     data: Optional[MoveLocationMutationData] = None
 

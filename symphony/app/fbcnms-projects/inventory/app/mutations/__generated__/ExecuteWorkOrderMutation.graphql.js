@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash afe9b8d9c79083d1bac5f94249a14630
+ * @relayHash 0c6f4026f3cf9c0048bd708cfe2db5c5
  */
 
 /* eslint-disable */
@@ -21,7 +21,7 @@ export type ExecuteWorkOrderMutationVariables = {|
   id: string
 |};
 export type ExecuteWorkOrderMutationResponse = {|
-  +executeWorkOrder: ?{|
+  +executeWorkOrder: {|
     +equipmentAdded: $ReadOnlyArray<{|
       +$fragmentRefs: EquipmentTable_equipment$ref
     |}>,

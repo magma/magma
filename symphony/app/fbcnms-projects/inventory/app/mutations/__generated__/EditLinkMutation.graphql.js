@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 849b0f73f666d3d6b782aab622a4e0c2
+ * @relayHash 307e2aa8e29bb9366a890635abfa0768
  */
 
 /* eslint-disable */
@@ -45,7 +45,7 @@ export type EditLinkMutationVariables = {|
   input: EditLinkInput
 |};
 export type EditLinkMutationResponse = {|
-  +editLink: ?{|
+  +editLink: {|
     +id: string,
     +futureState: ?FutureState,
     +ports: $ReadOnlyArray<?{|

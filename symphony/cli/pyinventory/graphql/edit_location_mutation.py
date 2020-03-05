@@ -47,7 +47,7 @@ class EditLocationMutation(DataClassJsonMixin):
             locationType: LocationType
             externalId: Optional[str] = None
 
-        editLocation: Optional[Location] = None
+        editLocation: Location
 
     data: Optional[EditLocationMutationData] = None
 

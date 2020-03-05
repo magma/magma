@@ -74,7 +74,7 @@ func TestAddRemoveSurvey(t *testing.T) {
 
 	file, err := mr.AddImage(ctx, models.AddImageInput{
 		EntityType:  models.ImageEntitySiteSurvey,
-		EntityID:    *surveyID,
+		EntityID:    surveyID,
 		ImgKey:      "1234",
 		FileName:    "site_survey.",
 		FileSize:    50000,
@@ -88,7 +88,7 @@ func TestAddRemoveSurvey(t *testing.T) {
 	require.Len(t, surveys, 1, "Verifying 'Surveys' return value")
 	fetchedSurvey := surveys[0]
 
-	require.Equal(t, *surveyID, fetchedSurvey.ID, "Verifying saved survey vs fetched survey: ID")
+	require.Equal(t, surveyID, fetchedSurvey.ID, "Verifying saved survey vs fetched survey: ID")
 
 	slID, err := sr.LocationID(ctx, fetchedSurvey)
 	require.NoError(t, err)

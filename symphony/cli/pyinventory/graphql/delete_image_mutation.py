@@ -38,7 +38,7 @@ class DeleteImageMutation(DataClassJsonMixin):
             id: str
             fileName: str
 
-        deleteImage: Optional[File] = None
+        deleteImage: File
 
     data: Optional[DeleteImageMutationData] = None
 

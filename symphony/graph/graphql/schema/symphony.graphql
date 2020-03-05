@@ -1980,53 +1980,53 @@ type Query {
 }
 
 type Mutation {
-  createSurvey(data: SurveyCreateData!): ID
-  addLocation(input: AddLocationInput!): Location
-  editLocation(input: EditLocationInput!): Location
+  createSurvey(data: SurveyCreateData!): ID!
+  addLocation(input: AddLocationInput!): Location!
+  editLocation(input: EditLocationInput!): Location!
   removeLocation(id: ID!): ID!
-  addLocationType(input: AddLocationTypeInput!): LocationType
-  editLocationType(input: EditLocationTypeInput!): LocationType
+  addLocationType(input: AddLocationTypeInput!): LocationType!
+  editLocationType(input: EditLocationTypeInput!): LocationType!
   removeLocationType(id: ID!): ID!
-  addEquipment(input: AddEquipmentInput!): Equipment
-  editEquipment(input: EditEquipmentInput!): Equipment
+  addEquipment(input: AddEquipmentInput!): Equipment!
+  editEquipment(input: EditEquipmentInput!): Equipment!
   removeEquipment(id: ID!, workOrderId: ID): ID!
-  addEquipmentType(input: AddEquipmentTypeInput!): EquipmentType
-  editEquipmentType(input: EditEquipmentTypeInput!): EquipmentType
+  addEquipmentType(input: AddEquipmentTypeInput!): EquipmentType!
+  editEquipmentType(input: EditEquipmentTypeInput!): EquipmentType!
   removeEquipmentType(id: ID!): ID!
-  addEquipmentPortType(input: AddEquipmentPortTypeInput!): EquipmentPortType
-  editEquipmentPortType(input: EditEquipmentPortTypeInput!): EquipmentPortType
+  addEquipmentPortType(input: AddEquipmentPortTypeInput!): EquipmentPortType!
+  editEquipmentPortType(input: EditEquipmentPortTypeInput!): EquipmentPortType!
   removeEquipmentPortType(id: ID!): ID!
-  addLink(input: AddLinkInput!): Link
-  editLink(input: EditLinkInput!): Link
-  removeLink(id: ID!, workOrderId: ID): Link
+  addLink(input: AddLinkInput!): Link!
+  editLink(input: EditLinkInput!): Link!
+  removeLink(id: ID!, workOrderId: ID): Link!
   addService(
     """
     data to create service
     """
     data: ServiceCreateData!
-  ): Service
+  ): Service!
   editService(
     """
     data to edit service
     """
     data: ServiceEditData!
-  ): Service
-  addServiceLink(id: ID!, linkId: ID!): Service
-  removeServiceLink(id: ID!, linkId: ID!): Service
-  addServiceEndpoint(input: AddServiceEndpointInput!): Service
-  removeServiceEndpoint(serviceEndpointId: ID!): Service
+  ): Service!
+  addServiceLink(id: ID!, linkId: ID!): Service!
+  removeServiceLink(id: ID!, linkId: ID!): Service!
+  addServiceEndpoint(input: AddServiceEndpointInput!): Service!
+  removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
     """
     data to edit service type
     """
     data: ServiceTypeCreateData!
-  ): ServiceType
+  ): ServiceType!
   editServiceType(
     """
     data to edit service type
     """
     data: ServiceTypeEditData!
-  ): ServiceType
+  ): ServiceType!
   removeEquipmentFromPosition(
     positionId: ID!
 
@@ -2034,7 +2034,7 @@ type Mutation {
     id of the work order to remove this equipment
     """
     workOrderId: ID
-  ): EquipmentPosition
+  ): EquipmentPosition!
   moveEquipmentToPosition(
     """
     id of the equipment of the position definition to attach to
@@ -2050,9 +2050,9 @@ type Mutation {
     id of the equipment to that will be attached as a child to the position
     """
     equipmentId: ID!
-  ): EquipmentPosition
+  ): EquipmentPosition!
   addComment(input: CommentInput!): Comment!
-  addImage(input: AddImageInput!): File
+  addImage(input: AddImageInput!): File!
   addHyperlink(input: AddHyperlinkInput!): Hyperlink!
   deleteHyperlink(id: ID!): Hyperlink!
   deleteImage(
@@ -2070,9 +2070,9 @@ type Mutation {
     id of the image file
     """
     id: ID!
-  ): File
+  ): File!
   removeWorkOrder(id: ID!): ID!
-  executeWorkOrder(id: ID!): WorkOrderExecutionResult
+  executeWorkOrder(id: ID!): WorkOrderExecutionResult!
   removeWorkOrderType(id: ID!): ID!
   markSiteSurveyNeeded(locationId: ID!, needed: Boolean!): Location!
   removeService(id: ID!): ID!
@@ -2088,8 +2088,8 @@ type Mutation {
     """
     surveyTemplateCategories: [SurveyTemplateCategoryInput!]!
   ): [SurveyTemplateCategory!]
-  editEquipmentPort(input: EditEquipmentPortInput!): EquipmentPort
-  markLocationPropertyAsExternalID(propertyName: String!): String
+  editEquipmentPort(input: EditEquipmentPortInput!): EquipmentPort!
+  markLocationPropertyAsExternalID(propertyName: String!): String!
   removeSiteSurvey(id: ID!): ID!
   addWiFiScans(
     """
@@ -2122,32 +2122,32 @@ type Mutation {
     ID of the location to be the new parent
     """
     parentLocationID: ID
-  ): Location
+  ): Location!
   editLocationTypesIndex(
     """
     edit the location index to the location
     """
     locationTypesIndex: [LocationTypeIndex]!
   ): [LocationType]
-  addTechnician(input: TechnicianInput!): Technician
-  addWorkOrder(input: AddWorkOrderInput!): WorkOrder
-  editWorkOrder(input: EditWorkOrderInput!): WorkOrder
-  addWorkOrderType(input: AddWorkOrderTypeInput!): WorkOrderType
-  editWorkOrderType(input: EditWorkOrderTypeInput!): WorkOrderType
-  createProjectType(input: AddProjectTypeInput!): ProjectType
-  editProjectType(input: EditProjectTypeInput!): ProjectType
+  addTechnician(input: TechnicianInput!): Technician!
+  addWorkOrder(input: AddWorkOrderInput!): WorkOrder!
+  editWorkOrder(input: EditWorkOrderInput!): WorkOrder!
+  addWorkOrderType(input: AddWorkOrderTypeInput!): WorkOrderType!
+  editWorkOrderType(input: EditWorkOrderTypeInput!): WorkOrderType!
+  createProjectType(input: AddProjectTypeInput!): ProjectType!
+  editProjectType(input: EditProjectTypeInput!): ProjectType!
   deleteProjectType(id: ID!): Boolean!
-  createProject(input: AddProjectInput!): Project
-  editProject(input: EditProjectInput!): Project
+  createProject(input: AddProjectInput!): Project!
+  editProject(input: EditProjectInput!): Project!
   deleteProject(id: ID!): Boolean!
-  addCustomer(input: AddCustomerInput!): Customer
+  addCustomer(input: AddCustomerInput!): Customer!
   removeCustomer(id: ID!): ID!
-  addFloorPlan(input: AddFloorPlanInput!): FloorPlan
+  addFloorPlan(input: AddFloorPlanInput!): FloorPlan!
   deleteFloorPlan(id: ID!): Boolean!
-  addActionsRule(input: AddActionsRuleInput!): ActionsRule
-  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
+  addActionsRule(input: AddActionsRuleInput!): ActionsRule!
+  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
-  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
+  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
 }
 
 type Subscription {

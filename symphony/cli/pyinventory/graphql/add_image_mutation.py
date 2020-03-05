@@ -33,7 +33,7 @@ class AddImageMutation(DataClassJsonMixin):
             id: str
             fileName: str
 
-        addImage: Optional[File] = None
+        addImage: File
 
     data: Optional[AddImageMutationData] = None
 

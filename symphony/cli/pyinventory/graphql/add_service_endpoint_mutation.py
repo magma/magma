@@ -76,7 +76,7 @@ class AddServiceEndpointMutation(DataClassJsonMixin):
             externalId: Optional[str] = None
             customer: Optional[Customer] = None
 
-        addServiceEndpoint: Optional[Service] = None
+        addServiceEndpoint: Service
 
     data: Optional[AddServiceEndpointMutationData] = None
 

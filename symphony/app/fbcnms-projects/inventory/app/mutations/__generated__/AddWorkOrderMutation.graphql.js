@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash e4f8c194e14f414890f41361bf48005f
+ * @relayHash 7c90caee5746f98b2ad1b65ea1ca2203
  */
 
 /* eslint-disable */
@@ -70,7 +70,7 @@ export type AddWorkOrderMutationVariables = {|
   input: AddWorkOrderInput
 |};
 export type AddWorkOrderMutationResponse = {|
-  +addWorkOrder: ?{|
+  +addWorkOrder: {|
     +id: string,
     +name: string,
     +description: ?string,

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 31840493312fa8fea53e96d631d045fe
+ * @relayHash d644c4faa42256a14a2d749b66e15df8
  */
 
 /* eslint-disable */
@@ -50,7 +50,7 @@ export type AddLinkMutationVariables = {|
   input: AddLinkInput
 |};
 export type AddLinkMutationResponse = {|
-  +addLink: ?{|
+  +addLink: {|
     +id: string,
     +futureState: ?FutureState,
     +ports: $ReadOnlyArray<?{|

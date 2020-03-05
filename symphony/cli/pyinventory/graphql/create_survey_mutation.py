@@ -25,7 +25,7 @@ class CreateSurveyMutation(DataClassJsonMixin):
 
     @dataclass
     class CreateSurveyMutationData(DataClassJsonMixin):
-        createSurvey: Optional[str] = None
+        createSurvey: str
 
     data: Optional[CreateSurveyMutationData] = None
 

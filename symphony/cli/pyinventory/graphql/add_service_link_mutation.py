@@ -74,7 +74,7 @@ class AddServiceLinkMutation(DataClassJsonMixin):
             externalId: Optional[str] = None
             customer: Optional[Customer] = None
 
-        addServiceLink: Optional[Service] = None
+        addServiceLink: Service
 
     data: Optional[AddServiceLinkMutationData] = None
 
