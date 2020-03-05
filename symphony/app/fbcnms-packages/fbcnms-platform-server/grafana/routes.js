@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -26,8 +26,8 @@ import type {GetDatasourcesResponse} from './GrafanaAPIType';
 import type {GrafanaResponse} from './GrafanaAPI';
 
 const GRAFANA_PROTOCOL = 'http';
-const GRAFANA_HOST = process.env.USER_GRAFANA_HOSTNAME || 'user-grafana';
-const GRAFANA_PORT = process.env.USER_GRAFANA_PORT || '3000';
+const GRAFANA_HOST = process.env.USER_GRAFANA_HOSTNAME ?? 'user-grafana';
+const GRAFANA_PORT = process.env.USER_GRAFANA_PORT ?? '3000';
 const GRAFANA_URL = `${GRAFANA_PROTOCOL}://${GRAFANA_HOST}:${GRAFANA_PORT}`;
 
 const AUTH_PROXY_HEADER = 'X-WEBAUTH-USER';
