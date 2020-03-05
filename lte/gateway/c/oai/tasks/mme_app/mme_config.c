@@ -375,7 +375,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
 
       if (config_setting_lookup_string(
             setting, LOG_CONFIG_STRING_COLOR, (const char **) &astring)) {
-        if (0 == strcasecmp("yes", astring))
+        if (strcasecmp("yes", astring) == 0)
           config_pP->log_config.color = true;
         else
           config_pP->log_config.color = false;

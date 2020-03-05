@@ -14,7 +14,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-------------------------------------------------------------------------------
+ *------------------------------------------------------------------------------
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
@@ -57,8 +57,7 @@ static void oai_fd_logger(int loglevel, const char *format, va_list args);
 #define S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC (0)
 #define S6A_PEER_CONNECT_TIMEOUT_SEC (1)
 
-// LG-EURECOM should be member of S6aFdIface, but requires modifications that will take
-// 1 or 2 more hours, a bit late for today
+// TODO Mohit should be member of S6aFdIface (hide this global var).
 s6a_fd_cnf_t s6a_fd_cnf;
 
 //------------------------------------------------------------------------------
@@ -88,15 +87,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
   int ret = RETURNok;
   memset(&s6a_fd_cnf, 0, sizeof(s6a_fd_cnf_t));
 
-  /*
-   * if (strcmp(fd_core_version(), free_wrapper_DIAMETER_MINIMUM_VERSION) ) {
-   * S6A_ERROR("Freediameter version %s found, expecting %s\n", fd_core_version(),
-   * free_wrapper_DIAMETER_MINIMUM_VERSION);
-   * return RETURNerror;
-   * } else {
-   * S6A_DEBUG("Freediameter version %s\n", fd_core_version());
-   * }
-   */
+  // TODO check for a preprocessor difinition in freeDiameter repo hosted on OAI
+  // Github
 
   /*
    * Initializing freeDiameter logger
@@ -107,7 +99,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
       LOG_S6A,
       "An error occurred during freeDiameter log handler registration: %d\n",
       ret);
-    std::runtime_error("An error occurred during freeDiameter log handler registration"); ;
+    std::runtime_error("An error occurred during freeDiameter log handler "
+        "registration");
   } else {
     OAILOG_DEBUG(LOG_S6A, "Initializing freeDiameter log handler done\n");
   }
@@ -122,7 +115,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
       LOG_S6A,
       "An error occurred during freeDiameter core library initialization: %d\n",
       ret);
-    std::runtime_error("An error occurred during freeDiameter core library initialization"); ;
+    std::runtime_error("An error occurred during freeDiameter core library "
+        "initialization");
   } else {
     OAILOG_DEBUG(LOG_S6A, "Initializing freeDiameter core done\n");
   }
@@ -135,7 +129,7 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
       LOG_S6A,
       "An error occurred during fd_core_parseconf file : %s.\n",
       bdata(config->conf_file));
-    std::runtime_error("An error occurred during fd_core_parseconf file"); ;
+    std::runtime_error("An error occurred during fd_core_parseconf file");
   } else {
     OAILOG_DEBUG(LOG_S6A, "fd_core_parseconf done\n");
   }
@@ -157,7 +151,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
   if (ret) {
     OAILOG_ERROR(
       LOG_S6A, "An error occurred during freeDiameter core library start\n");
-    std::runtime_error("An error occurred during freeDiameter core library start"); ;
+    std::runtime_error("An error occurred during freeDiameter core library "
+        "start");
   } else {
     OAILOG_DEBUG(LOG_S6A, "fd_core_start done\n");
   }
@@ -166,7 +161,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
   if (ret) {
     OAILOG_ERROR(
       LOG_S6A, "An error occurred during freeDiameter core library start\n");
-    std::runtime_error("An error occurred during freeDiameter core library start\n");
+    std::runtime_error("An error occurred during freeDiameter core library "
+        "start\n");
   } else {
     OAILOG_DEBUG(LOG_S6A, "fd_core_waitstartcomplete done\n");
   }
@@ -272,7 +268,8 @@ S6aFdIface::~S6aFdIface()
     OAI_FPRINTF_ERR("An error occurred during fd_core_shutdown().\n");
   }
 
-  /* Wait for the shutdown to be complete -- this should always be called after fd_core_shutdown */
+  /* Wait for the shutdown to be complete -- this should always be called after
+   * fd_core_shutdown */
   rv = fd_core_wait_shutdown_complete();
   if (rv) {
     OAI_FPRINTF_ERR(
