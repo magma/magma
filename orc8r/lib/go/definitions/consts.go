@@ -13,4 +13,5 @@ const (
 	MagmadServiceName       = "magmad"
 	ControlProxyServiceName = "control_proxy"
 	MconfigStreamName       = "configs"
+	DispatcherServiceName   = "dispatcher"
 )
