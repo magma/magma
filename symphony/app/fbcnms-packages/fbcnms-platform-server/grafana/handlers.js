@@ -10,10 +10,17 @@
 
 import fs from 'fs';
 
+import {isEqual, sortBy} from 'lodash';
+
+import MagmaV1API from '@fbcnms/platform-server/magma/index';
+import {Organization} from '@fbcnms/sequelize-models';
+
 import type {Datasource} from './GrafanaAPIType';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
+import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 import type {UserType} from '@fbcnms/sequelize-models/models/user';
+import type {tenant} from '../../fbcnms-magma-api';
 
 export type GrafanaError = {
   response: GrafanaResponse<mixed>,
@@ -117,9 +124,8 @@ export async function HandleNewDatasource(
     };
   }
 
-  // Gather information for datasource parameters
-  const grafanaOrgID = await getUserGrafanaOrgID(client, req.user);
   const nmsOrg = await req.organization();
+  const grafanaOrgID = await getUserGrafanaOrgID(client, req.user);
   const nmsOrgID = nmsOrg.id;
   const apiHost = process.env.API_HOST;
   if (isNaN(grafanaOrgID) || apiHost === undefined || nmsOrgID === undefined) {
@@ -139,6 +145,50 @@ export async function HandleNewDatasource(
       response: {data: addDSResp.data, status: addDSResp.status},
       message: 'Could not create datasource ',
     };
+  }
+  return;
+}
+
+export async function HandleSyncOrganizations(): Promise<?GrafanaError> {
+  const tenantMap = {};
+  try {
+    const orc8rTenants = await MagmaV1API.getTenants();
+    orc8rTenants.forEach(tenant => {
+      tenantMap[tenant.id] = tenant;
+    });
+  } catch (error) {
+    return {
+      response: {data: error.response.data, status: error.response.status},
+      message: 'Error updating tenant',
+    };
+  }
+
+  const nmsOrganizations = await Organization.findAll();
+  for (const org of nmsOrganizations) {
+    const orc8rTenant = tenantMap[org.id];
+    try {
+      // Update if tenant exists but is not equal to NMS Org
+      if (orc8rTenant && !organizationsEqual(org, orc8rTenant)) {
+        await MagmaV1API.putTenantsByTenantId({
+          tenant: {id: org.id, name: org.name, networks: org.networkIDs},
+          tenantId: org.id,
+        });
+      } else if (!orc8rTenant) {
+        // Create new orc8r tenant if it didn't exist before
+        await MagmaV1API.postTenants({
+          tenant: {
+            id: org.id,
+            name: org.name,
+            networks: org.networkIDs,
+          },
+        });
+      }
+    } catch (error) {
+      return {
+        response: {data: error.response.data, status: error.response.status},
+        message: 'Error updating tenant',
+      };
+    }
   }
   return;
 }
@@ -186,4 +236,14 @@ function makeDatasourceConfig(params: {
       tlsClientKey: params.key.toString(),
     },
   };
+}
+
+function organizationsEqual(
+  nmsOrg: OrganizationType,
+  orc8rTenant: tenant,
+): boolean {
+  return (
+    nmsOrg.name == orc8rTenant.name &&
+    isEqual(sortBy(nmsOrg.networkIDs), sortBy(orc8rTenant.networks))
+  );
 }

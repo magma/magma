@@ -16,6 +16,7 @@ import Client from './GrafanaAPI';
 import {
   HandleNewDatasource,
   HandleNewGrafanaUser,
+  HandleSyncOrganizations,
   ORC8R_DATASOURCE_NAME,
   makeGrafanaUsername,
 } from './handlers';
@@ -95,6 +96,22 @@ const checkOrchestratorDatasource = () => {
         .send(err.message + strData)
         .end();
     }
+    return next();
+  };
+};
+
+// Ensure that organizations in the NMS are in sync with
+// tenants in Orchestrator
+const syncOrganizations = () => {
+  return async function(req: FBCNMSRequest, res, next) {
+    const err = await HandleSyncOrganizations();
+    if (err) {
+      const strData = JSON.stringify(err.response.data) || '';
+      return res
+        .status(err.response.status)
+        .send(err.message + strData)
+        .end();
+    }
     next();
   };
 };
@@ -115,6 +132,7 @@ const proxyMiddleware = () => {
 
 // Only the root path should check for Grafana User
 router.all('/', checkGrafanaUser());
+router.all('/', syncOrganizations());
 router.all('/', checkOrchestratorDatasource());
 // Use proxy on all paths
 router.use('/', proxyMiddleware());
