@@ -1465,17 +1465,6 @@ bool LocalEnforcer::session_with_same_config_exists(
   return false;
 }
 
-void LocalEnforcer::set_cwf_session_config(
-  const std::string& imsi, const magma::SessionState::Config& config)
-{
-  auto it = session_map_.find(imsi);
-  if (it != session_map_.end()) {
-    for (const auto &session : it->second) {
-      session->set_config(config);
-    }
-  }
-}
-
 static void handle_command_level_result_code(
   const std::string& imsi,
   const uint32_t result_code,

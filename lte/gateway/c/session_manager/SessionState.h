@@ -174,8 +174,6 @@ class SessionState {
 
   bool qos_enabled() const;
 
-  void set_config(const Config& config);
-
   void set_tgpp_context(const magma::lte::TgppContext& tgpp_context);
 
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;

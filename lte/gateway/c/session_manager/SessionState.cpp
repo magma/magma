@@ -360,10 +360,6 @@ std::string SessionState::get_apn() const
   return config_.apn;
 }
 
-void SessionState::set_config(const Config& config) {
-  config_ = config;
-}
-
 bool SessionState::is_radius_cwf_session() const
 {
   return (config_.rat_type == RATType::TGPP_WLAN);
