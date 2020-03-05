@@ -370,7 +370,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
 
       if (config_setting_lookup_string(
             setting, LOG_CONFIG_STRING_COLOR, (const char **) &astring)) {
-        if (0 == strcasecmp("yes", astring))
+        if (strcasecmp("yes", astring) == 0)
           config_pP->log_config.color = true;
         else
           config_pP->log_config.color = false;
@@ -680,7 +680,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
       }
 
       config_pP->served_tai.nb_tai = num;
-      AssertFatal(16 >= num, "Too many TAIs configured %d", num);
+      AssertFatal(num <= 16, "Too many TAIs configured %d", num);
 
       for (i = 0; i < num; i++) {
         sub2setting = config_setting_get_elem(setting, i);
@@ -805,7 +805,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
           if ((config_setting_lookup_string(
                 sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
             AssertFatal(
-              3 == strlen(mcc), "Bad MCC length, it must be 3 digit ex: 001");
+              strlen(mcc) == 3, "Bad MCC length, it must be 3 digit ex: 001");
             char c[2] = {mcc[0], 0};
             config_pP->gummei.gummei[i].plmn.mcc_digit1 = (uint8_t) atoi(c);
             c[0] = mcc[1];
@@ -817,13 +817,13 @@ int mme_config_parse_file(mme_config_t *config_pP)
           if ((config_setting_lookup_string(
                 sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
             AssertFatal(
-              (3 == strlen(mnc)) || (2 == strlen(mnc)),
+              (strlen(mnc) == 3) || (strlen(mnc) == 2),
               "Bad MCC length, it must be 3 digit ex: 001");
             char c[2] = {mnc[0], 0};
             config_pP->gummei.gummei[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
             c[0] = mnc[1];
             config_pP->gummei.gummei[i].plmn.mnc_digit2 = (uint8_t) atoi(c);
-            if (3 == strlen(mnc)) {
+            if (strlen(mnc) == 3) {
               c[0] = mnc[2];
               config_pP->gummei.gummei[i].plmn.mnc_digit3 = (uint8_t) atoi(c);
             } else {
@@ -871,7 +871,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->ipv4.if_name_s1_mme = bfromcstr(if_name_s1_mme);
         cidr = bfromcstr(s1_mme);
         struct bstrList *list = bsplit(cidr, '/');
-        AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
+        AssertFatal(list->qty == 2, "Bad CIDR address %s", bdata(cidr));
         address = list->entry[0];
         mask = list->entry[1];
         IPV4_STR_ADDR_TO_INADDR(
@@ -893,7 +893,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->ipv4.if_name_s11 = bfromcstr(if_name_s11);
         cidr = bfromcstr(s11);
         list = bsplit(cidr, '/');
-        AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
+        AssertFatal(list->qty == 2, "Bad CIDR address %s", bdata(cidr));
         address = list->entry[0];
         mask = list->entry[1];
         IPV4_STR_ADDR_TO_INADDR(
@@ -934,7 +934,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
         if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_CSFB_MCC, &csfb_mcc))) {
           AssertFatal(
-            3 == strlen(csfb_mcc),
+            strlen(csfb_mcc) == 3,
             "Bad MCC length, it must be 3 digit ex: 001");
           char c[2] = {csfb_mcc[0], 0};
           config_pP->lai.mccdigit1 = (uint8_t) atoi(c);
@@ -946,13 +946,13 @@ int mme_config_parse_file(mme_config_t *config_pP)
         if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_CSFB_MNC, &csfb_mnc))) {
           AssertFatal(
-            (3 == strlen(csfb_mnc)) || (2 == strlen(csfb_mnc)),
+            (strlen(csfb_mnc) == 3) || (strlen(csfb_mnc) == 2),
             "Bad MNC length, it must be 2 or 3 digit");
           char c[2] = {csfb_mnc[0], 0};
           config_pP->lai.mncdigit1 = (uint8_t) atoi(c);
           c[0] = csfb_mnc[1];
           config_pP->lai.mncdigit2 = (uint8_t) atoi(c);
-          if (3 == strlen(csfb_mnc)) {
+          if (strlen(csfb_mnc) == 3) {
             c[0] = csfb_mnc[2];
             config_pP->lai.mncdigit3 = (uint8_t) atoi(c);
           } else {
@@ -1152,7 +1152,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
               (const char **) &sgw_ip_address_for_s11))) {
           cidr = bfromcstr(sgw_ip_address_for_s11);
           struct bstrList *list = bsplit(cidr, '/');
-          AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
+          AssertFatal(list->qty == 2, "Bad CIDR address %s", bdata(cidr));
           address = list->entry[0];
           IPV4_STR_ADDR_TO_INADDR(
             bdata(address),
