@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow strict-local
+ * @flow
  * @format
  */
 
@@ -13,16 +13,10 @@ import type {SvgIconStyleProps} from '../SvgIcon';
 import React from 'react';
 import SvgIcon from '../SvgIcon';
 
-const ThreeDotsIcon = (props: SvgIconStyleProps) => (
+const MultipleSelectionIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <defs>
-      <path
-        d="M12 7a2 2 0 100-4 2 2 0 000 4zm0 7a2 2 0 100-4 2 2 0 000 4zm0 7a2 2 0 100-4 2 2 0 000 4z"
-        id="treeDotsIcon"
-      />
-    </defs>
-    <use xlinkHref="#treeDotsIcon" fillRule="evenodd" />
+    <path d="M21 16v2H7v-2h14zM5 16v2H3v-2h2zm16-5v2H7v-2h14zM5 11v2H3v-2h2zm16-5v2H7V6h14zM5 6v2H3V6h2z" />
   </SvgIcon>
 );
 
-export default ThreeDotsIcon;
+export default MultipleSelectionIcon;

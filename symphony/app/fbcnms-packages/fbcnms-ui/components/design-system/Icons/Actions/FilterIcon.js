@@ -13,10 +13,10 @@ import type {SvgIconStyleProps} from '../SvgIcon';
 import React from 'react';
 import SvgIcon from '../SvgIcon';
 
-const SearchIcon = (props: SvgIconStyleProps) => (
+const FilterIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <path d="M5.575 5.075a7 7 0 0110.557 9.142l4.293 4.293a1 1 0 01-1.415 1.415l-4.292-4.293A7.002 7.002 0 015.575 5.075zM6.99 6.49a5 5 0 107.07 7.07 5 5 0 00-7.07-7.07z" />
+    <path d="M6 6v1l3.791 2.844L11.608 18h.792l1.809-8.156L18 7V6H6zM4 4h16v3.5a1 1 0 01-.4.8L16 11l-1.995 9h-4L8 11 4.4 8.3a1 1 0 01-.4-.8V4z" />
   </SvgIcon>
 );
 
-export default SearchIcon;
+export default FilterIcon;

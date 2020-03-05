@@ -13,10 +13,16 @@ import type {SvgIconStyleProps} from '../SvgIcon';
 import React from 'react';
 import SvgIcon from '../SvgIcon';
 
-const SearchIcon = (props: SvgIconStyleProps) => (
+const ThreeDotsVerticalIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <path d="M5.575 5.075a7 7 0 0110.557 9.142l4.293 4.293a1 1 0 01-1.415 1.415l-4.292-4.293A7.002 7.002 0 015.575 5.075zM6.99 6.49a5 5 0 107.07 7.07 5 5 0 00-7.07-7.07z" />
+    <defs>
+      <path
+        d="M12 7a2 2 0 100-4 2 2 0 000 4zm0 7a2 2 0 100-4 2 2 0 000 4zm0 7a2 2 0 100-4 2 2 0 000 4z"
+        id="threeDotsVerticalIcon"
+      />
+    </defs>
+    <use xlinkHref="#threeDotsVerticalIcon" />
   </SvgIcon>
 );
 
-export default SearchIcon;
+export default ThreeDotsVerticalIcon;
