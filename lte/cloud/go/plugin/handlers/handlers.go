@@ -809,10 +809,28 @@ func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
 		return fmt.Errorf("Unable to convert config")
 	}
 	if len(ruleName) != 0 {
-		subscriberConfig.NetworkWideRuleNames = append(subscriberConfig.NetworkWideRuleNames, ruleName)
+		ruleAlreadyExists := false
+		for _, existing := range subscriberConfig.NetworkWideRuleNames {
+			if existing == ruleName {
+				ruleAlreadyExists = true
+				break
+			}
+		}
+		if !ruleAlreadyExists {
+			subscriberConfig.NetworkWideRuleNames = append(subscriberConfig.NetworkWideRuleNames, ruleName)
+		}
 	}
 	if len(baseName) != 0 {
-		subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, ltemodels.BaseName(baseName))
+		bnAlreadyExists := false
+		for _, existing := range subscriberConfig.NetworkWideBaseNames {
+			if existing == ltemodels.BaseName(baseName){
+				bnAlreadyExists = true
+				break
+			}
+		}
+		if !bnAlreadyExists {
+			subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, ltemodels.BaseName(baseName))
+		}
 	}
 	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
 }
