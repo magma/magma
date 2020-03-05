@@ -18,6 +18,8 @@ import type {
   Datasource,
   DeleteOrgResponse,
   GetDatasourcesResponse,
+  GetHealthResponse,
+  GetOrgUsersResponse,
   GetUserResponse,
   OrgUser,
   Organization,
@@ -42,12 +44,15 @@ export type GrafanaClient = {
     orgID: number,
     user: OrgUser,
   ) => GrafanaPromise<AddOrgUserResponse>,
+  getUsersInOrg: (orgID: number) => GrafanaPromise<GetOrgUsersResponse>,
 
   createDatasource: (
     ds: Datasource,
     orgID: number,
   ) => GrafanaPromise<CreateDatasourceResponse>,
   getDatasources: (orgID: number) => GrafanaPromise<GetDatasourcesResponse>,
+
+  getHealth: () => GrafanaPromise<GetHealthResponse>,
 };
 
 type axiosRequest = {
@@ -126,6 +131,14 @@ const client = (
     });
   },
 
+  async getUsersInOrg(orgID: number): GrafanaPromise<GetOrgUsersResponse> {
+    return request({
+      url: apiURL + `/api/orgs/${orgID}/users`,
+      method: 'GET',
+      headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
+    });
+  },
+
   async createDatasource(
     ds: Datasource,
     orgId: number,
@@ -143,6 +156,14 @@ const client = (
       url: apiURL + `/api/datasources`,
       method: 'GET',
       headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
+    });
+  },
+
+  async getHealth(): GrafanaPromise<GetHealthResponse> {
+    return request({
+      url: apiURL + `/api/health`,
+      method: 'GET',
+      headers: constHeaders,
     });
   },
 });

@@ -53,6 +53,19 @@ export type AddOrgUserResponse = {
   message: string,
 };
 
+export type GetOrgUsersResponse = Array<OrgUserResponse>;
+
+type OrgUserResponse = {
+  orgId: number,
+  userId: number,
+  email: string,
+  avatarUrl: string,
+  login: string,
+  role: string,
+  lastSeenAt: string,
+  lastSeenAtAge: string,
+};
+
 export type CreateUserResponse = {
   id: number,
   message: string,
@@ -88,3 +101,9 @@ export type CreateDatasourceResponse = {
 };
 
 export type GetDatasourcesResponse = Array<Datasource>;
+
+export type GetHealthResponse = {
+  commit: string,
+  database: string,
+  version: string,
+};

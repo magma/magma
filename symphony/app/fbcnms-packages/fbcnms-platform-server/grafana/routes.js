@@ -8,22 +8,24 @@
  * @format
  */
 
+import React from 'react';
+import ReactDOM from 'react-dom/server';
 import express from 'express';
 import proxy from 'express-http-proxy';
 
 import Client from './GrafanaAPI';
 
+import GrafanaErrorMessage from './GrafanaErrorMessage';
 import {
-  HandleNewDatasource,
-  HandleNewGrafanaUser,
-  HandleSyncOrganizations,
-  ORC8R_DATASOURCE_NAME,
   makeGrafanaUsername,
+  syncDatasource,
+  syncGrafanaUser,
+  syncTenants,
 } from './handlers';
 
+import type {Task} from './handlers';
+
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
-import type {GetDatasourcesResponse} from './GrafanaAPIType';
-import type {GrafanaResponse} from './GrafanaAPI';
 
 const GRAFANA_PROTOCOL = 'http';
 const GRAFANA_HOST = process.env.USER_GRAFANA_HOSTNAME ?? 'user-grafana';
@@ -38,83 +40,53 @@ const grafanaAdminClient = Client(GRAFANA_URL, {
   [AUTH_PROXY_HEADER]: 'admin',
 });
 
-// Check that the NMS user and Org has been added to Grafana
-const checkGrafanaUser = () => {
+const syncGrafana = () => {
   return async function(req: FBCNMSRequest, res, next) {
-    const userName = makeGrafanaUsername(req.user.id);
-    const getUserResp = await grafanaAdminClient.getUser(userName);
-    switch (getUserResp.status) {
-      case 200:
-        return next();
-      case 404:
-        const err = await HandleNewGrafanaUser(grafanaAdminClient, req);
-        if (err) {
-          const strData = JSON.stringify(err.response.data) || '';
-          return res
-            .status(err.response.status)
-            .send(err.message + strData)
-            .end();
-        }
-        return next();
-      default:
-        return res
-          .status(getUserResp.status)
-          .send(
-            'Unexpected error getting user:' + JSON.stringify(getUserResp.data),
-          )
-          .end();
+    const tasksCompleted = [];
+    // Sync User/Organization
+    const userRes = await syncGrafanaUser(grafanaAdminClient, req);
+    tasksCompleted.push(...userRes.completedTasks);
+    if (userRes.errorTask) {
+      return await displayErrorMessage(res, tasksCompleted, userRes.errorTask);
     }
-  };
-};
-
-const checkOrchestratorDatasource = () => {
-  return async function(req: FBCNMSRequest, res, next) {
-    // Get Grafana OrgID from this organization's Name
-    const nmsOrg = await req.organization();
-    const orgResp = await grafanaAdminClient.getOrg(nmsOrg.name);
-    const orgIDForUser = orgResp.data.id;
-
-    // Check if this organization has a datasource for Orchestrator
-    const getDSResp: GrafanaResponse<GetDatasourcesResponse> = await grafanaAdminClient.getDatasources(
-      orgIDForUser,
-    );
-    for (const ds of getDSResp.data) {
-      if (
-        ds.orgId == orgIDForUser &&
-        ds.name.startsWith(ORC8R_DATASOURCE_NAME)
-      ) {
-        return next();
-      }
+    // Sync Datasource
+    const dsRes = await syncDatasource(grafanaAdminClient, req);
+    tasksCompleted.push(...dsRes.completedTasks);
+    if (dsRes.errorTask) {
+      return await displayErrorMessage(res, tasksCompleted, dsRes.errorTask);
     }
-
-    // If not, create orchestrator datasource
-    const err = await HandleNewDatasource(grafanaAdminClient, req);
-    if (err) {
-      const strData = JSON.stringify(err.response.data) || '';
-      return res
-        .status(err.response.status)
-        .send(err.message + strData)
-        .end();
+    // Sync Tenants
+    const tenantsRes = await syncTenants();
+    tasksCompleted.push(...tenantsRes.completedTasks);
+    if (tenantsRes.errorTask) {
+      return await displayErrorMessage(
+        res,
+        tasksCompleted,
+        tenantsRes.errorTask,
+      );
     }
     return next();
   };
 };
 
-// Ensure that organizations in the NMS are in sync with
-// tenants in Orchestrator
-const syncOrganizations = () => {
-  return async function(req: FBCNMSRequest, res, next) {
-    const err = await HandleSyncOrganizations();
-    if (err) {
-      const strData = JSON.stringify(err.response.data) || '';
-      return res
-        .status(err.response.status)
-        .send(err.message + strData)
-        .end();
-    }
-    next();
-  };
-};
+async function displayErrorMessage(
+  res: ExpressResponse,
+  completedTasks: Array<Task>,
+  errorTask: Task,
+) {
+  const healthResponse = await grafanaAdminClient.getHealth();
+  const message = (
+    <GrafanaErrorMessage
+      completedTasks={completedTasks}
+      errorTask={errorTask}
+      grafanaHealth={healthResponse.data}
+    />
+  );
+  res
+    .status(errorTask.status)
+    .send(ReactDOM.renderToString(message))
+    .end();
+}
 
 const proxyMiddleware = () => {
   return async function(req: FBCNMSRequest, res, next) {
@@ -134,10 +106,8 @@ const proxyMiddleware = () => {
   };
 };
 
-// Only the root path should check for Grafana User
-router.all('/', checkGrafanaUser());
-router.all('/', syncOrganizations());
-router.all('/', checkOrchestratorDatasource());
+// Only the root path should perform the sync operations
+router.all('/', syncGrafana());
 // Use proxy on all paths
 router.use('/', proxyMiddleware());
 
