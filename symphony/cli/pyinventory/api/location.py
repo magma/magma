@@ -299,7 +299,7 @@ def get_location(
             location_details = LocationDetailsQuery.execute(
                 client, id=locations[0].entityId
             ).location
-            if last_location is None:
+            if location_details is None:
                 raise EntityNotFoundError(
                     entity=Entity.Location, entity_id=locations[0].entityId
                 )
@@ -317,6 +317,8 @@ def get_location(
             location_with_children = LocationChildrenQuery.execute(
                 client, id=location_id
             ).location
+            if location_with_children is None:
+                raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
 
             locations = [
                 location
