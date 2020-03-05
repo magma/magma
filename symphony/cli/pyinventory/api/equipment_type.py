@@ -13,8 +13,8 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties
 from ..client import SymphonyClient
-from ..consts import Equipment, EquipmentPortType, EquipmentType, PropertyValue
-from ..exceptions import EquipmentTypeNotFoundException
+from ..consts import Entity, Equipment, EquipmentPortType, EquipmentType, PropertyValue
+from ..exceptions import EntityNotFoundError, EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
 from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
 from ..graphql.edit_equipment_type_input import EditEquipmentTypeInput
@@ -38,16 +38,17 @@ def _populate_equipment_types(client: SymphonyClient) -> None:
 
     for edge in edges:
         node = edge.node
-        client.equipmentTypes[node.name] = EquipmentType(
-            name=node.name,
-            category=node.category,
-            id=node.id,
-            propertyTypes=list(map(lambda p: asdict(p), node.propertyTypes)),
-            positionDefinitions=list(
-                map(lambda p: asdict(p), node.positionDefinitions)
-            ),
-            portDefinitions=list(map(lambda p: asdict(p), node.portDefinitions)),
-        )
+        if node:
+            client.equipmentTypes[node.name] = EquipmentType(
+                name=node.name,
+                category=node.category,
+                id=node.id,
+                propertyTypes=list(map(lambda p: asdict(p), node.propertyTypes)),
+                positionDefinitions=list(
+                    map(lambda p: asdict(p), node.positionDefinitions)
+                ),
+                portDefinitions=list(map(lambda p: asdict(p), node.portDefinitions)),
+            )
 
 
 def _populate_equipment_port_types(client: SymphonyClient) -> None:
@@ -55,12 +56,13 @@ def _populate_equipment_port_types(client: SymphonyClient) -> None:
 
     for edge in edges:
         node = edge.node
-        client.portTypes[node.name] = EquipmentPortType(
-            id=node.id,
-            name=node.name,
-            properties=list(map(lambda p: asdict(p), node.propertyTypes)),
-            link_properties=list(map(lambda p: asdict(p), node.linkPropertyTypes)),
-        )
+        if node:
+            client.portTypes[node.name] = EquipmentPortType(
+                id=node.id,
+                name=node.name,
+                properties=list(map(lambda p: asdict(p), node.propertyTypes)),
+                link_properties=list(map(lambda p: asdict(p), node.linkPropertyTypes)),
+            )
 
 
 def _add_equipment_type(
@@ -338,10 +340,14 @@ def copy_equipment_type(
 def delete_equipment_type_with_equipments(
     client: SymphonyClient, equipment_type: EquipmentType
 ) -> None:
-    equipments = EquipmentTypeEquipmentQuery.execute(
+    equipment_type_with_equipments = EquipmentTypeEquipmentQuery.execute(
         client, id=equipment_type.id
-    ).equipmentType.equipments
-    for equipment in equipments:
+    ).equipmentType
+    if not equipment_type_with_equipments:
+        raise EntityNotFoundError(
+            entity=Entity.EquipmentType, entity_id=equipment_type.id
+        )
+    for equipment in equipment_type_with_equipments.equipments:
         delete_equipment(client, Equipment(id=equipment.id, name=equipment.name))
 
     RemoveEquipmentTypeMutation.execute(client, id=equipment_type.id)

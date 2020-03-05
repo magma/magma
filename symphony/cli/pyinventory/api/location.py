@@ -9,8 +9,9 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import deprecated, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..consts import Document, ImageEntity, Location
+from ..consts import Document, Entity, ImageEntity, Location
 from ..exceptions import (
+    EntityNotFoundError,
     LocationCannotBeDeletedWithDependency,
     LocationIsNotUniqueException,
     LocationNotFoundException,
@@ -64,6 +65,7 @@ def add_location(
             LocationIsNotUniqueException: if there is two possible locations
                 inside the chain and it is not clear where to create or what to return
             FailedOperationException: for internal inventory error
+            `pyinventory.exceptions.EntityNotFoundError`: parent location in the chain does not exist
 
         Example:
         ```
@@ -122,6 +124,10 @@ def add_location(
                 location_details = LocationDetailsQuery.execute(
                     client, id=locations[0].entityId
                 ).location
+                if location_details is None:
+                    raise EntityNotFoundError(
+                        entity=Entity.Location, entity_id=locations[0].entityId
+                    )
                 last_location = Location(
                     name=location_details.name,
                     id=location_details.id,
@@ -165,12 +171,15 @@ def add_location(
                 )
         else:
             location_id = last_location.id
-            result = LocationChildrenQuery.execute(client, id=location_id)
-            locations = result.location.children
+            location_with_children = LocationChildrenQuery.execute(
+                client, id=location_id
+            ).location
+            if location_with_children is None:
+                raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
 
             locations = [
                 location
-                for location in locations
+                for location in location_with_children.children
                 if location.locationType.name == location_type
                 and location.name == location_name
             ]
@@ -182,8 +191,8 @@ def add_location(
                 last_location = Location(
                     name=locations[0].name,
                     id=locations[0].id,
-                    latitude=location[0].latitude,
-                    longitude=location[0].longitude,
+                    latitude=locations[0].latitude,
+                    longitude=locations[0].longitude,
                     externalId=locations[0].externalId,
                     locationTypeName=locations[0].locationType.name,
                 )
@@ -239,9 +248,10 @@ def get_location(
 
         Returns: pyinventory.consts.Location object
 
-        Raises: LocationIsNotUniqueException if there is more than one correct
+        Raises: LocationIsNotUniqueException: if there is more than one correct
                 location to return
-                or LocationNotFoundException if no location was found
+                LocationNotFoundException: if no location was found
+                `pyinventory.exceptions.EntityNotFoundError`: location in the chain does not exist
 
         Example:
         ```
@@ -265,16 +275,18 @@ def get_location(
         location_name = location[1]
 
         if last_location is None:
-            locations = SearchQuery.execute(
+            entities = SearchQuery.execute(
                 client, name=location_name
             ).searchForEntity.edges
+            nodes = [entity.node for entity in entities]
 
             locations = [
-                location.node
-                for location in locations
-                if location.node.entityType == "location"
-                and location.node.type == location_type
-                and location.node.name == location_name
+                node
+                for node in nodes
+                if node is not None
+                and node.entityType == "location"
+                and node.type == location_type
+                and node.name == location_name
             ]
             if len(locations) == 0:
                 raise LocationNotFoundException(
@@ -287,6 +299,10 @@ def get_location(
             location_details = LocationDetailsQuery.execute(
                 client, id=locations[0].entityId
             ).location
+            if last_location is None:
+                raise EntityNotFoundError(
+                    entity=Entity.Location, entity_id=locations[0].entityId
+                )
             last_location = Location(
                 name=location_details.name,
                 id=location_details.id,
@@ -298,12 +314,13 @@ def get_location(
         else:
             location_id = last_location.id
 
-            result = LocationChildrenQuery.execute(client, id=location_id)
-            locations = result.location.children
+            location_with_children = LocationChildrenQuery.execute(
+                client, id=location_id
+            ).location
 
             locations = [
                 location
-                for location in locations
+                for location in location_with_children.children
                 if location.locationType.name == location_type
                 and location.name == location_name
             ]
@@ -336,6 +353,8 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
 
         Returns: List of pyinventory.consts.Location objects
 
+        Raises: `pyinventory.exceptions.EntityNotFoundError`: location does not exist
+
         Example:
         ```
         client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
@@ -344,11 +363,11 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
         # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
         ```
     """
-    result = LocationChildrenQuery.execute(client, id=location_id)
-    locations = result.location.children
-
-    if len(locations) == 0:
-        return []
+    location_with_children = LocationChildrenQuery.execute(
+        client, id=location_id
+    ).location
+    if not location_with_children:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
 
     return [
         Location(
@@ -359,7 +378,7 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
             externalId=location.externalId,
             locationTypeName=location.locationType.name,
         )
-        for location in locations
+        for location in location_with_children.children
     ]
 
 
@@ -417,14 +436,16 @@ def edit_location(
 
 
 def delete_location(client: SymphonyClient, location: Location) -> None:
-    deps = LocationDepsQuery.execute(client, id=location.id).location
-    if len(deps.files) > 0:
+    location_with_deps = LocationDepsQuery.execute(client, id=location.id).location
+    if not location_with_deps:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
+    if len(location_with_deps.files) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "files")
-    if len(deps.children) > 0:
+    if len(location_with_deps.children) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "children")
-    if len(deps.surveys) > 0:
+    if len(location_with_deps.surveys) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "surveys")
-    if len(deps.equipments) > 0:
+    if len(location_with_deps.equipments) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "equipment")
     RemoveLocationMutation.execute(client, id=location.id)
 
@@ -470,10 +491,15 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
 
     location_details = None
     for location in locations:
-        if location.node.entityType == "location":
+        node = location.node
+        if node is not None and node.entityType == "location":
             location_details = LocationDetailsQuery.execute(
-                client, id=locations[0].node.entityId
+                client, id=node.entityId
             ).location
+            if location_details is None:
+                raise EntityNotFoundError(
+                    entity=Entity.Location, entity_id=node.entityId
+                )
             if location_details.externalId == external_id:
                 break
             else:
@@ -495,8 +521,11 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
 def get_location_documents(
     client: SymphonyClient, location: Location
 ) -> List[Document]:
-    result = LocationDocumentsQuery.execute(client, id=location.id)
-    files = result.location.files
+    location_with_documents = LocationDocumentsQuery.execute(
+        client, id=location.id
+    ).location
+    if not location_with_documents:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
     return [
         Document(
             name=file.fileName,
@@ -505,5 +534,5 @@ def get_location_documents(
             parentEntity=ImageEntity.LOCATION,
             category=file.category,
         )
-        for file in files
+        for file in location_with_documents.files
     ]

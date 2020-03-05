@@ -10,12 +10,15 @@ from .._utils import PropertyValue, format_properties, get_graphql_property_inpu
 from ..client import SymphonyClient
 from ..consts import (
     Customer,
+    Entity,
     EquipmentPort,
+    EquipmentPortDefinition,
     Link,
     Service,
     ServiceEndpoint,
     ServiceType,
 )
+from ..exceptions import EntityNotFoundError
 from ..graphql.add_service_endpoint_input import AddServiceEndpointInput
 from ..graphql.add_service_endpoint_mutation import AddServiceEndpointMutation
 from ..graphql.add_service_link_mutation import AddServiceLinkMutation
@@ -34,15 +37,19 @@ from ..graphql.service_types_query import ServiceTypesQuery
 
 
 def _populate_service_types(client: SymphonyClient) -> None:
-    edges = ServiceTypesQuery.execute(client).serviceTypes.edges
+    service_types = ServiceTypesQuery.execute(client).serviceTypes
+    if not service_types:
+        return
+    edges = service_types.edges
     for edge in edges:
         node = edge.node
-        client.serviceTypes[node.name] = ServiceType(
-            name=node.name,
-            id=node.id,
-            hasCustomer=node.hasCustomer,
-            propertyTypes=[asdict(p) for p in node.propertyTypes],
-        )
+        if node is not None:
+            client.serviceTypes[node.name] = ServiceType(
+                name=node.name,
+                id=node.id,
+                hasCustomer=node.hasCustomer,
+                propertyTypes=[asdict(p) for p in node.propertyTypes],
+            )
 
 
 def add_service_type(
@@ -102,30 +109,36 @@ def add_service(
         result = AddServiceLinkMutation.execute(
             client, id=result.id, linkId=l.id
         ).addServiceLink
-    return Service(
-        name=result.name,
-        id=result.id,
-        externalId=result.externalId,
-        customer=Customer(
-            name=result.customer.name,
-            id=result.customer.id,
-            externalId=result.customer.externalId,
-        )
-        if result.customer is not None
-        else None,
-        endpoints=[
+    returned_customer = result.customer
+    endpoints = []
+    for e in result.endpoints:
+        link = e.port.link
+        endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
                     id=e.port.id,
                     properties=[asdict(p) for p in e.port.properties],
-                    definition=e.port.definition,
-                    link=e.port.link,
+                    definition=EquipmentPortDefinition(
+                        id=e.port.definition.id, name=e.port.definition.name
+                    ),
+                    link=Link(link.id) if link else None,
                 ),
-                role=e.role,
+                role=e.role.value,
             )
-            for e in result.endpoints
-        ],
+        )
+    return Service(
+        name=result.name,
+        id=result.id,
+        externalId=result.externalId,
+        customer=Customer(
+            name=returned_customer.name,
+            id=returned_customer.id,
+            externalId=returned_customer.externalId,
+        )
+        if returned_customer
+        else None,
+        endpoints=endpoints,
         links=[Link(id=l.id) for l in result.links],
     )
 
@@ -143,30 +156,36 @@ def add_service_endpoint(
 
 def get_service(client: SymphonyClient, id: str) -> Service:
     result = ServiceDetailsQuery.execute(client, id=id).service
-    return Service(
-        name=result.name,
-        id=result.id,
-        externalId=result.externalId,
-        customer=Customer(
-            name=result.customer.name,
-            id=result.customer.id,
-            externalId=result.customer.externalId,
-        )
-        if result.customer is not None
-        else None,
-        endpoints=[
+    if result is None:
+        raise EntityNotFoundError(entity=Entity.Service, entity_id=id)
+    customer = result.customer
+    endpoints = []
+    for e in result.endpoints:
+        link = e.port.link
+        endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
                     id=e.port.id,
                     properties=[asdict(p) for p in e.port.properties],
-                    definition=e.port.definition,
-                    link=e.port.link,
+                    definition=EquipmentPortDefinition(
+                        id=e.port.definition.id, name=e.port.definition.name
+                    ),
+                    link=Link(id=link.id) if link else None,
                 ),
-                role=e.role,
+                role=e.role.value,
             )
-            for e in result.endpoints
-        ],
+        )
+    return Service(
+        name=result.name,
+        id=result.id,
+        externalId=result.externalId,
+        customer=Customer(
+            name=customer.name, id=customer.id, externalId=customer.externalId
+        )
+        if customer is not None
+        else None,
+        endpoints=endpoints,
         links=[Link(id=l.id) for l in result.links],
     )
 
@@ -174,9 +193,12 @@ def get_service(client: SymphonyClient, id: str) -> Service:
 def delete_service_type_with_services(
     client: SymphonyClient, service_type: ServiceType
 ) -> None:
-    services = ServiceTypeServicesQuery.execute(
+    service_type_with_services = ServiceTypeServicesQuery.execute(
         client, id=service_type.id
-    ).serviceType.services
+    ).serviceType
+    if not service_type_with_services:
+        raise EntityNotFoundError(entity=Entity.ServiceType, entity_id=service_type.id)
+    services = service_type_with_services.services
     for service in services:
         RemoveServiceMutation.execute(client, id=service.id)
     RemoveServiceTypeMutation.execute(client, id=service_type.id)

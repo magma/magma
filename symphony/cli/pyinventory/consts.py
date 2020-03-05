@@ -3,6 +3,7 @@
 
 from datetime import date, datetime
 from enum import Enum
+from numbers import Number
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from .graphql.image_entity_enum import ImageEntity
@@ -68,8 +69,8 @@ class LocationType(NamedTuple):
 class Location(NamedTuple):
     name: str
     id: str
-    latitude: float
-    longitude: float
+    latitude: Number
+    longitude: Number
     externalId: Optional[str]
     locationTypeName: str
 
