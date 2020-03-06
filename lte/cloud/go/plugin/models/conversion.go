@@ -141,7 +141,11 @@ func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interfa
 }
 
 func (m *NetworkSubscriberConfig) GetFromNetwork(network configurator.Network) interface{} {
-	return orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	res := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if res == nil {
+		return &NetworkSubscriberConfig{}
+	}
+	return res
 }
 
 func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
@@ -151,7 +155,7 @@ func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network)
 func (m *RuleNames) GetFromNetwork(network configurator.Network) interface{} {
 	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
 	if iNetworkSubscriberConfig == nil {
-		return nil
+		return RuleNames{}
 	}
 	return iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideRuleNames
 }
@@ -169,7 +173,7 @@ func (m *RuleNames) ToUpdateCriteria(network configurator.Network) (configurator
 func (m *BaseNames) GetFromNetwork(network configurator.Network) interface{} {
 	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
 	if iNetworkSubscriberConfig == nil {
-		return nil
+		return BaseNames{}
 	}
 	return iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideBaseNames
 }

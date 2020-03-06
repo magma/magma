@@ -937,6 +937,30 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// posting twice shouldn't affect anything
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/rule_names/%s", testURLRoot, "n1", "rule4"),
+		Payload:        tests.JSONMarshaler(newSubscriberConfig),
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "rule4"},
+		Handler:        postRuleName,
+		ExpectedStatus: 201,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/%s", testURLRoot, "n1", "base4"),
+		Payload:        tests.JSONMarshaler(newSubscriberConfig),
+		ParamNames:     []string{"network_id", "base_name"},
+		ParamValues:    []string{"n1", "base4"},
+		Handler:        postBaseName,
+		ExpectedStatus: 201,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/%s", testURLRoot, "n1", "base4"),
