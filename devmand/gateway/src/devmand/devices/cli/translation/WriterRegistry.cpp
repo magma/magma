@@ -126,20 +126,20 @@ static void writeSingle(
   (void)update;
   (void)writer;
   (void)device;
-//  switch (update.type) {
-//    case DatastoreDiffType::create: {
-//      writer.create(update.keyedPath, update.after, device).get();
-//      break;
-//    }
-//    case DatastoreDiffType::update: {
-//      writer.update(update.keyedPath, update.before, update.after, device).get();
-//      break;
-//    }
-//    case DatastoreDiffType::deleted: {
-//      writer.remove(update.keyedPath, update.before, device).get();
-//      break;
-//    }
-//  }
+  //  switch (update.type) {
+  //    case DatastoreDiffType::create: {
+  //      writer.create(update.keyedPath, update.after, device).get();
+  //      break;
+  //    }
+  //    case DatastoreDiffType::update: {
+  //      writer.update(update.keyedPath, update.before, update.after,
+  //      device).get(); break;
+  //    }
+  //    case DatastoreDiffType::deleted: {
+  //      writer.remove(update.keyedPath, update.before, device).get();
+  //      break;
+  //    }
+  //  }
 }
 
 void WriterRegistry::write(const Diff& diff, const DeviceAccess& device) const {

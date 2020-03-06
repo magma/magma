@@ -35,7 +35,7 @@ using namespace folly;
 using namespace ydk;
 
 DeviceType UbntInterfacePlugin::getDeviceType() const {
-  return {"ubnt", "*"};
+  return {"ubiquiti", "*"};
 }
 
 static const regex mtuRegx = regex(R"(mtu (.+))");

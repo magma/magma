@@ -73,7 +73,7 @@ TEST_F(CliScaleTest, DISABLED_scale) {
             "172.8.0.1",
             "cisco",
             "cisco",
-            "ubiquiti",
+            CliFlavour::getUbiquiti(),
             port,
             10s,
             60s,

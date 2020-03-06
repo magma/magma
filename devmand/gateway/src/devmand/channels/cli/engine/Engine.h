@@ -94,6 +94,8 @@ class Engine : public channels::Engine {
 
   unique_ptr<WriterRegistry> getWriterRegistry(
       shared_ptr<DeviceContext> deviceCtx);
+
+  shared_ptr<CliFlavour> getCliFlavour(const DeviceType& deviceType);
 };
 
 } // namespace cli

@@ -23,7 +23,7 @@ using namespace std;
 using namespace folly;
 using namespace devmand::channels::cli;
 
-class GrpcListReader : public ListReader, public GrpcCliHandler  {
+class GrpcListReader : public ListReader, public GrpcCliHandler {
  private:
   unique_ptr<devmand::channels::cli::plugin::ReaderPlugin::Stub> stub_;
 

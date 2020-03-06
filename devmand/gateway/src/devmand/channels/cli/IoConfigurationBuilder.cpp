@@ -39,7 +39,8 @@ IoConfigurationBuilder::IoConfigurationBuilder(
 
 IoConfigurationBuilder::IoConfigurationBuilder(
     const DeviceConfig& deviceConfig,
-    channels::cli::Engine& engine) {
+    channels::cli::Engine& engine,
+    shared_ptr<CliFlavour> cliFlavour) {
   const std::map<std::string, std::string>& plaintextCliKv =
       deviceConfig.channelConfigs.at("cli").kvPairs;
 
@@ -48,7 +49,7 @@ IoConfigurationBuilder::IoConfigurationBuilder(
       deviceConfig.ip,
       plaintextCliKv.at("username"),
       plaintextCliKv.at("password"),
-      loadConfigValue(plaintextCliKv, "flavour", ""),
+      cliFlavour,
       folly::to<int>(plaintextCliKv.at("port")),
       toSeconds(loadConfigValue(
           plaintextCliKv, configKeepAliveIntervalSeconds, "60")),
@@ -203,7 +204,7 @@ IoConfigurationBuilder::makeConnectionParameters(
     string hostname,
     string username,
     string password,
-    string flavour,
+    shared_ptr<CliFlavour> cliFlavour,
     int port,
     chrono::seconds kaTimeout,
     chrono::seconds cmdTimeout,
@@ -218,7 +219,7 @@ IoConfigurationBuilder::makeConnectionParameters(
   connectionParameters->username = username;
   connectionParameters->password = password;
   connectionParameters->port = port;
-  connectionParameters->flavour = CliFlavour::create(flavour);
+  connectionParameters->flavour = cliFlavour;
   connectionParameters->kaTimeout = kaTimeout;
   connectionParameters->cmdTimeout = cmdTimeout;
   connectionParameters->reconnectingQuietPeriod = reconnectingQuietPeriod;

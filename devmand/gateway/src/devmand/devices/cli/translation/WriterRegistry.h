@@ -23,8 +23,8 @@ using namespace std;
 
 class Writer {
  public:
-  virtual Future<Unit> create(const Path& path, dynamic cfg, const DeviceAccess& device)
-      const = 0;
+  virtual Future<Unit>
+  create(const Path& path, dynamic cfg, const DeviceAccess& device) const = 0;
   virtual Future<Unit> update(
       const Path& path,
       dynamic before,

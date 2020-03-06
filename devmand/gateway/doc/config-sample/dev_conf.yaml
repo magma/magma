@@ -1,4 +1,5 @@
 devices:
+
   - id: ubntYdk
     ip: 10.19.0.245
     readonly: false
@@ -27,7 +28,6 @@ devices:
 #        port: 22
 #        username: root
 #        password: root
-#        flavour: default
-#        stateCommand: echo 1
+#        flavour: linux
 
 pluginConfig: /root/plugin.json

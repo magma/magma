@@ -32,7 +32,7 @@ using namespace folly;
 using namespace ydk;
 
 DeviceType UbntStpPlugin::getDeviceType() const {
-  return {"ubnt", "*"};
+  return {"ubiquiti", "*"};
 }
 
 class StpGlobalCfgReader : public BindingReader {

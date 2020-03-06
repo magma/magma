@@ -562,7 +562,8 @@ TEST_F(StructuredUbntDeviceTest, DISABLED_getIfcOper) {
 
   pReg.registerPlugin(make_shared<UbntInterfacePlugin>(
       mReg.getBindingContext(Model::OPENCONFIG_2_4_3)));
-  shared_ptr<DeviceContext> deviceCtx = pReg.getDeviceContext({"ubnt", "*"});
+  shared_ptr<DeviceContext> deviceCtx =
+      pReg.getDeviceContext({"ubiquiti", "*"});
 
   ReaderRegistryBuilder rRegBuilder{
       mReg.getSchemaContext(Model::OPENCONFIG_2_4_3)};

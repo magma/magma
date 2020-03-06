@@ -8,9 +8,9 @@
 #define LOG_WITH_GLOG
 #include <magma_logging.h>
 
-#include <devmand/devices/cli/translation/PluginRegistry.h>
 #include <devmand/devices/cli/translation/BindingReaderRegistry.h>
 #include <devmand/devices/cli/translation/BindingWriterRegistry.h>
+#include <devmand/devices/cli/translation/PluginRegistry.h>
 
 namespace devmand {
 namespace devices {
