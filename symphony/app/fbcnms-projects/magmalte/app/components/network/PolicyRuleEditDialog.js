@@ -25,12 +25,14 @@ import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
-
 import nullthrows from '@fbcnms/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
+import {CWF, FEG, LTE} from '@fbcnms/types/network';
+import {coalesceNetworkType} from '@fbcnms/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
+import type {NetworkType} from '@fbcnms/types/network';
 
 const useStyles = makeStyles(() => ({
   input: {width: '100%'},
@@ -46,6 +48,52 @@ type Props = {
 export default function PolicyRuleEditDialog(props: Props) {
   const classes = useStyles();
   const {match} = useRouter();
+  const [networkType, setNetworkType] = useState<?NetworkType>(null);
+  const [mirrorNetworkType, setMirrorNetworkType] = useState<?NetworkType>(
+    null,
+  );
+  const [networkWideRuleIDs, setNetworkWideRuldIDs] = useState(null);
+  const [isNetworkWide, setIsNetworkWide] = useState<boolean>(false);
+  const {networkId} = match.params;
+  const {mirrorNetwork} = props;
+
+  // Grab the network type for the network, and the mirrorNetwork if it exists.
+  useEffect(() => {
+    getNetworkType(networkId, setNetworkType);
+    getNetworkType(mirrorNetwork ?? '', setMirrorNetworkType);
+  }, [networkId, mirrorNetwork]);
+
+  // Grab the network wide rule IDs from the network's subscriber config
+  // Case on the network type to determine which endpoint to call.
+  useEffect(() => {
+    switch (networkType) {
+      case LTE:
+        MagmaV1API.getLteByNetworkIdSubscriberConfigRuleNames({
+          networkId: networkId,
+        }).then(ruleIDs => setNetworkWideRuldIDs(ruleIDs));
+        break;
+      case CWF:
+        MagmaV1API.getCwfByNetworkIdSubscriberConfigRuleNames({
+          networkId: networkId,
+        }).then(ruleIDs => {
+          setNetworkWideRuldIDs(ruleIDs);
+        });
+        break;
+      case FEG:
+        MagmaV1API.getFegByNetworkIdSubscriberConfigRuleNames({
+          networkId: networkId,
+        }).then(ruleIDs => setNetworkWideRuldIDs(ruleIDs));
+        break;
+    }
+  }, [networkId, networkType]);
+
+  // The rule is network-wide if the rule's ID exists in network-wide rule IDs
+  useEffect(() => {
+    networkWideRuleIDs
+      ? setIsNetworkWide(networkWideRuleIDs.includes(props.rule?.id))
+      : false;
+  }, [networkWideRuleIDs, props.rule]);
+
   const [rule, setRule] = useState(
     props.rule || {
       id: '',
@@ -84,17 +132,17 @@ export default function PolicyRuleEditDialog(props: Props) {
   };
 
   const onSave = async () => {
-    const data = [
+    const ruleData = [
       {
-        networkId: nullthrows(match.params.networkId),
+        networkId: nullthrows(networkId),
         ruleId: rule.id,
         policyRule: rule,
       },
     ];
 
-    if (props.mirrorNetwork != null) {
-      data.push({
-        networkId: props.mirrorNetwork,
+    if (mirrorNetwork != null) {
+      ruleData.push({
+        networkId: mirrorNetwork,
         ruleId: rule.id,
         policyRule: rule,
       });
@@ -102,14 +150,32 @@ export default function PolicyRuleEditDialog(props: Props) {
 
     if (props.rule) {
       await Promise.all(
-        data.map(d =>
+        ruleData.map(d =>
           MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId(d),
         ),
       );
     } else {
       await Promise.all(
-        data.map(d => MagmaV1API.postNetworksByNetworkIdPoliciesRules(d)),
+        ruleData.map(d => MagmaV1API.postNetworksByNetworkIdPoliciesRules(d)),
       );
+    }
+
+    let networkWideRuleData = {
+      networkId: nullthrows(networkId),
+      ruleId: rule.id,
+    };
+    if (isNetworkWide) {
+      await postNetworkWideRuleID(networkWideRuleData, networkType);
+      if (mirrorNetwork != null) {
+        networkWideRuleData.networkId = mirrorNetwork;
+        await postNetworkWideRuleID(networkWideRuleData, mirrorNetworkType);
+      }
+    } else {
+      await deleteNetworkWideRuleID(networkWideRuleData, networkType);
+      if (mirrorNetwork != null) {
+        networkWideRuleData.networkId = mirrorNetwork;
+        await deleteNetworkWideRuleID(networkWideRuleData, mirrorNetworkType);
+      }
     }
 
     props.onSave(rule.id);
@@ -178,6 +244,20 @@ export default function PolicyRuleEditDialog(props: Props) {
             }
           />
         </FormControl>
+        <FormControl className={classes.input}>
+          <InputLabel htmlFor="target">Network Wide</InputLabel>
+          <TypedSelect
+            items={{
+              true: 'true',
+              false: 'false',
+            }}
+            inputProps={{id: 'target'}}
+            value={isNetworkWide ? 'true' : 'false'}
+            onChange={target => {
+              setIsNetworkWide(target === 'true');
+            }}
+          />
+        </FormControl>
         <Typography variant="h6">
           Flows
           <IconButton onClick={handleAddFlow}>
@@ -202,4 +282,55 @@ export default function PolicyRuleEditDialog(props: Props) {
       </DialogActions>
     </Dialog>
   );
+}
+
+async function postNetworkWideRuleID(networkWideRuleData, networkType) {
+  switch (networkType) {
+    case LTE:
+      MagmaV1API.postLteByNetworkIdSubscriberConfigRuleNamesByRuleId(
+        networkWideRuleData,
+      );
+      break;
+    case CWF:
+      MagmaV1API.postCwfByNetworkIdSubscriberConfigRuleNamesByRuleId(
+        networkWideRuleData,
+      );
+      break;
+    case FEG:
+      MagmaV1API.postFegByNetworkIdSubscriberConfigRuleNamesByRuleId(
+        networkWideRuleData,
+      );
+      break;
+  }
+}
+
+async function deleteNetworkWideRuleID(networkWideRuleData, networkType) {
+  switch (networkType) {
+    case LTE:
+      MagmaV1API.deleteLteByNetworkIdSubscriberConfigRuleNamesByRuleId(
+        networkWideRuleData,
+      );
+      break;
+    case CWF:
+      MagmaV1API.deleteCwfByNetworkIdSubscriberConfigRuleNamesByRuleId(
+        networkWideRuleData,
+      );
+      break;
+    case FEG:
+      MagmaV1API.deleteFegByNetworkIdSubscriberConfigRuleNamesByRuleId(
+        networkWideRuleData,
+      );
+      break;
+  }
+}
+
+function getNetworkType(
+  networkId: string,
+  setNetworkType: (?NetworkType) => void,
+) {
+  if (networkId != null) {
+    MagmaV1API.getNetworksByNetworkIdType({networkId}).then(networkType =>
+      setNetworkType(coalesceNetworkType(networkId, networkType)),
+    );
+  }
 }
