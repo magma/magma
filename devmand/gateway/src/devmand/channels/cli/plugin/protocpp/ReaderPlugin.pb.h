@@ -47,8 +47,10 @@ class ReadResponse;
 
 // ===================================================================
 
-class ActualReadRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualReadRequest)
-                                                              */
+class ActualReadRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualReadRequest)
+                   */
 {
  public:
   ActualReadRequest();
@@ -143,8 +145,10 @@ class ActualReadRequest : public ::google::protobuf::Message /* @@protoc_inserti
 };
 // -------------------------------------------------------------------
 
-class ReadRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ReadRequest)
-                                                        */
+class ReadRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ReadRequest)
+                   */
 {
  public:
   ReadRequest();
@@ -272,8 +276,10 @@ class ReadRequest : public ::google::protobuf::Message /* @@protoc_insertion_poi
 };
 // -------------------------------------------------------------------
 
-class ActualReadResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualReadResponse)
-                                                               */
+class ActualReadResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualReadResponse)
+                   */
 {
  public:
   ActualReadResponse();
@@ -368,8 +374,10 @@ class ActualReadResponse : public ::google::protobuf::Message /* @@protoc_insert
 };
 // -------------------------------------------------------------------
 
-class ReadResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ReadResponse)
-                                                         */
+class ReadResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ReadResponse)
+                   */
 {
  public:
   ReadResponse();

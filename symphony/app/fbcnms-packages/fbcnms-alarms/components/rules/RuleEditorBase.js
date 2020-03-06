@@ -76,7 +76,11 @@ export default function RuleEditorBase({
   return (
     <Editor
       {...props}
-      title={formState?.name ?? 'New Alert Rule'}
+      title={
+        formState?.name == null || formState?.name.trim() === ''
+          ? 'New Alert Rule'
+          : formState.name
+      }
       description="Configure rules to fire alerts"
       isNew={isNew}
       onSave={handleSave}>

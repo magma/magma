@@ -61,7 +61,8 @@ from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
 
-App = namedtuple('App', ['name', 'module', 'type'])
+# Type is either Physical or Logical, highest order_priority is at zero
+App = namedtuple('App', ['name', 'module', 'type', 'order_priority'])
 
 
 class Tables:
@@ -243,6 +244,7 @@ class ServiceManager:
     VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
     IPFIX_SERVICE_NAME = 'ipfix'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
+    RYU_REST_APP_NAME = 'ryu_rest_app'
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
     CHECK_QUOTA_SERVICE_NAME = 'check_quota'
 
@@ -251,17 +253,20 @@ class ServiceManager:
     # app manager to instantiate the app.
     # Note that a service may require multiple apps.
     DYNAMIC_SERVICE_TO_APPS = {
-        PipelineD.DPI: [
-            App(name=DPIController.APP_NAME, module=DPIController.__module__,
-                type=DPIController.APP_TYPE),
-        ],
         PipelineD.ENFORCEMENT: [
             App(name=EnforcementController.APP_NAME,
                 module=EnforcementController.__module__,
-                type=EnforcementController.APP_TYPE),
+                type=EnforcementController.APP_TYPE,
+                order_priority=500),
             App(name=EnforcementStatsController.APP_NAME,
                 module=EnforcementStatsController.__module__,
-                type=EnforcementStatsController.APP_TYPE),
+                type=EnforcementStatsController.APP_TYPE,
+                order_priority=501),
+        ],
+        PipelineD.DPI: [
+            App(name=DPIController.APP_NAME, module=DPIController.__module__,
+                type=DPIController.APP_TYPE,
+                order_priority=700),
         ],
     }
 
@@ -271,52 +276,63 @@ class ServiceManager:
         UE_MAC_ADDRESS_SERVICE_NAME: [
             App(name=UEMacAddressController.APP_NAME,
                 module=UEMacAddressController.__module__,
-                type=None),
-        ],
-        CHECK_QUOTA_SERVICE_NAME: [
-            App(name=CheckQuotaController.APP_NAME,
-                module=CheckQuotaController.__module__,
-                type=CheckQuotaController.APP_TYPE),
+                type=None,
+                order_priority=0),
         ],
         ARP_SERVICE_NAME: [
             App(name=ArpController.APP_NAME, module=ArpController.__module__,
-                type=ArpController.APP_TYPE),
+                type=ArpController.APP_TYPE,
+                order_priority=200)
         ],
         ACCESS_CONTROL_SERVICE_NAME: [
             App(name=AccessControlController.APP_NAME,
                 module=AccessControlController.__module__,
-                type=AccessControlController.APP_TYPE),
+                type=AccessControlController.APP_TYPE,
+                order_priority=400),
         ],
         TUNNEL_LEARN_SERVICE_NAME: [
             App(name=TunnelLearnController.APP_NAME,
                 module=TunnelLearnController.__module__,
-                type=TunnelLearnController.APP_TYPE),
+                type=TunnelLearnController.APP_TYPE,
+                order_priority=300),
         ],
         VLAN_LEARN_SERVICE_NAME: [
             App(name=VlanLearnController.APP_NAME,
                 module=VlanLearnController.__module__,
-                type=VlanLearnController.APP_TYPE),
-        ],
-        IPFIX_SERVICE_NAME: [
-            App(name=IPFIXController.APP_NAME,
-                module=IPFIXController.__module__,
-                type=IPFIXController.APP_TYPE),
+                type=VlanLearnController.APP_TYPE,
+                order_priority=500),
         ],
         RYU_REST_SERVICE_NAME: [
-            App(name='ryu_rest_app', module='ryu.app.ofctl_rest', type=None),
+            App(name=RYU_REST_APP_NAME,
+                module='ryu.app.ofctl_rest',
+                type=None,
+                order_priority=0),
         ],
         STARTUP_FLOWS_RECIEVER_CONTROLLER: [
             App(name=StartupFlows.APP_NAME,
                 module=StartupFlows.__module__,
-                type=StartupFlows.APP_TYPE),
-        ]
+                type=StartupFlows.APP_TYPE,
+                order_priority=0),
+        ],
+        CHECK_QUOTA_SERVICE_NAME: [
+            App(name=CheckQuotaController.APP_NAME,
+                module=CheckQuotaController.__module__,
+                type=CheckQuotaController.APP_TYPE,
+                order_priority=300),
+        ],
+        IPFIX_SERVICE_NAME: [
+            App(name=IPFIXController.APP_NAME,
+                module=IPFIXController.__module__,
+                type=IPFIXController.APP_TYPE,
+                order_priority=800),
+        ],
     }
 
     # Some apps do not use a table, so they need to be excluded from table
     # allocation.
-    STATIC_SERVICE_WITH_NO_TABLE = [
-        RYU_REST_SERVICE_NAME,
-        STARTUP_FLOWS_RECIEVER_CONTROLLER,
+    STATIC_APP_WITH_NO_TABLE = [
+        RYU_REST_APP_NAME,
+        StartupFlows.APP_NAME,
     ]
 
     def __init__(self, magma_service: MagmaService):
@@ -327,14 +343,27 @@ class ServiceManager:
         #   table 20(for egress)
         self._apps = [App(name=InOutController.APP_NAME,
                           module=InOutController.__module__,
-                          type=None)]
+                          type=None,
+                          order_priority=0)]
         self._table_manager = _TableManager()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
 
-        self._init_static_services()
-        self._init_dynamic_services()
+        apps = self._get_static_apps()
+        apps.extend(self._get_dynamic_apps())
+        apps.sort(key=lambda x: x.order_priority)
 
-    def _init_static_services(self):
+        self._apps.extend(apps)
+        # Filter out reserved apps and apps that don't need a table
+        for app in apps:
+            if app.name in self.STATIC_APP_WITH_NO_TABLE:
+                continue
+            # UE MAC service must be registered with Table 0
+            if app.name == self.UE_MAC_ADDRESS_SERVICE_NAME:
+                self._table_manager.register_apps_for_table0_service([app])
+                continue
+            self._table_manager.register_apps_for_service([app])
+
+    def _get_static_apps(self):
         """
         _init_static_services populates app modules and allocates a main table
         for each static service.
@@ -343,22 +372,10 @@ class ServiceManager:
         static_apps = \
             [app for service in static_services for app in
              self.STATIC_SERVICE_TO_APPS[service]]
-        self._apps.extend(static_apps)
 
-        # Register static apps for each service to a main table. Filter out any
-        # apps that do not need a table.
-        services_with_tables = \
-            [service for service in static_services if
-             service not in self.STATIC_SERVICE_WITH_NO_TABLE]
-        for service in services_with_tables:
-            apps = self.STATIC_SERVICE_TO_APPS[service]
-            # UE MAC service must be registered with Table 0
-            if service == self.UE_MAC_ADDRESS_SERVICE_NAME:
-                self._table_manager.register_apps_for_table0_service(apps)
-                continue
-            self._table_manager.register_apps_for_service(apps)
+        return static_apps
 
-    def _init_dynamic_services(self):
+    def _get_dynamic_apps(self):
         """
         _init_dynamic_services populates app modules and allocates a main table
         for each dynamic service.
@@ -378,13 +395,7 @@ class ServiceManager:
 
         dynamic_apps = [app for service in dynamic_services for
                         app in self.DYNAMIC_SERVICE_TO_APPS[service]]
-        self._apps.extend(dynamic_apps)
-
-        # Register dynamic apps for each service to a main table. Filter out
-        # any apps that do not need a table.
-        for service in dynamic_services:
-            apps = self.DYNAMIC_SERVICE_TO_APPS[service]
-            self._table_manager.register_apps_for_service(apps)
+        return dynamic_apps
 
     def load(self):
         """

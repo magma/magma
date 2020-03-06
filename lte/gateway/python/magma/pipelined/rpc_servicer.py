@@ -230,9 +230,23 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
         resp = FlowResponse()
-        self._loop.call_soon_threadsafe(
-            self._dpi_app.classify_flow,
-            request.match, request.app_name)
+        self._loop.call_soon_threadsafe(self._dpi_app.add_classify_flow,
+                                        request.match, request.app_name,
+                                        request.service_type)
+        return resp
+
+    def RemoveFlow(self, request, context):
+        """
+        Add dpi flow
+        """
+        if not self._service_manager.is_app_enabled(
+                DPIController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+        resp = FlowResponse()
+        self._loop.call_soon_threadsafe(self._dpi_app.remove_classify_flow,
+                                        request.match)
         return resp
 
     def UpdateFlowStats(self, request, context):
@@ -331,6 +345,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._loop.call_soon_threadsafe(
             self._ue_mac_app.delete_ue_mac_flow,
             request.sid.id, request.mac_addr)
+
+        if self._service_manager.is_app_enabled(CheckQuotaController.APP_NAME):
+            self._loop.call_soon_threadsafe(
+                self._check_quota_app.remove_subscriber_flow, request.sid.id)
 
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
             # Delete trace flow

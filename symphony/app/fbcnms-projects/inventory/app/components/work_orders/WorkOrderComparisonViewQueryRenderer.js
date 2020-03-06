@@ -14,11 +14,11 @@ import React from 'react';
 import WorkOrdersMap from './WorkOrdersMap';
 import WorkOrdersView from './WorkOrdersView';
 import classNames from 'classnames';
-import {DisplayOptions} from '../InventoryViewHeader';
+import {DisplayOptions} from '../InventoryViewContainer';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
-import type {DisplayOptionTypes} from '../InventoryViewHeader';
+import type {DisplayOptionTypes} from '../InventoryViewContainer';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -40,10 +40,6 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.grey[600],
     marginBottom: '6px',
     fontSize: '36px',
-  },
-  tableViewContainer: {
-    paddingRight: '24px',
-    paddingLeft: '24px',
   },
 }));
 
@@ -113,7 +109,6 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
               <WorkOrdersView
                 workOrder={workOrders}
                 onWorkOrderSelected={onWorkOrderSelected}
-                className={classes.tableViewContainer}
               />
             )}
           </div>

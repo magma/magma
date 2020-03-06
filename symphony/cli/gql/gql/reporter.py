@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict

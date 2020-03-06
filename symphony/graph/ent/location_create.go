@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -38,18 +37,18 @@ type LocationCreate struct {
 	latitude           *float64
 	longitude          *float64
 	site_survey_needed *bool
-	_type              map[string]struct{}
-	parent             map[string]struct{}
-	children           map[string]struct{}
-	files              map[string]struct{}
-	hyperlinks         map[string]struct{}
-	equipment          map[string]struct{}
-	properties         map[string]struct{}
-	survey             map[string]struct{}
-	wifi_scan          map[string]struct{}
-	cell_scan          map[string]struct{}
-	work_orders        map[string]struct{}
-	floor_plans        map[string]struct{}
+	_type              map[int]struct{}
+	parent             map[int]struct{}
+	children           map[int]struct{}
+	files              map[int]struct{}
+	hyperlinks         map[int]struct{}
+	equipment          map[int]struct{}
+	properties         map[int]struct{}
+	survey             map[int]struct{}
+	wifi_scan          map[int]struct{}
+	cell_scan          map[int]struct{}
+	work_orders        map[int]struct{}
+	floor_plans        map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -143,9 +142,9 @@ func (lc *LocationCreate) SetNillableSiteSurveyNeeded(b *bool) *LocationCreate {
 }
 
 // SetTypeID sets the type edge to LocationType by id.
-func (lc *LocationCreate) SetTypeID(id string) *LocationCreate {
+func (lc *LocationCreate) SetTypeID(id int) *LocationCreate {
 	if lc._type == nil {
-		lc._type = make(map[string]struct{})
+		lc._type = make(map[int]struct{})
 	}
 	lc._type[id] = struct{}{}
 	return lc
@@ -157,16 +156,16 @@ func (lc *LocationCreate) SetType(l *LocationType) *LocationCreate {
 }
 
 // SetParentID sets the parent edge to Location by id.
-func (lc *LocationCreate) SetParentID(id string) *LocationCreate {
+func (lc *LocationCreate) SetParentID(id int) *LocationCreate {
 	if lc.parent == nil {
-		lc.parent = make(map[string]struct{})
+		lc.parent = make(map[int]struct{})
 	}
 	lc.parent[id] = struct{}{}
 	return lc
 }
 
 // SetNillableParentID sets the parent edge to Location by id if the given value is not nil.
-func (lc *LocationCreate) SetNillableParentID(id *string) *LocationCreate {
+func (lc *LocationCreate) SetNillableParentID(id *int) *LocationCreate {
 	if id != nil {
 		lc = lc.SetParentID(*id)
 	}
@@ -179,9 +178,9 @@ func (lc *LocationCreate) SetParent(l *Location) *LocationCreate {
 }
 
 // AddChildIDs adds the children edge to Location by ids.
-func (lc *LocationCreate) AddChildIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddChildIDs(ids ...int) *LocationCreate {
 	if lc.children == nil {
-		lc.children = make(map[string]struct{})
+		lc.children = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.children[ids[i]] = struct{}{}
@@ -191,7 +190,7 @@ func (lc *LocationCreate) AddChildIDs(ids ...string) *LocationCreate {
 
 // AddChildren adds the children edges to Location.
 func (lc *LocationCreate) AddChildren(l ...*Location) *LocationCreate {
-	ids := make([]string, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -199,9 +198,9 @@ func (lc *LocationCreate) AddChildren(l ...*Location) *LocationCreate {
 }
 
 // AddFileIDs adds the files edge to File by ids.
-func (lc *LocationCreate) AddFileIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddFileIDs(ids ...int) *LocationCreate {
 	if lc.files == nil {
-		lc.files = make(map[string]struct{})
+		lc.files = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.files[ids[i]] = struct{}{}
@@ -211,7 +210,7 @@ func (lc *LocationCreate) AddFileIDs(ids ...string) *LocationCreate {
 
 // AddFiles adds the files edges to File.
 func (lc *LocationCreate) AddFiles(f ...*File) *LocationCreate {
-	ids := make([]string, len(f))
+	ids := make([]int, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -219,9 +218,9 @@ func (lc *LocationCreate) AddFiles(f ...*File) *LocationCreate {
 }
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
-func (lc *LocationCreate) AddHyperlinkIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddHyperlinkIDs(ids ...int) *LocationCreate {
 	if lc.hyperlinks == nil {
-		lc.hyperlinks = make(map[string]struct{})
+		lc.hyperlinks = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.hyperlinks[ids[i]] = struct{}{}
@@ -231,7 +230,7 @@ func (lc *LocationCreate) AddHyperlinkIDs(ids ...string) *LocationCreate {
 
 // AddHyperlinks adds the hyperlinks edges to Hyperlink.
 func (lc *LocationCreate) AddHyperlinks(h ...*Hyperlink) *LocationCreate {
-	ids := make([]string, len(h))
+	ids := make([]int, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
@@ -239,9 +238,9 @@ func (lc *LocationCreate) AddHyperlinks(h ...*Hyperlink) *LocationCreate {
 }
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
-func (lc *LocationCreate) AddEquipmentIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddEquipmentIDs(ids ...int) *LocationCreate {
 	if lc.equipment == nil {
-		lc.equipment = make(map[string]struct{})
+		lc.equipment = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.equipment[ids[i]] = struct{}{}
@@ -251,7 +250,7 @@ func (lc *LocationCreate) AddEquipmentIDs(ids ...string) *LocationCreate {
 
 // AddEquipment adds the equipment edges to Equipment.
 func (lc *LocationCreate) AddEquipment(e ...*Equipment) *LocationCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -259,9 +258,9 @@ func (lc *LocationCreate) AddEquipment(e ...*Equipment) *LocationCreate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (lc *LocationCreate) AddPropertyIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddPropertyIDs(ids ...int) *LocationCreate {
 	if lc.properties == nil {
-		lc.properties = make(map[string]struct{})
+		lc.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.properties[ids[i]] = struct{}{}
@@ -271,7 +270,7 @@ func (lc *LocationCreate) AddPropertyIDs(ids ...string) *LocationCreate {
 
 // AddProperties adds the properties edges to Property.
 func (lc *LocationCreate) AddProperties(p ...*Property) *LocationCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -279,9 +278,9 @@ func (lc *LocationCreate) AddProperties(p ...*Property) *LocationCreate {
 }
 
 // AddSurveyIDs adds the survey edge to Survey by ids.
-func (lc *LocationCreate) AddSurveyIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddSurveyIDs(ids ...int) *LocationCreate {
 	if lc.survey == nil {
-		lc.survey = make(map[string]struct{})
+		lc.survey = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.survey[ids[i]] = struct{}{}
@@ -291,7 +290,7 @@ func (lc *LocationCreate) AddSurveyIDs(ids ...string) *LocationCreate {
 
 // AddSurvey adds the survey edges to Survey.
 func (lc *LocationCreate) AddSurvey(s ...*Survey) *LocationCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -299,9 +298,9 @@ func (lc *LocationCreate) AddSurvey(s ...*Survey) *LocationCreate {
 }
 
 // AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
-func (lc *LocationCreate) AddWifiScanIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddWifiScanIDs(ids ...int) *LocationCreate {
 	if lc.wifi_scan == nil {
-		lc.wifi_scan = make(map[string]struct{})
+		lc.wifi_scan = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.wifi_scan[ids[i]] = struct{}{}
@@ -311,7 +310,7 @@ func (lc *LocationCreate) AddWifiScanIDs(ids ...string) *LocationCreate {
 
 // AddWifiScan adds the wifi_scan edges to SurveyWiFiScan.
 func (lc *LocationCreate) AddWifiScan(s ...*SurveyWiFiScan) *LocationCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -319,9 +318,9 @@ func (lc *LocationCreate) AddWifiScan(s ...*SurveyWiFiScan) *LocationCreate {
 }
 
 // AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
-func (lc *LocationCreate) AddCellScanIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddCellScanIDs(ids ...int) *LocationCreate {
 	if lc.cell_scan == nil {
-		lc.cell_scan = make(map[string]struct{})
+		lc.cell_scan = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.cell_scan[ids[i]] = struct{}{}
@@ -331,7 +330,7 @@ func (lc *LocationCreate) AddCellScanIDs(ids ...string) *LocationCreate {
 
 // AddCellScan adds the cell_scan edges to SurveyCellScan.
 func (lc *LocationCreate) AddCellScan(s ...*SurveyCellScan) *LocationCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -339,9 +338,9 @@ func (lc *LocationCreate) AddCellScan(s ...*SurveyCellScan) *LocationCreate {
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (lc *LocationCreate) AddWorkOrderIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddWorkOrderIDs(ids ...int) *LocationCreate {
 	if lc.work_orders == nil {
-		lc.work_orders = make(map[string]struct{})
+		lc.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.work_orders[ids[i]] = struct{}{}
@@ -351,7 +350,7 @@ func (lc *LocationCreate) AddWorkOrderIDs(ids ...string) *LocationCreate {
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (lc *LocationCreate) AddWorkOrders(w ...*WorkOrder) *LocationCreate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -359,9 +358,9 @@ func (lc *LocationCreate) AddWorkOrders(w ...*WorkOrder) *LocationCreate {
 }
 
 // AddFloorPlanIDs adds the floor_plans edge to FloorPlan by ids.
-func (lc *LocationCreate) AddFloorPlanIDs(ids ...string) *LocationCreate {
+func (lc *LocationCreate) AddFloorPlanIDs(ids ...int) *LocationCreate {
 	if lc.floor_plans == nil {
-		lc.floor_plans = make(map[string]struct{})
+		lc.floor_plans = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.floor_plans[ids[i]] = struct{}{}
@@ -371,7 +370,7 @@ func (lc *LocationCreate) AddFloorPlanIDs(ids ...string) *LocationCreate {
 
 // AddFloorPlans adds the floor_plans edges to FloorPlan.
 func (lc *LocationCreate) AddFloorPlans(f ...*FloorPlan) *LocationCreate {
-	ids := make([]string, len(f))
+	ids := make([]int, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -439,7 +438,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: location.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: location.FieldID,
 			},
 		}
@@ -509,16 +508,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: locationtype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -532,16 +527,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -555,16 +546,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -578,16 +565,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -601,16 +584,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: hyperlink.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -624,16 +603,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -647,16 +622,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -670,16 +641,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: survey.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -693,16 +660,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveywifiscan.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -716,16 +679,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveycellscan.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -739,16 +698,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -762,16 +717,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: floorplan.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -783,6 +734,6 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	l.ID = strconv.FormatInt(id, 10)
+	l.ID = int(id)
 	return l, nil
 }

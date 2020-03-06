@@ -40,11 +40,11 @@ func main() {
 	diamServer := mock_ocs.NewOCSDiamServer(
 		gy.GetGyClientConfiguration(),
 		&mock_ocs.OCSConfig{
-			ServerConfig:  gy.GetOCSConfiguration(),
-			MaxUsageBytes: MaxUsageBytes,
-			MaxUsageTime:  MaxUsageTime,
-			ValidityTime:  ValidityTime,
-			GyInitMethod:  gy.PerSessionInit,
+			ServerConfig:   gy.GetOCSConfiguration(),
+			MaxUsageOctets: &protos.Octets{TotalOctets: MaxUsageBytes},
+			MaxUsageTime:   MaxUsageTime,
+			ValidityTime:   ValidityTime,
+			GyInitMethod:   gy.PerSessionInit,
 		},
 	)
 

@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -24,7 +23,7 @@ type EquipmentCategoryCreate struct {
 	create_time *time.Time
 	update_time *time.Time
 	name        *string
-	types       map[string]struct{}
+	types       map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -62,9 +61,9 @@ func (ecc *EquipmentCategoryCreate) SetName(s string) *EquipmentCategoryCreate {
 }
 
 // AddTypeIDs adds the types edge to EquipmentType by ids.
-func (ecc *EquipmentCategoryCreate) AddTypeIDs(ids ...string) *EquipmentCategoryCreate {
+func (ecc *EquipmentCategoryCreate) AddTypeIDs(ids ...int) *EquipmentCategoryCreate {
 	if ecc.types == nil {
-		ecc.types = make(map[string]struct{})
+		ecc.types = make(map[int]struct{})
 	}
 	for i := range ids {
 		ecc.types[ids[i]] = struct{}{}
@@ -74,7 +73,7 @@ func (ecc *EquipmentCategoryCreate) AddTypeIDs(ids ...string) *EquipmentCategory
 
 // AddTypes adds the types edges to EquipmentType.
 func (ecc *EquipmentCategoryCreate) AddTypes(e ...*EquipmentType) *EquipmentCategoryCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -112,7 +111,7 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 		_spec = &sqlgraph.CreateSpec{
 			Table: equipmentcategory.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentcategory.FieldID,
 			},
 		}
@@ -150,16 +149,12 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -171,6 +166,6 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	ec.ID = strconv.FormatInt(id, 10)
+	ec.ID = int(id)
 	return ec, nil
 }

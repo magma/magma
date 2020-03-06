@@ -7,6 +7,7 @@
 
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
 #include <devmand/devices/Datastore.h>
+#include <devmand/devices/cli/DeviceType.h>
 #include <devmand/devices/cli/StructuredUbntDevice.h>
 #include <devmand/devices/cli/UbntStpPlugin.h>
 #include <devmand/devices/cli/schema/ModelRegistry.h>
@@ -34,14 +35,17 @@ unique_ptr<devices::Device> StructuredUbntDevice::createDeviceWithEngine(
     Application& app,
     const cartography::DeviceConfig& deviceConfig,
     Engine& engine) {
-  IoConfigurationBuilder ioConfigurationBuilder(deviceConfig, engine);
+  DeviceType deviceType = DeviceType::create(deviceConfig);
+  shared_ptr<CliFlavour> cliFlavour = engine.getCliFlavour(deviceType);
+  IoConfigurationBuilder ioConfigurationBuilder(
+      deviceConfig, engine, cliFlavour);
   auto cmdCache = ReadCachingCli::createCache();
   auto treeCache = make_shared<TreeCache>(
       ioConfigurationBuilder.getConnectionParameters()->flavour);
   const std::shared_ptr<Channel>& channel = std::make_shared<Channel>(
       deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache, treeCache));
 
-  shared_ptr<DeviceContext> deviceCtx = engine.getDeviceContext({"ubnt", "*"});
+  shared_ptr<DeviceContext> deviceCtx = engine.getDeviceContext(deviceType);
   return std::make_unique<StructuredUbntDevice>(
       app,
       deviceConfig.id,
@@ -82,7 +86,7 @@ StructuredUbntDevice::StructuredUbntDevice(
 //  }
 //}
 
-//void StructuredUbntDevice::reconcile(DeviceAccess& access) {
+// void StructuredUbntDevice::reconcile(DeviceAccess& access) {
 //  MLOG(MINFO) << "[" << id << "] "
 //              << "Reconciling";
 //  auto reconcileTx = configCache->newTx();
@@ -97,73 +101,75 @@ StructuredUbntDevice::StructuredUbntDevice(
 //        "[" + id + "] Invalid configuration reconciled due to: " + e.what());
 //  } catch (runtime_error& e) {
 //    reconcileTx->abort();
-//    throw runtime_error("[" + id + "] Unable to reconcile due to: " + e.what());
+//    throw runtime_error("[" + id + "] Unable to reconcile due to: " +
+//    e.what());
 //  }
 //  if (!reconcileTx->isValid()) {
 //    reconcileTx->abort();
 //    throw runtime_error(
 //        "[" + id +
-//        "] Unable to reconcile due to: Reconciled configuration is not valid");
+//        "] Unable to reconcile due to: Reconciled configuration is not
+//        valid");
 //  }
 //  reconcileTx->commit();
 //}
 
 void StructuredUbntDevice::setIntendedDatastore(const dynamic& config) {
   (void)config;
-//  MLOG(MINFO) << "[" << id << "] "
-//              << "Writing config";
-//
-//  // Reset cache
-//  cmdCache->wlock()->clear();
-//  treeCache->clear(); // FIXME this is not threadsafe
-//
-//  DeviceAccess access = DeviceAccess(channel, id, getCPUExecutor());
-//  reconcile(access);
-//
-//  // Apply new config
-//  auto tx = configCache->newTx();
-//  try {
-//    tx->merge("/", config);
-//  } catch (DatastoreException& e) {
-//    tx->abort();
-//    throw runtime_error("Invalid configuration for device: " + id);
-//  }
-//
-//  if (!tx->isValid()) {
-//    tx->abort();
-//    throw runtime_error("Invalid configuration for device: " + id);
-//  }
-//
-//  MLOG(MINFO) << "[" << id << "] "
-//              << "Calculating diff";
-//  auto diffResult = tx->diff(diffPaths);
-//  auto diff = diffResult.diffs;
-//
-//  if (!diffResult.unhandledDiffs.empty()) {
-//    stringstream s;
-//    for (auto& unhandledPath : diffResult.unhandledDiffs) {
-//      s << unhandledPath;
-//      s << ",";
-//    }
-//    MLOG(MWARNING) << "[" << id << "] "
-//                   << "Unhandled paths detected from diff: "
-//                   << s.str();
-//  }
-//
-//  if (diff.size() == 0) {
-//    MLOG(MINFO) << "[" << id << "] "
-//                << "No updates detected";
-//    tx->abort();
-//    return;
-//  }
-//
-//  MLOG(MINFO) << "[" << id << "] "
-//              << "Submitting to device";
-//  wReg->write(diff, access);
-//  tx->commit();
-//
-//  MLOG(MINFO) << "[" << id << "] "
-//              << "Config written successfully";
+  //  MLOG(MINFO) << "[" << id << "] "
+  //              << "Writing config";
+  //
+  //  // Reset cache
+  //  cmdCache->wlock()->clear();
+  //  treeCache->clear(); // FIXME this is not threadsafe
+  //
+  //  DeviceAccess access = DeviceAccess(channel, id, getCPUExecutor());
+  //  reconcile(access);
+  //
+  //  // Apply new config
+  //  auto tx = configCache->newTx();
+  //  try {
+  //    tx->merge("/", config);
+  //  } catch (DatastoreException& e) {
+  //    tx->abort();
+  //    throw runtime_error("Invalid configuration for device: " + id);
+  //  }
+  //
+  //  if (!tx->isValid()) {
+  //    tx->abort();
+  //    throw runtime_error("Invalid configuration for device: " + id);
+  //  }
+  //
+  //  MLOG(MINFO) << "[" << id << "] "
+  //              << "Calculating diff";
+  //  auto diffResult = tx->diff(diffPaths);
+  //  auto diff = diffResult.diffs;
+  //
+  //  if (!diffResult.unhandledDiffs.empty()) {
+  //    stringstream s;
+  //    for (auto& unhandledPath : diffResult.unhandledDiffs) {
+  //      s << unhandledPath;
+  //      s << ",";
+  //    }
+  //    MLOG(MWARNING) << "[" << id << "] "
+  //                   << "Unhandled paths detected from diff: "
+  //                   << s.str();
+  //  }
+  //
+  //  if (diff.size() == 0) {
+  //    MLOG(MINFO) << "[" << id << "] "
+  //                << "No updates detected";
+  //    tx->abort();
+  //    return;
+  //  }
+  //
+  //  MLOG(MINFO) << "[" << id << "] "
+  //              << "Submitting to device";
+  //  wReg->write(diff, access);
+  //  tx->commit();
+  //
+  //  MLOG(MINFO) << "[" << id << "] "
+  //              << "Config written successfully";
 }
 
 shared_ptr<Datastore> StructuredUbntDevice::getOperationalDatastore() {

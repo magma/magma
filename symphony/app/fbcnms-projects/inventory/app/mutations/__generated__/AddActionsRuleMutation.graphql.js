@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b9e7b85ea1ed11827ad41cf8c85445eb
+ * @relayHash 8b912a45f9d2d8295e39d82e6ffff8b4
  */
 
 /* eslint-disable */
@@ -36,7 +36,7 @@ export type AddActionsRuleMutationVariables = {|
   input: AddActionsRuleInput
 |};
 export type AddActionsRuleMutationResponse = {|
-  +addActionsRule: ?{|
+  +addActionsRule: {|
     +id: string,
     +name: string,
   |}

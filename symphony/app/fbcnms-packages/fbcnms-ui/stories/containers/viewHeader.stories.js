@@ -7,7 +7,9 @@
  * @flow strict-local
  * @format
  */
+import type {ActionButtonProps} from '../../components/design-system/View/ViewHeader';
 
+import DeleteIcon from '../../components/design-system/Icons/Actions/DeleteIcon';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapIcon from '@material-ui/icons/Map';
 import React from 'react';
@@ -30,14 +32,21 @@ const ViewHeaderRoot = () => {
   const classes = useStyles();
   const [selectedButton, setSelectedButton] = useState('1');
 
-  const actionButtons = [
+  const actionButtons: Array<ActionButtonProps> = [
     {
-      title: 'Action A',
-      action: () => alert('Doing action A'),
+      title: <DeleteIcon color="error" />,
+      action: () => alert('Doing DELETE'),
+      variant: 'text',
     },
     {
       title: 'Action B',
       action: () => alert('Doing action B'),
+      variant: 'text',
+      skin: 'gray',
+    },
+    {
+      title: 'Action A',
+      action: () => alert('Doing action A'),
     },
   ];
 

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4a4c51a408bb9f7cd22b0087f015fe0c
+ * @relayHash 357077e1dcaced1b6d255a7667600253
  */
 
 /* eslint-disable */
@@ -49,7 +49,7 @@ export type EditLocationTypeMutationVariables = {|
   input: EditLocationTypeInput
 |};
 export type EditLocationTypeMutationResponse = {|
-  +editLocationType: ?{|
+  +editLocationType: {|
     +id: string,
     +name: string,
     +$fragmentRefs: LocationTypeItem_locationType$ref & AddEditLocationTypeCard_editingLocationType$ref,

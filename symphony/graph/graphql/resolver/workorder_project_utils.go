@@ -16,41 +16,43 @@ import (
 func (r mutationResolver) validatedPropertyInputsFromTemplate(
 	ctx context.Context,
 	input []*models.PropertyInput,
-	tmplID string,
+	tmplID int,
 	entity models.PropertyEntity,
 	skipMandatoryPropertiesCheck bool,
 ) ([]*models.PropertyInput, error) {
-	var pTyps []*ent.PropertyType
-	var erro error
-	typeIDToInput := make(map[string]*models.PropertyInput)
+	var (
+		types []*ent.PropertyType
+		err   error
+	)
+	typeIDToInput := make(map[int]*models.PropertyInput)
 	switch entity {
 	case models.PropertyEntityWorkOrder:
-		template, err := r.ClientFrom(ctx).WorkOrderType.Get(ctx, tmplID)
-		if err != nil {
+		var template *ent.WorkOrderType
+		if template, err = r.ClientFrom(ctx).WorkOrderType.Get(ctx, tmplID); err != nil {
 			return nil, fmt.Errorf("can't read work order type: %w", err)
 		}
-		pTyps, erro = template.QueryPropertyTypes().
+		types, err = template.QueryPropertyTypes().
 			Where(propertytype.Deleted(false)).
 			All(ctx)
 	case models.PropertyEntityProject:
-		template, err := r.ClientFrom(ctx).ProjectType.Get(ctx, tmplID)
-		if err != nil {
+		var template *ent.ProjectType
+		if template, err = r.ClientFrom(ctx).ProjectType.Get(ctx, tmplID); err != nil {
 			return nil, fmt.Errorf("can't read project type: %w", err)
 		}
-		pTyps, erro = template.QueryProperties().
+		types, err = template.QueryProperties().
 			Where(propertytype.Deleted(false)).
 			All(ctx)
 	default:
 		return nil, fmt.Errorf("can't query property types for %v", entity.String())
 	}
-	if erro != nil {
-		return nil, erro
+	if err != nil {
+		return nil, err
 	}
 
 	var validInput []*models.PropertyInput
 	for _, pInput := range input {
-		// verify it's in pTyps slice &&  not deleted
-		candidate := findPropType(pTyps, pInput.PropertyTypeID)
+		// verify it's in types slice &&  not deleted
+		candidate := findPropType(types, pInput.PropertyTypeID)
 		if candidate != nil {
 			validInput = append(validInput, pInput)
 			typeIDToInput[pInput.PropertyTypeID] = pInput
@@ -58,7 +60,7 @@ func (r mutationResolver) validatedPropertyInputsFromTemplate(
 			return nil, fmt.Errorf("invalid property type (id=%v), either deleted or belongs to other template", pInput.PropertyTypeID)
 		}
 	}
-	for _, propTyp := range pTyps {
+	for _, propTyp := range types {
 		if _, ok := typeIDToInput[propTyp.ID]; !ok {
 			// propTyp not in inputs
 			if !skipMandatoryPropertiesCheck && propTyp.Mandatory {
@@ -82,7 +84,7 @@ func (r mutationResolver) validatedPropertyInputsFromTemplate(
 	return validInput, nil
 }
 
-func findPropType(allTypes []*ent.PropertyType, id string) *ent.PropertyType {
+func findPropType(allTypes []*ent.PropertyType, id int) *ent.PropertyType {
 	for _, typ := range allTypes {
 		if typ.ID == id {
 			return typ

@@ -67,10 +67,10 @@ class StructuredUbntDevice : public Device {
   std::shared_ptr<ModelRegistry> mreg;
   std::unique_ptr<ReaderRegistry> rReg;
   std::unique_ptr<WriterRegistry> wReg;
-//  std::unique_ptr<devmand::channels::cli::datastore::Datastore> configCache;
-//  vector<DiffPath> diffPaths;
+  //  std::unique_ptr<devmand::channels::cli::datastore::Datastore> configCache;
+  //  vector<DiffPath> diffPaths;
 
-//  void reconcile(DeviceAccess& access);
+  //  void reconcile(DeviceAccess& access);
 };
 
 } // namespace cli

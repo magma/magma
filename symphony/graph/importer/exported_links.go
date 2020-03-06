@@ -111,7 +111,11 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 				}
 
 				ln := m.trimLine(untrimmedLine)
-				importLine := NewImportRecord(ln, importHeader)
+				importLine, err := NewImportRecord(ln, importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				portARecord, portBRecord, err := m.getTwoPortRecords(importLine)
 
 				if err != nil {
@@ -119,7 +123,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					continue
 				}
 				id := importLine.ID()
-				if id == "" {
+				if id == 0 {
 					client := m.ClientFrom(ctx)
 					var linkPropertyInputs []*models.PropertyInput
 					linkInput := make(map[int]*models.LinkSide, 2)
@@ -165,7 +169,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 						log.Info(fmt.Sprintf("(row #%d) creating link", numRows))
 					}
 				} else {
-					//edit existing link - only properties
+					// edit existing link - only properties
 					l, err := m.validateLineForExistingLink(ctx, id, importLine)
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating existing port: id %v", id)})
@@ -184,7 +188,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					}
 					if len(allPropInputs) == 0 {
 						modifiedCount++
-						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port types or link properties", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port types or link properties", numRows), zap.String("name", importLine.Name()), zap.Int("id", importLine.ID()))
 						continue
 					}
 
@@ -199,7 +203,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 							continue
 						}
 						modifiedCount++
-						log.Info(fmt.Sprintf("(row #%d) editing link", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+						log.Info(fmt.Sprintf("(row #%d) editing link", numRows), zap.String("name", importLine.Name()), zap.Int("id", importLine.ID()))
 					}
 				}
 			}
@@ -287,7 +291,7 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 		equipment, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
 
 	} else {
-		equipment, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
+		equipment, err = m.getEquipmentIfExist(ctx, en, equipmentType, parentLoc, pos)
 		if equipment == nil && err == nil {
 			return nil, "", nil, nil
 		}
@@ -313,7 +317,10 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 
 func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *ImportRecord, error) {
 	header := importLine.Header()
-	headerSlices := header.LinkGetTwoPortsSlices()
+	headerSlices, err := header.LinkGetTwoPortsSlices()
+	if err != nil {
+		return nil, nil, err
+	}
 	ahead, bhead := headerSlices[0], headerSlices[1]
 	headerA, err := NewImportHeader(ahead, ImportEntityPortInLink)
 	if err != nil {
@@ -329,12 +336,18 @@ func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *I
 		return nil, nil, errors.New("ports are identical")
 	}
 
-	portA := NewImportRecord(portASlice, headerA)
-	portB := NewImportRecord(portBSlice, headerB)
+	portA, err := NewImportRecord(portASlice, headerA)
+	if err != nil {
+		return nil, nil, err
+	}
+	portB, err := NewImportRecord(portBSlice, headerB)
+	if err != nil {
+		return nil, nil, err
+	}
 	return &portA, &portB, nil
 }
 
-func (m *importer) validateLineForExistingLink(ctx context.Context, linkID string, importLine ImportRecord) (*ent.Link, error) {
+func (m *importer) validateLineForExistingLink(ctx context.Context, linkID int, importLine ImportRecord) (*ent.Link, error) {
 	link, err := m.ClientFrom(ctx).Link.Query().Where(link.ID(linkID)).Only(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching link")
@@ -407,7 +420,11 @@ func (m *importer) inputValidationsLinks(ctx context.Context, importHeader Impor
 	if firstLine[0] != "Link ID" {
 		return errors.Errorf("first cell should be 'Link ID' ")
 	}
-	portsSlices := importHeader.LinkGetTwoPortsSlices()
+
+	portsSlices, err := importHeader.LinkGetTwoPortsSlices()
+	if err != nil {
+		return err
+	}
 	ha, err := NewImportHeader(portsSlices[0], ImportEntityPortInLink)
 	if err != nil {
 		return err
@@ -444,9 +461,9 @@ func (m *importer) inputValidationsLinks(ctx context.Context, importHeader Impor
 	return nil
 }
 
-func (m *importer) validateServicesForLinks(ctx context.Context, line ImportRecord) ([]string, error) {
+func (m *importer) validateServicesForLinks(ctx context.Context, line ImportRecord) ([]int, error) {
 	serviceNamesMap := make(map[string]bool)
-	var serviceIds []string
+	var serviceIds []int
 	serviceNames := strings.Split(line.ServiceNames(), ";")
 	for _, serviceName := range serviceNames {
 		if serviceName != "" {

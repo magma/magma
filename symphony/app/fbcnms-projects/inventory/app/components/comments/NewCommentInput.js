@@ -46,10 +46,14 @@ const onAddComment = (entityId, entityType: CommentEntity, commentText) => {
   };
 
   const updater = store => {
+    // $FlowFixMe (T62907961) Relay flow types
     const newComment = store.getRootField('addComment');
+    // $FlowFixMe (T62907961) Relay flow types
     const entityProxy = store.get(entityId);
 
+    // $FlowFixMe (T62907961) Relay flow types
     const linkedComments = entityProxy.getLinkedRecords('comments') || [];
+    // $FlowFixMe (T62907961) Relay flow types
     entityProxy.setLinkedRecords([...linkedComments, newComment], 'comments');
   };
 

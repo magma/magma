@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -247,8 +246,8 @@ func (lq *LocationQuery) FirstX(ctx context.Context) *Location {
 }
 
 // FirstID returns the first Location id in the query. Returns *NotFoundError when no id was found.
-func (lq *LocationQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (lq *LocationQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -260,7 +259,7 @@ func (lq *LocationQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (lq *LocationQuery) FirstXID(ctx context.Context) string {
+func (lq *LocationQuery) FirstXID(ctx context.Context) int {
 	id, err := lq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -294,8 +293,8 @@ func (lq *LocationQuery) OnlyX(ctx context.Context) *Location {
 }
 
 // OnlyID returns the only Location id in the query, returns an error if not exactly one id was returned.
-func (lq *LocationQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (lq *LocationQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -311,7 +310,7 @@ func (lq *LocationQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (lq *LocationQuery) OnlyXID(ctx context.Context) string {
+func (lq *LocationQuery) OnlyXID(ctx context.Context) int {
 	id, err := lq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -334,8 +333,8 @@ func (lq *LocationQuery) AllX(ctx context.Context) []*Location {
 }
 
 // IDs executes the query and returns a list of Location ids.
-func (lq *LocationQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (lq *LocationQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := lq.Select(location.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -343,7 +342,7 @@ func (lq *LocationQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lq *LocationQuery) IDsX(ctx context.Context) []string {
+func (lq *LocationQuery) IDsX(ctx context.Context) []int {
 	ids, err := lq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -618,8 +617,8 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 	}
 
 	if query := lq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Location)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Location)
 		for i := range nodes {
 			if fk := nodes[i].location_type; fk != nil {
 				ids = append(ids, *fk)
@@ -643,8 +642,8 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 	}
 
 	if query := lq.withParent; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Location)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Location)
 		for i := range nodes {
 			if fk := nodes[i].location_children; fk != nil {
 				ids = append(ids, *fk)
@@ -669,13 +668,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withChildren; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -701,13 +696,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withFiles; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -733,13 +724,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withHyperlinks; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -765,13 +752,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withEquipment; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -797,13 +780,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -829,13 +808,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withSurvey; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -861,13 +836,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withWifiScan; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -893,13 +864,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withCellScan; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -925,13 +892,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withWorkOrders; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -957,13 +920,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withFloorPlans; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -1009,7 +968,7 @@ func (lq *LocationQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   location.Table,
 			Columns: location.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: location.FieldID,
 			},
 		},

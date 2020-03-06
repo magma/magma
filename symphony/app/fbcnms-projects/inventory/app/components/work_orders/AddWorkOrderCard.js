@@ -45,6 +45,7 @@ import type {
   AddWorkOrderMutationResponse,
   AddWorkOrderMutationVariables,
   CheckListCategoryInput,
+  // $FlowFixMe (T62907961) Relay flow types
   ChecklistItemInput,
 } from '../../mutations/__generated__/AddWorkOrderMutation.graphql';
 import type {CheckListCategoryTable_list} from '../checklist/checkListCategory/__generated__/CheckListCategoryTable_list.graphql';

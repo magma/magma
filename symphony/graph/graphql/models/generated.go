@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
@@ -51,7 +52,7 @@ type ActionsRulesSearchResult struct {
 }
 
 type ActionsTrigger struct {
-	ID               string           `json:"id"`
+	ID               int              `json:"id"`
 	TriggerID        core.TriggerID   `json:"triggerID"`
 	Description      string           `json:"description"`
 	SupportedActions []*ActionsAction `json:"supportedActions"`
@@ -77,12 +78,12 @@ type AddCustomerInput struct {
 
 type AddEquipmentInput struct {
 	Name               string           `json:"name"`
-	Type               string           `json:"type"`
-	Location           *string          `json:"location"`
-	Parent             *string          `json:"parent"`
-	PositionDefinition *string          `json:"positionDefinition"`
+	Type               int              `json:"type"`
+	Location           *int             `json:"location"`
+	Parent             *int             `json:"parent"`
+	PositionDefinition *int             `json:"positionDefinition"`
 	Properties         []*PropertyInput `json:"properties"`
-	WorkOrder          *string          `json:"workOrder"`
+	WorkOrder          *int             `json:"workOrder"`
 	ExternalID         *string          `json:"externalId"`
 }
 
@@ -102,7 +103,7 @@ type AddEquipmentTypeInput struct {
 
 type AddFloorPlanInput struct {
 	Name             string         `json:"name"`
-	LocationID       string         `json:"locationID"`
+	LocationID       int            `json:"locationID"`
 	Image            *AddImageInput `json:"image"`
 	ReferenceX       int            `json:"referenceX"`
 	ReferenceY       int            `json:"referenceY"`
@@ -117,7 +118,7 @@ type AddFloorPlanInput struct {
 
 type AddHyperlinkInput struct {
 	EntityType  ImageEntity `json:"entityType"`
-	EntityID    string      `json:"entityId"`
+	EntityID    int         `json:"entityId"`
 	URL         string      `json:"url"`
 	DisplayName *string     `json:"displayName"`
 	Category    *string     `json:"category"`
@@ -125,7 +126,7 @@ type AddHyperlinkInput struct {
 
 type AddImageInput struct {
 	EntityType  ImageEntity `json:"entityType"`
-	EntityID    string      `json:"entityId"`
+	EntityID    int         `json:"entityId"`
 	ImgKey      string      `json:"imgKey"`
 	FileName    string      `json:"fileName"`
 	FileSize    int         `json:"fileSize"`
@@ -136,15 +137,15 @@ type AddImageInput struct {
 
 type AddLinkInput struct {
 	Sides      []*LinkSide      `json:"sides"`
-	WorkOrder  *string          `json:"workOrder"`
+	WorkOrder  *int             `json:"workOrder"`
 	Properties []*PropertyInput `json:"properties"`
-	ServiceIds []string         `json:"serviceIds"`
+	ServiceIds []int            `json:"serviceIds"`
 }
 
 type AddLocationInput struct {
 	Name       string           `json:"name"`
-	Type       string           `json:"type"`
-	Parent     *string          `json:"parent"`
+	Type       int              `json:"type"`
+	Parent     *int             `json:"parent"`
 	Latitude   *float64         `json:"latitude"`
 	Longitude  *float64         `json:"longitude"`
 	Properties []*PropertyInput `json:"properties"`
@@ -164,8 +165,8 @@ type AddProjectInput struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
 	Creator     *string          `json:"creator"`
-	Type        string           `json:"type"`
-	Location    *string          `json:"location"`
+	Type        int              `json:"type"`
+	Location    *int             `json:"location"`
 	Properties  []*PropertyInput `json:"properties"`
 }
 
@@ -177,17 +178,17 @@ type AddProjectTypeInput struct {
 }
 
 type AddServiceEndpointInput struct {
-	ID     string              `json:"id"`
-	PortID string              `json:"portId"`
+	ID     int                 `json:"id"`
+	PortID int                 `json:"portId"`
 	Role   ServiceEndpointRole `json:"role"`
 }
 
 type AddWorkOrderInput struct {
 	Name                string                    `json:"name"`
 	Description         *string                   `json:"description"`
-	WorkOrderTypeID     string                    `json:"workOrderTypeId"`
-	LocationID          *string                   `json:"locationId"`
-	ProjectID           *string                   `json:"projectId"`
+	WorkOrderTypeID     int                       `json:"workOrderTypeId"`
+	LocationID          *int                      `json:"locationId"`
+	ProjectID           *int                      `json:"projectId"`
 	Properties          []*PropertyInput          `json:"properties"`
 	CheckList           []*CheckListItemInput     `json:"checkList"`
 	OwnerName           *string                   `json:"ownerName"`
@@ -207,14 +208,14 @@ type AddWorkOrderTypeInput struct {
 }
 
 type CheckListCategoryInput struct {
-	ID          *string               `json:"id"`
+	ID          *int                  `json:"id"`
 	Title       string                `json:"title"`
 	Description *string               `json:"description"`
 	CheckList   []*CheckListItemInput `json:"checkList"`
 }
 
 type CheckListDefinitionInput struct {
-	ID         *string           `json:"id"`
+	ID         *int              `json:"id"`
 	Title      string            `json:"title"`
 	Type       CheckListItemType `json:"type"`
 	Index      *int              `json:"index"`
@@ -223,7 +224,7 @@ type CheckListDefinitionInput struct {
 }
 
 type CheckListItemInput struct {
-	ID          *string           `json:"id"`
+	ID          *int              `json:"id"`
 	Title       string            `json:"title"`
 	Type        CheckListItemType `json:"type"`
 	Index       *int              `json:"index"`
@@ -235,7 +236,7 @@ type CheckListItemInput struct {
 
 type CommentInput struct {
 	EntityType CommentEntity `json:"entityType"`
-	ID         string        `json:"id"`
+	ID         int           `json:"id"`
 	Text       string        `json:"text"`
 }
 
@@ -246,7 +247,7 @@ type Device struct {
 }
 
 type EditEquipmentInput struct {
-	ID         string           `json:"id"`
+	ID         int              `json:"id"`
 	Name       string           `json:"name"`
 	Properties []*PropertyInput `json:"properties"`
 	DeviceID   *string          `json:"deviceID"`
@@ -259,14 +260,14 @@ type EditEquipmentPortInput struct {
 }
 
 type EditEquipmentPortTypeInput struct {
-	ID             string               `json:"id"`
+	ID             int                  `json:"id"`
 	Name           string               `json:"name"`
 	Properties     []*PropertyTypeInput `json:"properties"`
 	LinkProperties []*PropertyTypeInput `json:"linkProperties"`
 }
 
 type EditEquipmentTypeInput struct {
-	ID         string                    `json:"id"`
+	ID         int                       `json:"id"`
 	Name       string                    `json:"name"`
 	Category   *string                   `json:"category"`
 	Positions  []*EquipmentPositionInput `json:"positions"`
@@ -275,13 +276,13 @@ type EditEquipmentTypeInput struct {
 }
 
 type EditLinkInput struct {
-	ID         string           `json:"id"`
+	ID         int              `json:"id"`
 	Properties []*PropertyInput `json:"properties"`
-	ServiceIds []string         `json:"serviceIds"`
+	ServiceIds []int            `json:"serviceIds"`
 }
 
 type EditLocationInput struct {
-	ID         string           `json:"id"`
+	ID         int              `json:"id"`
 	Name       string           `json:"name"`
 	Latitude   float64          `json:"latitude"`
 	Longitude  float64          `json:"longitude"`
@@ -290,7 +291,7 @@ type EditLocationInput struct {
 }
 
 type EditLocationTypeInput struct {
-	ID           string               `json:"id"`
+	ID           int                  `json:"id"`
 	Name         string               `json:"name"`
 	MapType      *string              `json:"mapType"`
 	MapZoomLevel *int                 `json:"mapZoomLevel"`
@@ -299,25 +300,33 @@ type EditLocationTypeInput struct {
 }
 
 type EditProjectInput struct {
-	ID          string           `json:"id"`
+	ID          int              `json:"id"`
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
 	Creator     *string          `json:"creator"`
-	Type        string           `json:"type"`
-	Location    *string          `json:"location"`
+	Type        int              `json:"type"`
+	Location    *int             `json:"location"`
 	Properties  []*PropertyInput `json:"properties"`
 }
 
 type EditProjectTypeInput struct {
-	ID          string                      `json:"id"`
+	ID          int                         `json:"id"`
 	Name        string                      `json:"name"`
 	Description *string                     `json:"description"`
 	Properties  []*PropertyTypeInput        `json:"properties"`
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
 }
 
+type EditUserInput struct {
+	ID        int          `json:"id"`
+	FirstName *string      `json:"firstName"`
+	LastName  *string      `json:"lastName"`
+	Status    *user.Status `json:"status"`
+	Role      *user.Role   `json:"role"`
+}
+
 type EditWorkOrderInput struct {
-	ID                  string                    `json:"id"`
+	ID                  int                       `json:"id"`
 	Name                string                    `json:"name"`
 	Description         *string                   `json:"description"`
 	OwnerName           *string                   `json:"ownerName"`
@@ -326,15 +335,15 @@ type EditWorkOrderInput struct {
 	Index               *int                      `json:"index"`
 	Status              WorkOrderStatus           `json:"status"`
 	Priority            WorkOrderPriority         `json:"priority"`
-	ProjectID           *string                   `json:"projectId"`
+	ProjectID           *int                      `json:"projectId"`
 	Properties          []*PropertyInput          `json:"properties"`
 	CheckList           []*CheckListItemInput     `json:"checkList"`
 	CheckListCategories []*CheckListCategoryInput `json:"checkListCategories"`
-	LocationID          *string                   `json:"locationId"`
+	LocationID          *int                      `json:"locationId"`
 }
 
 type EditWorkOrderTypeInput struct {
-	ID                  string                      `json:"id"`
+	ID                  int                         `json:"id"`
 	Name                string                      `json:"name"`
 	Description         *string                     `json:"description"`
 	Properties          []*PropertyTypeInput        `json:"properties"`
@@ -347,22 +356,22 @@ type EquipmentFilterInput struct {
 	Operator      FilterOperator      `json:"operator"`
 	StringValue   *string             `json:"stringValue"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
-	IDSet         []string            `json:"idSet"`
+	IDSet         []int               `json:"idSet"`
 	StringSet     []string            `json:"stringSet"`
 	MaxDepth      *int                `json:"maxDepth"`
 }
 
 type EquipmentPortInput struct {
-	ID           *string `json:"id"`
+	ID           *int    `json:"id"`
 	Name         string  `json:"name"`
 	Index        *int    `json:"index"`
 	VisibleLabel *string `json:"visibleLabel"`
-	PortTypeID   *string `json:"portTypeID"`
+	PortTypeID   *int    `json:"portTypeID"`
 	Bandwidth    *string `json:"bandwidth"`
 }
 
 type EquipmentPositionInput struct {
-	ID           *string `json:"id"`
+	ID           *int    `json:"id"`
 	Name         string  `json:"name"`
 	Index        *int    `json:"index"`
 	VisibleLabel *string `json:"visibleLabel"`
@@ -374,7 +383,7 @@ type EquipmentSearchResult struct {
 }
 
 type FileInput struct {
-	ID               string    `json:"id"`
+	ID               int       `json:"id"`
 	FileName         string    `json:"fileName"`
 	SizeInBytes      *int      `json:"sizeInBytes"`
 	ModificationTime *int      `json:"modificationTime"`
@@ -393,7 +402,7 @@ type LinkFilterInput struct {
 	Operator      FilterOperator     `json:"operator"`
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
-	IDSet         []string           `json:"idSet"`
+	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
@@ -404,8 +413,8 @@ type LinkSearchResult struct {
 }
 
 type LinkSide struct {
-	Equipment string `json:"equipment"`
-	Port      string `json:"port"`
+	Equipment int `json:"equipment"`
+	Port      int `json:"port"`
 }
 
 type LocationFilterInput struct {
@@ -414,7 +423,7 @@ type LocationFilterInput struct {
 	BoolValue     *bool              `json:"boolValue"`
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
-	IDSet         []string           `json:"idSet"`
+	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
@@ -425,8 +434,8 @@ type LocationSearchResult struct {
 }
 
 type LocationTypeIndex struct {
-	LocationTypeID string `json:"locationTypeID"`
-	Index          int    `json:"index"`
+	LocationTypeID int `json:"locationTypeID"`
+	Index          int `json:"index"`
 }
 
 type NetworkTopology struct {
@@ -440,7 +449,7 @@ type PortFilterInput struct {
 	BoolValue     *bool              `json:"boolValue"`
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
-	IDSet         []string           `json:"idSet"`
+	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
@@ -457,8 +466,8 @@ type ProjectFilterInput struct {
 }
 
 type PropertyInput struct {
-	ID                 *string  `json:"id"`
-	PropertyTypeID     string   `json:"propertyTypeID"`
+	ID                 *int     `json:"id"`
+	PropertyTypeID     int      `json:"propertyTypeID"`
 	StringValue        *string  `json:"stringValue"`
 	IntValue           *int     `json:"intValue"`
 	BooleanValue       *bool    `json:"booleanValue"`
@@ -467,15 +476,15 @@ type PropertyInput struct {
 	LongitudeValue     *float64 `json:"longitudeValue"`
 	RangeFromValue     *float64 `json:"rangeFromValue"`
 	RangeToValue       *float64 `json:"rangeToValue"`
-	EquipmentIDValue   *string  `json:"equipmentIDValue"`
-	LocationIDValue    *string  `json:"locationIDValue"`
-	ServiceIDValue     *string  `json:"serviceIDValue"`
+	EquipmentIDValue   *int     `json:"equipmentIDValue"`
+	LocationIDValue    *int     `json:"locationIDValue"`
+	ServiceIDValue     *int     `json:"serviceIDValue"`
 	IsEditable         *bool    `json:"isEditable"`
 	IsInstanceProperty *bool    `json:"isInstanceProperty"`
 }
 
 type PropertyTypeInput struct {
-	ID                 *string      `json:"id"`
+	ID                 *int         `json:"id"`
 	Name               string       `json:"name"`
 	Type               PropertyKind `json:"type"`
 	Index              *int         `json:"index"`
@@ -510,7 +519,7 @@ type SearchEntriesConnection struct {
 }
 
 type SearchEntry struct {
-	EntityID   string  `json:"entityId"`
+	EntityID   int     `json:"entityId"`
 	EntityType string  `json:"entityType"`
 	Name       string  `json:"name"`
 	Type       string  `json:"type"`
@@ -529,19 +538,19 @@ type ServiceCreateData struct {
 	Name               string           `json:"name"`
 	ExternalID         *string          `json:"externalId"`
 	Status             *ServiceStatus   `json:"status"`
-	ServiceTypeID      string           `json:"serviceTypeId"`
-	CustomerID         *string          `json:"customerId"`
-	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	ServiceTypeID      int              `json:"serviceTypeId"`
+	CustomerID         *int             `json:"customerId"`
+	UpstreamServiceIds []int            `json:"upstreamServiceIds"`
 	Properties         []*PropertyInput `json:"properties"`
 }
 
 type ServiceEditData struct {
-	ID                 string           `json:"id"`
+	ID                 int              `json:"id"`
 	Name               *string          `json:"name"`
 	ExternalID         *string          `json:"externalId"`
 	Status             *ServiceStatus   `json:"status"`
-	CustomerID         *string          `json:"customerId"`
-	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	CustomerID         *int             `json:"customerId"`
+	UpstreamServiceIds []int            `json:"upstreamServiceIds"`
 	Properties         []*PropertyInput `json:"properties"`
 }
 
@@ -550,7 +559,7 @@ type ServiceFilterInput struct {
 	Operator      FilterOperator     `json:"operator"`
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
-	IDSet         []string           `json:"idSet"`
+	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
@@ -567,7 +576,7 @@ type ServiceTypeCreateData struct {
 }
 
 type ServiceTypeEditData struct {
-	ID          string               `json:"id"`
+	ID          int                  `json:"id"`
 	Name        string               `json:"name"`
 	HasCustomer bool                 `json:"hasCustomer"`
 	Properties  []*PropertyTypeInput `json:"properties"`
@@ -602,7 +611,7 @@ type SurveyCreateData struct {
 	CreationTimestamp   *int                      `json:"creationTimestamp"`
 	CompletionTimestamp int                       `json:"completionTimestamp"`
 	Status              *SurveyStatus             `json:"status"`
-	LocationID          string                    `json:"locationID"`
+	LocationID          int                       `json:"locationID"`
 	SurveyResponses     []*SurveyQuestionResponse `json:"surveyResponses"`
 }
 
@@ -630,14 +639,14 @@ type SurveyQuestionResponse struct {
 }
 
 type SurveyTemplateCategoryInput struct {
-	ID                      *string                        `json:"id"`
+	ID                      *int                           `json:"id"`
 	CategoryTitle           string                         `json:"categoryTitle"`
 	CategoryDescription     string                         `json:"categoryDescription"`
 	SurveyTemplateQuestions []*SurveyTemplateQuestionInput `json:"surveyTemplateQuestions"`
 }
 
 type SurveyTemplateQuestionInput struct {
-	ID                  *string            `json:"id"`
+	ID                  *int               `json:"id"`
 	QuestionTitle       string             `json:"questionTitle"`
 	QuestionDescription string             `json:"questionDescription"`
 	QuestionType        SurveyQuestionType `json:"questionType"`
@@ -670,25 +679,25 @@ type TopologyLink struct {
 }
 
 type WorkOrderDefinitionInput struct {
-	ID    *string `json:"id"`
-	Index *int    `json:"index"`
-	Type  string  `json:"type"`
+	ID    *int `json:"id"`
+	Index *int `json:"index"`
+	Type  int  `json:"type"`
 }
 
 type WorkOrderExecutionResult struct {
-	ID               string           `json:"id"`
+	ID               int              `json:"id"`
 	Name             string           `json:"name"`
 	EquipmentAdded   []*ent.Equipment `json:"equipmentAdded"`
-	EquipmentRemoved []string         `json:"equipmentRemoved"`
+	EquipmentRemoved []int            `json:"equipmentRemoved"`
 	LinkAdded        []*ent.Link      `json:"linkAdded"`
-	LinkRemoved      []string         `json:"linkRemoved"`
+	LinkRemoved      []int            `json:"linkRemoved"`
 }
 
 type WorkOrderFilterInput struct {
 	FilterType    WorkOrderFilterType `json:"filterType"`
 	Operator      FilterOperator      `json:"operator"`
 	StringValue   *string             `json:"stringValue"`
-	IDSet         []string            `json:"idSet"`
+	IDSet         []int               `json:"idSet"`
 	StringSet     []string            `json:"stringSet"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                `json:"maxDepth"`

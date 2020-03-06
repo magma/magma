@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from typing import Dict, List, Tuple
 
 from ..client import SymphonyClient
-from ..consts import Equipment, Location
+from ..consts import Entity, Equipment, Location
+from ..exceptions import EntityNotFoundError
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
 from .equipment import copy_equipment, copy_equipment_in_position
@@ -14,17 +14,21 @@ from .link import add_link, get_all_links_and_port_names_of_equipment
 def _get_one_level_attachments_of_equipment(
     client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[str, Equipment]]:
-    positions = EquipmentPositionsQuery.execute(
+    equipment_with_positions = EquipmentPositionsQuery.execute(
         client, id=equipment.id
-    ).equipment.positions
-    attachments = [
-        (
-            position.definition.name,
-            Equipment(position.attachedEquipment.name, position.attachedEquipment.id),
-        )
-        for position in positions
-        if position.attachedEquipment is not None
-    ]
+    ).equipment
+    if not equipment_with_positions:
+        raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
+    attachments = []
+    for position in equipment_with_positions.positions:
+        attached_equipment = position.attachedEquipment
+        if attached_equipment:
+            attachments.append(
+                (
+                    position.definition.name,
+                    Equipment(name=attached_equipment.name, id=attached_equipment.id),
+                )
+            )
     return attachments
 
 
@@ -69,11 +73,16 @@ def apply_location_template_to_location(
     client: SymphonyClient, template_location: Location, location: Location
 ) -> None:
 
-    equipments = LocationEquipmentsQuery.execute(
+    location_with_equipments = LocationEquipmentsQuery.execute(
         client, id=template_location.id
-    ).location.equipments
+    ).location
+    if not location_with_equipments:
+        raise EntityNotFoundError(
+            entity=Entity.Location, entity_id=template_location.id
+        )
     equipments = [
-        Equipment(id=equipment.id, name=equipment.name) for equipment in equipments
+        Equipment(id=equipment.id, name=equipment.name)
+        for equipment in location_with_equipments.equipments
     ]
     equipments_to_new_equipments = {}
     for equipment in equipments:

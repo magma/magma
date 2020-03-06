@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -249,8 +248,8 @@ func (woq *WorkOrderQuery) FirstX(ctx context.Context) *WorkOrder {
 }
 
 // FirstID returns the first WorkOrder id in the query. Returns *NotFoundError when no id was found.
-func (woq *WorkOrderQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (woq *WorkOrderQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = woq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -262,7 +261,7 @@ func (woq *WorkOrderQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (woq *WorkOrderQuery) FirstXID(ctx context.Context) string {
+func (woq *WorkOrderQuery) FirstXID(ctx context.Context) int {
 	id, err := woq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -296,8 +295,8 @@ func (woq *WorkOrderQuery) OnlyX(ctx context.Context) *WorkOrder {
 }
 
 // OnlyID returns the only WorkOrder id in the query, returns an error if not exactly one id was returned.
-func (woq *WorkOrderQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (woq *WorkOrderQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = woq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -313,7 +312,7 @@ func (woq *WorkOrderQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (woq *WorkOrderQuery) OnlyXID(ctx context.Context) string {
+func (woq *WorkOrderQuery) OnlyXID(ctx context.Context) int {
 	id, err := woq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -336,8 +335,8 @@ func (woq *WorkOrderQuery) AllX(ctx context.Context) []*WorkOrder {
 }
 
 // IDs executes the query and returns a list of WorkOrder ids.
-func (woq *WorkOrderQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (woq *WorkOrderQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := woq.Select(workorder.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -345,7 +344,7 @@ func (woq *WorkOrderQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (woq *WorkOrderQuery) IDsX(ctx context.Context) []string {
+func (woq *WorkOrderQuery) IDsX(ctx context.Context) []int {
 	ids, err := woq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -620,8 +619,8 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 	}
 
 	if query := woq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*WorkOrder)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkOrder)
 		for i := range nodes {
 			if fk := nodes[i].work_order_type; fk != nil {
 				ids = append(ids, *fk)
@@ -646,13 +645,9 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 
 	if query := woq.withEquipment; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrder)
+		nodeids := make(map[int]*WorkOrder)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -678,13 +673,9 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 
 	if query := woq.withLinks; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrder)
+		nodeids := make(map[int]*WorkOrder)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -710,13 +701,9 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 
 	if query := woq.withFiles; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrder)
+		nodeids := make(map[int]*WorkOrder)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -742,13 +729,9 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 
 	if query := woq.withHyperlinks; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrder)
+		nodeids := make(map[int]*WorkOrder)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -773,8 +756,8 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 	}
 
 	if query := woq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*WorkOrder)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkOrder)
 		for i := range nodes {
 			if fk := nodes[i].work_order_location; fk != nil {
 				ids = append(ids, *fk)
@@ -799,13 +782,9 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 
 	if query := woq.withComments; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrder)
+		nodeids := make(map[int]*WorkOrder)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -831,13 +810,9 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 
 	if query := woq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrder)
+		nodeids := make(map[int]*WorkOrder)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -863,13 +838,9 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 
 	if query := woq.withCheckListCategories; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrder)
+		nodeids := make(map[int]*WorkOrder)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -895,13 +866,9 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 
 	if query := woq.withCheckListItems; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*WorkOrder)
+		nodeids := make(map[int]*WorkOrder)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -926,8 +893,8 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 	}
 
 	if query := woq.withTechnician; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*WorkOrder)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkOrder)
 		for i := range nodes {
 			if fk := nodes[i].work_order_technician; fk != nil {
 				ids = append(ids, *fk)
@@ -951,8 +918,8 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 	}
 
 	if query := woq.withProject; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*WorkOrder)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkOrder)
 		for i := range nodes {
 			if fk := nodes[i].project_work_orders; fk != nil {
 				ids = append(ids, *fk)
@@ -997,7 +964,7 @@ func (woq *WorkOrderQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   workorder.Table,
 			Columns: workorder.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workorder.FieldID,
 			},
 		},

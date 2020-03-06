@@ -123,7 +123,11 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					continue
 				}
 
-				importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				importLine, err := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				name := importLine.Name()
 				equipTypName := importLine.TypeName()
 				equipType, err := client.EquipmentType.Query().Where(equipmenttype.Name(equipTypName)).Only(ctx)
@@ -134,7 +138,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 
 				externalID := importLine.ExternalID()
 				id := importLine.ID()
-				if id == "" {
+				if id == 0 {
 					// new equip
 					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, importLine, commit, nil)
 					if err != nil {
@@ -184,7 +188,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 							continue
 						}
 					} else {
-						equ, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
+						equ, err = m.getEquipmentIfExist(ctx, name, equipType, parentLoc, pos)
 						if equ != nil {
 							errs = append(errs, ErrorLine{Line: numRows, Error: "", Message: "Equipment already exists under location/position"})
 							continue
@@ -252,7 +256,7 @@ func (m *importer) getEquipmentPropertyInputs(ctx context.Context, importLine Im
 	return inputs, "", nil
 }
 
-func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID string, importLine ImportRecord) (*ent.Equipment, error) {
+func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID int, importLine ImportRecord) (*ent.Equipment, error) {
 	equipment, err := m.r.Query().Equipment(ctx, equipID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching equipment")

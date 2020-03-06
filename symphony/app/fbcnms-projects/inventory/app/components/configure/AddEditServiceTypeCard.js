@@ -260,7 +260,9 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       },
     };
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const rootQuery = store.getRoot();
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addServiceType');
       if (!newNode) {
         return;
@@ -270,11 +272,14 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
         'ServiceTypes_serviceTypes',
       );
       const edge = ConnectionHandler.createEdge(
+        // $FlowFixMe (T62907961) Relay flow types
         store,
+        // $FlowFixMe (T62907961) Relay flow types
         types,
         newNode,
         'ServiceTypesEdge',
       );
+      // $FlowFixMe (T62907961) Relay flow types
       ConnectionHandler.insertEdgeBefore(types, edge);
     };
 

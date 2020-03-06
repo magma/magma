@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -31,11 +30,11 @@ type ProjectCreate struct {
 	name        *string
 	description *string
 	creator     *string
-	_type       map[string]struct{}
-	location    map[string]struct{}
-	comments    map[string]struct{}
-	work_orders map[string]struct{}
-	properties  map[string]struct{}
+	_type       map[int]struct{}
+	location    map[int]struct{}
+	comments    map[int]struct{}
+	work_orders map[int]struct{}
+	properties  map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -101,9 +100,9 @@ func (pc *ProjectCreate) SetNillableCreator(s *string) *ProjectCreate {
 }
 
 // SetTypeID sets the type edge to ProjectType by id.
-func (pc *ProjectCreate) SetTypeID(id string) *ProjectCreate {
+func (pc *ProjectCreate) SetTypeID(id int) *ProjectCreate {
 	if pc._type == nil {
-		pc._type = make(map[string]struct{})
+		pc._type = make(map[int]struct{})
 	}
 	pc._type[id] = struct{}{}
 	return pc
@@ -115,16 +114,16 @@ func (pc *ProjectCreate) SetType(p *ProjectType) *ProjectCreate {
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (pc *ProjectCreate) SetLocationID(id string) *ProjectCreate {
+func (pc *ProjectCreate) SetLocationID(id int) *ProjectCreate {
 	if pc.location == nil {
-		pc.location = make(map[string]struct{})
+		pc.location = make(map[int]struct{})
 	}
 	pc.location[id] = struct{}{}
 	return pc
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (pc *ProjectCreate) SetNillableLocationID(id *string) *ProjectCreate {
+func (pc *ProjectCreate) SetNillableLocationID(id *int) *ProjectCreate {
 	if id != nil {
 		pc = pc.SetLocationID(*id)
 	}
@@ -137,9 +136,9 @@ func (pc *ProjectCreate) SetLocation(l *Location) *ProjectCreate {
 }
 
 // AddCommentIDs adds the comments edge to Comment by ids.
-func (pc *ProjectCreate) AddCommentIDs(ids ...string) *ProjectCreate {
+func (pc *ProjectCreate) AddCommentIDs(ids ...int) *ProjectCreate {
 	if pc.comments == nil {
-		pc.comments = make(map[string]struct{})
+		pc.comments = make(map[int]struct{})
 	}
 	for i := range ids {
 		pc.comments[ids[i]] = struct{}{}
@@ -149,7 +148,7 @@ func (pc *ProjectCreate) AddCommentIDs(ids ...string) *ProjectCreate {
 
 // AddComments adds the comments edges to Comment.
 func (pc *ProjectCreate) AddComments(c ...*Comment) *ProjectCreate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -157,9 +156,9 @@ func (pc *ProjectCreate) AddComments(c ...*Comment) *ProjectCreate {
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (pc *ProjectCreate) AddWorkOrderIDs(ids ...string) *ProjectCreate {
+func (pc *ProjectCreate) AddWorkOrderIDs(ids ...int) *ProjectCreate {
 	if pc.work_orders == nil {
-		pc.work_orders = make(map[string]struct{})
+		pc.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		pc.work_orders[ids[i]] = struct{}{}
@@ -169,7 +168,7 @@ func (pc *ProjectCreate) AddWorkOrderIDs(ids ...string) *ProjectCreate {
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (pc *ProjectCreate) AddWorkOrders(w ...*WorkOrder) *ProjectCreate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -177,9 +176,9 @@ func (pc *ProjectCreate) AddWorkOrders(w ...*WorkOrder) *ProjectCreate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (pc *ProjectCreate) AddPropertyIDs(ids ...string) *ProjectCreate {
+func (pc *ProjectCreate) AddPropertyIDs(ids ...int) *ProjectCreate {
 	if pc.properties == nil {
-		pc.properties = make(map[string]struct{})
+		pc.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		pc.properties[ids[i]] = struct{}{}
@@ -189,7 +188,7 @@ func (pc *ProjectCreate) AddPropertyIDs(ids ...string) *ProjectCreate {
 
 // AddProperties adds the properties edges to Property.
 func (pc *ProjectCreate) AddProperties(p ...*Property) *ProjectCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -239,7 +238,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: project.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: project.FieldID,
 			},
 		}
@@ -293,16 +292,12 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -316,16 +311,12 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -339,16 +330,12 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: comment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -362,16 +349,12 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -385,16 +368,12 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -406,6 +385,6 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	pr.ID = strconv.FormatInt(id, 10)
+	pr.ID = int(id)
 	return pr, nil
 }

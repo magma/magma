@@ -28,6 +28,20 @@ message TenantList {
     repeated Tenant tenants = 1;
 }
 
+message UserInput {
+    string tenant = 1;
+    string id = 2;
+}
+
+message User {
+    int64 id = 1;
+}
+
+service UserService {
+    rpc Create(UserInput) returns (User);
+    rpc Delete(UserInput) returns (google.protobuf.Empty);
+}
+
 service ActionsAlertService {
     rpc Trigger(AlertPayload) returns (ExecutionResult);
 }

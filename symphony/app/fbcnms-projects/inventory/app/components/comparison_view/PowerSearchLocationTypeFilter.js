@@ -35,6 +35,7 @@ const PowerSearchLocationTypeFilter = (props: FilterProps) => {
   const [tokens, setTokens] = useState([]);
 
   useEffect(() => {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, locationTypesQuery).then(data => {
       setLocationTypes(data.locationTypes.edges.map(edge => edge.node));
     });

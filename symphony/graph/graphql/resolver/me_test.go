@@ -15,14 +15,20 @@ func TestQueryMe(t *testing.T) {
 	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
 	c := newGraphClient(t, resolver)
+	ctx := viewertest.NewContext(resolver.client)
+	prepareUserData(t, ctx, resolver.client)
 
 	var rsp struct {
 		Me struct {
 			Tenant string
 			Email  string
+			User   struct {
+				AuthID string
+			}
 		}
 	}
-	c.MustPost("query { me { tenant, email } }", &rsp)
+	c.MustPost("query { me { tenant, email user { authID } } }", &rsp)
 	assert.Equal(t, viewertest.DefaultViewer.Tenant, rsp.Me.Tenant)
 	assert.Equal(t, viewertest.DefaultViewer.User, rsp.Me.Email)
+	assert.Equal(t, viewertest.DefaultViewer.User, rsp.Me.User.AuthID)
 }

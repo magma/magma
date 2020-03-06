@@ -14,12 +14,12 @@ import ProjectsTableView from './ProjectsTableView';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import {DisplayOptions} from '../InventoryViewHeader';
+import {DisplayOptions} from '../InventoryViewContainer';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
 import classNames from 'classnames';
-import type {DisplayOptionTypes} from '../InventoryViewHeader';
+import type {DisplayOptionTypes} from '../InventoryViewContainer';
 import type {FilterValue} from '../comparison_view/ComparisonViewTypes';
 
 const useStyles = makeStyles(theme => ({

@@ -7,7 +7,9 @@ package exporter
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -77,7 +79,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		return nil
 	})
 	cg.Go(func(ctx context.Context) error {
-		portIDs := make([]string, len(portsList))
+		portIDs := make([]int, len(portsList))
 		for i, p := range portsList {
 			portIDs[i] = p.ID
 		}
@@ -129,7 +131,7 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	)
 	parentEquip, err := port.QueryParent().Only(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "querying equipment for port (id=%s)", port.ID)
+		return nil, errors.Wrapf(err, "querying equipment for port (id=%d)", port.ID)
 	}
 	portDefinition := port.QueryDefinition().OnlyX(ctx)
 	g := ctxgroup.WithContext(ctx)
@@ -175,7 +177,12 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 				return err
 			}
 			otherEquip := otherPort.QueryParent().OnlyX(ctx)
-			linkData = []string{otherPort.ID, otherPort.QueryDefinition().OnlyX(ctx).Name, otherEquip.ID, otherEquip.Name}
+			linkData = []string{
+				strconv.Itoa(otherPort.ID),
+				otherPort.QueryDefinition().OnlyX(ctx).Name,
+				strconv.Itoa(otherEquip.ID),
+				otherEquip.Name,
+			}
 		}
 		return nil
 	})
@@ -200,7 +207,7 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	if err == nil {
 		portType = pt.Name
 	}
-	row := []string{port.ID, portDefinition.Name, portType, parentEquip.Name, parentEquip.QueryType().OnlyX(ctx).Name}
+	row := []string{strconv.Itoa(port.ID), portDefinition.Name, portType, parentEquip.Name, parentEquip.QueryType().OnlyX(ctx).Name}
 	row = append(row, lParents...)
 	row = append(row, eParents...)
 	row = append(row, posName)
@@ -218,7 +225,7 @@ func getServicesOfPortAsEndpoint(ctx context.Context, port *ent.EquipmentPort, r
 		QueryService().
 		All(ctx)
 	if err != nil {
-		return "", errors.Wrapf(err, "querying port for services (id=%s)", port.ID)
+		return "", errors.Wrapf(err, "querying port for services (id=%d)", port.ID)
 	}
 	var servicesList []string
 	for _, service := range services {
@@ -239,13 +246,17 @@ func paramToPortFilterInput(params string) ([]*models.PortFilterInput, error) {
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
 		propertyValue := f.PropertyValue
+		intIDSet, err := toIntSlice(f.IDSet)
+		if err != nil {
+			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+		}
 		inp := models.PortFilterInput{
 			FilterType:    models.PortFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
 			StringValue:   pointer.ToString(f.StringValue),
 			PropertyValue: &propertyValue,
 			BoolValue:     pointer.ToBool(f.BoolValue),
-			IDSet:         f.IDSet,
+			IDSet:         intIDSet,
 			StringSet:     f.StringSet,
 			MaxDepth:      pointer.ToInt(5),
 		}

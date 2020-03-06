@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from dataclasses import asdict
 from typing import Dict, List, Optional, Tuple
@@ -10,8 +9,9 @@ from tqdm import tqdm
 
 from .._utils import PropertyValue, _get_property_value, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..consts import Equipment, Location
+from ..consts import Entity, Equipment, Location
 from ..exceptions import (
+    EntityNotFoundError,
     EquipmentIsNotUniqueException,
     EquipmentNotFoundException,
     EquipmentPositionIsNotUniqueException,
@@ -37,11 +37,16 @@ def _get_equipment_if_exists(
     client: SymphonyClient, name: str, location: Location
 ) -> Optional[Equipment]:
 
-    equipments = LocationEquipmentsQuery.execute(
+    location_with_equipments = LocationEquipmentsQuery.execute(
         client, id=location.id
-    ).location.equipments
-
-    equipments = [equipment for equipment in equipments if equipment.name == name]
+    ).location
+    if location_with_equipments is None:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
+    equipments = [
+        equipment
+        for equipment in location_with_equipments.equipments
+        if equipment.name == name
+    ]
     if len(equipments) > 1:
         raise EquipmentIsNotUniqueException(name)
 
@@ -104,6 +109,7 @@ def get_equipment_in_position(
                     position with the given name, or none with this name or
                     if the position is not occupied._findPositionDefinitionId
                 FailedOperationException for internal inventory error
+                `pyinventory.exceptions.EntityNotFoundError` if parent_equipment does not exist
 
         Returns: pyinventory.consts.Equipment object (with name and id fields)
                  You can use the id to access the equipment from the UI:
@@ -201,6 +207,9 @@ def _find_position_definition_id(
 
     equipment_data = EquipmentPositionsQuery.execute(client, id=equipment.id).equipment
 
+    if not equipment_data:
+        raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
+
     positions = equipment_data.equipmentType.positionDefinitions
     existing_positions = equipment_data.positions
 
@@ -220,17 +229,13 @@ def _find_position_definition_id(
         raise EquipmentIsNotUniqueException(
             parent_equipment_name=equipment.name, parent_position_name=position_name
         )
-    if (
-        len(installed_positions) == 1
-        and installed_positions[0].attachedEquipment is not None
-    ):
-        return (
-            position.id,
-            Equipment(
-                id=installed_positions[0].attachedEquipment.id,
-                name=installed_positions[0].attachedEquipment.name,
-            ),
-        )
+    if len(installed_positions) == 1:
+        attached_equipment = installed_positions[0].attachedEquipment
+        if attached_equipment is not None:
+            return (
+                position.id,
+                Equipment(id=attached_equipment.id, name=attached_equipment.name),
+            )
     return position.id, None
 
 
@@ -271,6 +276,7 @@ def add_equipment_to_position(
         Raises: AssertionException if parent equipment has more than one position with the given name
                             or if property value in propertiesDict does not match the property type
                 FailedOperationException for internal inventory error
+                `pyinventory.exceptions.EntityNotFoundError` if existing_equipment does not exist
 
         Example:
         ```
@@ -367,7 +373,8 @@ def _get_equipment_type_and_properties_dict(
 ) -> Tuple[str, Dict[str, PropertyValue]]:
 
     result = EquipmentTypeAndPropertiesQuery.execute(client, id=equipment.id).equipment
-
+    if result is None:
+        raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     equipment_type = result.equipmentType.name
 
     properties_dict = {}

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from typing import List, Optional
 
@@ -20,14 +19,17 @@ def add_customer(
 
 
 def get_all_customers(client: SymphonyClient) -> List[Customer]:
-    customer_edges = CustomersQuery.execute(client).customers.edges
-
-    customers = [edge.node for edge in customer_edges]
-
-    return [
-        Customer(name=customer.name, id=customer.id, externalId=customer.externalId)
-        for customer in customers
-    ]
+    customers = CustomersQuery.execute(client).customers
+    if not customers:
+        return []
+    result = []
+    for customer in customers.edges:
+        node = customer.node
+        if node:
+            result.append(
+                Customer(name=node.name, id=node.id, externalId=node.externalId)
+            )
+    return result
 
 
 def delete_customer(client: SymphonyClient, customer: Customer) -> None:

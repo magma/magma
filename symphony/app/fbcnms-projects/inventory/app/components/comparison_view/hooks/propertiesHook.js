@@ -28,6 +28,7 @@ const propertiesQuery = graphql`
 `;
 
 const usePropertyFilters = (entityType: EntityType): ?Array<PropertyType> => {
+  // $FlowFixMe (T62907961) Relay flow types
   const propertiesResponse = useGraphQL(RelayEnvironment, propertiesQuery, {
     entityType: entityType.toString().toUpperCase(),
   });

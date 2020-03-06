@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/AlekSi/pointer"
@@ -39,9 +40,8 @@ const consumerEndpointServices = "Consumer Endpoint for These Services"
 const providerEndpointServices = "Provider Endpoint for These Services"
 
 func TestEmptyPortsDataExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, portsRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -84,9 +84,8 @@ func TestEmptyPortsDataExport(t *testing.T) {
 }
 
 func TestPortsExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, portsRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -94,6 +93,7 @@ func TestPortsExport(t *testing.T) {
 	defer server.Close()
 
 	req, err := http.NewRequest("GET", server.URL, nil)
+	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
 	ctx := viewertest.NewContext(r.client)
@@ -189,8 +189,7 @@ func TestPortsExport(t *testing.T) {
 }
 
 func TestPortWithFilters(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
 	ctx := viewertest.NewContext(r.client)
 	e := &exporter{log, portsRower{log}}
@@ -206,12 +205,12 @@ func TestPortWithFilters(t *testing.T) {
 		{
 			Name:     "LOCATION_INST",
 			Operator: "IS_ONE_OF",
-			IDSet:    []string{loc.ID},
+			IDSet:    []string{strconv.Itoa(loc.ID)},
 		},
 		{
 			Name:     "PORT_DEF",
 			Operator: "IS_ONE_OF",
-			IDSet:    []string{pDef2.ID},
+			IDSet:    []string{strconv.Itoa(pDef2.ID)},
 		},
 		{
 			Name:      "PORT_INST_HAS_LINK",
@@ -225,7 +224,7 @@ func TestPortWithFilters(t *testing.T) {
 			Name:     "PROPERTY",
 			Operator: "IS",
 			PropertyValue: models.PropertyTypeInput{
-				ID:          pointer.ToString("tmp@propertyType"),
+				ID:          pointer.ToInt(42),
 				Name:        propStr,
 				StringValue: pointer.ToString("t1"),
 				Type:        "string",

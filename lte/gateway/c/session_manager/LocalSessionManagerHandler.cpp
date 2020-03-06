@@ -201,25 +201,25 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   }
   cfg.qos_info = qos_info;
 
-  if (enforcer_->is_imsi_duplicate(imsi)) {
-    std::string * core_sid = enforcer_->duplicate_session_id(imsi, cfg);
-    if ((core_sid != nullptr) || (request->rat_type() == RATType::TGPP_WLAN)){
-      if (request->rat_type() == RATType::TGPP_WLAN) {
+  if (enforcer_->session_with_imsi_exists(imsi)) {
+    std::string core_sid;
+    bool same_config = enforcer_->session_with_same_config_exists(imsi, cfg, &core_sid);
+    bool is_wifi = request->rat_type() == RATType::TGPP_WLAN;
+    if (same_config || is_wifi){
+      if (is_wifi) {
         MLOG(MINFO) << "Found a session with the same IMSI " << imsi
-                  << " and RAT Type is WLAN, not creating session";
+                    << " and RAT Type is WLAN, not creating a new session";
       } else {
-      MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
-                  << " and APN " << request->apn()
-                  << ", not creating session";
+        MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
+                    << " and APN " << request->apn()
+                    << ", not creating session";
       }
       enforcer_->get_event_base().runInEventBaseThread(
           [response_callback, core_sid]() {
             try {
               LocalCreateSessionResponse resp;
-              resp.set_session_id(*core_sid);
-              delete core_sid;
-              response_callback(
-                grpc::Status::OK, resp);
+              resp.set_session_id(core_sid);
+              response_callback(grpc::Status::OK, resp);
             } catch (...) {
                 std::exception_ptr ep = std::current_exception();
                 MLOG(MERROR) << "CreateSession response_callback exception: "
@@ -228,9 +228,10 @@ void LocalSessionManagerHandlerImpl::CreateSession(
             }
           }
       );
+      // No new session created
       return;
     }
-    if (enforcer_->is_apn_duplicate(imsi, request->apn())) {
+    if (enforcer_->session_with_apn_exists(imsi, request->apn())) {
       MLOG(MINFO) << "Found session with the same IMSI " << imsi
                   << " and APN " << request->apn()
                   << ", but different configuration."

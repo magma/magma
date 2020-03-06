@@ -17,7 +17,7 @@ import (
 func TestCursorEncoding(t *testing.T) {
 	t.Run("EncodeDecode", func(t *testing.T) {
 		var buf bytes.Buffer
-		c := Cursor{ID: "42"}
+		c := Cursor{ID: 42}
 		c.MarshalGQL(&buf)
 		var uc Cursor
 		s, err := strconv.Unquote(buf.String())

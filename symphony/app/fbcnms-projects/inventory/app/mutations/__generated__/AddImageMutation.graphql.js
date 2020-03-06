@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash c47ba28468a55dfbaa8b7edf8d299176
+ * @relayHash 5c81821740fd65352396614ff44df3a8
  */
 
 /* eslint-disable */
@@ -31,7 +31,7 @@ export type AddImageMutationVariables = {|
   input: AddImageInput
 |};
 export type AddImageMutationResponse = {|
-  +addImage: ?{|
+  +addImage: {|
     +$fragmentRefs: FileAttachment_file$ref
   |}
 |};

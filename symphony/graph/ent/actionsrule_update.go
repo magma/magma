@@ -97,7 +97,7 @@ func (aru *ActionsRuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   actionsrule.Table,
 			Columns: actionsrule.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: actionsrule.FieldID,
 			},
 		},
@@ -158,7 +158,7 @@ func (aru *ActionsRuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ActionsRuleUpdateOne is the builder for updating a single ActionsRule entity.
 type ActionsRuleUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time *time.Time
 	name        *string
@@ -229,7 +229,7 @@ func (aruo *ActionsRuleUpdateOne) sqlSave(ctx context.Context) (ar *ActionsRule,
 			Columns: actionsrule.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  aruo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: actionsrule.FieldID,
 			},
 		},

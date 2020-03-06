@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -94,8 +93,8 @@ func (cq *CustomerQuery) FirstX(ctx context.Context) *Customer {
 }
 
 // FirstID returns the first Customer id in the query. Returns *NotFoundError when no id was found.
-func (cq *CustomerQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (cq *CustomerQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = cq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -107,7 +106,7 @@ func (cq *CustomerQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (cq *CustomerQuery) FirstXID(ctx context.Context) string {
+func (cq *CustomerQuery) FirstXID(ctx context.Context) int {
 	id, err := cq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -141,8 +140,8 @@ func (cq *CustomerQuery) OnlyX(ctx context.Context) *Customer {
 }
 
 // OnlyID returns the only Customer id in the query, returns an error if not exactly one id was returned.
-func (cq *CustomerQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (cq *CustomerQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = cq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -158,7 +157,7 @@ func (cq *CustomerQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (cq *CustomerQuery) OnlyXID(ctx context.Context) string {
+func (cq *CustomerQuery) OnlyXID(ctx context.Context) int {
 	id, err := cq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -181,8 +180,8 @@ func (cq *CustomerQuery) AllX(ctx context.Context) []*Customer {
 }
 
 // IDs executes the query and returns a list of Customer ids.
-func (cq *CustomerQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (cq *CustomerQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := cq.Select(customer.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -190,7 +189,7 @@ func (cq *CustomerQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (cq *CustomerQuery) IDsX(ctx context.Context) []string {
+func (cq *CustomerQuery) IDsX(ctx context.Context) []int {
 	ids, err := cq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -324,14 +323,14 @@ func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
 
 	if query := cq.withServices; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Customer, len(nodes))
+		ids := make(map[int]*Customer, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Customer)
+			edgeids []int
+			edges   = make(map[int][]*Customer)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -355,8 +354,8 @@ func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -407,7 +406,7 @@ func (cq *CustomerQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   customer.Table,
 			Columns: customer.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: customer.FieldID,
 			},
 		},

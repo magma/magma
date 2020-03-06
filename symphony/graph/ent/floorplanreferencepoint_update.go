@@ -144,7 +144,7 @@ func (fprpu *FloorPlanReferencePointUpdate) sqlSave(ctx context.Context) (n int,
 			Table:   floorplanreferencepoint.Table,
 			Columns: floorplanreferencepoint.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanreferencepoint.FieldID,
 			},
 		},
@@ -233,7 +233,7 @@ func (fprpu *FloorPlanReferencePointUpdate) sqlSave(ctx context.Context) (n int,
 // FloorPlanReferencePointUpdateOne is the builder for updating a single FloorPlanReferencePoint entity.
 type FloorPlanReferencePointUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time  *time.Time
 	x            *int
@@ -352,7 +352,7 @@ func (fprpuo *FloorPlanReferencePointUpdateOne) sqlSave(ctx context.Context) (fp
 			Columns: floorplanreferencepoint.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  fprpuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanreferencepoint.FieldID,
 			},
 		},

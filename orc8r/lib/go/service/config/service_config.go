@@ -16,15 +16,17 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 
 	"gopkg.in/yaml.v2"
 )
 
-const (
+var (
 	// ConfigDir is where the per-service configuration files are stored
-	ConfigDir         = "/etc/magma/configs"
-	OldConfigDir      = "/etc/magma"
-	ConfigOverrideDir = "/var/opt/magma/configs/"
+	configDir         = "/etc/magma/configs"
+	oldConfigDir      = "/etc/magma"
+	configOverrideDir = "/var/opt/magma/configs/"
+	cfgDirMu          sync.RWMutex
 )
 
 // ConfigMap is a struct for representing a map generated from a service YML file
@@ -41,8 +43,10 @@ func NewConfigMap(config map[interface{}]interface{}) *ConfigMap {
 // Input: configName - name of config to load, e.g. control_proxy
 // Output: map of parameters if it exists, error if not
 func GetServiceConfig(moduleName string, serviceName string) (*ConfigMap, error) {
-	return getServiceConfigImpl(moduleName, serviceName, ConfigDir, OldConfigDir, ConfigOverrideDir)
-
+	cfgDirMu.RLock()
+	main, legacy, overwrite := configDir, oldConfigDir, configOverrideDir
+	cfgDirMu.RUnlock()
+	return getServiceConfigImpl(moduleName, serviceName, main, legacy, overwrite)
 }
 
 // GetStringParam is used to retrieve a string param from a YML file and returns error if param does not exist/ill-formed
@@ -127,56 +131,83 @@ func (cfgMap *ConfigMap) GetRequiredMapParam(key string) map[interface{}]interfa
 }
 
 // GetStructuredServiceConfig updates 'out' structure with configs from the configs YML
-func GetStructuredServiceConfig(moduleName string, serviceName string, out interface{}) error {
-	return GetStructuredServiceConfigExt(moduleName, serviceName, ConfigDir, OldConfigDir, ConfigOverrideDir, out)
+// If successful, GetStructuredServiceConfig returns used YML file path & used overwrite cfg YML file path
+func GetStructuredServiceConfig(moduleName string, serviceName string, out interface{}) (string, string, error) {
+	cfgDirMu.RLock()
+	main, legacy, overwrite := configDir, oldConfigDir, configOverrideDir
+	cfgDirMu.RUnlock()
+	return GetStructuredServiceConfigExt(moduleName, serviceName, main, legacy, overwrite, out)
 }
 
 // GetStructuredServiceConfigExt is an extended version of GetStructuredServiceConfig, it allows to pass config
 // directory names
-func GetStructuredServiceConfigExt(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string, out interface{}) error {
+func GetStructuredServiceConfigExt(
+	moduleName,
+	serviceName,
+	configDir,
+	oldConfigDir,
+	configOverrideDir string,
+	out interface{}) (ymlFilePath, ymlQWFilePath string, err error) {
+
 	if out == nil {
-		return fmt.Errorf("Structured CFG: Invalid (nil) output parameter")
+		return ymlFilePath, ymlQWFilePath, fmt.Errorf("Structured CFG: Invalid (nil) output parameter")
 	}
 
 	moduleName, serviceName = strings.ToLower(moduleName), strings.ToLower(serviceName)
-	configFileName := getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir)
-	yamlFileData, err := ioutil.ReadFile(configFileName)
+	ymlFilePath = getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir)
+	yamlFileData, err := ioutil.ReadFile(ymlFilePath)
 	if err == nil {
 		err = yaml.Unmarshal([]byte(yamlFileData), out)
 		if err != nil {
-			log.Printf("Structured CFG: Error Unmarshaling '%s' into type %T: %v", configFileName, out, err)
+			log.Printf("Structured CFG: Error Unmarshaling '%s' into type %T: %v", ymlFilePath, out, err)
 		} else {
 			log.Printf("Successfully loaded structured '%s::%s' service configs from '%s'",
-				moduleName, serviceName, configFileName)
+				moduleName, serviceName, ymlFilePath)
 		}
 	} else {
-		log.Printf("Structured CFG: Error Reading '%s': %v", configFileName, err)
+		log.Printf("Structured CFG: Error Reading '%s': %v", ymlFilePath, err)
 	}
 	// Overwrite params from override configs
 	var oerr error
-	overrideFileName := filepath.Join(configOverrideDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
-	if fi, serr := os.Stat(overrideFileName); serr == nil && !fi.IsDir() {
-		yamlFileData, oerr = ioutil.ReadFile(overrideFileName)
+	ymlQWFilePath = filepath.Join(configOverrideDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
+	if fi, serr := os.Stat(ymlQWFilePath); serr == nil && !fi.IsDir() {
+		yamlFileData, oerr = ioutil.ReadFile(ymlQWFilePath)
 		if oerr == nil {
 			oerr = yaml.Unmarshal([]byte(yamlFileData), out)
 			if oerr != nil {
 				log.Printf("Structured CFG: Error Unmarshaling Override file '%s' into type %T: %v",
-					configFileName, out, err)
+					ymlQWFilePath, out, err)
 			} else {
 				log.Printf("Successfully loaded Override configs for service %s:%s from '%s'",
-					moduleName, serviceName, overrideFileName)
+					moduleName, serviceName, ymlQWFilePath)
 			}
 		} else {
-			log.Printf("Structured CFG:Error Loading Override configs from '%s': %v", overrideFileName, err)
+			log.Printf("Structured CFG:Error Loading Override configs from '%s': %v", ymlQWFilePath, err)
 		}
+	} else {
+		ymlQWFilePath = ""
 	}
 	if err == nil || oerr == nil { // fully or partially succeeded
-		return nil
+		return ymlFilePath, ymlQWFilePath, nil
 	}
 	if err != nil {
-		return err
+		return
 	}
-	return oerr
+	return ymlFilePath, ymlQWFilePath, oerr
+}
+
+// GetCurrentConfigDirectories returns currently used service YML configuration locations
+func GetCurrentConfigDirectories() (main, legacy, overwrite string) {
+	cfgDirMu.RLock()
+	defer cfgDirMu.RUnlock()
+	return configDir, oldConfigDir, configOverrideDir
+}
+
+// SetConfigDirectories sets main, legacy, overwrite config directories to be used
+func SetConfigDirectories(main, legacy, overwrite string) {
+	cfgDirMu.Lock()
+	configDir, oldConfigDir, configOverrideDir = main, legacy, overwrite
+	cfgDirMu.Unlock()
 }
 
 func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {

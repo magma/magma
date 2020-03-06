@@ -35,6 +35,7 @@ const PowerSearchPortDefinitionFilter = (props: FilterProps) => {
   const [tokens, setTokens] = useState([]);
 
   useEffect(() => {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, portDefinitionsQuery).then(data => {
       setPortDefinitions(
         data.equipmentPortDefinitions.edges.map(edge => edge.node),

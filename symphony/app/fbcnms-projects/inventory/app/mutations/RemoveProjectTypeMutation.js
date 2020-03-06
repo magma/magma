@@ -13,7 +13,9 @@ import {commitMutation, graphql} from 'react-relay';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
   RemoveProjectTypeMutation,
+  // $FlowFixMe (T62907961) Relay flow types
   RemoveProjectTypeMutationMutationResponse,
+  // $FlowFixMe (T62907961) Relay flow types
   RemoveProjectTypeMutationMutationVariables,
 } from './__generated__/RemoveProjectTypeMutation.graphql';
 import type {StoreUpdater} from '../common/RelayEnvironment';

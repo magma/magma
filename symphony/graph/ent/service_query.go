@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -177,8 +176,8 @@ func (sq *ServiceQuery) FirstX(ctx context.Context) *Service {
 }
 
 // FirstID returns the first Service id in the query. Returns *NotFoundError when no id was found.
-func (sq *ServiceQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sq *ServiceQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -190,7 +189,7 @@ func (sq *ServiceQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (sq *ServiceQuery) FirstXID(ctx context.Context) string {
+func (sq *ServiceQuery) FirstXID(ctx context.Context) int {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -224,8 +223,8 @@ func (sq *ServiceQuery) OnlyX(ctx context.Context) *Service {
 }
 
 // OnlyID returns the only Service id in the query, returns an error if not exactly one id was returned.
-func (sq *ServiceQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sq *ServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -241,7 +240,7 @@ func (sq *ServiceQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (sq *ServiceQuery) OnlyXID(ctx context.Context) string {
+func (sq *ServiceQuery) OnlyXID(ctx context.Context) int {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -264,8 +263,8 @@ func (sq *ServiceQuery) AllX(ctx context.Context) []*Service {
 }
 
 // IDs executes the query and returns a list of Service ids.
-func (sq *ServiceQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (sq *ServiceQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := sq.Select(service.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -273,7 +272,7 @@ func (sq *ServiceQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *ServiceQuery) IDsX(ctx context.Context) []string {
+func (sq *ServiceQuery) IDsX(ctx context.Context) []int {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -488,8 +487,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 	}
 
 	if query := sq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Service)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Service)
 		for i := range nodes {
 			if fk := nodes[i].service_type; fk != nil {
 				ids = append(ids, *fk)
@@ -514,14 +513,14 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withDownstream; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Service, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Service)
+			edgeids []int
+			edges   = make(map[int][]*Service)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -545,8 +544,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -577,14 +576,14 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withUpstream; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Service, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Service)
+			edgeids []int
+			edges   = make(map[int][]*Service)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -608,8 +607,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -640,13 +639,9 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Service)
+		nodeids := make(map[int]*Service)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -672,14 +667,14 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withLinks; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Service, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Service)
+			edgeids []int
+			edges   = make(map[int][]*Service)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -703,8 +698,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -735,14 +730,14 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withCustomer; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Service, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Service)
+			edgeids []int
+			edges   = make(map[int][]*Service)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -766,8 +761,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -798,13 +793,9 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withEndpoints; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Service)
+		nodeids := make(map[int]*Service)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -850,7 +841,7 @@ func (sq *ServiceQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   service.Table,
 			Columns: service.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: service.FieldID,
 			},
 		},

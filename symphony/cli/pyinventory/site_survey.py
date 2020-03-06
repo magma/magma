@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 import math
 from datetime import datetime
@@ -17,7 +16,8 @@ from xlsxwriter.worksheet import Worksheet
 
 from .api.file import add_site_survey_image, delete_site_survey_image
 from .client import SymphonyClient
-from .consts import Location, SiteSurvey
+from .consts import Entity, Location, SiteSurvey
+from .exceptions import EntityNotFoundError
 from .graphql.create_survey_mutation import CreateSurveyMutation
 from .graphql.location_surveys_query import LocationSurveysQuery
 from .graphql.remove_site_survey_mutation import RemoveSiteSurveyMutation
@@ -866,9 +866,16 @@ def get_site_surveys(client: SymphonyClient, location: Location) -> List[SiteSur
             }
         }
         ```
+
+        Raises: `pyinventory.exceptions.EntityNotFoundError`: location does not exist
     """
 
-    surveys = LocationSurveysQuery.execute(client, id=location.id).location.surveys
+    location_with_surveys = LocationSurveysQuery.execute(
+        client, id=location.id
+    ).location
+    if not location_with_surveys:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
+    surveys = location_with_surveys.surveys
     return [build_site_survey_from_survey_response(survey) for survey in surveys]
 
 

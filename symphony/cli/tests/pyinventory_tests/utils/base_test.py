@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
@@ -7,6 +6,7 @@
 
 import time
 import unittest
+from typing import cast
 
 import requests
 from pyinventory import InventoryClient
@@ -15,9 +15,7 @@ from .constant import PLATFORM_SERVER_HEALTH_CHECK_URL, TEST_USER_EMAIL
 
 
 class BaseTest(unittest.TestCase):
-    client: InventoryClient = InventoryClient(
-        TEST_USER_EMAIL, TEST_USER_EMAIL, is_dev_mode=True
-    )
+    client: InventoryClient = cast(InventoryClient, None)
 
     @classmethod
     def setUpClass(cls) -> None:

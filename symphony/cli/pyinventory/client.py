@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from distutils.version import LooseVersion
 from typing import Any, Dict, Optional, Tuple
@@ -116,10 +115,15 @@ class SymphonyClient(GraphqlClient):
 
         package = LatestPythonPackageQuery.execute(self).latestPythonPackage
         if package is not None:
-            return (
-                package.lastPythonPackage.version,
-                package.lastBreakingPythonPackage.version,
-            )
+            last_version = package.lastPythonPackage
+            last_breaking_version = package.lastBreakingPythonPackage
+            if last_version is not None:
+                return (
+                    last_version.version,
+                    last_breaking_version.version
+                    if last_breaking_version
+                    else last_version.version,
+                )
         return None
 
     def store_file(self, file_path: str, file_type: str, is_global: bool) -> str:

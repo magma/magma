@@ -38,9 +38,9 @@ func TestAddLocation(t *testing.T) {
 	fetchedLocation, err := qr.Location(ctx, location.ID)
 	require.NoError(t, err)
 
-	l, err := qr.Location(ctx, "1234-invalid-ID")
+	l, err := qr.Location(ctx, -1)
 	require.Nil(t, l, "Tried to fetch missing location")
-	require.Nil(t, err, "Missing location is not an error")
+	require.NoError(t, err, "Missing location is not an error")
 
 	locations, _ := qr.Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.Len(t, locations.Edges, 1, "Verifying 'Locations' return value")
@@ -357,11 +357,11 @@ func TestAddLocationCellScans(t *testing.T) {
 	fetchedCells, _ := fetchedLocation.QueryCellScan().All(ctx)
 	require.Equal(t, len(fetchedCells), len(cellScans))
 
-	var cellIDs []string
+	var cellIDs []int
 	for _, cell := range cells {
 		cellIDs = append(cellIDs, cell.ID)
 	}
-	var fetchedCellIDs []string
+	var fetchedCellIDs []int
 	for _, fetchedCell := range fetchedCells {
 		fetchedCellIDs = append(fetchedCellIDs, fetchedCell.ID)
 	}
@@ -741,7 +741,7 @@ func TestDeleteLocationWithEquipmentsFails(t *testing.T) {
 	require.NoError(t, err)
 
 	deletedLocationID, err := mr.RemoveLocation(ctx, location.ID)
-	require.Equal(t, deletedLocationID, "")
+	require.Empty(t, deletedLocationID)
 	require.Error(t, err, "can't remove location with equipment")
 
 	fetchedLocation, err := qr.Location(ctx, location.ID)
@@ -809,17 +809,17 @@ func TestGetLocationsByType(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	allLocations, err := qr.Locations(ctx, nil, []string{locationType1.ID, locationType2.ID}, nil, nil, nil, nil, nil, nil)
+	allLocations, err := qr.Locations(ctx, nil, []int{locationType1.ID, locationType2.ID}, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, allLocations.Edges, 2)
 
-	locationsType1, err := qr.Locations(ctx, nil, []string{locationType1.ID}, nil, nil, nil, nil, nil, nil)
+	locationsType1, err := qr.Locations(ctx, nil, []int{locationType1.ID}, nil, nil, nil, nil, nil, nil)
 
 	require.NoError(t, err)
 	require.Len(t, locationsType1.Edges, 1, "one location of this type")
 	require.Equal(t, locationsType1.Edges[0].Node.ID, location1.ID)
 
-	locationsType2, err := qr.Locations(ctx, nil, []string{locationType2.ID}, nil, nil, nil, nil, nil, nil)
+	locationsType2, err := qr.Locations(ctx, nil, []int{locationType2.ID}, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, locationsType2.Edges, 1, "one location of this type")
 	require.Equal(t, locationsType2.Edges[0].Node.ID, location2.ID)

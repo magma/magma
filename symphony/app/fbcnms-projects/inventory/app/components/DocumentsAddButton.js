@@ -123,14 +123,20 @@ class DocumentsAddButton extends React.Component<Props, State> {
     };
 
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addImage');
       const fileType = newNode.getValue('fileType');
+      // $FlowFixMe (T62907961) Relay flow types
       const entityProxy = store.get(this.props.entityId);
       if (fileType == FileTypeEnum.IMAGE) {
+        // $FlowFixMe (T62907961) Relay flow types
         const imageNodes = entityProxy.getLinkedRecords('images') || [];
+        // $FlowFixMe (T62907961) Relay flow types
         entityProxy.setLinkedRecords([...imageNodes, newNode], 'images');
       } else {
+        // $FlowFixMe (T62907961) Relay flow types
         const fileNodes = entityProxy.getLinkedRecords('files') || [];
+        // $FlowFixMe (T62907961) Relay flow types
         entityProxy.setLinkedRecords([...fileNodes, newNode], 'files');
       }
     };

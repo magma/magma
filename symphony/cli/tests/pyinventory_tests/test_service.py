@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
@@ -126,7 +125,7 @@ class TestService(BaseTest):
         )
         service = get_service(self.client, service.id)
 
-        self.assertEqual([endpoint_port], [e.port for e in service.endpoints])
+        self.assertEqual([endpoint_port.id], [e.port.id for e in service.endpoints])
         self.assertEqual([link1, link2], service.links)
 
     def test_service_with_customer_created(self) -> None:

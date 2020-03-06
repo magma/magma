@@ -95,7 +95,7 @@ setup(
         'requests==2.22.0',
         'certifi==2019.6.16',
         'idna==2.8',
-        'python-dateutil==2.8',
+        'python-dateutil==2.8.1',
         'six>=1.12.0',
         'eventlet>=0.24',
         'h2>=3.2.0',

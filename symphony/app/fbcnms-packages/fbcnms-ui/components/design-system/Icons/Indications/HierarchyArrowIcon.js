@@ -15,12 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const HierarchyArrowIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <g transform="translate(6.5,7)">
-      <path
-        d="M2 0v5l3.999-.001L6 2l5 4-5 4-.001-3.001L0 7V0h2z"
-        fillRule="evenodd"
-      />
-    </g>
+    <path d="M9 7v5l3.999-.001L13 9l5 4-5 4-.001-3.001L7 14V7h2z" />
   </SvgIcon>
 );
 

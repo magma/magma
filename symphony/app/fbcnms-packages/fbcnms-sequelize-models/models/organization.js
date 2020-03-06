@@ -12,10 +12,11 @@ import Sequelize from 'sequelize';
 
 import type {AssociateProp} from './AssociateTypes.flow';
 import type {DataTypes, Model} from 'sequelize';
+import type {Tab} from '@fbcnms/types/tabs';
 
 export type OrganizationRawType = {
   name: string,
-  tabs?: Array<string>,
+  tabs?: Array<Tab>,
   customDomains?: Array<string>,
   networkIDs: Array<string>,
   csvCharset: string,

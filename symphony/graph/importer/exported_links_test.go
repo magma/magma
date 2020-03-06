@@ -5,15 +5,13 @@
 package importer
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/resolverutil"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
-
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-
+	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
@@ -62,7 +60,7 @@ func TestGeneralLinksEditImport(t *testing.T) {
 	childEquip := r.client.Equipment.GetX(ctx, ids.equipChildID)
 	etyp2 := childEquip.QueryType().OnlyX(ctx)
 	var (
-		row1 = []string{ids.linkID, def1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", def2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", "", "", parentEquip, posName, strings.Join([]string{svcName, svc2Name}, ";"), "44", "2019-01-01", "FALSE"}
+		row1 = []string{strconv.Itoa(ids.linkID), def1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", def2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", "", "", parentEquip, posName, strings.Join([]string{svcName, svc2Name}, ";"), "44", "2019-01-01", "FALSE"}
 	)
 	firstPortHeader := append(append(fixedFirstPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsAHeader...)
 	secondPortHeader := append(append(fixedSecondPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsBHeader...)
@@ -73,7 +71,7 @@ func TestGeneralLinksEditImport(t *testing.T) {
 	err := importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)
 
-	r1 := NewImportRecord(row1, fl)
+	r1, _ := NewImportRecord(row1, fl)
 
 	link, err := importer.validateLineForExistingLink(ctx, ids.linkID, r1)
 	require.NoError(t, err)
@@ -139,7 +137,7 @@ func TestGeneralLinksAddImport(t *testing.T) {
 	fl, _ := NewImportHeader(header, ImportEntityLink)
 	err := importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)
-	r1 := NewImportRecord(row1, fl)
+	r1, _ := NewImportRecord(row1, fl)
 
 	pr1, pr2, err := importer.getTwoPortRecords(r1)
 	require.NoError(t, err)

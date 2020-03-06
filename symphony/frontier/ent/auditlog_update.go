@@ -261,7 +261,9 @@ func (alu *AuditLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, alu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{auditlog.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -504,7 +506,9 @@ func (aluo *AuditLogUpdateOne) sqlSave(ctx context.Context) (al *AuditLog, err e
 	_spec.Assign = al.assignValues
 	_spec.ScanValues = al.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, aluo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{auditlog.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

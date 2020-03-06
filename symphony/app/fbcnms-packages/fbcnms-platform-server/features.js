@@ -173,6 +173,16 @@ const arrayConfigs = [
     title: 'Site Surveys - Work Order Checklist Categories',
     enabledByDefault: false,
   },
+  {
+    id: 'user_management',
+    title: 'User Management - Users and Permissions admin section',
+    enabledByDefault: false,
+  },
+  {
+    id: 'grafana_metrics',
+    title: 'Include tab for Grafana in the Metrics page',
+    enabledByDefault: false,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};

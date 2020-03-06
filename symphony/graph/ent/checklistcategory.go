@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type CheckListCategory struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -32,8 +31,8 @@ type CheckListCategory struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CheckListCategoryQuery when eager-loading is set.
 	Edges                                 CheckListCategoryEdges `json:"edges"`
-	work_order_check_list_categories      *string
-	work_order_type_check_list_categories *string
+	work_order_check_list_categories      *int
+	work_order_type_check_list_categories *int
 }
 
 // CheckListCategoryEdges holds the relations/edges for other nodes in the graph.
@@ -83,7 +82,7 @@ func (clc *CheckListCategory) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	clc.ID = strconv.FormatInt(value.Int64, 10)
+	clc.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -110,14 +109,14 @@ func (clc *CheckListCategory) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_check_list_categories", value)
 		} else if value.Valid {
-			clc.work_order_check_list_categories = new(string)
-			*clc.work_order_check_list_categories = strconv.FormatInt(value.Int64, 10)
+			clc.work_order_check_list_categories = new(int)
+			*clc.work_order_check_list_categories = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_type_check_list_categories", value)
 		} else if value.Valid {
-			clc.work_order_type_check_list_categories = new(string)
-			*clc.work_order_type_check_list_categories = strconv.FormatInt(value.Int64, 10)
+			clc.work_order_type_check_list_categories = new(int)
+			*clc.work_order_type_check_list_categories = int(value.Int64)
 		}
 	}
 	return nil
@@ -125,14 +124,14 @@ func (clc *CheckListCategory) assignValues(values ...interface{}) error {
 
 // QueryCheckListItems queries the check_list_items edge of the CheckListCategory.
 func (clc *CheckListCategory) QueryCheckListItems() *CheckListItemQuery {
-	return (&CheckListCategoryClient{clc.config}).QueryCheckListItems(clc)
+	return (&CheckListCategoryClient{config: clc.config}).QueryCheckListItems(clc)
 }
 
 // Update returns a builder for updating this CheckListCategory.
 // Note that, you need to call CheckListCategory.Unwrap() before calling this method, if this CheckListCategory
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (clc *CheckListCategory) Update() *CheckListCategoryUpdateOne {
-	return (&CheckListCategoryClient{clc.config}).UpdateOne(clc)
+	return (&CheckListCategoryClient{config: clc.config}).UpdateOne(clc)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -161,12 +160,6 @@ func (clc *CheckListCategory) String() string {
 	builder.WriteString(clc.Description)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (clc *CheckListCategory) id() int {
-	id, _ := strconv.Atoi(clc.ID)
-	return id
 }
 
 // CheckListCategories is a parsable slice of CheckListCategory.

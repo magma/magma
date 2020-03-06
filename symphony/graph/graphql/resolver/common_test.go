@@ -18,6 +18,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
@@ -89,4 +90,10 @@ func resolverctx(t *testing.T) (generated.ResolverRoot, context.Context) {
 func mutationctx(t *testing.T) (generated.MutationResolver, context.Context) {
 	r, ctx := resolverctx(t)
 	return r.Mutation(), ctx
+}
+
+func prepareUserData(t *testing.T, ctx context.Context, client *ent.Client) {
+	v := viewer.FromContext(ctx)
+	_, err := client.User.Create().SetAuthID(v.User).Save(ctx)
+	require.NoError(t, err)
 }

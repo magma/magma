@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -20,7 +19,7 @@ import (
 type CheckListItem struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Type holds the value of the "type" field.
@@ -38,8 +37,8 @@ type CheckListItem struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CheckListItemQuery when eager-loading is set.
 	Edges                                CheckListItemEdges `json:"edges"`
-	check_list_category_check_list_items *string
-	work_order_check_list_items          *string
+	check_list_category_check_list_items *int
+	work_order_check_list_items          *int
 }
 
 // CheckListItemEdges holds the relations/edges for other nodes in the graph.
@@ -97,7 +96,7 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	cli.ID = strconv.FormatInt(value.Int64, 10)
+	cli.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field title", values[0])
@@ -140,14 +139,14 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field check_list_category_check_list_items", value)
 		} else if value.Valid {
-			cli.check_list_category_check_list_items = new(string)
-			*cli.check_list_category_check_list_items = strconv.FormatInt(value.Int64, 10)
+			cli.check_list_category_check_list_items = new(int)
+			*cli.check_list_category_check_list_items = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_check_list_items", value)
 		} else if value.Valid {
-			cli.work_order_check_list_items = new(string)
-			*cli.work_order_check_list_items = strconv.FormatInt(value.Int64, 10)
+			cli.work_order_check_list_items = new(int)
+			*cli.work_order_check_list_items = int(value.Int64)
 		}
 	}
 	return nil
@@ -155,14 +154,14 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 
 // QueryWorkOrder queries the work_order edge of the CheckListItem.
 func (cli *CheckListItem) QueryWorkOrder() *WorkOrderQuery {
-	return (&CheckListItemClient{cli.config}).QueryWorkOrder(cli)
+	return (&CheckListItemClient{config: cli.config}).QueryWorkOrder(cli)
 }
 
 // Update returns a builder for updating this CheckListItem.
 // Note that, you need to call CheckListItem.Unwrap() before calling this method, if this CheckListItem
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (cli *CheckListItem) Update() *CheckListItemUpdateOne {
-	return (&CheckListItemClient{cli.config}).UpdateOne(cli)
+	return (&CheckListItemClient{config: cli.config}).UpdateOne(cli)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -199,12 +198,6 @@ func (cli *CheckListItem) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (cli *CheckListItem) id() int {
-	id, _ := strconv.Atoi(cli.ID)
-	return id
 }
 
 // CheckListItems is a parsable slice of CheckListItem.

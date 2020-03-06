@@ -106,7 +106,7 @@ export const toPropertyInput = (properties: Array<Property>): Array<any> => {
       return newPropInput;
     })
     .map(property => {
-      if (property.id && property.id.includes('@tmp')) {
+      if ((property.id && property.id.includes('@tmp')) || property.id == '0') {
         const {id: _, ...newProp} = property;
         return newProp;
       }

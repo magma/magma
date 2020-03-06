@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -25,7 +24,7 @@ type CheckListCategoryCreate struct {
 	update_time      *time.Time
 	title            *string
 	description      *string
-	check_list_items map[string]struct{}
+	check_list_items map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -77,9 +76,9 @@ func (clcc *CheckListCategoryCreate) SetNillableDescription(s *string) *CheckLis
 }
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
-func (clcc *CheckListCategoryCreate) AddCheckListItemIDs(ids ...string) *CheckListCategoryCreate {
+func (clcc *CheckListCategoryCreate) AddCheckListItemIDs(ids ...int) *CheckListCategoryCreate {
 	if clcc.check_list_items == nil {
-		clcc.check_list_items = make(map[string]struct{})
+		clcc.check_list_items = make(map[int]struct{})
 	}
 	for i := range ids {
 		clcc.check_list_items[ids[i]] = struct{}{}
@@ -89,7 +88,7 @@ func (clcc *CheckListCategoryCreate) AddCheckListItemIDs(ids ...string) *CheckLi
 
 // AddCheckListItems adds the check_list_items edges to CheckListItem.
 func (clcc *CheckListCategoryCreate) AddCheckListItems(c ...*CheckListItem) *CheckListCategoryCreate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -127,7 +126,7 @@ func (clcc *CheckListCategoryCreate) sqlSave(ctx context.Context) (*CheckListCat
 		_spec = &sqlgraph.CreateSpec{
 			Table: checklistcategory.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistcategory.FieldID,
 			},
 		}
@@ -173,16 +172,12 @@ func (clcc *CheckListCategoryCreate) sqlSave(ctx context.Context) (*CheckListCat
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: checklistitem.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -194,6 +189,6 @@ func (clcc *CheckListCategoryCreate) sqlSave(ctx context.Context) (*CheckListCat
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	clc.ID = strconv.FormatInt(id, 10)
+	clc.ID = int(id)
 	return clc, nil
 }

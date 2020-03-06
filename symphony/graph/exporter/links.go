@@ -7,7 +7,9 @@ package exporter
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -66,7 +68,7 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	linksList := links.Links
 	allRows := make([][]string, len(linksList)+1)
 
-	linkIDs := make([]string, len(linksList))
+	linkIDs := make([]int, len(linksList))
 	for i, l := range linksList {
 		linkIDs[i] = l.ID
 	}
@@ -127,21 +129,21 @@ func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes, orderedLocT
 	)
 	ports, err := link.QueryPorts().All(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "querying link for ports (id=%s)", link.ID)
+		return nil, errors.Wrapf(err, "querying link for ports (id=%d)", link.ID)
 	}
 	if len(ports) != 2 {
-		return nil, errors.Wrapf(err, "link must include 2 ports (link id=%s)", link.ID)
+		return nil, errors.Wrapf(err, "link must include 2 ports (link id=%d)", link.ID)
 	}
 	for i, port := range ports {
 		portDefinition := port.QueryDefinition().OnlyX(ctx)
 
 		portEquipment, err := port.QueryParent().Only(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying parent for port (id=%s)", port.ID)
+			return nil, errors.Wrapf(err, "querying parent for port (id=%d)", port.ID)
 		}
 		parentType, err := portEquipment.QueryType().Only(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying type for port parent (id=%s, parentID=%s)", port.ID, portEquipment.ID)
+			return nil, errors.Wrapf(err, "querying type for port parent (id=%d, parentID=%d)", port.ID, portEquipment.ID)
 		}
 		portData[i] = []string{portDefinition.Name, portEquipment.Name, parentType.Name}
 
@@ -167,12 +169,12 @@ func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes, orderedLocT
 	}
 	properties, err := propertiesSlice(ctx, link, propertyTypes, models.PropertyEntityLink)
 	if err != nil {
-		return nil, errors.Wrapf(err, "cannot create property slice for link (id=%s)", link.ID)
+		return nil, errors.Wrapf(err, "cannot create property slice for link (id=%d)", link.ID)
 	}
 
 	services, err := link.QueryService().All(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "querying link for services (id=%s)", link.ID)
+		return nil, errors.Wrapf(err, "querying link for services (id=%d)", link.ID)
 	}
 	var servicesList []string
 	for _, service := range services {
@@ -181,7 +183,7 @@ func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes, orderedLocT
 	servicesStr := strings.Join(servicesList, ";")
 
 	// Build the slice
-	row := []string{link.ID}
+	row := []string{strconv.Itoa(link.ID)}
 	for i := 0; i < 2; i++ {
 		row = append(row, portData[i]...)
 		row = append(row, locationData[i]...)
@@ -208,12 +210,16 @@ func paramToLinkFilterInput(params string) ([]*models.LinkFilterInput, error) {
 		if f.MaxDepth != nil {
 			maxDepth = *f.MaxDepth
 		}
+		intIDSet, err := toIntSlice(f.IDSet)
+		if err != nil {
+			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+		}
 		inp := models.LinkFilterInput{
 			FilterType:    models.LinkFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
 			StringValue:   pointer.ToString(f.StringValue),
 			PropertyValue: &propVal,
-			IDSet:         f.IDSet,
+			IDSet:         intIDSet,
 			StringSet:     f.StringSet,
 			MaxDepth:      &maxDepth,
 		}

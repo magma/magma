@@ -1,9 +1,5 @@
 package common
 
-import (
-	amconfig "github.com/prometheus/common/config"
-)
-
 // HTTPConfig is a copy of prometheus/common/config.HTTPClientConfig with
 // `Secret` fields replaced with strings to enable marshaling without obfuscation
 type HTTPConfig struct {
@@ -16,7 +12,8 @@ type HTTPConfig struct {
 	// TODO: Support file storage
 	//BearerTokenFile string `yaml:"bearer_token_file,omitempty"`
 	// HTTP proxy server to use to connect to the targets.
-	ProxyURL *amconfig.URL `yaml:"proxy_url,omitempty" json:"proxy_url,omitempty"`
+	ProxyURL string `yaml:"proxy_url,omitempty" json:"proxy_url,omitempty"`
+
 	// TLSConfig to use to connect to the targets.
 	TLSConfig TLSConfig `yaml:"tls_config,omitempty" json:"tls_config,omitempty"`
 }

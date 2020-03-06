@@ -47,7 +47,7 @@ func (swfsd *SurveyWiFiScanDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: surveywifiscan.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveywifiscan.FieldID,
 			},
 		},

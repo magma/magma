@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type WorkOrderType struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -117,7 +116,7 @@ func (wot *WorkOrderType) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	wot.ID = strconv.FormatInt(value.Int64, 10)
+	wot.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -144,34 +143,34 @@ func (wot *WorkOrderType) assignValues(values ...interface{}) error {
 
 // QueryWorkOrders queries the work_orders edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryWorkOrders() *WorkOrderQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryWorkOrders(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryWorkOrders(wot)
 }
 
 // QueryPropertyTypes queries the property_types edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryPropertyTypes(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryPropertyTypes(wot)
 }
 
 // QueryDefinitions queries the definitions edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryDefinitions() *WorkOrderDefinitionQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryDefinitions(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryDefinitions(wot)
 }
 
 // QueryCheckListCategories queries the check_list_categories edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryCheckListCategories() *CheckListCategoryQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryCheckListCategories(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryCheckListCategories(wot)
 }
 
 // QueryCheckListDefinitions queries the check_list_definitions edge of the WorkOrderType.
 func (wot *WorkOrderType) QueryCheckListDefinitions() *CheckListItemDefinitionQuery {
-	return (&WorkOrderTypeClient{wot.config}).QueryCheckListDefinitions(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).QueryCheckListDefinitions(wot)
 }
 
 // Update returns a builder for updating this WorkOrderType.
 // Note that, you need to call WorkOrderType.Unwrap() before calling this method, if this WorkOrderType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (wot *WorkOrderType) Update() *WorkOrderTypeUpdateOne {
-	return (&WorkOrderTypeClient{wot.config}).UpdateOne(wot)
+	return (&WorkOrderTypeClient{config: wot.config}).UpdateOne(wot)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -200,12 +199,6 @@ func (wot *WorkOrderType) String() string {
 	builder.WriteString(wot.Description)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (wot *WorkOrderType) id() int {
-	id, _ := strconv.Atoi(wot.ID)
-	return id
 }
 
 // WorkOrderTypes is a parsable slice of WorkOrderType.

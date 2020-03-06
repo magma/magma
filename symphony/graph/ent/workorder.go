@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,7 +23,7 @@ import (
 type WorkOrder struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -50,10 +49,10 @@ type WorkOrder struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderQuery when eager-loading is set.
 	Edges                 WorkOrderEdges `json:"edges"`
-	project_work_orders   *string
-	work_order_type       *string
-	work_order_location   *string
-	work_order_technician *string
+	project_work_orders   *int
+	work_order_type       *int
+	work_order_location   *int
+	work_order_technician *int
 }
 
 // WorkOrderEdges holds the relations/edges for other nodes in the graph.
@@ -253,7 +252,7 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	wo.ID = strconv.FormatInt(value.Int64, 10)
+	wo.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -315,26 +314,26 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_work_orders", value)
 		} else if value.Valid {
-			wo.project_work_orders = new(string)
-			*wo.project_work_orders = strconv.FormatInt(value.Int64, 10)
+			wo.project_work_orders = new(int)
+			*wo.project_work_orders = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_type", value)
 		} else if value.Valid {
-			wo.work_order_type = new(string)
-			*wo.work_order_type = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_type = new(int)
+			*wo.work_order_type = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_location", value)
 		} else if value.Valid {
-			wo.work_order_location = new(string)
-			*wo.work_order_location = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_location = new(int)
+			*wo.work_order_location = int(value.Int64)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_technician", value)
 		} else if value.Valid {
-			wo.work_order_technician = new(string)
-			*wo.work_order_technician = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_technician = new(int)
+			*wo.work_order_technician = int(value.Int64)
 		}
 	}
 	return nil
@@ -342,69 +341,69 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the WorkOrder.
 func (wo *WorkOrder) QueryType() *WorkOrderTypeQuery {
-	return (&WorkOrderClient{wo.config}).QueryType(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryType(wo)
 }
 
 // QueryEquipment queries the equipment edge of the WorkOrder.
 func (wo *WorkOrder) QueryEquipment() *EquipmentQuery {
-	return (&WorkOrderClient{wo.config}).QueryEquipment(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryEquipment(wo)
 }
 
 // QueryLinks queries the links edge of the WorkOrder.
 func (wo *WorkOrder) QueryLinks() *LinkQuery {
-	return (&WorkOrderClient{wo.config}).QueryLinks(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryLinks(wo)
 }
 
 // QueryFiles queries the files edge of the WorkOrder.
 func (wo *WorkOrder) QueryFiles() *FileQuery {
-	return (&WorkOrderClient{wo.config}).QueryFiles(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryFiles(wo)
 }
 
 // QueryHyperlinks queries the hyperlinks edge of the WorkOrder.
 func (wo *WorkOrder) QueryHyperlinks() *HyperlinkQuery {
-	return (&WorkOrderClient{wo.config}).QueryHyperlinks(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryHyperlinks(wo)
 }
 
 // QueryLocation queries the location edge of the WorkOrder.
 func (wo *WorkOrder) QueryLocation() *LocationQuery {
-	return (&WorkOrderClient{wo.config}).QueryLocation(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryLocation(wo)
 }
 
 // QueryComments queries the comments edge of the WorkOrder.
 func (wo *WorkOrder) QueryComments() *CommentQuery {
-	return (&WorkOrderClient{wo.config}).QueryComments(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryComments(wo)
 }
 
 // QueryProperties queries the properties edge of the WorkOrder.
 func (wo *WorkOrder) QueryProperties() *PropertyQuery {
-	return (&WorkOrderClient{wo.config}).QueryProperties(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryProperties(wo)
 }
 
 // QueryCheckListCategories queries the check_list_categories edge of the WorkOrder.
 func (wo *WorkOrder) QueryCheckListCategories() *CheckListCategoryQuery {
-	return (&WorkOrderClient{wo.config}).QueryCheckListCategories(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryCheckListCategories(wo)
 }
 
 // QueryCheckListItems queries the check_list_items edge of the WorkOrder.
 func (wo *WorkOrder) QueryCheckListItems() *CheckListItemQuery {
-	return (&WorkOrderClient{wo.config}).QueryCheckListItems(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryCheckListItems(wo)
 }
 
 // QueryTechnician queries the technician edge of the WorkOrder.
 func (wo *WorkOrder) QueryTechnician() *TechnicianQuery {
-	return (&WorkOrderClient{wo.config}).QueryTechnician(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryTechnician(wo)
 }
 
 // QueryProject queries the project edge of the WorkOrder.
 func (wo *WorkOrder) QueryProject() *ProjectQuery {
-	return (&WorkOrderClient{wo.config}).QueryProject(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryProject(wo)
 }
 
 // Update returns a builder for updating this WorkOrder.
 // Note that, you need to call WorkOrder.Unwrap() before calling this method, if this WorkOrder
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (wo *WorkOrder) Update() *WorkOrderUpdateOne {
-	return (&WorkOrderClient{wo.config}).UpdateOne(wo)
+	return (&WorkOrderClient{config: wo.config}).UpdateOne(wo)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -447,12 +446,6 @@ func (wo *WorkOrder) String() string {
 	builder.WriteString(fmt.Sprintf("%v", wo.Index))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (wo *WorkOrder) id() int {
-	id, _ := strconv.Atoi(wo.ID)
-	return id
 }
 
 // WorkOrders is a parsable slice of WorkOrder.

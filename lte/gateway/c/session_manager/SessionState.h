@@ -164,6 +164,8 @@ class SessionState {
 
   uint32_t get_qci() const;
 
+  SubscriberQuotaUpdate_Type get_subscriber_quota_state() const;
+
   bool is_radius_cwf_session() const;
 
   bool is_same_config(const Config& new_config) const;

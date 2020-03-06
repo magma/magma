@@ -6,6 +6,7 @@ package graphactions
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
@@ -27,7 +28,7 @@ func (e EntDataLoader) QueryRules(ctx context.Context, triggerID core.TriggerID)
 		return nil, errors.Wrap(err, "querying rules")
 	}
 
-	rules := []core.Rule{}
+	rules := make([]core.Rule, 0, len(entRules))
 	for _, rule := range entRules {
 		rules = append(rules, entRuleToRule(rule))
 	}
@@ -36,7 +37,7 @@ func (e EntDataLoader) QueryRules(ctx context.Context, triggerID core.TriggerID)
 
 func entRuleToRule(rule *ent.ActionsRule) core.Rule {
 	return core.Rule{
-		ID:          rule.ID,
+		ID:          strconv.Itoa(rule.ID),
 		Name:        rule.Name,
 		TriggerID:   core.TriggerID(rule.TriggerID),
 		RuleActions: rule.RuleActions,

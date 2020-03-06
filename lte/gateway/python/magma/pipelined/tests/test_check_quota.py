@@ -47,12 +47,14 @@ class UEMacAddressTest(unittest.TestCase):
         """
         super(UEMacAddressTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([], include_ue_mac=True)
+        cls.service_manager = create_service_manager([],
+            ['ue_mac', 'arpd', 'check_quota'])
         check_quota_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.CheckQuotaController,
+            apps=[PipelinedController.UEMac,
                   PipelinedController.Arp,
+                  PipelinedController.CheckQuotaController,
                   PipelinedController.Testing,
                   PipelinedController.StartupFlows],
             references={
@@ -60,6 +62,8 @@ class UEMacAddressTest(unittest.TestCase):
                     check_quota_controller_reference,
                 PipelinedController.Testing:
                     testing_controller_reference,
+                PipelinedController.UEMac:
+                    Future(),
                 PipelinedController.Arp:
                     Future(),
                 PipelinedController.StartupFlows:
@@ -113,7 +117,8 @@ class UEMacAddressTest(unittest.TestCase):
         )
 
         wait_after_send(self.testing_controller)
-        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
+        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager,
+                                     include_stats=False)
 
     def test_add_three_subscribers(self):
         """
@@ -142,7 +147,8 @@ class UEMacAddressTest(unittest.TestCase):
         )
         wait_after_send(self.testing_controller)
 
-        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
+        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager,
+                                     include_stats=False)
         self.check_quota_controller.update_subscriber_quota_state(
             [
                 SubscriberQuotaUpdate(

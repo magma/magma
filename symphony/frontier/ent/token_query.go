@@ -335,7 +335,7 @@ func (tq *TokenQuery) sqlAll(ctx context.Context) ([]*Token, error) {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*Token)
 		for i := range nodes {
-			if fk := nodes[i].user_id; fk != nil {
+			if fk := nodes[i].user_tokens; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -348,7 +348,7 @@ func (tq *TokenQuery) sqlAll(ctx context.Context) ([]*Token, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_tokens" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.User = n

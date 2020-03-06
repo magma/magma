@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -121,7 +120,7 @@ func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error)
 		_spec = &sqlgraph.CreateSpec{
 			Table: actionsrule.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: actionsrule.FieldID,
 			},
 		}
@@ -181,6 +180,6 @@ func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error)
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	ar.ID = strconv.FormatInt(id, 10)
+	ar.ID = int(id)
 	return ar, nil
 }

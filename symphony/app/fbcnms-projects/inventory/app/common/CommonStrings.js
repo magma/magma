@@ -25,6 +25,10 @@ const Strings = {
       'OK',
       'Text for button approving message or dialog content',
     )}`,
+    saveButton: `${fbt(
+      'Save',
+      'Text for button that saves current view changes',
+    )}`,
     cancelButton: `${fbt(
       'Cancel',
       'Text for button that cancels current operation',
@@ -47,6 +51,14 @@ const Strings = {
           'Example text for URL input field',
         )}`,
       },
+    },
+  },
+  admin: {
+    users: {
+      viewHeader: `${fbt(
+        'User Management',
+        'Header for view showing and managing all system user and permissions settings',
+      )}`,
     },
   },
   documents: {

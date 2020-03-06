@@ -33,7 +33,7 @@ var (
 	errNoProject     = gqlerror.Errorf("project doesn't exist")
 )
 
-func (r queryResolver) ProjectType(ctx context.Context, id string) (*ent.ProjectType, error) {
+func (r queryResolver) ProjectType(ctx context.Context, id int) (*ent.ProjectType, error) {
 	noder, err := r.Node(ctx, id)
 	if err != nil {
 		return nil, err
@@ -130,7 +130,7 @@ func (r mutationResolver) EditProjectType(
 		}
 	}
 
-	var ids []string
+	var ids []int
 	for _, wo := range input.WorkOrders {
 		if wo.ID == nil {
 			def, err := client.WorkOrderDefinition.Create().
@@ -164,7 +164,7 @@ func (r mutationResolver) EditProjectType(
 	return pt, nil
 }
 
-func (r mutationResolver) DeleteProjectType(ctx context.Context, id string) (bool, error) {
+func (r mutationResolver) DeleteProjectType(ctx context.Context, id int) (bool, error) {
 	client := r.ClientFrom(ctx)
 	switch count, err := client.ProjectType.Query().Where(projecttype.ID(id)).QueryProjects().Count(ctx); {
 	case err != nil:
@@ -283,7 +283,7 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 	return proj, nil
 }
 
-func (r mutationResolver) DeleteProject(ctx context.Context, id string) (bool, error) {
+func (r mutationResolver) DeleteProject(ctx context.Context, id int) (bool, error) {
 	client := r.ClientFrom(ctx)
 	if _, err := client.Property.Delete().Where(property.HasProjectWith(project.ID(id))).Exec(ctx); err != nil {
 		return false, xerrors.Errorf("deleting project properties: %w", err)

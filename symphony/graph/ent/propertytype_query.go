@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -192,8 +191,8 @@ func (ptq *PropertyTypeQuery) FirstX(ctx context.Context) *PropertyType {
 }
 
 // FirstID returns the first PropertyType id in the query. Returns *NotFoundError when no id was found.
-func (ptq *PropertyTypeQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ptq *PropertyTypeQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ptq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -205,7 +204,7 @@ func (ptq *PropertyTypeQuery) FirstID(ctx context.Context) (id string, err error
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (ptq *PropertyTypeQuery) FirstXID(ctx context.Context) string {
+func (ptq *PropertyTypeQuery) FirstXID(ctx context.Context) int {
 	id, err := ptq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -239,8 +238,8 @@ func (ptq *PropertyTypeQuery) OnlyX(ctx context.Context) *PropertyType {
 }
 
 // OnlyID returns the only PropertyType id in the query, returns an error if not exactly one id was returned.
-func (ptq *PropertyTypeQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ptq *PropertyTypeQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ptq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -256,7 +255,7 @@ func (ptq *PropertyTypeQuery) OnlyID(ctx context.Context) (id string, err error)
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (ptq *PropertyTypeQuery) OnlyXID(ctx context.Context) string {
+func (ptq *PropertyTypeQuery) OnlyXID(ctx context.Context) int {
 	id, err := ptq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -279,8 +278,8 @@ func (ptq *PropertyTypeQuery) AllX(ctx context.Context) []*PropertyType {
 }
 
 // IDs executes the query and returns a list of PropertyType ids.
-func (ptq *PropertyTypeQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (ptq *PropertyTypeQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := ptq.Select(propertytype.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -288,7 +287,7 @@ func (ptq *PropertyTypeQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ptq *PropertyTypeQuery) IDsX(ctx context.Context) []string {
+func (ptq *PropertyTypeQuery) IDsX(ctx context.Context) []int {
 	ids, err := ptq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -516,13 +515,9 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 
 	if query := ptq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*PropertyType)
+		nodeids := make(map[int]*PropertyType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -547,8 +542,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withLocationType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].location_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -572,8 +567,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withEquipmentPortType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].equipment_port_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -597,8 +592,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withLinkEquipmentPortType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].equipment_port_type_link_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -622,8 +617,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withEquipmentType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].equipment_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -647,8 +642,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withServiceType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].service_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -672,8 +667,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withWorkOrderType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].work_order_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -697,8 +692,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withProjectType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].project_type_properties; fk != nil {
 				ids = append(ids, *fk)
@@ -743,7 +738,7 @@ func (ptq *PropertyTypeQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   propertytype.Table,
 			Columns: propertytype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: propertytype.FieldID,
 			},
 		},

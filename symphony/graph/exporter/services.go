@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -25,7 +26,7 @@ type servicesFilterInput struct {
 	Name          models.ServiceFilterType `json:"name"`
 	Operator      models.FilterOperator    `jsons:"operator"`
 	StringValue   string                   `json:"stringValue"`
-	IDSet         []string                 `json:"idSet"`
+	IDSet         []int                    `json:"idSet"`
 	StringSet     []string                 `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput `json:"propertyValue"`
 }
@@ -63,7 +64,7 @@ func (er servicesRower) rows(ctx context.Context, url *url.URL) ([][]string, err
 
 	var propertyTypes []string
 	cg.Go(func(ctx context.Context) error {
-		serviceIDs := make([]string, len(servicesList))
+		serviceIDs := make([]int, len(servicesList))
 		for i, l := range servicesList {
 			serviceIDs[i] = l.ID
 		}
@@ -125,7 +126,7 @@ func serviceToSlice(ctx context.Context, service *ent.Service, propertyTypes []s
 		return nil, err
 	}
 
-	row := []string{service.ID, service.Name, serviceType, externalID, customerName, customerExternalID, service.Status}
+	row := []string{strconv.Itoa(service.ID), service.Name, serviceType, externalID, customerName, customerExternalID, service.Status}
 	row = append(row, properties...)
 	return row, nil
 }

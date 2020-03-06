@@ -302,7 +302,9 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       onError: this._onError,
     };
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const rootQuery = store.getRoot();
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addWorkOrderType');
       if (!newNode) {
         return;
@@ -312,11 +314,14 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
         'Configure_workOrderTypes',
       );
       const edge = ConnectionHandler.createEdge(
+        // $FlowFixMe (T62907961) Relay flow types
         store,
+        // $FlowFixMe (T62907961) Relay flow types
         types,
         newNode,
         'WorkOrderTypesEdge',
       );
+      // $FlowFixMe (T62907961) Relay flow types
       ConnectionHandler.insertEdgeBefore(types, edge);
     };
     AddWorkOrderTypeMutation(variables, callbacks, updater);
@@ -343,12 +348,15 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
           },
         },
         store => {
+          // $FlowFixMe (T62907961) Relay flow types
           const rootQuery = store.getRoot();
           const workOrderTypes = ConnectionHandler.getConnection(
             rootQuery,
             'Configure_workOrderTypes',
           );
+          // $FlowFixMe (T62907961) Relay flow types
           ConnectionHandler.deleteNode(workOrderTypes, editingWorkOrderType.id);
+          // $FlowFixMe (T62907961) Relay flow types
           store.delete(editingWorkOrderType.id);
         },
       );

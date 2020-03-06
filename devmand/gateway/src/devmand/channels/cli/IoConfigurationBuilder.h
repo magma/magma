@@ -57,7 +57,6 @@ static constexpr auto sshConnectionTimeoutConfig = "sshConnectionTimeout";
  * resolution
  */
 class IoConfigurationBuilder {
-
  public:
   struct ConnectionParameters {
     string username;
@@ -84,7 +83,8 @@ class IoConfigurationBuilder {
 
   IoConfigurationBuilder(
       const DeviceConfig& deviceConfig,
-      channels::cli::Engine& engine);
+      channels::cli::Engine& engine,
+      shared_ptr<CliFlavour> cliFlavour);
   IoConfigurationBuilder(shared_ptr<ConnectionParameters> _connectionParams);
 
   ~IoConfigurationBuilder();
@@ -101,7 +101,7 @@ class IoConfigurationBuilder {
       string hostname,
       string username,
       string password,
-      string flavour,
+      shared_ptr<CliFlavour> cliFlavour,
       int port,
       chrono::seconds kaTimeout,
       chrono::seconds cmdTimeout,

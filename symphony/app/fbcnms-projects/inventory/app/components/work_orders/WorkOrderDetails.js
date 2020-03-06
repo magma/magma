@@ -12,7 +12,9 @@ import type {AddImageMutationResponse} from '../../mutations/__generated__/AddIm
 import type {AddImageMutationVariables} from '../../mutations/__generated__/AddImageMutation.graphql';
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {
+  // $FlowFixMe (T62907961) Relay flow types
   CheckListCategoryExpandingPanel_list,
+  // $FlowFixMe (T62907961) Relay flow types
   CheckListTable_list,
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';
@@ -576,15 +578,21 @@ class WorkOrderDetails extends React.Component<Props, State> {
     };
 
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addImage');
       const fileType = newNode.getValue('fileType');
 
+      // $FlowFixMe (T62907961) Relay flow types
       const workOrderProxy = store.get(workOrderId);
       if (fileType === FileTypeEnum.IMAGE) {
+        // $FlowFixMe (T62907961) Relay flow types
         const imageNodes = workOrderProxy.getLinkedRecords('images') || [];
+        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...imageNodes, newNode], 'images');
       } else {
+        // $FlowFixMe (T62907961) Relay flow types
         const fileNodes = workOrderProxy.getLinkedRecords('files') || [];
+        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...fileNodes, newNode], 'files');
       }
     };

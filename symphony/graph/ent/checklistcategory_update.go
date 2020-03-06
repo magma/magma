@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -27,8 +26,8 @@ type CheckListCategoryUpdate struct {
 	title                 *string
 	description           *string
 	cleardescription      bool
-	check_list_items      map[string]struct{}
-	removedCheckListItems map[string]struct{}
+	check_list_items      map[int]struct{}
+	removedCheckListItems map[int]struct{}
 	predicates            []predicate.CheckListCategory
 }
 
@@ -66,9 +65,9 @@ func (clcu *CheckListCategoryUpdate) ClearDescription() *CheckListCategoryUpdate
 }
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
-func (clcu *CheckListCategoryUpdate) AddCheckListItemIDs(ids ...string) *CheckListCategoryUpdate {
+func (clcu *CheckListCategoryUpdate) AddCheckListItemIDs(ids ...int) *CheckListCategoryUpdate {
 	if clcu.check_list_items == nil {
-		clcu.check_list_items = make(map[string]struct{})
+		clcu.check_list_items = make(map[int]struct{})
 	}
 	for i := range ids {
 		clcu.check_list_items[ids[i]] = struct{}{}
@@ -78,7 +77,7 @@ func (clcu *CheckListCategoryUpdate) AddCheckListItemIDs(ids ...string) *CheckLi
 
 // AddCheckListItems adds the check_list_items edges to CheckListItem.
 func (clcu *CheckListCategoryUpdate) AddCheckListItems(c ...*CheckListItem) *CheckListCategoryUpdate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -86,9 +85,9 @@ func (clcu *CheckListCategoryUpdate) AddCheckListItems(c ...*CheckListItem) *Che
 }
 
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
-func (clcu *CheckListCategoryUpdate) RemoveCheckListItemIDs(ids ...string) *CheckListCategoryUpdate {
+func (clcu *CheckListCategoryUpdate) RemoveCheckListItemIDs(ids ...int) *CheckListCategoryUpdate {
 	if clcu.removedCheckListItems == nil {
-		clcu.removedCheckListItems = make(map[string]struct{})
+		clcu.removedCheckListItems = make(map[int]struct{})
 	}
 	for i := range ids {
 		clcu.removedCheckListItems[ids[i]] = struct{}{}
@@ -98,7 +97,7 @@ func (clcu *CheckListCategoryUpdate) RemoveCheckListItemIDs(ids ...string) *Chec
 
 // RemoveCheckListItems removes check_list_items edges to CheckListItem.
 func (clcu *CheckListCategoryUpdate) RemoveCheckListItems(c ...*CheckListItem) *CheckListCategoryUpdate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -142,7 +141,7 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 			Table:   checklistcategory.Table,
 			Columns: checklistcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistcategory.FieldID,
 			},
 		},
@@ -190,16 +189,12 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: checklistitem.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -213,16 +208,12 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: checklistitem.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -241,14 +232,14 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 // CheckListCategoryUpdateOne is the builder for updating a single CheckListCategory entity.
 type CheckListCategoryUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time           *time.Time
 	title                 *string
 	description           *string
 	cleardescription      bool
-	check_list_items      map[string]struct{}
-	removedCheckListItems map[string]struct{}
+	check_list_items      map[int]struct{}
+	removedCheckListItems map[int]struct{}
 }
 
 // SetTitle sets the title field.
@@ -279,9 +270,9 @@ func (clcuo *CheckListCategoryUpdateOne) ClearDescription() *CheckListCategoryUp
 }
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
-func (clcuo *CheckListCategoryUpdateOne) AddCheckListItemIDs(ids ...string) *CheckListCategoryUpdateOne {
+func (clcuo *CheckListCategoryUpdateOne) AddCheckListItemIDs(ids ...int) *CheckListCategoryUpdateOne {
 	if clcuo.check_list_items == nil {
-		clcuo.check_list_items = make(map[string]struct{})
+		clcuo.check_list_items = make(map[int]struct{})
 	}
 	for i := range ids {
 		clcuo.check_list_items[ids[i]] = struct{}{}
@@ -291,7 +282,7 @@ func (clcuo *CheckListCategoryUpdateOne) AddCheckListItemIDs(ids ...string) *Che
 
 // AddCheckListItems adds the check_list_items edges to CheckListItem.
 func (clcuo *CheckListCategoryUpdateOne) AddCheckListItems(c ...*CheckListItem) *CheckListCategoryUpdateOne {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -299,9 +290,9 @@ func (clcuo *CheckListCategoryUpdateOne) AddCheckListItems(c ...*CheckListItem) 
 }
 
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
-func (clcuo *CheckListCategoryUpdateOne) RemoveCheckListItemIDs(ids ...string) *CheckListCategoryUpdateOne {
+func (clcuo *CheckListCategoryUpdateOne) RemoveCheckListItemIDs(ids ...int) *CheckListCategoryUpdateOne {
 	if clcuo.removedCheckListItems == nil {
-		clcuo.removedCheckListItems = make(map[string]struct{})
+		clcuo.removedCheckListItems = make(map[int]struct{})
 	}
 	for i := range ids {
 		clcuo.removedCheckListItems[ids[i]] = struct{}{}
@@ -311,7 +302,7 @@ func (clcuo *CheckListCategoryUpdateOne) RemoveCheckListItemIDs(ids ...string) *
 
 // RemoveCheckListItems removes check_list_items edges to CheckListItem.
 func (clcuo *CheckListCategoryUpdateOne) RemoveCheckListItems(c ...*CheckListItem) *CheckListCategoryUpdateOne {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -356,7 +347,7 @@ func (clcuo *CheckListCategoryUpdateOne) sqlSave(ctx context.Context) (clc *Chec
 			Columns: checklistcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  clcuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistcategory.FieldID,
 			},
 		},
@@ -397,16 +388,12 @@ func (clcuo *CheckListCategoryUpdateOne) sqlSave(ctx context.Context) (clc *Chec
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: checklistitem.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -420,16 +407,12 @@ func (clcuo *CheckListCategoryUpdateOne) sqlSave(ctx context.Context) (clc *Chec
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: checklistitem.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

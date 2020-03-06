@@ -10,35 +10,60 @@ import (
 	"testing"
 	"time"
 
-	"github.com/99designs/gqlgen/client"
 	"github.com/facebookincubator/symphony/graph/ent"
-
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
+	"github.com/99designs/gqlgen/client"
+	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-type equipmentSearchDataModels struct {
-	locType1 string
-	locType2 string
-	loc1     string
-	loc2     string
-	equType  string
-}
+const (
+	woCountQuery = `query($filters: [WorkOrderFilterInput!]!) {
+		workOrderSearch(filters:$filters) {
+			count
+		}
+	}`
 
-type woSearchDataModels struct {
-	loc1        string
-	woType1     string
-	assignee1   string
-	wo1         string
-	owner       string
-	installDate time.Time
-}
+	woAllQuery = `query($filters: [WorkOrderFilterInput!]!) {
+		workOrderSearch(filters:$filters) {
+			count
+			workOrders {
+				id
+			}
+		}
+	}`
+)
 
-const WOCountQuery = `query($filters: [WorkOrderFilterInput!]!) { workOrderSearch(filters:$filters) {count }}`
-const WOAllQuery = `query($filters: [WorkOrderFilterInput!]!) { workOrderSearch(filters:$filters) {count workOrders {id }}}`
+type (
+	equipmentSearchDataModels struct {
+		locType1 int
+		locType2 int
+		loc1     int
+		loc2     int
+		equType  int
+	}
+
+	woSearchDataModels struct {
+		loc1        int
+		woType1     int
+		assignee1   string
+		wo1         int
+		owner       string
+		installDate time.Time
+	}
+
+	woSearchResult struct {
+		WorkOrderSearch struct {
+			Count      int
+			WorkOrders []struct {
+				ID string
+			}
+		}
+	}
+)
 
 func prepareEquipmentData(ctx context.Context, r *TestResolver, name string, props []*models.PropertyInput) equipmentSearchDataModels {
 	mr := r.Mutation()
@@ -256,7 +281,7 @@ func TestEquipmentSearch(t *testing.T) {
 	f1 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{model1.loc1, model2.loc1},
+		IDSet:      []int{model1.loc1, model2.loc1},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1}, &limit)
@@ -267,7 +292,7 @@ func TestEquipmentSearch(t *testing.T) {
 	f2 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeEquipmentType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{model1.equType},
+		IDSet:      []int{model1.equType},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1, &f2}, &limit)
@@ -307,13 +332,13 @@ func TestEquipmentSearch(t *testing.T) {
 	f5 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{model2.loc1},
+		IDSet:      []int{model2.loc1},
 		MaxDepth:   &maxDepth,
 	}
 	res5, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f3, &f4, &f5}, &limit)
 	require.NoError(t, err)
-	require.Len(t, res5.Equipment, 0)
-	require.Equal(t, res5.Count, 0)
+	require.Empty(t, res5.Equipment)
+	require.Zero(t, res5.Count)
 }
 
 func TestUnsupportedEquipmentSearch(t *testing.T) {
@@ -420,7 +445,7 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 	f1 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{loc1.ID},
+		IDSet:      []int{loc1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1}, &limit)
@@ -430,7 +455,7 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 	f2 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{loc2.ID},
+		IDSet:      []int{loc2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f2}, &limit)
@@ -534,16 +559,14 @@ func TestSearchWO(t *testing.T) {
 			Awo_4: loc2, no assignee
 	*/
 
-	var wo struct {
-		WorkOrderSearch models.WorkOrderSearchResult
-	}
+	var result woSearchResult
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 4)
-	require.Empty(t, wo.WorkOrderSearch.WorkOrders)
+	require.Equal(t, 4, result.WorkOrderSearch.Count)
+	require.Empty(t, result.WorkOrderSearch.WorkOrders)
 
 	name := "_1"
 	f1 := models.WorkOrderFilterInput{
@@ -552,12 +575,12 @@ func TestSearchWO(t *testing.T) {
 		StringValue: &name,
 	}
 	c.MustPost(
-		WOAllQuery,
-		&wo,
+		woAllQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f1}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
-	require.Equal(t, data.wo1, wo.WorkOrderSearch.WorkOrders[0].ID)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
+	require.Equal(t, strconv.Itoa(data.wo1), result.WorkOrderSearch.WorkOrders[0].ID)
 
 	status := models.WorkOrderStatusPlanned.String()
 	f2 := models.WorkOrderFilterInput{
@@ -566,23 +589,23 @@ func TestSearchWO(t *testing.T) {
 		StringSet:  []string{status},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f2}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 3)
+	require.Equal(t, 3, result.WorkOrderSearch.Count)
 
 	f3 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.woType1},
+		IDSet:      []int{data.woType1},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f3}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 2)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 
 	f4 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderAssignee,
@@ -590,30 +613,30 @@ func TestSearchWO(t *testing.T) {
 		StringSet:  []string{data.assignee1},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f4}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 2)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 
 	f5 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc1},
+		IDSet:      []int{data.loc1},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f5}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 2)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f4, f5}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
 
 	f7 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderOwner,
@@ -621,37 +644,39 @@ func TestSearchWO(t *testing.T) {
 		StringSet:  []string{data.owner},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f7}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
 
-	installTimeStr := strconv.FormatInt(data.installDate.Unix(), 10)
 	f8 := models.WorkOrderFilterInput{
-		FilterType:  models.WorkOrderFilterTypeWorkOrderInstallDate,
-		Operator:    models.FilterOperatorIs,
-		StringValue: &installTimeStr,
+		FilterType: models.WorkOrderFilterTypeWorkOrderInstallDate,
+		Operator:   models.FilterOperatorIs,
+		StringValue: pointer.ToString(
+			strconv.FormatInt(data.installDate.Unix(), 10),
+		),
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f8}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
 
-	now := strconv.FormatInt(time.Now().Unix(), 10)
 	f9 := models.WorkOrderFilterInput{
-		FilterType:  models.WorkOrderFilterTypeWorkOrderCreationDate,
-		Operator:    models.FilterOperatorIs,
-		StringValue: &now,
+		FilterType: models.WorkOrderFilterTypeWorkOrderCreationDate,
+		Operator:   models.FilterOperatorIs,
+		StringValue: pointer.ToString(
+			strconv.FormatInt(time.Now().Unix(), 10),
+		),
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f9}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 4)
+	require.Equal(t, 4, result.WorkOrderSearch.Count)
 }
 
 func TestSearchWOByPriority(t *testing.T) {
@@ -660,41 +685,35 @@ func TestSearchWOByPriority(t *testing.T) {
 	ctx := ent.NewContext(viewertest.NewContext(r.client), r.client)
 	data := prepareWOData(ctx, r, "B")
 	c := newGraphClient(t, r)
-	var wo struct {
-		WorkOrderSearch models.WorkOrderSearchResult
-	}
 
+	var result woSearchResult
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 4)
+	require.Equal(t, 4, result.WorkOrderSearch.Count)
 
-	f1 := models.WorkOrderFilterInput{
+	f := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderPriority,
 		Operator:   models.FilterOperatorIsOneOf,
 		StringSet:  []string{models.WorkOrderPriorityHigh.String()},
 	}
 	c.MustPost(
-		WOAllQuery,
-		&wo,
-		client.Var("filters", []models.WorkOrderFilterInput{f1}),
+		woAllQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
-	require.Equal(t, wo.WorkOrderSearch.WorkOrders[0].ID, data.wo1)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
+	require.Equal(t, strconv.Itoa(data.wo1), result.WorkOrderSearch.WorkOrders[0].ID)
 
-	f2 := models.WorkOrderFilterInput{
-		FilterType: models.WorkOrderFilterTypeWorkOrderPriority,
-		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.WorkOrderPriorityLow.String()},
-	}
+	f.StringSet = []string{models.WorkOrderPriorityLow.String()}
 	c.MustPost(
-		WOAllQuery,
-		&wo,
-		client.Var("filters", []models.WorkOrderFilterInput{f2}),
+		woAllQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 0)
+	require.Zero(t, result.WorkOrderSearch.Count)
 }
 
 func TestSearchWOByLocation(t *testing.T) {
@@ -713,42 +732,31 @@ func TestSearchWOByLocation(t *testing.T) {
 			Awo_3: loc1, assignee2
 			Awo_4: loc2, no assignee
 	*/
-	var wo struct {
-		WorkOrderSearch models.WorkOrderSearchResult
-	}
-
+	var result woSearchResult
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 4)
-	maxDepth := 2
-	f1 := models.WorkOrderFilterInput{
+	require.Equal(t, 4, result.WorkOrderSearch.Count)
+	f := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc1},
-		MaxDepth:   &maxDepth,
+		IDSet:      []int{data.loc1},
+		MaxDepth:   pointer.ToInt(2),
 	}
-
 	c.MustPost(
-		WOCountQuery,
-		&wo,
-		client.Var("filters", []models.WorkOrderFilterInput{f1}),
+		woCountQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 2)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 
-	f2 := models.WorkOrderFilterInput{
-		FilterType: models.WorkOrderFilterTypeWorkOrderLocationInst,
-		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{"no-id"},
-		MaxDepth:   &maxDepth,
-	}
-
+	f.IDSet = []int{-1}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
-		client.Var("filters", []models.WorkOrderFilterInput{f2}),
+		woCountQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 0)
+	require.Zero(t, result.WorkOrderSearch.Count)
 }

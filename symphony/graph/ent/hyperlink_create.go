@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -120,7 +119,7 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: hyperlink.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: hyperlink.FieldID,
 			},
 		}
@@ -172,6 +171,6 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	h.ID = strconv.FormatInt(id, 10)
+	h.ID = int(id)
 	return h, nil
 }

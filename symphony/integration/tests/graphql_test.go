@@ -12,9 +12,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
@@ -138,6 +140,22 @@ type addLocationResponse struct {
 	Name graphql.String
 }
 
+func IDToInt(id graphql.ID) int {
+	i, err := strconv.Atoi(id.(string))
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func IDToIntOrNil(id graphql.ID) *int {
+	if id == nil {
+		return nil
+	}
+	i := IDToInt(id)
+	return &i
+}
+
 func (c *client) addLocation(name string, parent graphql.ID) (*addLocationResponse, error) {
 	typ, err := c.addLocationType("location_type_" + uuid.New().String())
 	if err != nil {
@@ -146,21 +164,13 @@ func (c *client) addLocation(name string, parent graphql.ID) (*addLocationRespon
 	var m struct {
 		Response addLocationResponse `graphql:"addLocation(input: $input)"`
 	}
-	lat := 14.45
-	long := 45.14
 	vars := map[string]interface{}{
 		"input": models.AddLocationInput{
 			Name:      name,
-			Type:      typ.ID.(string),
-			Latitude:  &lat,
-			Longitude: &long,
-			Parent: func() *string {
-				if parent != nil {
-					id := parent.(string)
-					return &id
-				}
-				return nil
-			}(),
+			Type:      IDToInt(typ.ID),
+			Latitude:  pointer.ToFloat64(14.45),
+			Longitude: pointer.ToFloat64(45.14),
+			Parent:    IDToIntOrNil(parent),
 		},
 	}
 	if err := c.client.Mutate(context.Background(), &m, vars); err != nil {
@@ -263,23 +273,16 @@ type addEquipmentResponse struct {
 	ID graphql.ID
 }
 
-func (c *client) addEquipment(name string, typ, location, workorder graphql.ID) (*addEquipmentResponse, error) {
+func (c *client) addEquipment(name string, typ, location, workOrder graphql.ID) (*addEquipmentResponse, error) {
 	var m struct {
 		Response addEquipmentResponse `graphql:"addEquipment(input: $input)"`
-	}
-	nillable := func(id graphql.ID) *string {
-		if id != nil {
-			str := id.(string)
-			return &str
-		}
-		return nil
 	}
 	vars := map[string]interface{}{
 		"input": models.AddEquipmentInput{
 			Name:      name,
-			Type:      typ.(string),
-			Location:  nillable(location),
-			WorkOrder: nillable(workorder),
+			Type:      IDToInt(typ),
+			Location:  IDToIntOrNil(location),
+			WorkOrder: IDToIntOrNil(workOrder),
 		},
 	}
 	if err := c.client.Mutate(context.Background(), &m, vars); err != nil {
@@ -288,13 +291,13 @@ func (c *client) addEquipment(name string, typ, location, workorder graphql.ID) 
 	return &m.Response, nil
 }
 
-func (c *client) removeEquipment(id, workorder graphql.ID) error {
+func (c *client) removeEquipment(id, workOrder graphql.ID) error {
 	var m struct {
-		ID graphql.ID `graphql:"removeEquipment(id: $id, workOrderId: $workorder)"`
+		ID graphql.ID `graphql:"removeEquipment(id: $id, workOrderId: $workOrder)"`
 	}
 	vars := map[string]interface{}{
 		"id":        id,
-		"workorder": workorder,
+		"workOrder": workOrder,
 	}
 	return c.client.Mutate(context.Background(), &m, vars)
 }
@@ -365,7 +368,7 @@ func (c *client) addWorkOrder(name string, typ graphql.ID) (*addWorkOrderRespons
 	vars := map[string]interface{}{
 		"input": models.AddWorkOrderInput{
 			Name:            name,
-			WorkOrderTypeID: typ.(string),
+			WorkOrderTypeID: IDToInt(typ),
 		},
 	}
 	if err := c.client.Mutate(context.Background(), &m, vars); err != nil {
@@ -374,17 +377,17 @@ func (c *client) addWorkOrder(name string, typ graphql.ID) (*addWorkOrderRespons
 	return &m.Response, nil
 }
 
-func (c *client) executeWorkOrder(workorder *addWorkOrderResponse) error {
+func (c *client) executeWorkOrder(workOrder *addWorkOrderResponse) error {
 	var em struct {
 		Response struct {
 			ID graphql.ID
 		} `graphql:"editWorkOrder(input: $input)"`
 	}
-	owner := string(workorder.Owner)
+	owner := string(workOrder.Owner)
 	vars := map[string]interface{}{
 		"input": models.EditWorkOrderInput{
-			ID:        workorder.ID.(string),
-			Name:      string(workorder.Name),
+			ID:        IDToInt(workOrder.ID),
+			Name:      string(workOrder.Name),
 			OwnerName: &owner,
 			Status:    models.WorkOrderStatusDone,
 			Priority:  models.WorkOrderPriorityNone,
@@ -400,7 +403,7 @@ func (c *client) executeWorkOrder(workorder *addWorkOrderResponse) error {
 		} `graphql:"executeWorkOrder(id: $id)"`
 	}
 	vars = map[string]interface{}{
-		"id": workorder.ID,
+		"id": workOrder.ID,
 	}
 	if err := c.client.Mutate(context.Background(), &m, vars); err != nil {
 		return xerrors.Errorf("executing work order: %w", err)

@@ -6,12 +6,12 @@ package importer
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,10 +23,10 @@ const (
 )
 
 type serviceIds struct {
-	serviceTypeID  string
-	serviceTypeID2 string
-	serviceTypeID3 string
-	serviceTypeID4 string
+	serviceTypeID  int
+	serviceTypeID2 int
+	serviceTypeID3 int
+	serviceTypeID4 int
 }
 
 func prepareServiceTypeData(ctx context.Context, t *testing.T, r TestImporterResolver) serviceIds {
@@ -123,12 +123,12 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 		row1       = []string{"", "s1", serviceTypeName, "M123", "", "", "IN_SERVICE", "strVal", "54", "", "", "", "", "", ""}
 		row2       = []string{"", "s2", serviceType2Name, "M456", "", "", "MAINTENANCE", "", "", "29/03/88", "false", "", "", "", ""}
 		row3       = []string{"", "s3", serviceType3Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "30.23-50", "45.8,88.9", "", ""}
-		row4       = []string{"", "s3", serviceType4Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "", "", loc.ID, service.Name}
+		row4       = []string{"", "s3", serviceType4Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "", "", strconv.Itoa(loc.ID), service.Name}
 	)
 
 	titleWithProperties := append(dataHeader[:], propName1, propName2, propName3, propName4, propName5, propName6, propName7, propName8)
 	fl, _ := NewImportHeader(titleWithProperties, ImportEntityService)
-	r1 := NewImportRecord(row1, fl)
+	r1, _ := NewImportRecord(row1, fl)
 	require.NoError(t, err)
 	styp1, err := q.ServiceType(ctx, data.serviceTypeID)
 	require.NoError(t, err)
@@ -152,7 +152,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	styp2, err := q.ServiceType(ctx, data.serviceTypeID2)
 	require.NoError(t, err)
 
-	r2 := NewImportRecord(row2, fl)
+	r2, _ := NewImportRecord(row2, fl)
 	ptypes2, err := importer.validatePropertiesForServiceType(ctx, r2, styp2)
 	require.NoError(t, err)
 	require.Len(t, ptypes2, 2)
@@ -173,7 +173,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	styp3, err := q.ServiceType(ctx, data.serviceTypeID3)
 	require.NoError(t, err)
 
-	r3 := NewImportRecord(row3, fl)
+	r3, _ := NewImportRecord(row3, fl)
 	ptypes3, err := importer.validatePropertiesForServiceType(ctx, r3, styp3)
 	require.NoError(t, err)
 	require.Len(t, ptypes3, 2)
@@ -197,7 +197,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	styp4, err := q.ServiceType(ctx, data.serviceTypeID4)
 	require.NoError(t, err)
 
-	r4 := NewImportRecord(row4, fl)
+	r4, _ := NewImportRecord(row4, fl)
 	ptypes4, err := importer.validatePropertiesForServiceType(ctx, r4, styp4)
 	require.NoError(t, err)
 	require.Len(t, ptypes4, 2)
@@ -238,8 +238,9 @@ func TestValidateForExistingService(t *testing.T) {
 	})
 	require.NoError(t, err)
 	var (
-		test = []string{service.ID, "myService", "type1", "", "", "", "", models.ServiceStatusPending.String()}
+		test = []string{strconv.Itoa(service.ID), "myService", "type1", "", "", "", "", models.ServiceStatusPending.String()}
 	)
-	_, err = importer.validateLineForExistingService(ctx, service.ID, NewImportRecord(test, title))
+	rec, _ := NewImportRecord(test, title)
+	_, err = importer.validateLineForExistingService(ctx, service.ID, rec)
 	require.NoError(t, err)
 }

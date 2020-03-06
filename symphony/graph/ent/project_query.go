@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -151,8 +150,8 @@ func (pq *ProjectQuery) FirstX(ctx context.Context) *Project {
 }
 
 // FirstID returns the first Project id in the query. Returns *NotFoundError when no id was found.
-func (pq *ProjectQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (pq *ProjectQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -164,7 +163,7 @@ func (pq *ProjectQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (pq *ProjectQuery) FirstXID(ctx context.Context) string {
+func (pq *ProjectQuery) FirstXID(ctx context.Context) int {
 	id, err := pq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -198,8 +197,8 @@ func (pq *ProjectQuery) OnlyX(ctx context.Context) *Project {
 }
 
 // OnlyID returns the only Project id in the query, returns an error if not exactly one id was returned.
-func (pq *ProjectQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (pq *ProjectQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = pq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -215,7 +214,7 @@ func (pq *ProjectQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (pq *ProjectQuery) OnlyXID(ctx context.Context) string {
+func (pq *ProjectQuery) OnlyXID(ctx context.Context) int {
 	id, err := pq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -238,8 +237,8 @@ func (pq *ProjectQuery) AllX(ctx context.Context) []*Project {
 }
 
 // IDs executes the query and returns a list of Project ids.
-func (pq *ProjectQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (pq *ProjectQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := pq.Select(project.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -247,7 +246,7 @@ func (pq *ProjectQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (pq *ProjectQuery) IDsX(ctx context.Context) []string {
+func (pq *ProjectQuery) IDsX(ctx context.Context) []int {
 	ids, err := pq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -438,8 +437,8 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 	}
 
 	if query := pq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Project)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Project)
 		for i := range nodes {
 			if fk := nodes[i].project_type_projects; fk != nil {
 				ids = append(ids, *fk)
@@ -463,8 +462,8 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 	}
 
 	if query := pq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Project)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Project)
 		for i := range nodes {
 			if fk := nodes[i].project_location; fk != nil {
 				ids = append(ids, *fk)
@@ -489,13 +488,9 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 
 	if query := pq.withComments; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Project)
+		nodeids := make(map[int]*Project)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -521,13 +516,9 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 
 	if query := pq.withWorkOrders; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Project)
+		nodeids := make(map[int]*Project)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -553,13 +544,9 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 
 	if query := pq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Project)
+		nodeids := make(map[int]*Project)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -605,7 +592,7 @@ func (pq *ProjectQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   project.Table,
 			Columns: project.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: project.FieldID,
 			},
 		},

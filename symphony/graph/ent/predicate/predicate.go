@@ -118,6 +118,9 @@ type SurveyWiFiScan func(*sql.Selector)
 // Technician is the predicate function for technician builders.
 type Technician func(*sql.Selector)
 
+// User is the predicate function for user builders.
+type User func(*sql.Selector)
+
 // WorkOrder is the predicate function for workorder builders.
 type WorkOrder func(*sql.Selector)
 

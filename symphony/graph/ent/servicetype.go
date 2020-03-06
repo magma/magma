@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type ServiceType struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -84,7 +83,7 @@ func (st *ServiceType) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	st.ID = strconv.FormatInt(value.Int64, 10)
+	st.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -111,19 +110,19 @@ func (st *ServiceType) assignValues(values ...interface{}) error {
 
 // QueryServices queries the services edge of the ServiceType.
 func (st *ServiceType) QueryServices() *ServiceQuery {
-	return (&ServiceTypeClient{st.config}).QueryServices(st)
+	return (&ServiceTypeClient{config: st.config}).QueryServices(st)
 }
 
 // QueryPropertyTypes queries the property_types edge of the ServiceType.
 func (st *ServiceType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&ServiceTypeClient{st.config}).QueryPropertyTypes(st)
+	return (&ServiceTypeClient{config: st.config}).QueryPropertyTypes(st)
 }
 
 // Update returns a builder for updating this ServiceType.
 // Note that, you need to call ServiceType.Unwrap() before calling this method, if this ServiceType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (st *ServiceType) Update() *ServiceTypeUpdateOne {
-	return (&ServiceTypeClient{st.config}).UpdateOne(st)
+	return (&ServiceTypeClient{config: st.config}).UpdateOne(st)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -152,12 +151,6 @@ func (st *ServiceType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", st.HasCustomer))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (st *ServiceType) id() int {
-	id, _ := strconv.Atoi(st.ID)
-	return id
 }
 
 // ServiceTypes is a parsable slice of ServiceType.

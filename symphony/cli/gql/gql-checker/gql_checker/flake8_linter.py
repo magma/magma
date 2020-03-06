@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from __future__ import absolute_import
 
 import gql_checker
@@ -17,15 +19,16 @@ class Linter(ImportOrderChecker):
         parser.add_option(
             "--gql-introspection-schema",
             metavar="FILE",
-            help="Import names to consider as application specific"
+            help="Import names to consider as application specific",
         )
         parser.add_option(
             "--gql-typedef-schema",
-            default='',
+            default="",
             action="store",
             type="string",
-            help=("Style to follow. Available: "
-                  "cryptography, google, smarkets, pep8")
+            help=(
+                "Style to follow. Available: " "cryptography, google, smarkets, pep8"
+            ),
         )
         parser.config_options.append("gql-introspection-schema")
         parser.config_options.append("gql-typedef-schema")
@@ -43,7 +46,7 @@ class Linter(ImportOrderChecker):
 
     def error(self, node, code, message):
         lineno, col_offset = node.lineno, node.col_offset
-        return (lineno, col_offset, '{0} {1}'.format(code, message), Linter)
+        return (lineno, col_offset, "{0} {1}".format(code, message), Linter)
 
     def run(self):
         for error in self.check_gql():

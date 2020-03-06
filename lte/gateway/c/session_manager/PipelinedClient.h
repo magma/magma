@@ -37,6 +37,7 @@ class PipelinedClient {
    */
   virtual bool setup_cwf(
     const std::vector<SessionState::SessionInfo>& infos,
+    const std::vector<SubscriberQuotaUpdate>& quota_updates,
     const std::vector<std::string> ue_mac_addrs,
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
@@ -124,6 +125,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    */
   bool setup_cwf(
     const std::vector<SessionState::SessionInfo>& infos,
+    const std::vector<SubscriberQuotaUpdate>& quota_updates,
     const std::vector<std::string> ue_mac_addrs,
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,

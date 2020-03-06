@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type CheckListItemDefinition struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -39,7 +38,7 @@ type CheckListItemDefinition struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CheckListItemDefinitionQuery when eager-loading is set.
 	Edges                                  CheckListItemDefinitionEdges `json:"edges"`
-	work_order_type_check_list_definitions *string
+	work_order_type_check_list_definitions *int
 }
 
 // CheckListItemDefinitionEdges holds the relations/edges for other nodes in the graph.
@@ -96,7 +95,7 @@ func (clid *CheckListItemDefinition) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	clid.ID = strconv.FormatInt(value.Int64, 10)
+	clid.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -140,8 +139,8 @@ func (clid *CheckListItemDefinition) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_type_check_list_definitions", value)
 		} else if value.Valid {
-			clid.work_order_type_check_list_definitions = new(string)
-			*clid.work_order_type_check_list_definitions = strconv.FormatInt(value.Int64, 10)
+			clid.work_order_type_check_list_definitions = new(int)
+			*clid.work_order_type_check_list_definitions = int(value.Int64)
 		}
 	}
 	return nil
@@ -149,14 +148,14 @@ func (clid *CheckListItemDefinition) assignValues(values ...interface{}) error {
 
 // QueryWorkOrderType queries the work_order_type edge of the CheckListItemDefinition.
 func (clid *CheckListItemDefinition) QueryWorkOrderType() *WorkOrderTypeQuery {
-	return (&CheckListItemDefinitionClient{clid.config}).QueryWorkOrderType(clid)
+	return (&CheckListItemDefinitionClient{config: clid.config}).QueryWorkOrderType(clid)
 }
 
 // Update returns a builder for updating this CheckListItemDefinition.
 // Note that, you need to call CheckListItemDefinition.Unwrap() before calling this method, if this CheckListItemDefinition
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (clid *CheckListItemDefinition) Update() *CheckListItemDefinitionUpdateOne {
-	return (&CheckListItemDefinitionClient{clid.config}).UpdateOne(clid)
+	return (&CheckListItemDefinitionClient{config: clid.config}).UpdateOne(clid)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -195,12 +194,6 @@ func (clid *CheckListItemDefinition) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (clid *CheckListItemDefinition) id() int {
-	id, _ := strconv.Atoi(clid.ID)
-	return id
 }
 
 // CheckListItemDefinitions is a parsable slice of CheckListItemDefinition.

@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -151,8 +150,8 @@ func (etq *EquipmentTypeQuery) FirstX(ctx context.Context) *EquipmentType {
 }
 
 // FirstID returns the first EquipmentType id in the query. Returns *NotFoundError when no id was found.
-func (etq *EquipmentTypeQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (etq *EquipmentTypeQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = etq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -164,7 +163,7 @@ func (etq *EquipmentTypeQuery) FirstID(ctx context.Context) (id string, err erro
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (etq *EquipmentTypeQuery) FirstXID(ctx context.Context) string {
+func (etq *EquipmentTypeQuery) FirstXID(ctx context.Context) int {
 	id, err := etq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -198,8 +197,8 @@ func (etq *EquipmentTypeQuery) OnlyX(ctx context.Context) *EquipmentType {
 }
 
 // OnlyID returns the only EquipmentType id in the query, returns an error if not exactly one id was returned.
-func (etq *EquipmentTypeQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (etq *EquipmentTypeQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = etq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -215,7 +214,7 @@ func (etq *EquipmentTypeQuery) OnlyID(ctx context.Context) (id string, err error
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (etq *EquipmentTypeQuery) OnlyXID(ctx context.Context) string {
+func (etq *EquipmentTypeQuery) OnlyXID(ctx context.Context) int {
 	id, err := etq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -238,8 +237,8 @@ func (etq *EquipmentTypeQuery) AllX(ctx context.Context) []*EquipmentType {
 }
 
 // IDs executes the query and returns a list of EquipmentType ids.
-func (etq *EquipmentTypeQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (etq *EquipmentTypeQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := etq.Select(equipmenttype.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -247,7 +246,7 @@ func (etq *EquipmentTypeQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (etq *EquipmentTypeQuery) IDsX(ctx context.Context) []string {
+func (etq *EquipmentTypeQuery) IDsX(ctx context.Context) []int {
 	ids, err := etq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -439,13 +438,9 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 
 	if query := etq.withPortDefinitions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentType)
+		nodeids := make(map[int]*EquipmentType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -471,13 +466,9 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 
 	if query := etq.withPositionDefinitions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentType)
+		nodeids := make(map[int]*EquipmentType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -503,13 +494,9 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 
 	if query := etq.withPropertyTypes; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentType)
+		nodeids := make(map[int]*EquipmentType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -535,13 +522,9 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 
 	if query := etq.withEquipment; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentType)
+		nodeids := make(map[int]*EquipmentType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -566,8 +549,8 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 	}
 
 	if query := etq.withCategory; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*EquipmentType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*EquipmentType)
 		for i := range nodes {
 			if fk := nodes[i].equipment_type_category; fk != nil {
 				ids = append(ids, *fk)
@@ -612,7 +595,7 @@ func (etq *EquipmentTypeQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   equipmenttype.Table,
 			Columns: equipmenttype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmenttype.FieldID,
 			},
 		},

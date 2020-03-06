@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type ProjectType struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -95,7 +94,7 @@ func (pt *ProjectType) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	pt.ID = strconv.FormatInt(value.Int64, 10)
+	pt.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -123,24 +122,24 @@ func (pt *ProjectType) assignValues(values ...interface{}) error {
 
 // QueryProjects queries the projects edge of the ProjectType.
 func (pt *ProjectType) QueryProjects() *ProjectQuery {
-	return (&ProjectTypeClient{pt.config}).QueryProjects(pt)
+	return (&ProjectTypeClient{config: pt.config}).QueryProjects(pt)
 }
 
 // QueryProperties queries the properties edge of the ProjectType.
 func (pt *ProjectType) QueryProperties() *PropertyTypeQuery {
-	return (&ProjectTypeClient{pt.config}).QueryProperties(pt)
+	return (&ProjectTypeClient{config: pt.config}).QueryProperties(pt)
 }
 
 // QueryWorkOrders queries the work_orders edge of the ProjectType.
 func (pt *ProjectType) QueryWorkOrders() *WorkOrderDefinitionQuery {
-	return (&ProjectTypeClient{pt.config}).QueryWorkOrders(pt)
+	return (&ProjectTypeClient{config: pt.config}).QueryWorkOrders(pt)
 }
 
 // Update returns a builder for updating this ProjectType.
 // Note that, you need to call ProjectType.Unwrap() before calling this method, if this ProjectType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pt *ProjectType) Update() *ProjectTypeUpdateOne {
-	return (&ProjectTypeClient{pt.config}).UpdateOne(pt)
+	return (&ProjectTypeClient{config: pt.config}).UpdateOne(pt)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -171,12 +170,6 @@ func (pt *ProjectType) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (pt *ProjectType) id() int {
-	id, _ := strconv.Atoi(pt.ID)
-	return id
 }
 
 // ProjectTypes is a parsable slice of ProjectType.

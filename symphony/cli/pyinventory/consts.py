@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from datetime import date, datetime
+from enum import Enum
+from numbers import Number
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from .graphql.image_entity_enum import ImageEntity
@@ -67,8 +68,8 @@ class LocationType(NamedTuple):
 class Location(NamedTuple):
     name: str
     id: str
-    latitude: float
-    longitude: float
+    latitude: Number
+    longitude: Number
     externalId: Optional[str]
     locationTypeName: str
 
@@ -83,6 +84,14 @@ class EquipmentType(NamedTuple):
 
 
 class EquipmentPortType(NamedTuple):
+    """
+    Attributes:
+        id (str): equipment port type ID
+        name (str): equipment port type name
+        properties (List[Dict[str, PropertyValue]]): list of equipment port type propertyTypes to their default values
+        link_properties (List[Dict[str, PropertyValue]]): list of equipment port type linkPropertyTypes to their default values
+    """
+
     id: str
     name: str
     properties: List[Dict[str, PropertyValue]]
@@ -90,16 +99,44 @@ class EquipmentPortType(NamedTuple):
 
 
 class Equipment(NamedTuple):
+    """
+    Attributes:
+        name (str): equipment name
+        id (str): equipment ID
+    """
+
     name: str
-    id: str
-
-
-class EquipmentPort(NamedTuple):
     id: str
 
 
 class Link(NamedTuple):
     id: str
+
+
+class EquipmentPortDefinition(NamedTuple):
+    """
+    Attributes:
+        id (str): equipment port definition ID
+        name (str): equipment port definition name
+    """
+
+    id: str
+    name: str
+
+
+class EquipmentPort(NamedTuple):
+    """
+    Attributes:
+        id (str): equipment port ID
+        properties (List[Dict[str, PropertyValue]]): list of equipment port properties
+        definition (pyinventory.Consts.EquipmentPortDefinition): port definition
+        link (Optional[pyinventory.consts.Link]): link
+    """
+
+    id: str
+    properties: List[Dict[str, PropertyValue]]
+    definition: EquipmentPortDefinition
+    link: Optional[Link]
 
 
 class SiteSurvey(NamedTuple):
@@ -146,3 +183,20 @@ class Document(NamedTuple):
     parentId: str
     parentEntity: ImageEntity
     category: Optional[str]
+
+
+class Entity(Enum):
+    Location = "Location"
+    LocationType = "LocationType"
+    Equipment = "Equipment"
+    EquipmentType = "EquipmentType"
+    EquipmentPort = "EquipmentPort"
+    EquipmentPortType = "EquipmentPortType"
+    Link = "Link"
+    Service = "Service"
+    ServiceType = "ServiceType"
+    ServiceEndpoint = "ServiceEndpoint"
+    SiteSurvey = "SiteSurvey"
+    Customer = "Customer"
+    Document = "Document"
+    PropertyType = "PropertyType"

@@ -354,11 +354,11 @@ func startServer(
 		ocs = mock_ocs.NewOCSDiamServer(
 			client,
 			&mock_ocs.OCSConfig{
-				MaxUsageBytes: returnedOctets,
-				MaxUsageTime:  1000,
-				ValidityTime:  validityTime,
-				ServerConfig:  server,
-				GyInitMethod:  initMethod,
+				MaxUsageOctets: &fegprotos.Octets{TotalOctets: returnedOctets},
+				MaxUsageTime:   1000,
+				ValidityTime:   validityTime,
+				ServerConfig:   server,
+				GyInitMethod:   initMethod,
 			},
 		)
 		ctx := context.Background()
@@ -369,7 +369,7 @@ func startServer(
 			&fegprotos.CreditInfo{
 				Imsi:        testIMSI1,
 				ChargingKey: 1,
-				Volume:      1000000,
+				Volume:      &fegprotos.Octets{TotalOctets: 1000000},
 				UnitType:    fegprotos.CreditInfo_Bytes,
 			},
 		)
@@ -378,7 +378,7 @@ func startServer(
 			&fegprotos.CreditInfo{
 				Imsi:        testIMSI1,
 				ChargingKey: 2,
-				Volume:      1000000,
+				Volume:      &fegprotos.Octets{TotalOctets: 1000000},
 				UnitType:    fegprotos.CreditInfo_Bytes,
 			},
 		)
@@ -387,7 +387,7 @@ func startServer(
 			&fegprotos.CreditInfo{
 				Imsi:        testIMSI1,
 				ChargingKey: 3,
-				Volume:      1000000,
+				Volume:      &fegprotos.Octets{TotalOctets: 1000000},
 				UnitType:    fegprotos.CreditInfo_Bytes,
 			},
 		)
@@ -396,7 +396,7 @@ func startServer(
 			&fegprotos.CreditInfo{
 				Imsi:        testIMSI2,
 				ChargingKey: 1,
-				Volume:      1000000,
+				Volume:      &fegprotos.Octets{TotalOctets: 1000000},
 				UnitType:    fegprotos.CreditInfo_Bytes,
 			},
 		)

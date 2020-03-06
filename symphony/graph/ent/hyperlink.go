@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type Hyperlink struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -31,9 +30,9 @@ type Hyperlink struct {
 	Name string `json:"name,omitempty" gqlgen:"displayName"`
 	// Category holds the value of the "category" field.
 	Category              string `json:"category,omitempty"`
-	equipment_hyperlinks  *string
-	location_hyperlinks   *string
-	work_order_hyperlinks *string
+	equipment_hyperlinks  *int
+	location_hyperlinks   *int
+	work_order_hyperlinks *int
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -67,7 +66,7 @@ func (h *Hyperlink) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	h.ID = strconv.FormatInt(value.Int64, 10)
+	h.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -99,20 +98,20 @@ func (h *Hyperlink) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_hyperlinks", value)
 		} else if value.Valid {
-			h.equipment_hyperlinks = new(string)
-			*h.equipment_hyperlinks = strconv.FormatInt(value.Int64, 10)
+			h.equipment_hyperlinks = new(int)
+			*h.equipment_hyperlinks = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field location_hyperlinks", value)
 		} else if value.Valid {
-			h.location_hyperlinks = new(string)
-			*h.location_hyperlinks = strconv.FormatInt(value.Int64, 10)
+			h.location_hyperlinks = new(int)
+			*h.location_hyperlinks = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_hyperlinks", value)
 		} else if value.Valid {
-			h.work_order_hyperlinks = new(string)
-			*h.work_order_hyperlinks = strconv.FormatInt(value.Int64, 10)
+			h.work_order_hyperlinks = new(int)
+			*h.work_order_hyperlinks = int(value.Int64)
 		}
 	}
 	return nil
@@ -122,7 +121,7 @@ func (h *Hyperlink) assignValues(values ...interface{}) error {
 // Note that, you need to call Hyperlink.Unwrap() before calling this method, if this Hyperlink
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (h *Hyperlink) Update() *HyperlinkUpdateOne {
-	return (&HyperlinkClient{h.config}).UpdateOne(h)
+	return (&HyperlinkClient{config: h.config}).UpdateOne(h)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -153,12 +152,6 @@ func (h *Hyperlink) String() string {
 	builder.WriteString(h.Category)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (h *Hyperlink) id() int {
-	id, _ := strconv.Atoi(h.ID)
-	return id
 }
 
 // Hyperlinks is a parsable slice of Hyperlink.

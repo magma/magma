@@ -77,8 +77,8 @@ func (fpsq *FloorPlanScaleQuery) FirstX(ctx context.Context) *FloorPlanScale {
 }
 
 // FirstID returns the first FloorPlanScale id in the query. Returns *NotFoundError when no id was found.
-func (fpsq *FloorPlanScaleQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fpsq *FloorPlanScaleQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fpsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -90,7 +90,7 @@ func (fpsq *FloorPlanScaleQuery) FirstID(ctx context.Context) (id string, err er
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (fpsq *FloorPlanScaleQuery) FirstXID(ctx context.Context) string {
+func (fpsq *FloorPlanScaleQuery) FirstXID(ctx context.Context) int {
 	id, err := fpsq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -124,8 +124,8 @@ func (fpsq *FloorPlanScaleQuery) OnlyX(ctx context.Context) *FloorPlanScale {
 }
 
 // OnlyID returns the only FloorPlanScale id in the query, returns an error if not exactly one id was returned.
-func (fpsq *FloorPlanScaleQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fpsq *FloorPlanScaleQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fpsq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -141,7 +141,7 @@ func (fpsq *FloorPlanScaleQuery) OnlyID(ctx context.Context) (id string, err err
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (fpsq *FloorPlanScaleQuery) OnlyXID(ctx context.Context) string {
+func (fpsq *FloorPlanScaleQuery) OnlyXID(ctx context.Context) int {
 	id, err := fpsq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -164,8 +164,8 @@ func (fpsq *FloorPlanScaleQuery) AllX(ctx context.Context) []*FloorPlanScale {
 }
 
 // IDs executes the query and returns a list of FloorPlanScale ids.
-func (fpsq *FloorPlanScaleQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (fpsq *FloorPlanScaleQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := fpsq.Select(floorplanscale.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (fpsq *FloorPlanScaleQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fpsq *FloorPlanScaleQuery) IDsX(ctx context.Context) []string {
+func (fpsq *FloorPlanScaleQuery) IDsX(ctx context.Context) []int {
 	ids, err := fpsq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -311,7 +311,7 @@ func (fpsq *FloorPlanScaleQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   floorplanscale.Table,
 			Columns: floorplanscale.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanscale.FieldID,
 			},
 		},

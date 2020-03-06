@@ -107,8 +107,8 @@ func (wodq *WorkOrderDefinitionQuery) FirstX(ctx context.Context) *WorkOrderDefi
 }
 
 // FirstID returns the first WorkOrderDefinition id in the query. Returns *NotFoundError when no id was found.
-func (wodq *WorkOrderDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (wodq *WorkOrderDefinitionQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = wodq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -120,7 +120,7 @@ func (wodq *WorkOrderDefinitionQuery) FirstID(ctx context.Context) (id string, e
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (wodq *WorkOrderDefinitionQuery) FirstXID(ctx context.Context) string {
+func (wodq *WorkOrderDefinitionQuery) FirstXID(ctx context.Context) int {
 	id, err := wodq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -154,8 +154,8 @@ func (wodq *WorkOrderDefinitionQuery) OnlyX(ctx context.Context) *WorkOrderDefin
 }
 
 // OnlyID returns the only WorkOrderDefinition id in the query, returns an error if not exactly one id was returned.
-func (wodq *WorkOrderDefinitionQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (wodq *WorkOrderDefinitionQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = wodq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -171,7 +171,7 @@ func (wodq *WorkOrderDefinitionQuery) OnlyID(ctx context.Context) (id string, er
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (wodq *WorkOrderDefinitionQuery) OnlyXID(ctx context.Context) string {
+func (wodq *WorkOrderDefinitionQuery) OnlyXID(ctx context.Context) int {
 	id, err := wodq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -194,8 +194,8 @@ func (wodq *WorkOrderDefinitionQuery) AllX(ctx context.Context) []*WorkOrderDefi
 }
 
 // IDs executes the query and returns a list of WorkOrderDefinition ids.
-func (wodq *WorkOrderDefinitionQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (wodq *WorkOrderDefinitionQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := wodq.Select(workorderdefinition.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func (wodq *WorkOrderDefinitionQuery) IDs(ctx context.Context) ([]string, error)
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (wodq *WorkOrderDefinitionQuery) IDsX(ctx context.Context) []string {
+func (wodq *WorkOrderDefinitionQuery) IDsX(ctx context.Context) []int {
 	ids, err := wodq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -358,8 +358,8 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 	}
 
 	if query := wodq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*WorkOrderDefinition)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkOrderDefinition)
 		for i := range nodes {
 			if fk := nodes[i].work_order_definition_type; fk != nil {
 				ids = append(ids, *fk)
@@ -383,8 +383,8 @@ func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderD
 	}
 
 	if query := wodq.withProjectType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*WorkOrderDefinition)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkOrderDefinition)
 		for i := range nodes {
 			if fk := nodes[i].project_type_work_orders; fk != nil {
 				ids = append(ids, *fk)
@@ -429,7 +429,7 @@ func (wodq *WorkOrderDefinitionQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   workorderdefinition.Table,
 			Columns: workorderdefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workorderdefinition.FieldID,
 			},
 		},

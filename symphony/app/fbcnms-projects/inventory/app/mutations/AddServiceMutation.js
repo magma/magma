@@ -11,8 +11,11 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  // $FlowFixMe (T62907961) Relay flow types
   AddServiceMutation,
+  // $FlowFixMe (T62907961) Relay flow types
   AddServiceMutationResponse,
+  // $FlowFixMe (T62907961) Relay flow types
   AddServiceMutationVariables,
 } from './__generated__/AddServiceTypeMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
