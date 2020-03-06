@@ -739,8 +739,8 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getSubscriberConfig,
-		ExpectedStatus: 404,
-		ExpectedError:  "Not found",
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(&lteModels.NetworkSubscriberConfig{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
