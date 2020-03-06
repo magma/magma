@@ -100,7 +100,8 @@ message DeactivateFlowsResult {
 message FlowRequest {
   FlowMatch match = 1;
   string app_name = 2;
-  uint64  bytes_rx = 3;
+  uint64 bytes_rx = 3;
+  string service_type = 4;
 }
 
 message FlowResponse {

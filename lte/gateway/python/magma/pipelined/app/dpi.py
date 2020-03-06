@@ -21,9 +21,13 @@ from magma.pipelined.policy_converters import FlowMatchError, \
 from ryu.lib.packet import ether_types
 
 # TODO might move to config file
-appMap = {"facebook_messenger": 1, "instagram": 2, "facebook": 3, "youtube": 4,
-          "gmail": 5, "google": 6, "google_docs": 7, "viber": 8, "imo": 9,
-          "netflix": 10, "apple": 11, "microsoft": 12}
+# Current classification will finalize if found in APP_PROTOS, if found in
+# PARENT_PROTOS we will also add the SERVICE_IDS id to the final classification
+PARENT_PROTOS = {"facebook": 10, "google_gen": 20, "viber": 30, "imo": 40}
+APP_PROTOS = {"facebook_messenger": 1, "instagram": 2, "youtube": 3,
+              "gmail": 4, "google_docs": 5, "netflix": 6,
+              "apple": 7, "microsoft": 8}
+SERVICE_IDS = {"other": 0, "chat": 1, "audio": 2, "video": 3}
 
 
 class DPIController(MagmaController):
@@ -74,25 +78,65 @@ class DPIController(MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
 
-    def add_classify_flow(self, match, app):
+    def add_classify_flow(self, flow_match, app: str, service_type: str):
+        """
+        Parse DPI output and set the register for future packets matching this
+        flow. APP is split into tokens as the top level app is not supported,
+        but the parent protocol might be.
+        Example we care about google traffic, but don't neccessarily want to
+        classify every specific google service.
+        """
         try:
-            match = flow_match_to_magma_match(match)
+            match = flow_match_to_magma_match(flow_match)
         except FlowMatchError as e:
             self.logger.error(e)
-            return False
+            return
 
         parser = self._datapath.ofproto_parser
-        app_id = appMap.get(app, 0)
-        if app_id != 0:
-            actions = [parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
-            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-                                                 match, actions,
-                                                 priority=flows.DEFAULT_PRIORITY,
-                                                 resubmit_table=self.next_table)
-        else:
-            self.logger.error("Unrecognized app name %s", app)
+        tokens = app.split('.')
 
-        return True
+        # We could be sent an app that we don't care about, just ignore it
+        if not any(app for app in tokens if app in PARENT_PROTOS
+                                         or app in APP_PROTOS):
+            self.logger.debug("Unrecognized app name %s", app)
+            return
+
+        app_match = [app for app in tokens if app in APP_PROTOS]
+        if len(app_match) > 1:
+            self.logger.warning("Found more than 1 app match in %s", app)
+            return
+
+        if (len(app_match) == 1):
+            app_id = APP_PROTOS[app_match[0]]
+            self.logger.debug("Classified %s-%s as %d", app, service_type,
+                              app_id)
+        else:
+            parent_match = [app for app in tokens if app in PARENT_PROTOS]
+            # This shoudn't happen as we confirmed the match exists
+            if len(parent_match) == 0:
+                self.logger.warning("Didn't find a match for app name %s", app)
+                return
+
+            if len(parent_match) > 1:
+                self.logger.warning("Found more than 1 parent app match in %s",
+                                    app)
+            app_id = PARENT_PROTOS[parent_match[0]]
+
+            service_id = SERVICE_IDS['other']
+            for serv in SERVICE_IDS:
+                if serv in service_type.lower():
+                    service_id = SERVICE_IDS[serv]
+                    break
+            app_id += service_id
+            self.logger.error("Classified %s-%s as %d", app, service_type,
+                              app_id)
+
+        actions = [parser.OFPActionOutput(self._mon_port_number),
+                   parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                                             match, actions,
+                                             priority=flows.DEFAULT_PRIORITY,
+                                             resubmit_table=self.next_table)
 
     def remove_classify_flow(self, match):
         try:
