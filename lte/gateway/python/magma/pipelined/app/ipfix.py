@@ -6,6 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import shlex
 import subprocess
 from typing import NamedTuple, Dict
 
@@ -74,6 +75,13 @@ class IPFIXController(MagmaController):
         self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
 
+        rm_cmd = "ovs-vsctl destroy Flow_Sample_Collector_Set {}" \
+            .format(self.ipfix_config.collector_set_id)
+
+        args = shlex.split(rm_cmd)
+        ret = subprocess.call(args)
+        self.logger.debug("Removed old Flow_Sample_Collector_Set ret %d", ret)
+
         action_str = (
             'ovs-vsctl -- --id=@{} get Bridge {} -- --id=@cs create '
             'Flow_Sample_Collector_Set id={} bridge=@{} ipfix=@i -- --id=@i '
@@ -89,11 +97,7 @@ class IPFIXController(MagmaController):
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, err = p.communicate()
             err_str = err.decode('utf-8')
-            # There is a benign double init error that we ignore
-            if 'Transaction causes multiple rows in' in err_str:
-                self.logger.info("IPFIX flow sample collector already created")
-            else:
-                self.logger.error(err_str)
+            self.logger.error(err_str)
         except subprocess.CalledProcessError as e:
             raise Exception('Error: {} failed with: {}'.format(action_str, e))
 
