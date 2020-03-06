@@ -121,14 +121,8 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         num_sec_apn = len(sub_data.non_3gpp.apn_config)
         apn_found = 0
         for idx in range(num_sec_apn):
-            try:
-                apn_data = self.lte_processor.get_apn_data(
-                    sub_data.non_3gpp.apn_config[idx].service_selection
-                )
-                apn_found += 1
-            except ApnNotFoundError as e:
-                logging.warning("APN not found : %s", e)
-                continue
+            apn_found += 1
+            apn_data = sub_data.non_3gpp.apn_config[idx]
             sec_apn = ula.apn.add()
             # Context id 0 is assigned to oai.ipv4 apn. So start from 1
             sec_apn.context_id = idx + 1

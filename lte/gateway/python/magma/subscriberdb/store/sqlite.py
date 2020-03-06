@@ -11,7 +11,8 @@ import sqlite3
 import threading
 from contextlib import contextmanager
 
-from lte.protos.subscriberdb_pb2 import SubscriberData, Non3GPPUserProfile
+from lte.protos.subscriberdb_pb2 import SubscriberData, Non3GPPUserProfile,\
+    SubscriberIDSet
 
 from magma.subscriberdb.sid import SIDUtils
 from .base import (
@@ -22,7 +23,7 @@ from .base import (
     DuplicateApnError,
 )
 from .onready import OnDataReady
-
+import logging
 
 class SqliteStore(BaseStore):
     """
@@ -57,38 +58,108 @@ class SqliteStore(BaseStore):
         with self.conn:
             self.conn.execute(
                 "CREATE TABLE IF NOT EXISTS apndb"
-                "(apn_name text PRIMARY KEY, data text)"
+                "(apn_name text PRIMARY KEY, data text, subscriberids text)"
             )
+
+    def _add_sub_to_apndb(self, subscriber_data):
+        """
+        Method that adds the subscriber ids to apndb.
+        """
+        sid = SIDUtils.to_str(subscriber_data.sid)
+
+        for idx in range(len(subscriber_data.non_3gpp.apn_config)):
+            # Add the subscriber ID in apnDB
+            sids = SubscriberIDSet()
+            res = self.conn.execute(
+                "SELECT subscriberids FROM apndb WHERE " "apn_name = ?",
+                (subscriber_data.non_3gpp.apn_config[idx].service_selection,),
+            )
+            row = res.fetchone()
+            if not row:
+                raise ApnNotFoundError()
+            stored_sid_data = SubscriberIDSet()
+            if row[0]:
+                stored_sid_data.ParseFromString(row[0])
+
+                # Repopulate sids
+                # Add the sids already present in stored_sid_data
+                for sid_idx in range(len(stored_sid_data.sids)):
+                    sid_data = sids.sids.add()
+                    sid_data.id = stored_sid_data.sids[sid_idx].id
+            # Now add the new sids received from test script/cli
+            sid_data = sids.sids.add()
+            sid_data.id = sid
+            data = sids
+            data_str = data.SerializeToString()
+            res = self.conn.execute(
+                "UPDATE apndb SET subscriberids = ? " "WHERE apn_name = ?",
+                (
+                    data_str,
+                    subscriber_data.non_3gpp.apn_config[idx].service_selection,
+                ),
+            )
+
+    def _fill_apn_from_apndb(self, non_3gpp, subscriber_data):
+        """
+        Method that retrieves apn data from apndb and updates the subscriberdb.
+        """
+        # Fetch the APN data from apndb and add to subscriberdb
+        for idx in range(len(subscriber_data.non_3gpp.apn_config)):
+            res = self.conn.execute(
+                "SELECT data FROM apndb WHERE " "apn_name = ?",
+                (subscriber_data.non_3gpp.apn_config[idx].service_selection,),
+            )
+            row = res.fetchone()
+            if not row:
+                raise ApnNotFoundError()
+
+            sub_data = SubscriberData()
+            sub_data.ParseFromString(row[0])
+            num_apn = len(sub_data.non_3gpp.apn_config)
+            for itrn in range(num_apn):
+                if (
+                    sub_data.non_3gpp.apn_config[itrn].service_selection
+                    == subscriber_data.non_3gpp.apn_config[
+                        idx
+                    ].service_selection
+                ):
+                    apn_config = non_3gpp.apn_config.add()
+                    self._populate_apn(sub_data, apn_config, itrn)
 
     def add_subscriber(self, subscriber_data):
         """
         Method that adds the subscriber.
         """
         sid = SIDUtils.to_str(subscriber_data.sid)
-        data_str = subscriber_data.SerializeToString()
         with self.conn:
-            res = self.conn.execute("SELECT data FROM subscriberdb WHERE "
-                                    "subscriber_id = ?", (sid, ))
+            res = self.conn.execute(
+                "SELECT data FROM subscriberdb WHERE " "subscriber_id = ?",
+                (sid,),
+            )
             if res.fetchone():
                 raise DuplicateSubscriberError(sid)
 
             if subscriber_data.non_3gpp.apn_config:
-                for idx in range(len(subscriber_data.non_3gpp.apn_config)):
-                    res = self.conn.execute(
-                        "SELECT data FROM apndb WHERE " "apn_name = ?",
-                        (
-                            subscriber_data.non_3gpp.apn_config[
-                                idx
-                            ].service_selection,
-                        ),
-                    )
+                non_3gpp = Non3GPPUserProfile()
+                self._fill_apn_from_apndb(non_3gpp, subscriber_data)
 
-                    row = res.fetchone()
-                    if not row:
-                        raise ApnNotFoundError()
-
-            self.conn.execute("INSERT INTO subscriberdb(subscriber_id, data) "
-                              "VALUES (?, ?)", (sid, data_str))
+                new_sub_data = SubscriberData(
+                    sid=SIDUtils.to_pb(sid),
+                    gsm=subscriber_data.gsm,
+                    lte=subscriber_data.lte,
+                    state=subscriber_data.state,
+                    non_3gpp=non_3gpp,
+                )
+                data_str = new_sub_data.SerializeToString()
+                # Add the sid to apndb
+                self._add_sub_to_apndb(subscriber_data)
+            else:
+                data_str = subscriber_data.SerializeToString()
+            self.conn.execute(
+                "INSERT INTO subscriberdb(subscriber_id, data) "
+                "VALUES (?, ?)",
+                (sid, data_str),
+            )
         self._on_ready.add_subscriber(subscriber_data)
 
     @contextmanager
@@ -97,8 +168,10 @@ class SqliteStore(BaseStore):
         Context manager to modify the subscriber data.
         """
         with self.conn:
-            res = self.conn.execute("SELECT data FROM subscriberdb WHERE "
-                                    "subscriber_id = ?", (subscriber_id, ))
+            res = self.conn.execute(
+                "SELECT data FROM subscriberdb WHERE " "subscriber_id = ?",
+                (subscriber_id,),
+            )
             row = res.fetchone()
             if not row:
                 raise SubscriberNotFoundError(subscriber_id)
@@ -106,9 +179,10 @@ class SqliteStore(BaseStore):
             subscriber_data.ParseFromString(row[0])
             yield subscriber_data
             data_str = subscriber_data.SerializeToString()
-            self.conn.execute("UPDATE subscriberdb SET data = ? "
-                              "WHERE subscriber_id = ?",
-                              (data_str, subscriber_id))
+            self.conn.execute(
+                "UPDATE subscriberdb SET data = ? " "WHERE subscriber_id = ?",
+                (data_str, subscriber_id),
+            )
 
     @contextmanager
     def edit_subscriber_apn(self, sid, request):
@@ -126,20 +200,9 @@ class SqliteStore(BaseStore):
             non_3gpp = Non3GPPUserProfile()
             sub_data = self.get_subscriber_data(sid)
             num_apn = len(request.non_3gpp.apn_config)
-            for idx in range(num_apn):
-                res = self.conn.execute(
-                    "SELECT data FROM apndb WHERE " "apn_name = ?",
-                    (request.non_3gpp.apn_config[idx].service_selection,),
-                )
 
-                row = res.fetchone()
-                if not row:
-                    raise ApnNotFoundError()
-
-                apn_config = non_3gpp.apn_config.add()
-                apn_config.service_selection = request.non_3gpp.apn_config[
-                    idx
-                ].service_selection
+            # Fetch apn data from apndb and update subscriberdb
+            self._fill_apn_from_apndb(non_3gpp, request)
             # Re-populate subscriber data with the APN parameters
             new_sub_data = SubscriberData(
                 sid=SIDUtils.to_pb(sid),
@@ -154,13 +217,105 @@ class SqliteStore(BaseStore):
                 (data_str, sid),
             )
 
+    def _delete_sid_from_apndb(self, apn, sid):
+        """
+        Method that deletes subscriberId from apndb.
+        """
+        with self.conn:
+            res = self.conn.execute(
+                "SELECT subscriberids FROM apndb WHERE " "apn_name = ?",
+                (apn,),
+            )
+            row = res.fetchone()
+            if not row:
+                raise ApnNotFoundError()
+            stored_sid_data = SubscriberIDSet()
+            if row[0]:
+                stored_sid_data.ParseFromString(row[0])
+                for idx in range(len(stored_sid_data.sids)):
+                    if sid == stored_sid_data.sids[idx].id:
+                        del stored_sid_data.sids[idx]
+                        break
+
+    @contextmanager
+    def delete_subscriber_apn(self, sid, request):
+        """
+        Context manager to delete the apn data of a subscriber.
+        """
+        with self.conn:
+            res = self.conn.execute(
+                "SELECT data FROM subscriberdb WHERE " "subscriber_id = ?",
+                (sid,),
+            )
+            row = res.fetchone()
+            if not row:
+                raise SubscriberNotFoundError(sid)
+            non_3gpp = Non3GPPUserProfile()
+            sub_data = self.get_subscriber_data(sid)
+            num_stored_apn = len(sub_data.non_3gpp.apn_config)
+            num_rcvd_apn = len(request.non_3gpp.apn_config)
+            for idx in range(num_rcvd_apn):
+                for itrn in range(num_stored_apn):
+                    if (
+                        sub_data.non_3gpp.apn_config[itrn].service_selection
+                        == request.non_3gpp.apn_config[idx].service_selection
+                    ):
+                        del sub_data.non_3gpp.apn_config[itrn]
+                        # Delete the sid entry from apndb
+                        try:
+                            self._delete_sid_from_apndb(
+                                request.non_3gpp.apn_config[
+                                    idx
+                                ].service_selection,
+                                sid,
+                            )
+
+                        except ApnNotFoundError as e:
+                            logging.warning(
+                                "sid entry not found for APN : %s %s",
+                                e,
+                                request.non_3gpp.apn_config[
+                                    0
+                                ].service_selection,
+                            )
+
+                            break
+
+            data_str = sub_data.SerializeToString()
+            # Re-populate subscriber data with the APN parameters
+            self.conn.execute(
+                "UPDATE subscriberdb SET data = ? " "WHERE subscriber_id = ?",
+                (data_str, sid),
+            )
+
     def delete_subscriber(self, subscriber_id):
         """
         Method that deletes a subscriber, if present.
         """
         with self.conn:
-            self.conn.execute("DELETE FROM subscriberdb WHERE "
-                              "subscriber_id = ?", (subscriber_id, ))
+            # Delete the subscriber id from the apndb
+            try:
+                sub_data = self.get_subscriber_data(subscriber_id)
+            except SubscriberNotFoundError:
+                raise SubscriberNotFoundError()
+            num_apn = len(sub_data.non_3gpp.apn_config)
+            for idx in range(num_apn):
+                try:
+                    self._delete_sid_from_apndb(
+                        sub_data.non_3gpp.apn_config[idx].service_selection,
+                        subscriber_id,
+                    )
+                except ApnNotFoundError as e:
+                    logging.warning(
+                        "sid entry not found for APN : %s %s",
+                        e,
+                        sub_data.non_3gpp.apn_config[0].service_selection,
+                    )
+                    continue
+            self.conn.execute(
+                "DELETE FROM subscriberdb WHERE " "subscriber_id = ?",
+                (subscriber_id,),
+            )
 
     def delete_all_subscribers(self):
         """
@@ -275,7 +430,6 @@ class SqliteStore(BaseStore):
                 == apn_data.non_3gpp.apn_config[0].service_selection
             ):
                 return sub_data.non_3gpp.apn_config[idx]
-        return sub_data.non_3gpp.apn_config[idx]
 
     def _populate_apn(self, apn_data, apn_config, idx):
         """
@@ -376,10 +530,12 @@ class SqliteStore(BaseStore):
                     raise DuplicateApnError()
 
                 self.conn.execute(
-                    "INSERT INTO apndb(apn_name,data) " "VALUES (?, ?)",
+                    "INSERT INTO apndb(apn_name,data,subscriberids) "
+                    "VALUES (?, ?, ?)",
                     (
                         apn_data.non_3gpp.apn_config[idx].service_selection,
                         data_str,
+                        None,
                     ),
                 )
 
@@ -389,6 +545,55 @@ class SqliteStore(BaseStore):
         """
         num_apn = 0
         with self.conn:
+
+            # First delete the APN entry from subscriberdb table
+            res = self.conn.execute(
+                "SELECT subscriberids FROM apndb WHERE " "apn_name = ?",
+                (apn_data.non_3gpp.apn_config[0].service_selection,),
+            )
+            row = res.fetchone()
+            if not row:
+                raise ApnNotFoundError()
+            stored_sid_data = SubscriberIDSet()
+            if row[0]:
+                stored_sid_data.ParseFromString(row[0])
+                num_sid = len(stored_sid_data.sids)
+                for idx in range(num_sid):
+                    try:
+                        sub_data = self.get_subscriber_data(
+                            stored_sid_data.sids[idx].id
+                        )
+                    except SubscriberNotFoundError as e:
+                        logging.warning(
+                            "Subscriber not found for apn: %s %s",
+                            e,
+                            apn_data.non_3gpp.apn_config[0].service_selection,
+                        )
+                        continue
+                    num_apn = len(sub_data.non_3gpp.apn_config)
+                    for apn_idx in range(num_apn):
+                        if (
+                            sub_data.non_3gpp.apn_config[
+                                apn_idx
+                            ].service_selection
+                            == apn_data.non_3gpp.apn_config[
+                                0
+                            ].service_selection
+                        ):
+                            # Delete the apn entry in subscriberdb
+                            del sub_data.non_3gpp.apn_config[apn_idx]
+                            data_str = sub_data.SerializeToString()
+                            # Repopulate subscriberdb after deleting.
+                            res = self.conn.execute(
+                                "UPDATE subscriberdb SET data = ? "
+                                "WHERE subscriber_id = ?",
+                                (data_str, SIDUtils.to_str(sub_data.sid)),
+                            )
+                            break
+                # Delete all the sids  for the apn in apndb
+                del stored_sid_data.sids[:]
+
+            # Now delete the apn from apndb
             res = self.conn.execute(
                 "SELECT data FROM apndb WHERE " "apn_name = ?",
                 (apn_data.non_3gpp.apn_config[0].service_selection,),
@@ -400,30 +605,6 @@ class SqliteStore(BaseStore):
                 "DELETE FROM apndb WHERE " "apn_name = ?",
                 (apn_data.non_3gpp.apn_config[0].service_selection,),
             )
-
-        # Delete the corresponding APN from subscriberdb table
-        res = self.conn.execute("SELECT subscriber_id, data FROM subscriberdb")
-        for row in res:
-            sub = SubscriberData()
-            sub.ParseFromString(row[1])
-            if sub.non_3gpp.apn_config:
-                num_apn = len(sub.non_3gpp.apn_config)
-            for idx in range(num_apn):
-                sid = SIDUtils.to_str(sub.sid)
-                if (
-                    sub.non_3gpp.apn_config[idx].service_selection
-                    == apn_data.non_3gpp.apn_config[0].service_selection
-                ):
-                    del sub.non_3gpp.apn_config[idx]
-                    data_str = sub.SerializeToString()
-                    # Repopulate subscriberdb after deleting.
-                    with self.conn:
-                        res = self.conn.execute(
-                            "UPDATE subscriberdb SET data = ? "
-                            "WHERE subscriber_id = ?",
-                            (data_str, sid),
-                        )
-                    break
 
     def edit_apn_config(self, apn_data):
         """
@@ -438,7 +619,7 @@ class SqliteStore(BaseStore):
             row = res.fetchone()
             if not row:
                 raise ApnNotFoundError()
-
+        # Update the apn data in apndb
         sub_data = SubscriberData()
         sub_data.ParseFromString(row[0])
         self._update_apn(sub_data, apn_data)
@@ -450,3 +631,44 @@ class SqliteStore(BaseStore):
             )
             if not res.rowcount:
                 raise ApnNotFoundError()
+            # Update the apn data for the corresponding subscriber
+            res = self.conn.execute(
+                "SELECT subscriberids FROM apndb WHERE " "apn_name = ?",
+                (apn_data.non_3gpp.apn_config[0].service_selection,),
+            )
+            row = res.fetchone()
+            if not row:
+                raise ApnNotFoundError()
+            stored_sid_data = SubscriberIDSet()
+            if row[0]:
+                stored_sid_data.ParseFromString(row[0])
+                for idx in range(len(stored_sid_data.sids)):
+                    subs_data = self.get_subscriber_data(
+                        stored_sid_data.sids[idx].id
+                    )
+                    self._update_apn(subs_data, apn_data)
+                data_str = subs_data.SerializeToString()
+                # Repopulate subscriberdb after updating.
+                res = self.conn.execute(
+                    "UPDATE subscriberdb SET data = ? "
+                    "WHERE subscriber_id = ?",
+                    (data_str, SIDUtils.to_str(subs_data.sid)),
+                )
+
+    def list_sids_for_apn(self, apn_data):
+        """
+        Method that returns the sids for the given APN
+        """
+        with self.conn:
+            res = self.conn.execute(
+                "SELECT subscriberids FROM apndb WHERE " "apn_name = ?",
+                (apn_data.non_3gpp.apn_config[0].service_selection,),
+            )
+            row = res.fetchone()
+            if not row:
+                raise ApnNotFoundError()
+
+            stored_sid_data = SubscriberIDSet()
+            if row[0]:
+                stored_sid_data.ParseFromString(row[0])
+                return stored_sid_data

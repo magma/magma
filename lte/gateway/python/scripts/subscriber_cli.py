@@ -112,6 +112,20 @@ def update_subscriber_apn(client, args):
     client.UpdateSubscriberApn(data)
 
 @grpc_wrapper
+def delete_subscriber_apn(client, args):
+    non_3gpp = Non3GPPUserProfile()
+    apn_list = args.apnconfig.split(",")
+    num_apn = len(apn_list)
+    for idx in range(num_apn):
+        apn = non_3gpp.apn_config.add()
+        apn.service_selection = apn_list[idx]
+    print(apn_list)
+
+    data = SubscriberData(sid=SIDUtils.to_pb(args.sid), non_3gpp=non_3gpp)
+    client.DeleteSubscriberApn(data)
+
+
+@grpc_wrapper
 def delete_subscriber(client, args):
     client.DeleteSubscriber(SIDUtils.to_pb(args.sid))
 
@@ -144,6 +158,9 @@ def create_parser():
     parser_update_apn = subparsers.add_parser(
         "update_apn", help="Update apn for a  subscriber"
     )
+    parser_delete_apn = subparsers.add_parser(
+        "delete_apn", help="Delete apn for a  subscriber"
+    )
     parser_get = subparsers.add_parser("get", help="Get subscriber data")
     parser_list = subparsers.add_parser("list", help="List all subscriber ids")
 
@@ -154,6 +171,7 @@ def create_parser():
         parser_update,
         parser_get,
         parser_update_apn,
+        parser_delete_apn,
     ]:
         cmd.add_argument("sid", help="Subscriber identifier")
     for cmd in [parser_add]:
@@ -192,11 +210,15 @@ def create_parser():
     for cmd in [parser_update_apn]:
         cmd.add_argument("apnconfig", help="Name of the APNs (ims, internet)")
 
+    for cmd in [parser_delete_apn]:
+        cmd.add_argument("apnconfig", help="Name of the APNs (ims, internet)")
+
 # Add function callbacks
     parser_add.set_defaults(func=add_subscriber)
     parser_del.set_defaults(func=delete_subscriber)
     parser_update.set_defaults(func=update_subscriber)
     parser_update_apn.set_defaults(func=update_subscriber_apn)
+    parser_delete_apn.set_defaults(func=delete_subscriber_apn)
     parser_get.set_defaults(func=get_subscriber)
     parser_list.set_defaults(func=list_subscribers)
     return parser

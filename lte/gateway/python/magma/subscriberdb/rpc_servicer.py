@@ -62,7 +62,14 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         sid = SIDUtils.to_str(request)
         logging.debug("Delete subscriber rpc for sid: %s", sid)
-        self._store.delete_subscriber(sid)
+        try:
+            self._store.delete_subscriber(sid)
+        except SubscriberNotFoundError:
+            context.set_details("Subscriber not found: %s" % sid)
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+        except ApnNotFoundError:
+            context.set_details("APN not configured")
+            context.set_code(grpc.StatusCode.NOT_FOUND)
 
     @return_void
     def UpdateSubscriber(self, request, context):
@@ -86,7 +93,22 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         try:
             self._store.edit_subscriber_apn(sid, request)
         except SubscriberNotFoundError:
-            context.set_details('Subscriber not found: %s' % sid)
+            context.set_details("Subscriber not found: %s" % sid)
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+        except ApnNotFoundError:
+            context.set_details("APN not configured")
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+
+    @return_void
+    def DeleteSubscriberApn(self, request, context):
+        """
+        Deletes the apn data in subscription data
+        """
+        sid = SIDUtils.to_str(request.sid)
+        try:
+            self._store.delete_subscriber_apn(sid, request)
+        except SubscriberNotFoundError:
+            context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
         except ApnNotFoundError:
             context.set_details("APN not configured")
@@ -158,6 +180,20 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
                 % request.non_3gpp.apn_config[0].service_selection
             )
             context.set_code(grpc.StatusCode.NOT_FOUND)
+
+    def ListSidForApn(self, request, context):
+        """
+        Lists the sids for the APN from the store
+        """
+        try:
+            return self._store.list_sids_for_apn(request)
+        except ApnNotFoundError:
+            context.set_details(
+                "APN not found : %s"
+                % request.non_3gpp.apn_config[0].service_selection
+            )
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            return subscriberdb_pb2.SubscriberIDSet()
 
     @return_void
     def UpdateApn(self, request, context):

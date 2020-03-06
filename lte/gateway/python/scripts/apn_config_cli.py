@@ -79,6 +79,7 @@ def get_apn(client, args):
     apn_config = non_3gpp.apn_config.add()
     apn_config.service_selection = args.apn
     data = SubscriberData(non_3gpp=non_3gpp)
+    client.GetApnData(data)
     apn_data = client.GetApnData(data)
     print(apn_data)
 
@@ -88,6 +89,17 @@ def list_apns(client, args):
     print("Retrieving APN list")
     for apn in client.ListApns(Void()).apn_name:
         print(apn)
+
+
+@grpc_wrapper
+def list_sids(client, args):
+    print("Listing sids for APN : ", args.apn)
+    non_3gpp = Non3GPPUserProfile()
+    apn_config = non_3gpp.apn_config.add()
+    apn_config.service_selection = args.apn
+    data = SubscriberData(non_3gpp=non_3gpp)
+    sids = client.ListSidForApn(data)
+    print(sids)
 
 
 def create_parser():
@@ -106,14 +118,24 @@ def create_parser():
     parser_update = subparsers.add_parser("update", help="Update an apn")
     parser_get = subparsers.add_parser("get", help="Get apn data")
     parser_list = subparsers.add_parser("list", help="List all APNs")
+    parser_list_sid = subparsers.add_parser(
+        "list_sid", help="List all sids subscribed for the APN"
+    )
 
     # Add arguments
-    for cmd in [parser_add, parser_del, parser_update, parser_get]:
+    for cmd in [
+        parser_add,
+        parser_del,
+        parser_update,
+        parser_get,
+        parser_list_sid,
+    ]:
         cmd.add_argument("apn", help="Name of the APN (ims/internet)")
     for cmd in [parser_add]:
         cmd.add_argument("qci", type=int, help="QCI for APN [1-9]")
         cmd.add_argument(
-            "priority", type=int, help="Priority of the APN [1-15]")
+            "priority", type=int, help="Priority of the APN [1-15]"
+        )
         cmd.add_argument(
             "preemptionCapability", type=int, help="Enabled/Disabled [0/1]"
         )
@@ -146,6 +168,7 @@ def create_parser():
     parser_update.set_defaults(func=update_apn)
     parser_get.set_defaults(func=get_apn)
     parser_list.set_defaults(func=list_apns)
+    parser_list_sid.set_defaults(func=list_sids)
     return parser
 
 
