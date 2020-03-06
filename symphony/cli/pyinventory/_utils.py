@@ -205,6 +205,10 @@ def _make_property_types(
         }
         for i, arg in enumerate(properties)
     ]
+    # pyre-fixme[7]: Expected `List[Dict[str, Union[Tuple[float, float], bool,
+    #  datetime.date, float, int, str]]]` but got `List[Union[Dict[str,
+    #  Optional[Union[bool, int, str]]], Dict[str, Union[Tuple[float, float], bool,
+    #  datetime.date, float, int, str]]]]`.
     return property_types
 
 
@@ -241,6 +245,10 @@ def format_property_definitions(
         }
         for i, prop in enumerate(properties)
     ]
+    # pyre-fixme[7]: Expected `List[Dict[str, Union[Tuple[float, float],
+    #  PropertyKind, bool, datetime.date, float, int, str]]]` but got
+    #  `List[Union[Dict[str, Optional[Union[PropertyKind, bool, int, str]]], Dict[str,
+    #  Union[Tuple[float, float], bool, datetime.date, float, int, str]]]]`.
     return property_types
 
 
