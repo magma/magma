@@ -14,10 +14,37 @@
 #    %> sudo python3 setup_pyinventory.py develop
 #    %> ./compile_graphql.sh
 
+enum UserStatus
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/user.Status"
+  ) {
+  ACTIVE
+  DEACTIVATED
+  DELETED
+}
+
+enum UserRole
+  @goModel(model: "github.com/facebookincubator/symphony/graph/ent/user.Role") {
+  USER
+  ADMIN
+  OWNER
+}
+
+type User implements Node {
+  id: ID!
+  authID: String!
+  firstName: String!
+  lastName: String!
+  status: UserStatus!
+  role: UserRole!
+  profilePhoto: File
+}
+
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
   email: String! @goField(name: "user")
+  user: User!
 }
 
 """
@@ -88,6 +115,14 @@ type Location implements Node {
   distanceKm(latitude: Float!, longitude: Float!): Float!
   floorPlans: [FloorPlan]!
   hyperlinks: [Hyperlink!]!
+}
+
+input EditUserInput {
+  id: ID!
+  firstName: String
+  lastName: String
+  status: UserStatus
+  role: UserRole
 }
 
 input AddLocationInput {
@@ -962,6 +997,34 @@ type WorkOrder implements Node {
   checkList: [CheckListItem]!
   checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
+}
+
+"""
+A connection to a list of users.
+"""
+type UserConnection {
+  """
+  A list of user type edges.
+  """
+  edges: [UserEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A work order type edge in a connection.
+"""
+type UserEdge {
+  """
+  The user type at the end of the edge.
+  """
+  node: User
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
 }
 
 """
@@ -1919,6 +1982,7 @@ type Query {
     before: Cursor
     last: Int
   ): WorkOrderTypeConnection
+  users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
   searchForEntity(
     name: String!
     after: Cursor
@@ -1980,6 +2044,7 @@ type Query {
 }
 
 type Mutation {
+  editUser(input: EditUserInput!): User!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!
   editLocation(input: EditLocationInput!): Location!

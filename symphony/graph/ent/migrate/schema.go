@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 
 	"github.com/facebookincubator/ent/dialect/sql/schema"
@@ -1278,6 +1279,33 @@ var (
 		PrimaryKey:  []*schema.Column{TechniciansColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "auth_id", Type: field.TypeString, Unique: true},
+		{Name: "first_name", Type: field.TypeString, Nullable: true},
+		{Name: "last_name", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "deactivated", "deleted"}, Default: user.DefaultStatus},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"user", "admin", "owner"}, Default: user.DefaultRole},
+		{Name: "user_profile_photo", Type: field.TypeInt, Nullable: true},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "users_files_profile_photo",
+				Columns: []*schema.Column{UsersColumns[8]},
+
+				RefColumns: []*schema.Column{FilesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// WorkOrdersColumns holds the columns for the "work_orders" table.
 	WorkOrdersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1498,6 +1526,7 @@ var (
 		SurveyTemplateQuestionsTable,
 		SurveyWiFiScansTable,
 		TechniciansTable,
+		UsersTable,
 		WorkOrdersTable,
 		WorkOrderDefinitionsTable,
 		WorkOrderTypesTable,
@@ -1574,6 +1603,7 @@ func init() {
 	SurveyTemplateQuestionsTable.ForeignKeys[0].RefTable = SurveyTemplateCategoriesTable
 	SurveyWiFiScansTable.ForeignKeys[0].RefTable = SurveyQuestionsTable
 	SurveyWiFiScansTable.ForeignKeys[1].RefTable = LocationsTable
+	UsersTable.ForeignKeys[0].RefTable = FilesTable
 	WorkOrdersTable.ForeignKeys[0].RefTable = ProjectsTable
 	WorkOrdersTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
 	WorkOrdersTable.ForeignKeys[2].RefTable = LocationsTable

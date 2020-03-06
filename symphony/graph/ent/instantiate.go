@@ -223,6 +223,12 @@ func (c *TechnicianClient) Instantiate(t *Technician) *Technician {
 }
 
 // Instantiate entity configuration.
+func (c *UserClient) Instantiate(u *User) *User {
+	u.config = c.config
+	return u
+}
+
+// Instantiate entity configuration.
 func (c *WorkOrderClient) Instantiate(wo *WorkOrder) *WorkOrder {
 	wo.config = c.config
 	return wo

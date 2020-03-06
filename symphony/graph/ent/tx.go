@@ -88,6 +88,8 @@ type Tx struct {
 	SurveyWiFiScan *SurveyWiFiScanClient
 	// Technician is the client for interacting with the Technician builders.
 	Technician *TechnicianClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 	// WorkOrder is the client for interacting with the WorkOrder builders.
 	WorkOrder *WorkOrderClient
 	// WorkOrderDefinition is the client for interacting with the WorkOrderDefinition builders.
@@ -147,6 +149,7 @@ func (tx *Tx) Client() *Client {
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(tx.config),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(tx.config),
 		Technician:                  NewTechnicianClient(tx.config),
+		User:                        NewUserClient(tx.config),
 		WorkOrder:                   NewWorkOrderClient(tx.config),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(tx.config),
 		WorkOrderType:               NewWorkOrderTypeClient(tx.config),

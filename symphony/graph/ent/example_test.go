@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+
+	"github.com/facebookincubator/symphony/graph/ent/user"
 )
 
 // dsn for the database. In order to run the tests locally, run the following command:
@@ -2248,6 +2250,56 @@ func ExampleTechnician() {
 	log.Println("technician created:", t)
 
 	// query edges.
+
+	// Output:
+}
+func ExampleUser() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the user's edges.
+	f0 := client.File.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetType("string").
+		SetName("string").
+		SetSize(1).
+		SetModifiedAt(time.Now()).
+		SetUploadedAt(time.Now()).
+		SetContentType("string").
+		SetStoreKey("string").
+		SetCategory("string").
+		SaveX(ctx)
+	log.Println("file created:", f0)
+
+	// create user vertex with its edges.
+	u := client.User.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetAuthID("string").
+		SetFirstName("string").
+		SetLastName("string").
+		SetStatus(user.StatusActive).
+		SetRole(user.RoleUser).
+		SetProfilePhoto(f0).
+		SaveX(ctx)
+	log.Println("user created:", u)
+
+	// query edges.
+	f0, err = u.QueryProfilePhoto().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying profile_photo: %v", err)
+	}
+	log.Println("profile_photo found:", f0)
 
 	// Output:
 }

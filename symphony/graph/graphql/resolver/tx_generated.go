@@ -44,6 +44,20 @@ func (tr txResolver) WithTransaction(ctx context.Context, f func(context.Context
 	return nil
 }
 
+func (tr txResolver) EditUser(ctx context.Context, input models.EditUserInput) (*ent.User, error) {
+	var result, zero *ent.User
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.EditUser(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
 func (tr txResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
 	var result, zero int
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {

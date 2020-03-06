@@ -49,6 +49,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -135,6 +136,8 @@ type Client struct {
 	SurveyWiFiScan *SurveyWiFiScanClient
 	// Technician is the client for interacting with the Technician builders.
 	Technician *TechnicianClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 	// WorkOrder is the client for interacting with the WorkOrder builders.
 	WorkOrder *WorkOrderClient
 	// WorkOrderDefinition is the client for interacting with the WorkOrderDefinition builders.
@@ -189,6 +192,7 @@ func NewClient(opts ...Option) *Client {
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(c),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(c),
 		Technician:                  NewTechnicianClient(c),
+		User:                        NewUserClient(c),
 		WorkOrder:                   NewWorkOrderClient(c),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(c),
 		WorkOrderType:               NewWorkOrderTypeClient(c),
@@ -259,6 +263,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
 		Technician:                  NewTechnicianClient(cfg),
+		User:                        NewUserClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
 		WorkOrderType:               NewWorkOrderTypeClient(cfg),
@@ -316,6 +321,7 @@ func (c *Client) Debug() *Client {
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
 		Technician:                  NewTechnicianClient(cfg),
+		User:                        NewUserClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
 		WorkOrderType:               NewWorkOrderTypeClient(cfg),
@@ -4167,6 +4173,84 @@ func (c *TechnicianClient) QueryWorkOrders(t *Technician) *WorkOrderQuery {
 		sqlgraph.Edge(sqlgraph.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
 	)
 	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
+
+	return query
+}
+
+// UserClient is a client for the User schema.
+type UserClient struct {
+	config
+}
+
+// NewUserClient returns a client for the User from the given config.
+func NewUserClient(c config) *UserClient {
+	return &UserClient{config: c}
+}
+
+// Create returns a create builder for User.
+func (c *UserClient) Create() *UserCreate {
+	return &UserCreate{config: c.config}
+}
+
+// Update returns an update builder for User.
+func (c *UserClient) Update() *UserUpdate {
+	return &UserUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
+	return c.UpdateOneID(u.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
+	return &UserUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for User.
+func (c *UserClient) Delete() *UserDelete {
+	return &UserDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
+	return c.DeleteOneID(u.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
+	return &UserDeleteOne{c.Delete().Where(user.ID(id))}
+}
+
+// Create returns a query builder for User.
+func (c *UserClient) Query() *UserQuery {
+	return &UserQuery{config: c.config}
+}
+
+// Get returns a User entity by its id.
+func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
+	return c.Query().Where(user.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserClient) GetX(ctx context.Context, id int) *User {
+	u, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return u
+}
+
+// QueryProfilePhoto queries the profile_photo edge of a User.
+func (c *UserClient) QueryProfilePhoto(u *User) *FileQuery {
+	query := &FileQuery{config: c.config}
+	id := u.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(user.Table, user.FieldID, id),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
+	)
+	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
 
 	return query
 }

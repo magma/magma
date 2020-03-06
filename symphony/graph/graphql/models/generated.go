@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
@@ -314,6 +315,14 @@ type EditProjectTypeInput struct {
 	Description *string                     `json:"description"`
 	Properties  []*PropertyTypeInput        `json:"properties"`
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
+}
+
+type EditUserInput struct {
+	ID        int          `json:"id"`
+	FirstName *string      `json:"firstName"`
+	LastName  *string      `json:"lastName"`
+	Status    *user.Status `json:"status"`
+	Role      *user.Role   `json:"role"`
 }
 
 type EditWorkOrderInput struct {
