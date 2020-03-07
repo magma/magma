@@ -60,15 +60,15 @@ func TestAuthenticateOcsCreditExhaustedWithCRRU(t *testing.T) {
 	// Set a pass all rule to be installed by pcrf with a monitoring key to trigger updates
 	err = ruleManager.AddUsageMonitor(ue.Imsi, "mkey-ocs", 20*KiloBytes, 10*KiloBytes)
 	assert.NoError(t, err)
-	err = ruleManager.AddStaticPassAll("static-pass-all-ocs1", "mkey-ocs", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 20)
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-ocs1", "mkey-ocs", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 20)
 	assert.NoError(t, err)
 
 	// set a pass all rule to be installed by ocs with a rating group 1
-	err = ruleManager.AddStaticPassAll("static-pass-all-ocs2", "", 1, models.PolicyRuleConfigTrackingTypeONLYOCS, 10)
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-ocs2", "", 1, models.PolicyRuleConfigTrackingTypeONLYOCS, 10)
 	assert.NoError(t, err)
 
 	// Apply a dynamic rule that points to the static rules above
-	err = ruleManager.AddDynamicRules(ue.Imsi, []string{"static-pass-all-ocs1", "static-pass-all-ocs2"}, nil)
+	err = ruleManager.AddRulesToPCRF(ue.Imsi, []string{"static-pass-all-ocs1", "static-pass-all-ocs2"}, nil)
 	assert.NoError(t, err)
 
 	// Wait for rules propagation

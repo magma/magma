@@ -30,7 +30,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NoError(t, err)
 
 	ue := ues[0]
-	err = ruleManager.AddDynamicPassAll(ue.GetImsi(), "dynamic-pass-all", "mkey1")
+	err = ruleManager.AddDynamicPassAllToPCRF(ue.GetImsi(), "dynamic-pass-all", "mkey1")
 	assert.NoError(t, err)
 	radiusP, err := tr.Authenticate(ue.GetImsi())
 	assert.NoError(t, err)

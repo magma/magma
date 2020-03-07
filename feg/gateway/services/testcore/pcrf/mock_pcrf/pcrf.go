@@ -162,9 +162,9 @@ func (srv *PCRFDiamServer) SetRules(
 	if !ok {
 		return nil, fmt.Errorf("Could not find imsi %s", accountRules.Imsi)
 	}
-	account.RuleNames = accountRules.RuleNames
-	account.RuleBaseNames = accountRules.RuleBaseNames
-	account.RuleDefinitions = accountRules.RuleDefinitions
+	account.RuleNames = accountRules.StaticRuleNames
+	account.RuleBaseNames = accountRules.StaticRuleBaseNames
+	account.RuleDefinitions = accountRules.DynamicRuleDefinitions
 	return &orcprotos.Void{}, nil
 }
 

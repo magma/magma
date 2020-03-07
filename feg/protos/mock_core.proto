@@ -135,9 +135,9 @@ service MockPCRF {
 
 message AccountRules {
     string imsi = 1;
-    repeated string rule_names = 2;
-    repeated string rule_base_names = 3;
-    repeated RuleDefinition rule_definitions = 4;
+    repeated string static_rule_names = 2;
+    repeated string static_rule_base_names = 3;
+    repeated RuleDefinition dynamic_rule_definitions = 4;
 }
 
 message RuleDefinition {
