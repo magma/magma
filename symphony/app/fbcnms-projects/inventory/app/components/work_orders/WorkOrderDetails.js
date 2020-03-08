@@ -632,16 +632,6 @@ export default withRouter(
               name
             }
           }
-          checkList {
-            id
-            index
-            type
-            title
-            helpText
-            checked
-            enumValues
-            stringValue
-          }
           checkListCategories {
             ...CheckListCategoryExpandingPanel_list
           }

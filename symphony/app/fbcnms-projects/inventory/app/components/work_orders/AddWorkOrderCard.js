@@ -13,7 +13,6 @@ import type {
   AddWorkOrderMutationVariables,
   CheckListCategoryInput,
 } from '../../mutations/__generated__/AddWorkOrderMutation.graphql';
-import type {CheckListCategoryTable_list} from '../checklist/checkListCategory/__generated__/CheckListCategoryTable_list.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {WorkOrder, WorkOrderType} from '../../common/WorkOrder';
 
@@ -137,14 +136,6 @@ const addWorkOrderCard__workOrderTypeQuery = graphql`
           isInstanceProperty
           isDeleted
         }
-        checkListDefinitions {
-          id
-          title
-          type
-          index
-          helpText
-          enumValues
-        }
       }
     }
   }
@@ -173,7 +164,6 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
       .filter(propertyType => !propertyType.isDeleted)
       .map(propType => getInitialPropertyFromType(propType))
       .sort(sortPropertiesByIndex);
-    const initialChecklistCategories: CheckListCategoryTable_list = [];
     return {
       id: 'workOrder@tmp',
       workOrderType: workOrderType,
@@ -197,8 +187,7 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
       images: [],
       assignee: '',
       projectId: null,
-      checkList: [],
-      checkListCategories: initialChecklistCategories,
+      checkListCategories: [],
     };
   };
 
