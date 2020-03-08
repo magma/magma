@@ -15,7 +15,6 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type CheckListCategoryExpandingPanel_list$ref = any;
-type CheckListItem_item$ref = any;
 type CommentsBox_comments$ref = any;
 type EntityDocumentsTable_files$ref = any;
 type EntityDocumentsTable_hyperlinks$ref = any;
@@ -110,8 +109,10 @@ export type WorkOrderDetails_workOrder = {|
     +index: ?number,
     +type: CheckListItemType,
     +title: string,
+    +helpText: ?string,
     +checked: ?boolean,
-    +$fragmentRefs: CheckListItem_item$ref,
+    +enumValues: ?string,
+    +stringValue: ?string,
   |}>,
   +checkListCategories: $ReadOnlyArray<{|
     +$fragmentRefs: CheckListCategoryExpandingPanel_list$ref
@@ -527,15 +528,25 @@ return {
         {
           "kind": "ScalarField",
           "alias": null,
+          "name": "helpText",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
           "name": "checked",
           "args": null,
           "storageKey": null
         },
         {
-          "kind": "FragmentSpread",
-          "name": "CheckListItem_item",
-          "args": null
-        }
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "enumValues",
+          "args": null,
+          "storageKey": null
+        },
+        (v3/*: any*/)
       ]
     },
     {
@@ -563,5 +574,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c5daafb721cc42d1008ef55eb03befef';
+(node/*: any*/).hash = 'e458f21b25cf477c4d3bfdc18b76c0bf';
 module.exports = node;
