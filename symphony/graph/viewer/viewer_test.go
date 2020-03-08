@@ -14,20 +14,34 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"github.com/gorilla/websocket"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/stats/view"
-	"go.opencensus.io/tag"
+	"github.com/facebookincubator/symphony/pkg/testdb"
 
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 )
+
+func newTestClient(t *testing.T) *ent.Client {
+	db, name, err := testdb.Open()
+	require.NoError(t, err)
+	db.SetMaxOpenConns(1)
+	drv := sql.OpenDB(name, db)
+	client := ent.NewClient(ent.Driver(drv))
+	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
+	return client
+}
 
 func TestViewerHandler(t *testing.T) {
 	tests := []struct {
@@ -198,6 +212,78 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 				})
 			})
 		})
+	})
+}
+
+func TestUserHandler(t *testing.T) {
+	client := newTestClient(t)
+	ctx := ent.NewContext(context.Background(), client)
+	_, err := client.User.Create().SetAuthID("user1").Save(ctx)
+	require.NoError(t, err)
+
+	t.Run("WithUserEntExists", func(t *testing.T) {
+		h := UserHandler(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				count, err := client.User.Query().Count(ctx)
+				require.NoError(t, err)
+				require.Equal(t, 1, count)
+				w.WriteHeader(http.StatusAccepted)
+			}),
+			log.NewNopLogger(),
+		)
+		v := &Viewer{
+			Tenant: "test",
+			User:   "user1",
+			Role:   "",
+		}
+		ctx = NewContext(ctx, v)
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req = req.WithContext(ctx)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusAccepted, rec.Code)
+	})
+	t.Run("WithUserEntNotExist", func(t *testing.T) {
+		h := UserHandler(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				exist, err := client.User.Query().Where(user.AuthID("user2")).Exist(ctx)
+				require.NoError(t, err)
+				require.True(t, exist)
+				count, err := client.User.Query().Count(ctx)
+				require.NoError(t, err)
+				require.Equal(t, 2, count)
+				w.WriteHeader(http.StatusAccepted)
+			}),
+			log.NewNopLogger(),
+		)
+		v := &Viewer{
+			Tenant: "test",
+			User:   "user2",
+			Role:   "",
+		}
+		ctx = NewContext(ctx, v)
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req = req.WithContext(ctx)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusAccepted, rec.Code)
+	})
+	t.Run("WithNoUserInViewer", func(t *testing.T) {
+		h := UserHandler(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+			log.NewNopLogger(),
+		)
+		v := &Viewer{
+			Tenant: "test",
+			User:   "",
+			Role:   "",
+		}
+		ctx = NewContext(ctx, v)
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req = req.WithContext(ctx)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 	})
 }
 
