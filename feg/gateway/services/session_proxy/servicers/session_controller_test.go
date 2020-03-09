@@ -381,7 +381,7 @@ func standardUsageTest(
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 1}, rule.ActivationTime)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 2}, rule.DeactivationTime)
 		} else if rule.PolicyRule.Id == "dyn_rule_21" {
-			assert.Nil(t, rule.PolicyRule.Redirect)
+			assert.Empty(t, rule.PolicyRule.Redirect)
 			assert.Nil(t, rule.PolicyRule.Qos)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 1}, rule.ActivationTime)
 			assert.Equal(t, &timestamp.Timestamp{Seconds: 2}, rule.DeactivationTime)
