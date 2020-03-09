@@ -61,7 +61,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			glog.Errorf("Failed to unmarshal CCR %s", err)
 			return
 		}
-		imsi, err := getIMSI(ccr)
+		imsi, err := ccr.GetIMSI()
 		if err != nil {
 			glog.Errorf("Could not parse CCR: %s", err.Error())
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
@@ -123,8 +123,8 @@ func sendAnswer(
 	glog.V(2).Infof("Sent CCA to %s:\n", conn.RemoteAddr())
 }
 
-func getIMSI(message ccrMessage) (string, error) {
-	for _, subID := range message.SubscriptionIDs {
+func (m *ccrMessage) GetIMSI() (string, error) {
+	for _, subID := range m.SubscriptionIDs {
 		if subID.IDType == credit_control.EndUserIMSI {
 			return subID.IDData, nil
 		}
