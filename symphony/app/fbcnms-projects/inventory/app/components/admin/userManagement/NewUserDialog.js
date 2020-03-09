@@ -121,9 +121,8 @@ const NewUserDialog = (props: Props) => {
                             onChange={e => {
                               const newValue = e.target.value;
                               setUser(currentUser => {
-                                return Object.assign({}, currentUser, {
-                                  firstName: newValue,
-                                });
+                                currentUser.firstName = newValue;
+                                return currentUser;
                               });
                             }}
                           />
@@ -140,9 +139,8 @@ const NewUserDialog = (props: Props) => {
                             onChange={e => {
                               const newValue = e.target.value;
                               setUser(currentUser => {
-                                return Object.assign({}, currentUser, {
-                                  lastName: newValue,
-                                });
+                                currentUser.lastName = newValue;
+                                return currentUser;
                               });
                             }}
                           />
@@ -159,9 +157,8 @@ const NewUserDialog = (props: Props) => {
                           return;
                         }
                         setUser(currentUser => {
-                          return Object.assign({}, currentUser, {
-                            role: USER_ROLES[newValue],
-                          });
+                          currentUser.role = USER_ROLES[newValue];
+                          return currentUser;
                         });
                       }}
                     />
@@ -184,9 +181,8 @@ const NewUserDialog = (props: Props) => {
                             onChange={e => {
                               const newValue = e.target.value;
                               setUser(currentUser => {
-                                return Object.assign({}, currentUser, {
-                                  authId: newValue,
-                                });
+                                currentUser.authId = newValue;
+                                return currentUser;
                               });
                             }}
                           />
