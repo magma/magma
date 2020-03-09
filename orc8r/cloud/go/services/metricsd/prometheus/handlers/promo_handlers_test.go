@@ -11,11 +11,13 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 
 	"github.com/labstack/echo"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -79,4 +81,12 @@ func TestGetPrometheusSeriesHandler(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, tc.RunTest)
 	}
+}
+
+func TestGetSetOfValuesFromLabel(t *testing.T) {
+	seriesList := []model.LabelSet{{"__name__": "test", "label1": "val1"}, {"__name__": "test2", "label1": "val2"}, {"__name__": "test"}}
+	vals := getSetOfValuesFromLabel(seriesList, "__name__")
+
+	sort.Strings(vals)
+	assert.Equal(t, []string{"test", "test2"}, vals)
 }
