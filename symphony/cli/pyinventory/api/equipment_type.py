@@ -68,7 +68,7 @@ def _add_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[Dict[str, Any]],
+    properties: List[PropertyTypeInput],
     position_definitions: List[Dict[str, Any]],
     port_definitions: List[Dict[str, Any]],
 ) -> AddEquipmentTypeMutation.AddEquipmentTypeMutationData.EquipmentType:
@@ -91,12 +91,7 @@ def _add_equipment_type(
                 )
                 for port in port_definitions
             ],
-            properties=[
-                from_dict(
-                    data_class=PropertyTypeInput, data=prop, config=Config(strict=True)
-                )
-                for prop in properties
-            ],
+            properties=properties,
         ),
     ).__dict__[ADD_EQUIPMENT_TYPE_MUTATION_NAME]
 

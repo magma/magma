@@ -323,7 +323,6 @@ def get_location(
             ).location
             if location_with_children is None:
                 raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
-
             locations = [
                 location
                 for location in location_with_children.children
@@ -443,7 +442,7 @@ def edit_location(
 
 def delete_location(client: SymphonyClient, location: Location) -> None:
     location_with_deps = LocationDepsQuery.execute(client, id=location.id).location
-    if not location_with_deps:
+    if location_with_deps is None:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
     if len(location_with_deps.files) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "files")
