@@ -174,6 +174,12 @@ const arrayConfigs = [
     enabledByDefault: false,
   },
   {
+    id: 'saved_searches',
+    title: 'Saved Searches',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
+  {
     id: 'user_management',
     title: 'User Management - Users and Permissions admin section',
     enabledByDefault: false,

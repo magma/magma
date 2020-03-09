@@ -3027,11 +3027,7 @@ func (r mutationResolver) AddReportFilter(ctx context.Context, input models.Repo
 
 func (r mutationResolver) EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error) {
 	client := r.ClientFrom(ctx)
-	rf, err := client.ReportFilter.UpdateOneID(input.ID).
+	return client.ReportFilter.UpdateOneID(input.ID).
 		SetName(input.Name).
 		Save(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return rf, nil
 }

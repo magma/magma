@@ -22,9 +22,8 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = {
   exportButton: {
-    paddingLeft: '16px',
-    paddingRight: '16px',
-    marginLeft: '10px',
+    paddingLeft: '8px',
+    paddingRight: '8px',
   },
   exportButtonContainer: {
     display: 'flex',
