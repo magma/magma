@@ -6857,6 +6857,7 @@ enum ImageEntity {
   WORK_ORDER
   SITE_SURVEY
   EQUIPMENT
+  USER
 }
 
 enum PropertyEntity {

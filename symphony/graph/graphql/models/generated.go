@@ -1104,6 +1104,7 @@ const (
 	ImageEntityWorkOrder  ImageEntity = "WORK_ORDER"
 	ImageEntitySiteSurvey ImageEntity = "SITE_SURVEY"
 	ImageEntityEquipment  ImageEntity = "EQUIPMENT"
+	ImageEntityUser       ImageEntity = "USER"
 )
 
 var AllImageEntity = []ImageEntity{
@@ -1111,11 +1112,12 @@ var AllImageEntity = []ImageEntity{
 	ImageEntityWorkOrder,
 	ImageEntitySiteSurvey,
 	ImageEntityEquipment,
+	ImageEntityUser,
 }
 
 func (e ImageEntity) IsValid() bool {
 	switch e {
-	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment:
+	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment, ImageEntityUser:
 		return true
 	}
 	return false

@@ -1152,6 +1152,22 @@ func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInp
 			return nil, errors.Wrapf(err, "adding work order image: workOrder=%q, key=%q", eq.ID, input.ImgKey)
 		}
 		return img, nil
+	case models.ImageEntityUser:
+		u, err := client.User.Get(ctx, input.EntityID)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying user: user=%q, key=%q", input.EntityID, input.ImgKey)
+		}
+		img, err := r.createImage(ctx, &input)
+		if err != nil {
+			return nil, errors.Wrapf(err, "creating user img: user=%q key=%q", u.ID, input.ImgKey)
+		}
+		if err := client.User.
+			UpdateOne(u).
+			SetProfilePhoto(img).
+			Exec(ctx); err != nil {
+			return nil, errors.Wrapf(err, "adding user image: workOrder=%q, key=%q", u.ID, input.ImgKey)
+		}
+		return img, nil
 	}
 	return nil, nil
 }
