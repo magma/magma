@@ -541,6 +541,18 @@ func (pt *PropertyTypeQuery) collectField(reqctx *graphql.RequestContext, field 
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (rf *ReportFilterQuery) CollectFields(ctx context.Context, satisfies ...string) *ReportFilterQuery {
+	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
+		rf = rf.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)
+	}
+	return rf
+}
+
+func (rf *ReportFilterQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *ReportFilterQuery {
+	return rf
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (s *ServiceQuery) CollectFields(ctx context.Context, satisfies ...string) *ServiceQuery {
 	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
 		s = s.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)

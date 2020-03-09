@@ -13,6 +13,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 )
 
@@ -1609,6 +1610,34 @@ func ExamplePropertyType() {
 		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt)
+
+	// query edges.
+
+	// Output:
+}
+func ExampleReportFilter() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the reportfilter's edges.
+
+	// create reportfilter vertex with its edges.
+	rf := client.ReportFilter.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetName("string").
+		SetEntity(reportfilter.EntityWORKORDER).
+		SetFilters("string").
+		SaveX(ctx)
+	log.Println("reportfilter created:", rf)
 
 	// query edges.
 

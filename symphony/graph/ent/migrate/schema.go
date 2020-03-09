@@ -10,6 +10,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -971,6 +972,22 @@ var (
 			},
 		},
 	}
+	// ReportFiltersColumns holds the columns for the "report_filters" table.
+	ReportFiltersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "entity", Type: field.TypeEnum, Enums: []string{"WORK_ORDER", "PORT", "EQUIPMENT", "LINK", "LOCATION", "SERVICE"}},
+		{Name: "filters", Type: field.TypeString, Size: 2147483647, Default: reportfilter.DefaultFilters},
+	}
+	// ReportFiltersTable holds the schema information for the "report_filters" table.
+	ReportFiltersTable = &schema.Table{
+		Name:        "report_filters",
+		Columns:     ReportFiltersColumns,
+		PrimaryKey:  []*schema.Column{ReportFiltersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// ServicesColumns holds the columns for the "services" table.
 	ServicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1516,6 +1533,7 @@ var (
 		ProjectTypesTable,
 		PropertiesTable,
 		PropertyTypesTable,
+		ReportFiltersTable,
 		ServicesTable,
 		ServiceEndpointsTable,
 		ServiceTypesTable,

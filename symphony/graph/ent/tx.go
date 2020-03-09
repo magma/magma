@@ -68,6 +68,8 @@ type Tx struct {
 	Property *PropertyClient
 	// PropertyType is the client for interacting with the PropertyType builders.
 	PropertyType *PropertyTypeClient
+	// ReportFilter is the client for interacting with the ReportFilter builders.
+	ReportFilter *ReportFilterClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
 	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
@@ -139,6 +141,7 @@ func (tx *Tx) Client() *Client {
 		ProjectType:                 NewProjectTypeClient(tx.config),
 		Property:                    NewPropertyClient(tx.config),
 		PropertyType:                NewPropertyTypeClient(tx.config),
+		ReportFilter:                NewReportFilterClient(tx.config),
 		Service:                     NewServiceClient(tx.config),
 		ServiceEndpoint:             NewServiceEndpointClient(tx.config),
 		ServiceType:                 NewServiceTypeClient(tx.config),
