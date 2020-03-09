@@ -217,7 +217,11 @@ func GetPrometheusSeriesHandler(api v1.API) func(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
 		}
-		return prometheusSeries(c, seriesMatches, api)
+		series, err := prometheusSeries(c, seriesMatches, api)
+		if err != nil {
+			return err
+		}
+		return c.JSON(http.StatusOK, series)
 	}
 }
 
@@ -235,30 +239,55 @@ func TenantSeriesHandlerProvider(api v1.API) func(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
 		}
-		return prometheusSeries(c, seriesMatches, api)
+		series, err := prometheusSeries(c, seriesMatches, api)
+		if err != nil {
+			return err
+		}
+		return c.JSON(http.StatusOK, series)
 	}
 }
 
 func GetTenantPromSeriesHandler(api v1.API) func(c echo.Context) error {
-	return TenantSeriesHandlerProvider(api)
+	return func(c echo.Context) error {
+		oID, oerr := obsidian.GetTenantID(c)
+		if oerr != nil {
+			return obsidian.HttpError(oerr, http.StatusBadRequest)
+		}
+		queryRestrictor, err := tenantQueryRestrictorProvider(oID)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		seriesMatches, err := getSeriesMatches(c, queryRestrictor)
+		if err != nil {
+			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
+		}
+		series, err := prometheusSeries(c, seriesMatches, api)
+		if err != nil {
+			return err
+		}
+		return c.JSON(http.StatusOK, struct {
+			Status string           `json:"status"`
+			Data   []model.LabelSet `json:"data"`
+		}{Status: "success", Data: series})
+	}
 }
 
-func prometheusSeries(c echo.Context, seriesMatches []string, apiClient v1.API) error {
+func prometheusSeries(c echo.Context, seriesMatches []string, apiClient v1.API) ([]model.LabelSet, error) {
 	startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &minTime)
 	if err != nil {
-		return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
+		return []model.LabelSet{}, obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 	}
 
 	endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
 	if err != nil {
-		return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
+		return []model.LabelSet{}, obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 	}
 
 	res, err := apiClient.Series(context.Background(), seriesMatches, startTime, endTime)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return []model.LabelSet{}, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, res)
+	return res, nil
 }
 
 func getSeriesMatches(c echo.Context, queryRestrictor restrictor.QueryRestrictor) ([]string, error) {
