@@ -14,7 +14,7 @@ imagePullSecrets: []
 
 # Define which secrets should be mounted by pods.
 secret:
-  certs: orc8r-secrets-certs
+  certs: orc8r-certs
 
 magmalte:
   manifests:
@@ -33,9 +33,7 @@ magmalte:
     mysql_user: magma
     mysql_pass: password
 
-  labels:
-    node_selector_key: worker-type
-    node_selector_value: controller
+  labels: {}
 
   image:
     repository:
@@ -68,9 +66,7 @@ nginx:
     service: true
     rbac: true
 
-  labels:
-    node_selector_key: worker-type
-    node_selector_value: controller
+  labels: {}
 
   image:
     repository: nginx
@@ -79,6 +75,7 @@ nginx:
 
   service:
     type: ClusterIP
+    annotations: {}
     https:
       port: 443
       targetport: 443
