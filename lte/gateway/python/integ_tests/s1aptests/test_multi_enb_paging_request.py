@@ -26,13 +26,13 @@ class TestMultiEnbPagingRequest(unittest.TestCase):
     def test_multi_enb_paging_request(self):
         """ Multi Enb Multi UE attach detach """
         # column is a enb parameter,  row is a number of enbs
-        # column description: 1.Cell Id, 2.Tac, 3.EnbType, 4.PLMN Id
+        # column description: 1.Cell Id, 2.Tac, 3.EnbType, 4.PLMN Id 5.PLMN length
         enb_list = [
-            (1, 1, 1, "001010"),
-            (2, 2, 1, "001010"),
-            (3, 3, 1, "001010"),
-            (4, 4, 1, "001010"),
-            (5, 5, 1, "001010"),
+            (1, 1, 1, "001010", 6),
+            (2, 2, 1, "001010", 6),
+            (3, 3, 1, "001010", 6),
+            (4, 4, 1, "001010", 6),
+            (5, 5, 1, "001010", 6),
         ]
 
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)

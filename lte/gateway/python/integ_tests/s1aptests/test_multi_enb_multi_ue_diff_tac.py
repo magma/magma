@@ -24,12 +24,12 @@ class TestMultiEnbWithDifferentTac(unittest.TestCase):
         """ Multi Enb attach with different TAC values """
         num_of_enbs = 5
         # column is a enb parameter,  row is a number of enbs
-        """            Cell Id,   Tac, EnbType, PLMN Id """
-        enb_list = list([[1,       1,     1,    "001010"],
-                         [2,       2,     1,    "001010"],
-                         [3,       3,     1,    "001010"],
-                         [4,       4,     1,    "001010"],
-                         [5,       5,     1,    "001010"]])
+        """            Cell Id,   Tac, EnbType, PLMN Id, PLMN length """
+        enb_list = list([[1,       1,     1,    "001010", 6],
+                         [2,       2,     1,    "001010", 6],
+                         [3,       3,     1,    "001010", 6],
+                         [4,       4,     1,    "001010", 6],
+                         [5,       5,     1,    "001010", 6]])
 
         assert (num_of_enbs == len(enb_list)), "Number of enbs configured"
         "not equal to enbs in the list!!!"

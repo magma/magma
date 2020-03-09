@@ -26,9 +26,9 @@ class TestX2HandOverPingPong(unittest.TestCase):
         """ Multi Enb Multi UE attach detach """
 
         # column is a enb parameter, row is a number of enb
-        """            Cell Id,   Tac, EnbType, PLMN Id """
-        enb_list = list([[1,       1,     1,    "001010"],
-                         [2,       2,     1,    "001010"]])
+        """            Cell Id,   Tac, EnbType, PLMN Id, PLMN length """
+        enb_list = list([[1,       1,     1,    "001010", 6],
+                         [2,       2,     1,    "001010", 6]])
 
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 

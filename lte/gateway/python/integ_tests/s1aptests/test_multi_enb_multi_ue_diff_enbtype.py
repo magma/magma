@@ -25,9 +25,9 @@ class TestMultiEnbWithDifferentEnbType(unittest.TestCase):
         num_of_enbs = 2
         # column is a enb parameter,  row is a number of enbs
         # (EnbType=1 -> HomeENB-ID) (EnbType=0 -> MacroENB-ID)
-        """            Cell Id,   Tac, EnbType, PLMN Id """
-        enb_list = list([[1,       1,     1,    "001010"],
-                         [5,       1,     0,    "001010"]])
+        """            Cell Id,   Tac, EnbType, PLMN Id, PLMN length """
+        enb_list = list([[1,       1,     1,    "001010", 6],
+                         [5,       1,     0,    "001010", 6]])
 
         assert (num_of_enbs == len(enb_list)), "Number of enbs configured"
         "not equal to enbs in the list!!!"
