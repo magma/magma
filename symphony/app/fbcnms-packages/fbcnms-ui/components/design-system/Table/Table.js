@@ -43,7 +43,7 @@ const useStyles = makeStyles(() => ({
   cell: {},
 }));
 
-export type TableRowDataType<T> = {key?: string} & T;
+export type TableRowDataType<T> = {key?: string, ...T};
 
 export type TableColumnType<T> = {
   key: string,
@@ -55,10 +55,11 @@ export type TableColumnType<T> = {
 
 export type TableSelectionType = 'all' | 'none' | 'single_item_toggled';
 
+export type TableRowId = string | number;
 export type SelectionCallbackType = (
-  selectedIds: Array<string | number>,
+  selectedIds: Array<TableRowId>,
   selection: TableSelectionType,
-  toggledItem?: ?{id: string | number, change: SelectionType},
+  toggledItem?: ?{id: TableRowId, change: SelectionType},
 ) => void;
 
 type Props<T> = {
@@ -69,7 +70,7 @@ type Props<T> = {
   variant?: 'standalone' | 'embedded',
   dataRowsSeparator?: RowsSeparationTypes,
   dataRowClassName?: string,
-  selectedIds?: Array<string | number>,
+  selectedIds?: Array<TableRowId>,
   onSelectionChanged?: SelectionCallbackType,
   onSortClicked?: (colKey: string) => void,
 };

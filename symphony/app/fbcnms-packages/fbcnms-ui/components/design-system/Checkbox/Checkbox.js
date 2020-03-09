@@ -54,6 +54,7 @@ type Props = {
   indeterminate?: boolean,
   disabled?: ?boolean,
   onChange?: (selection: SelectionType) => void,
+  onClick?: ?(SyntheticMouseEvent<Element>) => void,
 };
 
 const Checkbox = (props: Props) => {
@@ -62,6 +63,7 @@ const Checkbox = (props: Props) => {
     checked,
     indeterminate,
     onChange,
+    onClick,
     disabled: propDisabled = false,
   } = props;
   const classes = useStyles();
@@ -82,13 +84,19 @@ const Checkbox = (props: Props) => {
       className={classNames(classes.root, className, {
         [classes.disabled]: disabled,
       })}
-      onClick={() =>
-        !disabled &&
-        onChange &&
-        onChange(
-          indeterminate ? 'unchecked' : checked ? 'unchecked' : 'checked',
-        )
-      }>
+      onClick={e => {
+        if (disabled) {
+          return;
+        }
+        if (onChange) {
+          onChange(
+            indeterminate ? 'unchecked' : checked ? 'unchecked' : 'checked',
+          );
+        }
+        if (onClick) {
+          onClick(e);
+        }
+      }}>
       <CheckboxIcon
         className={classNames({
           [classes.selection]: checked || indeterminate,

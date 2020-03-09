@@ -16,6 +16,7 @@ import Text from '../Text';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useSelection} from './TableSelectionContext';
 import {useTable} from './TableContext';
 import {useTableCommonStyles} from './TableCommons';
 
@@ -29,13 +30,18 @@ const useStyles = makeStyles(() => ({
       borderTop: '1px solid',
       borderColor: symphony.palette.separatorLight,
     },
+    '&$hoverHighlighting:hover': {
+      cursor: 'pointer',
+      backgroundColor: symphony.palette.D10,
+    },
   },
   bands: {},
   border: {},
   none: {},
+  hoverHighlighting: {},
   checkBox: {
     width: '24px',
-    paddingLeft: '8px',
+    paddingLeft: '16px',
   },
 }));
 
@@ -60,38 +66,50 @@ const TableContent = <T>(props: Props<T>) => {
   const classes = useStyles();
   const commonClasses = useTableCommonStyles();
   const {showSelection} = useTable();
+  const {selectedIds, changeRowSelection} = useSelection();
 
   return (
     <tbody>
-      {data.map((d, rowIndex) => (
-        <tr
-          key={`row_${rowIndex}`}
-          className={classNames(
-            classes.row,
-            dataRowClassName,
-            classes[rowsSeparator],
-          )}>
-          {showSelection && (
-            <td className={classes.checkBox}>
-              <TableRowCheckbox id={d.key ?? rowIndex} />
-            </td>
-          )}
-          {columns.map((col, colIndex) => {
-            const renderedCol = col.render(d);
-            return (
-              <td
-                key={`col_${colIndex}_${d.key ?? rowIndex}`}
-                className={classNames(commonClasses.cell, cellClassName)}>
-                {typeof renderedCol === 'string' ? (
-                  <Text variant="body2">{renderedCol}</Text>
-                ) : (
-                  renderedCol
-                )}
+      {data.map((d, rowIndex) => {
+        const rowId = d.key ?? rowIndex;
+        return (
+          <tr
+            key={`row_${rowIndex}`}
+            onClick={() => {
+              changeRowSelection(
+                rowId,
+                !selectedIds.includes(rowId) ? 'checked' : 'unchecked',
+                true,
+              );
+            }}
+            className={classNames(
+              classes.row,
+              dataRowClassName,
+              classes[rowsSeparator],
+              {[classes.hoverHighlighting]: showSelection},
+            )}>
+            {showSelection && (
+              <td className={classes.checkBox}>
+                <TableRowCheckbox id={rowId} />
               </td>
-            );
-          })}
-        </tr>
-      ))}
+            )}
+            {columns.map((col, colIndex) => {
+              const renderedCol = col.render(d);
+              return (
+                <td
+                  key={`col_${colIndex}_${d.key ?? rowIndex}`}
+                  className={classNames(commonClasses.cell, cellClassName)}>
+                  {typeof renderedCol === 'string' ? (
+                    <Text variant="body2">{renderedCol}</Text>
+                  ) : (
+                    renderedCol
+                  )}
+                </td>
+              );
+            })}
+          </tr>
+        );
+      })}
     </tbody>
   );
 };

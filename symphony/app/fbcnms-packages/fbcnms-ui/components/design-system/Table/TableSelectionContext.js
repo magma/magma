@@ -18,7 +18,11 @@ import {useContext, useMemo} from 'react';
 export type TableSelectionContextValue = {
   selectedIds: Array<string | number>,
   selectionMode: 'all' | 'none' | 'some',
-  changeRowSelection: (id: string | number, selection: SelectionType) => void,
+  changeRowSelection: (
+    id: string | number,
+    selection: SelectionType,
+    isExclusive?: boolean,
+  ) => void,
   changeHeaderSelectionMode: (selection: SelectionType) => void,
 };
 
@@ -53,15 +57,20 @@ export const TableSelectionContextProvider = ({
     <TableSelectionContext.Provider
       value={{
         selectedIds: selectedIds ?? [],
-        changeRowSelection: (id, selection) => {
-          onSelectionChanged &&
-            onSelectionChanged(
-              selection === 'unchecked'
-                ? selectedIds.filter(idItem => idItem !== id)
-                : [...selectedIds, id],
-              'single_item_toggled',
-              {id, change: selection},
-            );
+        changeRowSelection: (id, selection, isExclusive) => {
+          if (!onSelectionChanged) {
+            return;
+          }
+          const newTableSelection =
+            isExclusive === true
+              ? [id]
+              : selection === 'unchecked'
+              ? selectedIds.filter(idItem => idItem !== id)
+              : [...selectedIds, id];
+          onSelectionChanged(newTableSelection, 'single_item_toggled', {
+            id,
+            change: selection,
+          });
         },
         changeHeaderSelectionMode: selection => {
           onSelectionChanged &&

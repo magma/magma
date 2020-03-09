@@ -32,7 +32,7 @@ const useStyles = makeStyles(() => ({
   },
   checkBox: {
     width: '24px',
-    paddingLeft: '8px',
+    paddingLeft: '16px',
   },
   cellContent: {
     display: 'flex',
