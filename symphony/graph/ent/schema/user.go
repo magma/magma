@@ -28,8 +28,11 @@ func (User) Fields() []ent.Field {
 		field.String("last_name").
 			NotEmpty().
 			Optional(),
+		field.String("email").
+			NotEmpty().
+			Optional(),
 		field.Enum("status").
-			Values("active", "deactivated", "deleted").
+			Values("active", "deactivated").
 			Default("active"),
 		field.Enum("role").
 			Values("user", "admin", "owner").

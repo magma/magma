@@ -1304,7 +1304,8 @@ var (
 		{Name: "auth_id", Type: field.TypeString, Unique: true},
 		{Name: "first_name", Type: field.TypeString, Nullable: true},
 		{Name: "last_name", Type: field.TypeString, Nullable: true},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "deactivated", "deleted"}, Default: user.DefaultStatus},
+		{Name: "email", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "deactivated"}, Default: user.DefaultStatus},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"user", "admin", "owner"}, Default: user.DefaultRole},
 		{Name: "user_profile_photo", Type: field.TypeInt, Nullable: true},
 	}
@@ -1316,7 +1317,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "users_files_profile_photo",
-				Columns: []*schema.Column{UsersColumns[8]},
+				Columns: []*schema.Column{UsersColumns[9]},
 
 				RefColumns: []*schema.Column{FilesColumns[0]},
 				OnDelete:   schema.SetNull,

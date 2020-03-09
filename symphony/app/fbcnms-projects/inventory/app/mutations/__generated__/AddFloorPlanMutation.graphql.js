@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 36ab7bd5f33d16c3f9f6c82b6718a340
+ * @relayHash 4ac1cc1b984c8897e7b116b959748dad
  */
 
 /* eslint-disable */
@@ -16,7 +16,7 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type FileAttachment_file$ref = any;
-export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "WORK_ORDER" | "%future added value";
+export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "USER" | "WORK_ORDER" | "%future added value";
 export type AddFloorPlanInput = {|
   name: string,
   locationID: string,

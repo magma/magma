@@ -50,6 +50,7 @@ def add_location_type(
         "name": name,
         "mapZoomLevel": map_zoom_level,
         "properties": new_property_types,
+        "surveyTemplateCategories": [],
     }
     try:
         result = AddLocationTypeMutation.execute(
@@ -57,12 +58,7 @@ def add_location_type(
             AddLocationTypeInput(
                 name=name,
                 mapZoomLevel=map_zoom_level,
-                properties=[
-                    from_dict(
-                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
-                    )
-                    for p in new_property_types
-                ],
+                properties=new_property_types,
                 surveyTemplateCategories=[],
             ),
         ).__dict__[ADD_LOCATION_TYPE_MUTATION_NAME]
@@ -93,12 +89,12 @@ def delete_locations_by_location_type(
     location_type_with_locations = LocationTypeLocationsQuery.execute(
         client, id=location_type.id
     ).locationType
-    if not location_type_with_locations:
+    if location_type_with_locations is None:
         raise EntityNotFoundError(
             entity=Entity.LocationType, entity_id=location_type.id
         )
     locations = location_type_with_locations.locations
-    if not locations:
+    if locations is None:
         return
     for location in locations.edges:
         node = location.node

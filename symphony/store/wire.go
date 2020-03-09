@@ -22,7 +22,7 @@ func NewServer(flags *cliFlags) (*server.Server, func(), error) {
 	wire.Build(
 		xserver.ServiceSet,
 		xserver.DefaultViews,
-		log.Provide,
+		log.Provider,
 		wire.FieldsOf(new(*cliFlags), "Census", "Log", "S3"),
 		wire.Value([]health.Checker(nil)),
 		s3.Set,

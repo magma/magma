@@ -43,7 +43,14 @@ func (s UserService) Create(ctx context.Context, input *UserInput) (*User, error
 		return nil, status.FromContextError(err).Err()
 	}
 
-	u, err := client.User.Create().SetAuthID(input.Id).Save(ctx)
+	u, err := client.User.Query().Where(user.AuthID(input.Id)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			u, err = client.User.Create().SetAuthID(input.Id).Save(ctx)
+		}
+	} else {
+		_, err = client.User.UpdateOne(u).SetStatus(user.StatusActive).Save(ctx)
+	}
 	if err != nil {
 		return nil, status.FromContextError(err).Err()
 	}
@@ -67,7 +74,7 @@ func (s UserService) Delete(ctx context.Context, input *UserInput) (*empty.Empty
 
 	err = client.User.Update().
 		Where(user.AuthID(input.Id)).
-		SetStatus(user.StatusDeleted).
+		SetStatus(user.StatusDeactivated).
 		Exec(ctx)
 	if err != nil {
 		return nil, status.FromContextError(err).Err()
