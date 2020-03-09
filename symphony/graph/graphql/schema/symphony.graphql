@@ -956,6 +956,48 @@ input CheckListItemInput {
   checked: Boolean
 }
 
+enum FilterEntity {
+  WORK_ORDER
+  PORT
+  EQUIPMENT
+  LINK
+  LOCATION
+  SERVICE
+}
+
+type GeneralFilter {
+  filterType: String!
+  operator: FilterOperator!
+  stringValue: String
+  idSet: [ID!]
+  stringSet: [String!]
+  boolValue: Boolean
+  propertyValue: PropertyType
+}
+
+type ReportFilter implements Node {
+  id: ID!
+  name: String!
+  entity: FilterEntity!
+  filters: [GeneralFilter!]!
+}
+
+input GeneralFilterInput {
+  filterType: String!
+  operator: FilterOperator!
+  stringValue: String
+  idSet: [ID!]
+  stringSet: [String!]
+  boolValue: Boolean
+  propertyValue: PropertyTypeInput
+}
+
+input ReportFilterInput {
+  name: String!
+  entity: FilterEntity!
+  filters: [GeneralFilterInput]
+}
+
 """
 Work Order type schema: e.g. construction work.
 """
@@ -2041,6 +2083,7 @@ type Query {
   ): CustomerConnection
   actionsRules: ActionsRulesSearchResult
   actionsTriggers: ActionsTriggersSearchResult
+  reportFilters(entity: FilterEntity!): [ReportFilter!]!
 }
 
 type Mutation {
@@ -2213,6 +2256,7 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
+  addReportFilter(input: ReportFilterInput!): ReportFilter!
 }
 
 type Subscription {

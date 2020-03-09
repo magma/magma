@@ -15,11 +15,13 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
+
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -372,6 +374,14 @@ func (r queryResolver) ActionsTrigger(
 		TriggerID:   triggerID,
 		Description: trigger.Description(),
 	}, nil
+}
+
+func (r queryResolver) ReportFilters(ctx context.Context, entity models.FilterEntity) ([]*ent.ReportFilter, error) {
+	rfs, err := r.ClientFrom(ctx).ReportFilter.Query().Where(reportfilter.EntityEQ(reportfilter.Entity(entity))).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying report filters for entity %v: %w", entity, err)
+	}
+	return rfs, nil
 }
 
 func (queryResolver) LatestPythonPackage(context.Context) (*models.LatestPythonPackageResult, error) {

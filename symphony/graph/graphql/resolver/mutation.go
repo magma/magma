@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -26,6 +27,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
@@ -2970,4 +2972,55 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 		return nil, fmt.Errorf("adding technician check-in comment: %w", err)
 	}
 	return wo, nil
+}
+
+func validateFilterTypeEntity(input models.ReportFilterInput) error {
+	var valid bool
+	for _, f := range input.Filters {
+		switch input.Entity {
+		case models.FilterEntityEquipment:
+			casted := models.EquipmentFilterType(f.FilterType)
+			valid = casted.IsValid()
+		case models.FilterEntityLink:
+			casted := models.LinkFilterType(f.FilterType)
+			valid = casted.IsValid()
+		case models.FilterEntityLocation:
+			casted := models.LocationFilterType(f.FilterType)
+			valid = casted.IsValid()
+		case models.FilterEntityPort:
+			casted := models.PortFilterType(f.FilterType)
+			valid = casted.IsValid()
+		case models.FilterEntityService:
+			casted := models.ServiceFilterType(f.FilterType)
+			valid = casted.IsValid()
+		case models.FilterEntityWorkOrder:
+			casted := models.WorkOrderFilterType(f.FilterType)
+			valid = casted.IsValid()
+		}
+		if !valid {
+			return fmt.Errorf("entity (%s) and filter type does not match: %s", input.Entity, f.FilterType)
+		}
+	}
+	return nil
+}
+
+func (r mutationResolver) AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error) {
+	client := r.ClientFrom(ctx)
+	err := validateFilterTypeEntity(input)
+	if err != nil {
+		return nil, err
+	}
+	fstr, err := json.Marshal(input.Filters)
+	if err != nil {
+		return nil, err
+	}
+	rf, err := client.ReportFilter.Create().
+		SetName(input.Name).
+		SetEntity(reportfilter.Entity(input.Entity)).
+		SetFilters(string(fstr)).
+		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return rf, nil
 }
