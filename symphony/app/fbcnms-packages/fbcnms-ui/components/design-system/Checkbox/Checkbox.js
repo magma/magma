@@ -30,7 +30,7 @@ const useStyles = makeStyles(_theme => ({
         },
       },
       '& $noSelection': {
-        fill: SymphonyTheme.palette.D400,
+        fill: SymphonyTheme.palette.D200,
       },
       '& $selection': {
         fill: SymphonyTheme.palette.primary,
@@ -39,7 +39,7 @@ const useStyles = makeStyles(_theme => ({
   },
   disabled: {
     '& $noSelection, & $selection': {
-      fill: SymphonyTheme.palette.D200,
+      fill: SymphonyTheme.palette.disabled,
     },
   },
   selection: {},

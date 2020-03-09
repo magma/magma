@@ -18,6 +18,9 @@ const useStyles = makeStyles(() => ({
     margin: '4px 8px',
     alignItems: 'center',
   },
+  lineNumberColumn: {
+    width: '60px',
+  },
 }));
 type errLine = {
   key?: string,
@@ -52,6 +55,8 @@ const UploadErrorsList = (props: Props) => {
             key: '0',
             title: fbt('Line', 'title of the number of the line'),
             render: row => row.line,
+            titleClassName: classes.lineNumberColumn,
+            className: classes.lineNumberColumn,
           },
           {
             key: '1',
