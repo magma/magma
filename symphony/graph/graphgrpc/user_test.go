@@ -70,5 +70,23 @@ func TestUserService_Delete(t *testing.T) {
 	require.NoError(t, err)
 	newU, err := client.User.Get(ctx, u.ID)
 	require.NoError(t, err)
-	require.Equal(t, user.StatusDeleted, newU.Status)
+	require.Equal(t, user.StatusDeactivated, newU.Status)
+}
+
+func TestUserService_CreateAfterDelete(t *testing.T) {
+	client := newTestClient(t)
+	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
+	ctx := context.Background()
+	u := client.User.Create().SetAuthID("YYY").SaveX(ctx)
+	require.Equal(t, user.StatusActive, u.Status)
+
+	_, err := us.Delete(ctx, &UserInput{Tenant: "XXX", Id: "YYY"})
+	require.NoError(t, err)
+
+	_, err = us.Create(ctx, &UserInput{Tenant: "XXX", Id: "YYY"})
+	require.NoError(t, err)
+	userObject, err := client.User.Get(ctx, u.ID)
+	require.NoError(t, err)
+	require.Equal(t, user.StatusActive, userObject.Status)
+
 }

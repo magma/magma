@@ -26,6 +26,7 @@ type UserCreate struct {
 	auth_id       *string
 	first_name    *string
 	last_name     *string
+	email         *string
 	status        *user.Status
 	role          *user.Role
 	profile_photo map[int]struct{}
@@ -89,6 +90,20 @@ func (uc *UserCreate) SetLastName(s string) *UserCreate {
 func (uc *UserCreate) SetNillableLastName(s *string) *UserCreate {
 	if s != nil {
 		uc.SetLastName(*s)
+	}
+	return uc
+}
+
+// SetEmail sets the email field.
+func (uc *UserCreate) SetEmail(s string) *UserCreate {
+	uc.email = &s
+	return uc
+}
+
+// SetNillableEmail sets the email field if the given value is not nil.
+func (uc *UserCreate) SetNillableEmail(s *string) *UserCreate {
+	if s != nil {
+		uc.SetEmail(*s)
 	}
 	return uc
 }
@@ -167,6 +182,11 @@ func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 	if uc.last_name != nil {
 		if err := user.LastNameValidator(*uc.last_name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"last_name\": %v", err)
+		}
+	}
+	if uc.email != nil {
+		if err := user.EmailValidator(*uc.email); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
 	if uc.status == nil {
@@ -248,6 +268,14 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 			Column: user.FieldLastName,
 		})
 		u.LastName = *value
+	}
+	if value := uc.email; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: user.FieldEmail,
+		})
+		u.Email = *value
 	}
 	if value := uc.status; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

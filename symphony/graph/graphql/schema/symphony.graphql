@@ -20,7 +20,6 @@ enum UserStatus
   ) {
   ACTIVE
   DEACTIVATED
-  DELETED
 }
 
 enum UserRole
@@ -35,6 +34,7 @@ type User implements Node {
   authID: String!
   firstName: String!
   lastName: String!
+  email: String!
   status: UserStatus!
   role: UserRole!
   profilePhoto: File
@@ -121,6 +121,7 @@ input EditUserInput {
   id: ID!
   firstName: String
   lastName: String
+  email: String
   status: UserStatus
   role: UserRole
 }
@@ -1961,7 +1962,7 @@ type Query {
     """
     id: ID!
   ): Node
-
+  user(authID: String!): User
   location(id: ID!): Location
     @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
   locationType(id: ID!): LocationType
