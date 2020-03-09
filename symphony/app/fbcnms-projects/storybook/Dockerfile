@@ -1,4 +1,4 @@
-FROM node AS builder
+FROM node:13.8 AS builder
 
 WORKDIR /src/
 
