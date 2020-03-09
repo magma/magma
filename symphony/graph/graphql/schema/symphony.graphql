@@ -992,6 +992,11 @@ input GeneralFilterInput {
   propertyValue: PropertyTypeInput
 }
 
+input EditReportFilterInput {
+  id: ID!
+  name: String!
+}
+
 input ReportFilterInput {
   name: String!
   entity: FilterEntity!
@@ -2257,6 +2262,7 @@ type Mutation {
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
+  editReportFilter(input: EditReportFilterInput!): ReportFilter!
 }
 
 type Subscription {

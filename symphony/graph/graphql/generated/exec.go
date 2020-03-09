@@ -509,6 +509,7 @@ type ComplexityRoot struct {
 		EditLocationTypesIndex                   func(childComplexity int, locationTypesIndex []*models.LocationTypeIndex) int
 		EditProject                              func(childComplexity int, input models.EditProjectInput) int
 		EditProjectType                          func(childComplexity int, input models.EditProjectTypeInput) int
+		EditReportFilter                         func(childComplexity int, input models.EditReportFilterInput) int
 		EditService                              func(childComplexity int, data models.ServiceEditData) int
 		EditServiceType                          func(childComplexity int, data models.ServiceTypeEditData) int
 		EditUser                                 func(childComplexity int, input models.EditUserInput) int
@@ -1139,6 +1140,7 @@ type MutationResolver interface {
 	RemoveActionsRule(ctx context.Context, id int) (bool, error)
 	TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID int) (*ent.WorkOrder, error)
 	AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error)
+	EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error)
 }
 type ProjectResolver interface {
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
@@ -3389,6 +3391,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditProjectType(childComplexity, args["input"].(models.EditProjectTypeInput)), true
+
+	case "Mutation.editReportFilter":
+		if e.complexity.Mutation.EditReportFilter == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editReportFilter_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditReportFilter(childComplexity, args["input"].(models.EditReportFilterInput)), true
 
 	case "Mutation.editService":
 		if e.complexity.Mutation.EditService == nil {
@@ -6973,6 +6987,11 @@ input GeneralFilterInput {
   propertyValue: PropertyTypeInput
 }
 
+input EditReportFilterInput {
+  id: ID!
+  name: String!
+}
+
 input ReportFilterInput {
   name: String!
   entity: FilterEntity!
@@ -8238,6 +8257,7 @@ type Mutation {
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
+  editReportFilter(input: EditReportFilterInput!): ReportFilter!
 }
 
 type Subscription {
@@ -9017,6 +9037,20 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 	var arg0 models.EditProjectInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNEditProjectInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditProjectInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editReportFilter_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.EditReportFilterInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNEditReportFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditReportFilterInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -21462,6 +21496,50 @@ func (ec *executionContext) _Mutation_addReportFilter(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().AddReportFilter(rctx, args["input"].(models.ReportFilterInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ReportFilter)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNReportFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilter(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_editReportFilter(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_editReportFilter_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditReportFilter(rctx, args["input"].(models.EditReportFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -35053,6 +35131,30 @@ func (ec *executionContext) unmarshalInputEditProjectTypeInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputEditReportFilterInput(ctx context.Context, obj interface{}) (models.EditReportFilterInput, error) {
+	var it models.EditReportFilterInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEditUserInput(ctx context.Context, obj interface{}) (models.EditUserInput, error) {
 	var it models.EditUserInput
 	var asMap = obj.(map[string]interface{})
@@ -40129,6 +40231,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "editReportFilter":
+			out.Values[i] = ec._Mutation_editReportFilter(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -44355,6 +44462,10 @@ func (ec *executionContext) unmarshalNEditProjectInput2githubᚗcomᚋfacebookin
 
 func (ec *executionContext) unmarshalNEditProjectTypeInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditProjectTypeInput(ctx context.Context, v interface{}) (models.EditProjectTypeInput, error) {
 	return ec.unmarshalInputEditProjectTypeInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNEditReportFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditReportFilterInput(ctx context.Context, v interface{}) (models.EditReportFilterInput, error) {
+	return ec.unmarshalInputEditReportFilterInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNEditUserInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditUserInput(ctx context.Context, v interface{}) (models.EditUserInput, error) {

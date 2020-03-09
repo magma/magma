@@ -317,6 +317,11 @@ type EditProjectTypeInput struct {
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
 }
 
+type EditReportFilterInput struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 type EditUserInput struct {
 	ID        int          `json:"id"`
 	FirstName *string      `json:"firstName"`

@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	filterName = "filter1"
-	substring  = "substring"
+	filterName       = "filter1"
+	filterNameEdited = "filter1 - edited"
+	substring        = "substring"
 )
 
 func validateEmptyFilters(t *testing.T, r *TestResolver) {
@@ -165,4 +166,44 @@ func TestAddInvalidReportFilters(t *testing.T) {
 	}
 	_, err = mr.AddReportFilter(ctx, inp)
 	require.Error(t, err)
+}
+
+func TestEditReportFilters(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, qr := r.Mutation(), r.Query()
+	validateEmptyFilters(t, r)
+	data := prepareEquipmentData(ctx, r, "A", nil)
+	inp := models.ReportFilterInput{
+		Name:   filterName,
+		Entity: models.FilterEntityEquipment,
+		Filters: []*models.GeneralFilterInput{
+			{
+				FilterType: models.EquipmentFilterTypeLocationInst.String(),
+				Operator:   models.FilterOperatorIsOneOf,
+				IDSet:      []int{data.loc1, data.loc2},
+			},
+		}}
+	newFilter, err := mr.AddReportFilter(ctx, inp)
+	require.NoError(t, err)
+	fetchedFilters, err := qr.ReportFilters(ctx, models.FilterEntityEquipment)
+	require.NoError(t, err)
+	require.Len(t, fetchedFilters, 1)
+	fetchedReportFilter := fetchedFilters[0]
+	require.Equal(t, newFilter.ID, fetchedReportFilter.ID)
+	require.Equal(t, filterName, fetchedReportFilter.Name)
+
+	editInput := models.EditReportFilterInput{
+		ID:   newFilter.ID,
+		Name: filterNameEdited,
+	}
+	newFilter, err = mr.EditReportFilter(ctx, editInput)
+	require.NoError(t, err)
+	fetchedFilters, err = qr.ReportFilters(ctx, models.FilterEntityEquipment)
+	require.NoError(t, err)
+	require.Len(t, fetchedFilters, 1)
+	fetchedReportFilter = fetchedFilters[0]
+	require.Equal(t, newFilter.ID, fetchedReportFilter.ID)
+	require.Equal(t, filterNameEdited, fetchedReportFilter.Name)
 }
