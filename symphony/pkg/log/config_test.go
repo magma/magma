@@ -105,7 +105,7 @@ func TestMustNew(t *testing.T) {
 func TestProvider(t *testing.T) {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
-	logger, restorer, err := Provide(Config{})
+	logger, restorer, err := Provider(Config{})
 	require.NoError(t, err)
 	defer restorer()
 	assert.Equal(t, logger.Background(), zap.L())
