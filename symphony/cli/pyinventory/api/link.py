@@ -28,16 +28,22 @@ ADD_LINK_MUTATION_NAME = "addLink"
 def get_all_links_and_port_names_of_equipment(
     client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[Link, str]]:
-    equipment_with_ports = EquipmentPortsQuery.execute(
-        client, id=equipment.id
-    ).equipment
-    if not equipment_with_ports:
+
+    equipment_data = EquipmentPortsQuery.execute(client, id=equipment.id).equipment
+    if equipment_data is None:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
+    ports = equipment_data.ports
     result = []
-    for port in equipment_with_ports.ports:
-        link = port.link
-        if link is not None:
-            result.append((Link(link.id), port.definition.name))
+    for port in ports:
+        port_link = port.link
+        if port_link is not None:
+            link = Link(
+                id=port_link.id,
+                service_ids=[s.id for s in port_link.services if port_link.services]
+                if port_link.services is not None
+                else [],
+            )
+            result.append((link, port.definition.name))
     return result
 
 
@@ -117,7 +123,7 @@ def add_link(
             add_link_input.__dict__,
         )
 
-    return Link(id=link.id)
+    return Link(id=link.id, service_ids=[s.id for s in link.services])
 
 
 def get_link_in_port_of_equipment(
@@ -126,5 +132,5 @@ def get_link_in_port_of_equipment(
     port = get_port(client, equipment, port_name)
     link = port.link
     if link is not None:
-        return Link(id=link.id)
+        return Link(id=link.id, service_ids=link.service_ids)
     raise LinkNotFoundException(equipment.name, port_name)

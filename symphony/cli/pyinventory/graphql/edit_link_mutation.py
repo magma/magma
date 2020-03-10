@@ -11,13 +11,13 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from .add_link_input import AddLinkInput
+from .edit_link_input import EditLinkInput
 
 
 @dataclass
-class AddLinkMutation(DataClassJsonMixin):
+class EditLinkMutation(DataClassJsonMixin):
     @dataclass
-    class AddLinkMutationData(DataClassJsonMixin):
+    class EditLinkMutationData(DataClassJsonMixin):
         @dataclass
         class Link(DataClassJsonMixin):
             @dataclass
@@ -27,13 +27,13 @@ class AddLinkMutation(DataClassJsonMixin):
             id: str
             services: List[Service]
 
-        addLink: Link
+        editLink: Link
 
-    data: AddLinkMutationData
+    data: EditLinkMutationData
 
     __QUERY__: str = """
-    mutation AddLinkMutation($input: AddLinkInput!) {
-  addLink(input: $input) {
+    mutation EditLinkMutation($input: EditLinkInput!) {
+  editLink(input: $input) {
     id
     services {
       id
@@ -45,7 +45,7 @@ class AddLinkMutation(DataClassJsonMixin):
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddLinkInput) -> AddLinkMutationData:
+    def execute(cls, client: GraphqlClient, input: EditLinkInput) -> EditLinkMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)
