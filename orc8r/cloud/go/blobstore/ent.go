@@ -92,6 +92,10 @@ func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob
 	return blobs, nil
 }
 
+func (e *entStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
+	panic("not implemented")
+}
+
 func (e *entStorage) IncrementVersion(networkID string, id storage.TypeAndKey) error {
 	ctx := context.Background()
 	switch _, err := e.Get(networkID, id); {

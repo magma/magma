@@ -186,6 +186,10 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 	return scannedRows, nil
 }
 
+func (store *sqlBlobStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
+	panic("not implemented")
+}
+
 func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) error {
 	// defer tx validation to GetMany
 	existingBlobs, err := store.GetMany(networkID, getBlobIDs(blobs))
