@@ -20,6 +20,7 @@ from lte.protos.subscriberdb_pb2 import (
     SubscriberState,
     SubscriberID,
     Non3GPPUserProfile,
+    APNConfiguration,
 )
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
@@ -156,48 +157,39 @@ class SubscriberDbGrpc(SubscriberDbClient):
             subscriber_data (protos.subscriberdb_pb2.SubscriberData)
         """
         # APN
-        usr_prof = Non3GPPUserProfile()
-        num_apn = len(apn)
-        for idx in range(num_apn):
-            apn_config = usr_prof.apn_config.add()
-            apn_details = apn[idx]
-            apn_idx = 0
-            apn_config.service_selection = apn_details[apn_idx]
-            apn_idx += 1
-            apn_config.qos_profile.class_id = apn_details[apn_idx]
-            apn_idx += 1
-            apn_config.qos_profile.priority_level = apn_details[apn_idx]
-            apn_idx += 1
-            apn_config.qos_profile.preemption_capability = apn_details[apn_idx]
-            apn_idx += 1
-            apn_config.qos_profile.preemption_vulnerability = apn_details[
-                apn_idx
-            ]
-            apn_idx += 1
-            apn_config.ambr.max_bandwidth_ul = apn_details[apn_idx]
-            apn_idx += 1
-            apn_config.ambr.max_bandwidth_dl = apn_details[apn_idx]
-            logging.debug("Configuring APN : %s", apn_config.service_selection)
-            logging.debug(
-                "Configuring QCI : %d", apn_config.qos_profile.class_id
-            )
-            logging.debug(
-                "Configuring priority: %d",
-                apn_config.qos_profile.priority_level,
-            )
-            logging.debug(
-                "Configuring precap : %d",
-                apn_config.qos_profile.preemption_capability,
-            )
-            logging.debug(
-                "Configuring prevul : %d",
-                apn_config.qos_profile.preemption_vulnerability,
-            )
-            logging.debug(
-                "Configuring ambr.max_bandwidth_dl : %d",
-                apn_config.ambr.max_bandwidth_dl,
-            )
-        return SubscriberData(non_3gpp=usr_prof)
+        apn_config = APNConfiguration()
+        apn_idx = 0
+        apn_config.service_selection = apn[apn_idx]
+        apn_idx += 1
+        apn_config.qos_profile.class_id = apn[apn_idx]
+        apn_idx += 1
+        apn_config.qos_profile.priority_level = apn[apn_idx]
+        apn_idx += 1
+        apn_config.qos_profile.preemption_capability = apn[apn_idx]
+        apn_idx += 1
+        apn_config.qos_profile.preemption_vulnerability = apn[apn_idx]
+        apn_idx += 1
+        apn_config.ambr.max_bandwidth_ul = apn[apn_idx]
+        apn_idx += 1
+        apn_config.ambr.max_bandwidth_dl = apn[apn_idx]
+        logging.debug("Configuring APN : %s", apn_config.service_selection)
+        logging.debug("Configuring QCI : %d", apn_config.qos_profile.class_id)
+        logging.debug(
+            "Configuring priority: %d", apn_config.qos_profile.priority_level,
+        )
+        logging.debug(
+            "Configuring precap : %d",
+            apn_config.qos_profile.preemption_capability,
+        )
+        logging.debug(
+            "Configuring prevul : %d",
+            apn_config.qos_profile.preemption_vulnerability,
+        )
+        logging.debug(
+            "Configuring ambr.max_bandwidth_dl : %d",
+            apn_config.ambr.max_bandwidth_dl,
+        )
+        return apn_config
 
     def _check_invariants(self):
         """
@@ -232,27 +224,25 @@ class SubscriberDbGrpc(SubscriberDbClient):
         return sids
 
     def add_apn_details(self, apn):
-        sub_data_apn = self._get_apn_data(apn)
-        SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.AddApn(sub_data_apn)
-        )
+        for apn_config in apn:
+            apn_config = self._get_apn_data(apn_config)
+            SubscriberDbGrpc._try_to_call(
+                lambda: self._subscriber_stub.AddApn(apn_config)
+            )
 
     def list_apn_data(self):
         apns = SubscriberDbGrpc._try_to_call(
             lambda: self._subscriber_stub.ListApns(Void()).apn_name
         )
-        apn_name = [apn for apn in apns]
-        return apn_name
+        return apns
 
     def clean_apn_config(self):
         for apn in self.list_apn_data():
-            usr_prof = Non3GPPUserProfile()
-            apn_config = usr_prof.apn_config.add()
+            apn_config = APNConfiguration()
             apn_config.service_selection = apn
-            data = SubscriberData(non_3gpp=usr_prof)
 
             SubscriberDbGrpc._try_to_call(
-                lambda: self._subscriber_stub.DeleteApn(data)
+                lambda: self._subscriber_stub.DeleteApn(apn_config)
             )
 
     def clean_up(self):

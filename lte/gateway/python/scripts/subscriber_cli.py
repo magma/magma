@@ -50,11 +50,9 @@ def add_subscriber(client, args):
 
     if args.apn_config is not None:
         apn_list = args.apn_config.split(",")
-        num_apn = len(apn_list)
-        for idx in range(num_apn):
-            apn = non_3gpp.apn_config.add()
-            apn.service_selection = apn_list[idx]
-        print(apn_list)
+        for apn in apn_list:
+            apn_config = non_3gpp.apn_config.add()
+            apn_config.service_selection = apn
 
     data = SubscriberData(
         sid=SIDUtils.to_pb(args.sid),
@@ -98,29 +96,26 @@ def update_subscriber(client, args):
 
     client.UpdateSubscriber(update)
 
+
 @grpc_wrapper
 def update_subscriber_apn(client, args):
     non_3gpp = Non3GPPUserProfile()
     apn_list = args.apnconfig.split(",")
-    num_apn = len(apn_list)
-    for idx in range(num_apn):
-        apn = non_3gpp.apn_config.add()
-        apn.service_selection = apn_list[idx]
-    print(apn_list)
+    for apn in apn_list:
+        apn_config = non_3gpp.apn_config.add()
+        apn_config.service_selection = apn
 
     data = SubscriberData(sid=SIDUtils.to_pb(args.sid), non_3gpp=non_3gpp)
     client.UpdateSubscriberApn(data)
+
 
 @grpc_wrapper
 def delete_subscriber_apn(client, args):
     non_3gpp = Non3GPPUserProfile()
     apn_list = args.apnconfig.split(",")
-    num_apn = len(apn_list)
-    for idx in range(num_apn):
-        apn = non_3gpp.apn_config.add()
-        apn.service_selection = apn_list[idx]
-    print(apn_list)
-
+    for apn in apn_list:
+        apn_config = non_3gpp.apn_config.add()
+        apn_config.service_selection = apn
     data = SubscriberData(sid=SIDUtils.to_pb(args.sid), non_3gpp=non_3gpp)
     client.DeleteSubscriberApn(data)
 

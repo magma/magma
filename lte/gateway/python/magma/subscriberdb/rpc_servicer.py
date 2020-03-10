@@ -139,8 +139,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         Returns a list of APNs from the store
         """
         apn_names = self._store.list_apns()
-        apns = [apn for apn in apn_names]
-        return subscriberdb_pb2.ApnSet(apn_name=apns)
+        return subscriberdb_pb2.ApnSet(apn_name=apn_names)
 
     @return_void
     def AddApn(self, request, context):
@@ -161,8 +160,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             return self._store.get_apn_config(request)
         except ApnNotFoundError:
             context.set_details(
-                "APN not found: %s"
-                % request.non_3gpp.apn_config[0].service_selection
+                "APN not found: %s" % request.service_selection
             )
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return subscriberdb_pb2.SubscriberData()
@@ -176,12 +174,11 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             self._store.delete_apn_config(request)
         except ApnNotFoundError:
             context.set_details(
-                "APN not found : %s"
-                % request.non_3gpp.apn_config[0].service_selection
+                "APN not found : %s" % request.service_selection
             )
             context.set_code(grpc.StatusCode.NOT_FOUND)
 
-    def ListSidForApn(self, request, context):
+    def ListSidsForApn(self, request, context):
         """
         Lists the sids for the APN from the store
         """
@@ -189,8 +186,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             return self._store.list_sids_for_apn(request)
         except ApnNotFoundError:
             context.set_details(
-                "APN not found : %s"
-                % request.non_3gpp.apn_config[0].service_selection
+                "APN not found : %s" % request.service_selection
             )
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return subscriberdb_pb2.SubscriberIDSet()
@@ -204,7 +200,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
             self._store.edit_apn_config(request)
         except ApnNotFoundError:
             context.set_details(
-                "APN not found : %s"
-                % request.non_3gpp.apn_config[0].service_selection
+                "APN not found : %s" % request.service_selection
             )
             context.set_code(grpc.StatusCode.NOT_FOUND)

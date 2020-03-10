@@ -11,10 +11,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import argparse
 
-from lte.protos.subscriberdb_pb2 import (
-    SubscriberData,
-    Non3GPPUserProfile,
-)
+from lte.protos.subscriberdb_pb2 import APNConfiguration
+
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
 from magma.common.rpc_utils import grpc_wrapper
@@ -23,10 +21,9 @@ from orc8r.protos.common_pb2 import Void
 
 @grpc_wrapper
 def add_apn(client, args):
-    non_3gpp = Non3GPPUserProfile()
+    apn_config = APNConfiguration()
 
     print("Adding APN : ", args.apn)
-    apn_config = non_3gpp.apn_config.add()
     apn_config.service_selection = args.apn
     apn_config.qos_profile.class_id = args.qci
     apn_config.qos_profile.priority_level = args.priority
@@ -37,16 +34,13 @@ def add_apn(client, args):
     apn_config.ambr.max_bandwidth_ul = args.mbrUL
     apn_config.ambr.max_bandwidth_dl = args.mbrDL
 
-    data = SubscriberData(non_3gpp=non_3gpp)
-    client.AddApn(data)
+    client.AddApn(apn_config)
 
 
 @grpc_wrapper
 def update_apn(client, args):
-    non_3gpp = Non3GPPUserProfile()
-
     print("Updating APN : ", args.apn)
-    apn = non_3gpp.apn_config.add()
+    apn = APNConfiguration()
     apn.service_selection = args.apn
     apn.qos_profile.preemption_capability = args.preemptionCapability
     apn.qos_profile.preemption_vulnerability = args.preemptionVulnerability
@@ -58,29 +52,23 @@ def update_apn(client, args):
         apn.ambr.max_bandwidth_ul = args.mbrUL
     if args.mbrDL is not None:
         apn.ambr.max_bandwidth_dl = args.mbrDL
-    update = SubscriberData(non_3gpp=non_3gpp)
-    client.UpdateApn(update)
+    client.UpdateApn(apn)
 
 
 @grpc_wrapper
 def delete_apn(client, args):
     print("Deleting APN : ", args.apn)
-    non_3gpp = Non3GPPUserProfile()
-    apn_config = non_3gpp.apn_config.add()
+    apn_config = APNConfiguration()
     apn_config.service_selection = args.apn
-    data = SubscriberData(non_3gpp=non_3gpp)
-    client.DeleteApn(data)
+    client.DeleteApn(apn_config)
 
 
 @grpc_wrapper
 def get_apn(client, args):
     print("Retrieving APN : ", args.apn)
-    non_3gpp = Non3GPPUserProfile()
-    apn_config = non_3gpp.apn_config.add()
+    apn_config = APNConfiguration()
     apn_config.service_selection = args.apn
-    data = SubscriberData(non_3gpp=non_3gpp)
-    client.GetApnData(data)
-    apn_data = client.GetApnData(data)
+    apn_data = client.GetApnData(apn_config)
     print(apn_data)
 
 
@@ -94,11 +82,9 @@ def list_apns(client, args):
 @grpc_wrapper
 def list_sids(client, args):
     print("Listing sids for APN : ", args.apn)
-    non_3gpp = Non3GPPUserProfile()
-    apn_config = non_3gpp.apn_config.add()
+    apn_config = APNConfiguration()
     apn_config.service_selection = args.apn
-    data = SubscriberData(non_3gpp=non_3gpp)
-    sids = client.ListSidForApn(data)
+    sids = client.ListSidsForApn(apn_config)
     print(sids)
 
 
@@ -118,8 +104,8 @@ def create_parser():
     parser_update = subparsers.add_parser("update", help="Update an apn")
     parser_get = subparsers.add_parser("get", help="Get apn data")
     parser_list = subparsers.add_parser("list", help="List all APNs")
-    parser_list_sid = subparsers.add_parser(
-        "list_sid", help="List all sids subscribed for the APN"
+    parser_list_sids = subparsers.add_parser(
+        "list_sids", help="List all sids subscribed for the APN"
     )
 
     # Add arguments
@@ -128,7 +114,7 @@ def create_parser():
         parser_del,
         parser_update,
         parser_get,
-        parser_list_sid,
+        parser_list_sids,
     ]:
         cmd.add_argument("apn", help="Name of the APN (ims/internet)")
     for cmd in [parser_add]:
@@ -168,7 +154,7 @@ def create_parser():
     parser_update.set_defaults(func=update_apn)
     parser_get.set_defaults(func=get_apn)
     parser_list.set_defaults(func=list_apns)
-    parser_list_sid.set_defaults(func=list_sids)
+    parser_list_sids.set_defaults(func=list_sids)
     return parser
 
 
