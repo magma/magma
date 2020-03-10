@@ -1305,8 +1305,8 @@ var (
 		{Name: "first_name", Type: field.TypeString, Nullable: true},
 		{Name: "last_name", Type: field.TypeString, Nullable: true},
 		{Name: "email", Type: field.TypeString, Nullable: true},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "deactivated"}, Default: user.DefaultStatus},
-		{Name: "role", Type: field.TypeEnum, Enums: []string{"user", "admin", "owner"}, Default: user.DefaultRole},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DEACTIVATED"}, Default: user.DefaultStatus},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"USER", "ADMIN", "OWNER"}, Default: user.DefaultRole},
 		{Name: "user_profile_photo", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.

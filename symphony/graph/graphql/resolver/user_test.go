@@ -29,13 +29,13 @@ func TestEditUser(t *testing.T) {
 
 	u, err := viewer.UserFromContext(ctx)
 	require.NoError(t, err)
-	require.Equal(t, user.StatusActive, u.Status)
+	require.Equal(t, user.StatusACTIVE, u.Status)
 	require.Empty(t, u.FirstName)
 
 	mr := r.Mutation()
-	u, err = mr.EditUser(ctx, models.EditUserInput{ID: u.ID, Status: toStatusPointer(user.StatusDeactivated), FirstName: pointer.ToString("John")})
+	u, err = mr.EditUser(ctx, models.EditUserInput{ID: u.ID, Status: toStatusPointer(user.StatusDEACTIVATED), FirstName: pointer.ToString("John")})
 	require.NoError(t, err)
-	require.Equal(t, user.StatusDeactivated, u.Status)
+	require.Equal(t, user.StatusDEACTIVATED, u.Status)
 	require.Equal(t, "John", u.FirstName)
 }
 

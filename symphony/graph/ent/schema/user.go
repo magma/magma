@@ -32,11 +32,11 @@ func (User) Fields() []ent.Field {
 			NotEmpty().
 			Optional(),
 		field.Enum("status").
-			Values("active", "deactivated").
-			Default("active"),
+			Values("ACTIVE", "DEACTIVATED").
+			Default("ACTIVE"),
 		field.Enum("role").
-			Values("user", "admin", "owner").
-			Default("user"),
+			Values("USER", "ADMIN", "OWNER").
+			Default("USER"),
 	}
 }
 

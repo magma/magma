@@ -11,7 +11,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/viewer"
 )
 
 type userResolver struct{}
@@ -36,12 +35,8 @@ func (r queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int,
 
 func (r mutationResolver) EditUser(ctx context.Context, input models.EditUserInput) (*ent.User, error) {
 	client := r.ClientFrom(ctx)
-	u, err := viewer.UserFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user from context: %w", err)
-	}
 
-	u, err = client.User.UpdateOne(u).
+	u, err := client.User.UpdateOneID(input.ID).
 		SetNillableFirstName(input.FirstName).
 		SetNillableLastName(input.LastName).
 		SetNillableEmail(input.Email).

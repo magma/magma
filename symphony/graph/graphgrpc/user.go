@@ -49,7 +49,7 @@ func (s UserService) Create(ctx context.Context, input *UserInput) (*User, error
 			u, err = client.User.Create().SetAuthID(input.Id).Save(ctx)
 		}
 	} else {
-		_, err = client.User.UpdateOne(u).SetStatus(user.StatusActive).Save(ctx)
+		_, err = client.User.UpdateOne(u).SetStatus(user.StatusACTIVE).Save(ctx)
 	}
 	if err != nil {
 		return nil, status.FromContextError(err).Err()
@@ -74,7 +74,7 @@ func (s UserService) Delete(ctx context.Context, input *UserInput) (*empty.Empty
 
 	err = client.User.Update().
 		Where(user.AuthID(input.Id)).
-		SetStatus(user.StatusDeactivated).
+		SetStatus(user.StatusDEACTIVATED).
 		Exec(ctx)
 	if err != nil {
 		return nil, status.FromContextError(err).Err()
