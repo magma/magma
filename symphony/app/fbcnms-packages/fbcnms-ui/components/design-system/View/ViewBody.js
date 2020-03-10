@@ -24,6 +24,7 @@ const useStyles = makeStyles(() => ({
     overflowX: 'hidden',
     overflowY: 'auto',
     padding: `8px ${paddingRight}px 4px 24px`,
+    display: 'flex',
   },
   withScrollY: {
     paddingRight: `${paddingRight - scrollWidth}px`,

@@ -42,8 +42,6 @@ spec:
       affinity:
 {{ toYaml . | indent 8 }}
       {{- end }}
-      nodeSelector:
-        {{ .Values.nginx.labels.node_selector_key }}: {{ .Values.nginx.labels.node_selector_value | quote }}
       terminationGracePeriodSeconds: 60
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

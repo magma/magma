@@ -263,7 +263,7 @@ func (store *SqlDb) DoesKeyExist(table string, key string) (bool, error) {
 }
 
 func (store *SqlDb) getMany(tx *sql.Tx, table string, keys []string) (map[string]ValueWrapper, error) {
-	valuesByKey := make(map[string]ValueWrapper)
+	valuesByKey := map[string]ValueWrapper{}
 	if len(keys) == 0 {
 		return valuesByKey, nil
 	}

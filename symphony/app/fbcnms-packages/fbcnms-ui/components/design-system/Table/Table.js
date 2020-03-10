@@ -17,18 +17,48 @@ import TableContent from './TableContent';
 import TableContext from './TableContext';
 import TableHeader from './TableHeader';
 import classNames from 'classnames';
+import symphony from '../../../theme/symphony';
+import useVerticalScrollingEffect from '../hooks/useVerticalScrollingEffect';
 import {TableSelectionContextProvider} from './TableSelectionContext';
 import {makeStyles} from '@material-ui/styles';
-import {useMemo} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 
+const borderRadius = '4px';
 const useStyles = makeStyles(() => ({
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
+  root: {
+    display: 'flex',
   },
   standalone: {
+    borderRadius: borderRadius,
     boxShadow: SymphonyTheme.shadows.DP1,
-    borderRadius: '4px',
+  },
+  tableContainer: {
+    display: 'flex',
+    maxHeight: '100%',
+    overflow: 'hidden',
+    flexGrow: 0,
+    flexBasis: '25%',
+    borderRadius: borderRadius,
+    '&$expanded': {
+      flexGrow: 1,
+    },
+  },
+  expanded: {},
+  table: {
+    display: 'flex',
+    flexDirection: 'column',
+    borderCollapse: 'collapse',
+    overflow: 'hidden',
+    '& tbody': {
+      borderTop: `1px solid ${symphony.palette.separatorLight}`,
+      overflowX: 'hidden',
+      overflowY: 'auto',
+    },
+    '& tr': {
+      tableLayout: 'fixed',
+      display: 'table',
+      width: '100%',
+    },
   },
   embedded: {
     '& $cell': {
@@ -41,26 +71,46 @@ const useStyles = makeStyles(() => ({
     },
   },
   cell: {},
+  detailsCardContainer: {
+    backgroundColor: SymphonyTheme.palette.white,
+    borderLeft: '1px solid',
+    borderColor: SymphonyTheme.palette.separatorLight,
+    flexGrow: 1,
+    borderTopRightRadius: borderRadius,
+    borderBottomRightRadius: borderRadius,
+  },
 }));
 
-export type TableRowDataType<T> = {key?: string} & T;
+export type TableRowDataType<T> = {key?: string, ...T};
 
 export type TableColumnType<T> = {
   key: string,
   title: React.Node | string,
+  titleClassName?: ?string,
   render: (rowData: TableRowDataType<T>) => React.Node | string,
+  className?: ?string,
   sortable?: boolean,
   sortDirection?: 'asc' | 'desc',
 };
 
 export type TableSelectionType = 'all' | 'none' | 'single_item_toggled';
 
-export type SelectionCallbackType = (
-  selectedIds: Array<string | number>,
-  selection: TableSelectionType,
-  toggledItem?: ?{id: string | number, change: SelectionType},
-) => void;
+export type TableRowId = string | number;
+export type NullableTableRowId = TableRowId | null;
 
+export type SelectionCallbackType = (
+  selectedIds: Array<TableRowId>,
+  selection: TableSelectionType,
+  toggledItem?: ?{id: TableRowId, change: SelectionType},
+) => void;
+export type ActiveCallbackType = (activeId: NullableTableRowId) => void;
+
+/*
+  detailsCard:
+    When passed, will be shown on as part of the table content.
+    Excepts for the first column, all columns will get hidden.
+    The card will cover 75% of the table width.
+*/
 type Props<T> = {
   data: Array<TableRowDataType<T>>,
   columns: Array<TableColumnType<T>>,
@@ -69,9 +119,12 @@ type Props<T> = {
   variant?: 'standalone' | 'embedded',
   dataRowsSeparator?: RowsSeparationTypes,
   dataRowClassName?: string,
-  selectedIds?: Array<string | number>,
+  selectedIds?: Array<TableRowId>,
   onSelectionChanged?: SelectionCallbackType,
+  activeRowId?: NullableTableRowId,
+  onActiveRowIdChanged?: ActiveCallbackType,
   onSortClicked?: (colKey: string) => void,
+  detailsCard?: ?React.Node,
 };
 
 const Table = <T>(props: Props<T>) => {
@@ -79,31 +132,59 @@ const Table = <T>(props: Props<T>) => {
     className,
     variant = 'standalone',
     data,
-    selectedIds,
     showSelection,
+    activeRowId,
+    onActiveRowIdChanged,
+    selectedIds = [],
     onSelectionChanged,
     columns,
     onSortClicked,
     dataRowClassName,
     dataRowsSeparator,
+    detailsCard,
   } = props;
   const classes = useStyles();
+  const [dataColumns, setDataColumns] = useState([]);
+
+  const [tableHeaderPaddingRight, setTableHeaderPaddingRight] = useState(0);
+  const bodyRef = useRef(null);
+  useVerticalScrollingEffect(
+    bodyRef,
+    scrollArgs => setTableHeaderPaddingRight(scrollArgs.scrollbarWidth),
+    false,
+  );
+
+  useEffect(() => {
+    setDataColumns(detailsCard == null ? columns : [columns[0]]);
+  }, [detailsCard, columns]);
 
   const renderChildren = () => (
-    <table className={classNames(classes.table, className, classes[variant])}>
-      <TableHeader
-        columns={columns}
-        onSortClicked={onSortClicked}
-        cellClassName={classes.cell}
-      />
-      <TableContent
-        columns={columns}
-        data={data}
-        dataRowClassName={dataRowClassName}
-        rowsSeparator={dataRowsSeparator}
-        cellClassName={classes.cell}
-      />
-    </table>
+    <div className={classNames(classes.root, classes[variant])}>
+      <div
+        className={classNames(classes.tableContainer, {
+          [classes.expanded]: !detailsCard,
+        })}>
+        <table className={classNames(classes.table, className)}>
+          <TableHeader
+            columns={dataColumns}
+            onSortClicked={onSortClicked}
+            cellClassName={classes.cell}
+            paddingRight={tableHeaderPaddingRight}
+          />
+          <TableContent
+            columns={dataColumns}
+            data={data}
+            dataRowClassName={dataRowClassName}
+            rowsSeparator={dataRowsSeparator}
+            cellClassName={classes.cell}
+            fwdRef={bodyRef}
+          />
+        </table>
+      </div>
+      {detailsCard ? (
+        <div className={classes.detailsCardContainer}>{detailsCard}</div>
+      ) : null}
+    </div>
   );
 
   const allIds = useMemo(() => data.map((d, i) => d.key ?? i), [data]);
@@ -112,6 +193,8 @@ const Table = <T>(props: Props<T>) => {
       {showSelection ? (
         <TableSelectionContextProvider
           allIds={allIds}
+          activeId={activeRowId}
+          onActiveChanged={onActiveRowIdChanged}
           selectedIds={selectedIds ?? []}
           onSelectionChanged={onSelectionChanged}>
           {renderChildren()}

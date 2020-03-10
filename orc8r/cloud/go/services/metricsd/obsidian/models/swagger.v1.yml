@@ -577,6 +577,133 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /tenants/{tenant_id}/metrics/api/v1/query:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query
+      tags:
+      - Metrics
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+      - in: query
+        name: query
+        type: string
+        description: PromQL query to proxy to prometheus
+        required: true
+      - in: query
+        name: time
+        type: string
+        description: time for query (UnixTime or RFC3339)
+        required: false
+      responses:
+        '200':
+          description:
+            List of PromQL metrics results
+          schema:
+            $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/api/v1/label/{label_name}/values:
+    get:
+      summary: Retrieve list of label values for the given label name
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: path
+          name: label_name
+          type: string
+          description: Label name to get values of
+          required: true
+      responses:
+        '200':
+          description: List of label values
+          schema:
+            type: object
+            required:
+              - status
+              - data
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/api/v1/query_range:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: query
+          name: query
+          type: string
+          description: PromQL query to proxy to prometheus
+          required: true
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: true
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
+        - in: query
+          name: step
+          type: string
+          description: query range resolution step width
+          required: false
+      responses:
+        '200':
+          description: List of PromQL metrics results
+          schema:
+            $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/api/v1/series:
+    get:
+      summary: Get a list of metric series in prometheus database
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: query
+          name: match
+          type: array
+          items:
+            type: string
+          collectionFormat: ssv
+          description: Matcher for metric series query
+          required: false
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: false
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
+      responses:
+        '200':
+          description: List of metric names
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/prometheus_labelset'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+
 definitions:
   pushed_metric:
     type: object

@@ -25,6 +25,7 @@ const TableRowCheckbox = ({id}: Props) => {
     <Checkbox
       checked={checked}
       onChange={(selection: SelectionType) => changeRowSelection(id, selection)}
+      onClick={e => e.stopPropagation()}
     />
   );
 };

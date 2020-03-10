@@ -111,8 +111,11 @@ def add_location(
             locations = [
                 location.node
                 for location in locations
+                # pyre-fixme[16]: `Optional` has no attribute `entityType`.
                 if location.node.entityType == "location"
+                # pyre-fixme[16]: `Optional` has no attribute `type`.
                 and location.node.type == location_type
+                # pyre-fixme[16]: `Optional` has no attribute `name`.
                 and location.node.name == location_name
             ]
             if len(locations) > 1:
@@ -121,7 +124,9 @@ def add_location(
                 )
             if len(locations) == 1:
                 location_details = LocationDetailsQuery.execute(
-                    client, id=locations[0].entityId
+                    client,
+                    # pyre-fixme[16]: `Optional` has no attribute `entityId`.
+                    id=locations[0].entityId,
                 ).location
                 if location_details is None:
                     raise EntityNotFoundError(
@@ -318,7 +323,6 @@ def get_location(
             ).location
             if location_with_children is None:
                 raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
-
             locations = [
                 location
                 for location in location_with_children.children
@@ -438,7 +442,7 @@ def edit_location(
 
 def delete_location(client: SymphonyClient, location: Location) -> None:
     location_with_deps = LocationDepsQuery.execute(client, id=location.id).location
-    if not location_with_deps:
+    if location_with_deps is None:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
     if len(location_with_deps.files) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "files")

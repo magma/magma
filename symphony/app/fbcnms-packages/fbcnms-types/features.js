@@ -36,4 +36,5 @@ export type FeatureID =
   | 'deprecated_imports'
   | 'external_id'
   | 'checklistcategories'
+  | 'saved_searches'
   | 'user_management';

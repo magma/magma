@@ -14,7 +14,6 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import LocationLink from '../location/LocationLink';
 import React, {useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
-import classNames from 'classnames';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -25,11 +24,10 @@ import {useHistory} from 'react-router';
 type Props = {
   workOrder: WorkOrdersView_workOrder,
   onWorkOrderSelected: string => void,
-  className?: string,
 };
 
 const WorkOrdersView = (props: Props) => {
-  const {className, workOrder, onWorkOrderSelected} = props;
+  const {workOrder, onWorkOrderSelected} = props;
   const [sortDirection, setSortDirection] = useState('desc');
   const [sortColumn, setSortColumn] = useState('name');
   const history = useHistory();
@@ -52,92 +50,87 @@ const WorkOrdersView = (props: Props) => {
   }
 
   return (
-    <div className={classNames(className)}>
-      <Table
-        data={sortedWorkOrders}
-        onSortClicked={col => {
-          if (sortColumn === col) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-          } else {
-            setSortColumn(col);
-            setSortDirection('desc');
-          }
-        }}
-        columns={[
-          {
-            key: 'name',
-            title: 'Name',
-            render: row => (
+    <Table
+      data={sortedWorkOrders}
+      onSortClicked={col => {
+        if (sortColumn === col) {
+          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+          setSortColumn(col);
+          setSortDirection('desc');
+        }
+      }}
+      columns={[
+        {
+          key: 'name',
+          title: 'Name',
+          render: row => (
+            <Button variant="text" onClick={() => onWorkOrderSelected(row.id)}>
+              {row.name}
+            </Button>
+          ),
+          sortable: true,
+          sortDirection: sortColumn === 'name' ? sortDirection : undefined,
+        },
+        {
+          key: 'type',
+          title: 'Type',
+          render: row => row.workOrderType?.name ?? '',
+        },
+        {
+          key: 'project',
+          title: 'Project',
+          render: row =>
+            row.project ? (
               <Button
                 variant="text"
-                onClick={() => onWorkOrderSelected(row.id)}>
-                {row.name}
+                onClick={() =>
+                  history.push(
+                    InventoryAPIUrls.project(nullthrows(row.project).id),
+                  )
+                }>
+                {row.project?.name ?? ''}
               </Button>
-            ),
-            sortable: true,
-            sortDirection: sortColumn === 'name' ? sortDirection : undefined,
-          },
-          {
-            key: 'type',
-            title: 'Type',
-            render: row => row.workOrderType?.name ?? '',
-          },
-          {
-            key: 'project',
-            title: 'Project',
-            render: row =>
-              row.project ? (
-                <Button
-                  variant="text"
-                  onClick={() =>
-                    history.push(
-                      InventoryAPIUrls.project(nullthrows(row.project).id),
-                    )
-                  }>
-                  {row.project?.name ?? ''}
-                </Button>
-              ) : null,
-          },
-          {
-            key: 'owner',
-            title: 'Owner',
-            render: row => row.ownerName ?? '',
-          },
-          {
-            key: 'status',
-            title: 'Status',
-            render: row =>
-              formatMultiSelectValue(statusValues, row.status) ?? '',
-          },
-          {
-            key: 'creationDate',
-            title: 'Creation Date',
-            render: row => new Date(row.creationDate).toLocaleDateString(),
-          },
-          {
-            key: 'dueDate',
-            title: 'Due Date',
-            render: row =>
-              !!row.installDate
-                ? new Date(row.installDate).toLocaleDateString()
-                : '',
-          },
-          {
-            key: 'location',
-            title: 'Location',
-            render: row =>
-              row.location ? (
-                <LocationLink title={row.location.name} id={row.location.id} />
-              ) : null,
-          },
-          {
-            key: 'assignee',
-            title: 'Assignee',
-            render: row => row.assignee || null,
-          },
-        ]}
-      />
-    </div>
+            ) : null,
+        },
+        {
+          key: 'owner',
+          title: 'Owner',
+          render: row => row.ownerName ?? '',
+        },
+        {
+          key: 'status',
+          title: 'Status',
+          render: row => formatMultiSelectValue(statusValues, row.status) ?? '',
+        },
+        {
+          key: 'creationDate',
+          title: 'Creation Date',
+          render: row => new Date(row.creationDate).toLocaleDateString(),
+        },
+        {
+          key: 'dueDate',
+          title: 'Due Date',
+          render: row =>
+            !!row.installDate
+              ? new Date(row.installDate).toLocaleDateString()
+              : '',
+        },
+        {
+          key: 'location',
+          title: 'Location',
+          render: row =>
+            row.location ? (
+              <LocationLink title={row.location.name} id={row.location.id} />
+            ) : null,
+        },
+        {
+          key: 'assignee',
+          title: 'Assignee',
+          render: row => row.assignee || null,
+        },
+      ]}
+    />
   );
 };
 

@@ -317,10 +317,16 @@ type EditProjectTypeInput struct {
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
 }
 
+type EditReportFilterInput struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 type EditUserInput struct {
 	ID        int          `json:"id"`
 	FirstName *string      `json:"firstName"`
 	LastName  *string      `json:"lastName"`
+	Email     *string      `json:"email"`
 	Status    *user.Status `json:"status"`
 	Role      *user.Role   `json:"role"`
 }
@@ -390,6 +396,26 @@ type FileInput struct {
 	UploadTime       *int      `json:"uploadTime"`
 	FileType         *FileType `json:"fileType"`
 	StoreKey         string    `json:"storeKey"`
+}
+
+type GeneralFilter struct {
+	FilterType    string            `json:"filterType"`
+	Operator      FilterOperator    `json:"operator"`
+	StringValue   *string           `json:"stringValue"`
+	IDSet         []int             `json:"idSet"`
+	StringSet     []string          `json:"stringSet"`
+	BoolValue     *bool             `json:"boolValue"`
+	PropertyValue *ent.PropertyType `json:"propertyValue"`
+}
+
+type GeneralFilterInput struct {
+	FilterType    string             `json:"filterType"`
+	Operator      FilterOperator     `json:"operator"`
+	StringValue   *string            `json:"stringValue"`
+	IDSet         []int              `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
+	BoolValue     *bool              `json:"boolValue"`
+	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 }
 
 type LatestPythonPackageResult struct {
@@ -508,6 +534,12 @@ type PythonPackage struct {
 	WhlFileKey        string    `json:"whlFileKey"`
 	UploadTime        time.Time `json:"uploadTime"`
 	HasBreakingChange bool      `json:"hasBreakingChange"`
+}
+
+type ReportFilterInput struct {
+	Name    string                `json:"name"`
+	Entity  FilterEntity          `json:"entity"`
+	Filters []*GeneralFilterInput `json:"filters"`
 }
 
 // A connection to a list of search entries.
@@ -924,6 +956,55 @@ func (e FileType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type FilterEntity string
+
+const (
+	FilterEntityWorkOrder FilterEntity = "WORK_ORDER"
+	FilterEntityPort      FilterEntity = "PORT"
+	FilterEntityEquipment FilterEntity = "EQUIPMENT"
+	FilterEntityLink      FilterEntity = "LINK"
+	FilterEntityLocation  FilterEntity = "LOCATION"
+	FilterEntityService   FilterEntity = "SERVICE"
+)
+
+var AllFilterEntity = []FilterEntity{
+	FilterEntityWorkOrder,
+	FilterEntityPort,
+	FilterEntityEquipment,
+	FilterEntityLink,
+	FilterEntityLocation,
+	FilterEntityService,
+}
+
+func (e FilterEntity) IsValid() bool {
+	switch e {
+	case FilterEntityWorkOrder, FilterEntityPort, FilterEntityEquipment, FilterEntityLink, FilterEntityLocation, FilterEntityService:
+		return true
+	}
+	return false
+}
+
+func (e FilterEntity) String() string {
+	return string(e)
+}
+
+func (e *FilterEntity) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FilterEntity(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FilterEntity", str)
+	}
+	return nil
+}
+
+func (e FilterEntity) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 // operators to filter search by
 type FilterOperator string
 
@@ -1023,6 +1104,7 @@ const (
 	ImageEntityWorkOrder  ImageEntity = "WORK_ORDER"
 	ImageEntitySiteSurvey ImageEntity = "SITE_SURVEY"
 	ImageEntityEquipment  ImageEntity = "EQUIPMENT"
+	ImageEntityUser       ImageEntity = "USER"
 )
 
 var AllImageEntity = []ImageEntity{
@@ -1030,11 +1112,12 @@ var AllImageEntity = []ImageEntity{
 	ImageEntityWorkOrder,
 	ImageEntitySiteSurvey,
 	ImageEntityEquipment,
+	ImageEntityUser,
 }
 
 func (e ImageEntity) IsValid() bool {
 	switch e {
-	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment:
+	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment, ImageEntityUser:
 		return true
 	}
 	return false

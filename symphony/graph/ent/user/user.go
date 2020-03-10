@@ -29,6 +29,8 @@ const (
 	FieldFirstName = "first_name"
 	// FieldLastName holds the string denoting the last_name vertex property in the database.
 	FieldLastName = "last_name"
+	// FieldEmail holds the string denoting the email vertex property in the database.
+	FieldEmail = "email"
 	// FieldStatus holds the string denoting the status vertex property in the database.
 	FieldStatus = "status"
 	// FieldRole holds the string denoting the role vertex property in the database.
@@ -53,6 +55,7 @@ var Columns = []string{
 	FieldAuthID,
 	FieldFirstName,
 	FieldLastName,
+	FieldEmail,
 	FieldStatus,
 	FieldRole,
 }
@@ -95,6 +98,11 @@ var (
 	descLastName = fields[2].Descriptor()
 	// LastNameValidator is a validator for the "last_name" field. It is called by the builders before save.
 	LastNameValidator = descLastName.Validators[0].(func(string) error)
+
+	// descEmail is the schema descriptor for email field.
+	descEmail = fields[3].Descriptor()
+	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	EmailValidator = descEmail.Validators[0].(func(string) error)
 )
 
 // Status defines the type for the status enum field.
@@ -107,7 +115,6 @@ const DefaultStatus = StatusActive
 const (
 	StatusActive      Status = "active"
 	StatusDeactivated Status = "deactivated"
-	StatusDeleted     Status = "deleted"
 )
 
 func (s Status) String() string {
@@ -117,7 +124,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "s" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusActive, StatusDeactivated, StatusDeleted:
+	case StatusActive, StatusDeactivated:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)

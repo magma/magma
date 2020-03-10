@@ -20,7 +20,6 @@ enum UserStatus
   ) {
   ACTIVE
   DEACTIVATED
-  DELETED
 }
 
 enum UserRole
@@ -35,6 +34,7 @@ type User implements Node {
   authID: String!
   firstName: String!
   lastName: String!
+  email: String!
   status: UserStatus!
   role: UserRole!
   profilePhoto: File
@@ -121,6 +121,7 @@ input EditUserInput {
   id: ID!
   firstName: String
   lastName: String
+  email: String
   status: UserStatus
   role: UserRole
 }
@@ -839,6 +840,7 @@ enum ImageEntity {
   WORK_ORDER
   SITE_SURVEY
   EQUIPMENT
+  USER
 }
 
 enum PropertyEntity {
@@ -954,6 +956,53 @@ input CheckListItemInput {
   enumValues: String
   stringValue: String
   checked: Boolean
+}
+
+enum FilterEntity {
+  WORK_ORDER
+  PORT
+  EQUIPMENT
+  LINK
+  LOCATION
+  SERVICE
+}
+
+type GeneralFilter {
+  filterType: String!
+  operator: FilterOperator!
+  stringValue: String
+  idSet: [ID!]
+  stringSet: [String!]
+  boolValue: Boolean
+  propertyValue: PropertyType
+}
+
+type ReportFilter implements Node {
+  id: ID!
+  name: String!
+  entity: FilterEntity!
+  filters: [GeneralFilter!]!
+}
+
+input GeneralFilterInput {
+  filterType: String!
+  operator: FilterOperator!
+  stringValue: String
+  idSet: [ID!]
+  stringSet: [String!]
+  boolValue: Boolean
+  propertyValue: PropertyTypeInput
+}
+
+input EditReportFilterInput {
+  id: ID!
+  name: String!
+}
+
+input ReportFilterInput {
+  name: String!
+  entity: FilterEntity!
+  filters: [GeneralFilterInput]
 }
 
 """
@@ -1914,7 +1963,7 @@ type Query {
     """
     id: ID!
   ): Node
-
+  user(authID: String!): User
   location(id: ID!): Location
     @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
   locationType(id: ID!): LocationType
@@ -2041,6 +2090,7 @@ type Query {
   ): CustomerConnection
   actionsRules: ActionsRulesSearchResult
   actionsTriggers: ActionsTriggersSearchResult
+  reportFilters(entity: FilterEntity!): [ReportFilter!]!
 }
 
 type Mutation {
@@ -2213,6 +2263,8 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
+  addReportFilter(input: ReportFilterInput!): ReportFilter!
+  editReportFilter(input: EditReportFilterInput!): ReportFilter!
 }
 
 type Subscription {

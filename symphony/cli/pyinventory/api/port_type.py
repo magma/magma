@@ -75,18 +75,8 @@ def add_equipment_port_type(
             client,
             AddEquipmentPortTypeInput(
                 name=name,
-                properties=[
-                    from_dict(
-                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
-                    )
-                    for p in formated_property_types
-                ],
-                linkProperties=[
-                    from_dict(
-                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
-                    )
-                    for p in formated_link_property_types
-                ],
+                properties=formated_property_types,
+                linkProperties=formated_link_property_types,
             ),
         ).__dict__[ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME]
         client.reporter.log_successful_operation(

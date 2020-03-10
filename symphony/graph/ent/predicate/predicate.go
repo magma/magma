@@ -88,6 +88,9 @@ type Property func(*sql.Selector)
 // PropertyType is the predicate function for propertytype builders.
 type PropertyType func(*sql.Selector)
 
+// ReportFilter is the predicate function for reportfilter builders.
+type ReportFilter func(*sql.Selector)
+
 // Service is the predicate function for service builders.
 type Service func(*sql.Selector)
 

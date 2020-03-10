@@ -30,6 +30,8 @@ type UserUpdate struct {
 	clearfirst_name     bool
 	last_name           *string
 	clearlast_name      bool
+	email               *string
+	clearemail          bool
 	status              *user.Status
 	role                *user.Role
 	profile_photo       map[int]struct{}
@@ -82,6 +84,27 @@ func (uu *UserUpdate) SetNillableLastName(s *string) *UserUpdate {
 func (uu *UserUpdate) ClearLastName() *UserUpdate {
 	uu.last_name = nil
 	uu.clearlast_name = true
+	return uu
+}
+
+// SetEmail sets the email field.
+func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
+	uu.email = &s
+	return uu
+}
+
+// SetNillableEmail sets the email field if the given value is not nil.
+func (uu *UserUpdate) SetNillableEmail(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetEmail(*s)
+	}
+	return uu
+}
+
+// ClearEmail clears the value of email.
+func (uu *UserUpdate) ClearEmail() *UserUpdate {
+	uu.email = nil
+	uu.clearemail = true
 	return uu
 }
 
@@ -155,6 +178,11 @@ func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
 	if uu.last_name != nil {
 		if err := user.LastNameValidator(*uu.last_name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"last_name\": %v", err)
+		}
+	}
+	if uu.email != nil {
+		if err := user.EmailValidator(*uu.email); err != nil {
+			return 0, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
 	if uu.status != nil {
@@ -246,6 +274,19 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldLastName,
 		})
 	}
+	if value := uu.email; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: user.FieldEmail,
+		})
+	}
+	if uu.clearemail {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldEmail,
+		})
+	}
 	if value := uu.status; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
@@ -317,6 +358,8 @@ type UserUpdateOne struct {
 	clearfirst_name     bool
 	last_name           *string
 	clearlast_name      bool
+	email               *string
+	clearemail          bool
 	status              *user.Status
 	role                *user.Role
 	profile_photo       map[int]struct{}
@@ -362,6 +405,27 @@ func (uuo *UserUpdateOne) SetNillableLastName(s *string) *UserUpdateOne {
 func (uuo *UserUpdateOne) ClearLastName() *UserUpdateOne {
 	uuo.last_name = nil
 	uuo.clearlast_name = true
+	return uuo
+}
+
+// SetEmail sets the email field.
+func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
+	uuo.email = &s
+	return uuo
+}
+
+// SetNillableEmail sets the email field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableEmail(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetEmail(*s)
+	}
+	return uuo
+}
+
+// ClearEmail clears the value of email.
+func (uuo *UserUpdateOne) ClearEmail() *UserUpdateOne {
+	uuo.email = nil
+	uuo.clearemail = true
 	return uuo
 }
 
@@ -435,6 +499,11 @@ func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
 	if uuo.last_name != nil {
 		if err := user.LastNameValidator(*uuo.last_name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"last_name\": %v", err)
+		}
+	}
+	if uuo.email != nil {
+		if err := user.EmailValidator(*uuo.email); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
 	if uuo.status != nil {
@@ -518,6 +587,19 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldLastName,
+		})
+	}
+	if value := uuo.email; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: user.FieldEmail,
+		})
+	}
+	if uuo.clearemail {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldEmail,
 		})
 	}
 	if value := uuo.status; value != nil {

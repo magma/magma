@@ -71,8 +71,7 @@ export type CreateUserResponse = {
   message: string,
 };
 
-export type Datasource = {
-  id?: number,
+export type PostDatasource = {
   orgId: number,
   name: string,
   type: string,
@@ -90,6 +89,31 @@ export type Datasource = {
   jsonData: {tlsAuth: boolean, tlsSkipVerify: boolean},
   secureJsonData: {tlsClientCert: string, tlsClientKey: string},
   version?: number,
+  readOnly: boolean,
+};
+
+export type Datasource = {
+  id: number,
+  orgId: number,
+  name: string,
+  type: string,
+  typeLogoUrl?: string,
+  access: string,
+  url: string,
+  password: string,
+  user: string,
+  database: string,
+  basicAuth: boolean,
+  basicAuthUser: string,
+  withCredentials?: boolean,
+  isDefault: boolean,
+  jsonData: {tlsAuth?: boolean, tlsSkipVerify?: boolean},
+  secureJsonData: {
+    tlsClientCert?: string,
+    tlsClientKey?: string,
+    basicAuthPassword?: string,
+  },
+  version: number,
   readOnly: boolean,
 };
 

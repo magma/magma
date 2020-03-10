@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a596dc71f435d2bff63d0afdbee4a789
+ * @relayHash 8c5595fc1313f865ac54f04e160ddef5
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type DocumentTable_files$ref = any;
 type FileAttachment_file$ref = any;
-export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "WORK_ORDER" | "%future added value";
+export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "USER" | "WORK_ORDER" | "%future added value";
 export type DeleteImageMutationVariables = {|
   entityType: ImageEntity,
   entityId: string,

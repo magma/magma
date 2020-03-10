@@ -163,6 +163,12 @@ func (c *PropertyTypeClient) Instantiate(pt *PropertyType) *PropertyType {
 }
 
 // Instantiate entity configuration.
+func (c *ReportFilterClient) Instantiate(rf *ReportFilter) *ReportFilter {
+	rf.config = c.config
+	return rf
+}
+
+// Instantiate entity configuration.
 func (c *ServiceClient) Instantiate(s *Service) *Service {
 	s.config = c.config
 	return s

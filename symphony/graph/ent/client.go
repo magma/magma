@@ -39,6 +39,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
@@ -116,6 +117,8 @@ type Client struct {
 	Property *PropertyClient
 	// PropertyType is the client for interacting with the PropertyType builders.
 	PropertyType *PropertyTypeClient
+	// ReportFilter is the client for interacting with the ReportFilter builders.
+	ReportFilter *ReportFilterClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
 	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
@@ -182,6 +185,7 @@ func NewClient(opts ...Option) *Client {
 		ProjectType:                 NewProjectTypeClient(c),
 		Property:                    NewPropertyClient(c),
 		PropertyType:                NewPropertyTypeClient(c),
+		ReportFilter:                NewReportFilterClient(c),
 		Service:                     NewServiceClient(c),
 		ServiceEndpoint:             NewServiceEndpointClient(c),
 		ServiceType:                 NewServiceTypeClient(c),
@@ -253,6 +257,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
+		ReportFilter:                NewReportFilterClient(cfg),
 		Service:                     NewServiceClient(cfg),
 		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
@@ -311,6 +316,7 @@ func (c *Client) Debug() *Client {
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
+		ReportFilter:                NewReportFilterClient(cfg),
 		Service:                     NewServiceClient(cfg),
 		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
@@ -3185,6 +3191,70 @@ func (c *PropertyTypeClient) QueryProjectType(pt *PropertyType) *ProjectTypeQuer
 	query.sql = sqlgraph.Neighbors(pt.driver.Dialect(), step)
 
 	return query
+}
+
+// ReportFilterClient is a client for the ReportFilter schema.
+type ReportFilterClient struct {
+	config
+}
+
+// NewReportFilterClient returns a client for the ReportFilter from the given config.
+func NewReportFilterClient(c config) *ReportFilterClient {
+	return &ReportFilterClient{config: c}
+}
+
+// Create returns a create builder for ReportFilter.
+func (c *ReportFilterClient) Create() *ReportFilterCreate {
+	return &ReportFilterCreate{config: c.config}
+}
+
+// Update returns an update builder for ReportFilter.
+func (c *ReportFilterClient) Update() *ReportFilterUpdate {
+	return &ReportFilterUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportFilterClient) UpdateOne(rf *ReportFilter) *ReportFilterUpdateOne {
+	return c.UpdateOneID(rf.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportFilterClient) UpdateOneID(id int) *ReportFilterUpdateOne {
+	return &ReportFilterUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for ReportFilter.
+func (c *ReportFilterClient) Delete() *ReportFilterDelete {
+	return &ReportFilterDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ReportFilterClient) DeleteOne(rf *ReportFilter) *ReportFilterDeleteOne {
+	return c.DeleteOneID(rf.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ReportFilterClient) DeleteOneID(id int) *ReportFilterDeleteOne {
+	return &ReportFilterDeleteOne{c.Delete().Where(reportfilter.ID(id))}
+}
+
+// Create returns a query builder for ReportFilter.
+func (c *ReportFilterClient) Query() *ReportFilterQuery {
+	return &ReportFilterQuery{config: c.config}
+}
+
+// Get returns a ReportFilter entity by its id.
+func (c *ReportFilterClient) Get(ctx context.Context, id int) (*ReportFilter, error) {
+	return c.Query().Where(reportfilter.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportFilterClient) GetX(ctx context.Context, id int) *ReportFilter {
+	rf, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return rf
 }
 
 // ServiceClient is a client for the Service schema.

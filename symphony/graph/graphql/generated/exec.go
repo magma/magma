@@ -70,6 +70,7 @@ type ResolverRoot interface {
 	Property() PropertyResolver
 	PropertyType() PropertyTypeResolver
 	Query() QueryResolver
+	ReportFilter() ReportFilterResolver
 	Service() ServiceResolver
 	ServiceEndpoint() ServiceEndpointResolver
 	ServiceType() ServiceTypeResolver
@@ -365,6 +366,16 @@ type ComplexityRoot struct {
 		ScaleInMeters    func(childComplexity int) int
 	}
 
+	GeneralFilter struct {
+		BoolValue     func(childComplexity int) int
+		FilterType    func(childComplexity int) int
+		IDSet         func(childComplexity int) int
+		Operator      func(childComplexity int) int
+		PropertyValue func(childComplexity int) int
+		StringSet     func(childComplexity int) int
+		StringValue   func(childComplexity int) int
+	}
+
 	Hyperlink struct {
 		Category   func(childComplexity int) int
 		CreateTime func(childComplexity int) int
@@ -469,6 +480,7 @@ type ComplexityRoot struct {
 		AddLink                                  func(childComplexity int, input models.AddLinkInput) int
 		AddLocation                              func(childComplexity int, input models.AddLocationInput) int
 		AddLocationType                          func(childComplexity int, input models.AddLocationTypeInput) int
+		AddReportFilter                          func(childComplexity int, input models.ReportFilterInput) int
 		AddService                               func(childComplexity int, data models.ServiceCreateData) int
 		AddServiceEndpoint                       func(childComplexity int, input models.AddServiceEndpointInput) int
 		AddServiceLink                           func(childComplexity int, id int, linkID int) int
@@ -497,6 +509,7 @@ type ComplexityRoot struct {
 		EditLocationTypesIndex                   func(childComplexity int, locationTypesIndex []*models.LocationTypeIndex) int
 		EditProject                              func(childComplexity int, input models.EditProjectInput) int
 		EditProjectType                          func(childComplexity int, input models.EditProjectTypeInput) int
+		EditReportFilter                         func(childComplexity int, input models.EditReportFilterInput) int
 		EditService                              func(childComplexity int, data models.ServiceEditData) int
 		EditServiceType                          func(childComplexity int, data models.ServiceTypeEditData) int
 		EditUser                                 func(childComplexity int, input models.EditUserInput) int
@@ -645,18 +658,27 @@ type ComplexityRoot struct {
 		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
 		ProjectType              func(childComplexity int, id int) int
 		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		ReportFilters            func(childComplexity int, entity models.FilterEntity) int
 		SearchForEntity          func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Service                  func(childComplexity int, id int) int
 		ServiceSearch            func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
 		ServiceType              func(childComplexity int, id int) int
 		ServiceTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Surveys                  func(childComplexity int) int
+		User                     func(childComplexity int, authID string) int
 		Users                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Vertex                   func(childComplexity int, id int) int
 		WorkOrder                func(childComplexity int, id int) int
 		WorkOrderSearch          func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
 		WorkOrderTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		WorkOrders               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
+	}
+
+	ReportFilter struct {
+		Entity  func(childComplexity int) int
+		Filters func(childComplexity int) int
+		ID      func(childComplexity int) int
+		Name    func(childComplexity int) int
 	}
 
 	SearchEntriesConnection struct {
@@ -830,6 +852,7 @@ type ComplexityRoot struct {
 
 	User struct {
 		AuthID       func(childComplexity int) int
+		Email        func(childComplexity int) int
 		FirstName    func(childComplexity int) int
 		ID           func(childComplexity int) int
 		LastName     func(childComplexity int) int
@@ -1118,6 +1141,8 @@ type MutationResolver interface {
 	EditActionsRule(ctx context.Context, id int, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	RemoveActionsRule(ctx context.Context, id int) (bool, error)
 	TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID int) (*ent.WorkOrder, error)
+	AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error)
+	EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error)
 }
 type ProjectResolver interface {
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
@@ -1146,6 +1171,7 @@ type PropertyTypeResolver interface {
 type QueryResolver interface {
 	Me(ctx context.Context) (*viewer.Viewer, error)
 	Node(ctx context.Context, id int) (ent.Noder, error)
+	User(ctx context.Context, authID string) (*ent.User, error)
 	Location(ctx context.Context, id int) (*ent.Location, error)
 	LocationType(ctx context.Context, id int) (*ent.LocationType, error)
 	LocationTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationTypeConnection, error)
@@ -1181,6 +1207,11 @@ type QueryResolver interface {
 	Customers(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.CustomerConnection, error)
 	ActionsRules(ctx context.Context) (*models.ActionsRulesSearchResult, error)
 	ActionsTriggers(ctx context.Context) (*models.ActionsTriggersSearchResult, error)
+	ReportFilters(ctx context.Context, entity models.FilterEntity) ([]*ent.ReportFilter, error)
+}
+type ReportFilterResolver interface {
+	Entity(ctx context.Context, obj *ent.ReportFilter) (models.FilterEntity, error)
+	Filters(ctx context.Context, obj *ent.ReportFilter) ([]*models.GeneralFilter, error)
 }
 type ServiceResolver interface {
 	Status(ctx context.Context, obj *ent.Service) (models.ServiceStatus, error)
@@ -2397,6 +2428,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FloorPlanScale.ScaleInMeters(childComplexity), true
 
+	case "GeneralFilter.boolValue":
+		if e.complexity.GeneralFilter.BoolValue == nil {
+			break
+		}
+
+		return e.complexity.GeneralFilter.BoolValue(childComplexity), true
+
+	case "GeneralFilter.filterType":
+		if e.complexity.GeneralFilter.FilterType == nil {
+			break
+		}
+
+		return e.complexity.GeneralFilter.FilterType(childComplexity), true
+
+	case "GeneralFilter.idSet":
+		if e.complexity.GeneralFilter.IDSet == nil {
+			break
+		}
+
+		return e.complexity.GeneralFilter.IDSet(childComplexity), true
+
+	case "GeneralFilter.operator":
+		if e.complexity.GeneralFilter.Operator == nil {
+			break
+		}
+
+		return e.complexity.GeneralFilter.Operator(childComplexity), true
+
+	case "GeneralFilter.propertyValue":
+		if e.complexity.GeneralFilter.PropertyValue == nil {
+			break
+		}
+
+		return e.complexity.GeneralFilter.PropertyValue(childComplexity), true
+
+	case "GeneralFilter.stringSet":
+		if e.complexity.GeneralFilter.StringSet == nil {
+			break
+		}
+
+		return e.complexity.GeneralFilter.StringSet(childComplexity), true
+
+	case "GeneralFilter.stringValue":
+		if e.complexity.GeneralFilter.StringValue == nil {
+			break
+		}
+
+		return e.complexity.GeneralFilter.StringValue(childComplexity), true
+
 	case "Hyperlink.category":
 		if e.complexity.Hyperlink.Category == nil {
 			break
@@ -2967,6 +3047,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddLocationType(childComplexity, args["input"].(models.AddLocationTypeInput)), true
 
+	case "Mutation.addReportFilter":
+		if e.complexity.Mutation.AddReportFilter == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addReportFilter_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddReportFilter(childComplexity, args["input"].(models.ReportFilterInput)), true
+
 	case "Mutation.addService":
 		if e.complexity.Mutation.AddService == nil {
 			break
@@ -3302,6 +3394,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditProjectType(childComplexity, args["input"].(models.EditProjectTypeInput)), true
+
+	case "Mutation.editReportFilter":
+		if e.complexity.Mutation.EditReportFilter == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editReportFilter_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditReportFilter(childComplexity, args["input"].(models.EditReportFilterInput)), true
 
 	case "Mutation.editService":
 		if e.complexity.Mutation.EditService == nil {
@@ -4348,6 +4452,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ProjectTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
+	case "Query.reportFilters":
+		if e.complexity.Query.ReportFilters == nil {
+			break
+		}
+
+		args, err := ec.field_Query_reportFilters_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ReportFilters(childComplexity, args["entity"].(models.FilterEntity)), true
+
 	case "Query.searchForEntity":
 		if e.complexity.Query.SearchForEntity == nil {
 			break
@@ -4414,6 +4530,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Surveys(childComplexity), true
+
+	case "Query.user":
+		if e.complexity.Query.User == nil {
+			break
+		}
+
+		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.User(childComplexity, args["authID"].(string)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -4486,6 +4614,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.WorkOrders(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["showCompleted"].(*bool)), true
+
+	case "ReportFilter.entity":
+		if e.complexity.ReportFilter.Entity == nil {
+			break
+		}
+
+		return e.complexity.ReportFilter.Entity(childComplexity), true
+
+	case "ReportFilter.filters":
+		if e.complexity.ReportFilter.Filters == nil {
+			break
+		}
+
+		return e.complexity.ReportFilter.Filters(childComplexity), true
+
+	case "ReportFilter.id":
+		if e.complexity.ReportFilter.ID == nil {
+			break
+		}
+
+		return e.complexity.ReportFilter.ID(childComplexity), true
+
+	case "ReportFilter.name":
+		if e.complexity.ReportFilter.Name == nil {
+			break
+		}
+
+		return e.complexity.ReportFilter.Name(childComplexity), true
 
 	case "SearchEntriesConnection.edges":
 		if e.complexity.SearchEntriesConnection.Edges == nil {
@@ -5299,6 +5455,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.AuthID(childComplexity), true
 
+	case "User.email":
+		if e.complexity.User.Email == nil {
+			break
+		}
+
+		return e.complexity.User.Email(childComplexity), true
+
 	case "User.firstName":
 		if e.complexity.User.FirstName == nil {
 			break
@@ -5874,7 +6037,6 @@ enum UserStatus
   ) {
   ACTIVE
   DEACTIVATED
-  DELETED
 }
 
 enum UserRole
@@ -5889,6 +6051,7 @@ type User implements Node {
   authID: String!
   firstName: String!
   lastName: String!
+  email: String!
   status: UserStatus!
   role: UserRole!
   profilePhoto: File
@@ -5975,6 +6138,7 @@ input EditUserInput {
   id: ID!
   firstName: String
   lastName: String
+  email: String
   status: UserStatus
   role: UserRole
 }
@@ -6693,6 +6857,7 @@ enum ImageEntity {
   WORK_ORDER
   SITE_SURVEY
   EQUIPMENT
+  USER
 }
 
 enum PropertyEntity {
@@ -6808,6 +6973,53 @@ input CheckListItemInput {
   enumValues: String
   stringValue: String
   checked: Boolean
+}
+
+enum FilterEntity {
+  WORK_ORDER
+  PORT
+  EQUIPMENT
+  LINK
+  LOCATION
+  SERVICE
+}
+
+type GeneralFilter {
+  filterType: String!
+  operator: FilterOperator!
+  stringValue: String
+  idSet: [ID!]
+  stringSet: [String!]
+  boolValue: Boolean
+  propertyValue: PropertyType
+}
+
+type ReportFilter implements Node {
+  id: ID!
+  name: String!
+  entity: FilterEntity!
+  filters: [GeneralFilter!]!
+}
+
+input GeneralFilterInput {
+  filterType: String!
+  operator: FilterOperator!
+  stringValue: String
+  idSet: [ID!]
+  stringSet: [String!]
+  boolValue: Boolean
+  propertyValue: PropertyTypeInput
+}
+
+input EditReportFilterInput {
+  id: ID!
+  name: String!
+}
+
+input ReportFilterInput {
+  name: String!
+  entity: FilterEntity!
+  filters: [GeneralFilterInput]
 }
 
 """
@@ -7768,7 +7980,7 @@ type Query {
     """
     id: ID!
   ): Node
-
+  user(authID: String!): User
   location(id: ID!): Location
     @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
   locationType(id: ID!): LocationType
@@ -7895,6 +8107,7 @@ type Query {
   ): CustomerConnection
   actionsRules: ActionsRulesSearchResult
   actionsTriggers: ActionsTriggersSearchResult
+  reportFilters(entity: FilterEntity!): [ReportFilter!]!
 }
 
 type Mutation {
@@ -8067,6 +8280,8 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
+  addReportFilter(input: ReportFilterInput!): ReportFilter!
+  editReportFilter(input: EditReportFilterInput!): ReportFilter!
 }
 
 type Subscription {
@@ -8392,6 +8607,20 @@ func (ec *executionContext) field_Mutation_addLocation_args(ctx context.Context,
 	var arg0 models.AddLocationInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNAddLocationInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddLocationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addReportFilter_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.ReportFilterInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNReportFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐReportFilterInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8832,6 +9061,20 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 	var arg0 models.EditProjectInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNEditProjectInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditProjectInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editReportFilter_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.EditReportFilterInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNEditReportFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditReportFilterInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9846,6 +10089,20 @@ func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_reportFilters_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.FilterEntity
+	if tmp, ok := rawArgs["entity"]; ok {
+		arg0, err = ec.unmarshalNFilterEntity2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterEntity(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["entity"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_searchForEntity_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9977,6 +10234,20 @@ func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArg
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["authID"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["authID"] = arg0
 	return args, nil
 }
 
@@ -15927,6 +16198,250 @@ func (ec *executionContext) _FloorPlanScale_scaleInMeters(ctx context.Context, f
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _GeneralFilter_filterType(ctx context.Context, field graphql.CollectedField, obj *models.GeneralFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GeneralFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FilterType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GeneralFilter_operator(ctx context.Context, field graphql.CollectedField, obj *models.GeneralFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GeneralFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Operator, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.FilterOperator)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFilterOperator2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterOperator(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GeneralFilter_stringValue(ctx context.Context, field graphql.CollectedField, obj *models.GeneralFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GeneralFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StringValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GeneralFilter_idSet(ctx context.Context, field graphql.CollectedField, obj *models.GeneralFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GeneralFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IDSet, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOID2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GeneralFilter_stringSet(ctx context.Context, field graphql.CollectedField, obj *models.GeneralFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GeneralFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StringSet, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GeneralFilter_boolValue(ctx context.Context, field graphql.CollectedField, obj *models.GeneralFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GeneralFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BoolValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GeneralFilter_propertyValue(ctx context.Context, field graphql.CollectedField, obj *models.GeneralFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GeneralFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PropertyValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.PropertyType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOPropertyType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPropertyType(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Hyperlink_id(ctx context.Context, field graphql.CollectedField, obj *ent.Hyperlink) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -20992,6 +21507,94 @@ func (ec *executionContext) _Mutation_technicianWorkOrderCheckIn(ctx context.Con
 	return ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addReportFilter(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addReportFilter_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddReportFilter(rctx, args["input"].(models.ReportFilterInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ReportFilter)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNReportFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilter(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_editReportFilter(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_editReportFilter_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditReportFilter(rctx, args["input"].(models.EditReportFilterInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ReportFilter)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNReportFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilter(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -23350,6 +23953,47 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	return ec.marshalONode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNoder(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_user_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().User(rctx, args["authID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_location(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -24805,6 +25449,50 @@ func (ec *executionContext) _Query_actionsTriggers(ctx context.Context, field gr
 	return ec.marshalOActionsTriggersSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsTriggersSearchResult(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_reportFilters(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_reportFilters_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ReportFilters(rctx, args["entity"].(models.FilterEntity))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.ReportFilter)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNReportFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilterᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -24878,6 +25566,154 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ReportFilter_id(ctx context.Context, field graphql.CollectedField, obj *ent.ReportFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ReportFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ReportFilter_name(ctx context.Context, field graphql.CollectedField, obj *ent.ReportFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ReportFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ReportFilter_entity(ctx context.Context, field graphql.CollectedField, obj *ent.ReportFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ReportFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ReportFilter().Entity(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.FilterEntity)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFilterEntity2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterEntity(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ReportFilter_filters(ctx context.Context, field graphql.CollectedField, obj *ent.ReportFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ReportFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ReportFilter().Filters(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.GeneralFilter)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNGeneralFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilterᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchEntriesConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntriesConnection) (ret graphql.Marshaler) {
@@ -29125,6 +29961,43 @@ func (ec *executionContext) _User_lastName(ctx context.Context, field graphql.Co
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_email(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -34374,6 +35247,30 @@ func (ec *executionContext) unmarshalInputEditProjectTypeInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputEditReportFilterInput(ctx context.Context, obj interface{}) (models.EditReportFilterInput, error) {
+	var it models.EditReportFilterInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEditUserInput(ctx context.Context, obj interface{}) (models.EditUserInput, error) {
 	var it models.EditUserInput
 	var asMap = obj.(map[string]interface{})
@@ -34395,6 +35292,12 @@ func (ec *executionContext) unmarshalInputEditUserInput(ctx context.Context, obj
 		case "lastName":
 			var err error
 			it.LastName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34793,6 +35696,60 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 		case "storeKey":
 			var err error
 			it.StoreKey, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputGeneralFilterInput(ctx context.Context, obj interface{}) (models.GeneralFilterInput, error) {
+	var it models.GeneralFilterInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "filterType":
+			var err error
+			it.FilterType, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "operator":
+			var err error
+			it.Operator, err = ec.unmarshalNFilterOperator2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterOperator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringValue":
+			var err error
+			it.StringValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idSet":
+			var err error
+			it.IDSet, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "boolValue":
+			var err error
+			it.BoolValue, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "propertyValue":
+			var err error
+			it.PropertyValue, err = ec.unmarshalOPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35273,6 +36230,36 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 		case "isDeleted":
 			var err error
 			it.IsDeleted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputReportFilterInput(ctx context.Context, obj interface{}) (models.ReportFilterInput, error) {
+	var it models.ReportFilterInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "entity":
+			var err error
+			it.Entity, err = ec.unmarshalNFilterEntity2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterEntity(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "filters":
+			var err error
+			it.Filters, err = ec.unmarshalOGeneralFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilterInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -36253,6 +37240,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._CheckListItem(ctx, sel, obj)
+	case *ent.ReportFilter:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._ReportFilter(ctx, sel, obj)
 	case *ent.WorkOrderType:
 		if obj == nil {
 			return graphql.Null
@@ -38264,6 +39256,48 @@ func (ec *executionContext) _FloorPlanScale(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var generalFilterImplementors = []string{"GeneralFilter"}
+
+func (ec *executionContext) _GeneralFilter(ctx context.Context, sel ast.SelectionSet, obj *models.GeneralFilter) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, generalFilterImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GeneralFilter")
+		case "filterType":
+			out.Values[i] = ec._GeneralFilter_filterType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "operator":
+			out.Values[i] = ec._GeneralFilter_operator(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "stringValue":
+			out.Values[i] = ec._GeneralFilter_stringValue(ctx, field, obj)
+		case "idSet":
+			out.Values[i] = ec._GeneralFilter_idSet(ctx, field, obj)
+		case "stringSet":
+			out.Values[i] = ec._GeneralFilter_stringSet(ctx, field, obj)
+		case "boolValue":
+			out.Values[i] = ec._GeneralFilter_boolValue(ctx, field, obj)
+		case "propertyValue":
+			out.Values[i] = ec._GeneralFilter_propertyValue(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var hyperlinkImplementors = []string{"Hyperlink", "Node"}
 
 func (ec *executionContext) _Hyperlink(ctx context.Context, sel ast.SelectionSet, obj *ent.Hyperlink) graphql.Marshaler {
@@ -39314,6 +40348,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addReportFilter":
+			out.Values[i] = ec._Mutation_addReportFilter(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "editReportFilter":
+			out.Values[i] = ec._Mutation_editReportFilter(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -39936,6 +40980,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_node(ctx, field)
 				return res
 			})
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_user(ctx, field)
+				return res
+			})
 		case "location":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -40369,10 +41424,84 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_actionsTriggers(ctx, field)
 				return res
 			})
+		case "reportFilters":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_reportFilters(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var reportFilterImplementors = []string{"ReportFilter", "Node"}
+
+func (ec *executionContext) _ReportFilter(ctx context.Context, sel ast.SelectionSet, obj *ent.ReportFilter) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, reportFilterImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ReportFilter")
+		case "id":
+			out.Values[i] = ec._ReportFilter_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._ReportFilter_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "entity":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ReportFilter_entity(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "filters":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ReportFilter_filters(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41490,6 +42619,11 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "lastName":
 			out.Values[i] = ec._User_lastName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "email":
+			out.Values[i] = ec._User_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -43468,6 +44602,10 @@ func (ec *executionContext) unmarshalNEditProjectTypeInput2githubᚗcomᚋfacebo
 	return ec.unmarshalInputEditProjectTypeInput(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNEditReportFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditReportFilterInput(ctx context.Context, v interface{}) (models.EditReportFilterInput, error) {
+	return ec.unmarshalInputEditReportFilterInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNEditUserInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditUserInput(ctx context.Context, v interface{}) (models.EditUserInput, error) {
 	return ec.unmarshalInputEditUserInput(ctx, v)
 }
@@ -44213,6 +45351,15 @@ func (ec *executionContext) marshalNFile2ᚖgithubᚗcomᚋfacebookincubatorᚋs
 	return ec._File(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNFilterEntity2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterEntity(ctx context.Context, v interface{}) (models.FilterEntity, error) {
+	var res models.FilterEntity
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNFilterEntity2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterEntity(ctx context.Context, sel ast.SelectionSet, v models.FilterEntity) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNFilterOperator2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterOperator(ctx context.Context, v interface{}) (models.FilterOperator, error) {
 	var res models.FilterOperator
 	return res, res.UnmarshalGQL(v)
@@ -44313,6 +45460,57 @@ func (ec *executionContext) marshalNFloorPlanScale2ᚖgithubᚗcomᚋfacebookinc
 		return graphql.Null
 	}
 	return ec._FloorPlanScale(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNGeneralFilter2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilter(ctx context.Context, sel ast.SelectionSet, v models.GeneralFilter) graphql.Marshaler {
+	return ec._GeneralFilter(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGeneralFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilterᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.GeneralFilter) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGeneralFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilter(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNGeneralFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilter(ctx context.Context, sel ast.SelectionSet, v *models.GeneralFilter) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._GeneralFilter(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNHyperlink2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlink(ctx context.Context, sel ast.SelectionSet, v ent.Hyperlink) graphql.Marshaler {
@@ -45426,6 +46624,61 @@ func (ec *executionContext) unmarshalNPropertyTypeInput2ᚖgithubᚗcomᚋfacebo
 	}
 	res, err := ec.unmarshalNPropertyTypeInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalNReportFilter2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilter(ctx context.Context, sel ast.SelectionSet, v ent.ReportFilter) graphql.Marshaler {
+	return ec._ReportFilter(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNReportFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilterᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.ReportFilter) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNReportFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilter(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNReportFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilter(ctx context.Context, sel ast.SelectionSet, v *ent.ReportFilter) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ReportFilter(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNReportFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐReportFilterInput(ctx context.Context, v interface{}) (models.ReportFilterInput, error) {
+	return ec.unmarshalInputReportFilterInput(ctx, v)
 }
 
 func (ec *executionContext) marshalNSearchEntriesConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntriesConnection(ctx context.Context, sel ast.SelectionSet, v models.SearchEntriesConnection) graphql.Marshaler {
@@ -47421,6 +48674,38 @@ func (ec *executionContext) marshalOFutureState2ᚖgithubᚗcomᚋfacebookincuba
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOGeneralFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilterInput(ctx context.Context, v interface{}) (models.GeneralFilterInput, error) {
+	return ec.unmarshalInputGeneralFilterInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOGeneralFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilterInput(ctx context.Context, v interface{}) ([]*models.GeneralFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.GeneralFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalOGeneralFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOGeneralFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilterInput(ctx context.Context, v interface{}) (*models.GeneralFilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOGeneralFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilterInput(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{}) (int, error) {

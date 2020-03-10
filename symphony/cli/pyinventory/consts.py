@@ -118,10 +118,12 @@ class EquipmentPortDefinition(NamedTuple):
     Attributes:
         id (str): equipment port definition ID
         name (str): equipment port definition name
+        port_type_name (Optional[str]): equipment port definition port type name
     """
 
     id: str
     name: str
+    port_type_name: Optional[str] = None
 
 
 class EquipmentPort(NamedTuple):
@@ -200,3 +202,4 @@ class Entity(Enum):
     Customer = "Customer"
     Document = "Document"
     PropertyType = "PropertyType"
+    Property = "Property"

@@ -33,7 +33,7 @@ func main() {
 	logcfg := log.AddFlags(kingpin.CommandLine)
 	kingpin.Parse()
 
-	logger, _, _ := log.Provide(*logcfg)
+	logger, _, _ := log.Provider(*logcfg)
 	driver, err := sql.Open(*drv, *dsn)
 	if err != nil {
 		logger.Background().Fatal("opening database", zap.Error(err))

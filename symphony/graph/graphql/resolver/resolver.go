@@ -234,3 +234,7 @@ func (resolver) ActionsTrigger() generated.ActionsTriggerResolver {
 func (resolver) Viewer() generated.ViewerResolver {
 	return viewerResolver{}
 }
+
+func (r resolver) ReportFilter() generated.ReportFilterResolver {
+	return reportFilterResolver{}
+}

@@ -8,8 +8,7 @@
  * @format
  */
 
-import type {CheckListCategoryTable_list} from '../components/checklist/checkListCategory/__generated__/CheckListCategoryTable_list.graphql';
-import type {CheckListTable_list} from '../components/checklist/__generated__/CheckListTable_list.graphql';
+import type {CheckListCategoryExpandingPanel_list} from '../components/checklist/checkListCategory/__generated__/CheckListCategoryExpandingPanel_list.graphql';
 import type {Equipment, Link} from './Equipment';
 import type {FileAttachmentType} from './FileAttachment.js';
 import type {ImageAttachmentType} from './ImageAttachment.js';
@@ -26,7 +25,6 @@ export type WorkOrderType = {
   description: ?string,
   propertyTypes: Array<PropertyType>,
   numberOfWorkOrders: number,
-  checkListDefinitions: CheckListTable_list,
 };
 
 export type WorkOrder = {
@@ -51,8 +49,7 @@ export type WorkOrder = {
   assignee: ?string,
   properties: Array<Property>,
   projectId: ?string,
-  checkList: ?CheckListTable_list,
-  checkListCategories: ?CheckListCategoryTable_list,
+  checkListCategories: ?CheckListCategoryExpandingPanel_list,
 };
 
 export type WorkOrderIdentifier = {

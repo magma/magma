@@ -16,14 +16,19 @@ type VerticalScrollValues = {
   height: number,
   startIsHidden: boolean,
   endIsHidden: boolean,
+  hasScrollbar: boolean,
+  scrollbarWidth: number,
 };
 
-const getVerticalScrollValues = (htmlElement: HTMLElement) => {
+const getVerticalScrollValues: HTMLElement => VerticalScrollValues = (
+  htmlElement: HTMLElement,
+) => {
   if (!htmlElement) {
     return {};
   }
 
   return {
+    hasScrollbar: htmlElement.offsetHeight < htmlElement.scrollHeight,
     scrollHeight: htmlElement.scrollHeight,
     scrollTop: htmlElement.scrollTop,
     height: htmlElement.offsetHeight,
@@ -31,6 +36,7 @@ const getVerticalScrollValues = (htmlElement: HTMLElement) => {
     endIsHidden:
       htmlElement.offsetHeight + htmlElement.scrollTop <
       htmlElement.scrollHeight,
+    scrollbarWidth: htmlElement.offsetWidth - htmlElement.clientWidth,
   };
 };
 
@@ -76,6 +82,7 @@ const useVerticalScrollingEffect = (
         effect,
         applyScrollingShadows,
       );
+    runEffect();
     scrollingContainer.addEventListener('scroll', runEffect);
     return () => scrollingContainer.removeEventListener('scroll', runEffect);
   });

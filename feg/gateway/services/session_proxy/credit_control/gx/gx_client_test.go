@@ -318,10 +318,10 @@ func startServer(
 		pcrf.SetRules(
 			ctx,
 			&fegprotos.AccountRules{
-				Imsi:          testIMSI1,
-				RuleNames:     imsi1Rules,
-				RuleBaseNames: imsi1BaseRules,
-				RuleDefinitions: []*fegprotos.RuleDefinition{
+				Imsi:                testIMSI1,
+				StaticRuleNames:     imsi1Rules,
+				StaticRuleBaseNames: imsi1BaseRules,
+				DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
 					{
 						RuleName:       "dynrule1",
 						RatingGroup:    rg1,
@@ -335,17 +335,17 @@ func startServer(
 		pcrf.SetRules(
 			ctx,
 			&fegprotos.AccountRules{
-				Imsi:      testIMSI2,
-				RuleNames: imsi2Rules,
+				Imsi:            testIMSI2,
+				StaticRuleNames: imsi2Rules,
 			},
 		)
 		pcrf.SetRules(
 			ctx,
 			&fegprotos.AccountRules{
-				Imsi:          testIMSI3,
-				RuleNames:     imsi3Rules,
-				RuleBaseNames: imsi3BaseRules,
-				RuleDefinitions: []*fegprotos.RuleDefinition{
+				Imsi:                testIMSI3,
+				StaticRuleNames:     imsi3Rules,
+				StaticRuleBaseNames: imsi3BaseRules,
+				DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
 					{
 						RuleName:            "dynrule3",
 						RatingGroup:         rg3,
@@ -360,7 +360,7 @@ func startServer(
 			ctx,
 			&fegprotos.AccountRules{
 				Imsi: testIMSI4,
-				RuleDefinitions: []*fegprotos.RuleDefinition{
+				DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
 					{
 						RuleName:      "dynrule4",
 						Precedence:    300,

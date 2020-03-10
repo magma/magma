@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5c81821740fd65352396614ff44df3a8
+ * @relayHash 93b8b0ab231ec3948c9edbde543e35af
  */
 
 /* eslint-disable */
@@ -16,7 +16,7 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type FileAttachment_file$ref = any;
-export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "WORK_ORDER" | "%future added value";
+export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "USER" | "WORK_ORDER" | "%future added value";
 export type AddImageInput = {|
   entityType: ImageEntity,
   entityId: string,

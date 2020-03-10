@@ -7,9 +7,5 @@
 ################################################################################
 
 resource "aws_secretsmanager_secret" "orc8r_secrets" {
-  name = var.secretsmanager_artifactory_secret
-}
-
-resource aws_s3_bucket "orc8r_bucket" {
-  bucket = var.deployment_secrets_bucket
+  name = var.secretsmanager_orc8r_secret
 }

@@ -10,21 +10,24 @@
 
 import type {
   EntityConfig,
+  EntityType,
   FilterConfig,
   FilterValue,
   FiltersQuery,
 } from '../comparison_view/ComparisonViewTypes';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import CSVFileExport from '../CSVFileExport';
+import FilterBookmark from '../FilterBookmark';
 import FiltersTypeahead from '../comparison_view/FiltersTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
-import {useRef, useState} from 'react';
 
 import update from 'immutability-helper';
 import {doesFilterHasValue} from '../comparison_view/FilterUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useRef, useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -73,14 +76,6 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 'bold',
     pointerEvents: 'none',
   },
-  exportButton: {
-    paddingLeft: '16px',
-    paddingRight: '16px',
-    marginLeft: 'auto',
-  },
-  exportButtonContainer: {
-    display: 'flex',
-  },
 }));
 
 type Props = {
@@ -97,6 +92,7 @@ type Props = {
   onFilterBlurred?: (filter: FilterValue) => void,
   // used when a filter is selected from filter typeahead
   getSelectedFilter: (filterConfig: FilterConfig) => FilterValue,
+  entity?: EntityType,
 };
 
 const PowerSearchBar = (props: Props) => {
@@ -104,6 +100,7 @@ const PowerSearchBar = (props: Props) => {
 
   const classes = useStyles();
   const {
+    entity,
     placeholder,
     searchConfig,
     filterConfigs,
@@ -151,6 +148,10 @@ const PowerSearchBar = (props: Props) => {
     setFilterValues(newFilterValues);
     onFiltersChanged(newFilterValues);
   };
+
+  const savedSearch = React.useContext(AppContext).isFeatureEnabled(
+    'saved_searches',
+  );
   return (
     <div className={classNames(classes.root, props.className)}>
       <div className={classes.headerContainer}>{header != null && header}</div>
@@ -214,6 +215,13 @@ const PowerSearchBar = (props: Props) => {
           <Text variant="body2" className={classes.footer}>
             {footer}
           </Text>
+        )}
+        {savedSearch && entity && (
+          <FilterBookmark
+            isBookmark={false}
+            filters={filterValues}
+            entity={entity}
+          />
         )}
         {exportPath && (
           <CSVFileExport

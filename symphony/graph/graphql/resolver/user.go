@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 )
@@ -21,6 +22,11 @@ func (r userResolver) ProfilePhoto(ctx context.Context, user *ent.User) (*ent.Fi
 		profilePhoto, err = user.QueryProfilePhoto().Only(ctx)
 	}
 	return profilePhoto, ent.MaskNotFound(err)
+}
+
+func (r queryResolver) User(ctx context.Context, authID string) (*ent.User, error) {
+	u, err := r.ClientFrom(ctx).User.Query().Where(user.AuthID(authID)).Only(ctx)
+	return u, ent.MaskNotFound(err)
 }
 
 func (r queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UserConnection, error) {
@@ -38,6 +44,7 @@ func (r mutationResolver) EditUser(ctx context.Context, input models.EditUserInp
 	u, err = client.User.UpdateOne(u).
 		SetNillableFirstName(input.FirstName).
 		SetNillableLastName(input.LastName).
+		SetNillableEmail(input.Email).
 		SetNillableStatus(input.Status).
 		SetNillableRole(input.Role).
 		Save(ctx)

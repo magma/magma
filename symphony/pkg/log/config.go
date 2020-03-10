@@ -105,8 +105,8 @@ func MustNew(config Config) Logger {
 	return logger
 }
 
-// Provide is a wire provider that produces a logger from config.
-func Provide(config Config) (Logger, func(), error) {
+// Provider is a wire provider that produces a logger from config.
+func Provider(config Config) (Logger, func(), error) {
 	logger, err := New(config)
 	if err != nil {
 		return nil, nil, err

@@ -47,6 +47,7 @@ func (c *Client) ReadOnly() *Client {
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
+		ReportFilter:                NewReportFilterClient(cfg),
 		Service:                     NewServiceClient(cfg),
 		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),

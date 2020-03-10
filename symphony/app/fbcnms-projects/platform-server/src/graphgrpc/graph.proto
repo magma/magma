@@ -38,3 +38,17 @@ message AlertPayload {
     string networkID = 3;
     map<string, string> labels = 4;
 }
+
+service UserService {
+    rpc Create(UserInput) returns (User);
+    rpc Delete(UserInput) returns (google.protobuf.Empty);
+}
+
+message UserInput {
+    string tenant = 1;
+    string id = 2;
+}
+
+message User {
+    int64 id = 1;
+}

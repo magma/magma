@@ -41,6 +41,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
@@ -2503,6 +2504,57 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (rf *ReportFilter) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     rf.ID,
+		Type:   "ReportFilter",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(rf.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(rf.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(rf.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(rf.Entity); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "reportfilter.Entity",
+		Name:  "Entity",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(rf.Filters); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "Filters",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
 func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     s.ID,
@@ -3598,7 +3650,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     u.ID,
 		Type:   "User",
-		Fields: make([]*Field, 7),
+		Fields: make([]*Field, 8),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -3642,10 +3694,18 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "LastName",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(u.Status); err != nil {
+	if buf, err = json.Marshal(u.Email); err != nil {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "Email",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
 		Type:  "user.Status",
 		Name:  "Status",
 		Value: string(buf),
@@ -3653,7 +3713,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(u.Role); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[7] = &Field{
 		Type:  "user.Role",
 		Name:  "Role",
 		Value: string(buf),
@@ -4313,6 +4373,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.PropertyType.Query().
 			Where(propertytype.ID(id)).
 			CollectFields(ctx, "PropertyType").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case reportfilter.Table:
+		n, err := c.ReportFilter.Query().
+			Where(reportfilter.ID(id)).
+			CollectFields(ctx, "ReportFilter").
 			Only(ctx)
 		if err != nil {
 			return nil, err

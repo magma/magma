@@ -33,13 +33,17 @@ class EntityNotFoundError(Exception):
         entity: Entity,
         entity_id: Optional[str] = None,
         entity_name: Optional[str] = None,
+        msg: Optional[str] = None,
     ) -> None:
         self.entity: Entity = entity
-        self.entity_id: Optional[str] = entity_id
-        self.entity_name: Optional[str] = entity_name
+        self.entity_id: str = entity_id if entity_id is not None else ""
+        self.entity_name: str = entity_name if entity_name is not None else ""
+        self.msg: str = msg if msg is not None else ""
 
     def __str__(self) -> str:
         message = f"{self.entity} entity"
+        if self.msg:
+            message = "\n".join([self.msg, f"{self.entity} entity"])
         if self.entity_name:
             message = " ".join([message, f"<enitity_name: {self.entity_name}>"])
         if self.entity_id:

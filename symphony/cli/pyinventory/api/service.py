@@ -62,14 +62,7 @@ def add_service_type(
     result = AddServiceTypeMutation.execute(
         client,
         data=ServiceTypeCreateData(
-            name=name,
-            hasCustomer=hasCustomer,
-            properties=[
-                from_dict(
-                    data_class=PropertyTypeInput, data=p, config=Config(strict=True)
-                )
-                for p in new_property_types
-            ],
+            name=name, hasCustomer=hasCustomer, properties=new_property_types
         ),
     ).addServiceType
 

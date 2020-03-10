@@ -20,6 +20,7 @@ module "vpc" {
 
   create_database_subnet_group = true
   enable_dns_hostnames         = true
+  enable_dns_support           = true
   enable_nat_gateway           = length(var.vpc_private_subnets) > 0 ? true : false
   single_nat_gateway           = length(var.vpc_private_subnets) > 0 ? true : false
 
