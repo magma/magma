@@ -48,17 +48,16 @@ func TestAddAndDeleteProfileImage(t *testing.T) {
 	require.NoError(t, err)
 
 	mr, ur := r.Mutation(), r.User()
-	now := time.Now()
 	file1, err := mr.AddImage(ctx, models.AddImageInput{
 		EntityType:  models.ImageEntityUser,
 		EntityID:    u.ID,
 		ImgKey:      uuid.New().String(),
 		FileName:    "profile_photo.png",
 		FileSize:    123,
-		Modified:    now,
+		Modified:    time.Now(),
 		ContentType: "image/png",
-		Category:    nil,
 	})
+	require.NoError(t, err)
 	file, err := ur.ProfilePhoto(ctx, u)
 	require.NoError(t, err)
 	require.Equal(t, "profile_photo.png", file.Name)

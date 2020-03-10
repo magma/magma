@@ -985,19 +985,6 @@ func (r mutationResolver) MoveEquipmentToPosition(
 	return ep, nil
 }
 
-func (r mutationResolver) createHyperlink(ctx context.Context, input *models.AddHyperlinkInput) (*ent.Hyperlink, error) {
-	hyperlink, err := r.ClientFrom(ctx).
-		Hyperlink.Create().
-		SetURL(input.URL).
-		SetNillableName(input.DisplayName).
-		SetNillableCategory(input.Category).
-		Save(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "creating hyperlink: url=%q", input.URL)
-	}
-	return hyperlink, nil
-}
-
 func (r mutationResolver) createImage(ctx context.Context, input *models.AddImageInput) (*ent.File, error) {
 	img, err := r.ClientFrom(ctx).
 		File.Create().
@@ -1016,160 +1003,82 @@ func (r mutationResolver) createImage(ctx context.Context, input *models.AddImag
 		SetNillableCategory(input.Category).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "creating image: key=%q", input.ImgKey)
+		return nil, fmt.Errorf("creating image for key %q: %w", input.ImgKey, err)
 	}
 	return img, nil
 }
 
-func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error) {
-	client := r.ClientFrom(ctx)
-
+func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInput) (*ent.File, error) {
+	image, err := r.createImage(ctx, &input)
+	if err != nil {
+		return nil, err
+	}
+	var (
+		client = r.ClientFrom(ctx)
+		execer interface{ Exec(context.Context) error }
+	)
 	switch input.EntityType {
 	case models.ImageEntityLocation:
-		l, err := client.Location.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying location: id=%q", input.EntityID)
-		}
-		hyperlink, err := r.createHyperlink(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.Location.
-			UpdateOne(l).
-			AddHyperlinks(hyperlink).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding location hyperlink: location=%q, url=%q", input.EntityID, input.URL)
-		}
-		return hyperlink, nil
+		execer = client.Location.
+			UpdateOneID(input.EntityID).
+			AddFiles(image)
+	case models.ImageEntitySiteSurvey:
+		execer = client.Survey.
+			UpdateOneID(input.EntityID).
+			SetSourceFile(image)
 	case models.ImageEntityWorkOrder:
-		wo, err := client.WorkOrder.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying work order: id=%q", input.EntityID)
-		}
-		hyperlink, err := r.createHyperlink(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.WorkOrder.
-			UpdateOne(wo).
-			AddHyperlinks(hyperlink).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding work order hyperlink: workOrder=%q, url=%q", wo.ID, input.URL)
-		}
-		return hyperlink, nil
+		execer = client.WorkOrder.
+			UpdateOneID(input.EntityID).
+			AddFiles(image)
 	case models.ImageEntityEquipment:
-		eq, err := client.Equipment.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying equipment: id=%q", input.EntityID)
-		}
-		hyperlink, err := r.createHyperlink(ctx, &input)
-		if err != nil {
-			return nil, errors.Wrapf(err, "creating img: key=%q", eq.ID)
-		}
-		if err := client.Equipment.
-			UpdateOne(eq).
-			AddHyperlinks(hyperlink).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding work order hyperlink: workOrder=%q, url=%q", eq.ID, input.URL)
-		}
-		return hyperlink, nil
+		execer = client.Equipment.
+			UpdateOneID(input.EntityID).
+			AddFiles(image)
+	case models.ImageEntityUser:
+		execer = client.User.
+			UpdateOneID(input.EntityID).
+			SetProfilePhoto(image)
+	default:
+		return nil, fmt.Errorf("unknown image owner type: %s", input.EntityType)
 	}
-	return nil, nil
+	if err := execer.Exec(ctx); err != nil {
+		return nil, fmt.Errorf("adding image to type %s: %w", input.EntityType, err)
+	}
+	return image, nil
 }
 
-func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInput) (*ent.File, error) {
+func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error) {
 	client := r.ClientFrom(ctx)
-
+	hyperlink, err := client.Hyperlink.
+		Create().
+		SetURL(input.URL).
+		SetNillableName(input.DisplayName).
+		SetNillableCategory(input.Category).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating hyperlink for url %q: %w", input.URL, err)
+	}
+	var execer interface{ Exec(context.Context) error }
 	switch input.EntityType {
 	case models.ImageEntityLocation:
-		l, err := client.Location.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying location: id=%q", input.EntityID)
-		}
-		img, err := r.createImage(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.Location.
-			UpdateOne(l).
-			AddFiles(img).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding location image: location=%q, key=%q", input.EntityID, input.ImgKey)
-		}
-		return img, nil
-	case models.ImageEntitySiteSurvey:
-		srv, err := client.Survey.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying survey: id=%q", input.EntityID)
-		}
-		switch exist, err := srv.QuerySourceFile().Exist(ctx); {
-		case err != nil:
-			return nil, errors.Wrapf(err, "querying survey file: id=%q", srv.ID)
-		case exist:
-			return nil, errors.Errorf("survey source file already exist: id=%q", srv.ID)
-		}
-
-		img, err := r.createImage(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.Survey.
-			UpdateOne(srv).
-			SetSourceFile(img).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "set survey image: survey=%q, key=%q", srv.ID, input.ImgKey)
-		}
-		return img, nil
+		execer = client.Location.
+			UpdateOneID(input.EntityID).
+			AddHyperlinks(hyperlink)
 	case models.ImageEntityWorkOrder:
-		wo, err := client.WorkOrder.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying work order: id=%q", input.EntityID)
-		}
-		img, err := r.createImage(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.WorkOrder.
-			UpdateOne(wo).
-			AddFiles(img).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding work order image: workOrder=%q, key=%q", wo.ID, input.ImgKey)
-		}
-		return img, nil
+		execer = client.WorkOrder.
+			UpdateOneID(input.EntityID).
+			AddHyperlinks(hyperlink)
 	case models.ImageEntityEquipment:
-		eq, err := client.Equipment.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying equipment: id=%q", input.EntityID)
-		}
-		img, err := r.createImage(ctx, &input)
-		if err != nil {
-			return nil, errors.Wrapf(err, "creating img: key=%q", eq.ID)
-		}
-		if err := client.Equipment.
-			UpdateOne(eq).
-			AddFiles(img).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding work order image: workOrder=%q, key=%q", eq.ID, input.ImgKey)
-		}
-		return img, nil
-	case models.ImageEntityUser:
-		u, err := client.User.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying user: user=%q, key=%q", input.EntityID, input.ImgKey)
-		}
-		img, err := r.createImage(ctx, &input)
-		if err != nil {
-			return nil, errors.Wrapf(err, "creating user img: user=%q key=%q", u.ID, input.ImgKey)
-		}
-		if err := client.User.
-			UpdateOne(u).
-			SetProfilePhoto(img).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding user image: workOrder=%q, key=%q", u.ID, input.ImgKey)
-		}
-		return img, nil
+		execer = client.Equipment.
+			UpdateOneID(input.EntityID).
+			AddHyperlinks(hyperlink)
+	default:
+		return nil, fmt.Errorf("unknown hyperlink owner type: %s", input.EntityType)
 	}
-	return nil, nil
+	if err := execer.Exec(ctx); err != nil {
+		return nil, fmt.Errorf("adding hyperlink to type %s: %w", input.EntityType, err)
+	}
+	return hyperlink, nil
 }
 
 func (r mutationResolver) DeleteHyperlink(ctx context.Context, id int) (*ent.Hyperlink, error) {

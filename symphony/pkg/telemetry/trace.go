@@ -47,7 +47,7 @@ func GetTraceExporter(name string, opts TraceExporterOptions) (trace.Exporter, e
 	return f.(TraceExporterInitFunc)(opts)
 }
 
-func availableExporters(exporters sync.Map) []string {
+func availableExporters(exporters *sync.Map) []string {
 	var names []string
 	exporters.Range(func(key, _ interface{}) bool {
 		names = append(names, key.(string))
@@ -59,7 +59,7 @@ func availableExporters(exporters sync.Map) []string {
 
 // AvailableTraceExporters gets the names of registered trace exporters.
 func AvailableTraceExporters() []string {
-	return availableExporters(traceExporters)
+	return availableExporters(&traceExporters)
 }
 
 // WithoutNameSampler returns a trace sampler filtering out a set of span names.

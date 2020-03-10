@@ -38,7 +38,7 @@ func MustRegisterViewExporter(name string, f ViewExporterInitFunc) {
 
 // AvailableViewExporters gets the names of registered view exporters.
 func AvailableViewExporters() []string {
-	return availableExporters(viewExporters)
+	return availableExporters(&viewExporters)
 }
 
 // GetViewExporter gets the specified view exporter passing in the options to the exporter init function.
