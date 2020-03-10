@@ -4,7 +4,57 @@ GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
 
-OAI_FLAGS = -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True
+# FEATURES: What kind of flavours do you want your MME or AGW have in it
+# MME is MME as described in 3GPP specs, it has at least S1AP, S11, S6a 
+# interfaces.
+# AGW means Acces GateWay, is the result of the aggregation of MME, SGW and PGW.
+# First in FEATURES, select what to you want to build : mme or agw with libgtpnl
+# or agw with OVS (OpenFlow): FEATURE=mme or agw_gtpnl or agw_of
+# Then you can have other features that can be built for mme or agw : 
+# s6a with fd (freeDiameter)
+
+# Default is agw with OpenFlow, gRPC over S6a , (no freeDiameter over s6a).
+FEATURES ?= agw_of
+# EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested 
+# together.
+EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
+# AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
+AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of
+REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
+
+ifneq ($(words $(strip $(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
+  $(error Non allowed flags: "$(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST))")
+endif
+
+ifneq ($(words $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
+  ifneq ($(words $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 1)
+    $(error Exclusive flags: "$(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST))")
+  endif
+endif
+
+MAIN_FEATURE = $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))
+
+ifneq ($(words $(strip $(filter $(REQUESTED_FEATURE_LIST),s6a_fd))), 0)
+S6A_FLAGS = -DS6A_OVER_GRPC=False
+else
+#default
+S6A_FLAGS = -DS6A_OVER_GRPC=True
+endif
+
+ifeq ($(MAIN_FEATURE),mme)
+# Here force S6A to use freeDiameter
+OAI_FLAGS = -DS6A_OVER_GRPC=False
+else ifeq ($(MAIN_FEATURE),agw_gtpnl)
+OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False
+else ifeq ($(MAIN_FEATURE),agw_of)
+OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True
+else
+# default
+OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True
+endif
+
+$(info OAI_FLAGS $(OAI_FLAGS))
+
 FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
 TEST_FLAG = -DBUILD_TESTS=1
 

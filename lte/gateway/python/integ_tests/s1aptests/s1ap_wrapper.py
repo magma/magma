@@ -17,7 +17,10 @@ from integ_tests.common.magmad_client import MagmadServiceGrpc
 # from integ_tests.cloud.cloud_manager import CloudManager
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil
-from integ_tests.common.subscriber_db_client import SubscriberDbGrpc
+from integ_tests.common.subscriber_db_client import (
+    SubscriberDbGrpc,
+    SubscriberDbCassandra
+)
 from integ_tests.s1aptests.s1ap_utils import (
     MagmadUtil,
     MobilityUtil,
@@ -42,7 +45,13 @@ class TestWrapper(object):
         self._s1_util = S1ApUtil()
         self._enBConfig()
 
-        subscriber_client = SubscriberDbGrpc()
+        if self._test_oai_upstream:
+          subscriber_client = SubscriberDbCassandra()
+          self.wait_gateway_healthy = False
+        else:
+          subscriber_client = SubscriberDbGrpc()
+          self.wait_gateway_healthy = True
+
         mobility_client = MobilityServiceGrpc()
         magmad_client = MagmadServiceGrpc()
         self._sub_util = SubscriberUtil(subscriber_client)
@@ -53,7 +62,6 @@ class TestWrapper(object):
         self._magmad_util = MagmadUtil(magmad_client)
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()
-        self.wait_gateway_healthy = True
         if not self.wait_gateway_healthy:
             self.init_s1ap_tester()
 

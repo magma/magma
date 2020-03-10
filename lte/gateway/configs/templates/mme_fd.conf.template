@@ -66,32 +66,98 @@ SecPort = 5870;
 # -------- Extensions ---------
 
 # Uncomment (and create rtd.conf) to specify routing table for this peer.
-#LoadExtension = "rt_default.fdx" : "rtd.conf";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_default.fdx" : "rtd.conf";
 
-# Uncomment (and create acl.conf) to allow incoming connections from other peers.
-#LoadExtension = "acl_wl.fdx" : "acl.conf";
+#LoadExtension = "/usr/local/lib/freeDiameter/_sample.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_acct.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_diameap.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_radgw.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_redirect.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_sip.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_interactive.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_monitor.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_msg_dumps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_msg_timings.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_rt.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_3gpp2_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_CreditControl.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_CxDx.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Gx.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_NAS.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Ro.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Rx.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_S6mS6n.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_SGd.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_SLh.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Sd.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Sh.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_T4.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_T6aT6bT7.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Tsp.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_dcca.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_dcca_3gpp.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_dcca_starent.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_draftload_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_eap.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_etsi283034_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_legacy_xml.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_mip6a.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_mip6i.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_nas_mipv6.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_nasreq.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc4004_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc4006bis_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc4072_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc4590_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc5447_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc5580_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc5777_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc5778_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc6734_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc6942_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc7155_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc7683_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc7944_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_sip.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29061_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29128_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29154_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29173_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29212_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29214_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29215_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29217_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29229_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29272_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29273_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29329_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29336_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29337_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29338_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29343_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29344_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29345_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29368_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29468_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts32299_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_busypeers.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_default.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_ereg.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_ignore_dh.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_load_balance.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_randomize.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_redirect.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_acct.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_app.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_hss.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_netemul.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_rt_any.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_sip.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Rf.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_S6as6d.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_S6t.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_S6c.fdx";
 
-# Uncomment to display periodic state information
-#LoadExtension = "dbg_monitor.fdx";
-
-# Uncomment to enable an interactive Python interpreter session.
-# (see doc/dbg_interactive.py.sample for more information)
-#LoadExtension = "dbg_interactive.fdx";
-
-# Load the RFC4005 dictionary objects
-#LoadExtension = "dict_nasreq.fdx";
-
-LoadExtension = "dict_nas_mipv6.fdx";
-LoadExtension = "dict_s6a.fdx";
-
-# Load RFC4072 dictionary objects
-#LoadExtension = "dict_eap.fdx";
-
-# Load the Diameter EAP server extension (requires diameap.conf)
-#LoadExtension = "app_diameap.fdx" : "diameap.conf";
-
-# Load the Accounting Server extension (requires app_acct.conf)
-#LoadExtension = "app_acct.fdx" : "app_acct.conf";
 
 # -------- Peers ---------
 
