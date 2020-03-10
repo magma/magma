@@ -1008,6 +1008,8 @@ func (r mutationResolver) createImage(ctx context.Context, input *models.AddImag
 	return img, nil
 }
 
+type execer interface{ Exec(context.Context) error }
+
 func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInput) (*ent.File, error) {
 	image, err := r.createImage(ctx, &input)
 	if err != nil {
@@ -1015,7 +1017,7 @@ func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInp
 	}
 	var (
 		client = r.ClientFrom(ctx)
-		execer interface{ Exec(context.Context) error }
+		execer execer
 	)
 	switch input.EntityType {
 	case models.ImageEntityLocation:
@@ -1058,7 +1060,7 @@ func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHype
 	if err != nil {
 		return nil, fmt.Errorf("creating hyperlink for url %q: %w", input.URL, err)
 	}
-	var execer interface{ Exec(context.Context) error }
+	var execer execer
 	switch input.EntityType {
 	case models.ImageEntityLocation:
 		execer = client.Location.
@@ -1112,27 +1114,25 @@ func (r mutationResolver) AddComment(ctx context.Context, input models.CommentIn
 		SetText(input.Text).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating comment")
+		return nil, fmt.Errorf("creating comment: %w", err)
 	}
-
+	var execer execer
 	switch input.EntityType {
 	case models.CommentEntityWorkOrder:
-		wo, err := client.WorkOrder.Get(ctx, input.ID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying work order id=%q", input.ID)
-		}
-		err = client.WorkOrder.UpdateOne(wo).AddComments(c).Exec(ctx)
-		return c, err
+		execer = client.WorkOrder.
+			UpdateOneID(input.ID).
+			AddComments(c)
 	case models.CommentEntityProject:
-		p, err := client.Project.Get(ctx, input.ID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying project id=%q", input.ID)
-		}
-		err = client.Project.UpdateOne(p).AddComments(c).Exec(ctx)
-		return c, err
+		execer = client.Project.
+			UpdateOneID(input.ID).
+			AddComments(c)
 	default:
-		return nil, errors.New("entity type does not exist")
+		return nil, fmt.Errorf("unknown comment owner type: %s", input.EntityType)
 	}
+	if err := execer.Exec(ctx); err != nil {
+		return nil, fmt.Errorf("adding comment to type %s: %w", input.EntityType, err)
+	}
+	return c, nil
 }
 
 func (r mutationResolver) AddLink(
@@ -2900,59 +2900,50 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 }
 
 func validateFilterTypeEntity(input models.ReportFilterInput) error {
-	var valid bool
+	var validator interface{ IsValid() bool }
 	for _, f := range input.Filters {
 		switch input.Entity {
 		case models.FilterEntityEquipment:
-			casted := models.EquipmentFilterType(f.FilterType)
-			valid = casted.IsValid()
+			validator = models.EquipmentFilterType(f.FilterType)
 		case models.FilterEntityLink:
-			casted := models.LinkFilterType(f.FilterType)
-			valid = casted.IsValid()
+			validator = models.LinkFilterType(f.FilterType)
 		case models.FilterEntityLocation:
-			casted := models.LocationFilterType(f.FilterType)
-			valid = casted.IsValid()
+			validator = models.LocationFilterType(f.FilterType)
 		case models.FilterEntityPort:
-			casted := models.PortFilterType(f.FilterType)
-			valid = casted.IsValid()
+			validator = models.PortFilterType(f.FilterType)
 		case models.FilterEntityService:
-			casted := models.ServiceFilterType(f.FilterType)
-			valid = casted.IsValid()
+			validator = models.ServiceFilterType(f.FilterType)
 		case models.FilterEntityWorkOrder:
-			casted := models.WorkOrderFilterType(f.FilterType)
-			valid = casted.IsValid()
+			validator = models.WorkOrderFilterType(f.FilterType)
 		}
-		if !valid {
-			return fmt.Errorf("entity (%s) and filter type does not match: %s", input.Entity, f.FilterType)
+		if validator == nil || !validator.IsValid() {
+			return fmt.Errorf("entity %q and filter type %q does not match", input.Entity, f.FilterType)
 		}
 	}
 	return nil
 }
 
 func (r mutationResolver) AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error) {
-	client := r.ClientFrom(ctx)
-	err := validateFilterTypeEntity(input)
+	if err := validateFilterTypeEntity(input); err != nil {
+		return nil, err
+	}
+	filters, err := json.Marshal(input.Filters)
 	if err != nil {
 		return nil, err
 	}
-	fstr, err := json.Marshal(input.Filters)
-	if err != nil {
-		return nil, err
-	}
-	rf, err := client.ReportFilter.Create().
+	return r.ClientFrom(ctx).
+		ReportFilter.
+		Create().
 		SetName(input.Name).
 		SetEntity(reportfilter.Entity(input.Entity)).
-		SetFilters(string(fstr)).
+		SetFilters(string(filters)).
 		Save(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return rf, nil
 }
 
 func (r mutationResolver) EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error) {
-	client := r.ClientFrom(ctx)
-	return client.ReportFilter.UpdateOneID(input.ID).
+	return r.ClientFrom(ctx).
+		ReportFilter.
+		UpdateOneID(input.ID).
 		SetName(input.Name).
 		Save(ctx)
 }
