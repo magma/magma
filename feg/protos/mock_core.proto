@@ -12,6 +12,7 @@ import "feg/protos/csfb.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
+import "google/protobuf/timestamp.proto";
 
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
@@ -97,6 +98,10 @@ service MockOCS {
     rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
     rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
     rpc ReAuth(ReAuthTarget) returns (ReAuthAnswer) {}
+
+    // Todo
+    // rpc SetExpectations(Expectations) returns (magma.orc8r.Void) {}
+    // rpc AssertExpectations(magma.orc8r.Void) returns (AssertExpectationsResult) {}
 }
 
 message OCSConfig {
@@ -127,10 +132,18 @@ message ReAuthAnswer {
 }
 
 service MockPCRF {
+    rpc SetPCRFConfigs(PCRFConfigs) returns (magma.orc8r.Void) {}
     rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
-    rpc SetRules(AccountRules) returns (magma.orc8r.Void) {}
-    rpc SetUsageMonitors(UsageMonitorInfo) returns (magma.orc8r.Void) {}
-    rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
+    rpc SetRules (AccountRules) returns (magma.orc8r.Void) {}
+    rpc SetUsageMonitors (UsageMonitorConfiguration) returns (magma.orc8r.Void) {}
+    rpc ClearSubscribers (magma.orc8r.Void) returns (magma.orc8r.Void) {}
+
+    rpc SetExpectations(GxCreditControlExpectations) returns (magma.orc8r.Void) {}
+    rpc AssertExpectations(magma.orc8r.Void) returns (GxCreditControlResult) {}
+}
+
+message PCRFConfigs {
+    bool use_mock_driver = 1;
 }
 
 message AccountRules {
@@ -150,23 +163,132 @@ message RuleDefinition {
 	magma.lte.FlowQos qos_information = 8;
 }
 
-message UsageMonitorInfo {
+message UsageMonitorConfiguration {
     string imsi = 1;
-    repeated UsageMonitorCredit usage_monitor_credits = 2;
+    repeated UsageMonitor usage_monitor_credits = 2;
 }
 
-message UsageMonitorCredit {
-    enum MonitoringLevel {
-        SessionLevel = 0;
-        RuleLevel = 1;
-    }
-    string monitoring_key = 1;
-    MonitoringLevel monitoring_level = 2;
+enum MonitoringLevel {
+    SessionLevel = 0;
+    RuleLevel = 1;
+}
 
-    // the amount of quota the PCRF grants per Usage Monitor Request
-    Octets quota_grant_per_request = 3;
+message UsageMonitor {
+    // the usage monitoring information the PCRF sends per answer
+    UsageMonitoringInformation monitor_info_per_request = 1;
     // the total amount of quota assigned to the monitoring key
-    Octets total_quota = 4;
+    Octets total_quota = 2;
+}
+
+enum CCRequestType {
+    // proto3 requires enums to start at value 0. This should not be used.
+    _INVALID = 0;
+    INITIAL = 1;
+    UPDATE = 2;
+    TERMINATION = 3;
+}
+
+message GxCreditControlExpectations {
+    repeated GxCreditControlExpectation expectations = 1;
+    enum UnexpectedRequestBehavior {
+        // Answer with a permanent failure diameter code, then the session will
+        // be terminated. This will be the default behavior unless default CCAs
+        // are specified
+        CONTINUE_WITH_ERROR = 0;
+        CONTINUE_WITH_DEFAULT_ANSWER = 1;
+    }
+    UnexpectedRequestBehavior unexpected_request_behavior = 2;
+    GxCreditControlAnswer gx_default_cca = 3;
+    Octets total_expected_usage = 4;
+}
+
+message GxCreditControlResult {
+    repeated ExpectationResult results = 1;
+    repeated ErrorByIndex errors = 2;
+}
+
+message ErrorByIndex {
+    int32 index = 1;
+    string error = 2;
+}
+
+message ExpectationResult {
+    int32 expectation_index = 1;
+    bool expectation_met = 2;
+}
+
+message GxCreditControlExpectation {
+    GxCreditControlRequest expected_request = 1;
+    GxCreditControlAnswer answer = 2;
+}
+
+message GxCreditControlRequest {
+    string imsi = 1;
+    CCRequestType request_type = 2;
+    uint32 request_number = 3;
+
+    repeated UsageMonitoringInformation usage_monitoring_reports = 11;
+    // As long as we use real traffic for the test, usage reporting will differ
+    // each time. So this field will specify the acceptable range for the
+    // value. We will accept a request as matching if
+    // (expected report - delta) < actual report < (expected report + delta)
+    uint64 usage_report_delta = 12;
+}
+
+message GxCreditControlAnswer {
+    // request type and request number will be taken from the request
+    uint32 result_code = 1;
+
+    repeated UsageMonitoringInformation usage_monitoring_infos = 11;
+    RuleInstalls rule_installs = 12;
+    RuleRemovals rule_removals = 13;
+    // TODO repeated magma.lte.EventTrigger event_triggers = 14;
+    // TODO google.protobuf.Timestamp revalidation_time = 15;
+}
+
+message GyCreditControlExpectation {
+    GyCreditControlRequest expected_request = 1;
+    GyCreditControlAnswer answer = 2;
+}
+
+message GyCreditControlRequest {
+    string imsi = 1;
+    CCRequestType request_type = 2;
+    uint32 request_number = 3;
+    QosInfo qos_info = 21;
+}
+
+message GyCreditControlAnswer {
+    CCRequestType request_type = 1;
+    uint32 request_number = 2;
+    uint32 result_code = 3;
+}
+
+// AVP: 1067
+message UsageMonitoringInformation {
+    bytes monitoring_key = 1;
+    MonitoringLevel monitoring_level = 2;
+    Octets octets = 3;
+}
+
+message QosInfo {
+    // AVP: 1041
+    uint32 apn_agg_max_bit_rate_ul = 1;
+    // AVP: 1040
+    uint32 apn_agg_max_bit_rate_dl = 2;
+}
+
+message RuleInstalls {
+    repeated string rule_names = 1;
+    repeated string rule_base_names = 2;
+    repeated RuleDefinition rule_definitions = 3;
+    google.protobuf.Timestamp activation_time = 4;
+    google.protobuf.Timestamp deactivation_time = 5;
+}
+
+message RuleRemovals {
+    repeated string rule_names = 1;
+    repeated string rule_base_names = 2;
 }
 
 message Octets {
