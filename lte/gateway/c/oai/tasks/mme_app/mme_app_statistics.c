@@ -95,19 +95,19 @@ int mme_app_statistics_display(void)
 // Number of Connected eNBs
 void update_mme_app_stats_connected_enb_add(void)
 {
-  mme_app_desc_t *mme_app_desc_p = get_locked_mme_nas_state(false);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   (mme_app_desc_p->nb_enb_connected)++;
   (mme_app_desc_p->nb_enb_connected_since_last_stat)++;
-  put_mme_nas_state(&mme_app_desc_p);
+  put_mme_nas_state();
   return;
 }
 void update_mme_app_stats_connected_enb_sub(void)
 {
-  mme_app_desc_t *mme_app_desc_p = get_locked_mme_nas_state(false);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   if (mme_app_desc_p->nb_enb_connected != 0)
     (mme_app_desc_p->nb_enb_connected)--;
   (mme_app_desc_p->nb_enb_released_since_last_stat)++;
-  put_mme_nas_state(&mme_app_desc_p);
+  put_mme_nas_state();
   return;
 }
 

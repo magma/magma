@@ -96,7 +96,7 @@ void *mme_app_thread(void *args)
       LOG_MME_APP, "Received message with imsi: " IMSI_64_FMT, imsi64);
 
     OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
-    mme_app_desc_p = get_locked_mme_nas_state(false);
+    mme_app_desc_p = get_mme_nas_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
@@ -422,7 +422,7 @@ void *mme_app_thread(void *args)
 
      case TERMINATE_MESSAGE: {
        // Termination message received TODO -> release any data allocated
-        put_mme_nas_state(&mme_app_desc_p);
+        put_mme_nas_state();
         mme_app_exit();
         itti_free_msg_content(received_message_p);
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -439,7 +439,7 @@ void *mme_app_thread(void *args)
       } break;
     }
 
-    put_mme_nas_state(&mme_app_desc_p);
+    put_mme_nas_state();
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;

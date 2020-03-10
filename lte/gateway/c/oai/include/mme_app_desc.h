@@ -35,9 +35,6 @@ typedef struct mme_app_desc_s {
   long statistic_timer_id;
   uint32_t statistic_timer_period;
 
-  /* Reader/writer lock */
-  pthread_rwlock_t rw_lock;
-
   /* ***************Statistics*************
    * number of attached UE,number of connected UE,
    * number of idle UE,number of default bearers,
