@@ -22,6 +22,7 @@ import (
 	magmaerrors "magma/orc8r/lib/go/errors"
 
 	entsql "github.com/facebookincubator/ent/dialect/sql"
+	"github.com/thoas/go-funk"
 )
 
 func NewEntStorage(tableName string, db *sql.DB, builder sqorc.StatementBuilder) BlobStorageFactory {
@@ -93,7 +94,35 @@ func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob
 }
 
 func (e *entStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
-	panic("not implemented")
+	ctx := context.Background()
+
+	preds := []predicate.Blob{}
+	if filter.NetworkID != nil {
+		preds = append(preds, blob.NetworkID(*filter.NetworkID))
+	}
+	if !funk.IsEmpty(filter.Types) {
+		preds = append(preds, blob.TypeIn(filter.GetTypes()...))
+	}
+	if !funk.IsEmpty(filter.Keys) {
+		preds = append(preds, blob.KeyIn(filter.GetKeys()...))
+	}
+
+	var blobs []blobWithNetworkID
+	err := e.Blob.Query().
+		Where(blob.And(preds...)).
+		Select(blob.FieldNetworkID, blob.FieldType, blob.FieldKey, blob.FieldValue, blob.FieldVersion).
+		Scan(ctx, &blobs)
+	if err != nil {
+		return map[string][]Blob{}, err
+	}
+
+	ret := map[string][]Blob{}
+	for _, b := range blobs {
+		nidCol := ret[b.NetworkID]
+		nidCol = append(nidCol, b.toBlob())
+		ret[b.NetworkID] = nidCol
+	}
+	return ret, nil
 }
 
 func (e *entStorage) IncrementVersion(networkID string, id storage.TypeAndKey) error {
@@ -186,4 +215,21 @@ func P(networkID string, ids []storage.TypeAndKey) predicate.Blob {
 		preds = append(preds, blob.And(blob.NetworkID(networkID), blob.Type(id.Type), blob.Key(id.Key)))
 	}
 	return blob.Or(preds...)
+}
+
+type blobWithNetworkID struct {
+	NetworkID string `json:"network_id,omitempty"`
+	Type      string
+	Key       string
+	Value     []byte
+	Version   uint64
+}
+
+func (b blobWithNetworkID) toBlob() Blob {
+	return Blob{
+		Type:    b.Type,
+		Key:     b.Key,
+		Value:   b.Value,
+		Version: b.Version,
+	}
 }

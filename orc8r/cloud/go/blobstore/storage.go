@@ -9,6 +9,8 @@
 package blobstore
 
 import (
+	"sort"
+
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/thoas/go-funk"
@@ -62,6 +64,20 @@ func (sf SearchFilter) DoesTKMatch(tk storage.TypeAndKey) bool {
 		return false
 	}
 	return true
+}
+
+// GetTypes returns the types for this search filter sorted
+func (sf SearchFilter) GetTypes() []string {
+	ret := funk.Keys(sf.Types).([]string)
+	sort.Strings(ret)
+	return ret
+}
+
+// GetKeys returns the keys for this search filter sorted
+func (sf SearchFilter) GetKeys() []string {
+	ret := funk.Keys(sf.Keys).([]string)
+	sort.Strings(ret)
+	return ret
 }
 
 // BlobStorageFactory is an API to create a storage API bound to a transaction.

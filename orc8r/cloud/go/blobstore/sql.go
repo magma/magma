@@ -187,7 +187,46 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 }
 
 func (store *sqlBlobStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
-	panic("not implemented")
+	ret := map[string][]Blob{}
+	if err := store.validateTx(); err != nil {
+		return ret, err
+	}
+
+	// Use and condition to deterministically order clauses for testing
+	whereCondition := sq.And{}
+	if filter.NetworkID != nil {
+		whereCondition = append(whereCondition, sq.Eq{nidCol: *filter.NetworkID})
+	}
+	if !funk.IsEmpty(filter.Types) {
+		whereCondition = append(whereCondition, sq.Eq{typeCol: filter.GetTypes()})
+	}
+	if !funk.IsEmpty(filter.Keys) {
+		whereCondition = append(whereCondition, sq.Eq{keyCol: filter.GetKeys()})
+	}
+	rows, err := store.builder.Select(nidCol, typeCol, keyCol, valCol, verCol).From(store.tableName).
+		Where(whereCondition).
+		RunWith(store.tx).
+		Query()
+	if err != nil {
+		return ret, errors.Wrap(err, "failed to query DB")
+	}
+	defer sqorc.CloseRowsLogOnError(rows, "GetMany")
+
+	for rows.Next() {
+		var nid, t, k string
+		var val []byte
+		var version uint64
+
+		err = rows.Scan(&nid, &t, &k, &val, &version)
+		if err != nil {
+			return map[string][]Blob{}, errors.Wrap(err, "failed to scan blob row")
+		}
+
+		nidCol := ret[nid]
+		nidCol = append(nidCol, Blob{Type: t, Key: k, Value: val, Version: version})
+		ret[nid] = nidCol
+	}
+	return ret, nil
 }
 
 func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) error {

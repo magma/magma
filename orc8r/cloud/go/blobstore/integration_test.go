@@ -10,7 +10,6 @@ package blobstore_test
 
 import (
 	"sort"
-	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -159,7 +158,6 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 
 	network2 := "network2"
 	existingKeys, err = store.GetExistingKeys([]string{"k1", "k3", "k4", "k9", "k8"}, blobstore.SearchFilter{NetworkID: &network2})
-	t.Log(existingKeys)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"k3", "k4"}, existingKeys)
 	assert.NoError(t, store.Commit())
@@ -394,16 +392,6 @@ func runSearchTestCases(t *testing.T, fact blobstore.BlobStorageFactory) {
 }
 
 func runSearchTestCase(t *testing.T, store blobstore.TransactionalBlobStorage, tc searchTestCase) {
-	// Swallow not implemented panics until Search is implemented everywhere
-	defer func() {
-		r := recover()
-		panicStr, ok := r.(string)
-		if ok {
-			if strings.ToLower(panicStr) != "not implemented" {
-				panic(r)
-			}
-		}
-	}()
 	searchActual, err := store.Search(blobstore.CreateSearchFilter(tc.nid, tc.types, tc.keys))
 	assert.NoError(t, err)
 	sortSearchOutput(searchActual)
