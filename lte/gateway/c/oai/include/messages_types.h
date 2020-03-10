@@ -32,9 +32,8 @@
 
 #include "intertask_messages_types.h"
 #include "timer_messages_types.h"
-
+#include <inttypes.h>
 #include "security_types.h"
-
 #include "gtpv1_u_messages_types.h"
 #include "ip_forward_messages_types.h"
 #include "s11_messages_types.h"
@@ -47,5 +46,6 @@
 #include "service303_messages_types.h"
 #include "sgs_messages_types.h"
 #include "async_system_messages_types.h"
+#include "udp_messages_types.h"
 
 #endif /* FILE_MESSAGES_TYPES_SEEN */

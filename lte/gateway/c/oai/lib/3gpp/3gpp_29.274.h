@@ -120,6 +120,8 @@ typedef enum gtpv2c_cause_value_e {
   UE_ALREADY_RE_ATTACHED = 115,
   M_PDN_APN_NOT_ALLOWED =
     116, ///< Multiple PDN connections for a given APN not allowed.
+  LATE_OVERLAPPING_REQUEST =
+      121,  ///< If the response message has not been received yet..
   SGW_CAUSE_MAX
 } gtpv2c_cause_value_t;
 
@@ -306,5 +308,15 @@ typedef struct bearer_context_within_create_bearer_response_s {
          ///< precedence over the PCO IE in the message body if they
          ///< both exist.
 } bearer_context_within_create_bearer_response_t;
+
+//-------------------------------------
+// 8.16 Flow Quality of Service (Flow QoS)
+
+typedef struct flow_qos_s {
+  uint8_t  qci;
+  ambr_t   gbr;           ///< Guaranteed bit rate
+  ambr_t   mbr;           ///< Maximum bit rate
+} flow_qos_t;
+
 
 #endif /* FILE_3GPP_29_274_SEEN */

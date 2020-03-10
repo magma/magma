@@ -40,6 +40,7 @@
 #include <sys/time.h>
 #include <liblfds710.h>
 
+#include "msc.h"
 #include "log.h"
 #include "bstrlib.h"
 
@@ -63,6 +64,7 @@ typedef struct shared_log_queue_item_s {
   sh_ts_log_app_id_t app_id; /*!< \brief application identifier. */
   bstring bstr;              /*!< \brief string containing the message. */
   union {
+    msc_private_t msc;
     log_private_t log; /*!< \brief string containing the message. */
   } u_app_log;
 } shared_log_queue_item_t;

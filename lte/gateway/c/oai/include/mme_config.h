@@ -190,16 +190,19 @@ typedef struct s1ap_config_s {
   uint8_t outcome_drop_timer_sec;
 } s1ap_config_t;
 
-typedef struct ipv4_s {
+typedef struct ip_s {
   bstring if_name_s1_mme;
-  struct in_addr s1_mme;
+  struct in_addr s1_mme_v4;
+  struct in6_addr s1_mme_v6;
   int netmask_s1_mme;
 
   bstring if_name_s11;
-  struct in_addr s11;
+  struct in_addr s11_mme_v4;
+  struct in6_addr s11_mme_v6;
   int netmask_s11;
   uint16_t port_s11;
-} ipv4_t;
+
+} ip_t;
 
 typedef struct s6a_config_s {
   bstring conf_file;
@@ -291,7 +294,7 @@ typedef struct mme_config_s {
   log_config_t log_config;
   e_dns_config_t e_dns_emulation;
 
-  ipv4_t ipv4;
+  ip_t ip;
 
   lai_t lai;
 

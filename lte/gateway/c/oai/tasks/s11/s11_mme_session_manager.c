@@ -31,6 +31,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #include "bstrlib.h"
 
@@ -41,13 +42,15 @@
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "hashtable.h"
-#include "msc.h"
+#include "dynamic_memory_check.h"
 
 #include "NwGtpv2c.h"
 #include "NwGtpv2cIe.h"
 #include "NwGtpv2cMsg.h"
 #include "NwGtpv2cMsgParser.h"
+#include "sgw_ie_defs.h"
 
+#include "mme_app_ue_context.h"
 #include "s11_common.h"
 #include "s11_mme_session_manager.h"
 
@@ -144,12 +147,12 @@ s11_mme_create_session_request (
   if(req_p->pco.num_protocol_or_container_id){
     gtpv2c_pco_ie_set (&(ulp_req.hMsg), &req_p->pco);
   }
-  if(req_p->bearer_contexts_to_be_created->num_bearer_context > 1){
+  if(req_p->bearer_contexts_to_be_created.num_bearer_context > 1){
 	  gtpv2c_ebi_ie_set (&(ulp_req.hMsg), (unsigned)req_p->default_ebi, NW_GTPV2C_IE_INSTANCE_ZERO);
   }
 
-  for (int i = 0; i < req_p->bearer_contexts_to_be_created->num_bearer_context; i++) {
-    gtpv2c_bearer_context_to_be_created_ie_set (&(ulp_req.hMsg), &req_p->bearer_contexts_to_be_created->bearer_context[i]);
+  for (int i = 0; i < req_p->bearer_contexts_to_be_created.num_bearer_context; i++) {
+    gtpv2c_bearer_context_to_be_created_ie_set (&(ulp_req.hMsg), &req_p->bearer_contexts_to_be_created.bearer_contexts[i]);
   }
   rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
   DevAssert (NW_OK == rc);
@@ -213,17 +216,16 @@ s11_mme_handle_create_session_response (
    * Linked EBI
    */
 
-  rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_EBI, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL, gtpv2c_ebi_ie_get,
-      &resp_p->linked_eps_bearer_id);
-  DevAssert (NW_OK == rc);
-
+  //rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_EBI, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL, gtpv2c_ebi_ie_get,
+    //  &resp_p->linked_eps_bearer_id);
+  //DevAssert (NW_OK == rc);
   /*
    * PAA IE
    */
   /** Allocate the PAA IE. */
-  resp_p->paa = calloc (1, sizeof(paa_t));
+  //resp_p->paa = calloc (1, sizeof(paa_t));
   rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_PAA, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
-      gtpv2c_paa_ie_get, resp_p->paa);
+      gtpv2c_paa_ie_get, &resp_p->paa);
   DevAssert (NW_OK == rc);
   /*
    * APN RESTRICTION
@@ -269,7 +271,7 @@ s11_mme_handle_create_session_response (
     DevAssert (NW_OK == rc);
     rc = nwGtpv2cMsgDelete (*stack_p, (pUlpApi->hMsg));
     DevAssert (NW_OK == rc);
-    if(resp_p->paa)
+    if(&resp_p->paa)
     	free_wrapper((void**)&resp_p->paa);
     itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
     message_p = NULL;
@@ -285,7 +287,7 @@ s11_mme_handle_create_session_response (
   if(resp_p->cause.cause_value == LATE_OVERLAPPING_REQUEST){
 	  pUlpApi->u_api_info.triggeredRspIndInfo.trx_flags |= LATE_OVERLAPPING_REQUEST;
 	  OAILOG_WARNING (LOG_S11, "Received a late overlapping request. Not forwarding message to MME_APP layer. \n");
-	  if(resp_p->paa)
+	  if(&resp_p->paa)
 		  free_wrapper((void**)&resp_p->paa);
 	  itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
 	  message_p = NULL;
@@ -532,44 +534,51 @@ s11_mme_handle_ulp_error_indicatior(
    }
      break;
        /** Failed commands. */
-  case NW_GTP_DELETE_BEARER_CMD:
-  {
+  
+  
+  //case NW_GTP_DELETE_BEARER_CMD:
+  //{
     /**
      * We will omit the error and send success back.
      * UE context should always be removed.
-     */
+     
+    
     itti_s11_delete_bearer_failure_indication_t            *ind_p;
     message_p = itti_alloc_new_message (TASK_S11, S11_DELETE_BEARER_FAILURE_INDICATION);
     ind_p = &message_p->ittiMsg.s11_delete_bearer_failure_indication;
-    /** Set the destination TEID (our TEID). */
-    ind_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
-    /** Set the transaction for the triggered acknowledgment. */
-    ind_p->trxn = (void *)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
-    /** Set the cause. */
-    ind_p->cause.cause_value = SYSTEM_FAILURE; /**< Would mean that this message either did not come at all or could not be dealt with properly. */
-  }
-  break;
+     Set the destination TEID (our TEID). 
+    
+    //ind_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
+    //Set the transaction for the triggered acknowledgment. 
+    
+    //ind_p->trxn = (void *)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
+    //Set the cause. 
+ 
+    //ind_p->cause.cause_value = SYSTEM_FAILURE; < Would mean that this message either did not come at all or could not be dealt with properly. 
+  //}
+  //break;
 
-  /** Failed commands --> Send to NAS_ESM layer.. */
-  case NW_GTP_BEARER_RESOURCE_CMD:
-  {
-	  /**
+  // Failed commands --> Send to NAS_ESM layer.. 
+  //case NW_GTP_BEARER_RESOURCE_CMD:
+  //{
+	  /
        * We will omit the error and send success back.
        * UE context should always be removed.
        */
-      itti_s11_bearer_resource_failure_indication_t            *ind_p;
-      message_p = itti_alloc_new_message (TASK_S11, S11_BEARER_RESOURCE_FAILURE_INDICATION);
-      ind_p = &message_p->ittiMsg.s11_bearer_resource_failure_indication;
+    //  itti_s11_bearer_resource_failure_indication_t            *ind_p;
+     // message_p = itti_alloc_new_message (TASK_S11, S11_BEARER_RESOURCE_FAILURE_INDICATION);
+      //ind_p = &message_p->ittiMsg.s11_bearer_resource_failure_indication;
       /** Set the destination TEID (our TEID). */
-      ind_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
+     // ind_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
       /** Set the transaction for the triggered acknowledgment. */
-      ind_p->trxn = (void *)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
+     // ind_p->trxn = (void *)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
       /** Set the PTI from the flags. */
-      ind_p->pti  = pUlpApi->u_api_info.rspFailureInfo.trx_flags;
+     // ind_p->pti  = pUlpApi->u_api_info.rspFailureInfo.trx_flags;
       /** Set the cause. */
-      ind_p->cause.cause_value = SYSTEM_FAILURE; /**< Would mean that this message either did not come at all or could not be dealt with properly. */
-  }
+     // ind_p->cause.cause_value = SYSTEM_FAILURE; /**< Would mean that this message either did not come at all or could not be dealt with properly. */
+ // }
   /** Send this one directly to the ESM. */
+  
   int rc = itti_send_msg_to_task (TASK_NAS_ESM, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN (LOG_S11, rc);
 

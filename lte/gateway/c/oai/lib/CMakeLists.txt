@@ -19,4 +19,4 @@ add_subdirectory(openflow/controller) # LIB_OPENFLOW_CONTROLLER
 endif (ENABLE_OPENFLOW)
 else (EMBEDDED_SGW)
   add_subdirectory(gtpv2-c) # LIB_GTPV2C
-endif (NOT EMBEDDED_SGW)
+endif ( EMBEDDED_SGW)
