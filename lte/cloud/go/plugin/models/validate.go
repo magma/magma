@@ -269,7 +269,7 @@ const (
 	lteAuthOpcLength = 16
 )
 
-func (m *Subscriber) ValidateModel() error {
+func (m *MutableSubscriber) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
