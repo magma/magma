@@ -150,6 +150,23 @@ func GetGyClientConfiguration() *diameter.DiameterClientConfig {
 	}
 }
 
+func GetGyGlobalConfig() *GyGlobalConfig {
+	configsPtr := &mconfig.SessionProxyConfig{}
+	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
+	siStr := diameter.GetValueOrEnv(OCSServiceIdentifierFlag, OCSServiceIdentifierEnv, "")
+	if err != nil || !validGyConfig(configsPtr) {
+		log.Printf("%s Managed Gy Server Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
+		return &GyGlobalConfig{
+			OCSOverwriteApn:      diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, ""),
+			OCSServiceIdentifier: siStr,
+		}
+	}
+	return &GyGlobalConfig{
+		OCSOverwriteApn:      diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, configsPtr.GetGy().GetOverwriteApn()),
+		OCSServiceIdentifier: siStr,
+	}
+}
+
 // check if required fields related to Gy are valid in the config
 func validGyConfig(config *mconfig.SessionProxyConfig) bool {
 	if config == nil || config.Gy == nil || config.Gy.Server == nil || config.Gy.Server.Address == "" {
