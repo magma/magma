@@ -76,8 +76,6 @@ add_boolean_option(S1AP_DEBUG_LIST                 False    "Traces, option to b
 add_boolean_option(SCTP_DUMP_LIST                  False    "Traces, option to be removed soon")
 add_boolean_option(TRACE_HASHTABLE                 False    "Trace hashtables operations ")
 add_boolean_option(TRACE_3GPP_SPEC                 True     "Log hits of 3GPP specifications requirements")
-add_boolean_option(ENABLE_OPENFLOW                 False    "Openflow based dataplane")
-add_boolean_option(EMBEDDED_SGW                    False    "Add the SPGW task to the MME binary")
 add_boolean_option(LINK_GCOV                       False    "Whether to link gcov")
 
 if (EMBEDDED_SGW)
