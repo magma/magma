@@ -8,17 +8,17 @@
  * @format
  */
 
+import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import React, {useCallback} from 'react';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
-import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
-import type {BasicCheckListItemDefinition_item} from './__generated__/BasicCheckListItemDefinition_item.graphql';
 
 type Props = {
-  item: BasicCheckListItemDefinition_item,
-  onChange: (updatedChecklistItem: BasicCheckListItemDefinition_item) => void,
+  item: CheckListItem,
+  onChange?: (updatedItem: CheckListItem) => void,
 };
 
 const useStyles = makeStyles(() => ({
@@ -32,8 +32,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const BasicCheckListItemDefinition = (props: Props) => {
-  const {item, onChange} = props;
+const BasicCheckListItemDefinition = ({item, onChange}: Props) => {
   const classes = useStyles();
 
   const _updateOnChange = useCallback(
@@ -42,7 +41,7 @@ const BasicCheckListItemDefinition = (props: Props) => {
         ...item,
         title: newTitle,
       };
-      onChange(newItem);
+      onChange && onChange(newItem);
     },
     [item, onChange],
   );
@@ -64,12 +63,4 @@ const BasicCheckListItemDefinition = (props: Props) => {
   );
 };
 
-export default createFragmentContainer(BasicCheckListItemDefinition, {
-  item: graphql`
-    fragment BasicCheckListItemDefinition_item on CheckListItem {
-      title
-      checked
-      ...CheckListItem_item
-    }
-  `,
-});
+export default BasicCheckListItemDefinition;
