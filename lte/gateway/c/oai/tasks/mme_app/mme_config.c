@@ -1186,9 +1186,6 @@ void mme_config_display(mme_config_t *config_pP)
     "Built with EMBEDDED_SGW .................: %d\n", EMBEDDED_SGW);
   OAILOG_DEBUG(
     LOG_CONFIG,
-    "Built with ENABLE_OPENFLOW ..............: %d\n", ENABLE_OPENFLOW);
-  OAILOG_DEBUG(
-    LOG_CONFIG,
     "Built with S6A_OVER_GRPC .....................: %d\n", S6A_OVER_GRPC);
 
 #if DEBUG_IS_ON
