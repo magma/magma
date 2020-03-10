@@ -30,7 +30,6 @@ endif()
 
 
 add_executable(mme
-    ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme_log.c
     ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme.c
     ${PROJECT_SOURCE_DIR}/common/common_types.c
     ${PROJECT_SOURCE_DIR}/common/itti_free_defined_msg.c
