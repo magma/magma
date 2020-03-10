@@ -72,7 +72,7 @@ class SqliteStore(BaseStore):
         """
         subscriber_id = SIDUtils.to_str(subscriber_data.sid)
         for apn in subscriber_data.non_3gpp.apn_config:
-            duplicate_id = False
+            duplicate_sid = False
             # Add the subscriber ID in apnDB
             sids = SubscriberIDSet()
             res = self.conn.execute(
@@ -96,9 +96,9 @@ class SqliteStore(BaseStore):
                 # Now add the new sids received from test script/cli
                 for sid_idx in stored_sid_data.sids:
                     if sid_idx.id == subscriber_id:
-                        duplicate_id = True
+                        duplicate_sid = True
                         break
-                if not duplicate_id:
+                if not duplicate_sid:
                     sid_data = sids.sids.add()
                     sid_data.id = subscriber_id
             else:
@@ -307,6 +307,7 @@ class SqliteStore(BaseStore):
                     self._delete_sid_from_apndb(
                         apn.service_selection, subscriber_id,
                     )
+                # Ignore the exception
                 except ApnNotFoundError:
                     continue
             self.conn.execute(

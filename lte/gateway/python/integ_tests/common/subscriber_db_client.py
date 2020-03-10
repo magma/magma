@@ -136,10 +136,9 @@ class SubscriberDbGrpc(SubscriberDbClient):
         state.lte_auth_next_seq = 1
         if apn_list:
             usr_prof = Non3GPPUserProfile()
-            num_apn = len(apn_list)
-            for idx in range(num_apn):
+            for apn in apn_list:
                 apn_config = usr_prof.apn_config.add()
-                apn_config.service_selection = apn_list[idx]
+                apn_config.service_selection = apn
             return SubscriberData(
                 sid=sub_db_sid, lte=lte, state=state, non_3gpp=usr_prof
             )
@@ -223,9 +222,9 @@ class SubscriberDbGrpc(SubscriberDbClient):
         sids = ['IMSI' + sid.id for sid in sids_pb]
         return sids
 
-    def add_apn_details(self, apn):
-        for apn_config in apn:
-            apn_config = self._get_apn_data(apn_config)
+    def add_apn_details(self, apn_data):
+        for apn in apn_data:
+            apn_config = self._get_apn_data(apn)
             SubscriberDbGrpc._try_to_call(
                 lambda: self._subscriber_stub.AddApn(apn_config)
             )

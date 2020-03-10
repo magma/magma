@@ -279,21 +279,6 @@ class Processor(GSMProcessor, LTEProcessor):
         sub_data = self._store.get_subscriber_data(sid)
         return sub_data
 
-    def get_apn_data(self, apn_name):
-        """
-        Returns the apn profile for subscriber.
-        Args:
-            apn_name : name of the APN
-        Returns:
-            SubscriberData proto struct
-        """
-        non_3gpp = Non3GPPUserProfile()
-        apn_config = non_3gpp.apn_config.add()
-        apn_config.service_selection = apn_name
-        sub_data = SubscriberData(non_3gpp=non_3gpp)
-        apn_data = self._store.get_apn_config(sub_data)
-        return apn_data
-
     @classmethod
     def seq_to_sqn(cls, seq, ind=0):
         """Compute the 48 bit SQN given a seq given the formula defined in
