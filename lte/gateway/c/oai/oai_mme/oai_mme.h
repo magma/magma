@@ -55,6 +55,4 @@
 
 int main(int argc, char *argv[]);
 
-int oai_mme_log_specific(int log_level);
-
 #endif /* FILE_OAISIM_MME_SEEN */
