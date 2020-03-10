@@ -40,9 +40,9 @@
 #include "assertions.h"
 #include "hashtable.h"
 #include "log.h"
-//#include "msc.h"
+#include "msc.h"
 #include "mme_config.h"
-//#include "intertask_interface.h"
+#include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "timer.h"
 #include "NwLog.h"
@@ -51,7 +51,8 @@
 #include "s11_mme.h"
 #include "s11_mme_session_manager.h"
 #include "s11_mme_bearer_manager.h"
-
+#include "udp_messages_types.h"
+#include "s11_messages_types.h"
 
 
 static nw_gtpv2c_stack_handle_t             s11_mme_stack_handle = 0;
@@ -59,6 +60,7 @@ static nw_gtpv2c_stack_handle_t             s11_mme_stack_handle = 0;
 hash_table_ts_t                        *s11_mme_teid_2_gtv2c_teid_handle = NULL;
 
 static void s11_mme_exit (void);
+
 
 //------------------------------------------------------------------------------
 static nw_rc_t
@@ -195,9 +197,9 @@ s11_mme_start_timer_wrapper (
   int                                     ret = 0;
 
   if (tmrType == NW_GTPV2C_TMR_TYPE_REPETITIVE) {
-    ret = timer_setup (timeoutSec, timeoutUsec, TASK_S11, INSTANCE_DEFAULT, TIMER_PERIODIC, timeoutArg, &timer_id);
+    ret = timer_setup (timeoutSec, timeoutUsec, TASK_S11, INSTANCE_DEFAULT, TIMER_PERIODIC, timeoutArg, 0, &timer_id);
   } else {
-    ret = timer_setup (timeoutSec, timeoutUsec, TASK_S11, INSTANCE_DEFAULT, TIMER_ONE_SHOT, timeoutArg, &timer_id);
+    ret = timer_setup (timeoutSec, timeoutUsec, TASK_S11, INSTANCE_DEFAULT, TIMER_ONE_SHOT, timeoutArg, 0, &timer_id);
   }
 
   *hTmr = (nw_gtpv2c_timer_handle_t) timer_id;
@@ -210,7 +212,7 @@ s11_mme_stop_timer_wrapper (
   nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle,
   nw_gtpv2c_timer_handle_t tmrHandle)
 {
-  long                                    timer_id;
+  static long timer_id = 0;
   void                                   *timeoutArg = NULL;
 
   timer_id = (long)tmrHandle;
@@ -240,15 +242,15 @@ s11_mme_thread (
     }
     break;
 
-    case S11_UPDATE_BEARER_RESPONSE:{
-    	s11_mme_update_bearer_response(&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_update_bearer_response);
-    }
-    break;
+    //case S11_UPDATE_BEARER_RESPONSE:{
+    	//s11_mme_update_bearer_response(&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_update_bearer_response);
+    //}
+    //break;
 
-    case S11_DELETE_BEARER_RESPONSE:{
-    	s11_mme_delete_bearer_response (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_delete_bearer_response);
-    }
-    break;
+    //case S11_DELETE_BEARER_RESPONSE:{
+    //	s11_mme_delete_bearer_response (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_delete_bearer_response);
+   // }
+   // break;
 
     case S11_CREATE_SESSION_REQUEST:{
            s11_mme_create_session_request (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_create_session_request);
@@ -265,10 +267,10 @@ s11_mme_thread (
     }
     break;
 
-    case S11_BEARER_RESOURCE_COMMAND:{
-            s11_mme_bearer_resource_command(&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_bearer_resource_command);
-    }
-    break;
+    //case S11_BEARER_RESOURCE_COMMAND:{
+           // s11_mme_bearer_resource_command(&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_bearer_resource_command);
+    //}
+    //break;
 
     case S11_MODIFY_BEARER_REQUEST:{
             s11_mme_modify_bearer_request (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_modify_bearer_request);
@@ -309,7 +311,8 @@ s11_mme_thread (
             rc = nwGtpv2cProcessUdpReq (s11_mme_stack_handle,
             		udp_data_ind->msgBuf, udp_data_ind->buffer_length,
     				udp_data_ind->local_port, udp_data_ind->peer_port,
-    				&udp_data_ind->sock_addr);
+    				
+            (union sock_addr_t *)&udp_data_ind->sock_addr);
             DevAssert (rc == NW_OK);
     }
     break;
@@ -400,7 +403,7 @@ int s11_mme_init (const mme_config_t * const mme_config_p)
     goto fail;
   }
 
-  DevAssert (NW_OK == nwGtpv2cSetLogLevel (s11_mme_stack_handle, NW_LOG_LEVEL_DEBG));
+  //DevAssert (NW_OK == nwGtpv2cSetLogLevel (s11_mme_stack_handle, NW_LOG_LEVEL_DEBG));
   /** Create 2 sockets, one for 2123 (received initial requests), another high port. */
   s11_send_init_udp(&mme_config.ip.s11_mme_v4, &mme_config.ip.s11_mme_v6, udp.gtpv2cStandardPort);
   s11_send_init_udp(&mme_config.ip.s11_mme_v4, &mme_config.ip.s11_mme_v6, 0);

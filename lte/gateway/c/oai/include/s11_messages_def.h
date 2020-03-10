@@ -65,6 +65,11 @@ MESSAGE_DEF(
   S11_DELETE_SESSION_RESPONSE,
   itti_s11_delete_session_response_t,
   s11_delete_session_response)
+  MESSAGE_DEF(
+  S11_DELETE_BEARER_COMMAND,
+  MESSAGE_PRIORITY_MED,
+  itti_s11_delete_bearer_command_t, 
+  s11_delete_bearer_command)
 MESSAGE_DEF(
   S11_RELEASE_ACCESS_BEARERS_REQUEST,
   itti_s11_release_access_bearers_request_t,
@@ -105,3 +110,8 @@ MESSAGE_DEF(
   S11_NW_INITIATED_DEACTIVATE_BEARER_RESP,
   itti_s11_nw_init_deactv_bearer_rsp_t,
   s11_nw_init_deactv_bearer_rsp)
+MESSAGE_DEF(
+  S11_DOWNLINK_DATA_NOTIFICATION_ACKNOWLEDGE,
+   MESSAGE_PRIORITY_MED,
+   itti_s11_downlink_data_notification_acknowledge_t,
+   s11_downlink_data_notification_acknowledge)

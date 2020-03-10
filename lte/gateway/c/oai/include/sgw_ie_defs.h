@@ -299,6 +299,22 @@ typedef struct {
   unsigned cmi : 1;
 } UCI_t;
 
+typedef union {
+ struct  in_addr  edns_peer_ipv4_address;
+  struct in6_addr edns_peer_ipv6_address;
+}edns_peer_ip_t;
+
+//typedef union {
+ // struct  in_addr  peer_ip_ipv4_address;
+  //struct in6_addr  peer_ip_ipv6_address;
+//}peer_ip_t;
+
+
+//typedef union {
+ //struct in_addr  edns_peer_ipv4_address;
+  //struct in6_addr edns_peer_ipv6_address;
+//}edns_peer_ip_t; 
+
 typedef struct {
   /* PPC (Prohibit Payload Compression):
    * This flag is used to determine whether an SGSN should attempt to

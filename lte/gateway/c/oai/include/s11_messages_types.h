@@ -36,6 +36,8 @@
 #define FILE_S11_MESSAGES_TYPES_SEEN
 
 #include "sgw_ie_defs.h"
+#include "3gpp_23.003.h"
+
 
 #define S11_CREATE_SESSION_REQUEST(mSGpTR)                                     \
   (mSGpTR)->ittiMsg.s11_create_session_request
@@ -75,7 +77,8 @@
   (mSGpTR)->ittiMsg.s11_nw_init_deactv_bearer_request
 #define S11_NW_INITIATED_DEACTIVATE_BEARER_RESP(mSGpTR)                        \
   (mSGpTR)->ittiMsg.s11_nw_init_deactv_bearer_rsp
-
+ #define S11_DOWNLINK_DATAN_NOTIFICATION_ACKNOWLEDGE(mSGpTR)                   \
+  (mSGpTR)->ittiMsg.s11_downlink_data_notification_acknowledge
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_nw_initiated_ded_bearer_actv_request_t
  *  @brief PCRF initiated Dedicated Bearer Activation Request
@@ -321,6 +324,8 @@ typedef struct itti_s11_create_session_request_s {
   ///< already active bearer contexts, this value is set to the least
   ///< restrictive type.
 
+  ebi_t default_ebi;
+  
   ambr_t ambr; ///< Aggregate Maximum Bit Rate (APN-AMBR)
   ///< This IE represents the APN-AMBR. It shall be included on
   ///< the S4/S11, S5/S8 and S2b interfaces for an E-UTRAN
@@ -378,6 +383,7 @@ typedef struct itti_s11_create_session_request_s {
   ///< and shall be forwarded by an SGW on the S5/S8 interfaces
   ///< according to the requirements in 3GPP TS 23.007 [17].
 
+
   FQ_CSID_t
     sgw_fq_csid; ///< This IE shall included by the SGW on the S5/S8 interfaces
   ///< according to the requirements in 3GPP TS 23.007 [17].
@@ -415,9 +421,14 @@ typedef struct itti_s11_create_session_request_s {
   // Private Extension
 
   /* S11 stack specific parameter. Not used in standalone epc mode */
-  void *trxn; ///< Transaction identifier
-  struct in_addr
-    peer_ip; ///< MME ipv4 address for S-GW or S-GW ipv4 address for MME
+  void* trxn;
+  
+  edns_peer_ip_t edns_peer_ip;
+
+   //struct {
+   //struct sockaddr_in  edns_peer_ip;
+   //struct sockaddr_in6    addr_v6;
+   //}  edns_peer_ip;
   uint16_t peer_port; ///< MME port for S-GW or S-GW port for MME
 } itti_s11_create_session_request_t;
 
@@ -1089,7 +1100,9 @@ typedef struct itti_s11_delete_session_request_s {
   teid_t local_teid;           ///< not in specs for inner MME use
   teid_t teid;                 ///< Tunnel Endpoint Identifier
   ebi_t lbi;                   ///< Linked EPS Bearer ID
+  bool noDelete;
   fteid_t sender_fteid_for_cp; ///< Sender F-TEID for control plane
+  uint8_t internal_flags;
 
   /* Operation Indication: This flag shall be set over S4/S11 interface
    * if the SGW needs to forward the Delete Session Request message to
@@ -1105,6 +1118,7 @@ typedef struct itti_s11_delete_session_request_s {
 
   /* GTPv2-C specific parameters */
   void *trxn;
+  edns_peer_ip_t edns_peer_ip;
   struct in_addr peer_ip;
 } itti_s11_delete_session_request_t;
 
@@ -1125,6 +1139,7 @@ typedef struct itti_s11_delete_session_request_s {
 typedef struct itti_s11_delete_session_response_s {
   teid_t teid; ///< Remote Tunnel Endpoint Identifier
   gtpv2c_cause_t cause;
+   uint8_t internal_flags;
   //recovery_t recovery;              ///< This IE shall be included on the S5/S8, S4/S11 and S2b
   ///< interfaces if contacting the peer for the first time
   protocol_configuration_options_t
@@ -1196,6 +1211,24 @@ typedef struct itti_s11_release_access_bearers_response_s {
 } itti_s11_release_access_bearers_response_t;
 
 //-----------------------------------------------------------------------------
+/** @struct itti_s11_downlink_data_notification_acknowledge_t
+ *  @brief Downlink Data Notification Acknowledge
+ *
+ * The Downlink Data Notification Acknowledge message is sent on the S11
+ * interface by the MME to the SGW as part of the S1 paging procedure.
+ */
+typedef struct itti_s11_downlink_data_notification_acknowledge_s {
+  teid_t teid;        ///< Tunnel Endpoint Identifier
+  teid_t local_teid;  ///< Tunnel Endpoint Identifier
+  gtpv2c_cause_t cause;
+  // Recovery           ///< optional This IE shall be included if contacting
+  // the peer for the first time Private Extension  ///< optional
+  /* GTPv2-C specific parameters */
+  void* trxn;
+  struct sockaddr* peer_ip;
+} itti_s11_downlink_data_notification_acknowledge_t;
+
+//-----------------------------------------------------------------------------
 /** @struct itti_s11_delete_bearer_command_t
  *  @brief Initiate Delete Bearer procedure
  *
@@ -1211,7 +1244,7 @@ typedef struct itti_s11_delete_bearer_command_s {
   // TODO
   void *trxn;
   struct in_addr peer_ip;
-} itti_s11_delete_bearer_command_s;
+} itti_s11_delete_bearer_command_t;
 
 /**
  * Message used to notify MME that a paging message should be sent to the UE

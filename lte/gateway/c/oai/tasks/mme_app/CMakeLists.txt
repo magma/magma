@@ -73,11 +73,13 @@ target_link_libraries(TASK_MME_APP
   COMMON
   LIB_BSTR LIB_HASHTABLE LIB_DIRECTORYD LIB_SECU LIB_EVENT_CLIENT
   TASK_NAS TASK_S1AP TASK_SERVICE303 TASK_SCTP_SERVER
-  TASK_S6A TASK_SGS protobuf cpp_redis redis_utils
+  TASK_S6A TASK_SGS protobuf cpp_redis yaml-cpp redis_utils
     )
 
 if (EMBEDDED_SGW)
-  target_link_libraries(TASK_MME_APP TASK_SGW)
+target_link_libraries(TASK_MME_APP TASK_SGW)
+else (EMBEDDED_SGW)
+target_link_libraries(TASK_MME_APP TASK_S11)
 endif(EMBEDDED_SGW)
 
 target_include_directories(TASK_MME_APP PUBLIC

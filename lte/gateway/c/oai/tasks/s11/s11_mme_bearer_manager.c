@@ -37,10 +37,10 @@
 #include "hashtable.h"
 #include "obj_hashtable.h"
 #include "log.h"
-#include "msc.h"
+//#include "msc.h"
 #include "assertions.h"
 #include "intertask_interface.h"
-#include "msc.h"
+//#include "msc.h"
 
 #include "NwGtpv2c.h"
 #include "NwGtpv2cIe.h"
@@ -499,7 +499,8 @@ s11_mme_delete_bearer_command(
 }
 
 //------------------------------------------------------------------------------
-int
+
+/*int
 s11_mme_bearer_resource_command(
   nw_gtpv2c_stack_handle_t * stack_p,
   itti_s11_bearer_resource_command_t * cmd_p)
@@ -516,6 +517,7 @@ s11_mme_bearer_resource_command(
   /*
    * Prepare a new Delete Session Request msg
    */
+  /*
   rc = nwGtpv2cMsgNew (*stack_p, true, NW_GTP_BEARER_RESOURCE_CMD, cmd_p->teid, 0, &(ulp_req.hMsg));
   ulp_req.u_api_info.initialReqInfo.edns_peer_ip = &cmd_p->edns_peer_ip;
   ulp_req.u_api_info.initialReqInfo.teidLocal = cmd_p->local_teid;
@@ -532,18 +534,23 @@ s11_mme_bearer_resource_command(
     return RETURNerror;
   }
 
+   
   /** Set the linked ebi and the ebi to be modified. */
+  /*
   gtpv2c_ebi_ie_set(&(ulp_req.hMsg), cmd_p->linked_ebi, NW_GTPV2C_IE_INSTANCE_ZERO);
   gtpv2c_pti_ie_set(&(ulp_req.hMsg), cmd_p->pti, NW_GTPV2C_IE_INSTANCE_ZERO);
   gtpv2c_ebi_ie_set(&(ulp_req.hMsg), cmd_p->ebi, NW_GTPV2C_IE_INSTANCE_ONE);
+   */
   /*
    * Set the TAD.
    */
-  gtpv2c_tad_ie_set(&(ulp_req.hMsg), (traffic_flow_aggregate_description_t*)&cmd_p->tad);
+
+  //gtpv2c_tad_ie_set(&(ulp_req.hMsg), (traffic_flow_aggregate_description_t*)&cmd_p->tad);
 
   /*
    * Check if a Flow QoS exists, if so add it.
    */
+ /*
   if(cmd_p->flow_qos.qci){
     rc = gtpv2c_flow_qos_ie_set(&(ulp_req.hMsg), &cmd_p->flow_qos);
   }
@@ -553,6 +560,7 @@ s11_mme_bearer_resource_command(
   MSC_LOG_TX_MESSAGE (MSC_S11_MME, MSC_SGW, NULL, 0, "0 DELETE_BEARER_COMMAND local S11 teid " TEID_FMT " ", cmd_p->local_teid);
   return RETURNok;
 }
+*/
 
 //------------------------------------------------------------------------------
 int
@@ -852,6 +860,7 @@ s11_mme_handle_update_bearer_request (
 }
 
 //------------------------------------------------------------------------------
+/*
 int
 s11_mme_update_bearer_response (
   nw_gtpv2c_stack_handle_t * stack_p,
@@ -868,7 +877,8 @@ s11_mme_update_bearer_response (
   /*
    * Prepare a update bearer response to send to SGW.
    */
-  memset (&ulp_req, 0, sizeof (nw_gtpv2c_ulp_api_t));
+  
+  /*memset (&ulp_req, 0, sizeof (nw_gtpv2c_ulp_api_t));
   memset (&cause, 0, sizeof (gtpv2c_cause_t));
   ulp_req.apiType = NW_GTPV2C_ULP_API_TRIGGERED_RSP;
   ulp_req.u_api_info.triggeredRspInfo.hTrxn = trxn;
@@ -877,6 +887,7 @@ s11_mme_update_bearer_response (
   /*
    * Set the remote TEID
    */
+  /*
   ulp_req.u_api_info.triggeredRspInfo.teidLocal  = response_p->local_teid;
 
   hashtable_rc_t hash_rc = hashtable_ts_get(s11_mme_teid_2_gtv2c_teid_handle,
@@ -895,6 +906,7 @@ s11_mme_update_bearer_response (
   if(cause.cause_value == TEMP_REJECT_HO_IN_PROGRESS)
     ulp_req.u_api_info.triggeredRspInfo.pt_trx = true; /**< Using boolean, such that not to add any dependencies in NwGtpv2c.h etc.. */
 
+/*
   for (int i=0; i < response_p->bearer_contexts.num_bearer_context; i++) {
     rc = gtpv2c_bearer_context_within_update_bearer_response_ie_set(&(ulp_req.hMsg), & response_p->bearer_contexts.bearer_context[i]);
     DevAssert (NW_OK == rc);
@@ -907,7 +919,7 @@ s11_mme_update_bearer_response (
   DevAssert (NW_OK == rc);
   return RETURNok;
 }
-
+*/
 //------------------------------------------------------------------------------
 int
 s11_mme_handle_delete_bearer_request (
@@ -994,6 +1006,8 @@ s11_mme_handle_delete_bearer_request (
 }
 
 //------------------------------------------------------------------------------
+
+/*
 int
 s11_mme_delete_bearer_response (
   nw_gtpv2c_stack_handle_t * stack_p,
@@ -1010,6 +1024,8 @@ s11_mme_delete_bearer_response (
   /*
    * Prepare a delete bearer response to send to SGW.
    */
+  
+  /*
   memset (&ulp_req, 0, sizeof (nw_gtpv2c_ulp_api_t));
   memset (&cause, 0, sizeof (gtpv2c_cause_t));
   ulp_req.apiType = NW_GTPV2C_ULP_API_TRIGGERED_RSP;
@@ -1019,7 +1035,8 @@ s11_mme_delete_bearer_response (
   /*
    * Set the remote TEID
    */
-  ulp_req.u_api_info.triggeredRspInfo.teidLocal  = response_p->local_teid;
+  
+  /*ulp_req.u_api_info.triggeredRspInfo.teidLocal  = response_p->local_teid;
 
   hashtable_rc_t hash_rc = hashtable_ts_get(s11_mme_teid_2_gtv2c_teid_handle,
       (hash_key_t) response_p->local_teid, (void **)(uintptr_t)&ulp_req.u_api_info.triggeredRspInfo.hTunnel);
@@ -1036,7 +1053,7 @@ s11_mme_delete_bearer_response (
   gtpv2c_cause_ie_set (&(ulp_req.hMsg), &cause);
   if(cause.cause_value == TEMP_REJECT_HO_IN_PROGRESS)
     ulp_req.u_api_info.triggeredRspInfo.pt_trx = true; /**< Using boolean, such that not to add any dependencies in NwGtpv2c.h etc.. */
-
+/*
   if(response_p->linked_eps_bearer_id)
     gtpv2c_ebi_ie_set (&(ulp_req.hMsg), (unsigned)response_p->linked_eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ZERO);
 
