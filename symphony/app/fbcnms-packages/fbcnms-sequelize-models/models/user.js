@@ -35,7 +35,7 @@ export type UserRawType = {
   role: number,
 } & UserRawInitType;
 
-type UserModel = Model<UserRawType, UserRawInitType>;
+export type UserModel = Model<UserRawType, UserRawInitType>;
 export type StaticUserModel = Class<UserModel>;
 export type UserType = UserModel & UserRawType;
 
