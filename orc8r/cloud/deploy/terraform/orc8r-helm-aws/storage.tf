@@ -20,6 +20,10 @@ resource "kubernetes_persistent_volume_claim" "storage" {
       access_mode = "ReadWriteOnce"
       storage     = "2Gi"
     }
+    openvpn = {
+      access_mode = "ReadWriteOnce"
+      storage     = "2M"
+    }
   }
 
   metadata {
