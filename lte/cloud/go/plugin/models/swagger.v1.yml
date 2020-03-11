@@ -1990,11 +1990,9 @@ definitions:
         items:
           type: string
           enum:
-            - 'metering'
             - 'dpi'
             - 'policy_enforcement'
         example:
-          - 'metering'
           - 'dpi'
           - 'policy_enforcement'
       mobility:

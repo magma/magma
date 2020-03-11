@@ -114,7 +114,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
 
 Services(controllers) are split into two: Physical and Logical.
 Physical controllers: arpd, access_control.
-Logical controllers: metering, dpi, enforcement.
+Logical controllers: dpi, enforcement.
 
 
 ### Configurable Services
@@ -124,15 +124,6 @@ These services can be enabled and ordered from orchestrator cloud. `mconfig` is 
 Table numbers are dynamically assigned to these services and depenedent on the order.
 
 ```
-    -------------------------------
-    |          Table X            |
-    |          metering           |
-    |- Assigns unique flow id to  |
-    |  IP traffic                 |
-    |- Receives flow stats from   |
-    |  OVS and forwards to cloud  |
-    -------------------------------
-
     -------------------------------
     |          Table X            |
     |            DPI              |
