@@ -307,6 +307,22 @@ OAI CI Team''',
           to: gitCommitAuthorEmailAddr
       }
     }
+    success {
+      script {
+        if ("MERGE".equals(env.gitlabActionType)) {
+          def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
+           addGitLabMRComment comment: message
+        }
+      }
+    }
+    unsuccessful {
+      script {
+        if ("MERGE".equals(env.gitlabActionType)) {
+          def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
+          addGitLabMRComment comment: message
+        }
+      }
+    }
   }
 }
 
