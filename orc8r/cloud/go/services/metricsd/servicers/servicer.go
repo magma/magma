@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/metrics"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	prometheusProto "github.com/prometheus/client_model/go"

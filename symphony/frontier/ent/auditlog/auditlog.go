@@ -49,7 +49,7 @@ const (
 	Table = "AuditLogEntries"
 )
 
-// Columns holds all SQL columns are auditlog fields.
+// Columns holds all SQL columns for auditlog fields.
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,

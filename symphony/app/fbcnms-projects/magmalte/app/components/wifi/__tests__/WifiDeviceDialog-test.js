@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -23,6 +23,12 @@ import {RAW_GATEWAY} from '../test/GatewayMock';
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
+jest.mock('@fbcnms/ui/hooks/useSnackbar');
+
+const enqueueSnackbarMock = jest.fn();
+jest
+  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .mockReturnValue(enqueueSnackbarMock);
 
 const Wrapper = props => (
   <MemoryRouter

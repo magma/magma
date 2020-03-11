@@ -22,7 +22,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useMemo, useRef} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     backgroundColor: symphony.palette.white,
     boxShadow: symphony.shadows.DP1,
@@ -47,7 +47,7 @@ const useStyles = makeStyles({
     borderTop: `1px solid ${symphony.palette.D50}`,
     margin: '8px 16px 12px 16px',
   },
-});
+}));
 
 type Props<TValue> = {
   className?: string,

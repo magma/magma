@@ -45,7 +45,6 @@ class Void;
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
-using magma::orc8r::DirectoryService;
 
 namespace magma {
 using namespace orc8r;

@@ -29,6 +29,10 @@ type ServiceEndpointQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.ServiceEndpoint
+	// eager-loading edges.
+	withPort    *EquipmentPortQuery
+	withService *ServiceQuery
+	withFKs     bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -81,14 +85,14 @@ func (seq *ServiceEndpointQuery) QueryService() *ServiceQuery {
 	return query
 }
 
-// First returns the first ServiceEndpoint entity in the query. Returns *ErrNotFound when no serviceendpoint was found.
+// First returns the first ServiceEndpoint entity in the query. Returns *NotFoundError when no serviceendpoint was found.
 func (seq *ServiceEndpointQuery) First(ctx context.Context) (*ServiceEndpoint, error) {
 	ses, err := seq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ses) == 0 {
-		return nil, &ErrNotFound{serviceendpoint.Label}
+		return nil, &NotFoundError{serviceendpoint.Label}
 	}
 	return ses[0], nil
 }
@@ -102,21 +106,21 @@ func (seq *ServiceEndpointQuery) FirstX(ctx context.Context) *ServiceEndpoint {
 	return se
 }
 
-// FirstID returns the first ServiceEndpoint id in the query. Returns *ErrNotFound when no id was found.
-func (seq *ServiceEndpointQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first ServiceEndpoint id in the query. Returns *NotFoundError when no id was found.
+func (seq *ServiceEndpointQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = seq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{serviceendpoint.Label}
+		err = &NotFoundError{serviceendpoint.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (seq *ServiceEndpointQuery) FirstXID(ctx context.Context) string {
+func (seq *ServiceEndpointQuery) FirstXID(ctx context.Context) int {
 	id, err := seq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -134,9 +138,9 @@ func (seq *ServiceEndpointQuery) Only(ctx context.Context) (*ServiceEndpoint, er
 	case 1:
 		return ses[0], nil
 	case 0:
-		return nil, &ErrNotFound{serviceendpoint.Label}
+		return nil, &NotFoundError{serviceendpoint.Label}
 	default:
-		return nil, &ErrNotSingular{serviceendpoint.Label}
+		return nil, &NotSingularError{serviceendpoint.Label}
 	}
 }
 
@@ -150,8 +154,8 @@ func (seq *ServiceEndpointQuery) OnlyX(ctx context.Context) *ServiceEndpoint {
 }
 
 // OnlyID returns the only ServiceEndpoint id in the query, returns an error if not exactly one id was returned.
-func (seq *ServiceEndpointQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (seq *ServiceEndpointQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = seq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -159,15 +163,15 @@ func (seq *ServiceEndpointQuery) OnlyID(ctx context.Context) (id string, err err
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{serviceendpoint.Label}
+		err = &NotFoundError{serviceendpoint.Label}
 	default:
-		err = &ErrNotSingular{serviceendpoint.Label}
+		err = &NotSingularError{serviceendpoint.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (seq *ServiceEndpointQuery) OnlyXID(ctx context.Context) string {
+func (seq *ServiceEndpointQuery) OnlyXID(ctx context.Context) int {
 	id, err := seq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -190,8 +194,8 @@ func (seq *ServiceEndpointQuery) AllX(ctx context.Context) []*ServiceEndpoint {
 }
 
 // IDs executes the query and returns a list of ServiceEndpoint ids.
-func (seq *ServiceEndpointQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (seq *ServiceEndpointQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := seq.Select(serviceendpoint.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +203,7 @@ func (seq *ServiceEndpointQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (seq *ServiceEndpointQuery) IDsX(ctx context.Context) []string {
+func (seq *ServiceEndpointQuery) IDsX(ctx context.Context) []int {
 	ids, err := seq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -250,6 +254,28 @@ func (seq *ServiceEndpointQuery) Clone() *ServiceEndpointQuery {
 	}
 }
 
+//  WithPort tells the query-builder to eager-loads the nodes that are connected to
+// the "port" edge. The optional arguments used to configure the query builder of the edge.
+func (seq *ServiceEndpointQuery) WithPort(opts ...func(*EquipmentPortQuery)) *ServiceEndpointQuery {
+	query := &EquipmentPortQuery{config: seq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	seq.withPort = query
+	return seq
+}
+
+//  WithService tells the query-builder to eager-loads the nodes that are connected to
+// the "service" edge. The optional arguments used to configure the query builder of the edge.
+func (seq *ServiceEndpointQuery) WithService(opts ...func(*ServiceQuery)) *ServiceEndpointQuery {
+	query := &ServiceQuery{config: seq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	seq.withService = query
+	return seq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -293,30 +319,100 @@ func (seq *ServiceEndpointQuery) Select(field string, fields ...string) *Service
 
 func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint, error) {
 	var (
-		nodes []*ServiceEndpoint
-		spec  = seq.querySpec()
+		nodes       = []*ServiceEndpoint{}
+		withFKs     = seq.withFKs
+		_spec       = seq.querySpec()
+		loadedTypes = [2]bool{
+			seq.withPort != nil,
+			seq.withService != nil,
+		}
 	)
-	spec.ScanValues = func() []interface{} {
+	if seq.withPort != nil || seq.withService != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, serviceendpoint.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &ServiceEndpoint{config: seq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, seq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, seq.driver, _spec); err != nil {
 		return nil, err
 	}
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := seq.withPort; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*ServiceEndpoint)
+		for i := range nodes {
+			if fk := nodes[i].service_endpoint_port; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipmentport.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoint_port" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Port = n
+			}
+		}
+	}
+
+	if query := seq.withService; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*ServiceEndpoint)
+		for i := range nodes {
+			if fk := nodes[i].service_endpoints; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(service.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoints" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Service = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
 func (seq *ServiceEndpointQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := seq.querySpec()
-	return sqlgraph.CountNodes(ctx, seq.driver, spec)
+	_spec := seq.querySpec()
+	return sqlgraph.CountNodes(ctx, seq.driver, _spec)
 }
 
 func (seq *ServiceEndpointQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -328,12 +424,12 @@ func (seq *ServiceEndpointQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (seq *ServiceEndpointQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   serviceendpoint.Table,
 			Columns: serviceendpoint.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: serviceendpoint.FieldID,
 			},
 		},
@@ -341,26 +437,26 @@ func (seq *ServiceEndpointQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := seq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := seq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := seq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := seq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (seq *ServiceEndpointQuery) sqlQuery() *sql.Selector {

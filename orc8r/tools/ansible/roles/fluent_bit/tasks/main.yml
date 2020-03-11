@@ -10,11 +10,13 @@
   apt_key:
     url: https://packages.fluentbit.io/fluentbit.key
     state: present
+  when: preburn
 
 - name: Add fluent bit repo to /etc/apt/sources.list
   apt_repository:
     repo: deb https://packages.fluentbit.io/debian/stretch stretch main
     state: present
+  when: preburn
 
 - name: Create directories for the fluent-bit DB
   file:
@@ -23,14 +25,17 @@
     owner: root
     group: root
     mode: 0755
+  when: preburn
 
 - name: Update repositories cache and install "td-agent-bit" package
   apt:
     name: td-agent-bit
     update_cache: yes
+  retries: 5
   # Avoid starting td-agent-bit immediately
   environment:
     RUNLEVEL: 1
+  when: preburn
 
 - name: Copy fluent bit config script
   copy:
@@ -38,27 +43,33 @@
     dest: /usr/local/bin/generate_fluent_bit_config.py
     force: yes
     remote_src: yes
+  when: full_provision
 
 - name: Copy the td-agent-bit service file
   copy:
     src: magma_td-agent-bit.service
     dest: /etc/systemd/system/magma@td-agent-bit.service
+  when: full_provision
 
 - name: Remove default td-agent-bit service file
   file:
     state: absent
     path: /lib/systemd/system/td-agent-bit.service
+  when: full_provision
 
 - name: Copy the rsyslog config
   copy:
     src: 60-fluent-bit.conf
     dest: /etc/rsyslog.d/
+  when: full_provision
 
 - name: Restart rsyslog
   systemd:
     state: restarted
     name: rsyslog
+  when: full_provision
 
 - name: Reload system daemon
   systemd:
     daemon_reload: yes
+  when: full_provision

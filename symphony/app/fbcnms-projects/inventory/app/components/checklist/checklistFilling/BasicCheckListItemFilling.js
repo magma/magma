@@ -8,21 +8,21 @@
  * @format
  */
 
+import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import React, {useContext} from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
-import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
-import type {BasicCheckListItemFilling_item} from './__generated__/BasicCheckListItemFilling_item.graphql';
 
 type Props = {
-  item: BasicCheckListItemFilling_item,
-  onChange?: (updatedChecklistItem: BasicCheckListItemFilling_item) => void,
+  item: CheckListItem,
+  onChange?: (updatedChecklistItem: CheckListItem) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -31,10 +31,9 @@ const useStyles = makeStyles({
     flexGrow: 1,
     flexBasis: 0,
   },
-});
+}));
 
-const BasicCheckListItemFilling = (props: Props) => {
-  const {item, onChange} = props;
+const BasicCheckListItemFilling = ({item, onChange}: Props) => {
   const classes = useStyles();
 
   const _updateOnChange = () => {
@@ -72,12 +71,4 @@ const BasicCheckListItemFilling = (props: Props) => {
   );
 };
 
-export default createFragmentContainer(BasicCheckListItemFilling, {
-  item: graphql`
-    fragment BasicCheckListItemFilling_item on CheckListItem {
-      title
-      checked
-      ...CheckListItem_item
-    }
-  `,
-});
+export default BasicCheckListItemFilling;

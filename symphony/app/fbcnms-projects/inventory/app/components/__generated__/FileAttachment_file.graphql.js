@@ -35,6 +35,7 @@ export type FileAttachment_file$data = FileAttachment_file;
 export type FileAttachment_file$key = {
   +$data?: FileAttachment_file$data,
   +$fragmentRefs: FileAttachment_file$ref,
+  ...
 };
 */
 

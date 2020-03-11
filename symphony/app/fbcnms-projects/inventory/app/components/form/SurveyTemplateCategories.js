@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -28,7 +28,7 @@ import {makeStyles} from '@material-ui/styles';
 import {removeItem, updateItem} from '@fbcnms/util/arrays';
 import {useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   table: {
     marginBottom: '12px',
   },
@@ -44,7 +44,7 @@ const useStyles = makeStyles({
   addButton: {
     marginBottom: '12px',
   },
-});
+}));
 
 type Props = {
   categories: SurveyTemplateCategory[],

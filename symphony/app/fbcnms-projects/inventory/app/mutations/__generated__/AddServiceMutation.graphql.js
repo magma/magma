@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 97aa90f47d412eea6fcc71e6bc3075e5
+ * @relayHash 734bd7c3a0997e4c59697902c6aee1f7
  */
 
 /* eslint-disable */
@@ -47,7 +47,7 @@ export type AddServiceMutationVariables = {|
   data: ServiceCreateData
 |};
 export type AddServiceMutationResponse = {|
-  +addService: ?{|
+  +addService: {|
     +id: string,
     +$fragmentRefs: ServicesView_service$ref,
   |}

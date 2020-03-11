@@ -33,7 +33,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "assertions.h"
 #include "common_types.h"
 #include "mme_app_ue_context.h"
 #include "common_defs.h"
@@ -41,7 +40,7 @@
 #include "3gpp_29.274.h"
 #include "esm_data.h"
 
-static void mme_app_bearer_context_init(bearer_context_t *const bearer_context);
+static void mme_app_bearer_context_init(bearer_context_t* const bearer_context);
 
 //------------------------------------------------------------------------------
 bstring bearer_state2string(const mme_app_bearer_state_t bearer_state)
@@ -146,11 +145,16 @@ void mme_app_add_bearer_context(
   const pdn_cid_t pdn_cid,
   const bool is_default)
 {
-  AssertFatal(
-    (EPS_BEARER_IDENTITY_LAST >= bc->ebi) &&
-      (EPS_BEARER_IDENTITY_FIRST <= bc->ebi),
-    "Bad ebi %u",
-    bc->ebi);
+  if (
+    bc->ebi > EPS_BEARER_IDENTITY_LAST || bc->ebi < EPS_BEARER_IDENTITY_FIRST) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid EBI (%u) received in bearer context "
+      "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+      bc->ebi,
+      ue_context->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   int index = EBI_TO_INDEX(bc->ebi);
   if (!ue_context->bearer_contexts[index]) {
     if (ue_context->pdn_contexts[pdn_cid]) {

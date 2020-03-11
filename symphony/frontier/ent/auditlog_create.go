@@ -185,8 +185,8 @@ func (alc *AuditLogCreate) SaveX(ctx context.Context) *AuditLog {
 
 func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 	var (
-		al   = &AuditLog{config: alc.config}
-		spec = &sqlgraph.CreateSpec{
+		al    = &AuditLog{config: alc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: auditlog.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
@@ -195,7 +195,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		}
 	)
 	if value := alc.created_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: auditlog.FieldCreatedAt,
@@ -203,7 +203,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.CreatedAt = *value
 	}
 	if value := alc.updated_at; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: auditlog.FieldUpdatedAt,
@@ -211,7 +211,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.UpdatedAt = *value
 	}
 	if value := alc.acting_user_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: auditlog.FieldActingUserID,
@@ -219,7 +219,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.ActingUserID = *value
 	}
 	if value := alc.organization; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: auditlog.FieldOrganization,
@@ -227,7 +227,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.Organization = *value
 	}
 	if value := alc.mutation_type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: auditlog.FieldMutationType,
@@ -235,7 +235,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.MutationType = *value
 	}
 	if value := alc.object_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: auditlog.FieldObjectID,
@@ -243,7 +243,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.ObjectID = *value
 	}
 	if value := alc.object_type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: auditlog.FieldObjectType,
@@ -251,7 +251,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.ObjectType = *value
 	}
 	if value := alc.object_display_name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: auditlog.FieldObjectDisplayName,
@@ -259,7 +259,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.ObjectDisplayName = *value
 	}
 	if value := alc.mutation_data; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
 			Column: auditlog.FieldMutationData,
@@ -267,7 +267,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.MutationData = *value
 	}
 	if value := alc.url; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: auditlog.FieldURL,
@@ -275,7 +275,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.URL = *value
 	}
 	if value := alc.ip_address; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: auditlog.FieldIPAddress,
@@ -283,7 +283,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.IPAddress = *value
 	}
 	if value := alc.status; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: auditlog.FieldStatus,
@@ -291,20 +291,20 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		al.Status = *value
 	}
 	if value := alc.status_code; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: auditlog.FieldStatusCode,
 		})
 		al.StatusCode = *value
 	}
-	if err := sqlgraph.CreateNode(ctx, alc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, alc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
+	id := _spec.ID.Value.(int64)
 	al.ID = int(id)
 	return al, nil
 }

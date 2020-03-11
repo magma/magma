@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -13,12 +13,12 @@ import Portal from '../Core/Portal';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useLayoutEffect, useRef, useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     position: 'absolute',
     zIndex: 1400,
   },
-});
+}));
 
 export type ContextualLayerPosition = 'below' | 'above';
 

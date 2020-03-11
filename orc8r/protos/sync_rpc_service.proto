@@ -7,7 +7,7 @@
 syntax = "proto3";
 
 package magma.orc8r;
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 message GatewayRequest {
     string gwId = 1;
@@ -58,6 +58,13 @@ message SyncRPCResponse {
     bool heartBeat = 3;
 }
 
+message HardwareID {
+    string hwid = 1;
+}
+
+message Hostname {
+    string name = 1;
+}
 
 service SyncRPCService {
     // creates a bidirectional stream from gateway to cloud
@@ -67,4 +74,7 @@ service SyncRPCService {
 
     // same method as EstablishSyncRPCStream, but named differently for backward compatibility
     rpc SyncRPC (stream SyncRPCResponse) returns (stream SyncRPCRequest) {}
+
+    // returns the hostname mapped to the current hwid
+    rpc GetHostnameForHwid(HardwareID) returns (Hostname) {}
 }

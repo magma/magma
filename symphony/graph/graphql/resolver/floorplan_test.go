@@ -15,13 +15,11 @@ import (
 )
 
 func TestAddFloorPlan(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -35,7 +33,6 @@ func TestAddFloorPlan(t *testing.T) {
 
 	imageInput := models.AddImageInput{
 		EntityType:  "floor_plan",
-		EntityID:    "na",
 		ImgKey:      "key1",
 		FileName:    "test_file",
 		FileSize:    100,
@@ -88,13 +85,11 @@ func TestAddFloorPlan(t *testing.T) {
 }
 
 func TestRemoveFloorPlan(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -108,7 +103,6 @@ func TestRemoveFloorPlan(t *testing.T) {
 
 	imageInput := models.AddImageInput{
 		EntityType:  "floor_plan",
-		EntityID:    "na",
 		ImgKey:      "key1",
 		FileName:    "test_file",
 		FileSize:    100,

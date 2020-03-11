@@ -37,6 +37,7 @@ export type ServiceCard_service$data = ServiceCard_service;
 export type ServiceCard_service$key = {
   +$data?: ServiceCard_service$data,
   +$fragmentRefs: ServiceCard_service$ref,
+  ...
 };
 */
 

@@ -33,10 +33,10 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "equipmenttype" package.
 	TypesInverseTable = "equipment_types"
 	// TypesColumn is the table column denoting the types relation/edge.
-	TypesColumn = "category_id"
+	TypesColumn = "equipment_type_category"
 )
 
-// Columns holds all SQL columns are equipmentcategory fields.
+// Columns holds all SQL columns for equipmentcategory fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

@@ -14,7 +14,7 @@ import CommentsLogEmptyState from './CommentsLogEmptyState';
 import React, {useRef} from 'react';
 import TextCommentPost from './TextCommentPost';
 import classNames from 'classnames';
-import useVerticalScrollingEffect from '../../common/useVerticalScrollingEffect';
+import useVerticalScrollingEffect from '@fbcnms/ui/components/design-system/hooks/useVerticalScrollingEffect';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
@@ -26,7 +26,7 @@ type Props = {
   postClassName?: string,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   commentsLog: {
     flexGrow: 1,
     marginBottom: '8px',
@@ -39,7 +39,7 @@ const useStyles = makeStyles({
   singleComment: {
     flexBasis: 'auto',
   },
-});
+}));
 
 const CommentsLog = (props: Props) => {
   const classes = useStyles();

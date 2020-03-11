@@ -1,0 +1,105 @@
+From ebd8fa206c592a4d60aa4f09a1272df98e5e60cf Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Thu, 30 Jan 2020 06:49:03 +0000
+Subject: [PATCH 1/4] datapath: Linux kernel compat: ipv6 frag fixes
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ acinclude.m4                               |  7 ++++---
+ datapath/conntrack.c                       |  1 +
+ datapath/linux/compat/nf_conntrack_reasm.c | 22 +++++++++++++++++++++-
+ 3 files changed, 26 insertions(+), 4 deletions(-)
+
+diff --git a/acinclude.m4 b/acinclude.m4
+index 5f891f8e4..87960a095 100644
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -782,6 +782,10 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+                         [OVS_DEFINE([HAVE_NEEDS_FREE_NETDEV])])
+   OVS_FIND_FIELD_IFELSE([$KSRC/include/net/vxlan.h], [vxlan_dev], [cfg],
+                         [OVS_DEFINE([HAVE_VXLAN_DEV_CFG])])
++  OVS_GREP_IFELSE([$KSRC/include/net/ipv6_frag.h], [IP6_DEFRAG_CONNTRACK_IN],
++                  [OVS_DEFINE([HAVE_IPV6_FRAG_H])])
++  OVS_FIND_FIELD_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frags],
++                        [rnd], [OVS_DEFINE([HAVE_INET_FRAGS_RND])])
+   OVS_GREP_IFELSE([$KSRC/include/net/netfilter/nf_conntrack_helper.h],
+                   [nf_conntrack_helper_put],
+                   [OVS_DEFINE(HAVE_NF_CONNTRACK_HELPER_PUT)])
+@@ -809,9 +813,6 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+   OVS_GREP_IFELSE([$KSRC/include/net/inet_frag.h],
+                   frag_percpu_counter_batch[],
+                   [OVS_DEFINE([HAVE_FRAG_PERCPU_COUNTER_BATCH])])
+-  OVS_FIND_FIELD_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frags],
+-                        [rnd],
+-                        [OVS_DEFINE([HAVE_INET_FRAGS_RND])])
+ 
+   if cmp -s datapath/linux/kcompat.h.new \
+             datapath/linux/kcompat.h >/dev/null 2>&1; then
+diff --git a/datapath/conntrack.c b/datapath/conntrack.c
+index 93445ae85..1b2fd117f 100644
+--- a/datapath/conntrack.c
++++ b/datapath/conntrack.c
+@@ -22,6 +22,7 @@
+ #include <linux/udp.h>
+ #include <linux/sctp.h>
+ #include <net/ip.h>
++#include <net/ipv6_frag.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_labels.h>
+diff --git a/datapath/linux/compat/nf_conntrack_reasm.c b/datapath/linux/compat/nf_conntrack_reasm.c
+index 9d77d9827..828a59ab8 100644
+--- a/datapath/linux/compat/nf_conntrack_reasm.c
++++ b/datapath/linux/compat/nf_conntrack_reasm.c
+@@ -137,9 +137,13 @@ static void nf_ct_frag6_expire(unsigned long data)
+ 
+ #ifdef HAVE_INET_FRAGS_RND
+ 	ip6_expire_frag_queue(net, fq, &nf_frags);
++#else
++#ifdef HAVE_IPV6_FRAG_H
++	ip6frag_expire_frag_queue(net, fq);
+ #else
+ 	ip6_expire_frag_queue(net, fq);
+ #endif
++#endif
+ }
+ 
+ #ifdef HAVE_INET_FRAGS_RND
+@@ -673,6 +677,16 @@ static struct pernet_operations nf_ct_net_ops = {
+ 	.exit = nf_ct_net_exit,
+ };
+ 
++#ifdef HAVE_IPV6_FRAG_H
++static const struct rhashtable_params nfct_rhash_params = {
++	.head_offset		= offsetof(struct inet_frag_queue, node),
++	.hashfn			= ip6frag_key_hashfn,
++	.obj_hashfn		= ip6frag_obj_hashfn,
++	.obj_cmpfn		= ip6frag_obj_cmpfn,
++	.automatic_shrinking	= true,
++};
++#endif
++
+ int rpl_nf_ct_frag6_init(void)
+ {
+ 	int ret = 0;
+@@ -683,10 +697,16 @@ int rpl_nf_ct_frag6_init(void)
+ #ifdef HAVE_INET_FRAGS_RND
+ 	nf_frags.hashfn = nf_hashfn;
+ 	nf_frags.match = ip6_frag_match;
++	nf_frags.constructor = ip6_frag_init;
++#else
++#ifdef HAVE_IPV6_FRAG_H
++	nf_frags.rhash_params = nfct_rhash_params;
++	nf_frags.constructor = ip6frag_init;
+ #else
+ 	nf_frags.rhash_params = ip6_rhash_params;
+-#endif
+ 	nf_frags.constructor = ip6_frag_init;
++#endif
++#endif /* HAVE_INET_FRAGS_RND */
+ 	nf_frags.destructor = NULL;
+ 	nf_frags.qsize = sizeof(struct frag_queue);
+ 	nf_frags.frag_expire = nf_ct_frag6_expire;
+-- 
+2.17.1
+

@@ -131,6 +131,7 @@ function LocationSiteSurvey(props: Props) {
     };
 
     RemoveSiteSurveyMutation(variables, callbacks, store => {
+      // $FlowFixMe (T62907961) Relay flow types
       store.delete(survey.id);
     });
   }, [survey.id, storeKey, fileId, onSurveySourceFileDeleted, enqueueSnackbar]);

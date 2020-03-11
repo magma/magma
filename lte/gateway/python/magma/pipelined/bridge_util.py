@@ -122,12 +122,15 @@ class BridgeTools:
         subprocess.Popen(set_cmd).wait()
 
     @staticmethod
-    def get_flows_for_bridge(bridge_name, table_num=None):
+    def get_flows_for_bridge(bridge_name, table_num=None, include_stats=True):
         """
         Returns a flow dump of the given bridge from ovs-ofctl. If table_num is
         specified, then only the flows for the table will be returned.
         """
-        set_cmd = ["ovs-ofctl", "dump-flows", bridge_name]
+        if include_stats:
+            set_cmd = ["ovs-ofctl", "dump-flows", bridge_name]
+        else:
+            set_cmd = ["ovs-ofctl", "dump-flows", bridge_name, "--no-stats"]
         if table_num:
             set_cmd.append("table=%s" % table_num)
         flows = \
@@ -157,7 +160,8 @@ class BridgeTools:
     @classmethod
     def get_annotated_flows_for_bridge(cls, bridge_name: str,
                                        table_assignments: 'Dict[str, Tables]',
-                                       apps: Optional[List[str]] = None
+                                       apps: Optional[List[str]] = None,
+                                       include_stats: bool = True
                                        ) -> List[str]:
         """
         Returns an annotated flow dump of the given bridge from ovs-ofctl.
@@ -225,4 +229,5 @@ class BridgeTools:
                     yield flow
 
         return [parse_flow(flow) for flow in
-                filter_apps(cls.get_flows_for_bridge(bridge_name))]
+                filter_apps(cls.get_flows_for_bridge(bridge_name,
+                    include_stats=include_stats))]

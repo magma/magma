@@ -16,10 +16,10 @@ import (
 	"magma/cwf/cloud/go/plugin/models"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
-	merrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
-	orc8rmconfig "magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	orc8rmconfig "magma/orc8r/lib/go/protos/mconfig"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
@@ -136,11 +136,6 @@ func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.Pipeline
 			log.Printf("CWAG: unknown network service name %s", service)
 		} else {
 			apps = append(apps, mc)
-		}
-	}
-	if len(apps) == 0 {
-		apps = []ltemconfig.PipelineD_NetworkServices{
-			ltemconfig.PipelineD_ENFORCEMENT,
 		}
 	}
 	return apps, nil

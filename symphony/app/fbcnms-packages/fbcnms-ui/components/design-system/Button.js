@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -15,6 +15,8 @@ import Text from './Text';
 import classNames from 'classnames';
 import symphony from '../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useFormElementContext} from './Form/FormElementContext';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -161,6 +163,7 @@ const useStyles = makeStyles(_theme => ({
     textAlign: 'left',
     background: 'none',
     padding: 0,
+    height: '24px',
     '&$primarySkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
@@ -169,12 +172,12 @@ const useStyles = makeStyles(_theme => ({
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
-          opacity: 0.75,
+          color: symphony.palette.B700,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
-          opacity: 0.75,
+          color: symphony.palette.B700,
         },
       },
     },
@@ -215,17 +218,17 @@ const useStyles = makeStyles(_theme => ({
     '&$graySkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
-          color: symphony.palette.secondary,
+          color: symphony.palette.D500,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
-          opacity: 0.75,
+          color: symphony.palette.primary,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
-          opacity: 0.75,
+          color: symphony.palette.primary,
         },
       },
     },
@@ -259,7 +262,9 @@ export type Props = {
   children: React.Node,
   onClick?: void | (() => void | Promise<void>),
   leftIcon?: SvgIcon,
+  leftIconClass?: string,
   rightIcon?: SvgIcon,
+  rightIconClass?: string,
   tooltip?: string,
   ...ButtonProps,
 };
@@ -269,14 +274,23 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     className,
     children,
     skin = 'primary',
-    disabled = false,
+    disabled: disabledProp = false,
     variant = 'contained',
     onClick,
     leftIcon: LeftIcon = null,
+    leftIconClass = null,
     rightIcon: RightIcon = null,
+    rightIconClass = null,
     tooltip,
   } = props;
   const classes = useStyles();
+
+  const {disabled: contextDisabled} = useFormElementContext();
+
+  const disabled = useMemo(() => disabledProp || contextDisabled, [
+    disabledProp,
+    contextDisabled,
+  ]);
 
   return (
     <button
@@ -299,9 +313,8 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
       ref={forwardedRef}>
       {LeftIcon ? (
         <LeftIcon
-          className={classNames(classes.icon, classes.leftIcon)}
+          className={classNames(classes.icon, classes.leftIcon, leftIconClass)}
           size="small"
-          color="inherit"
         />
       ) : null}
       <Text variant="body2" weight="medium" className={classes.buttonText}>
@@ -309,9 +322,12 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
       </Text>
       {RightIcon ? (
         <RightIcon
-          className={classNames(classes.icon, classes.rightIcon)}
+          className={classNames(
+            classes.icon,
+            classes.rightIcon,
+            rightIconClass,
+          )}
           size="small"
-          color="inherit"
         />
       ) : null}
     </button>

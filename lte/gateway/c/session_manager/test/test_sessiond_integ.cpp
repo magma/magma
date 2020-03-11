@@ -61,7 +61,8 @@ class SessiondTest : public ::testing::Test {
       directoryd_client,
       spgw_client,
       nullptr,
-      SESSION_TERMINATION_TIMEOUT_MS);
+      SESSION_TERMINATION_TIMEOUT_MS,
+      0);
 
     local_service =
       std::make_shared<service303::MagmaService>("sessiond", "1.0");

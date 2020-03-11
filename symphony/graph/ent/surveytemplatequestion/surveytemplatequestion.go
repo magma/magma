@@ -39,10 +39,10 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "surveytemplatecategory" package.
 	CategoryInverseTable = "survey_template_categories"
 	// CategoryColumn is the table column denoting the category relation/edge.
-	CategoryColumn = "category_id"
+	CategoryColumn = "survey_template_category_survey_template_questions"
 )
 
-// Columns holds all SQL columns are surveytemplatequestion fields.
+// Columns holds all SQL columns for surveytemplatequestion fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -51,6 +51,11 @@ var Columns = []string{
 	FieldQuestionDescription,
 	FieldQuestionType,
 	FieldIndex,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the SurveyTemplateQuestion type.
+var ForeignKeys = []string{
+	"survey_template_category_survey_template_questions",
 }
 
 var (

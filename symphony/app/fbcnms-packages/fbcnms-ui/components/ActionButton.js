@@ -4,25 +4,24 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
-
-import type {WithStyles} from '@material-ui/core';
 
 import AddIcon from '@material-ui/icons/Add';
 import Fab from '@material-ui/core/Fab';
 import React from 'react';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import classNames from 'classnames';
-import {withStyles} from '@material-ui/core/styles';
+import symphony from '../theme/symphony';
+import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   action: 'add' | 'remove',
   onClick: () => void,
-} & WithStyles<typeof styles>;
+};
 
-const styles = theme => ({
+const useStyles = makeStyles(() => ({
   actionButton: {
     width: '20px',
     height: '20px',
@@ -35,16 +34,18 @@ const styles = theme => ({
     marginTop: '-4px',
   },
   removeFabIcon: {
-    fill: theme.palette.grey[600],
+    fill: symphony.palette.D600,
     fontSize: '28px',
   },
   addFabIcon: {
     fontSize: '20px',
   },
-});
+}));
 
 const ActionButton = (props: Props) => {
-  const {action, classes, onClick} = props;
+  const {action, onClick} = props;
+  const classes = useStyles();
+
   switch (action) {
     case 'add':
       return (
@@ -70,4 +71,4 @@ const ActionButton = (props: Props) => {
   }
 };
 
-export default withStyles(styles)(ActionButton);
+export default ActionButton;

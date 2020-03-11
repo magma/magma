@@ -5,78 +5,113 @@
 package log
 
 import (
-	"github.com/google/wire"
-	"github.com/jessevdk/go-flags"
-	"github.com/pkg/errors"
+	"fmt"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-type (
-	// Config offers a declarative way to construct a logger.
-	Config struct {
-		Level  Level  `env:"LEVEL" long:"level" default:"info" description:"Only log messages with the given severity or above."`
-		Format string `env:"FORMAT" long:"format" default:"console" choice:"console" choice:"json" description:"Output format of log messages."`
-	}
+// AllowedLevel is a settable identifier for the
+// minimum level a log entry must have.
+type AllowedLevel zapcore.Level
 
-	// Level attaches flags methods to zapcore.Level.
-	Level zapcore.Level
-)
-
-// Set is a Wire provider set that produces a Logger.
-var Set = wire.NewSet(New)
-
-// New creates and sets a global logger from config.
-func New(cfg Config) (Logger, func(), error) {
-	logger, err := cfg.Build()
-	if err != nil {
-		return nil, nil, err
-	}
-	bg := logger.Background()
-	restoreGlobal := zap.ReplaceGlobals(bg)
-	restoreStdLog := zap.RedirectStdLog(bg)
-	return logger, func() {
-		restoreStdLog()
-		restoreGlobal()
-	}, nil
+// String returns a ASCII representation of the allowed log level.
+func (l AllowedLevel) String() string {
+	return (zapcore.Level)(l).String()
 }
 
-// Build constructs a logger from Config.
-func (cfg Config) Build() (Logger, error) {
-	if cfg == (Config{}) {
+// Set updates the value of the allowed level.
+func (l *AllowedLevel) Set(s string) error {
+	var level zapcore.Level
+	if err := level.Set(s); err != nil {
+		return err
+	}
+	if level > zapcore.ErrorLevel {
+		return fmt.Errorf("unrecognized level: %q", s)
+	}
+	*l = AllowedLevel(level)
+	return nil
+}
+
+// UnmarshalFlag updates the value of the allowed level.
+func (l *AllowedLevel) UnmarshalFlag(s string) error {
+	return l.Set(s)
+}
+
+// AllowedFormat is a settable identifier for the output
+// format that the logger can have.
+type AllowedFormat string
+
+// String returns a ASCII representation of the allowed log format.
+func (f AllowedFormat) String() string {
+	return string(f)
+}
+
+// Set updates the value of the allowed format.
+func (f *AllowedFormat) Set(s string) error {
+	switch s {
+	case "console", "json":
+		*f = AllowedFormat(s)
+	default:
+		return fmt.Errorf("unrecognized format: %q", s)
+	}
+	return nil
+}
+
+// UnmarshalFlag updates the value of the allowed format.
+func (f *AllowedFormat) UnmarshalFlag(s string) error {
+	return f.Set(s)
+}
+
+// Config is a struct containing configurable settings for the logger.
+type Config struct {
+	Level  AllowedLevel  `env:"LEVEL" long:"level" default:"info" description:"Only log messages with the given severity or above."`
+	Format AllowedFormat `env:"FORMAT" long:"format" default:"console" choice:"console" choice:"json" description:"Output format of log messages."`
+}
+
+// empty returns true when the config is equal to its zero value.
+func (c Config) empty() bool {
+	return c == Config{}
+}
+
+// New returns a new leveled contextual logger.
+func New(config Config) (Logger, error) {
+	if config.empty() {
 		return NewNopLogger(), nil
 	}
-
-	var c zap.Config
-	switch cfg.Format {
-	case "console":
-		c = zap.NewDevelopmentConfig()
+	var cfg zap.Config
+	switch config.Format {
 	case "json":
-		c = zap.NewProductionConfig()
+		cfg = zap.NewProductionConfig()
+	case "console":
+		cfg = zap.NewDevelopmentConfig()
 	default:
-		return nil, errors.Errorf("unsupported logging format: %q", cfg.Format)
+		return nil, fmt.Errorf("unrecognized format: %q", config.Format)
 	}
-	c.Level = zap.NewAtomicLevelAt(zapcore.Level(cfg.Level))
-
-	logger, err := c.Build(zap.AddStacktrace(zap.DPanicLevel))
+	cfg.Level = zap.NewAtomicLevelAt(zapcore.Level(config.Level))
+	logger, err := cfg.Build(zap.AddStacktrace(zap.DPanicLevel))
 	if err != nil {
-		return nil, errors.Wrap(err, "creating logger")
+		return nil, fmt.Errorf("building logger: %w", err)
 	}
 	return NewDefaultLogger(logger), nil
 }
 
-// UnmarshalFlag implements flags.Unmarshaler.
-func (l *Level) UnmarshalFlag(value string) error {
-	var level zapcore.Level
-	if err := level.Set(value); err != nil {
-		return &flags.Error{
-			Type:    flags.ErrMarshal,
-			Message: err.Error(),
-		}
+// MustNew returns a new leveled contextual logger, and panic on error.
+func MustNew(config Config) Logger {
+	logger, err := New(config)
+	if err != nil {
+		panic(err)
 	}
-	*l = Level(level)
-	return nil
+	return logger
 }
 
-// Ensure Level correctly implements flags.Unmarshaler.
-var _ flags.Unmarshaler = (*Level)(nil)
+// Provider is a wire provider that produces a logger from config.
+func Provider(config Config) (Logger, func(), error) {
+	logger, err := New(config)
+	if err != nil {
+		return nil, nil, err
+	}
+	restoreGlobal := zap.ReplaceGlobals(logger.Background())
+	restoreStdLog := zap.RedirectStdLog(logger.Background())
+	return logger, func() { restoreStdLog(); restoreGlobal() }, nil
+}

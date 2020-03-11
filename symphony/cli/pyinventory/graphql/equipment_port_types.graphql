@@ -1,0 +1,38 @@
+query EquipmentPortTypesQuery {
+  equipmentPortTypes {
+    edges {
+      node {
+        id
+        name
+        propertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          isEditable
+          isInstanceProperty
+        }
+        linkPropertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          isEditable
+          isInstanceProperty
+        }
+      }
+    }
+  }
+}

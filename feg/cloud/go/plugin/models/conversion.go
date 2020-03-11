@@ -12,15 +12,15 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/lte"
-	ltemodels "magma/lte/cloud/go/plugin/models"
-	merrors "magma/orc8r/cloud/go/errors"
+	lteModels "magma/lte/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	models2 "magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
+	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -35,7 +35,7 @@ func (m *FegNetwork) GetEmptyNetwork() handlers.NetworkModel {
 }
 
 func (m *FegNetwork) ToConfiguratorNetwork() configurator.Network {
-	return configurator.Network{
+	network := configurator.Network{
 		ID:          string(m.ID),
 		Type:        feg.FederationNetworkType,
 		Name:        string(m.Name),
@@ -46,10 +46,14 @@ func (m *FegNetwork) ToConfiguratorNetwork() configurator.Network {
 			orc8r.NetworkFeaturesConfig: m.Features,
 		},
 	}
+	if m.SubscriberConfig != nil {
+		network.Configs[lte.NetworkSubscriberConfigType] = m.SubscriberConfig
+	}
+	return network
 }
 
 func (m *FegNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
-	return configurator.NetworkUpdateCriteria{
+	update := configurator.NetworkUpdateCriteria{
 		ID:             string(m.ID),
 		NewName:        swag.String(string(m.Name)),
 		NewDescription: swag.String(string(m.Description)),
@@ -59,6 +63,10 @@ func (m *FegNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 			orc8r.NetworkFeaturesConfig: m.Features,
 		},
 	}
+	if m.SubscriberConfig != nil {
+		update.ConfigsToAddOrUpdate[lte.NetworkSubscriberConfigType] = m.SubscriberConfig
+	}
+	return update
 }
 
 func (m *FegNetwork) FromConfiguratorNetwork(n configurator.Network) interface{} {
@@ -69,10 +77,13 @@ func (m *FegNetwork) FromConfiguratorNetwork(n configurator.Network) interface{}
 		m.Federation = cfg.(*NetworkFederationConfigs)
 	}
 	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
-		m.DNS = cfg.(*models2.NetworkDNSConfig)
+		m.DNS = cfg.(*orc8rModels.NetworkDNSConfig)
 	}
 	if cfg := n.Configs[orc8r.NetworkFeaturesConfig]; cfg != nil {
-		m.Features = cfg.(*models2.NetworkFeatures)
+		m.Features = cfg.(*orc8rModels.NetworkFeatures)
+	}
+	if cfg := n.Configs[lte.NetworkSubscriberConfigType]; cfg != nil {
+		m.SubscriberConfig = cfg.(*lteModels.NetworkSubscriberConfig)
 	}
 	return m
 }
@@ -122,23 +133,23 @@ func (m *FegLteNetwork) FromConfiguratorNetwork(n configurator.Network) interfac
 		m.Federation = cfg.(*FederatedNetworkConfigs)
 	}
 	if cfg := n.Configs[lte.CellularNetworkType]; cfg != nil {
-		m.Cellular = cfg.(*ltemodels.NetworkCellularConfigs)
+		m.Cellular = cfg.(*lteModels.NetworkCellularConfigs)
 	}
 	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
-		m.DNS = cfg.(*models2.NetworkDNSConfig)
+		m.DNS = cfg.(*orc8rModels.NetworkDNSConfig)
 	}
 	if cfg := n.Configs[orc8r.NetworkFeaturesConfig]; cfg != nil {
-		m.Features = cfg.(*models2.NetworkFeatures)
+		m.Features = cfg.(*orc8rModels.NetworkFeatures)
 	}
 	return m
 }
 
 func (m *NetworkFederationConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	return models2.GetNetworkConfig(network, feg.FegNetworkType)
+	return orc8rModels.GetNetworkConfig(network, feg.FegNetworkType)
 }
 
 func (m *NetworkFederationConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, feg.FegNetworkType, m), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, feg.FegNetworkType, m), nil
 }
 
 func (m *FederationGateway) ValidateModel() error {
@@ -147,11 +158,11 @@ func (m *FederationGateway) ValidateModel() error {
 
 func (m *FederationGateway) FromBackendModels(
 	magmadGateway, federationGateway configurator.NetworkEntity,
-	device *models2.GatewayDevice,
-	status *models2.GatewayStatus,
+	device *orc8rModels.GatewayDevice,
+	status *orc8rModels.GatewayStatus,
 ) handlers.GatewayModel {
 	// delegate most of the fillin to magmad gateway struct
-	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
 	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
 	m.Federation = federationGateway.Config.(*GatewayFederationConfigs)
@@ -162,8 +173,8 @@ func (m *MutableFederationGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MutableFederationGateway) GetMagmadGateway() *models2.MagmadGateway {
-	return &models2.MagmadGateway{
+func (m *MutableFederationGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
+	return &orc8rModels.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
 		ID:          m.ID,
@@ -221,11 +232,11 @@ func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(
 }
 
 func (m *FederatedNetworkConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	return models2.GetNetworkConfig(network, feg.FederatedNetworkType)
+	return orc8rModels.GetNetworkConfig(network, feg.FederatedNetworkType)
 }
 
 func (m *FederatedNetworkConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, feg.FederatedNetworkType, m), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, feg.FederatedNetworkType, m), nil
 }
 
 func (m *GatewayFederationConfigs) FromBackendModels(networkID string, gatewayID string) error {

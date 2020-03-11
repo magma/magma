@@ -53,6 +53,7 @@ export type AddEditProjectTypeCard_editingProjectType$data = AddEditProjectTypeC
 export type AddEditProjectTypeCard_editingProjectType$key = {
   +$data?: AddEditProjectTypeCard_editingProjectType$data,
   +$fragmentRefs: AddEditProjectTypeCard_editingProjectType$ref,
+  ...
 };
 */
 

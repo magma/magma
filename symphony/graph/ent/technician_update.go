@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -27,8 +26,8 @@ type TechnicianUpdate struct {
 	update_time       *time.Time
 	name              *string
 	email             *string
-	work_orders       map[string]struct{}
-	removedWorkOrders map[string]struct{}
+	work_orders       map[int]struct{}
+	removedWorkOrders map[int]struct{}
 	predicates        []predicate.Technician
 }
 
@@ -51,9 +50,9 @@ func (tu *TechnicianUpdate) SetEmail(s string) *TechnicianUpdate {
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (tu *TechnicianUpdate) AddWorkOrderIDs(ids ...string) *TechnicianUpdate {
+func (tu *TechnicianUpdate) AddWorkOrderIDs(ids ...int) *TechnicianUpdate {
 	if tu.work_orders == nil {
-		tu.work_orders = make(map[string]struct{})
+		tu.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		tu.work_orders[ids[i]] = struct{}{}
@@ -63,7 +62,7 @@ func (tu *TechnicianUpdate) AddWorkOrderIDs(ids ...string) *TechnicianUpdate {
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (tu *TechnicianUpdate) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -71,9 +70,9 @@ func (tu *TechnicianUpdate) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdate {
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (tu *TechnicianUpdate) RemoveWorkOrderIDs(ids ...string) *TechnicianUpdate {
+func (tu *TechnicianUpdate) RemoveWorkOrderIDs(ids ...int) *TechnicianUpdate {
 	if tu.removedWorkOrders == nil {
-		tu.removedWorkOrders = make(map[string]struct{})
+		tu.removedWorkOrders = make(map[int]struct{})
 	}
 	for i := range ids {
 		tu.removedWorkOrders[ids[i]] = struct{}{}
@@ -83,7 +82,7 @@ func (tu *TechnicianUpdate) RemoveWorkOrderIDs(ids ...string) *TechnicianUpdate 
 
 // RemoveWorkOrders removes work_orders edges to WorkOrder.
 func (tu *TechnicianUpdate) RemoveWorkOrders(w ...*WorkOrder) *TechnicianUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -132,39 +131,39 @@ func (tu *TechnicianUpdate) ExecX(ctx context.Context) {
 }
 
 func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   technician.Table,
 			Columns: technician.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		},
 	}
 	if ps := tu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := tu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: technician.FieldUpdateTime,
 		})
 	}
 	if value := tu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldName,
 		})
 	}
 	if value := tu.email; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldEmail,
@@ -179,19 +178,15 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := tu.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -202,22 +197,20 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{technician.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -228,13 +221,13 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // TechnicianUpdateOne is the builder for updating a single Technician entity.
 type TechnicianUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time       *time.Time
 	name              *string
 	email             *string
-	work_orders       map[string]struct{}
-	removedWorkOrders map[string]struct{}
+	work_orders       map[int]struct{}
+	removedWorkOrders map[int]struct{}
 }
 
 // SetName sets the name field.
@@ -250,9 +243,9 @@ func (tuo *TechnicianUpdateOne) SetEmail(s string) *TechnicianUpdateOne {
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (tuo *TechnicianUpdateOne) AddWorkOrderIDs(ids ...string) *TechnicianUpdateOne {
+func (tuo *TechnicianUpdateOne) AddWorkOrderIDs(ids ...int) *TechnicianUpdateOne {
 	if tuo.work_orders == nil {
-		tuo.work_orders = make(map[string]struct{})
+		tuo.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		tuo.work_orders[ids[i]] = struct{}{}
@@ -262,7 +255,7 @@ func (tuo *TechnicianUpdateOne) AddWorkOrderIDs(ids ...string) *TechnicianUpdate
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (tuo *TechnicianUpdateOne) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -270,9 +263,9 @@ func (tuo *TechnicianUpdateOne) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdate
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (tuo *TechnicianUpdateOne) RemoveWorkOrderIDs(ids ...string) *TechnicianUpdateOne {
+func (tuo *TechnicianUpdateOne) RemoveWorkOrderIDs(ids ...int) *TechnicianUpdateOne {
 	if tuo.removedWorkOrders == nil {
-		tuo.removedWorkOrders = make(map[string]struct{})
+		tuo.removedWorkOrders = make(map[int]struct{})
 	}
 	for i := range ids {
 		tuo.removedWorkOrders[ids[i]] = struct{}{}
@@ -282,7 +275,7 @@ func (tuo *TechnicianUpdateOne) RemoveWorkOrderIDs(ids ...string) *TechnicianUpd
 
 // RemoveWorkOrders removes work_orders edges to WorkOrder.
 func (tuo *TechnicianUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *TechnicianUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -331,33 +324,33 @@ func (tuo *TechnicianUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   technician.Table,
 			Columns: technician.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  tuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		},
 	}
 	if value := tuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: technician.FieldUpdateTime,
 		})
 	}
 	if value := tuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldName,
 		})
 	}
 	if value := tuo.email; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldEmail,
@@ -372,19 +365,15 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := tuo.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -395,25 +384,23 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	t = &Technician{config: tuo.config}
-	spec.Assign = t.assignValues
-	spec.ScanValues = t.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, tuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = t.assignValues
+	_spec.ScanValues = t.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, tuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{technician.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

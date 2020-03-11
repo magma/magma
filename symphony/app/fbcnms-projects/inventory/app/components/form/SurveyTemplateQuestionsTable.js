@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -29,7 +29,7 @@ import {makeStyles} from '@material-ui/styles';
 import {removeItem, updateItem} from '@fbcnms/util/arrays';
 import {reorder} from '../draggable/DraggableUtils';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     marginBottom: '12px',
   },
@@ -42,7 +42,7 @@ const useStyles = makeStyles({
     width: '200px',
     paddingRight: '5px',
   },
-});
+}));
 
 const questionTypes: {[SurveyQuestionType]: string} = {
   BOOL: 'Yes/No',
@@ -167,11 +167,6 @@ export default function SurveyTemplateQuestionsTable(props: Props) {
                   className={classes.input}
                   value={question.questionType}
                   onChange={onChangeQuestionType(i)}
-                  SelectProps={{
-                    MenuProps: {
-                      className: classes.menu,
-                    },
-                  }}
                   margin="dense">
                   {Object.keys(questionTypes).map(type => (
                     <MenuItem key={type} value={type}>

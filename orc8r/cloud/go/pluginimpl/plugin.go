@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -16,16 +17,11 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/service/config"
-	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
-	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
-	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
@@ -34,10 +30,12 @@ import (
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promeExp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 	"magma/orc8r/cloud/go/services/state"
-	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/providers"
-	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
+	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
+	"magma/orc8r/lib/go/service/serviceregistry"
 
 	"github.com/labstack/echo"
 )
@@ -94,14 +92,11 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 	return plugin.FlattenHandlerLists(
 		// v0 handlers
 		accessdh.GetObsidianHandlers(),
-		checkinh.GetObsidianHandlers(),
-		dnsdh.GetObsidianHandlers(),
+		// v1 handlers
 		magmadh.GetObsidianHandlers(),
 		metricsdh.GetObsidianHandlers(metricsConfig),
-		upgradeh.GetObsidianHandlers(),
-		stateh.GetObsidianHandlers(),
-		// v1 handlers
 		handlers.GetObsidianHandlers(),
+		tenantsh.GetObsidianHandlers(),
 		[]obsidian.Handler{{
 			Path:    "/",
 			Methods: obsidian.GET,
@@ -120,6 +115,10 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 		mconfig.GetProvider(),
 		mconfig.GetViewProvider(),
 	}
+}
+
+func (*BaseOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
+	return []indexer.Indexer{}
 }
 
 const (

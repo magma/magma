@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash cdc8b8fa4332510fcd54d757c18a179c
+ * @relayHash 5e8695f4bff8f04876e6643ae09105d6
  */
 
 /* eslint-disable */
@@ -44,7 +44,7 @@ export type EditLocationMutationVariables = {|
   input: EditLocationInput
 |};
 export type EditLocationMutationResponse = {|
-  +editLocation: ?{|
+  +editLocation: {|
     +id: string,
     +externalId: ?string,
     +name: string,

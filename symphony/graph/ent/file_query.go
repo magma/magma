@@ -27,6 +27,7 @@ type FileQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.File
+	withFKs    bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -55,14 +56,14 @@ func (fq *FileQuery) Order(o ...Order) *FileQuery {
 	return fq
 }
 
-// First returns the first File entity in the query. Returns *ErrNotFound when no file was found.
+// First returns the first File entity in the query. Returns *NotFoundError when no file was found.
 func (fq *FileQuery) First(ctx context.Context) (*File, error) {
 	fs, err := fq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(fs) == 0 {
-		return nil, &ErrNotFound{file.Label}
+		return nil, &NotFoundError{file.Label}
 	}
 	return fs[0], nil
 }
@@ -76,21 +77,21 @@ func (fq *FileQuery) FirstX(ctx context.Context) *File {
 	return f
 }
 
-// FirstID returns the first File id in the query. Returns *ErrNotFound when no id was found.
-func (fq *FileQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first File id in the query. Returns *NotFoundError when no id was found.
+func (fq *FileQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{file.Label}
+		err = &NotFoundError{file.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (fq *FileQuery) FirstXID(ctx context.Context) string {
+func (fq *FileQuery) FirstXID(ctx context.Context) int {
 	id, err := fq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -108,9 +109,9 @@ func (fq *FileQuery) Only(ctx context.Context) (*File, error) {
 	case 1:
 		return fs[0], nil
 	case 0:
-		return nil, &ErrNotFound{file.Label}
+		return nil, &NotFoundError{file.Label}
 	default:
-		return nil, &ErrNotSingular{file.Label}
+		return nil, &NotSingularError{file.Label}
 	}
 }
 
@@ -124,8 +125,8 @@ func (fq *FileQuery) OnlyX(ctx context.Context) *File {
 }
 
 // OnlyID returns the only File id in the query, returns an error if not exactly one id was returned.
-func (fq *FileQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fq *FileQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -133,15 +134,15 @@ func (fq *FileQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{file.Label}
+		err = &NotFoundError{file.Label}
 	default:
-		err = &ErrNotSingular{file.Label}
+		err = &NotSingularError{file.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (fq *FileQuery) OnlyXID(ctx context.Context) string {
+func (fq *FileQuery) OnlyXID(ctx context.Context) int {
 	id, err := fq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -164,8 +165,8 @@ func (fq *FileQuery) AllX(ctx context.Context) []*File {
 }
 
 // IDs executes the query and returns a list of File ids.
-func (fq *FileQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (fq *FileQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := fq.Select(file.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -173,7 +174,7 @@ func (fq *FileQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fq *FileQuery) IDsX(ctx context.Context) []string {
+func (fq *FileQuery) IDsX(ctx context.Context) []int {
 	ids, err := fq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -267,30 +268,41 @@ func (fq *FileQuery) Select(field string, fields ...string) *FileSelect {
 
 func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
 	var (
-		nodes []*File
-		spec  = fq.querySpec()
+		nodes   = []*File{}
+		withFKs = fq.withFKs
+		_spec   = fq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, file.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &File{config: fq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, fq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, fq.driver, _spec); err != nil {
 		return nil, err
+	}
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (fq *FileQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := fq.querySpec()
-	return sqlgraph.CountNodes(ctx, fq.driver, spec)
+	_spec := fq.querySpec()
+	return sqlgraph.CountNodes(ctx, fq.driver, _spec)
 }
 
 func (fq *FileQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,12 +314,12 @@ func (fq *FileQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   file.Table,
 			Columns: file.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: file.FieldID,
 			},
 		},
@@ -315,26 +327,26 @@ func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := fq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := fq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := fq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := fq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (fq *FileQuery) sqlQuery() *sql.Selector {

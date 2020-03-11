@@ -11,7 +11,7 @@
 import type {TRefFor} from '../types/TRefFor.flow';
 
 import * as React from 'react';
-import FormFieldContext from '../FormField/FormFieldContext';
+import FormElementContext from '../Form/FormElementContext';
 import InputContext from './InputContext';
 import Text from '../Text';
 import classNames from 'classnames';
@@ -28,7 +28,7 @@ export const KEYBOARD_KEYS = {
   },
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -44,15 +44,19 @@ const useStyles = makeStyles({
     '&$hasFocus': {
       borderColor: symphony.palette.D500,
     },
-    '&:hover:not($disabled):not($hasError)': {
+    '&:hover:not($disabled)': {
       borderColor: symphony.palette.D500,
     },
     '&$disabled': {
-      backgroundColor: symphony.palette.D50,
+      backgroundColor: symphony.palette.background,
     },
     '&$hasError': {
       borderColor: symphony.palette.R600,
     },
+  },
+  multilineInputContainer: {
+    height: 'unset',
+    paddingRight: 0,
   },
   hasFocus: {},
   disabled: {
@@ -60,6 +64,7 @@ const useStyles = makeStyles({
       '&::placeholder': {
         color: symphony.palette.disabled,
       },
+      color: symphony.palette.secondary,
     },
   },
   hasError: {},
@@ -75,6 +80,9 @@ const useStyles = makeStyles({
     '&::placeholder': {
       color: symphony.palette.D400,
     },
+  },
+  multilineInput: {
+    resize: 'none',
   },
   prefix: {
     display: 'flex',
@@ -94,7 +102,7 @@ const useStyles = makeStyles({
     marginRight: '-2px',
     marginLeft: '8px',
   },
-});
+}));
 
 export type FocusEvent<T> = {
   target: T,
@@ -109,6 +117,7 @@ type Props = {
   value?: string | number,
   className?: string,
   placeholder?: string,
+  rows?: number,
   autoFocus?: boolean,
   disabled?: boolean,
   hasError?: boolean,
@@ -134,11 +143,13 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
     onBlur,
     onChange,
     onEnterPressed,
+    type,
+    rows = 2,
     ...rest
   } = props;
   const classes = useStyles();
   const {hasError: contextHasError, disabled: contextDisabled} = useContext(
-    FormFieldContext,
+    FormElementContext,
   );
   const disabled = useMemo(
     () => (disabledProp ? disabledProp : contextDisabled),
@@ -183,27 +194,44 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
     [onEnterPressed],
   );
 
+  const isMultiline = useMemo(() => type === 'multiline', [type]);
+
   return (
     <div className={classNames(classes.root, className)}>
       <div
         className={classNames(classes.inputContainer, {
+          [classes.multilineInputContainer]: isMultiline,
           [classes.hasFocus]: hasFocus,
           [classes.disabled]: disabled,
           [classes.hasError]: hasError,
         })}>
         <InputContext.Provider value={{disabled, value: value ?? ''}}>
           {prefix && <div className={classes.prefix}>{prefix}</div>}
-          <input
-            {...rest}
-            className={classes.input}
-            disabled={disabled}
-            onFocus={onInputFocused}
-            onBlur={onInputBlurred}
-            onChange={onInputChanged}
-            onKeyDown={onKeyDown}
-            value={value}
-            ref={forwardedRef}
-          />
+          {isMultiline ? (
+            <textarea
+              rows={rows}
+              disabled={disabled}
+              className={classNames(classes.input, classes.multilineInput)}
+              onFocus={onInputFocused}
+              onBlur={onInputBlurred}
+              onChange={onInputChanged}
+              onKeyDown={onKeyDown}
+              value={value}
+            />
+          ) : (
+            <input
+              {...rest}
+              type={type}
+              className={classes.input}
+              disabled={disabled}
+              onFocus={onInputFocused}
+              onBlur={onInputBlurred}
+              onChange={onInputChanged}
+              onKeyDown={onKeyDown}
+              value={value}
+              ref={forwardedRef}
+            />
+          )}
           {suffix && <div className={classes.suffix}>{suffix}</div>}
         </InputContext.Provider>
       </div>

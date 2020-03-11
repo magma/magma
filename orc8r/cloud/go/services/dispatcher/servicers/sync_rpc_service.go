@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/directoryd"
+	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/services/dispatcher/broker"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -32,10 +32,13 @@ type SyncRPCService struct {
 	// hostName is the host at which this service instance is running on
 	hostName string
 	broker   broker.GatewayRPCBroker
+	store    dstorage.DirectorydStorage
 }
 
-func NewSyncRPCService(hostName string, broker broker.GatewayRPCBroker) (*SyncRPCService, error) {
-	return &SyncRPCService{hostName: hostName, broker: broker}, nil
+func NewSyncRPCService(
+	hostName string, broker broker.GatewayRPCBroker, store dstorage.DirectorydStorage,
+) (protos.SyncRPCServiceServer, error) {
+	return &SyncRPCService{hostName: hostName, broker: broker, store: store}, nil
 }
 
 // SyncRPC exists for backwards compatibility.
@@ -60,6 +63,19 @@ func (srv *SyncRPCService) EstablishSyncRPCStream(stream protos.SyncRPCService_E
 		return status.Errorf(codes.PermissionDenied, "Gateway hardware id is nil")
 	}
 	return srv.serveGwId(stream, gw.HardwareId)
+}
+
+func (srv *SyncRPCService) GetHostnameForHwid(ctx context.Context, hwid *protos.HardwareID) (*protos.Hostname, error) {
+	if hwid == nil || len(hwid.GetHwid()) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "hwid argument is nil or empty")
+	}
+
+	hostname, err := srv.store.GetHostname(hwid.Hwid)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "hostname not found for hwid")
+	}
+
+	return &protos.Hostname{Name: hostname}, nil
 }
 
 // streamCoordinator manages a SyncRPC bidirectional stream.
@@ -176,7 +192,7 @@ func (srv *SyncRPCService) receiveFromStream(
 // Returning err indicates to end the bidirectional stream.
 func (srv *SyncRPCService) processSyncRPCResp(resp *protos.SyncRPCResponse, hwId string) error {
 	if resp.HeartBeat {
-		err := directoryd.UpdateHostNameByHwId(hwId, srv.hostName)
+		err := srv.store.PutHostname(hwId, srv.hostName)
 		if err != nil {
 			// Cannot persist <gwId, hostName> so nobody can send things to this
 			// gateway use the stream, therefore return err to end the stream.

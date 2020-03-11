@@ -1,0 +1,81 @@
+version: "3.7"
+
+# Standard logging for each service
+x-logging: &logging_anchor
+  driver: "json-file"
+  options:
+    max-size: "10mb"
+    max-file: "10"
+
+# Standard volumes mounted
+x-standard-volumes: &volumes_anchor
+  - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+  - ${CERTS_VOLUME}:/var/opt/magma/certs
+  - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+  - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+  - /etc/snowflake:/etc/snowflake
+
+x-generic-service: &service
+  volumes: *volumes_anchor
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
+# Generic python anchor to avoid repetition for orc8r python services
+x-orc8r-service: &pyservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
+
+# Generic python anchor to avoid repetition for lte python services
+x-lte-pyservice: &ltepyservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_pipelined:${IMAGE_VERSION}
+
+services:
+
+  control_proxy:
+    <<: *pyservice
+    container_name: control_proxy
+    command: >
+      sh -c "/usr/local/bin/generate_nghttpx_config.py &&
+             /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
+
+  magmad:
+    <<: *pyservice
+    container_name: magmad
+    volumes:
+      - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+      - ${CERTS_VOLUME}:/var/opt/magma/certs
+      - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+      - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+      - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+      - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+      - /etc/snowflake:/etc/snowflake
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/var/opt/magma/docker
+    environment:
+      DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    command: python3.5 -m magma.magmad.main
+
+  pipelined:
+    <<: *ltepyservice
+    container_name: pipelined
+    privileged: true
+    volumes:
+      - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+      - ${CERTS_VOLUME}:/var/opt/magma/certs
+      - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+      - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+      - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+      - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+      - /etc/snowflake:/etc/snowflake
+      - /var/run/openvswitch:/var/run/openvswitch
+    command: >
+      sh -c "set bridge cwag_br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
+        /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
+        /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
+        python3 -m magma.pipelined.main"

@@ -1,3 +1,6 @@
+<!--
+@generated
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -32,10 +35,10 @@
 <dl>
 <dt id="pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery"><code class="flex name class">
 <span>class <span class="ident">LatestPythonPackageQuery</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: Union[<a title="pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.LatestPythonPackageQueryData" href="#pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.LatestPythonPackageQueryData">LatestPythonPackageQuery.LatestPythonPackageQueryData</a>, NoneType] = None, errors: Union[Any, NoneType] = None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>LatestPythonPackageQuery(data: Union[pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.LatestPythonPackageQueryData, NoneType] = None, errors: Any = None)</p></section>
+<section class="desc"><p>LatestPythonPackageQuery(data: Union[pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.LatestPythonPackageQueryData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.LatestPythonPackageQueryData"><code class="name">var <span class="ident">LatestPythonPackageQueryData</span></code></dt>
@@ -54,25 +57,25 @@
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -87,7 +90,7 @@
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.latest_python_package_query.LatestPythonPackageQuery.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
 </code></dt>
 <dd>
 <section class="desc"></section>

@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -25,8 +24,8 @@ type EquipmentCategoryUpdate struct {
 
 	update_time  *time.Time
 	name         *string
-	types        map[string]struct{}
-	removedTypes map[string]struct{}
+	types        map[int]struct{}
+	removedTypes map[int]struct{}
 	predicates   []predicate.EquipmentCategory
 }
 
@@ -43,9 +42,9 @@ func (ecu *EquipmentCategoryUpdate) SetName(s string) *EquipmentCategoryUpdate {
 }
 
 // AddTypeIDs adds the types edge to EquipmentType by ids.
-func (ecu *EquipmentCategoryUpdate) AddTypeIDs(ids ...string) *EquipmentCategoryUpdate {
+func (ecu *EquipmentCategoryUpdate) AddTypeIDs(ids ...int) *EquipmentCategoryUpdate {
 	if ecu.types == nil {
-		ecu.types = make(map[string]struct{})
+		ecu.types = make(map[int]struct{})
 	}
 	for i := range ids {
 		ecu.types[ids[i]] = struct{}{}
@@ -55,7 +54,7 @@ func (ecu *EquipmentCategoryUpdate) AddTypeIDs(ids ...string) *EquipmentCategory
 
 // AddTypes adds the types edges to EquipmentType.
 func (ecu *EquipmentCategoryUpdate) AddTypes(e ...*EquipmentType) *EquipmentCategoryUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -63,9 +62,9 @@ func (ecu *EquipmentCategoryUpdate) AddTypes(e ...*EquipmentType) *EquipmentCate
 }
 
 // RemoveTypeIDs removes the types edge to EquipmentType by ids.
-func (ecu *EquipmentCategoryUpdate) RemoveTypeIDs(ids ...string) *EquipmentCategoryUpdate {
+func (ecu *EquipmentCategoryUpdate) RemoveTypeIDs(ids ...int) *EquipmentCategoryUpdate {
 	if ecu.removedTypes == nil {
-		ecu.removedTypes = make(map[string]struct{})
+		ecu.removedTypes = make(map[int]struct{})
 	}
 	for i := range ids {
 		ecu.removedTypes[ids[i]] = struct{}{}
@@ -75,7 +74,7 @@ func (ecu *EquipmentCategoryUpdate) RemoveTypeIDs(ids ...string) *EquipmentCateg
 
 // RemoveTypes removes types edges to EquipmentType.
 func (ecu *EquipmentCategoryUpdate) RemoveTypes(e ...*EquipmentType) *EquipmentCategoryUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -114,32 +113,32 @@ func (ecu *EquipmentCategoryUpdate) ExecX(ctx context.Context) {
 }
 
 func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentcategory.Table,
 			Columns: equipmentcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentcategory.FieldID,
 			},
 		},
 	}
 	if ps := ecu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := ecu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentcategory.FieldUpdateTime,
 		})
 	}
 	if value := ecu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentcategory.FieldName,
@@ -154,19 +153,15 @@ func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ecu.types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -177,22 +172,20 @@ func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, ecu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, ecu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentcategory.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -203,12 +196,12 @@ func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 // EquipmentCategoryUpdateOne is the builder for updating a single EquipmentCategory entity.
 type EquipmentCategoryUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time  *time.Time
 	name         *string
-	types        map[string]struct{}
-	removedTypes map[string]struct{}
+	types        map[int]struct{}
+	removedTypes map[int]struct{}
 }
 
 // SetName sets the name field.
@@ -218,9 +211,9 @@ func (ecuo *EquipmentCategoryUpdateOne) SetName(s string) *EquipmentCategoryUpda
 }
 
 // AddTypeIDs adds the types edge to EquipmentType by ids.
-func (ecuo *EquipmentCategoryUpdateOne) AddTypeIDs(ids ...string) *EquipmentCategoryUpdateOne {
+func (ecuo *EquipmentCategoryUpdateOne) AddTypeIDs(ids ...int) *EquipmentCategoryUpdateOne {
 	if ecuo.types == nil {
-		ecuo.types = make(map[string]struct{})
+		ecuo.types = make(map[int]struct{})
 	}
 	for i := range ids {
 		ecuo.types[ids[i]] = struct{}{}
@@ -230,7 +223,7 @@ func (ecuo *EquipmentCategoryUpdateOne) AddTypeIDs(ids ...string) *EquipmentCate
 
 // AddTypes adds the types edges to EquipmentType.
 func (ecuo *EquipmentCategoryUpdateOne) AddTypes(e ...*EquipmentType) *EquipmentCategoryUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -238,9 +231,9 @@ func (ecuo *EquipmentCategoryUpdateOne) AddTypes(e ...*EquipmentType) *Equipment
 }
 
 // RemoveTypeIDs removes the types edge to EquipmentType by ids.
-func (ecuo *EquipmentCategoryUpdateOne) RemoveTypeIDs(ids ...string) *EquipmentCategoryUpdateOne {
+func (ecuo *EquipmentCategoryUpdateOne) RemoveTypeIDs(ids ...int) *EquipmentCategoryUpdateOne {
 	if ecuo.removedTypes == nil {
-		ecuo.removedTypes = make(map[string]struct{})
+		ecuo.removedTypes = make(map[int]struct{})
 	}
 	for i := range ids {
 		ecuo.removedTypes[ids[i]] = struct{}{}
@@ -250,7 +243,7 @@ func (ecuo *EquipmentCategoryUpdateOne) RemoveTypeIDs(ids ...string) *EquipmentC
 
 // RemoveTypes removes types edges to EquipmentType.
 func (ecuo *EquipmentCategoryUpdateOne) RemoveTypes(e ...*EquipmentType) *EquipmentCategoryUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -289,26 +282,26 @@ func (ecuo *EquipmentCategoryUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *EquipmentCategory, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentcategory.Table,
 			Columns: equipmentcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  ecuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentcategory.FieldID,
 			},
 		},
 	}
 	if value := ecuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentcategory.FieldUpdateTime,
 		})
 	}
 	if value := ecuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentcategory.FieldName,
@@ -323,19 +316,15 @@ func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ecuo.types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -346,25 +335,23 @@ func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	ec = &EquipmentCategory{config: ecuo.config}
-	spec.Assign = ec.assignValues
-	spec.ScanValues = ec.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, ecuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = ec.assignValues
+	_spec.ScanValues = ec.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, ecuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentcategory.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

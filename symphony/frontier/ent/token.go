@@ -13,6 +13,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
+	"github.com/facebookincubator/symphony/frontier/ent/user"
 )
 
 // Token is the model entity for the Token schema.
@@ -26,22 +27,56 @@ type Token struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Value holds the value of the "value" field.
 	Value string `json:"-"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the TokenQuery when eager-loading is set.
+	Edges       TokenEdges `json:"edges"`
+	user_tokens *int
+}
+
+// TokenEdges holds the relations/edges for other nodes in the graph.
+type TokenEdges struct {
+	// User holds the value of the user edge.
+	User *User
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TokenEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// The edge user was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Token) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // created_at
+		&sql.NullTime{},   // updated_at
+		&sql.NullString{}, // value
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Token) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // user_tokens
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Token fields.
 func (t *Token) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(token.Columns); m != n {
+	if m, n := len(values), len(token.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -65,19 +100,28 @@ func (t *Token) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		t.Value = value.String
 	}
+	values = values[3:]
+	if len(values) == len(token.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field user_tokens", value)
+		} else if value.Valid {
+			t.user_tokens = new(int)
+			*t.user_tokens = int(value.Int64)
+		}
+	}
 	return nil
 }
 
 // QueryUser queries the user edge of the Token.
 func (t *Token) QueryUser() *UserQuery {
-	return (&TokenClient{t.config}).QueryUser(t)
+	return (&TokenClient{config: t.config}).QueryUser(t)
 }
 
 // Update returns a builder for updating this Token.
 // Note that, you need to call Token.Unwrap() before calling this method, if this Token
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Token) Update() *TokenUpdateOne {
-	return (&TokenClient{t.config}).UpdateOne(t)
+	return (&TokenClient{config: t.config}).UpdateOne(t)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

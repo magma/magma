@@ -88,6 +88,7 @@ export type PowerSearchLocationsResultsTable_locations$data = PowerSearchLocatio
 export type PowerSearchLocationsResultsTable_locations$key = $ReadOnlyArray<{
   +$data?: PowerSearchLocationsResultsTable_locations$data,
   +$fragmentRefs: PowerSearchLocationsResultsTable_locations$ref,
+  ...
 }>;
 */
 

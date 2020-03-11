@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import type {
@@ -17,6 +17,7 @@ import PowerSearchBar from '../power_search/PowerSearchBar';
 import React from 'react';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
+import {EntityTypeMap} from './ComparisonViewTypes';
 import {EquipmentCriteriaConfig} from './EquipmentSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
@@ -57,6 +58,7 @@ const EquipmentPowerSearchBar = (props: Props) => {
       searchConfig={EquipmentCriteriaConfig}
       filterConfigs={filterConfigs}
       footer={footer}
+      entity={EntityTypeMap.equipment}
     />
   );
 };

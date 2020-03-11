@@ -3,7 +3,7 @@ version: "3.7"
 services:
   prometheus-cache:
     build:
-      context: $PWD/../../../orc8r/cloud
+      context: $PWD/../../../orc8r
       dockerfile: $PWD/prometheus-cache/Dockerfile
     ports:
       - 9091:9091/tcp
@@ -35,29 +35,32 @@ services:
     volumes:
       - $PWD/../../../orc8r/cloud/docker/prometheus-configurer/configs:/etc/configs
     build:
-      context: $PWD/../../../orc8r/cloud
+      context: $PWD/../../../orc8r
       dockerfile: $PWD/prometheus-configurer/Dockerfile
     command:
       - '-port=9100'
       - '-rules-dir=/etc/configs/alert_rules'
       - '-prometheusURL=prometheus:9090'
+      - '-multitenant-label=networkID'
+      - '-restrict-queries'
     restart: always
 
   alertmanager-configurer:
     volumes:
       - $PWD/../../../orc8r/cloud/docker/alertmanager-configurer/configs:/etc/configs
     build:
-      context: $PWD/../../../orc8r/cloud
+      context: $PWD/../../../orc8r
       dockerfile: $PWD/alertmanager-configurer/Dockerfile
     command:
       - '-port=9101'
       - '-alertmanager-conf=/etc/configs/alertmanager.yml'
       - '-alertmanagerURL=alertmanager:9093'
+      - '-multitenant-label=networkID'
     restart: always
 
   grafana:
     build:
-      context: $PWD/../../../orc8r/cloud
+      context: $PWD/../../../orc8r
       dockerfile: $PWD/grafana/Dockerfile
     environment:
       - PROMETHEUS_HOST=prometheus
@@ -65,3 +68,14 @@ services:
     ports:
       - 3000:3000/tcp
     restart: always
+
+  user-grafana:
+    volumes:
+      - userGrafanaData:/var/lib/grafana
+    build:
+      context: $PWD/../../../orc8r
+      dockerfile: $PWD/user-grafana/Dockerfile
+    restart: always
+
+volumes:
+  userGrafanaData:

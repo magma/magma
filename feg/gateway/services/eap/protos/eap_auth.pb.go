@@ -41,11 +41,11 @@ var fileDescriptor_3e8f4f02288c4412 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // EapServiceClient is the client API for EapService service.
 //
@@ -55,10 +55,10 @@ type EapServiceClient interface {
 }
 
 type eapServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewEapServiceClient(cc *grpc.ClientConn) EapServiceClient {
+func NewEapServiceClient(cc grpc.ClientConnInterface) EapServiceClient {
 	return &eapServiceClient{cc}
 }
 

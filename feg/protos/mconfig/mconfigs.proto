@@ -28,6 +28,7 @@ message DiamClientConfig {
     string dest_realm = 10; // server diameter realm
     string dest_host = 11; // server diameter host
     bool   disable_dest_host = 12; // don't include dest_host AVP in diameter requests
+    bool   overwrite_dest_host = 13; // overwrite dest_host AVP in diameter requests even if the message includes it
 }
 
 message DiamServerConfig {
@@ -155,3 +156,15 @@ message RadiusdConfig {
     // Hostname for prometheus metrics
     string radius_metrics_host = 4;
 }
+
+
+message SCTPClientConfig {
+    string server_address = 1; // server's host:port
+    string local_address = 2; // client's local address to bind socket to IP:port OR :port
+}
+
+message CsfbConfig {
+    orc8r.LogLevel log_level = 1;
+    SCTPClientConfig client = 2;
+}
+

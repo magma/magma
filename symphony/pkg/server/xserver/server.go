@@ -6,6 +6,7 @@ package xserver
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -17,7 +18,6 @@ import (
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/google/wire"
-	"github.com/pkg/errors"
 	promclient "github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
@@ -77,7 +77,7 @@ func NewJaegerExporter(logger log.Logger, opts jaeger.Options) (trace.Exporter, 
 
 	exporter, err := jaeger.NewExporter(opts)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "creating jaeger exporter")
+		return nil, nil, fmt.Errorf("creating jaeger exporter: %w", err)
 	}
 	return exporter, exporter.Flush, nil
 }

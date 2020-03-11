@@ -17,7 +17,7 @@ import (
 
 // processPositionDefinitionsCSV imports position types and assign them to equipment types (from CSV file to DB)
 func (m *importer) processPositionDefinitionsCSV(w http.ResponseWriter, r *http.Request) {
-	log := m.log.For(r.Context())
+	log := m.logger.For(r.Context())
 	log.Debug("PositionDefinitions- started")
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
 		log.Warn("parsing multipart form", zap.Error(err))
@@ -66,7 +66,7 @@ func (m *importer) processPositionDefinitionsCSV(w http.ResponseWriter, r *http.
 			positionLabel := line[positionLabelIndex]
 			equipTypeID := equipmentTypeNameToID[equipmentTypeName]
 
-			if equipTypeID == "" {
+			if equipTypeID == 0 {
 				log.Warn("cannot get equipment for position",
 					zap.String("name", name),
 					zap.String("equipment", equipmentTypeName),

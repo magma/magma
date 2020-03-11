@@ -62,190 +62,166 @@ static void get_session_req_data(
   spgw_state_t *spgw_state,
   const itti_s11_create_session_request_t *saved_req,
   struct pcef_create_session_data *data);
+static char convert_digit_to_char(char digit);
 extern spgw_config_t spgw_config;
 extern uint32_t sgw_get_new_s1u_teid(void);
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 //--------------------------------------------------------------------------------
 
-int pgw_handle_create_bearer_request(
-  spgw_state_t *spgw_state,
-  const itti_s5_create_bearer_request_t *const bearer_req_p)
+void handle_s5_create_session_request(
+  spgw_state_t* spgw_state,
+  teid_t context_teid,
+  ebi_t eps_bearer_id)
 {
-  // assign the IP here and just send back a S5_CREATE_BEARER_RESPONSE
+  OAILOG_FUNC_IN(LOG_PGW_APP);
   s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p = NULL;
-  MessageDef *message_p = NULL;
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
+  s5_create_session_response_t s5_response = {0};
   struct in_addr inaddr;
   char *imsi = NULL;
   char *apn = NULL;
-  OAILOG_FUNC_IN(LOG_PGW_APP);
 
   OAILOG_DEBUG(
     LOG_PGW_APP,
-    "Rx S5_CREATE_BEARER_REQUEST, Context S-GW S11 teid %u, EPS bearer id %u\n",
-    bearer_req_p->context_teid,
-    bearer_req_p->eps_bearer_id);
+    "Handle s5_create_session_request, for context sgw s11 teid, " TEID_FMT
+    "EPS bearer id %u\n",
+    context_teid,
+    eps_bearer_id);
   hash_rc = hashtable_ts_get(
     spgw_state->sgw_state.s11_bearer_context_information,
-    bearer_req_p->context_teid,
-    (void **) &new_bearer_ctxt_info_p);
+    context_teid,
+    (void**) &new_bearer_ctxt_info_p);
 
-  if (HASH_TABLE_OK == hash_rc) {
-    memset(
-      &sgi_create_endpoint_resp,
-      0,
-      sizeof(itti_sgi_create_end_point_response_t));
+  if (HASH_TABLE_OK != hash_rc) {
+    OAILOG_ERROR(
+      LOG_PGW_APP,
+      "Failed to fetch sgw bearer context from the received context "
+      "teid" TEID_FMT "\n",
+      context_teid);
+    sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
+    goto err;
+  }
 
-    //--------------------------------------------------------------------------
-    // PCO processing
-    //--------------------------------------------------------------------------
-    protocol_configuration_options_t *pco_req =
-      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-         .pco;
-    protocol_configuration_options_t pco_resp = {0};
-    protocol_configuration_options_ids_t pco_ids;
-    memset(&pco_ids, 0, sizeof pco_ids);
+  // PCO processing
+  protocol_configuration_options_t* pco_req =
+    &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
+       .pco;
+  protocol_configuration_options_t pco_resp = {0};
+  protocol_configuration_options_ids_t pco_ids;
+  memset(&pco_ids, 0, sizeof pco_ids);
 
-    // TODO: perhaps change to a nonfatal assert?
-    AssertFatal(
-      0 == pgw_process_pco_request(pco_req, &pco_resp, &pco_ids),
-      "Error in processing PCO in request");
-    copy_protocol_configuration_options(
-      &sgi_create_endpoint_resp.pco, &pco_resp);
-    clear_protocol_configuration_options(&pco_resp);
+  if (pgw_process_pco_request(pco_req, &pco_resp, &pco_ids) != RETURNok) {
+    OAILOG_ERROR(
+      LOG_PGW_APP,
+      "Error in processing PCO in create session request for "
+      "context_id: " TEID_FMT "\n",
+      context_teid);
+    sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
+    goto err;
+  }
+  copy_protocol_configuration_options(&sgi_create_endpoint_resp.pco, &pco_resp);
+  clear_protocol_configuration_options(&pco_resp);
 
-    //--------------------------------------------------------------------------
-    // IP forward will forward packets to this teid
-    sgi_create_endpoint_resp.context_teid = bearer_req_p->context_teid;
-    sgi_create_endpoint_resp.sgw_S1u_teid = bearer_req_p->S1u_teid;
-    sgi_create_endpoint_resp.eps_bearer_id = bearer_req_p->eps_bearer_id;
-    // TO DO NOW
-    sgi_create_endpoint_resp.paa.pdn_type =
-      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-        .pdn_type;
+  // IP forward will forward packets to this teid
+  sgi_create_endpoint_resp.context_teid = context_teid;
+  sgi_create_endpoint_resp.eps_bearer_id = eps_bearer_id;
+  sgi_create_endpoint_resp.paa.pdn_type =
+    new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
+      .pdn_type;
 
-    imsi =
-      (char *)
-        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
+  imsi =
+    (char*)
+      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
 
-    apn =
-      (char *)
-        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+  apn = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
           .pdn_connection.apn_in_use;
 
-    switch (sgi_create_endpoint_resp.paa.pdn_type) {
-      case IPv4:
-        // Use NAS by default if no preference is set.
-        //
-        // For context, the protocol configuration options (PCO) section of the
-        // packet from the UE is optional, which means that it is perfectly valid
-        // for a UE to send no PCO preferences at all. The previous logic only
-        // allocates an IPv4 address if the UE has explicitly set the PCO
-        // parameter for allocating IPv4 via NAS signaling (as opposed to via
-        // DHCPv4). This means that, in the absence of either parameter being set,
-        // the does not know what to do, so we need a default option as well.
-        //
-        // Since we only support the NAS signaling option right now, we will
-        // default to using NAS signaling UNLESS we see a preference for DHCPv4.
-        // This means that all IPv4 addresses are now allocated via NAS signaling
-        // unless specified otherwise.
-        //
-        // In the long run, we will want to evolve the logic to use whatever
-        // information we have to choose the ``best" allocation method. This means
-        // adding new bitfields to pco_ids in pgw_pco.h, setting them in pgw_pco.c
-        // and using them here in conditional logic. We will also want to
-        // implement different logic between the PDN types.
-        if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
-          if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
-            increment_counter(
-              "ue_pdn_connection",
-              1,
-              2,
-              "pdn_type",
-              "ipv4",
-              "result",
-              "success");
-            sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
-            OAILOG_DEBUG(
-              LOG_PGW_APP, "Allocated IPv4 address for imsi <%s>, apn <%s>\n",
-              imsi, apn);
-            sgi_create_endpoint_resp.status = SGI_STATUS_OK;
-          } else {
-            increment_counter(
-              "ue_pdn_connection",
-              1,
-              2,
-              "pdn_type",
-              "ipv4",
-              "result",
-              "failure");
-            OAILOG_ERROR(
-              LOG_PGW_APP, "Failed to allocate IPv4 PAA for PDN type IPv4 for "
-              "imsi <%s> and apn <%s>\n", imsi, apn);
-            sgi_create_endpoint_resp.status =
-              SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
-          }
-        }
-
-        break;
-
-      case IPv6:
-        increment_counter(
-          "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result", "failure");
-        OAILOG_ERROR(LOG_PGW_APP, "IPV6 PDN type NOT Supported\n");
-        sgi_create_endpoint_resp.status =
-          SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;
-
-        break;
-
-      case IPv4_AND_v6:
+  switch (sgi_create_endpoint_resp.paa.pdn_type) {
+    case IPv4:
+      // Use NAS by default if no preference is set.
+      //
+      // For context, the protocol configuration options (PCO) section of
+      // packet from the UE is optional, which means that it is perfectly
+      // valid UE to send no PCO preferences at all. The previous logic only
+      // allocates an IPv4 address if the UE has explicitly set the PCO
+      // parameter for allocating IPv4 via NAS signaling (as opposed to via
+      // DHCPv4). This means that, in the absence of either parameter being,
+      // set the does not know what to do, so we need a default option as well.
+      //
+      // Since we only support the NAS signaling option right now, we will
+      // default to using NAS signaling UNLESS we see a preference for DHCPv4.
+      // This means that all IPv4 addresses are now allocated via NAS signaling
+      // unless specified otherwise.
+      //
+      // In the long run, we will want to evolve the logic to use whatever
+      // information we have to choose the ``best" allocation method. This means
+      // adding new bitfields to pco_ids in pgw_pco.h, setting them in pgw_pco.c
+      // and using them here in conditional logic. We will also want to
+      // implement different logic between the PDN types.
+      if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
         if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
           increment_counter(
-            "ue_pdn_connection",
-            1,
-            2,
-            "pdn_type",
-            "ipv4v6",
-            "result",
-            "success");
+            "ue_pdn_connection", 1, 2, "pdn_type", "ipv4", "result", "success");
           sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
-          OAILOG_DEBUG(LOG_PGW_APP, "Allocated IPv4 address\n");
+          OAILOG_DEBUG(
+            LOG_PGW_APP,
+            "Allocated IPv4 address for imsi <%s>, apn <%s>\n",
+            imsi,
+            apn);
           sgi_create_endpoint_resp.status = SGI_STATUS_OK;
-          sgi_create_endpoint_resp.paa.pdn_type = IPv4;
         } else {
           increment_counter(
-            "ue_pdn_connection",
-            1,
-            2,
-            "pdn_type",
-            "ipv4v6",
-            "result",
-            "failure");
+            "ue_pdn_connection", 1, 2, "pdn_type", "ipv4", "result", "failure");
           OAILOG_ERROR(
             LOG_PGW_APP,
-            "Failed to allocate IPv4 PAA for PDN type IPv4_AND_v6\n");
+            "Failed to allocate IPv4 PAA for PDN type IPv4 for "
+            "imsi <%s> and apn <%s>\n",
+            imsi,
+            apn);
           sgi_create_endpoint_resp.status =
             SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
         }
+      }
+      break;
 
-        break;
+    case IPv6:
+      increment_counter(
+        "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result", "failure");
+      OAILOG_ERROR(LOG_PGW_APP, "IPV6 PDN type NOT Supported\n");
+      sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;
 
-      default:
-        AssertFatal(
-          0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
-        break;
-    }
+      break;
 
-  } else { // if (HASH_TABLE_OK == hash_rc)
-    OAILOG_DEBUG(
-      LOG_PGW_APP,
-      "Rx S11_S1U_ENDPOINT_CREATED, Context: teid %u NOT FOUND\n",
-      bearer_req_p->context_teid);
-    sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
+    case IPv4_AND_v6:
+      if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
+        increment_counter(
+          "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result", "success");
+        sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
+        OAILOG_DEBUG(LOG_PGW_APP, "Allocated IPv4 address\n");
+        sgi_create_endpoint_resp.status = SGI_STATUS_OK;
+        sgi_create_endpoint_resp.paa.pdn_type = IPv4;
+      } else {
+        increment_counter(
+          "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result", "failure");
+        OAILOG_ERROR(
+          LOG_PGW_APP,
+          "Failed to allocate IPv4 PAA for PDN type IPv4_AND_v6\n");
+        sgi_create_endpoint_resp.status =
+          SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
+      }
+      break;
+
+    default:
+      AssertFatal(
+        0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
+      break;
   }
   if (sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
     // create session in PCEF and return
+    s5_create_session_request_t bearer_req = {0};
+    bearer_req.context_teid = context_teid;
+    bearer_req.eps_bearer_id = eps_bearer_id;
     char ip_str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(inaddr.s_addr), ip_str, INET_ADDRSTRLEN);
     struct pcef_create_session_data session_data;
@@ -254,28 +230,23 @@ int pgw_handle_create_bearer_request(
       &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
       &session_data);
     pcef_create_session(
-      imsi, ip_str, &session_data, sgi_create_endpoint_resp, *bearer_req_p);
-    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNok);
+      imsi, ip_str, &session_data, sgi_create_endpoint_resp, bearer_req);
+    OAILOG_FUNC_OUT(LOG_PGW_APP);
   }
-  message_p = itti_alloc_new_message(TASK_SPGW_APP, S5_CREATE_BEARER_RESPONSE);
-  itti_s5_create_bearer_response_t *s5_response =
-    &message_p->ittiMsg.s5_create_bearer_response;
-  memset(s5_response, 0, sizeof(itti_s5_create_bearer_response_t));
-  s5_response->context_teid = bearer_req_p->context_teid;
-  s5_response->S1u_teid = bearer_req_p->S1u_teid;
-  s5_response->eps_bearer_id = bearer_req_p->eps_bearer_id;
-  s5_response->sgi_create_endpoint_resp = sgi_create_endpoint_resp;
-  s5_response->failure_cause = S5_OK;
+err:
+  s5_response.context_teid = context_teid;
+  s5_response.eps_bearer_id = eps_bearer_id;
+  s5_response.sgi_create_endpoint_resp = sgi_create_endpoint_resp;
+  s5_response.failure_cause = S5_OK;
+
   OAILOG_DEBUG(
     LOG_PGW_APP,
-    "Sending S5 Create Bearer Response to SPGW APP: Context teid %u, S1U-teid "
-    "= %u,"
+    "Sending S5 Create Session Response to SGW: with context teid, " TEID_FMT
     "EPS Bearer Id = %u\n",
-    s5_response->context_teid,
-    s5_response->S1u_teid,
-    s5_response->eps_bearer_id);
-  itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNok);
+    s5_response.context_teid,
+    s5_response.eps_bearer_id);
+  handle_s5_create_session_response(s5_response);
+  OAILOG_FUNC_OUT(LOG_PGW_APP);
 }
 
 static int get_imeisv_from_session_req(
@@ -307,18 +278,38 @@ static int get_imeisv_from_session_req(
   return 0;
 }
 
+/*
+ * Converts ascii values in [0,9] to [48,57]=['0','9']
+ * else if they are in [48,57] keep them the same
+ * else log an error and return '0'=48 value
+ */
+static char convert_digit_to_char(char digit)
+{
+  if ((digit >= 0) && (digit <= 9)) {
+    return (digit + '0');
+  } else if ((digit >= '0') && (digit <= '9')){
+    return digit;
+  } else {
+    OAILOG_ERROR(
+      LOG_PGW_APP,
+      "The input value for digit is not in a valid range: "
+      "Session request would likely be rejected on Gx or Gy interface\n");
+    return '0';
+  }
+}
+
 static void get_plmn_from_session_req(
   const itti_s11_create_session_request_t* saved_req,
   struct pcef_create_session_data* data)
 {
-  data->mcc_mnc[0] = saved_req->serving_network.mcc[0];
-  data->mcc_mnc[1] = saved_req->serving_network.mcc[1];
-  data->mcc_mnc[2] = saved_req->serving_network.mcc[2];
-  data->mcc_mnc[3] = saved_req->serving_network.mnc[0];
-  data->mcc_mnc[4] = saved_req->serving_network.mnc[1];
+  data->mcc_mnc[0] = convert_digit_to_char(saved_req->serving_network.mcc[0]);
+  data->mcc_mnc[1] = convert_digit_to_char(saved_req->serving_network.mcc[1]);
+  data->mcc_mnc[2] = convert_digit_to_char(saved_req->serving_network.mcc[2]);
+  data->mcc_mnc[3] = convert_digit_to_char(saved_req->serving_network.mnc[0]);
+  data->mcc_mnc[4] = convert_digit_to_char(saved_req->serving_network.mnc[1]);
   data->mcc_mnc_len = 5;
-  if (saved_req->serving_network.mnc[2] != 0xff) {
-    data->mcc_mnc[5] = saved_req->serving_network.mnc[2];
+  if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
+    data->mcc_mnc[5] = convert_digit_to_char(saved_req->serving_network.mnc[2]);
     data->mcc_mnc[6] = '\0';
     data->mcc_mnc_len += 1;
   } else {
@@ -330,14 +321,15 @@ static void get_imsi_plmn_from_session_req(
   const itti_s11_create_session_request_t* saved_req,
   struct pcef_create_session_data* data)
 {
-  data->imsi_mcc_mnc[0] = saved_req->imsi.digit[0];
-  data->imsi_mcc_mnc[1] = saved_req->imsi.digit[1];
-  data->imsi_mcc_mnc[2] = saved_req->imsi.digit[2];
-  data->imsi_mcc_mnc[3] = saved_req->imsi.digit[3];
-  data->imsi_mcc_mnc[4] = saved_req->imsi.digit[4];
+  data->imsi_mcc_mnc[0] = convert_digit_to_char(saved_req->imsi.digit[0]);
+  data->imsi_mcc_mnc[1] = convert_digit_to_char(saved_req->imsi.digit[1]);
+  data->imsi_mcc_mnc[2] = convert_digit_to_char(saved_req->imsi.digit[2]);
+  data->imsi_mcc_mnc[3] = convert_digit_to_char(saved_req->imsi.digit[3]);
+  data->imsi_mcc_mnc[4] = convert_digit_to_char(saved_req->imsi.digit[4]);
   data->imsi_mcc_mnc_len = 5;
-  if ((saved_req->imsi.digit[5] & 0xf) != 0xf) {
-    data->imsi_mcc_mnc[5] = saved_req->imsi.digit[5];
+  // Check if 2 or 3 digit by verifying mnc[2] has a valid value
+  if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
+    data->imsi_mcc_mnc[5] = convert_digit_to_char(saved_req->imsi.digit[5]);
     data->imsi_mcc_mnc[6] = '\0';
     data->imsi_mcc_mnc_len += 1;
   } else {
@@ -437,7 +429,8 @@ static void get_session_req_data(
 
 uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p)
+  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p,
+  imsi64_t imsi64)
 {
   OAILOG_FUNC_IN(LOG_PGW_APP);
   MessageDef *message_p = NULL;
@@ -453,8 +446,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
 
   OAILOG_INFO(
     LOG_PGW_APP,
-    "Received Create Bearer Req from PCRF with IMSI %s\n",
-    bearer_req_p->imsi);
+    "Received Create Bearer Req from PCRF with IMSI " IMSI_64_FMT, imsi64);
 
   message_p =
     itti_alloc_new_message(TASK_SPGW_APP, S5_NW_INITIATED_ACTIVATE_BEARER_REQ);
@@ -475,12 +467,17 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     &itti_s5_actv_bearer_req->eps_bearer_qos,
     &bearer_req_p->eps_bearer_qos,
     sizeof(bearer_qos_t));
-  // Copy TFT
+  //Copy UL TFT to be sent to UE
   memcpy(
-    &itti_s5_actv_bearer_req->tft,
+    &itti_s5_actv_bearer_req->ul_tft,
     &bearer_req_p->ul_tft,
     sizeof(traffic_flow_template_t));
-  // Assign LBI
+  //Copy DL TFT. SGW creates a temporary bearer ctx and stores the DL TFT
+  memcpy(
+    &itti_s5_actv_bearer_req->dl_tft,
+    &bearer_req_p->dl_tft,
+    sizeof(traffic_flow_template_t));
+
   hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
   if (!hashtblP) {
     OAILOG_ERROR(LOG_PGW_APP, "There is no UE Context in the SGW context \n");
@@ -501,7 +498,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
       if (spgw_ctxt_p != NULL) {
         if (!strncmp(
           (const char *)
-          spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
+            spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
           (const char *) bearer_req_p->imsi,
           strlen((const char *) bearer_req_p->imsi))) {
           is_imsi_found = true;
@@ -512,6 +509,8 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
             itti_s5_actv_bearer_req->lbi = bearer_req_p->lbi;
             itti_s5_actv_bearer_req->mme_teid_S11 =
               spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
+            itti_s5_actv_bearer_req->s_gw_teid_S11_S4 =
+              spgw_ctxt_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4;
             break;
           }
         }
@@ -520,6 +519,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     }
     i++;
   }
+
   if ((!is_imsi_found) || (!is_lbi_found)) {
     OAILOG_INFO(
       LOG_PGW_APP,
@@ -545,6 +545,9 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     LOG_PGW_APP,
     "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",
     itti_s5_actv_bearer_req->mme_teid_S11);
+
+  message_p->ittiMsgHeader.imsi = imsi64;
+
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
@@ -553,13 +556,12 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
 
 uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p)
+  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p,
+  imsi64_t imsi64)
 {
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
   MessageDef *message_p = NULL;
-  uint32_t i = 0;
-  uint32_t itrn = 0;
   hash_table_ts_t *hashtblP = NULL;
   uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
@@ -577,7 +579,6 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   OAILOG_INFO(LOG_PGW_APP, "Received nw_initiated_deactv_bearer_req from NW\n");
   print_bearer_ids_helper(bearer_req_p->ebi, bearer_req_p->no_of_bearers);
 
-
   hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
   if (hashtblP == NULL) {
     OAILOG_ERROR(
@@ -590,6 +591,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
    * will be multiple entries for different sessions with the same IMSI. Hence
    * even though IMSI is found search the entire list for the LBI
    */
+  uint32_t i = 0;
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
          (!is_lbi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
@@ -599,22 +601,25 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
       num_elements++;
       if (spgw_ctxt_p != NULL) {
         if (!strcmp(
-          (const char *)
-          spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
-          (const char *) bearer_req_p->imsi)) {
+              (const char*)
+                spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
+              (const char*) bearer_req_p->imsi)) {
           is_imsi_found = true;
           s11_mme_teid =
             spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
-          if ((bearer_req_p->lbi != 0) &&
+          if (
+            (bearer_req_p->lbi != 0) &&
             (bearer_req_p->lbi ==
-            spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
-              .default_bearer)) {
+             spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
+               .default_bearer)) {
             is_lbi_found = true;
             // Check if the received EBI is valid
-            for (itrn = 0; itrn < bearer_req_p->no_of_bearers; itrn ++) {
-              if(sgw_cm_get_eps_bearer_entry(
-                &spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection,
-                bearer_req_p->ebi[itrn])) {
+            for (uint32_t itrn = 0; itrn < bearer_req_p->no_of_bearers;
+                 itrn++) {
+              if (sgw_cm_get_eps_bearer_entry(
+                    &spgw_ctxt_p->sgw_eps_bearer_context_information
+                       .pdn_connection,
+                    bearer_req_p->ebi[itrn])) {
                 is_ebi_found = true;
                 ebi_to_be_deactivated[no_of_bearers_to_be_deact] =
                   bearer_req_p->ebi[itrn];
@@ -683,6 +688,8 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
       &itti_s5_deactv_ded_bearer_req->ebi,
       ebi_to_be_deactivated,
       (sizeof(ebi_t) * no_of_bearers_to_be_deact));
+
+    message_p->ittiMsgHeader.imsi = imsi64;
 
     OAILOG_INFO(
       LOG_PGW_APP,

@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -117,17 +116,17 @@ func (arc *ActionsRuleCreate) SaveX(ctx context.Context) *ActionsRule {
 
 func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error) {
 	var (
-		ar   = &ActionsRule{config: arc.config}
-		spec = &sqlgraph.CreateSpec{
+		ar    = &ActionsRule{config: arc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: actionsrule.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: actionsrule.FieldID,
 			},
 		}
 	)
 	if value := arc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: actionsrule.FieldCreateTime,
@@ -135,7 +134,7 @@ func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error)
 		ar.CreateTime = *value
 	}
 	if value := arc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: actionsrule.FieldUpdateTime,
@@ -143,7 +142,7 @@ func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error)
 		ar.UpdateTime = *value
 	}
 	if value := arc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: actionsrule.FieldName,
@@ -151,7 +150,7 @@ func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error)
 		ar.Name = *value
 	}
 	if value := arc.triggerID; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: actionsrule.FieldTriggerID,
@@ -159,7 +158,7 @@ func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error)
 		ar.TriggerID = *value
 	}
 	if value := arc.ruleFilters; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
 			Column: actionsrule.FieldRuleFilters,
@@ -167,20 +166,20 @@ func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error)
 		ar.RuleFilters = *value
 	}
 	if value := arc.ruleActions; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
 			Column: actionsrule.FieldRuleActions,
 		})
 		ar.RuleActions = *value
 	}
-	if err := sqlgraph.CreateNode(ctx, arc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, arc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	ar.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	ar.ID = int(id)
 	return ar, nil
 }

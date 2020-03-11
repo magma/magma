@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -26,7 +25,7 @@ type TechnicianCreate struct {
 	update_time *time.Time
 	name        *string
 	email       *string
-	work_orders map[string]struct{}
+	work_orders map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -70,9 +69,9 @@ func (tc *TechnicianCreate) SetEmail(s string) *TechnicianCreate {
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (tc *TechnicianCreate) AddWorkOrderIDs(ids ...string) *TechnicianCreate {
+func (tc *TechnicianCreate) AddWorkOrderIDs(ids ...int) *TechnicianCreate {
 	if tc.work_orders == nil {
-		tc.work_orders = make(map[string]struct{})
+		tc.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		tc.work_orders[ids[i]] = struct{}{}
@@ -82,7 +81,7 @@ func (tc *TechnicianCreate) AddWorkOrderIDs(ids ...string) *TechnicianCreate {
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (tc *TechnicianCreate) AddWorkOrders(w ...*WorkOrder) *TechnicianCreate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -125,17 +124,17 @@ func (tc *TechnicianCreate) SaveX(ctx context.Context) *Technician {
 
 func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 	var (
-		t    = &Technician{config: tc.config}
-		spec = &sqlgraph.CreateSpec{
+		t     = &Technician{config: tc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: technician.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		}
 	)
 	if value := tc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: technician.FieldCreateTime,
@@ -143,7 +142,7 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 		t.CreateTime = *value
 	}
 	if value := tc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: technician.FieldUpdateTime,
@@ -151,7 +150,7 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 		t.UpdateTime = *value
 	}
 	if value := tc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldName,
@@ -159,7 +158,7 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 		t.Name = *value
 	}
 	if value := tc.email; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: technician.FieldEmail,
@@ -175,27 +174,23 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, tc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	t.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	t.ID = int(id)
 	return t, nil
 }

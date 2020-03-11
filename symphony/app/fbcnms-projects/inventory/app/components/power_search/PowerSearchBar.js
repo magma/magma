@@ -10,22 +10,24 @@
 
 import type {
   EntityConfig,
+  EntityType,
   FilterConfig,
   FilterValue,
   FiltersQuery,
 } from '../comparison_view/ComparisonViewTypes';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import CSVFileExport from '../CSVFileExport';
+import FilterBookmark from '../FilterBookmark';
 import FiltersTypeahead from '../comparison_view/FiltersTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
-import nullthrows from '@fbcnms/util/nullthrows';
-import {useRef, useState} from 'react';
 
 import update from 'immutability-helper';
 import {doesFilterHasValue} from '../comparison_view/FilterUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useRef, useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -40,6 +42,7 @@ const useStyles = makeStyles(theme => ({
   searchBarContainer: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
     flexGrow: 1,
   },
   searchTypeahead: {
@@ -51,11 +54,15 @@ const useStyles = makeStyles(theme => ({
   },
   placeholder: {
     position: 'absolute',
+    top: '0px',
+    bottom: '0px',
     zIndex: 2,
     lineHeight: '36px',
     color: theme.palette.grey.A200,
     fontWeight: 'bold',
     pointerEvents: 'none',
+    alignItems: 'center',
+    display: 'flex',
   },
   filter: {
     marginRight: theme.spacing(),
@@ -64,18 +71,10 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   footer: {
-    padding: '8px 14px',
+    padding: '8px 4px 8px 10px',
     color: theme.palette.grey.A200,
     fontWeight: 'bold',
     pointerEvents: 'none',
-  },
-  exportButton: {
-    paddingLeft: '16px',
-    paddingRight: '16px',
-    marginLeft: 'auto',
-  },
-  exportButtonContainer: {
-    display: 'flex',
   },
 }));
 
@@ -93,6 +92,7 @@ type Props = {
   onFilterBlurred?: (filter: FilterValue) => void,
   // used when a filter is selected from filter typeahead
   getSelectedFilter: (filterConfig: FilterConfig) => FilterValue,
+  entity?: EntityType,
 };
 
 const PowerSearchBar = (props: Props) => {
@@ -100,6 +100,7 @@ const PowerSearchBar = (props: Props) => {
 
   const classes = useStyles();
   const {
+    entity,
     placeholder,
     searchConfig,
     filterConfigs,
@@ -109,6 +110,7 @@ const PowerSearchBar = (props: Props) => {
     exportPath,
   } = props;
   const [filterValues, setFilterValues] = useState(props.filterValues ?? []);
+
   const [editingFilterIndex, setEditingFilterIndex] = useState((null: ?number));
   const [isInputFocused, setIsInputFocused] = useState(false);
 
@@ -147,6 +149,9 @@ const PowerSearchBar = (props: Props) => {
     onFiltersChanged(newFilterValues);
   };
 
+  const savedSearch = React.useContext(AppContext).isFeatureEnabled(
+    'saved_searches',
+  );
   return (
     <div className={classNames(classes.root, props.className)}>
       <div className={classes.headerContainer}>{header != null && header}</div>
@@ -158,9 +163,12 @@ const PowerSearchBar = (props: Props) => {
             </Text>
           )}
           {filterValues.map((filterValue, i) => {
-            const filterConfig = nullthrows(
-              filterConfigs.find(filter => filter.key === filterValue.key),
+            const filterConfig = filterConfigs.find(
+              filter => filter.key === filterValue.key,
             );
+            if (filterConfig == null) {
+              return null;
+            }
             const FilterComponent = filterConfig.component;
             return (
               <div className={classes.filter} key={filterValue.id}>
@@ -186,9 +194,12 @@ const PowerSearchBar = (props: Props) => {
             searchConfig={searchConfig}
             selectedFilters={filterValues.map(filter => filter.name)}
             onFilterSelected={filterOption => {
-              const filterConfig = nullthrows(
-                filterConfigs.find(filter => filter.key === filterOption.key),
+              const filterConfig = filterConfigs.find(
+                filter => filter.key === filterOption.key,
               );
+              if (filterConfig == null) {
+                return null;
+              }
               setIsInputFocused(false);
               setEditingFilterIndex(filterValues.length);
               setFilterValues([
@@ -205,11 +216,18 @@ const PowerSearchBar = (props: Props) => {
             {footer}
           </Text>
         )}
+        {savedSearch && entity && (
+          <FilterBookmark
+            isBookmark={false}
+            filters={filterValues}
+            entity={entity}
+          />
+        )}
         {exportPath && (
           <CSVFileExport
             title="Export"
             exportPath={exportPath}
-            filters={props.filterValues}
+            filters={filterValues}
           />
         )}
       </div>

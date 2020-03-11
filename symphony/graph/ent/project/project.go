@@ -37,38 +37,38 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "projecttype" package.
 	TypeInverseTable = "project_types"
 	// TypeColumn is the table column denoting the type relation/edge.
-	TypeColumn = "type_id"
+	TypeColumn = "project_type_projects"
 	// LocationTable is the table the holds the location relation/edge.
 	LocationTable = "projects"
 	// LocationInverseTable is the table name for the Location entity.
 	// It exists in this package in order to avoid circular dependency with the "location" package.
 	LocationInverseTable = "locations"
 	// LocationColumn is the table column denoting the location relation/edge.
-	LocationColumn = "project_location_id"
+	LocationColumn = "project_location"
 	// CommentsTable is the table the holds the comments relation/edge.
 	CommentsTable = "comments"
 	// CommentsInverseTable is the table name for the Comment entity.
 	// It exists in this package in order to avoid circular dependency with the "comment" package.
 	CommentsInverseTable = "comments"
 	// CommentsColumn is the table column denoting the comments relation/edge.
-	CommentsColumn = "project_comment_id"
+	CommentsColumn = "project_comments"
 	// WorkOrdersTable is the table the holds the work_orders relation/edge.
 	WorkOrdersTable = "work_orders"
 	// WorkOrdersInverseTable is the table name for the WorkOrder entity.
 	// It exists in this package in order to avoid circular dependency with the "workorder" package.
 	WorkOrdersInverseTable = "work_orders"
 	// WorkOrdersColumn is the table column denoting the work_orders relation/edge.
-	WorkOrdersColumn = "project_id"
+	WorkOrdersColumn = "project_work_orders"
 	// PropertiesTable is the table the holds the properties relation/edge.
 	PropertiesTable = "properties"
 	// PropertiesInverseTable is the table name for the Property entity.
 	// It exists in this package in order to avoid circular dependency with the "property" package.
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
-	PropertiesColumn = "project_id"
+	PropertiesColumn = "project_properties"
 )
 
-// Columns holds all SQL columns are project fields.
+// Columns holds all SQL columns for project fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -76,6 +76,12 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldCreator,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Project type.
+var ForeignKeys = []string{
+	"project_location",
+	"project_type_projects",
 }
 
 var (

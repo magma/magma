@@ -12,12 +12,12 @@ import (
 	"context"
 	"fmt"
 
-	merrors "magma/orc8r/cloud/go/errors"
-	commonProtos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	storage2 "magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
+	commonProtos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -410,6 +410,18 @@ func CreateOrUpdateEntityConfig(networkID string, entityType string, entityKey s
 		Key:       entityKey,
 		Type:      entityType,
 		NewConfig: config,
+	}
+	_, err := UpdateEntities(networkID, []EntityUpdateCriteria{updateCriteria})
+	return err
+}
+
+func CreateOrUpdateEntityConfigAndAssoc(networkID string, entityType string, entityKey string, config interface{}, updatedAssoc []storage2.TypeAndKey) error {
+	// first delete old associations
+	updateCriteria := EntityUpdateCriteria{
+		Key:               entityKey,
+		Type:              entityType,
+		NewConfig:         config,
+		AssociationsToSet: updatedAssoc,
 	}
 	_, err := UpdateEntities(networkID, []EntityUpdateCriteria{updateCriteria})
 	return err

@@ -15,6 +15,7 @@
     - magmad
     - mobilityd
     - dnsd
+    - eventd
     # Magma OAI services
     - mme
     # Magma third-party services
@@ -114,10 +115,12 @@
       - oai-gnutls
       - oai-freediameter
       - prometheus-cpp-dev
+  retries: 5
   when: preburn
 
 - name: Overwrite linux 4.9 GTP module with patched module
-  apt: pkg=oai-gtp-4.9.0-8-amd64 state=present update_cache=yes dpkg_options=force-overwrite
+  apt: pkg=oai-gtp=4.9-5 state=present update_cache=yes dpkg_options=force-overwrite
+  retries: 5
   when: preburn
 
 - name: Install Magma dependencies
@@ -128,7 +131,7 @@
       # install prometheus
       - prometheus-cpp-dev
       # install openvswitch
-      - openvswitch-datapath-module-4.9.0-8-amd64
+      - openvswitch-datapath-module-4.9.0-9-amd64
       - openvswitch-switch
       - openvswitch-test
       - python-openvswitch
@@ -147,6 +150,9 @@
       - redis-server
       - python-redis
       - magma-cpp-redis
+      # Time synchronization with NTP for eventd
+      - ntpdate
+  retries: 5
   when: preburn
 
 - name: Copy the gtp interface initialization definition
@@ -173,10 +179,12 @@
 
 - name: Specific Magma dependencies from backports
   apt: pkg=cmake state=present update_cache=yes
+  retries: 5
   when: preburn
 
 - name: Install C code coverage analysis dependencies
   apt: pkg=lcov state=present update_cache=yes
+  retries: 5
   when: preburn
 
 - name: Install gmock and gtest for C++ testing
@@ -191,6 +199,7 @@
 
 - name: Install dnsmasq
   apt: pkg=dnsmasq state=present update_cache=yes
+  retries: 5
   when: preburn
 
 - name: Stop dnsmasq service
@@ -199,6 +208,7 @@
 
 - name: Install lighttpd
   apt: pkg=lighttpd state=present update_cache=yes
+  retries: 5
   when: preburn
 
 - name: Stop lighttpd service
@@ -221,4 +231,5 @@
   shell: ifup {{ item }}
   with_items:
     - eth0
+    - cpe_port
   when: full_provision

@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -14,6 +14,7 @@ import type {
 } from '../../mutations/__generated__/AddCommentMutation.graphql';
 
 import AddCommentMutation from '../../mutations/AddCommentMutation';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import React, {useState} from 'react';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import classNames from 'classnames';
@@ -25,7 +26,7 @@ type Props = {
   className?: string,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   newCommentBox: {
     width: '100%',
     padding: '8px 0px',
@@ -33,7 +34,7 @@ const useStyles = makeStyles({
   newCommentInput: {
     width: '100%',
   },
-});
+}));
 
 const onAddComment = (entityId, entityType: CommentEntity, commentText) => {
   const variables: AddCommentMutationVariables = {
@@ -45,10 +46,14 @@ const onAddComment = (entityId, entityType: CommentEntity, commentText) => {
   };
 
   const updater = store => {
+    // $FlowFixMe (T62907961) Relay flow types
     const newComment = store.getRootField('addComment');
+    // $FlowFixMe (T62907961) Relay flow types
     const entityProxy = store.get(entityId);
 
+    // $FlowFixMe (T62907961) Relay flow types
     const linkedComments = entityProxy.getLinkedRecords('comments') || [];
+    // $FlowFixMe (T62907961) Relay flow types
     entityProxy.setLinkedRecords([...linkedComments, newComment], 'comments');
   };
 
@@ -71,15 +76,17 @@ const NewCommentInput = (props: Props) => {
 
   return (
     <div className={classNames(className, classes.newCommentBox)}>
-      <TextInput
-        className={classes.newCommentInput}
-        type="string"
-        placeholder="Write a comment..."
-        hint="Press Enter to send"
-        onChange={({target}) => setComposedComment(target.value)}
-        onEnterPressed={onSubmit}
-        value={composedCommentText}
-      />
+      <FormField>
+        <TextInput
+          className={classes.newCommentInput}
+          type="string"
+          placeholder="Write a comment..."
+          hint="Press Enter to send"
+          onChange={({target}) => setComposedComment(target.value)}
+          onEnterPressed={onSubmit}
+          value={composedCommentText}
+        />
+      </FormField>
     </div>
   );
 };

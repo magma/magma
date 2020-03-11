@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -29,16 +28,16 @@ type EquipmentPortUpdate struct {
 	config
 
 	update_time       *time.Time
-	definition        map[string]struct{}
-	parent            map[string]struct{}
-	link              map[string]struct{}
-	properties        map[string]struct{}
-	endpoints         map[string]struct{}
+	definition        map[int]struct{}
+	parent            map[int]struct{}
+	link              map[int]struct{}
+	properties        map[int]struct{}
+	endpoints         map[int]struct{}
 	clearedDefinition bool
 	clearedParent     bool
 	clearedLink       bool
-	removedProperties map[string]struct{}
-	removedEndpoints  map[string]struct{}
+	removedProperties map[int]struct{}
+	removedEndpoints  map[int]struct{}
 	predicates        []predicate.EquipmentPort
 }
 
@@ -49,9 +48,9 @@ func (epu *EquipmentPortUpdate) Where(ps ...predicate.EquipmentPort) *EquipmentP
 }
 
 // SetDefinitionID sets the definition edge to EquipmentPortDefinition by id.
-func (epu *EquipmentPortUpdate) SetDefinitionID(id string) *EquipmentPortUpdate {
+func (epu *EquipmentPortUpdate) SetDefinitionID(id int) *EquipmentPortUpdate {
 	if epu.definition == nil {
-		epu.definition = make(map[string]struct{})
+		epu.definition = make(map[int]struct{})
 	}
 	epu.definition[id] = struct{}{}
 	return epu
@@ -63,16 +62,16 @@ func (epu *EquipmentPortUpdate) SetDefinition(e *EquipmentPortDefinition) *Equip
 }
 
 // SetParentID sets the parent edge to Equipment by id.
-func (epu *EquipmentPortUpdate) SetParentID(id string) *EquipmentPortUpdate {
+func (epu *EquipmentPortUpdate) SetParentID(id int) *EquipmentPortUpdate {
 	if epu.parent == nil {
-		epu.parent = make(map[string]struct{})
+		epu.parent = make(map[int]struct{})
 	}
 	epu.parent[id] = struct{}{}
 	return epu
 }
 
 // SetNillableParentID sets the parent edge to Equipment by id if the given value is not nil.
-func (epu *EquipmentPortUpdate) SetNillableParentID(id *string) *EquipmentPortUpdate {
+func (epu *EquipmentPortUpdate) SetNillableParentID(id *int) *EquipmentPortUpdate {
 	if id != nil {
 		epu = epu.SetParentID(*id)
 	}
@@ -85,16 +84,16 @@ func (epu *EquipmentPortUpdate) SetParent(e *Equipment) *EquipmentPortUpdate {
 }
 
 // SetLinkID sets the link edge to Link by id.
-func (epu *EquipmentPortUpdate) SetLinkID(id string) *EquipmentPortUpdate {
+func (epu *EquipmentPortUpdate) SetLinkID(id int) *EquipmentPortUpdate {
 	if epu.link == nil {
-		epu.link = make(map[string]struct{})
+		epu.link = make(map[int]struct{})
 	}
 	epu.link[id] = struct{}{}
 	return epu
 }
 
 // SetNillableLinkID sets the link edge to Link by id if the given value is not nil.
-func (epu *EquipmentPortUpdate) SetNillableLinkID(id *string) *EquipmentPortUpdate {
+func (epu *EquipmentPortUpdate) SetNillableLinkID(id *int) *EquipmentPortUpdate {
 	if id != nil {
 		epu = epu.SetLinkID(*id)
 	}
@@ -107,9 +106,9 @@ func (epu *EquipmentPortUpdate) SetLink(l *Link) *EquipmentPortUpdate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (epu *EquipmentPortUpdate) AddPropertyIDs(ids ...string) *EquipmentPortUpdate {
+func (epu *EquipmentPortUpdate) AddPropertyIDs(ids ...int) *EquipmentPortUpdate {
 	if epu.properties == nil {
-		epu.properties = make(map[string]struct{})
+		epu.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		epu.properties[ids[i]] = struct{}{}
@@ -119,7 +118,7 @@ func (epu *EquipmentPortUpdate) AddPropertyIDs(ids ...string) *EquipmentPortUpda
 
 // AddProperties adds the properties edges to Property.
 func (epu *EquipmentPortUpdate) AddProperties(p ...*Property) *EquipmentPortUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -127,9 +126,9 @@ func (epu *EquipmentPortUpdate) AddProperties(p ...*Property) *EquipmentPortUpda
 }
 
 // AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
-func (epu *EquipmentPortUpdate) AddEndpointIDs(ids ...string) *EquipmentPortUpdate {
+func (epu *EquipmentPortUpdate) AddEndpointIDs(ids ...int) *EquipmentPortUpdate {
 	if epu.endpoints == nil {
-		epu.endpoints = make(map[string]struct{})
+		epu.endpoints = make(map[int]struct{})
 	}
 	for i := range ids {
 		epu.endpoints[ids[i]] = struct{}{}
@@ -139,7 +138,7 @@ func (epu *EquipmentPortUpdate) AddEndpointIDs(ids ...string) *EquipmentPortUpda
 
 // AddEndpoints adds the endpoints edges to ServiceEndpoint.
 func (epu *EquipmentPortUpdate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPortUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -165,9 +164,9 @@ func (epu *EquipmentPortUpdate) ClearLink() *EquipmentPortUpdate {
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (epu *EquipmentPortUpdate) RemovePropertyIDs(ids ...string) *EquipmentPortUpdate {
+func (epu *EquipmentPortUpdate) RemovePropertyIDs(ids ...int) *EquipmentPortUpdate {
 	if epu.removedProperties == nil {
-		epu.removedProperties = make(map[string]struct{})
+		epu.removedProperties = make(map[int]struct{})
 	}
 	for i := range ids {
 		epu.removedProperties[ids[i]] = struct{}{}
@@ -177,7 +176,7 @@ func (epu *EquipmentPortUpdate) RemovePropertyIDs(ids ...string) *EquipmentPortU
 
 // RemoveProperties removes properties edges to Property.
 func (epu *EquipmentPortUpdate) RemoveProperties(p ...*Property) *EquipmentPortUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -185,9 +184,9 @@ func (epu *EquipmentPortUpdate) RemoveProperties(p ...*Property) *EquipmentPortU
 }
 
 // RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
-func (epu *EquipmentPortUpdate) RemoveEndpointIDs(ids ...string) *EquipmentPortUpdate {
+func (epu *EquipmentPortUpdate) RemoveEndpointIDs(ids ...int) *EquipmentPortUpdate {
 	if epu.removedEndpoints == nil {
-		epu.removedEndpoints = make(map[string]struct{})
+		epu.removedEndpoints = make(map[int]struct{})
 	}
 	for i := range ids {
 		epu.removedEndpoints[ids[i]] = struct{}{}
@@ -197,7 +196,7 @@ func (epu *EquipmentPortUpdate) RemoveEndpointIDs(ids ...string) *EquipmentPortU
 
 // RemoveEndpoints removes endpoints edges to ServiceEndpoint.
 func (epu *EquipmentPortUpdate) RemoveEndpoints(s ...*ServiceEndpoint) *EquipmentPortUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -248,25 +247,25 @@ func (epu *EquipmentPortUpdate) ExecX(ctx context.Context) {
 }
 
 func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentport.Table,
 			Columns: equipmentport.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentport.FieldID,
 			},
 		},
 	}
 	if ps := epu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := epu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentport.FieldUpdateTime,
@@ -281,12 +280,12 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentportdefinition.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epu.definition; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -297,19 +296,15 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentportdefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if epu.clearedParent {
 		edge := &sqlgraph.EdgeSpec{
@@ -320,12 +315,12 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epu.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -336,19 +331,15 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if epu.clearedLink {
 		edge := &sqlgraph.EdgeSpec{
@@ -359,12 +350,12 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epu.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -375,19 +366,15 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := epu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -398,19 +385,15 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -421,19 +404,15 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := epu.removedEndpoints; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -444,19 +423,15 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: serviceendpoint.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epu.endpoints; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -467,22 +442,20 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: serviceendpoint.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, epu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, epu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentport.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -493,25 +466,25 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 // EquipmentPortUpdateOne is the builder for updating a single EquipmentPort entity.
 type EquipmentPortUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time       *time.Time
-	definition        map[string]struct{}
-	parent            map[string]struct{}
-	link              map[string]struct{}
-	properties        map[string]struct{}
-	endpoints         map[string]struct{}
+	definition        map[int]struct{}
+	parent            map[int]struct{}
+	link              map[int]struct{}
+	properties        map[int]struct{}
+	endpoints         map[int]struct{}
 	clearedDefinition bool
 	clearedParent     bool
 	clearedLink       bool
-	removedProperties map[string]struct{}
-	removedEndpoints  map[string]struct{}
+	removedProperties map[int]struct{}
+	removedEndpoints  map[int]struct{}
 }
 
 // SetDefinitionID sets the definition edge to EquipmentPortDefinition by id.
-func (epuo *EquipmentPortUpdateOne) SetDefinitionID(id string) *EquipmentPortUpdateOne {
+func (epuo *EquipmentPortUpdateOne) SetDefinitionID(id int) *EquipmentPortUpdateOne {
 	if epuo.definition == nil {
-		epuo.definition = make(map[string]struct{})
+		epuo.definition = make(map[int]struct{})
 	}
 	epuo.definition[id] = struct{}{}
 	return epuo
@@ -523,16 +496,16 @@ func (epuo *EquipmentPortUpdateOne) SetDefinition(e *EquipmentPortDefinition) *E
 }
 
 // SetParentID sets the parent edge to Equipment by id.
-func (epuo *EquipmentPortUpdateOne) SetParentID(id string) *EquipmentPortUpdateOne {
+func (epuo *EquipmentPortUpdateOne) SetParentID(id int) *EquipmentPortUpdateOne {
 	if epuo.parent == nil {
-		epuo.parent = make(map[string]struct{})
+		epuo.parent = make(map[int]struct{})
 	}
 	epuo.parent[id] = struct{}{}
 	return epuo
 }
 
 // SetNillableParentID sets the parent edge to Equipment by id if the given value is not nil.
-func (epuo *EquipmentPortUpdateOne) SetNillableParentID(id *string) *EquipmentPortUpdateOne {
+func (epuo *EquipmentPortUpdateOne) SetNillableParentID(id *int) *EquipmentPortUpdateOne {
 	if id != nil {
 		epuo = epuo.SetParentID(*id)
 	}
@@ -545,16 +518,16 @@ func (epuo *EquipmentPortUpdateOne) SetParent(e *Equipment) *EquipmentPortUpdate
 }
 
 // SetLinkID sets the link edge to Link by id.
-func (epuo *EquipmentPortUpdateOne) SetLinkID(id string) *EquipmentPortUpdateOne {
+func (epuo *EquipmentPortUpdateOne) SetLinkID(id int) *EquipmentPortUpdateOne {
 	if epuo.link == nil {
-		epuo.link = make(map[string]struct{})
+		epuo.link = make(map[int]struct{})
 	}
 	epuo.link[id] = struct{}{}
 	return epuo
 }
 
 // SetNillableLinkID sets the link edge to Link by id if the given value is not nil.
-func (epuo *EquipmentPortUpdateOne) SetNillableLinkID(id *string) *EquipmentPortUpdateOne {
+func (epuo *EquipmentPortUpdateOne) SetNillableLinkID(id *int) *EquipmentPortUpdateOne {
 	if id != nil {
 		epuo = epuo.SetLinkID(*id)
 	}
@@ -567,9 +540,9 @@ func (epuo *EquipmentPortUpdateOne) SetLink(l *Link) *EquipmentPortUpdateOne {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (epuo *EquipmentPortUpdateOne) AddPropertyIDs(ids ...string) *EquipmentPortUpdateOne {
+func (epuo *EquipmentPortUpdateOne) AddPropertyIDs(ids ...int) *EquipmentPortUpdateOne {
 	if epuo.properties == nil {
-		epuo.properties = make(map[string]struct{})
+		epuo.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		epuo.properties[ids[i]] = struct{}{}
@@ -579,7 +552,7 @@ func (epuo *EquipmentPortUpdateOne) AddPropertyIDs(ids ...string) *EquipmentPort
 
 // AddProperties adds the properties edges to Property.
 func (epuo *EquipmentPortUpdateOne) AddProperties(p ...*Property) *EquipmentPortUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -587,9 +560,9 @@ func (epuo *EquipmentPortUpdateOne) AddProperties(p ...*Property) *EquipmentPort
 }
 
 // AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
-func (epuo *EquipmentPortUpdateOne) AddEndpointIDs(ids ...string) *EquipmentPortUpdateOne {
+func (epuo *EquipmentPortUpdateOne) AddEndpointIDs(ids ...int) *EquipmentPortUpdateOne {
 	if epuo.endpoints == nil {
-		epuo.endpoints = make(map[string]struct{})
+		epuo.endpoints = make(map[int]struct{})
 	}
 	for i := range ids {
 		epuo.endpoints[ids[i]] = struct{}{}
@@ -599,7 +572,7 @@ func (epuo *EquipmentPortUpdateOne) AddEndpointIDs(ids ...string) *EquipmentPort
 
 // AddEndpoints adds the endpoints edges to ServiceEndpoint.
 func (epuo *EquipmentPortUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPortUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -625,9 +598,9 @@ func (epuo *EquipmentPortUpdateOne) ClearLink() *EquipmentPortUpdateOne {
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (epuo *EquipmentPortUpdateOne) RemovePropertyIDs(ids ...string) *EquipmentPortUpdateOne {
+func (epuo *EquipmentPortUpdateOne) RemovePropertyIDs(ids ...int) *EquipmentPortUpdateOne {
 	if epuo.removedProperties == nil {
-		epuo.removedProperties = make(map[string]struct{})
+		epuo.removedProperties = make(map[int]struct{})
 	}
 	for i := range ids {
 		epuo.removedProperties[ids[i]] = struct{}{}
@@ -637,7 +610,7 @@ func (epuo *EquipmentPortUpdateOne) RemovePropertyIDs(ids ...string) *EquipmentP
 
 // RemoveProperties removes properties edges to Property.
 func (epuo *EquipmentPortUpdateOne) RemoveProperties(p ...*Property) *EquipmentPortUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -645,9 +618,9 @@ func (epuo *EquipmentPortUpdateOne) RemoveProperties(p ...*Property) *EquipmentP
 }
 
 // RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
-func (epuo *EquipmentPortUpdateOne) RemoveEndpointIDs(ids ...string) *EquipmentPortUpdateOne {
+func (epuo *EquipmentPortUpdateOne) RemoveEndpointIDs(ids ...int) *EquipmentPortUpdateOne {
 	if epuo.removedEndpoints == nil {
-		epuo.removedEndpoints = make(map[string]struct{})
+		epuo.removedEndpoints = make(map[int]struct{})
 	}
 	for i := range ids {
 		epuo.removedEndpoints[ids[i]] = struct{}{}
@@ -657,7 +630,7 @@ func (epuo *EquipmentPortUpdateOne) RemoveEndpointIDs(ids ...string) *EquipmentP
 
 // RemoveEndpoints removes endpoints edges to ServiceEndpoint.
 func (epuo *EquipmentPortUpdateOne) RemoveEndpoints(s ...*ServiceEndpoint) *EquipmentPortUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -708,19 +681,19 @@ func (epuo *EquipmentPortUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentPort, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentport.Table,
 			Columns: equipmentport.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  epuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentport.FieldID,
 			},
 		},
 	}
 	if value := epuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentport.FieldUpdateTime,
@@ -735,12 +708,12 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentportdefinition.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epuo.definition; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -751,19 +724,15 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentportdefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if epuo.clearedParent {
 		edge := &sqlgraph.EdgeSpec{
@@ -774,12 +743,12 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epuo.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -790,19 +759,15 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if epuo.clearedLink {
 		edge := &sqlgraph.EdgeSpec{
@@ -813,12 +778,12 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epuo.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -829,19 +794,15 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := epuo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -852,19 +813,15 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epuo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -875,19 +832,15 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := epuo.removedEndpoints; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -898,19 +851,15 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: serviceendpoint.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epuo.endpoints; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -921,25 +870,23 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: serviceendpoint.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	ep = &EquipmentPort{config: epuo.config}
-	spec.Assign = ep.assignValues
-	spec.ScanValues = ep.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, epuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = ep.assignValues
+	_spec.ScanValues = ep.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, epuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentport.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

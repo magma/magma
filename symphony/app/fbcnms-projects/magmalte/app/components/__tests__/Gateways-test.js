@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -20,7 +20,6 @@ import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
-import useMagmaAPI from '../../common/useMagmaAPI';
 
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
@@ -69,7 +68,6 @@ const OFFLINE_GATEWAY: lte_gateway = {
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
-jest.mock('../../common/useMagmaAPI');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
@@ -92,15 +90,12 @@ describe('<Gateways />', () => {
     axiosMock.get.mockResolvedValueOnce({
       data: [OFFLINE_GATEWAY],
     });
-    MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValueOnce({
+    MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValue({
       murt_usa: OFFLINE_GATEWAY,
     });
-    // $FlowFixme: jest functions aren't implemented on normal function
-    (useMagmaAPI: any).mockImplementation(() => ({
-      response: ['default'],
-      error: '',
-      isLoading: false,
-    }));
+    MagmaAPIBindings.getNetworksByNetworkIdTiers.mockResolvedValueOnce([
+      'default',
+    ]);
   });
 
   afterEach(() => {

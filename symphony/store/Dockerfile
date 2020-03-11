@@ -3,7 +3,7 @@
 # license that can be found in the LICENSE file.
 
 # Multi stage application builder
-FROM golang:1.13-alpine AS builder
+FROM golang:1.14-alpine AS builder
 
 # Install build tools
 RUN apk add --no-cache git gcc musl-dev

@@ -33,15 +33,20 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserInverseTable = "Users"
 	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_id"
+	UserColumn = "user_tokens"
 )
 
-// Columns holds all SQL columns are token fields.
+// Columns holds all SQL columns for token fields.
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldValue,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Token type.
+var ForeignKeys = []string{
+	"user_tokens",
 }
 
 var (

@@ -47,6 +47,9 @@ type TestRunner struct {
 	imsis map[string]bool
 }
 
+// imsi -> ruleID -> record
+type RecordByIMSI map[string]map[string]*lteprotos.RuleRecord
+
 // NewTestRunner initializes a new TestRunner by making a UESim client and
 // and setting the next IMSI.
 func NewTestRunner() *TestRunner {
@@ -137,6 +140,25 @@ func (testRunner *TestRunner) Authenticate(imsi string) (*radius.Packet, error) 
 	return radiusP, nil
 }
 
+// Authenticate simulates an authentication between the UE with the specified
+// IMSI and the HSS, and returns the resulting Radius packet.
+func (testRunner *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
+	fmt.Printf("************************* Sending a disconnect request UE with IMSI: %s\n", imsi)
+	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi})
+	if err != nil {
+		return &radius.Packet{}, err
+	}
+	encoded := res.GetRadiusPacket()
+	radiusP, err := radius.Parse(encoded, []byte(Secret))
+	if err != nil {
+		err = errors.Wrap(err, "Error while parsing encoded Radius packet")
+		fmt.Println(err)
+		return &radius.Packet{}, err
+	}
+	fmt.Printf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
+	return radiusP, nil
+}
+
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
 // by running an iperf3 client on the UE simulator and an iperf3 server on the
 // Magma traffic server. volume, if provided, specifies the volume of data
@@ -175,14 +197,19 @@ func (testRunner *TestRunner) CleanUp() error {
 
 // GetPolicyUsage is a wrapper around pipelined's GetPolicyUsage and returns
 // the policy usage keyed by subscriber ID
-func (tr *TestRunner) GetPolicyUsage() (map[string]*lteprotos.RuleRecord, error) {
-	recordsBySubID := map[string]*lteprotos.RuleRecord{}
+func (tr *TestRunner) GetPolicyUsage() (RecordByIMSI, error) {
+	recordsBySubID := RecordByIMSI{}
 	table, err := getPolicyUsage()
 	if err != nil {
 		return recordsBySubID, err
 	}
 	for _, record := range table.Records {
-		recordsBySubID[record.Sid] = record
+		fmt.Printf("Record %v", record)
+		_, exists := recordsBySubID[record.Sid]
+		if !exists {
+			recordsBySubID[record.Sid] = map[string]*lteprotos.RuleRecord{}
+		}
+		recordsBySubID[record.Sid][record.RuleId] = record
 	}
 	return recordsBySubID, nil
 }
@@ -244,7 +271,7 @@ func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 			Msisdn:              defaultMSISDN,
 			Non_3GppIpAccess:    lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
 			Non_3GppIpAccessApn: lteprotos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
-			ApnConfig:           &lteprotos.APNConfiguration{},
+			ApnConfig:           []*lteprotos.APNConfiguration{&lteprotos.APNConfiguration{}},
 		},
 	}
 }

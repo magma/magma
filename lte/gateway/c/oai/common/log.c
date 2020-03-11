@@ -758,11 +758,14 @@ int log_init(
     "CONFIG");
   snprintf(
     &g_oai_log.log_proto2str[LOG_ITTI][0], LOG_MAX_PROTO_NAME_LENGTH, "ITTI");
-
   snprintf(
     &g_oai_log.log_proto2str[LOG_ASYNC_SYSTEM][0],
     LOG_MAX_PROTO_NAME_LENGTH,
     "CMD");
+  snprintf(
+    &g_oai_log.log_proto2str[LOG_ASSERT][0],
+    LOG_MAX_PROTO_NAME_LENGTH,
+    "ASSERT");
 
   snprintf(
     &g_oai_log.log_level2str[OAILOG_LEVEL_TRACE][0],

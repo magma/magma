@@ -39,24 +39,24 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "equipmentporttype" package.
 	EquipmentPortTypeInverseTable = "equipment_port_types"
 	// EquipmentPortTypeColumn is the table column denoting the equipment_port_type relation/edge.
-	EquipmentPortTypeColumn = "equipment_port_type_id"
+	EquipmentPortTypeColumn = "equipment_port_definition_equipment_port_type"
 	// PortsTable is the table the holds the ports relation/edge.
 	PortsTable = "equipment_ports"
 	// PortsInverseTable is the table name for the EquipmentPort entity.
 	// It exists in this package in order to avoid circular dependency with the "equipmentport" package.
 	PortsInverseTable = "equipment_ports"
 	// PortsColumn is the table column denoting the ports relation/edge.
-	PortsColumn = "definition_id"
+	PortsColumn = "equipment_port_definition"
 	// EquipmentTypeTable is the table the holds the equipment_type relation/edge.
 	EquipmentTypeTable = "equipment_port_definitions"
 	// EquipmentTypeInverseTable is the table name for the EquipmentType entity.
 	// It exists in this package in order to avoid circular dependency with the "equipmenttype" package.
 	EquipmentTypeInverseTable = "equipment_types"
 	// EquipmentTypeColumn is the table column denoting the equipment_type relation/edge.
-	EquipmentTypeColumn = "equipment_type_id"
+	EquipmentTypeColumn = "equipment_type_port_definitions"
 )
 
-// Columns holds all SQL columns are equipmentportdefinition fields.
+// Columns holds all SQL columns for equipmentportdefinition fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -65,6 +65,12 @@ var Columns = []string{
 	FieldIndex,
 	FieldBandwidth,
 	FieldVisibilityLabel,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentPortDefinition type.
+var ForeignKeys = []string{
+	"equipment_port_definition_equipment_port_type",
+	"equipment_type_port_definitions",
 }
 
 var (

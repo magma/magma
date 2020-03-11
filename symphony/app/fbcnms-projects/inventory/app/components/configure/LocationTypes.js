@@ -24,12 +24,14 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
 import DroppableTableBody from '../draggable/DroppableTableBody';
 import EditLocationTypesIndexMutation from '../../mutations/EditLocationTypesIndexMutation';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import LocationTypeItem from './LocationTypeItem';
 import React from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {reorder, sortByIndex} from '../draggable/DraggableUtils';
@@ -101,7 +103,7 @@ type State = {
 
 const locationTypesQuery = graphql`
   query LocationTypesQuery {
-    locationTypes(first: 50) @connection(key: "Catalog_locationTypes") {
+    locationTypes(first: 500) @connection(key: "Catalog_locationTypes") {
       edges {
         node {
           ...LocationTypeItem_locationType
@@ -148,52 +150,56 @@ class LocationTypes extends React.Component<Props, State> {
             );
           }
           return (
-            <div className={classes.typesList}>
-              <div className={classes.firstRow}>
-                <ConfigueTitle
-                  className={classes.title}
-                  title={'Location Types'}
-                  subtitle={
-                    'Drag and drop location types to arrange them by size, from largest to smallest'
-                  }
-                />
-                <div className={classes.addButtonContainer}>
-                  {this.state.isSaving ? (
-                    <CircularProgress className={classes.progress} />
-                  ) : null}
-                  <Button
-                    className={classes.addButton}
-                    onClick={() => this.showAddEditLocationTypeCard(null)}>
-                    Add Location Type
-                  </Button>
+            <FormValidationContextProvider>
+              <div className={classes.typesList}>
+                <div className={classes.firstRow}>
+                  <ConfigueTitle
+                    className={classes.title}
+                    title={'Location Types'}
+                    subtitle={
+                      'Drag and drop location types to arrange them by size, from largest to smallest'
+                    }
+                  />
+                  <div className={classes.addButtonContainer}>
+                    {this.state.isSaving ? (
+                      <CircularProgress className={classes.progress} />
+                    ) : null}
+                    <FormAction>
+                      <Button
+                        className={classes.addButton}
+                        onClick={() => this.showAddEditLocationTypeCard(null)}>
+                        Add Location Type
+                      </Button>
+                    </FormAction>
+                  </div>
+                </div>
+                <div className={classes.root}>
+                  <DroppableTableBody
+                    isDragDisabled={this.state.isSaving}
+                    className={classes.table}
+                    onDragEnd={res => this._onDragEnd(res, locationTypes)}>
+                    {locationTypes.edges
+                      .map(edge => edge.node)
+                      .sort(sortByIndex)
+                      .map((locType, i) => {
+                        return (
+                          <div
+                            className={classes.listItem}
+                            key={`${locType.id}_${locType.index}`}>
+                            <LocationTypeItem
+                              locationType={locType}
+                              position={i}
+                              onEdit={() =>
+                                this.showAddEditLocationTypeCard(locType)
+                              }
+                            />
+                          </div>
+                        );
+                      })}
+                  </DroppableTableBody>
                 </div>
               </div>
-              <div className={classes.root}>
-                <DroppableTableBody
-                  isDragDisabled={this.state.isSaving}
-                  className={classes.table}
-                  onDragEnd={res => this._onDragEnd(res, locationTypes)}>
-                  {locationTypes.edges
-                    .map(edge => edge.node)
-                    .sort(sortByIndex)
-                    .map((locType, i) => {
-                      return (
-                        <div
-                          className={classes.listItem}
-                          key={`${locType.id}_${locType.index}`}>
-                          <LocationTypeItem
-                            locationType={locType}
-                            position={i}
-                            onEdit={() =>
-                              this.showAddEditLocationTypeCard(locType)
-                            }
-                          />
-                        </div>
-                      );
-                    })}
-                </DroppableTableBody>
-              </div>
-            </div>
+            </FormValidationContextProvider>
           );
         }}
       />

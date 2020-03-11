@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -26,7 +25,7 @@ type CustomerCreate struct {
 	update_time *time.Time
 	name        *string
 	external_id *string
-	services    map[string]struct{}
+	services    map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -78,9 +77,9 @@ func (cc *CustomerCreate) SetNillableExternalID(s *string) *CustomerCreate {
 }
 
 // AddServiceIDs adds the services edge to Service by ids.
-func (cc *CustomerCreate) AddServiceIDs(ids ...string) *CustomerCreate {
+func (cc *CustomerCreate) AddServiceIDs(ids ...int) *CustomerCreate {
 	if cc.services == nil {
-		cc.services = make(map[string]struct{})
+		cc.services = make(map[int]struct{})
 	}
 	for i := range ids {
 		cc.services[ids[i]] = struct{}{}
@@ -90,7 +89,7 @@ func (cc *CustomerCreate) AddServiceIDs(ids ...string) *CustomerCreate {
 
 // AddServices adds the services edges to Service.
 func (cc *CustomerCreate) AddServices(s ...*Service) *CustomerCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -132,17 +131,17 @@ func (cc *CustomerCreate) SaveX(ctx context.Context) *Customer {
 
 func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 	var (
-		c    = &Customer{config: cc.config}
-		spec = &sqlgraph.CreateSpec{
+		c     = &Customer{config: cc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: customer.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: customer.FieldID,
 			},
 		}
 	)
 	if value := cc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: customer.FieldCreateTime,
@@ -150,7 +149,7 @@ func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 		c.CreateTime = *value
 	}
 	if value := cc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: customer.FieldUpdateTime,
@@ -158,7 +157,7 @@ func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 		c.UpdateTime = *value
 	}
 	if value := cc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: customer.FieldName,
@@ -166,7 +165,7 @@ func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 		c.Name = *value
 	}
 	if value := cc.external_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: customer.FieldExternalID,
@@ -182,27 +181,23 @@ func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, cc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, cc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	c.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	c.ID = int(id)
 	return c, nil
 }

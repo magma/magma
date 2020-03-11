@@ -15,10 +15,12 @@ import type {WithStyles} from '@material-ui/core';
 import AddEditServiceTypeCard from './AddEditServiceTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import ConfigueTitle from '@fbcnms/ui/components/ConfigureTitle';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
 import ServiceTypeItem from './ServiceTypeItem';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
@@ -77,7 +79,7 @@ type State = {
 
 const serviceTypesQuery = graphql`
   query ServiceTypesQuery {
-    serviceTypes(first: 50) @connection(key: "ServiceTypes_serviceTypes") {
+    serviceTypes(first: 500) @connection(key: "ServiceTypes_serviceTypes") {
       edges {
         node {
           ...ServiceTypeItem_serviceType
@@ -124,40 +126,49 @@ class ServiceTypes extends React.Component<Props, State> {
           }
 
           return (
-            <div className={classes.typesList}>
-              <div className={classes.firstRow}>
-                <ConfigueTitle
-                  className={classes.title}
-                  title={'Service Types'}
-                  subtitle={'Manage the types of services in your inventory'}
-                />
-                <div className={classes.addButtonContainer}>
-                  <Button
-                    className={classes.addButton}
-                    onClick={() => this.showAddEditServiceTypeCard(null)}>
-                    Add Service Type
-                  </Button>
+            <FormValidationContextProvider>
+              <div className={classes.typesList}>
+                <div className={classes.firstRow}>
+                  <ConfigueTitle
+                    className={classes.title}
+                    title={'Service Types'}
+                    subtitle={'Manage the types of services in your inventory'}
+                  />
+                  <div className={classes.addButtonContainer}>
+                    <FormAction>
+                      <Button
+                        className={classes.addButton}
+                        onClick={() => this.showAddEditServiceTypeCard(null)}>
+                        Add Service Type
+                      </Button>
+                    </FormAction>
+                  </div>
+                </div>
+                <div className={classes.root}>
+                  {serviceTypes.edges
+                    .map(edge => edge.node)
+                    .filter(Boolean)
+                    .sort((serviceTypeA, serviceTypeB) =>
+                      sortLexicographically(
+                        serviceTypeA.name,
+                        serviceTypeB.name,
+                      ),
+                    )
+                    .map(srvType => (
+                      <div
+                        className={classes.listItem}
+                        key={`srvType_${srvType.id}`}>
+                        <ServiceTypeItem
+                          serviceType={srvType}
+                          onEdit={() =>
+                            this.showAddEditServiceTypeCard(srvType)
+                          }
+                        />
+                      </div>
+                    ))}
                 </div>
               </div>
-              <div className={classes.root}>
-                {serviceTypes.edges
-                  .map(edge => edge.node)
-                  .filter(Boolean)
-                  .sort((serviceTypeA, serviceTypeB) =>
-                    sortLexicographically(serviceTypeA.name, serviceTypeB.name),
-                  )
-                  .map(srvType => (
-                    <div
-                      className={classes.listItem}
-                      key={`srvType_${srvType.id}`}>
-                      <ServiceTypeItem
-                        serviceType={srvType}
-                        onEdit={() => this.showAddEditServiceTypeCard(srvType)}
-                      />
-                    </div>
-                  ))}
-              </div>
-            </div>
+            </FormValidationContextProvider>
           );
         }}
       />

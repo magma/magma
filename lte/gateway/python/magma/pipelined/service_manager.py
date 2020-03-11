@@ -29,30 +29,30 @@ should not be accessible to apps from other services.
 # produces a parse error
 
 import asyncio
+import logging
 from concurrent.futures import Future
 from collections import namedtuple, OrderedDict
 from typing import List
 
 import aioeventlet
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.meteringd_pb2_grpc import MeteringdRecordsControllerStub
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
 from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.access_control import AccessControlController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
+from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
+from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL, \
     InOutController
-from magma.pipelined.app.meter import MeterController
-from magma.pipelined.app.meter_stats import MeterStatsController
-from magma.pipelined.app.subscriber import SubscriberController
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.startup_flows import StartupFlows
+from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
 from ryu.base.app_manager import AppManager
@@ -61,8 +61,8 @@ from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
 
-
-App = namedtuple('App', ['name', 'module', 'type'])
+# Type is either Physical or Logical, highest order_priority is at zero
+App = namedtuple('App', ['name', 'module', 'type', 'order_priority'])
 
 
 class Tables:
@@ -87,6 +87,7 @@ class TableRange():
     """
     Used to generalize different table ranges.
     """
+
     def __init__(self, start: int, end: int):
         self._start = start
         self._end = end
@@ -95,7 +96,7 @@ class TableRange():
     def allocate_table(self):
         if (self._next_table == self._end):
             raise TableNumException('Cannot generate more tables. Table limit'
-                'of %s reached!' % self._end)
+                                    'of %s reached!' % self._end)
         table_num = self._next_table
         self._next_table += 1
         return table_num
@@ -103,11 +104,11 @@ class TableRange():
     def allocate_tables(self, count: int):
         if self._next_table + count >= self._end:
             raise TableNumException('Cannot generate more tables. Table limit'
-                'of %s reached!' % self._end)
+                                    'of %s reached!' % self._end)
         tables = [self.allocate_table() for i in range(0, count)]
         return tables
 
-    def get_next_table(self, table:int):
+    def get_next_table(self, table: int):
         if table + 1 < self._next_table:
             return table + 1
         else:
@@ -130,7 +131,7 @@ class _TableManager:
     def __init__(self):
         self._table_ranges = {
             ControllerType.PHYSICAL: TableRange(self.INGRESS_TABLE_NUM + 1,
-                self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
+                                                self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
             ControllerType.LOGICAL:
                 TableRange(self.PHYSICAL_TO_LOGICAL_TABLE_NUM + 1,
                            self.EGRESS_TABLE_NUM)
@@ -194,7 +195,6 @@ class _TableManager:
                 return self._table_ranges[ControllerType.LOGICAL].get_next_table(app.main_table)
             else:
                 raise TableNumException('No next table found for %s' % app_name)
-
         return self._table_ranges[app.type].get_next_table(app.main_table)
 
     def is_app_enabled(self, app_name: str) -> bool:
@@ -241,36 +241,32 @@ class ServiceManager:
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
     TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
+    VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
+    IPFIX_SERVICE_NAME = 'ipfix'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
+    RYU_REST_APP_NAME = 'ryu_rest_app'
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
+    CHECK_QUOTA_SERVICE_NAME = 'check_quota'
 
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
     # app manager to instantiate the app.
     # Note that a service may require multiple apps.
     DYNAMIC_SERVICE_TO_APPS = {
-        PipelineD.METERING: [
-            App(name=MeterController.APP_NAME,
-                module=MeterController.__module__,
-                type=MeterController.APP_TYPE),
-            App(name=MeterStatsController.APP_NAME,
-                module=MeterStatsController.__module__,
-                type=MeterStatsController.APP_TYPE),
-            App(name=SubscriberController.APP_NAME,
-                module=SubscriberController.__module__,
-                type=SubscriberController.APP_TYPE),
-        ],
-        PipelineD.DPI: [
-            App(name=DPIController.APP_NAME, module=DPIController.__module__,
-                type=DPIController.APP_TYPE),
-        ],
         PipelineD.ENFORCEMENT: [
             App(name=EnforcementController.APP_NAME,
                 module=EnforcementController.__module__,
-                type=EnforcementController.APP_TYPE),
+                type=EnforcementController.APP_TYPE,
+                order_priority=500),
             App(name=EnforcementStatsController.APP_NAME,
                 module=EnforcementStatsController.__module__,
-                type=EnforcementStatsController.APP_TYPE),
+                type=EnforcementStatsController.APP_TYPE,
+                order_priority=501),
+        ],
+        PipelineD.DPI: [
+            App(name=DPIController.APP_NAME, module=DPIController.__module__,
+                type=DPIController.APP_TYPE,
+                order_priority=700),
         ],
     }
 
@@ -280,37 +276,63 @@ class ServiceManager:
         UE_MAC_ADDRESS_SERVICE_NAME: [
             App(name=UEMacAddressController.APP_NAME,
                 module=UEMacAddressController.__module__,
-                type=None),
+                type=None,
+                order_priority=0),
         ],
         ARP_SERVICE_NAME: [
             App(name=ArpController.APP_NAME, module=ArpController.__module__,
-            type=ArpController.APP_TYPE),
+                type=ArpController.APP_TYPE,
+                order_priority=200)
         ],
         ACCESS_CONTROL_SERVICE_NAME: [
             App(name=AccessControlController.APP_NAME,
                 module=AccessControlController.__module__,
-                type=AccessControlController.APP_TYPE),
+                type=AccessControlController.APP_TYPE,
+                order_priority=400),
         ],
         TUNNEL_LEARN_SERVICE_NAME: [
             App(name=TunnelLearnController.APP_NAME,
                 module=TunnelLearnController.__module__,
-                type=TunnelLearnController.APP_TYPE),
+                type=TunnelLearnController.APP_TYPE,
+                order_priority=300),
+        ],
+        VLAN_LEARN_SERVICE_NAME: [
+            App(name=VlanLearnController.APP_NAME,
+                module=VlanLearnController.__module__,
+                type=VlanLearnController.APP_TYPE,
+                order_priority=500),
         ],
         RYU_REST_SERVICE_NAME: [
-            App(name='ryu_rest_app', module='ryu.app.ofctl_rest', type=None),
+            App(name=RYU_REST_APP_NAME,
+                module='ryu.app.ofctl_rest',
+                type=None,
+                order_priority=0),
         ],
         STARTUP_FLOWS_RECIEVER_CONTROLLER: [
             App(name=StartupFlows.APP_NAME,
                 module=StartupFlows.__module__,
-                type=StartupFlows.APP_TYPE),
-        ]
+                type=StartupFlows.APP_TYPE,
+                order_priority=0),
+        ],
+        CHECK_QUOTA_SERVICE_NAME: [
+            App(name=CheckQuotaController.APP_NAME,
+                module=CheckQuotaController.__module__,
+                type=CheckQuotaController.APP_TYPE,
+                order_priority=300),
+        ],
+        IPFIX_SERVICE_NAME: [
+            App(name=IPFIXController.APP_NAME,
+                module=IPFIXController.__module__,
+                type=IPFIXController.APP_TYPE,
+                order_priority=800),
+        ],
     }
 
     # Some apps do not use a table, so they need to be excluded from table
     # allocation.
-    STATIC_SERVICE_WITH_NO_TABLE = [
-        RYU_REST_SERVICE_NAME,
-        STARTUP_FLOWS_RECIEVER_CONTROLLER,
+    STATIC_APP_WITH_NO_TABLE = [
+        RYU_REST_APP_NAME,
+        StartupFlows.APP_NAME,
     ]
 
     def __init__(self, magma_service: MagmaService):
@@ -321,14 +343,27 @@ class ServiceManager:
         #   table 20(for egress)
         self._apps = [App(name=InOutController.APP_NAME,
                           module=InOutController.__module__,
-                          type=None)]
+                          type=None,
+                          order_priority=0)]
         self._table_manager = _TableManager()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
 
-        self._init_static_services()
-        self._init_dynamic_services()
+        apps = self._get_static_apps()
+        apps.extend(self._get_dynamic_apps())
+        apps.sort(key=lambda x: x.order_priority)
 
-    def _init_static_services(self):
+        self._apps.extend(apps)
+        # Filter out reserved apps and apps that don't need a table
+        for app in apps:
+            if app.name in self.STATIC_APP_WITH_NO_TABLE:
+                continue
+            # UE MAC service must be registered with Table 0
+            if app.name == self.UE_MAC_ADDRESS_SERVICE_NAME:
+                self._table_manager.register_apps_for_table0_service([app])
+                continue
+            self._table_manager.register_apps_for_service([app])
+
+    def _get_static_apps(self):
         """
         _init_static_services populates app modules and allocates a main table
         for each static service.
@@ -337,36 +372,30 @@ class ServiceManager:
         static_apps = \
             [app for service in static_services for app in
              self.STATIC_SERVICE_TO_APPS[service]]
-        self._apps.extend(static_apps)
 
-        # Register static apps for each service to a main table. Filter out any
-        # apps that do not need a table.
-        services_with_tables = \
-            [service for service in static_services if
-             service not in self.STATIC_SERVICE_WITH_NO_TABLE]
-        for service in services_with_tables:
-            apps = self.STATIC_SERVICE_TO_APPS[service]
-            # UE MAC service must be registered with Table 0
-            if service == self.UE_MAC_ADDRESS_SERVICE_NAME:
-                self._table_manager.register_apps_for_table0_service(apps)
-                continue
-            self._table_manager.register_apps_for_service(apps)
+        return static_apps
 
-    def _init_dynamic_services(self):
+    def _get_dynamic_apps(self):
         """
         _init_dynamic_services populates app modules and allocates a main table
         for each dynamic service.
         """
-        dynamic_services = self._magma_service.mconfig.services
-        dynamic_apps = [app for service in dynamic_services for
-                               app in self.DYNAMIC_SERVICE_TO_APPS[service]]
-        self._apps.extend(dynamic_apps)
+        dynamic_services = []
+        for service in self._magma_service.mconfig.services:
+            if service not in self.DYNAMIC_SERVICE_TO_APPS:
+                # Most likely cause: the config contains a deprecated
+                # pipelined service.
+                # Fix: update the relevant network's network_services settings.
+                logging.warning(
+                    'Mconfig contains unsupported network_services service: %s',
+                    service,
+                )
+                continue
+            dynamic_services.append(service)
 
-        # Register dynamic apps for each service to a main table. Filter out
-        # any apps that do not need a table.
-        for service in dynamic_services:
-            apps = self.DYNAMIC_SERVICE_TO_APPS[service]
-            self._table_manager.register_apps_for_service(apps)
+        dynamic_apps = [app for service in dynamic_services for
+                        app in self.DYNAMIC_SERVICE_TO_APPS[service]]
+        return dynamic_apps
 
     def load(self):
         """
@@ -385,14 +414,11 @@ class ServiceManager:
         contexts['loop'] = self._magma_service.loop
         contexts['service_manager'] = self
 
-        records_chan = ServiceRegistry.get_rpc_channel(
-            'meteringd_records', ServiceRegistry.CLOUD)
         sessiond_chan = ServiceRegistry.get_rpc_channel(
             'sessiond', ServiceRegistry.LOCAL)
         mobilityd_chan = ServiceRegistry.get_rpc_channel(
             'mobilityd', ServiceRegistry.LOCAL)
         contexts['rpc_stubs'] = {
-            'metering_cloud': MeteringdRecordsControllerStub(records_chan),
             'mobilityd': MobilityServiceStub(mobilityd_chan),
             'sessiond': LocalSessionManagerStub(sessiond_chan),
         }

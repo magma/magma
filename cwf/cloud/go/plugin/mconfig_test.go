@@ -17,10 +17,10 @@ import (
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
-	orcmconfig "magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/protos"
+	orcmconfig "magma/orc8r/lib/go/protos/mconfig"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
@@ -89,6 +89,7 @@ func TestBuilder_Build(t *testing.T) {
 				ltemconfig.PipelineD_ENFORCEMENT,
 			},
 			AllowedGrePeers: []*ltemconfig.PipelineD_AllowedGrePeer{
+				{Ip: "1.2.3.4/24"},
 				{Ip: "1.1.1.1/24", Key: 111},
 			},
 		},
@@ -129,6 +130,7 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 
 var defaultgwConfig = &models.GatewayCwfConfigs{
 	AllowedGrePeers: models.AllowedGrePeers{
+		{IP: "1.2.3.4/24"},
 		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
 	},
 }

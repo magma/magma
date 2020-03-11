@@ -44,12 +44,21 @@
     Mode     tcp
 
 [INPUT]
+    Name        tcp
+    Listen      0.0.0.0
+    Port        5170
+    Format      json
+    Tag eventd
+
+{% for t,f in files %}
+[INPUT]
     Name tail
-    Path /var/log/mme.log
-    Tag gateway.mme
+    Path {{ f }}
+    Tag gateway.{{ t }}
     DB /var/opt/magma/fluent-bit/fluent-bit-tail.db
     Refresh_Interval 5
     Key message
+{% endfor %}
 
 [FILTER]
     Name grep
@@ -84,4 +93,7 @@
     tls.crt_file {{ certfile }}
     tls.key_file {{ keyfile }}
 
+[OUTPUT]
+    Name        stdout
+    Match       eventd
 

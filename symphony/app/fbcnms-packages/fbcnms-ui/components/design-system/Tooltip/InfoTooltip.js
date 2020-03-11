@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -15,7 +15,7 @@ import Text from '../Text';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   tooltip: {
     borderRadius: '2px',
     backgroundColor: symphony.palette.secondary,
@@ -44,7 +44,7 @@ const useStyles = makeStyles({
       zIndex: 10,
     },
   },
-});
+}));
 
 type Props = {
   description: React.Node,

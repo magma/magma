@@ -41,7 +41,7 @@ const (
 	Table = "Organizations"
 )
 
-// Columns holds all SQL columns are tenant fields.
+// Columns holds all SQL columns for tenant fields.
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,

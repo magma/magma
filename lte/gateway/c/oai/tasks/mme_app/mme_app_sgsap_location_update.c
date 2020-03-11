@@ -28,7 +28,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "assertions.h"
 #include "common_types.h"
 #include "conversions.h"
 #include "log.h"
@@ -987,9 +986,8 @@ void mme_app_handle_ts6_1_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-    mme_ue_s1ap_id,
-    "sgs ts6_1 timer");
+  struct ue_mm_context_s* ue_context_p =
+    mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs ts6_1 timer");
   if (ue_context_p == NULL) {
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }

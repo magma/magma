@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 9b72c9304d67049927dffc3f57e315ae
+ * @relayHash 8b50576378cf9f329567dc14a25d80f5
  */
 
 /* eslint-disable */
@@ -42,7 +42,7 @@ export type LocationsTreeQuery = {|
 
 /*
 query LocationsTreeQuery {
-  locations(first: 50, onlyTopLevel: true) {
+  locations(first: 500, onlyTopLevel: true) {
     edges {
       node {
         id
@@ -189,7 +189,7 @@ v4 = [
   {
     "kind": "Literal",
     "name": "first",
-    "value": 50
+    "value": 500
   },
   (v0/*: any*/)
 ];
@@ -225,7 +225,7 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "locations",
-        "storageKey": "locations(first:50,onlyTopLevel:true)",
+        "storageKey": "locations(first:500,onlyTopLevel:true)",
         "args": (v4/*: any*/),
         "concreteType": "LocationConnection",
         "plural": false,
@@ -248,7 +248,7 @@ return {
     "operationKind": "query",
     "name": "LocationsTreeQuery",
     "id": null,
-    "text": "query LocationsTreeQuery {\n  locations(first: 50, onlyTopLevel: true) {\n    edges {\n      node {\n        id\n        externalId\n        name\n        locationType {\n          id\n          name\n        }\n        numChildren\n        siteSurveyNeeded\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
+    "text": "query LocationsTreeQuery {\n  locations(first: 500, onlyTopLevel: true) {\n    edges {\n      node {\n        id\n        externalId\n        name\n        locationType {\n          id\n          name\n        }\n        numChildren\n        siteSurveyNeeded\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
     "metadata": {
       "connection": [
         {
@@ -265,5 +265,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '7fe3739f9c1d4a0d510669710d0dd3e3';
+(node/*: any*/).hash = '2517b7f9d3b38afe85f3ccd710326689';
 module.exports = node;

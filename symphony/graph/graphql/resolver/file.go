@@ -13,7 +13,7 @@ import (
 
 type fileResolver struct{}
 
-func (fileResolver) FileType(ctx context.Context, obj *ent.File) (*models.FileType, error) {
-	ft := models.FileType(obj.Type)
+func (fileResolver) FileType(_ context.Context, file *ent.File) (*models.FileType, error) {
+	ft := models.FileType(file.Type)
 	return &ft, nil
 }

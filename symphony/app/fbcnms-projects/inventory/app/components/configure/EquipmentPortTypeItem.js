@@ -96,6 +96,7 @@ class EquipmentPortTypeItem extends React.Component<Props> {
                 this.props.alert('Error: ' + error.source?.errors[0]?.message);
               },
             },
+            // $FlowFixMe (T62907961) Relay flow types
             store => store.delete(this.props.equipmentPortType.id),
           );
         }

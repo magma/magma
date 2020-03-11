@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type ServiceType struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -29,30 +28,62 @@ type ServiceType struct {
 	Name string `json:"name,omitempty"`
 	// HasCustomer holds the value of the "has_customer" field.
 	HasCustomer bool `json:"has_customer,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ServiceTypeQuery when eager-loading is set.
+	Edges ServiceTypeEdges `json:"edges"`
+}
+
+// ServiceTypeEdges holds the relations/edges for other nodes in the graph.
+type ServiceTypeEdges struct {
+	// Services holds the value of the services edge.
+	Services []*Service
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// ServicesOrErr returns the Services value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceTypeEdges) ServicesOrErr() ([]*Service, error) {
+	if e.loadedTypes[0] {
+		return e.Services, nil
+	}
+	return nil, &NotLoadedError{edge: "services"}
+}
+
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.PropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "property_types"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ServiceType) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullBool{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullBool{},   // has_customer
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ServiceType fields.
 func (st *ServiceType) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(servicetype.Columns); m != n {
+	if m, n := len(values), len(servicetype.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	st.ID = strconv.FormatInt(value.Int64, 10)
+	st.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -79,19 +110,19 @@ func (st *ServiceType) assignValues(values ...interface{}) error {
 
 // QueryServices queries the services edge of the ServiceType.
 func (st *ServiceType) QueryServices() *ServiceQuery {
-	return (&ServiceTypeClient{st.config}).QueryServices(st)
+	return (&ServiceTypeClient{config: st.config}).QueryServices(st)
 }
 
 // QueryPropertyTypes queries the property_types edge of the ServiceType.
 func (st *ServiceType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&ServiceTypeClient{st.config}).QueryPropertyTypes(st)
+	return (&ServiceTypeClient{config: st.config}).QueryPropertyTypes(st)
 }
 
 // Update returns a builder for updating this ServiceType.
 // Note that, you need to call ServiceType.Unwrap() before calling this method, if this ServiceType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (st *ServiceType) Update() *ServiceTypeUpdateOne {
-	return (&ServiceTypeClient{st.config}).UpdateOne(st)
+	return (&ServiceTypeClient{config: st.config}).UpdateOne(st)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -120,12 +151,6 @@ func (st *ServiceType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", st.HasCustomer))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (st *ServiceType) id() int {
-	id, _ := strconv.Atoi(st.ID)
-	return id
 }
 
 // ServiceTypes is a parsable slice of ServiceType.

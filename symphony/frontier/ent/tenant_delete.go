@@ -43,7 +43,7 @@ func (td *TenantDelete) ExecX(ctx context.Context) int {
 }
 
 func (td *TenantDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: tenant.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +53,13 @@ func (td *TenantDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := td.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, td.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, td.driver, _spec)
 }
 
 // TenantDeleteOne is the builder for deleting a single Tenant entity.
@@ -74,7 +74,7 @@ func (tdo *TenantDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{tenant.Label}
+		return &NotFoundError{tenant.Label}
 	default:
 		return nil
 	}

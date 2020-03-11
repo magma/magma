@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -28,9 +27,9 @@ type ProjectTypeCreate struct {
 	update_time *time.Time
 	name        *string
 	description *string
-	projects    map[string]struct{}
-	properties  map[string]struct{}
-	work_orders map[string]struct{}
+	projects    map[int]struct{}
+	properties  map[int]struct{}
+	work_orders map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -82,9 +81,9 @@ func (ptc *ProjectTypeCreate) SetNillableDescription(s *string) *ProjectTypeCrea
 }
 
 // AddProjectIDs adds the projects edge to Project by ids.
-func (ptc *ProjectTypeCreate) AddProjectIDs(ids ...string) *ProjectTypeCreate {
+func (ptc *ProjectTypeCreate) AddProjectIDs(ids ...int) *ProjectTypeCreate {
 	if ptc.projects == nil {
-		ptc.projects = make(map[string]struct{})
+		ptc.projects = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptc.projects[ids[i]] = struct{}{}
@@ -94,7 +93,7 @@ func (ptc *ProjectTypeCreate) AddProjectIDs(ids ...string) *ProjectTypeCreate {
 
 // AddProjects adds the projects edges to Project.
 func (ptc *ProjectTypeCreate) AddProjects(p ...*Project) *ProjectTypeCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -102,9 +101,9 @@ func (ptc *ProjectTypeCreate) AddProjects(p ...*Project) *ProjectTypeCreate {
 }
 
 // AddPropertyIDs adds the properties edge to PropertyType by ids.
-func (ptc *ProjectTypeCreate) AddPropertyIDs(ids ...string) *ProjectTypeCreate {
+func (ptc *ProjectTypeCreate) AddPropertyIDs(ids ...int) *ProjectTypeCreate {
 	if ptc.properties == nil {
-		ptc.properties = make(map[string]struct{})
+		ptc.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptc.properties[ids[i]] = struct{}{}
@@ -114,7 +113,7 @@ func (ptc *ProjectTypeCreate) AddPropertyIDs(ids ...string) *ProjectTypeCreate {
 
 // AddProperties adds the properties edges to PropertyType.
 func (ptc *ProjectTypeCreate) AddProperties(p ...*PropertyType) *ProjectTypeCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -122,9 +121,9 @@ func (ptc *ProjectTypeCreate) AddProperties(p ...*PropertyType) *ProjectTypeCrea
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrderDefinition by ids.
-func (ptc *ProjectTypeCreate) AddWorkOrderIDs(ids ...string) *ProjectTypeCreate {
+func (ptc *ProjectTypeCreate) AddWorkOrderIDs(ids ...int) *ProjectTypeCreate {
 	if ptc.work_orders == nil {
-		ptc.work_orders = make(map[string]struct{})
+		ptc.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptc.work_orders[ids[i]] = struct{}{}
@@ -134,7 +133,7 @@ func (ptc *ProjectTypeCreate) AddWorkOrderIDs(ids ...string) *ProjectTypeCreate 
 
 // AddWorkOrders adds the work_orders edges to WorkOrderDefinition.
 func (ptc *ProjectTypeCreate) AddWorkOrders(w ...*WorkOrderDefinition) *ProjectTypeCreate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -171,17 +170,17 @@ func (ptc *ProjectTypeCreate) SaveX(ctx context.Context) *ProjectType {
 
 func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error) {
 	var (
-		pt   = &ProjectType{config: ptc.config}
-		spec = &sqlgraph.CreateSpec{
+		pt    = &ProjectType{config: ptc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: projecttype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: projecttype.FieldID,
 			},
 		}
 	)
 	if value := ptc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: projecttype.FieldCreateTime,
@@ -189,7 +188,7 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 		pt.CreateTime = *value
 	}
 	if value := ptc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: projecttype.FieldUpdateTime,
@@ -197,7 +196,7 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 		pt.UpdateTime = *value
 	}
 	if value := ptc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldName,
@@ -205,7 +204,7 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 		pt.Name = *value
 	}
 	if value := ptc.description; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldDescription,
@@ -221,19 +220,15 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: project.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ptc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -244,19 +239,15 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ptc.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -267,27 +258,23 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorderdefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, ptc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, ptc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	pt.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	pt.ID = int(id)
 	return pt, nil
 }

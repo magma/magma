@@ -102,7 +102,7 @@ func NewSAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 // getNon3GPPUserDataAVP converts a Non3GPPUserProfile proto to a diameter AVP.
 func getNon3GPPUserDataAVP(profile *lteprotos.Non3GPPUserProfile) *diam.AVP {
 	apnConfig := profile.GetApnConfig()
-	qosProfile := apnConfig.GetQosProfile()
+	qosProfile := apnConfig[0].GetQosProfile()
 	qosProfileAvp := diam.NewAVP(avp.EPSSubscribedQoSProfile, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.QoSClassIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(qosProfile.GetClassId())),
@@ -117,13 +117,13 @@ func getNon3GPPUserDataAVP(profile *lteprotos.Non3GPPUserProfile) *diam.AVP {
 	})
 	apnConfigAvp := diam.NewAVP(avp.APNConfiguration, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
-			diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetContextId())),
-			diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(apnConfig.GetPdn())),
-			diam.NewAVP(avp.ServiceSelection, avp.Mbit, 0, datatype.UTF8String(apnConfig.GetServiceSelection())),
+			diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig[0].GetContextId())),
+			diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(apnConfig[0].GetPdn())),
+			diam.NewAVP(avp.ServiceSelection, avp.Mbit, 0, datatype.UTF8String(apnConfig[0].GetServiceSelection())),
 			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
-					diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetAmbr().GetMaxBandwidthUl())),
-					diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetAmbr().GetMaxBandwidthDl())),
+					diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig[0].GetAmbr().GetMaxBandwidthUl())),
+					diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig[0].GetAmbr().GetMaxBandwidthDl())),
 				},
 			}),
 			qosProfileAvp,

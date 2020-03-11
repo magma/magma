@@ -79,7 +79,8 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   const mme_ue_s1ap_id_t ue_id,
   uint8_t *const nas_msg,
   const size_t nas_msg_length,
-  const S1ap_Cause_t *const cause);
+  const S1ap_Cause_t *const cause,
+  imsi64_t imsi64);
 
 int s1ap_mme_itti_s1ap_path_switch_request(
   const sctp_assoc_id_t assoc_id,
@@ -91,6 +92,7 @@ int s1ap_mme_itti_s1ap_path_switch_request(
   const ecgi_t const *ecgi,
   const tai_t const *tai,
   const uint16_t encryption_algorithm_capabilitie,
-  const uint16_t integrity_algorithm_capabilities);
+  const uint16_t integrity_algorithm_capabilities,
+  imsi64_t imsi64);
 
 #endif /* FILE_S1AP_MME_ITTI_MESSAGING_SEEN */

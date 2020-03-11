@@ -61,6 +61,7 @@ spec:
             - "-port={{ .Values.alertmanagerConfigurer.alertmanagerConfigPort }}"
             - "-alertmanager-conf={{ .Values.alertmanagerConfigurer.alertmanagerConfPath }}"
             - "-alertmanagerURL={{ .Values.alertmanagerConfigurer.alertmanagerURL  }}"
+            - "-multitenant-label=networkID"
           resources:
 {{ toYaml .Values.alertmanagerConfigurer.resources | indent 12 }}
 {{- end }}

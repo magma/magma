@@ -18,9 +18,9 @@ import (
 	"github.com/golang/protobuf/ptypes"
 
 	fegmcfg "magma/feg/cloud/go/protos/mconfig"
+	"magma/gateway/mconfig"
 	ltemcfg "magma/lte/cloud/go/protos/mconfig"
-	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/gateway/mconfig"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 // JSON to recreate scenario with "static" mconfig file

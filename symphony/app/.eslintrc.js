@@ -39,7 +39,13 @@ module.exports.overrides = [
       jest: true,
       node: true,
     },
-    files: ['**/__mocks__/**/*.js', '**/__tests__/**/*.js', 'testHelpers.js'],
+    files: [
+      '**/__mocks__/**/*.js',
+      '**/__tests__/**/*.js',
+      '**/tests/*.js',
+      'testHelpers.js',
+      'testData.js',
+    ],
   },
   {
     files: [
@@ -72,7 +78,6 @@ module.exports.overrides = [
       'fbcnms-packages/fbcnms-sequelize-models/**/*.js',
       'fbcnms-packages/fbcnms-ui/stories/**/*.js',
       'fbcnms-packages/fbcnms-util/**/*.js',
-      'fbcnms-packages/fbcnms-i18n/**/*.js',
       'fbcnms-packages/fbcnms-webpack-config/**/*.js',
       'fbcnms-projects/*/config/webpack.*.js',
       'fbcnms-projects/*/scripts/**/*.js',

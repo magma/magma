@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -30,9 +29,9 @@ type LocationTypeCreate struct {
 	map_type                   *string
 	map_zoom_level             *int
 	index                      *int
-	locations                  map[string]struct{}
-	property_types             map[string]struct{}
-	survey_template_categories map[string]struct{}
+	locations                  map[int]struct{}
+	property_types             map[int]struct{}
+	survey_template_categories map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -126,9 +125,9 @@ func (ltc *LocationTypeCreate) SetNillableIndex(i *int) *LocationTypeCreate {
 }
 
 // AddLocationIDs adds the locations edge to Location by ids.
-func (ltc *LocationTypeCreate) AddLocationIDs(ids ...string) *LocationTypeCreate {
+func (ltc *LocationTypeCreate) AddLocationIDs(ids ...int) *LocationTypeCreate {
 	if ltc.locations == nil {
-		ltc.locations = make(map[string]struct{})
+		ltc.locations = make(map[int]struct{})
 	}
 	for i := range ids {
 		ltc.locations[ids[i]] = struct{}{}
@@ -138,7 +137,7 @@ func (ltc *LocationTypeCreate) AddLocationIDs(ids ...string) *LocationTypeCreate
 
 // AddLocations adds the locations edges to Location.
 func (ltc *LocationTypeCreate) AddLocations(l ...*Location) *LocationTypeCreate {
-	ids := make([]string, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -146,9 +145,9 @@ func (ltc *LocationTypeCreate) AddLocations(l ...*Location) *LocationTypeCreate 
 }
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
-func (ltc *LocationTypeCreate) AddPropertyTypeIDs(ids ...string) *LocationTypeCreate {
+func (ltc *LocationTypeCreate) AddPropertyTypeIDs(ids ...int) *LocationTypeCreate {
 	if ltc.property_types == nil {
-		ltc.property_types = make(map[string]struct{})
+		ltc.property_types = make(map[int]struct{})
 	}
 	for i := range ids {
 		ltc.property_types[ids[i]] = struct{}{}
@@ -158,7 +157,7 @@ func (ltc *LocationTypeCreate) AddPropertyTypeIDs(ids ...string) *LocationTypeCr
 
 // AddPropertyTypes adds the property_types edges to PropertyType.
 func (ltc *LocationTypeCreate) AddPropertyTypes(p ...*PropertyType) *LocationTypeCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -166,9 +165,9 @@ func (ltc *LocationTypeCreate) AddPropertyTypes(p ...*PropertyType) *LocationTyp
 }
 
 // AddSurveyTemplateCategoryIDs adds the survey_template_categories edge to SurveyTemplateCategory by ids.
-func (ltc *LocationTypeCreate) AddSurveyTemplateCategoryIDs(ids ...string) *LocationTypeCreate {
+func (ltc *LocationTypeCreate) AddSurveyTemplateCategoryIDs(ids ...int) *LocationTypeCreate {
 	if ltc.survey_template_categories == nil {
-		ltc.survey_template_categories = make(map[string]struct{})
+		ltc.survey_template_categories = make(map[int]struct{})
 	}
 	for i := range ids {
 		ltc.survey_template_categories[ids[i]] = struct{}{}
@@ -178,7 +177,7 @@ func (ltc *LocationTypeCreate) AddSurveyTemplateCategoryIDs(ids ...string) *Loca
 
 // AddSurveyTemplateCategories adds the survey_template_categories edges to SurveyTemplateCategory.
 func (ltc *LocationTypeCreate) AddSurveyTemplateCategories(s ...*SurveyTemplateCategory) *LocationTypeCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -224,17 +223,17 @@ func (ltc *LocationTypeCreate) SaveX(ctx context.Context) *LocationType {
 
 func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, error) {
 	var (
-		lt   = &LocationType{config: ltc.config}
-		spec = &sqlgraph.CreateSpec{
+		lt    = &LocationType{config: ltc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: locationtype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: locationtype.FieldID,
 			},
 		}
 	)
 	if value := ltc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: locationtype.FieldCreateTime,
@@ -242,7 +241,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.CreateTime = *value
 	}
 	if value := ltc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: locationtype.FieldUpdateTime,
@@ -250,7 +249,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.UpdateTime = *value
 	}
 	if value := ltc.site; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: locationtype.FieldSite,
@@ -258,7 +257,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.Site = *value
 	}
 	if value := ltc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: locationtype.FieldName,
@@ -266,7 +265,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.Name = *value
 	}
 	if value := ltc.map_type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: locationtype.FieldMapType,
@@ -274,7 +273,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.MapType = *value
 	}
 	if value := ltc.map_zoom_level; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
@@ -282,7 +281,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		lt.MapZoomLevel = *value
 	}
 	if value := ltc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: locationtype.FieldIndex,
@@ -298,19 +297,15 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ltc.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -321,19 +316,15 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ltc.survey_template_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -344,27 +335,23 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveytemplatecategory.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, ltc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, ltc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	lt.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	lt.ID = int(id)
 	return lt, nil
 }

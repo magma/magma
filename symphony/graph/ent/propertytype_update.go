@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -64,15 +63,15 @@ type PropertyTypeUpdate struct {
 	editable                     *bool
 	mandatory                    *bool
 	deleted                      *bool
-	properties                   map[string]struct{}
-	location_type                map[string]struct{}
-	equipment_port_type          map[string]struct{}
-	link_equipment_port_type     map[string]struct{}
-	equipment_type               map[string]struct{}
-	service_type                 map[string]struct{}
-	work_order_type              map[string]struct{}
-	project_type                 map[string]struct{}
-	removedProperties            map[string]struct{}
+	properties                   map[int]struct{}
+	location_type                map[int]struct{}
+	equipment_port_type          map[int]struct{}
+	link_equipment_port_type     map[int]struct{}
+	equipment_type               map[int]struct{}
+	service_type                 map[int]struct{}
+	work_order_type              map[int]struct{}
+	project_type                 map[int]struct{}
+	removedProperties            map[int]struct{}
 	clearedLocationType          bool
 	clearedEquipmentPortType     bool
 	clearedLinkEquipmentPortType bool
@@ -445,9 +444,9 @@ func (ptu *PropertyTypeUpdate) SetNillableDeleted(b *bool) *PropertyTypeUpdate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (ptu *PropertyTypeUpdate) AddPropertyIDs(ids ...string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) AddPropertyIDs(ids ...int) *PropertyTypeUpdate {
 	if ptu.properties == nil {
-		ptu.properties = make(map[string]struct{})
+		ptu.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptu.properties[ids[i]] = struct{}{}
@@ -457,7 +456,7 @@ func (ptu *PropertyTypeUpdate) AddPropertyIDs(ids ...string) *PropertyTypeUpdate
 
 // AddProperties adds the properties edges to Property.
 func (ptu *PropertyTypeUpdate) AddProperties(p ...*Property) *PropertyTypeUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -465,16 +464,16 @@ func (ptu *PropertyTypeUpdate) AddProperties(p ...*Property) *PropertyTypeUpdate
 }
 
 // SetLocationTypeID sets the location_type edge to LocationType by id.
-func (ptu *PropertyTypeUpdate) SetLocationTypeID(id string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetLocationTypeID(id int) *PropertyTypeUpdate {
 	if ptu.location_type == nil {
-		ptu.location_type = make(map[string]struct{})
+		ptu.location_type = make(map[int]struct{})
 	}
 	ptu.location_type[id] = struct{}{}
 	return ptu
 }
 
 // SetNillableLocationTypeID sets the location_type edge to LocationType by id if the given value is not nil.
-func (ptu *PropertyTypeUpdate) SetNillableLocationTypeID(id *string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetNillableLocationTypeID(id *int) *PropertyTypeUpdate {
 	if id != nil {
 		ptu = ptu.SetLocationTypeID(*id)
 	}
@@ -487,16 +486,16 @@ func (ptu *PropertyTypeUpdate) SetLocationType(l *LocationType) *PropertyTypeUpd
 }
 
 // SetEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id.
-func (ptu *PropertyTypeUpdate) SetEquipmentPortTypeID(id string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetEquipmentPortTypeID(id int) *PropertyTypeUpdate {
 	if ptu.equipment_port_type == nil {
-		ptu.equipment_port_type = make(map[string]struct{})
+		ptu.equipment_port_type = make(map[int]struct{})
 	}
 	ptu.equipment_port_type[id] = struct{}{}
 	return ptu
 }
 
 // SetNillableEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id if the given value is not nil.
-func (ptu *PropertyTypeUpdate) SetNillableEquipmentPortTypeID(id *string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetNillableEquipmentPortTypeID(id *int) *PropertyTypeUpdate {
 	if id != nil {
 		ptu = ptu.SetEquipmentPortTypeID(*id)
 	}
@@ -509,16 +508,16 @@ func (ptu *PropertyTypeUpdate) SetEquipmentPortType(e *EquipmentPortType) *Prope
 }
 
 // SetLinkEquipmentPortTypeID sets the link_equipment_port_type edge to EquipmentPortType by id.
-func (ptu *PropertyTypeUpdate) SetLinkEquipmentPortTypeID(id string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetLinkEquipmentPortTypeID(id int) *PropertyTypeUpdate {
 	if ptu.link_equipment_port_type == nil {
-		ptu.link_equipment_port_type = make(map[string]struct{})
+		ptu.link_equipment_port_type = make(map[int]struct{})
 	}
 	ptu.link_equipment_port_type[id] = struct{}{}
 	return ptu
 }
 
 // SetNillableLinkEquipmentPortTypeID sets the link_equipment_port_type edge to EquipmentPortType by id if the given value is not nil.
-func (ptu *PropertyTypeUpdate) SetNillableLinkEquipmentPortTypeID(id *string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetNillableLinkEquipmentPortTypeID(id *int) *PropertyTypeUpdate {
 	if id != nil {
 		ptu = ptu.SetLinkEquipmentPortTypeID(*id)
 	}
@@ -531,16 +530,16 @@ func (ptu *PropertyTypeUpdate) SetLinkEquipmentPortType(e *EquipmentPortType) *P
 }
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
-func (ptu *PropertyTypeUpdate) SetEquipmentTypeID(id string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetEquipmentTypeID(id int) *PropertyTypeUpdate {
 	if ptu.equipment_type == nil {
-		ptu.equipment_type = make(map[string]struct{})
+		ptu.equipment_type = make(map[int]struct{})
 	}
 	ptu.equipment_type[id] = struct{}{}
 	return ptu
 }
 
 // SetNillableEquipmentTypeID sets the equipment_type edge to EquipmentType by id if the given value is not nil.
-func (ptu *PropertyTypeUpdate) SetNillableEquipmentTypeID(id *string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetNillableEquipmentTypeID(id *int) *PropertyTypeUpdate {
 	if id != nil {
 		ptu = ptu.SetEquipmentTypeID(*id)
 	}
@@ -553,16 +552,16 @@ func (ptu *PropertyTypeUpdate) SetEquipmentType(e *EquipmentType) *PropertyTypeU
 }
 
 // SetServiceTypeID sets the service_type edge to ServiceType by id.
-func (ptu *PropertyTypeUpdate) SetServiceTypeID(id string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetServiceTypeID(id int) *PropertyTypeUpdate {
 	if ptu.service_type == nil {
-		ptu.service_type = make(map[string]struct{})
+		ptu.service_type = make(map[int]struct{})
 	}
 	ptu.service_type[id] = struct{}{}
 	return ptu
 }
 
 // SetNillableServiceTypeID sets the service_type edge to ServiceType by id if the given value is not nil.
-func (ptu *PropertyTypeUpdate) SetNillableServiceTypeID(id *string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetNillableServiceTypeID(id *int) *PropertyTypeUpdate {
 	if id != nil {
 		ptu = ptu.SetServiceTypeID(*id)
 	}
@@ -575,16 +574,16 @@ func (ptu *PropertyTypeUpdate) SetServiceType(s *ServiceType) *PropertyTypeUpdat
 }
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
-func (ptu *PropertyTypeUpdate) SetWorkOrderTypeID(id string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetWorkOrderTypeID(id int) *PropertyTypeUpdate {
 	if ptu.work_order_type == nil {
-		ptu.work_order_type = make(map[string]struct{})
+		ptu.work_order_type = make(map[int]struct{})
 	}
 	ptu.work_order_type[id] = struct{}{}
 	return ptu
 }
 
 // SetNillableWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id if the given value is not nil.
-func (ptu *PropertyTypeUpdate) SetNillableWorkOrderTypeID(id *string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetNillableWorkOrderTypeID(id *int) *PropertyTypeUpdate {
 	if id != nil {
 		ptu = ptu.SetWorkOrderTypeID(*id)
 	}
@@ -597,16 +596,16 @@ func (ptu *PropertyTypeUpdate) SetWorkOrderType(w *WorkOrderType) *PropertyTypeU
 }
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
-func (ptu *PropertyTypeUpdate) SetProjectTypeID(id string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetProjectTypeID(id int) *PropertyTypeUpdate {
 	if ptu.project_type == nil {
-		ptu.project_type = make(map[string]struct{})
+		ptu.project_type = make(map[int]struct{})
 	}
 	ptu.project_type[id] = struct{}{}
 	return ptu
 }
 
 // SetNillableProjectTypeID sets the project_type edge to ProjectType by id if the given value is not nil.
-func (ptu *PropertyTypeUpdate) SetNillableProjectTypeID(id *string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) SetNillableProjectTypeID(id *int) *PropertyTypeUpdate {
 	if id != nil {
 		ptu = ptu.SetProjectTypeID(*id)
 	}
@@ -619,9 +618,9 @@ func (ptu *PropertyTypeUpdate) SetProjectType(p *ProjectType) *PropertyTypeUpdat
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (ptu *PropertyTypeUpdate) RemovePropertyIDs(ids ...string) *PropertyTypeUpdate {
+func (ptu *PropertyTypeUpdate) RemovePropertyIDs(ids ...int) *PropertyTypeUpdate {
 	if ptu.removedProperties == nil {
-		ptu.removedProperties = make(map[string]struct{})
+		ptu.removedProperties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptu.removedProperties[ids[i]] = struct{}{}
@@ -631,7 +630,7 @@ func (ptu *PropertyTypeUpdate) RemovePropertyIDs(ids ...string) *PropertyTypeUpd
 
 // RemoveProperties removes properties edges to Property.
 func (ptu *PropertyTypeUpdate) RemoveProperties(p ...*Property) *PropertyTypeUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -733,246 +732,246 @@ func (ptu *PropertyTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   propertytype.Table,
 			Columns: propertytype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: propertytype.FieldID,
 			},
 		},
 	}
 	if ps := ptu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := ptu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: propertytype.FieldUpdateTime,
 		})
 	}
 	if value := ptu._type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: propertytype.FieldType,
 		})
 	}
 	if value := ptu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: propertytype.FieldName,
 		})
 	}
 	if value := ptu.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: propertytype.FieldIndex,
 		})
 	}
 	if value := ptu.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: propertytype.FieldIndex,
 		})
 	}
 	if ptu.clearindex {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: propertytype.FieldIndex,
 		})
 	}
 	if value := ptu.category; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: propertytype.FieldCategory,
 		})
 	}
 	if ptu.clearcategory {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: propertytype.FieldCategory,
 		})
 	}
 	if value := ptu.int_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: propertytype.FieldIntVal,
 		})
 	}
 	if value := ptu.addint_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: propertytype.FieldIntVal,
 		})
 	}
 	if ptu.clearint_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: propertytype.FieldIntVal,
 		})
 	}
 	if value := ptu.bool_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldBoolVal,
 		})
 	}
 	if ptu.clearbool_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: propertytype.FieldBoolVal,
 		})
 	}
 	if value := ptu.float_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
 	if value := ptu.addfloat_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
 	if ptu.clearfloat_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
 	if value := ptu.latitude_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
 	if value := ptu.addlatitude_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
 	if ptu.clearlatitude_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
 	if value := ptu.longitude_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
 	if value := ptu.addlongitude_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
 	if ptu.clearlongitude_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
 	if value := ptu.string_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: propertytype.FieldStringVal,
 		})
 	}
 	if ptu.clearstring_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: propertytype.FieldStringVal,
 		})
 	}
 	if value := ptu.range_from_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
 	if value := ptu.addrange_from_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
 	if ptu.clearrange_from_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
 	if value := ptu.range_to_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
 	if value := ptu.addrange_to_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
 	if ptu.clearrange_to_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
 	if value := ptu.is_instance_property; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldIsInstanceProperty,
 		})
 	}
 	if value := ptu.editable; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldEditable,
 		})
 	}
 	if value := ptu.mandatory; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldMandatory,
 		})
 	}
 	if value := ptu.deleted; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldDeleted,
@@ -987,19 +986,15 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1010,19 +1005,15 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptu.clearedLocationType {
 		edge := &sqlgraph.EdgeSpec{
@@ -1033,12 +1024,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: locationtype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.location_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1049,19 +1040,15 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: locationtype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptu.clearedEquipmentPortType {
 		edge := &sqlgraph.EdgeSpec{
@@ -1072,12 +1059,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.equipment_port_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1088,19 +1075,15 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptu.clearedLinkEquipmentPortType {
 		edge := &sqlgraph.EdgeSpec{
@@ -1111,12 +1094,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.link_equipment_port_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1127,19 +1110,15 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptu.clearedEquipmentType {
 		edge := &sqlgraph.EdgeSpec{
@@ -1150,12 +1129,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1166,19 +1145,15 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptu.clearedServiceType {
 		edge := &sqlgraph.EdgeSpec{
@@ -1189,12 +1164,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.service_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1205,19 +1180,15 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptu.clearedWorkOrderType {
 		edge := &sqlgraph.EdgeSpec{
@@ -1228,12 +1199,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.work_order_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1244,19 +1215,15 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptu.clearedProjectType {
 		edge := &sqlgraph.EdgeSpec{
@@ -1267,12 +1234,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.project_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1283,22 +1250,20 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, ptu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, ptu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{propertytype.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -1309,7 +1274,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // PropertyTypeUpdateOne is the builder for updating a single PropertyType entity.
 type PropertyTypeUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time                  *time.Time
 	_type                        *string
@@ -1345,15 +1310,15 @@ type PropertyTypeUpdateOne struct {
 	editable                     *bool
 	mandatory                    *bool
 	deleted                      *bool
-	properties                   map[string]struct{}
-	location_type                map[string]struct{}
-	equipment_port_type          map[string]struct{}
-	link_equipment_port_type     map[string]struct{}
-	equipment_type               map[string]struct{}
-	service_type                 map[string]struct{}
-	work_order_type              map[string]struct{}
-	project_type                 map[string]struct{}
-	removedProperties            map[string]struct{}
+	properties                   map[int]struct{}
+	location_type                map[int]struct{}
+	equipment_port_type          map[int]struct{}
+	link_equipment_port_type     map[int]struct{}
+	equipment_type               map[int]struct{}
+	service_type                 map[int]struct{}
+	work_order_type              map[int]struct{}
+	project_type                 map[int]struct{}
+	removedProperties            map[int]struct{}
 	clearedLocationType          bool
 	clearedEquipmentPortType     bool
 	clearedLinkEquipmentPortType bool
@@ -1719,9 +1684,9 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableDeleted(b *bool) *PropertyTypeUpda
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (ptuo *PropertyTypeUpdateOne) AddPropertyIDs(ids ...string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) AddPropertyIDs(ids ...int) *PropertyTypeUpdateOne {
 	if ptuo.properties == nil {
-		ptuo.properties = make(map[string]struct{})
+		ptuo.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptuo.properties[ids[i]] = struct{}{}
@@ -1731,7 +1696,7 @@ func (ptuo *PropertyTypeUpdateOne) AddPropertyIDs(ids ...string) *PropertyTypeUp
 
 // AddProperties adds the properties edges to Property.
 func (ptuo *PropertyTypeUpdateOne) AddProperties(p ...*Property) *PropertyTypeUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -1739,16 +1704,16 @@ func (ptuo *PropertyTypeUpdateOne) AddProperties(p ...*Property) *PropertyTypeUp
 }
 
 // SetLocationTypeID sets the location_type edge to LocationType by id.
-func (ptuo *PropertyTypeUpdateOne) SetLocationTypeID(id string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetLocationTypeID(id int) *PropertyTypeUpdateOne {
 	if ptuo.location_type == nil {
-		ptuo.location_type = make(map[string]struct{})
+		ptuo.location_type = make(map[int]struct{})
 	}
 	ptuo.location_type[id] = struct{}{}
 	return ptuo
 }
 
 // SetNillableLocationTypeID sets the location_type edge to LocationType by id if the given value is not nil.
-func (ptuo *PropertyTypeUpdateOne) SetNillableLocationTypeID(id *string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetNillableLocationTypeID(id *int) *PropertyTypeUpdateOne {
 	if id != nil {
 		ptuo = ptuo.SetLocationTypeID(*id)
 	}
@@ -1761,16 +1726,16 @@ func (ptuo *PropertyTypeUpdateOne) SetLocationType(l *LocationType) *PropertyTyp
 }
 
 // SetEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id.
-func (ptuo *PropertyTypeUpdateOne) SetEquipmentPortTypeID(id string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetEquipmentPortTypeID(id int) *PropertyTypeUpdateOne {
 	if ptuo.equipment_port_type == nil {
-		ptuo.equipment_port_type = make(map[string]struct{})
+		ptuo.equipment_port_type = make(map[int]struct{})
 	}
 	ptuo.equipment_port_type[id] = struct{}{}
 	return ptuo
 }
 
 // SetNillableEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id if the given value is not nil.
-func (ptuo *PropertyTypeUpdateOne) SetNillableEquipmentPortTypeID(id *string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetNillableEquipmentPortTypeID(id *int) *PropertyTypeUpdateOne {
 	if id != nil {
 		ptuo = ptuo.SetEquipmentPortTypeID(*id)
 	}
@@ -1783,16 +1748,16 @@ func (ptuo *PropertyTypeUpdateOne) SetEquipmentPortType(e *EquipmentPortType) *P
 }
 
 // SetLinkEquipmentPortTypeID sets the link_equipment_port_type edge to EquipmentPortType by id.
-func (ptuo *PropertyTypeUpdateOne) SetLinkEquipmentPortTypeID(id string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetLinkEquipmentPortTypeID(id int) *PropertyTypeUpdateOne {
 	if ptuo.link_equipment_port_type == nil {
-		ptuo.link_equipment_port_type = make(map[string]struct{})
+		ptuo.link_equipment_port_type = make(map[int]struct{})
 	}
 	ptuo.link_equipment_port_type[id] = struct{}{}
 	return ptuo
 }
 
 // SetNillableLinkEquipmentPortTypeID sets the link_equipment_port_type edge to EquipmentPortType by id if the given value is not nil.
-func (ptuo *PropertyTypeUpdateOne) SetNillableLinkEquipmentPortTypeID(id *string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetNillableLinkEquipmentPortTypeID(id *int) *PropertyTypeUpdateOne {
 	if id != nil {
 		ptuo = ptuo.SetLinkEquipmentPortTypeID(*id)
 	}
@@ -1805,16 +1770,16 @@ func (ptuo *PropertyTypeUpdateOne) SetLinkEquipmentPortType(e *EquipmentPortType
 }
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
-func (ptuo *PropertyTypeUpdateOne) SetEquipmentTypeID(id string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetEquipmentTypeID(id int) *PropertyTypeUpdateOne {
 	if ptuo.equipment_type == nil {
-		ptuo.equipment_type = make(map[string]struct{})
+		ptuo.equipment_type = make(map[int]struct{})
 	}
 	ptuo.equipment_type[id] = struct{}{}
 	return ptuo
 }
 
 // SetNillableEquipmentTypeID sets the equipment_type edge to EquipmentType by id if the given value is not nil.
-func (ptuo *PropertyTypeUpdateOne) SetNillableEquipmentTypeID(id *string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetNillableEquipmentTypeID(id *int) *PropertyTypeUpdateOne {
 	if id != nil {
 		ptuo = ptuo.SetEquipmentTypeID(*id)
 	}
@@ -1827,16 +1792,16 @@ func (ptuo *PropertyTypeUpdateOne) SetEquipmentType(e *EquipmentType) *PropertyT
 }
 
 // SetServiceTypeID sets the service_type edge to ServiceType by id.
-func (ptuo *PropertyTypeUpdateOne) SetServiceTypeID(id string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetServiceTypeID(id int) *PropertyTypeUpdateOne {
 	if ptuo.service_type == nil {
-		ptuo.service_type = make(map[string]struct{})
+		ptuo.service_type = make(map[int]struct{})
 	}
 	ptuo.service_type[id] = struct{}{}
 	return ptuo
 }
 
 // SetNillableServiceTypeID sets the service_type edge to ServiceType by id if the given value is not nil.
-func (ptuo *PropertyTypeUpdateOne) SetNillableServiceTypeID(id *string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetNillableServiceTypeID(id *int) *PropertyTypeUpdateOne {
 	if id != nil {
 		ptuo = ptuo.SetServiceTypeID(*id)
 	}
@@ -1849,16 +1814,16 @@ func (ptuo *PropertyTypeUpdateOne) SetServiceType(s *ServiceType) *PropertyTypeU
 }
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
-func (ptuo *PropertyTypeUpdateOne) SetWorkOrderTypeID(id string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetWorkOrderTypeID(id int) *PropertyTypeUpdateOne {
 	if ptuo.work_order_type == nil {
-		ptuo.work_order_type = make(map[string]struct{})
+		ptuo.work_order_type = make(map[int]struct{})
 	}
 	ptuo.work_order_type[id] = struct{}{}
 	return ptuo
 }
 
 // SetNillableWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id if the given value is not nil.
-func (ptuo *PropertyTypeUpdateOne) SetNillableWorkOrderTypeID(id *string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetNillableWorkOrderTypeID(id *int) *PropertyTypeUpdateOne {
 	if id != nil {
 		ptuo = ptuo.SetWorkOrderTypeID(*id)
 	}
@@ -1871,16 +1836,16 @@ func (ptuo *PropertyTypeUpdateOne) SetWorkOrderType(w *WorkOrderType) *PropertyT
 }
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
-func (ptuo *PropertyTypeUpdateOne) SetProjectTypeID(id string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetProjectTypeID(id int) *PropertyTypeUpdateOne {
 	if ptuo.project_type == nil {
-		ptuo.project_type = make(map[string]struct{})
+		ptuo.project_type = make(map[int]struct{})
 	}
 	ptuo.project_type[id] = struct{}{}
 	return ptuo
 }
 
 // SetNillableProjectTypeID sets the project_type edge to ProjectType by id if the given value is not nil.
-func (ptuo *PropertyTypeUpdateOne) SetNillableProjectTypeID(id *string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) SetNillableProjectTypeID(id *int) *PropertyTypeUpdateOne {
 	if id != nil {
 		ptuo = ptuo.SetProjectTypeID(*id)
 	}
@@ -1893,9 +1858,9 @@ func (ptuo *PropertyTypeUpdateOne) SetProjectType(p *ProjectType) *PropertyTypeU
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (ptuo *PropertyTypeUpdateOne) RemovePropertyIDs(ids ...string) *PropertyTypeUpdateOne {
+func (ptuo *PropertyTypeUpdateOne) RemovePropertyIDs(ids ...int) *PropertyTypeUpdateOne {
 	if ptuo.removedProperties == nil {
-		ptuo.removedProperties = make(map[string]struct{})
+		ptuo.removedProperties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptuo.removedProperties[ids[i]] = struct{}{}
@@ -1905,7 +1870,7 @@ func (ptuo *PropertyTypeUpdateOne) RemovePropertyIDs(ids ...string) *PropertyTyp
 
 // RemoveProperties removes properties edges to Property.
 func (ptuo *PropertyTypeUpdateOne) RemoveProperties(p ...*Property) *PropertyTypeUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -2007,240 +1972,240 @@ func (ptuo *PropertyTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyType, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   propertytype.Table,
 			Columns: propertytype.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  ptuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: propertytype.FieldID,
 			},
 		},
 	}
 	if value := ptuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: propertytype.FieldUpdateTime,
 		})
 	}
 	if value := ptuo._type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: propertytype.FieldType,
 		})
 	}
 	if value := ptuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: propertytype.FieldName,
 		})
 	}
 	if value := ptuo.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: propertytype.FieldIndex,
 		})
 	}
 	if value := ptuo.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: propertytype.FieldIndex,
 		})
 	}
 	if ptuo.clearindex {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: propertytype.FieldIndex,
 		})
 	}
 	if value := ptuo.category; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: propertytype.FieldCategory,
 		})
 	}
 	if ptuo.clearcategory {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: propertytype.FieldCategory,
 		})
 	}
 	if value := ptuo.int_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: propertytype.FieldIntVal,
 		})
 	}
 	if value := ptuo.addint_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: propertytype.FieldIntVal,
 		})
 	}
 	if ptuo.clearint_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: propertytype.FieldIntVal,
 		})
 	}
 	if value := ptuo.bool_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldBoolVal,
 		})
 	}
 	if ptuo.clearbool_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: propertytype.FieldBoolVal,
 		})
 	}
 	if value := ptuo.float_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
 	if value := ptuo.addfloat_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
 	if ptuo.clearfloat_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
 	if value := ptuo.latitude_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
 	if value := ptuo.addlatitude_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
 	if ptuo.clearlatitude_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
 	if value := ptuo.longitude_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
 	if value := ptuo.addlongitude_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
 	if ptuo.clearlongitude_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
 	if value := ptuo.string_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: propertytype.FieldStringVal,
 		})
 	}
 	if ptuo.clearstring_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: propertytype.FieldStringVal,
 		})
 	}
 	if value := ptuo.range_from_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
 	if value := ptuo.addrange_from_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
 	if ptuo.clearrange_from_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
 	if value := ptuo.range_to_val; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
 	if value := ptuo.addrange_to_val; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
 	if ptuo.clearrange_to_val {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
 	if value := ptuo.is_instance_property; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldIsInstanceProperty,
 		})
 	}
 	if value := ptuo.editable; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldEditable,
 		})
 	}
 	if value := ptuo.mandatory; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldMandatory,
 		})
 	}
 	if value := ptuo.deleted; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: propertytype.FieldDeleted,
@@ -2255,19 +2220,15 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2278,19 +2239,15 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptuo.clearedLocationType {
 		edge := &sqlgraph.EdgeSpec{
@@ -2301,12 +2258,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: locationtype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.location_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2317,19 +2274,15 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: locationtype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptuo.clearedEquipmentPortType {
 		edge := &sqlgraph.EdgeSpec{
@@ -2340,12 +2293,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.equipment_port_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2356,19 +2309,15 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptuo.clearedLinkEquipmentPortType {
 		edge := &sqlgraph.EdgeSpec{
@@ -2379,12 +2328,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.link_equipment_port_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2395,19 +2344,15 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptuo.clearedEquipmentType {
 		edge := &sqlgraph.EdgeSpec{
@@ -2418,12 +2363,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2434,19 +2379,15 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptuo.clearedServiceType {
 		edge := &sqlgraph.EdgeSpec{
@@ -2457,12 +2398,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.service_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2473,19 +2414,15 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptuo.clearedWorkOrderType {
 		edge := &sqlgraph.EdgeSpec{
@@ -2496,12 +2433,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.work_order_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2512,19 +2449,15 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ptuo.clearedProjectType {
 		edge := &sqlgraph.EdgeSpec{
@@ -2535,12 +2468,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.project_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2551,25 +2484,23 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	pt = &PropertyType{config: ptuo.config}
-	spec.Assign = pt.assignValues
-	spec.ScanValues = pt.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, ptuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = pt.assignValues
+	_spec.ScanValues = pt.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, ptuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{propertytype.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

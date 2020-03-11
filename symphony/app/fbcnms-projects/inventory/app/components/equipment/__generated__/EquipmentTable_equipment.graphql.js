@@ -43,6 +43,7 @@ export type EquipmentTable_equipment$data = EquipmentTable_equipment;
 export type EquipmentTable_equipment$key = $ReadOnlyArray<{
   +$data?: EquipmentTable_equipment$data,
   +$fragmentRefs: EquipmentTable_equipment$ref,
+  ...
 }>;
 */
 

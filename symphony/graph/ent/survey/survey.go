@@ -39,24 +39,24 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "location" package.
 	LocationInverseTable = "locations"
 	// LocationColumn is the table column denoting the location relation/edge.
-	LocationColumn = "location_id"
+	LocationColumn = "survey_location"
 	// SourceFileTable is the table the holds the source_file relation/edge.
 	SourceFileTable = "surveys"
 	// SourceFileInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	SourceFileInverseTable = "files"
 	// SourceFileColumn is the table column denoting the source_file relation/edge.
-	SourceFileColumn = "survey_source_file_id"
+	SourceFileColumn = "survey_source_file"
 	// QuestionsTable is the table the holds the questions relation/edge.
 	QuestionsTable = "survey_questions"
 	// QuestionsInverseTable is the table name for the SurveyQuestion entity.
 	// It exists in this package in order to avoid circular dependency with the "surveyquestion" package.
 	QuestionsInverseTable = "survey_questions"
 	// QuestionsColumn is the table column denoting the questions relation/edge.
-	QuestionsColumn = "survey_id"
+	QuestionsColumn = "survey_question_survey"
 )
 
-// Columns holds all SQL columns are survey fields.
+// Columns holds all SQL columns for survey fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -65,6 +65,12 @@ var Columns = []string{
 	FieldOwnerName,
 	FieldCreationTimestamp,
 	FieldCompletionTimestamp,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Survey type.
+var ForeignKeys = []string{
+	"survey_location",
+	"survey_source_file",
 }
 
 var (

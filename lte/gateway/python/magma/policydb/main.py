@@ -9,9 +9,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 from lte.protos.mconfig import mconfigs_pb2
+from lte.protos.policydb_pb2_grpc import PolicyAssignmentControllerStub
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
-from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub,\
-    PolicyAssignmentControllerStub
+from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.common.streamer import StreamerClient
@@ -42,7 +42,7 @@ def main():
     session_servicer = SessionRpcServicer(service.mconfig, subscriberdb_stub)
     session_servicer.add_to_server(service.rpc_server)
 
-    orc8r_chan = ServiceRegistry.get_rpc_channel('subscriberdb',
+    orc8r_chan = ServiceRegistry.get_rpc_channel('policydb',
                                                  ServiceRegistry.CLOUD)
     policy_stub = PolicyAssignmentControllerStub(orc8r_chan)
     policy_servicer = PolicyRpcServicer(reauth_handler, basenames_dict,

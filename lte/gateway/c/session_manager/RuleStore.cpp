@@ -17,7 +17,7 @@ namespace magma {
 
 template<typename KeyType, typename hash, typename equal>
 void PoliciesByKeyMap<KeyType, hash, equal>::insert(
-  const KeyType &key,
+  const KeyType& key,
   std::shared_ptr<PolicyRule> rule_p)
 {
   auto iter = rules_by_key_.find(key);
@@ -30,7 +30,7 @@ void PoliciesByKeyMap<KeyType, hash, equal>::insert(
 
 template<typename KeyType, typename hash, typename equal>
 void PoliciesByKeyMap<KeyType, hash, equal>::remove(
-  const KeyType &key,
+  const KeyType& key,
   std::shared_ptr<PolicyRule> rule_p)
 {
   auto iter = rules_by_key_.find(key);
@@ -44,19 +44,20 @@ void PoliciesByKeyMap<KeyType, hash, equal>::remove(
     return;
   }
   rules.erase(found);
+  rules_by_key_[key] = rules;
 }
 
 template<typename KeyType, typename hash, typename equal>
 bool PoliciesByKeyMap<KeyType, hash, equal>::get_rule_ids_for_key(
-  const KeyType &key,
-  std::vector<std::string> &rules_out)
+  const KeyType& key,
+  std::vector<std::string>& rules_out)
 {
   auto iter = rules_by_key_.find(key);
   if (iter == rules_by_key_.end()) {
     return false;
   }
 
-  for (const auto &rule : iter->second) {
+  for (const auto& rule : iter->second) {
     rules_out.push_back(rule->id());
   }
   return true;
@@ -64,18 +65,28 @@ bool PoliciesByKeyMap<KeyType, hash, equal>::get_rule_ids_for_key(
 
 template<typename KeyType, typename hash, typename equal>
 bool PoliciesByKeyMap<KeyType, hash, equal>::get_rule_definitions_for_key(
-  const KeyType &key,
-  std::vector<PolicyRule> &rules_out)
+  const KeyType& key,
+  std::vector<PolicyRule>& rules_out)
 {
   auto iter = rules_by_key_.find(key);
   if (iter == rules_by_key_.end()) {
     return false;
   }
 
-  for (const auto &rule : iter->second) {
+  for (const auto& rule : iter->second) {
     rules_out.push_back(*rule);
   }
   return true;
+}
+
+template<typename KeyType, typename hash, typename equal>
+uint32_t PoliciesByKeyMap<KeyType, hash, equal>::policy_count()
+{
+  uint32_t count = 0;
+  for (auto const& kv : rules_by_key_) {
+    count += kv.second.size();
+  }
+  return count;
 }
 
 static bool should_track_charging_key(PolicyRule::TrackingType tracking_type)
@@ -90,7 +101,7 @@ static bool should_track_monitoring_key(PolicyRule::TrackingType tracking_type)
          tracking_type == PolicyRule::OCS_AND_PCRF;
 }
 
-void PolicyRuleBiMap::sync_rules(const std::vector<PolicyRule> &rules)
+void PolicyRuleBiMap::sync_rules(const std::vector<PolicyRule>& rules)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   rules_by_rule_id_.clear();
@@ -98,7 +109,7 @@ void PolicyRuleBiMap::sync_rules(const std::vector<PolicyRule> &rules)
     PoliciesByKeyMap<CreditKey, decltype(&ccHash), decltype(&ccEqual)>(
       &ccHash, &ccEqual);
   rules_by_monitoring_key_ = PoliciesByKeyMap<std::string>();
-  for (const auto &rule : rules) {
+  for (const auto& rule : rules) {
     auto rule_p = std::make_shared<PolicyRule>(rule);
     rules_by_rule_id_[rule.id()] = rule_p;
     if (should_track_charging_key(rule.tracking_type())) {
@@ -110,7 +121,7 @@ void PolicyRuleBiMap::sync_rules(const std::vector<PolicyRule> &rules)
   }
 }
 
-void PolicyRuleBiMap::insert_rule(const PolicyRule &rule)
+void PolicyRuleBiMap::insert_rule(const PolicyRule& rule)
 {
   auto rule_p = std::make_shared<PolicyRule>(rule);
   std::lock_guard<std::mutex> lock(map_mutex_);
@@ -123,7 +134,7 @@ void PolicyRuleBiMap::insert_rule(const PolicyRule &rule)
   }
 }
 
-bool PolicyRuleBiMap::get_rule(const std::string &rule_id, PolicyRule *rule)
+bool PolicyRuleBiMap::get_rule(const std::string& rule_id, PolicyRule* rule)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
@@ -135,8 +146,8 @@ bool PolicyRuleBiMap::get_rule(const std::string &rule_id, PolicyRule *rule)
 }
 
 bool PolicyRuleBiMap::remove_rule(
-  const std::string &rule_id,
-  PolicyRule *rule_out)
+  const std::string& rule_id,
+  PolicyRule* rule_out)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
@@ -160,8 +171,8 @@ bool PolicyRuleBiMap::remove_rule(
 }
 
 bool PolicyRuleBiMap::get_charging_key_for_rule_id(
-  const std::string &rule_id,
-  CreditKey *charging_key)
+  const std::string& rule_id,
+  CreditKey* charging_key)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
@@ -176,8 +187,8 @@ bool PolicyRuleBiMap::get_charging_key_for_rule_id(
 }
 
 bool PolicyRuleBiMap::get_monitoring_key_for_rule_id(
-  const std::string &rule_id,
-  std::string *monitoring_key)
+  const std::string& rule_id,
+  std::string* monitoring_key)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
@@ -192,8 +203,8 @@ bool PolicyRuleBiMap::get_monitoring_key_for_rule_id(
 }
 
 bool PolicyRuleBiMap::get_rule_ids_for_charging_key(
-  const CreditKey &charging_key,
-  std::vector<std::string> &rules_out)
+  const CreditKey& charging_key,
+  std::vector<std::string>& rules_out)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   bool success =
@@ -202,8 +213,8 @@ bool PolicyRuleBiMap::get_rule_ids_for_charging_key(
 }
 
 bool PolicyRuleBiMap::get_rule_definitions_for_charging_key(
-  const CreditKey &charging_key,
-  std::vector<PolicyRule> &rules_out)
+  const CreditKey& charging_key,
+  std::vector<PolicyRule>& rules_out)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   bool success = rules_by_charging_key_.get_rule_definitions_for_key(
@@ -212,8 +223,8 @@ bool PolicyRuleBiMap::get_rule_definitions_for_charging_key(
 }
 
 bool PolicyRuleBiMap::get_rule_ids_for_monitoring_key(
-  const std::string &monitoring_key,
-  std::vector<std::string> &rules_out)
+  const std::string& monitoring_key,
+  std::vector<std::string>& rules_out)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   bool success =
@@ -222,8 +233,8 @@ bool PolicyRuleBiMap::get_rule_ids_for_monitoring_key(
 }
 
 bool PolicyRuleBiMap::get_rule_definitions_for_monitoring_key(
-  const std::string &monitoring_key,
-  std::vector<PolicyRule> &rules_out)
+  const std::string& monitoring_key,
+  std::vector<PolicyRule>& rules_out)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   bool success = rules_by_monitoring_key_.get_rule_definitions_for_key(
@@ -231,8 +242,14 @@ bool PolicyRuleBiMap::get_rule_definitions_for_monitoring_key(
   return success;
 }
 
+uint32_t PolicyRuleBiMap::monitored_rules_count()
+{
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  return rules_by_monitoring_key_.policy_count();
+}
+
 bool PolicyRuleBiMap::get_rule_ids(
-  std::vector<std::string> &rules_ids_out)
+  std::vector<std::string>& rules_ids_out)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   for(auto kv : rules_by_rule_id_) {
@@ -242,7 +259,7 @@ bool PolicyRuleBiMap::get_rule_ids(
 }
 
 bool PolicyRuleBiMap::get_rules(
-  std::vector<PolicyRule> &rules_out)
+  std::vector<PolicyRule>& rules_out)
 {
   std::lock_guard<std::mutex> lock(map_mutex_);
   for(auto kv : rules_by_rule_id_) {

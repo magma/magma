@@ -58,7 +58,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 
 void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
 {
-  auto request = enforcer_->collect_updates();
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto request = enforcer_->collect_updates(actions);
+  enforcer_->execute_actions(actions);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return; // nothing to report
   }
@@ -75,7 +77,7 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
                      << " to OCS failed entirely: " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        enforcer_->update_session_credit(response);
+        enforcer_->update_session_credits_and_rules(response);
         // Check if we need to report more updates
         check_usage_for_reporting();
       }
@@ -176,6 +178,9 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   auto imsi = request->sid().id();
   auto sid = id_gen_.gen_session_id(imsi);
   auto mac_addr = convert_mac_addr_to_str(request->hardware_addr());
+  MLOG(MDEBUG) << "PLMN_ID: " << request->plmn_id()
+              << " IMSI_PLMN_ID: " << request->imsi_plmn_id();
+
   SessionState::Config cfg = {.ue_ipv4 = request->ue_ipv4(),
                               .spgw_ipv4 = request->spgw_ipv4(),
                               .msisdn = request->msisdn(),
@@ -196,20 +201,25 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   }
   cfg.qos_info = qos_info;
 
-  if (enforcer_->is_imsi_duplicate(imsi)) {
-    std::string * core_sid = enforcer_->duplicate_session_id(imsi, cfg);
-    if (core_sid != nullptr) {
-      MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
-                  << " and APN " << request->apn()
-                  << ", not creating session";
+  if (enforcer_->session_with_imsi_exists(imsi)) {
+    std::string core_sid;
+    bool same_config = enforcer_->session_with_same_config_exists(imsi, cfg, &core_sid);
+    bool is_wifi = request->rat_type() == RATType::TGPP_WLAN;
+    if (same_config || is_wifi){
+      if (is_wifi) {
+        MLOG(MINFO) << "Found a session with the same IMSI " << imsi
+                    << " and RAT Type is WLAN, not creating a new session";
+      } else {
+        MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
+                    << " and APN " << request->apn()
+                    << ", not creating session";
+      }
       enforcer_->get_event_base().runInEventBaseThread(
           [response_callback, core_sid]() {
             try {
               LocalCreateSessionResponse resp;
-              resp.set_session_id(*core_sid);
-              delete core_sid;
-              response_callback(
-                grpc::Status::OK, resp);
+              resp.set_session_id(core_sid);
+              response_callback(grpc::Status::OK, resp);
             } catch (...) {
                 std::exception_ptr ep = std::current_exception();
                 MLOG(MERROR) << "CreateSession response_callback exception: "
@@ -218,9 +228,10 @@ void LocalSessionManagerHandlerImpl::CreateSession(
             }
           }
       );
+      // No new session created
       return;
     }
-    if (enforcer_->is_apn_duplicate(imsi, request->apn())) {
+    if (enforcer_->session_with_apn_exists(imsi, request->apn())) {
       MLOG(MINFO) << "Found session with the same IMSI " << imsi
                   << " and APN " << request->apn()
                   << ", but different configuration."
@@ -257,14 +268,14 @@ void LocalSessionManagerHandlerImpl::send_create_session(
       if (status.ok()) {
         bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
         if (!success) {
-          MLOG(MERROR) << "Failed to init session in Usage Monitor "
-                       << "for IMSI " << imsi;
+          MLOG(MERROR) << "Failed to init session in for IMSI " << imsi;
           status =
             Status(
               grpc::FAILED_PRECONDITION, "Failed to initialize session");
         } else {
-          MLOG(MINFO) << "Successfully initialized new session "
-                      << "in sessiond for subscriber " << imsi;
+          MLOG(MINFO) << "Successfully initialized new session " << sid
+                      << " in sessiond for subscriber " << imsi
+                      << " with default bearer id " << cfg.bearer_id;
           add_session_to_directory_record(imsi, sid);
         }
       } else {

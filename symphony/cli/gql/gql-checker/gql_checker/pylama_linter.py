@@ -1,9 +1,10 @@
-from __future__ import absolute_import
+#!/usr/bin/env python3
 
-from pylama.lint import Linter as BaseLinter
+from __future__ import absolute_import
 
 import gql_checker
 from gql_checker import ImportOrderChecker
+from pylama.lint import Linter as BaseLinter
 
 
 class Linter(ImportOrderChecker, BaseLinter):
@@ -18,19 +19,12 @@ class Linter(ImportOrderChecker, BaseLinter):
 
     def error(self, node, code, message):
         lineno, col_offset = node.lineno, node.col_offset
-        return {
-            "lnum": lineno,
-            "col": col_offset,
-            "text": message,
-            "type": code
-        }
+        return {"lnum": lineno, "col": col_offset, "text": message, "type": code}
 
     def run(self, path, **meta):
         self.filename = path
         self.tree = None
-        self.options = dict(
-            {'schema': ''},
-            **meta)
+        self.options = dict({"schema": ""}, **meta)
 
         for error in self.check_gql():
             yield error

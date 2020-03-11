@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -27,8 +26,8 @@ type ServiceEndpointUpdate struct {
 
 	update_time    *time.Time
 	role           *string
-	port           map[string]struct{}
-	service        map[string]struct{}
+	port           map[int]struct{}
+	service        map[int]struct{}
 	clearedPort    bool
 	clearedService bool
 	predicates     []predicate.ServiceEndpoint
@@ -47,16 +46,16 @@ func (seu *ServiceEndpointUpdate) SetRole(s string) *ServiceEndpointUpdate {
 }
 
 // SetPortID sets the port edge to EquipmentPort by id.
-func (seu *ServiceEndpointUpdate) SetPortID(id string) *ServiceEndpointUpdate {
+func (seu *ServiceEndpointUpdate) SetPortID(id int) *ServiceEndpointUpdate {
 	if seu.port == nil {
-		seu.port = make(map[string]struct{})
+		seu.port = make(map[int]struct{})
 	}
 	seu.port[id] = struct{}{}
 	return seu
 }
 
 // SetNillablePortID sets the port edge to EquipmentPort by id if the given value is not nil.
-func (seu *ServiceEndpointUpdate) SetNillablePortID(id *string) *ServiceEndpointUpdate {
+func (seu *ServiceEndpointUpdate) SetNillablePortID(id *int) *ServiceEndpointUpdate {
 	if id != nil {
 		seu = seu.SetPortID(*id)
 	}
@@ -69,16 +68,16 @@ func (seu *ServiceEndpointUpdate) SetPort(e *EquipmentPort) *ServiceEndpointUpda
 }
 
 // SetServiceID sets the service edge to Service by id.
-func (seu *ServiceEndpointUpdate) SetServiceID(id string) *ServiceEndpointUpdate {
+func (seu *ServiceEndpointUpdate) SetServiceID(id int) *ServiceEndpointUpdate {
 	if seu.service == nil {
-		seu.service = make(map[string]struct{})
+		seu.service = make(map[int]struct{})
 	}
 	seu.service[id] = struct{}{}
 	return seu
 }
 
 // SetNillableServiceID sets the service edge to Service by id if the given value is not nil.
-func (seu *ServiceEndpointUpdate) SetNillableServiceID(id *string) *ServiceEndpointUpdate {
+func (seu *ServiceEndpointUpdate) SetNillableServiceID(id *int) *ServiceEndpointUpdate {
 	if id != nil {
 		seu = seu.SetServiceID(*id)
 	}
@@ -140,32 +139,32 @@ func (seu *ServiceEndpointUpdate) ExecX(ctx context.Context) {
 }
 
 func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   serviceendpoint.Table,
 			Columns: serviceendpoint.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: serviceendpoint.FieldID,
 			},
 		},
 	}
 	if ps := seu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := seu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: serviceendpoint.FieldUpdateTime,
 		})
 	}
 	if value := seu.role; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: serviceendpoint.FieldRole,
@@ -180,12 +179,12 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := seu.port; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -196,19 +195,15 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if seu.clearedService {
 		edge := &sqlgraph.EdgeSpec{
@@ -219,12 +214,12 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := seu.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -235,22 +230,20 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, seu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, seu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{serviceendpoint.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -261,12 +254,12 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 // ServiceEndpointUpdateOne is the builder for updating a single ServiceEndpoint entity.
 type ServiceEndpointUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time    *time.Time
 	role           *string
-	port           map[string]struct{}
-	service        map[string]struct{}
+	port           map[int]struct{}
+	service        map[int]struct{}
 	clearedPort    bool
 	clearedService bool
 }
@@ -278,16 +271,16 @@ func (seuo *ServiceEndpointUpdateOne) SetRole(s string) *ServiceEndpointUpdateOn
 }
 
 // SetPortID sets the port edge to EquipmentPort by id.
-func (seuo *ServiceEndpointUpdateOne) SetPortID(id string) *ServiceEndpointUpdateOne {
+func (seuo *ServiceEndpointUpdateOne) SetPortID(id int) *ServiceEndpointUpdateOne {
 	if seuo.port == nil {
-		seuo.port = make(map[string]struct{})
+		seuo.port = make(map[int]struct{})
 	}
 	seuo.port[id] = struct{}{}
 	return seuo
 }
 
 // SetNillablePortID sets the port edge to EquipmentPort by id if the given value is not nil.
-func (seuo *ServiceEndpointUpdateOne) SetNillablePortID(id *string) *ServiceEndpointUpdateOne {
+func (seuo *ServiceEndpointUpdateOne) SetNillablePortID(id *int) *ServiceEndpointUpdateOne {
 	if id != nil {
 		seuo = seuo.SetPortID(*id)
 	}
@@ -300,16 +293,16 @@ func (seuo *ServiceEndpointUpdateOne) SetPort(e *EquipmentPort) *ServiceEndpoint
 }
 
 // SetServiceID sets the service edge to Service by id.
-func (seuo *ServiceEndpointUpdateOne) SetServiceID(id string) *ServiceEndpointUpdateOne {
+func (seuo *ServiceEndpointUpdateOne) SetServiceID(id int) *ServiceEndpointUpdateOne {
 	if seuo.service == nil {
-		seuo.service = make(map[string]struct{})
+		seuo.service = make(map[int]struct{})
 	}
 	seuo.service[id] = struct{}{}
 	return seuo
 }
 
 // SetNillableServiceID sets the service edge to Service by id if the given value is not nil.
-func (seuo *ServiceEndpointUpdateOne) SetNillableServiceID(id *string) *ServiceEndpointUpdateOne {
+func (seuo *ServiceEndpointUpdateOne) SetNillableServiceID(id *int) *ServiceEndpointUpdateOne {
 	if id != nil {
 		seuo = seuo.SetServiceID(*id)
 	}
@@ -371,26 +364,26 @@ func (seuo *ServiceEndpointUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceEndpoint, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   serviceendpoint.Table,
 			Columns: serviceendpoint.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  seuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: serviceendpoint.FieldID,
 			},
 		},
 	}
 	if value := seuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: serviceendpoint.FieldUpdateTime,
 		})
 	}
 	if value := seuo.role; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: serviceendpoint.FieldRole,
@@ -405,12 +398,12 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := seuo.port; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -421,19 +414,15 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if seuo.clearedService {
 		edge := &sqlgraph.EdgeSpec{
@@ -444,12 +433,12 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := seuo.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -460,25 +449,23 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	se = &ServiceEndpoint{config: seuo.config}
-	spec.Assign = se.assignValues
-	spec.ScanValues = se.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, seuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = se.assignValues
+	_spec.ScanValues = se.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, seuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{serviceendpoint.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

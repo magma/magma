@@ -34,11 +34,12 @@ import {Route} from 'react-router-dom';
 import {graphql, useFragment, useLazyLoadQuery} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRelativePath, useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_theme => ({
   paper: {
-    padding: theme.spacing(3, 2),
+    padding: '24px 16px',
   },
 }));
 
@@ -105,7 +106,9 @@ export default function ActionsListCard() {
 }
 
 function RuleRow(props: {rule: ActionsListCard_actionsRule$key}) {
-  const {history, relativeUrl, relativePath} = useRouter();
+  const relativeUrl = useRelativeUrl();
+  const relativePath = useRelativePath();
+  const {history} = useRouter();
   const classes = useStyles();
   const rule: ActionsListCard_actionsRule = useFragment<ActionsListCard_actionsRule>(
     actionRuleFragment,
@@ -122,6 +125,7 @@ function RuleRow(props: {rule: ActionsListCard_actionsRule$key}) {
           enqueueSnackbar('Rule deleted successfully', {variant: 'success'});
         },
       },
+      // $FlowFixMe (T62907961) Relay flow types
       store => store.delete(rule.id),
     );
   };
@@ -155,6 +159,8 @@ function RuleRow(props: {rule: ActionsListCard_actionsRule$key}) {
                 .map(a => ({...a, data: JSON.parse(a.data)})),
               ruleFilters: rule.ruleFilters
                 .filter(Boolean)
+                // T62071472
+                // $FlowFixMe v0.118.0+ filter fields may be null
                 .map(f => ({...f, data: JSON.parse(f.data)})),
             }}
             onClose={() => history.push(relativeUrl(''))}

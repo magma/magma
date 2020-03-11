@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -30,12 +29,12 @@ type ProjectTypeUpdate struct {
 	name              *string
 	description       *string
 	cleardescription  bool
-	projects          map[string]struct{}
-	properties        map[string]struct{}
-	work_orders       map[string]struct{}
-	removedProjects   map[string]struct{}
-	removedProperties map[string]struct{}
-	removedWorkOrders map[string]struct{}
+	projects          map[int]struct{}
+	properties        map[int]struct{}
+	work_orders       map[int]struct{}
+	removedProjects   map[int]struct{}
+	removedProperties map[int]struct{}
+	removedWorkOrders map[int]struct{}
 	predicates        []predicate.ProjectType
 }
 
@@ -73,9 +72,9 @@ func (ptu *ProjectTypeUpdate) ClearDescription() *ProjectTypeUpdate {
 }
 
 // AddProjectIDs adds the projects edge to Project by ids.
-func (ptu *ProjectTypeUpdate) AddProjectIDs(ids ...string) *ProjectTypeUpdate {
+func (ptu *ProjectTypeUpdate) AddProjectIDs(ids ...int) *ProjectTypeUpdate {
 	if ptu.projects == nil {
-		ptu.projects = make(map[string]struct{})
+		ptu.projects = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptu.projects[ids[i]] = struct{}{}
@@ -85,7 +84,7 @@ func (ptu *ProjectTypeUpdate) AddProjectIDs(ids ...string) *ProjectTypeUpdate {
 
 // AddProjects adds the projects edges to Project.
 func (ptu *ProjectTypeUpdate) AddProjects(p ...*Project) *ProjectTypeUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -93,9 +92,9 @@ func (ptu *ProjectTypeUpdate) AddProjects(p ...*Project) *ProjectTypeUpdate {
 }
 
 // AddPropertyIDs adds the properties edge to PropertyType by ids.
-func (ptu *ProjectTypeUpdate) AddPropertyIDs(ids ...string) *ProjectTypeUpdate {
+func (ptu *ProjectTypeUpdate) AddPropertyIDs(ids ...int) *ProjectTypeUpdate {
 	if ptu.properties == nil {
-		ptu.properties = make(map[string]struct{})
+		ptu.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptu.properties[ids[i]] = struct{}{}
@@ -105,7 +104,7 @@ func (ptu *ProjectTypeUpdate) AddPropertyIDs(ids ...string) *ProjectTypeUpdate {
 
 // AddProperties adds the properties edges to PropertyType.
 func (ptu *ProjectTypeUpdate) AddProperties(p ...*PropertyType) *ProjectTypeUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -113,9 +112,9 @@ func (ptu *ProjectTypeUpdate) AddProperties(p ...*PropertyType) *ProjectTypeUpda
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrderDefinition by ids.
-func (ptu *ProjectTypeUpdate) AddWorkOrderIDs(ids ...string) *ProjectTypeUpdate {
+func (ptu *ProjectTypeUpdate) AddWorkOrderIDs(ids ...int) *ProjectTypeUpdate {
 	if ptu.work_orders == nil {
-		ptu.work_orders = make(map[string]struct{})
+		ptu.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptu.work_orders[ids[i]] = struct{}{}
@@ -125,7 +124,7 @@ func (ptu *ProjectTypeUpdate) AddWorkOrderIDs(ids ...string) *ProjectTypeUpdate 
 
 // AddWorkOrders adds the work_orders edges to WorkOrderDefinition.
 func (ptu *ProjectTypeUpdate) AddWorkOrders(w ...*WorkOrderDefinition) *ProjectTypeUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -133,9 +132,9 @@ func (ptu *ProjectTypeUpdate) AddWorkOrders(w ...*WorkOrderDefinition) *ProjectT
 }
 
 // RemoveProjectIDs removes the projects edge to Project by ids.
-func (ptu *ProjectTypeUpdate) RemoveProjectIDs(ids ...string) *ProjectTypeUpdate {
+func (ptu *ProjectTypeUpdate) RemoveProjectIDs(ids ...int) *ProjectTypeUpdate {
 	if ptu.removedProjects == nil {
-		ptu.removedProjects = make(map[string]struct{})
+		ptu.removedProjects = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptu.removedProjects[ids[i]] = struct{}{}
@@ -145,7 +144,7 @@ func (ptu *ProjectTypeUpdate) RemoveProjectIDs(ids ...string) *ProjectTypeUpdate
 
 // RemoveProjects removes projects edges to Project.
 func (ptu *ProjectTypeUpdate) RemoveProjects(p ...*Project) *ProjectTypeUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -153,9 +152,9 @@ func (ptu *ProjectTypeUpdate) RemoveProjects(p ...*Project) *ProjectTypeUpdate {
 }
 
 // RemovePropertyIDs removes the properties edge to PropertyType by ids.
-func (ptu *ProjectTypeUpdate) RemovePropertyIDs(ids ...string) *ProjectTypeUpdate {
+func (ptu *ProjectTypeUpdate) RemovePropertyIDs(ids ...int) *ProjectTypeUpdate {
 	if ptu.removedProperties == nil {
-		ptu.removedProperties = make(map[string]struct{})
+		ptu.removedProperties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptu.removedProperties[ids[i]] = struct{}{}
@@ -165,7 +164,7 @@ func (ptu *ProjectTypeUpdate) RemovePropertyIDs(ids ...string) *ProjectTypeUpdat
 
 // RemoveProperties removes properties edges to PropertyType.
 func (ptu *ProjectTypeUpdate) RemoveProperties(p ...*PropertyType) *ProjectTypeUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -173,9 +172,9 @@ func (ptu *ProjectTypeUpdate) RemoveProperties(p ...*PropertyType) *ProjectTypeU
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrderDefinition by ids.
-func (ptu *ProjectTypeUpdate) RemoveWorkOrderIDs(ids ...string) *ProjectTypeUpdate {
+func (ptu *ProjectTypeUpdate) RemoveWorkOrderIDs(ids ...int) *ProjectTypeUpdate {
 	if ptu.removedWorkOrders == nil {
-		ptu.removedWorkOrders = make(map[string]struct{})
+		ptu.removedWorkOrders = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptu.removedWorkOrders[ids[i]] = struct{}{}
@@ -185,7 +184,7 @@ func (ptu *ProjectTypeUpdate) RemoveWorkOrderIDs(ids ...string) *ProjectTypeUpda
 
 // RemoveWorkOrders removes work_orders edges to WorkOrderDefinition.
 func (ptu *ProjectTypeUpdate) RemoveWorkOrders(w ...*WorkOrderDefinition) *ProjectTypeUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -229,46 +228,46 @@ func (ptu *ProjectTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   projecttype.Table,
 			Columns: projecttype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: projecttype.FieldID,
 			},
 		},
 	}
 	if ps := ptu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := ptu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: projecttype.FieldUpdateTime,
 		})
 	}
 	if value := ptu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldName,
 		})
 	}
 	if value := ptu.description; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldDescription,
 		})
 	}
 	if ptu.cleardescription {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: projecttype.FieldDescription,
 		})
@@ -282,19 +281,15 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: project.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.projects; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -305,19 +300,15 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: project.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ptu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -328,19 +319,15 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -351,19 +338,15 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ptu.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -374,19 +357,15 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorderdefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptu.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -397,22 +376,20 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorderdefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, ptu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, ptu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{projecttype.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -423,18 +400,18 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ProjectTypeUpdateOne is the builder for updating a single ProjectType entity.
 type ProjectTypeUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time       *time.Time
 	name              *string
 	description       *string
 	cleardescription  bool
-	projects          map[string]struct{}
-	properties        map[string]struct{}
-	work_orders       map[string]struct{}
-	removedProjects   map[string]struct{}
-	removedProperties map[string]struct{}
-	removedWorkOrders map[string]struct{}
+	projects          map[int]struct{}
+	properties        map[int]struct{}
+	work_orders       map[int]struct{}
+	removedProjects   map[int]struct{}
+	removedProperties map[int]struct{}
+	removedWorkOrders map[int]struct{}
 }
 
 // SetName sets the name field.
@@ -465,9 +442,9 @@ func (ptuo *ProjectTypeUpdateOne) ClearDescription() *ProjectTypeUpdateOne {
 }
 
 // AddProjectIDs adds the projects edge to Project by ids.
-func (ptuo *ProjectTypeUpdateOne) AddProjectIDs(ids ...string) *ProjectTypeUpdateOne {
+func (ptuo *ProjectTypeUpdateOne) AddProjectIDs(ids ...int) *ProjectTypeUpdateOne {
 	if ptuo.projects == nil {
-		ptuo.projects = make(map[string]struct{})
+		ptuo.projects = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptuo.projects[ids[i]] = struct{}{}
@@ -477,7 +454,7 @@ func (ptuo *ProjectTypeUpdateOne) AddProjectIDs(ids ...string) *ProjectTypeUpdat
 
 // AddProjects adds the projects edges to Project.
 func (ptuo *ProjectTypeUpdateOne) AddProjects(p ...*Project) *ProjectTypeUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -485,9 +462,9 @@ func (ptuo *ProjectTypeUpdateOne) AddProjects(p ...*Project) *ProjectTypeUpdateO
 }
 
 // AddPropertyIDs adds the properties edge to PropertyType by ids.
-func (ptuo *ProjectTypeUpdateOne) AddPropertyIDs(ids ...string) *ProjectTypeUpdateOne {
+func (ptuo *ProjectTypeUpdateOne) AddPropertyIDs(ids ...int) *ProjectTypeUpdateOne {
 	if ptuo.properties == nil {
-		ptuo.properties = make(map[string]struct{})
+		ptuo.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptuo.properties[ids[i]] = struct{}{}
@@ -497,7 +474,7 @@ func (ptuo *ProjectTypeUpdateOne) AddPropertyIDs(ids ...string) *ProjectTypeUpda
 
 // AddProperties adds the properties edges to PropertyType.
 func (ptuo *ProjectTypeUpdateOne) AddProperties(p ...*PropertyType) *ProjectTypeUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -505,9 +482,9 @@ func (ptuo *ProjectTypeUpdateOne) AddProperties(p ...*PropertyType) *ProjectType
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrderDefinition by ids.
-func (ptuo *ProjectTypeUpdateOne) AddWorkOrderIDs(ids ...string) *ProjectTypeUpdateOne {
+func (ptuo *ProjectTypeUpdateOne) AddWorkOrderIDs(ids ...int) *ProjectTypeUpdateOne {
 	if ptuo.work_orders == nil {
-		ptuo.work_orders = make(map[string]struct{})
+		ptuo.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptuo.work_orders[ids[i]] = struct{}{}
@@ -517,7 +494,7 @@ func (ptuo *ProjectTypeUpdateOne) AddWorkOrderIDs(ids ...string) *ProjectTypeUpd
 
 // AddWorkOrders adds the work_orders edges to WorkOrderDefinition.
 func (ptuo *ProjectTypeUpdateOne) AddWorkOrders(w ...*WorkOrderDefinition) *ProjectTypeUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -525,9 +502,9 @@ func (ptuo *ProjectTypeUpdateOne) AddWorkOrders(w ...*WorkOrderDefinition) *Proj
 }
 
 // RemoveProjectIDs removes the projects edge to Project by ids.
-func (ptuo *ProjectTypeUpdateOne) RemoveProjectIDs(ids ...string) *ProjectTypeUpdateOne {
+func (ptuo *ProjectTypeUpdateOne) RemoveProjectIDs(ids ...int) *ProjectTypeUpdateOne {
 	if ptuo.removedProjects == nil {
-		ptuo.removedProjects = make(map[string]struct{})
+		ptuo.removedProjects = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptuo.removedProjects[ids[i]] = struct{}{}
@@ -537,7 +514,7 @@ func (ptuo *ProjectTypeUpdateOne) RemoveProjectIDs(ids ...string) *ProjectTypeUp
 
 // RemoveProjects removes projects edges to Project.
 func (ptuo *ProjectTypeUpdateOne) RemoveProjects(p ...*Project) *ProjectTypeUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -545,9 +522,9 @@ func (ptuo *ProjectTypeUpdateOne) RemoveProjects(p ...*Project) *ProjectTypeUpda
 }
 
 // RemovePropertyIDs removes the properties edge to PropertyType by ids.
-func (ptuo *ProjectTypeUpdateOne) RemovePropertyIDs(ids ...string) *ProjectTypeUpdateOne {
+func (ptuo *ProjectTypeUpdateOne) RemovePropertyIDs(ids ...int) *ProjectTypeUpdateOne {
 	if ptuo.removedProperties == nil {
-		ptuo.removedProperties = make(map[string]struct{})
+		ptuo.removedProperties = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptuo.removedProperties[ids[i]] = struct{}{}
@@ -557,7 +534,7 @@ func (ptuo *ProjectTypeUpdateOne) RemovePropertyIDs(ids ...string) *ProjectTypeU
 
 // RemoveProperties removes properties edges to PropertyType.
 func (ptuo *ProjectTypeUpdateOne) RemoveProperties(p ...*PropertyType) *ProjectTypeUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -565,9 +542,9 @@ func (ptuo *ProjectTypeUpdateOne) RemoveProperties(p ...*PropertyType) *ProjectT
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrderDefinition by ids.
-func (ptuo *ProjectTypeUpdateOne) RemoveWorkOrderIDs(ids ...string) *ProjectTypeUpdateOne {
+func (ptuo *ProjectTypeUpdateOne) RemoveWorkOrderIDs(ids ...int) *ProjectTypeUpdateOne {
 	if ptuo.removedWorkOrders == nil {
-		ptuo.removedWorkOrders = make(map[string]struct{})
+		ptuo.removedWorkOrders = make(map[int]struct{})
 	}
 	for i := range ids {
 		ptuo.removedWorkOrders[ids[i]] = struct{}{}
@@ -577,7 +554,7 @@ func (ptuo *ProjectTypeUpdateOne) RemoveWorkOrderIDs(ids ...string) *ProjectType
 
 // RemoveWorkOrders removes work_orders edges to WorkOrderDefinition.
 func (ptuo *ProjectTypeUpdateOne) RemoveWorkOrders(w ...*WorkOrderDefinition) *ProjectTypeUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -621,40 +598,40 @@ func (ptuo *ProjectTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   projecttype.Table,
 			Columns: projecttype.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  ptuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: projecttype.FieldID,
 			},
 		},
 	}
 	if value := ptuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: projecttype.FieldUpdateTime,
 		})
 	}
 	if value := ptuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldName,
 		})
 	}
 	if value := ptuo.description; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: projecttype.FieldDescription,
 		})
 	}
 	if ptuo.cleardescription {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: projecttype.FieldDescription,
 		})
@@ -668,19 +645,15 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: project.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.projects; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -691,19 +664,15 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: project.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ptuo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -714,19 +683,15 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -737,19 +702,15 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := ptuo.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -760,19 +721,15 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorderdefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ptuo.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -783,25 +740,23 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorderdefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	pt = &ProjectType{config: ptuo.config}
-	spec.Assign = pt.assignValues
-	spec.ScanValues = pt.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, ptuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = pt.assignValues
+	_spec.ScanValues = pt.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, ptuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{projecttype.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

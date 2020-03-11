@@ -340,6 +340,7 @@ int s1ap_mme_handle_nas_non_delivery(
 {
   S1ap_NASNonDeliveryIndication_IEs_t *nasNonDeliveryIndication_p = NULL;
   ue_description_t *ue_ref = NULL;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   increment_counter("nas_non_delivery_indication_received", 1, NO_LABELS);
@@ -381,12 +382,20 @@ int s1ap_mme_handle_nas_non_delivery(
       "S1AP_UE_CONNECTED\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    imsi_map->mme_ue_id_imsi_htbl,
+    (const hash_key_t) nasNonDeliveryIndication_p->mme_ue_s1ap_id,
+    &imsi64);
+
   //TODO: forward NAS PDU to NAS
   s1ap_mme_itti_nas_non_delivery_ind(
     nasNonDeliveryIndication_p->mme_ue_s1ap_id,
     nasNonDeliveryIndication_p->nas_pdu.buf,
     nasNonDeliveryIndication_p->nas_pdu.size,
-    &nasNonDeliveryIndication_p->cause);
+    &nasNonDeliveryIndication_p->cause,
+    imsi64);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
@@ -395,7 +404,8 @@ int s1ap_generate_downlink_nas_transport(
   s1ap_state_t *state,
   const enb_ue_s1ap_id_t enb_ue_s1ap_id,
   const mme_ue_s1ap_id_t ue_id,
-  STOLEN_REF bstring *payload)
+  STOLEN_REF bstring *payload,
+  const imsi64_t imsi64)
 {
   ue_description_t *ue_ref = NULL;
   uint8_t *buffer_p = NULL;
@@ -440,6 +450,12 @@ int s1ap_generate_downlink_nas_transport(
      * We have fount the UE in the list.
      * * * * Create new IE list message and encode it.
      */
+    s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+    hashtable_uint64_ts_insert(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) ue_id,
+      imsi64);
+
     S1ap_DownlinkNASTransportIEs_t *downlinkNasTransport = NULL;
     s1ap_message message = {0};
 
@@ -936,6 +952,7 @@ void s1ap_handle_mme_ue_id_notification(
         &state->mmeid2associd,
         (const hash_key_t) mme_ue_s1ap_id,
         (void *) (uintptr_t) sctp_assoc_id);
+
       OAILOG_DEBUG(
         LOG_S1AP,
         "Associated  sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT

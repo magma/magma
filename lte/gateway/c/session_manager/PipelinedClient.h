@@ -13,6 +13,7 @@
 
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/pipelined.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
 
 #include "GRPCReceiver.h"
@@ -34,9 +35,24 @@ class PipelinedClient {
    * @param infos - list of SessionInfos to setup flows for
    * @return true if the operation was successful
    */
-  virtual bool setup(
-    const std::vector<SessionState::SessionInfo> &infos,
-    const std::uint64_t &epoch,
+  virtual bool setup_cwf(
+    const std::vector<SessionState::SessionInfo>& infos,
+    const std::vector<SubscriberQuotaUpdate>& quota_updates,
+    const std::vector<std::string> ue_mac_addrs,
+    const std::vector<std::string> msisdns,
+    const std::vector<std::string> apn_mac_addrs,
+    const std::vector<std::string> apn_names,
+    const std::uint64_t& epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback) = 0;
+
+  /**
+   * Activates all rules for provided SessionInfos
+   * @param infos - list of SessionInfos to setup flows for
+   * @return true if the operation was successful
+   */
+  virtual bool setup_lte(
+    const std::vector<SessionState::SessionInfo>& infos,
+    const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
   /**
@@ -44,7 +60,7 @@ class PipelinedClient {
    * @param imsi - UE to delete all policy flows for
    * @return true if the operation was successful
    */
-  virtual bool deactivate_all_flows(const std::string &imsi) = 0;
+  virtual bool deactivate_all_flows(const std::string& imsi) = 0;
 
   /**
    * Deactivate all flows for the specified rules
@@ -53,18 +69,18 @@ class PipelinedClient {
    * @return true if the operation was successful
    */
   virtual bool deactivate_flows_for_rules(
-    const std::string &imsi,
-    const std::vector<std::string> &rule_ids,
-    const std::vector<PolicyRule> &dynamic_rules) = 0;
+    const std::string& imsi,
+    const std::vector<std::string>& rule_ids,
+    const std::vector<PolicyRule>& dynamic_rules) = 0;
 
   /**
    * Activate all rules for the specified rules, using a normal vector
    */
   virtual bool activate_flows_for_rules(
-    const std::string &imsi,
-    const std::string &ip_addr,
-    const std::vector<std::string> &static_rules,
-    const std::vector<PolicyRule> &dynamic_rules) = 0;
+    const std::string& imsi,
+    const std::string& ip_addr,
+    const std::vector<std::string>& static_rules,
+    const std::vector<PolicyRule>& dynamic_rules) = 0;
 
   /**
    * Send the MAC address of UE and the subscriberID
@@ -72,7 +88,24 @@ class PipelinedClient {
    */
   virtual bool add_ue_mac_flow(
     const SubscriberID &sid,
-    const std::string &mac_addr) = 0;
+    const std::string &ue_mac_addr,
+    const std::string &msisdn,
+    const std::string &ap_mac_addr,
+    const std::string &ap_name) = 0;
+
+  /**
+   * Send the MAC address of UE and the subscriberID
+   * for pipelined to delete a flow for the subscriber by matching the MAC
+   */
+  virtual bool delete_ue_mac_flow(
+    const SubscriberID &sid,
+    const std::string &ue_mac_addr) = 0;
+
+  /**
+   * Propagate whether a subscriber has quota / no quota / or terminated
+   */
+  virtual bool update_subscriber_quota_state(
+    const std::vector<SubscriberQuotaUpdate>& updates) = 0;
 };
 
 /**
@@ -90,9 +123,24 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * @param infos - list of SessionInfos to setup flows for
    * @return true if the operation was successful
    */
-  bool setup(
-    const std::vector<SessionState::SessionInfo> &infos,
-    const std::uint64_t &epoch,
+  bool setup_cwf(
+    const std::vector<SessionState::SessionInfo>& infos,
+    const std::vector<SubscriberQuotaUpdate>& quota_updates,
+    const std::vector<std::string> ue_mac_addrs,
+    const std::vector<std::string> msisdns,
+    const std::vector<std::string> apn_mac_addrs,
+    const std::vector<std::string> apn_names,
+    const std::uint64_t& epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback);
+
+  /**
+   * Activates all rules for provided SessionInfos
+   * @param infos - list of SessionInfos to setup flows for
+   * @return true if the operation was successful
+   */
+  bool setup_lte(
+    const std::vector<SessionState::SessionInfo>& infos,
+    const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback);
 
   /**
@@ -100,7 +148,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * @param imsi - UE to delete all policy flows for
    * @return true if the operation was successful
    */
-  bool deactivate_all_flows(const std::string &imsi);
+  bool deactivate_all_flows(const std::string& imsi);
 
   /**
    * Deactivate all flows related to a specific charging key
@@ -109,41 +157,70 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * @return true if the operation was successful
    */
   bool deactivate_flows_for_rules(
-    const std::string &imsi,
-    const std::vector<std::string> &rule_ids,
-    const std::vector<PolicyRule> &dynamic_rules);
+    const std::string& imsi,
+    const std::vector<std::string>& rule_ids,
+    const std::vector<PolicyRule>& dynamic_rules);
 
   /**
    * Activate all rules for the specified rules, using a normal vector
    */
   bool activate_flows_for_rules(
-    const std::string &imsi,
-    const std::string &ip_addr,
-    const std::vector<std::string> &static_rules,
-    const std::vector<PolicyRule> &dynamic_rules);
+    const std::string& imsi,
+    const std::string& ip_addr,
+    const std::vector<std::string>& static_rules,
+    const std::vector<PolicyRule>& dynamic_rules);
 
+  /**
+   * Send the MAC address of UE and the subscriberID
+   * for pipelined to add a flow for the subscriber by matching the MAC
+   */
   bool add_ue_mac_flow(
+    const SubscriberID& sid,
+    const std::string& ue_mac_addr,
+    const std::string& msisdn,
+    const std::string& ap_mac_addr,
+    const std::string& ap_name);
+
+  /**
+   * Propagate whether a subscriber has quota / no quota / or terminated
+   */
+  bool update_subscriber_quota_state(
+    const std::vector<SubscriberQuotaUpdate>& updates);
+
+  bool delete_ue_mac_flow(
     const SubscriberID &sid,
-    const std::string &mac_addr);
+    const std::string &ue_mac_addr);
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<Pipelined::Stub> stub_;
 
  private:
-  void setup_flows_rpc(
-    const SetupFlowsRequest &request,
+  void setup_policy_rpc(
+    const SetupPolicyRequest& request,
     std::function<void(Status, SetupFlowsResult)> callback);
 
+ void setup_ue_mac_rpc(
+   const SetupUEMacRequest& request,
+   std::function<void(Status, SetupFlowsResult)> callback);
+
   void deactivate_flows_rpc(
-    const DeactivateFlowsRequest &request,
+    const DeactivateFlowsRequest& request,
     std::function<void(Status, DeactivateFlowsResult)> callback);
 
   void activate_flows_rpc(
-    const ActivateFlowsRequest &request,
+    const ActivateFlowsRequest& request,
     std::function<void(Status, ActivateFlowsResult)> callback);
 
   void add_ue_mac_flow_rpc(
+    const UEMacFlowRequest& request,
+    std::function<void(Status, FlowResponse)> callback);
+
+  void update_subscriber_quota_state_rpc(
+    const UpdateSubscriberQuotaStateRequest& request,
+    std::function<void(Status, FlowResponse)> callback);
+
+  void delete_ue_mac_flow_rpc(
     const UEMacFlowRequest &request,
     std::function<void(Status, FlowResponse)> callback);
 };

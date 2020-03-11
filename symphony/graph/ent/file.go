@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type File struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -40,37 +39,51 @@ type File struct {
 	// StoreKey holds the value of the "store_key" field.
 	StoreKey string `json:"store_key,omitempty"`
 	// Category holds the value of the "category" field.
-	Category string `json:"category,omitempty"`
+	Category                   string `json:"category,omitempty"`
+	equipment_files            *int
+	location_files             *int
+	survey_question_photo_data *int
+	work_order_files           *int
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*File) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // type
+		&sql.NullString{}, // name
+		&sql.NullInt64{},  // size
+		&sql.NullTime{},   // modified_at
+		&sql.NullTime{},   // uploaded_at
+		&sql.NullString{}, // content_type
+		&sql.NullString{}, // store_key
+		&sql.NullString{}, // category
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*File) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // equipment_files
+		&sql.NullInt64{}, // location_files
+		&sql.NullInt64{}, // survey_question_photo_data
+		&sql.NullInt64{}, // work_order_files
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the File fields.
 func (f *File) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(file.Columns); m != n {
+	if m, n := len(values), len(file.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	f.ID = strconv.FormatInt(value.Int64, 10)
+	f.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -122,6 +135,33 @@ func (f *File) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		f.Category = value.String
 	}
+	values = values[10:]
+	if len(values) == len(file.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field equipment_files", value)
+		} else if value.Valid {
+			f.equipment_files = new(int)
+			*f.equipment_files = int(value.Int64)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_files", value)
+		} else if value.Valid {
+			f.location_files = new(int)
+			*f.location_files = int(value.Int64)
+		}
+		if value, ok := values[2].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_photo_data", value)
+		} else if value.Valid {
+			f.survey_question_photo_data = new(int)
+			*f.survey_question_photo_data = int(value.Int64)
+		}
+		if value, ok := values[3].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_files", value)
+		} else if value.Valid {
+			f.work_order_files = new(int)
+			*f.work_order_files = int(value.Int64)
+		}
+	}
 	return nil
 }
 
@@ -129,7 +169,7 @@ func (f *File) assignValues(values ...interface{}) error {
 // Note that, you need to call File.Unwrap() before calling this method, if this File
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (f *File) Update() *FileUpdateOne {
-	return (&FileClient{f.config}).UpdateOne(f)
+	return (&FileClient{config: f.config}).UpdateOne(f)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -170,12 +210,6 @@ func (f *File) String() string {
 	builder.WriteString(f.Category)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (f *File) id() int {
-	id, _ := strconv.Atoi(f.ID)
-	return id
 }
 
 // Files is a parsable slice of File.

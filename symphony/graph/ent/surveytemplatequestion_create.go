@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -27,7 +26,7 @@ type SurveyTemplateQuestionCreate struct {
 	question_description *string
 	question_type        *string
 	index                *int
-	category             map[string]struct{}
+	category             map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -83,16 +82,16 @@ func (stqc *SurveyTemplateQuestionCreate) SetIndex(i int) *SurveyTemplateQuestio
 }
 
 // SetCategoryID sets the category edge to SurveyTemplateCategory by id.
-func (stqc *SurveyTemplateQuestionCreate) SetCategoryID(id string) *SurveyTemplateQuestionCreate {
+func (stqc *SurveyTemplateQuestionCreate) SetCategoryID(id int) *SurveyTemplateQuestionCreate {
 	if stqc.category == nil {
-		stqc.category = make(map[string]struct{})
+		stqc.category = make(map[int]struct{})
 	}
 	stqc.category[id] = struct{}{}
 	return stqc
 }
 
 // SetNillableCategoryID sets the category edge to SurveyTemplateCategory by id if the given value is not nil.
-func (stqc *SurveyTemplateQuestionCreate) SetNillableCategoryID(id *string) *SurveyTemplateQuestionCreate {
+func (stqc *SurveyTemplateQuestionCreate) SetNillableCategoryID(id *int) *SurveyTemplateQuestionCreate {
 	if id != nil {
 		stqc = stqc.SetCategoryID(*id)
 	}
@@ -143,17 +142,17 @@ func (stqc *SurveyTemplateQuestionCreate) SaveX(ctx context.Context) *SurveyTemp
 
 func (stqc *SurveyTemplateQuestionCreate) sqlSave(ctx context.Context) (*SurveyTemplateQuestion, error) {
 	var (
-		stq  = &SurveyTemplateQuestion{config: stqc.config}
-		spec = &sqlgraph.CreateSpec{
+		stq   = &SurveyTemplateQuestion{config: stqc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: surveytemplatequestion.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveytemplatequestion.FieldID,
 			},
 		}
 	)
 	if value := stqc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldCreateTime,
@@ -161,7 +160,7 @@ func (stqc *SurveyTemplateQuestionCreate) sqlSave(ctx context.Context) (*SurveyT
 		stq.CreateTime = *value
 	}
 	if value := stqc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldUpdateTime,
@@ -169,7 +168,7 @@ func (stqc *SurveyTemplateQuestionCreate) sqlSave(ctx context.Context) (*SurveyT
 		stq.UpdateTime = *value
 	}
 	if value := stqc.question_title; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldQuestionTitle,
@@ -177,7 +176,7 @@ func (stqc *SurveyTemplateQuestionCreate) sqlSave(ctx context.Context) (*SurveyT
 		stq.QuestionTitle = *value
 	}
 	if value := stqc.question_description; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldQuestionDescription,
@@ -185,7 +184,7 @@ func (stqc *SurveyTemplateQuestionCreate) sqlSave(ctx context.Context) (*SurveyT
 		stq.QuestionDescription = *value
 	}
 	if value := stqc.question_type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldQuestionType,
@@ -193,7 +192,7 @@ func (stqc *SurveyTemplateQuestionCreate) sqlSave(ctx context.Context) (*SurveyT
 		stq.QuestionType = *value
 	}
 	if value := stqc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveytemplatequestion.FieldIndex,
@@ -209,27 +208,23 @@ func (stqc *SurveyTemplateQuestionCreate) sqlSave(ctx context.Context) (*SurveyT
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveytemplatecategory.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, stqc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, stqc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	stq.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	stq.ID = int(id)
 	return stq, nil
 }

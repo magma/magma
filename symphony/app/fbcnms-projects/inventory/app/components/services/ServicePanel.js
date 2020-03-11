@@ -32,12 +32,12 @@ import type {ServicePanel_service} from './__generated__/ServicePanel_service.gr
 
 import AddServiceEndpointMutation from '../../mutations/AddServiceEndpointMutation';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
-import React, {useContext, useState} from 'react';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import React, {useState} from 'react';
 import RemoveServiceEndpointMutation from '../../mutations/RemoveServiceEndpointMutation';
 import RemoveServiceLinkMutation from '../../mutations/RemoveServiceLinkMutation';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
@@ -59,7 +59,7 @@ type Props = {
   onOpenDetailsPanel: () => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     overflowY: 'auto',
     height: '100%',
@@ -128,7 +128,7 @@ const useStyles = makeStyles({
   detailsPanel: {
     padding: '0px',
   },
-});
+}));
 
 /* $FlowFixMe - Flow doesn't support typing when using forwardRef on a
  * funcional component
@@ -138,9 +138,6 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   const {service, onOpenDetailsPanel} = props;
   const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
-  const serviceEndpointsEnabled = useContext(AppContext).isFeatureEnabled(
-    'service_endpoints',
-  );
 
   const onAddEndpoint = (port: EquipmentPort, role: ServiceEndpointRole) => {
     const variables: AddServiceEndpointMutationVariables = {
@@ -264,36 +261,34 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
         <div className={classes.edit}>
           <Button variant="text" onClick={onOpenDetailsPanel}>
             <Text variant="body2" className={classes.editText}>
-              View & Edit Details
+              View<FormAction> & Edit</FormAction> Details
             </Text>
           </Button>
         </div>
       </Card>
-      {serviceEndpointsEnabled && (
-        <>
-          <div className={classes.separator} />
-          <ExpandingPanel
-            title="Endpoints"
-            defaultExpanded={false}
-            expandedClassName={classes.expanded}
-            className={classes.panel}
-            expansionPanelSummaryClassName={classes.expansionPanel}
-            detailsPaneClass={classes.detailsPanel}
-            expanded={endpointsExpanded}
-            onChange={expanded => setEndpointsExpanded(expanded)}
-            rightContent={
-              <ServiceEndpointsMenu
-                service={{id: service.id, name: service.name}}
-                onAddEndpoint={onAddEndpoint}
-              />
-            }>
-            <ServiceEndpointsView
-              endpoints={service.endpoints}
-              onDeleteEndpoint={onDeleteEndpoint}
+      <>
+        <div className={classes.separator} />
+        <ExpandingPanel
+          title="Endpoints"
+          defaultExpanded={false}
+          expandedClassName={classes.expanded}
+          className={classes.panel}
+          expansionPanelSummaryClassName={classes.expansionPanel}
+          detailsPaneClass={classes.detailsPanel}
+          expanded={endpointsExpanded}
+          onChange={expanded => setEndpointsExpanded(expanded)}
+          rightContent={
+            <ServiceEndpointsMenu
+              service={{id: service.id, name: service.name}}
+              onAddEndpoint={onAddEndpoint}
             />
-          </ExpandingPanel>
-        </>
-      )}
+          }>
+          <ServiceEndpointsView
+            endpoints={service.endpoints}
+            onDeleteEndpoint={onDeleteEndpoint}
+          />
+        </ExpandingPanel>
+      </>
       <div className={classes.separator} />
       <ExpandingPanel
         title="Links"

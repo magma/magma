@@ -1,3 +1,6 @@
+<!--
+@generated
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -41,10 +44,10 @@
 <dl>
 <dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation"><code class="flex name class">
 <span>class <span class="ident">AddServiceLinkMutation</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: Union[<a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData">AddServiceLinkMutation.AddServiceLinkMutationData</a>, NoneType] = None, errors: Union[Any, NoneType] = None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>AddServiceLinkMutation(data: Union[pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData, NoneType] = None, errors: Any = None)</p></section>
+<section class="desc"><p>AddServiceLinkMutation(data: Union[pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData"><code class="name">var <span class="ident">AddServiceLinkMutationData</span></code></dt>
@@ -63,25 +66,25 @@
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, id, linkId)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, id: str, linkId: str)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -96,32 +99,10 @@
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole"><code class="flex name class">
-<span>class <span class="ident">ServiceEndpointRole</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.CONSUMER"><code class="name">var <span class="ident">CONSUMER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.PROVIDER"><code class="name">var <span class="ident">PROVIDER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
 </dd>
 </dl>
 </dd>
@@ -158,13 +139,6 @@
 <li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.schema" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.schema">schema</a></code></li>
 <li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_dict" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_dict">to_dict</a></code></li>
 <li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_json" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_json">to_json</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole" href="#pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole">ServiceEndpointRole</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.CONSUMER" href="#pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.CONSUMER">CONSUMER</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.PROVIDER" href="#pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.PROVIDER">PROVIDER</a></code></li>
 </ul>
 </li>
 </ul>

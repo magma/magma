@@ -14,7 +14,7 @@ import type {
   AddServiceMutation,
   AddServiceMutationResponse,
   AddServiceMutationVariables,
-} from './__generated__/AddServiceTypeMutation.graphql';
+} from './__generated__/AddServiceMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {StoreUpdater} from '../common/RelayEnvironment';
 

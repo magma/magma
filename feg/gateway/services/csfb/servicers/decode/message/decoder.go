@@ -11,7 +11,6 @@ package message
 import (
 	"errors"
 	"fmt"
-
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/decode/ie"
@@ -24,21 +23,30 @@ import (
 type decoderImpl func([]byte) (*any.Any, error)
 
 var decoderMap = map[decode.SGsMessageType]decoderImpl{
-	decode.SGsAPLocationUpdateAccept: DecodeSGsAPLocationUpdateAccept,
-	decode.SGsAPLocationUpdateReject: DecodeSGsAPLocationUpdateReject,
-	decode.SGsAPIMSIDetachAck:        DecodeSGsAPIMSIDetachAck,
-	decode.SGsAPPagingRequest:        DecodeSGsAPPagingRequest,
-	decode.SGsAPEPSDetachAck:         DecodeSGsAPEPSDetachAck,
-	decode.SGsAPAlertRequest:         DecodeSGsAPAlertRequest,
-	decode.SGsAPDownlinkUnitdata:     DecodeSGsAPDownlinkUnitdata,
-	decode.SGsAPMMInformationRequest: DecodeSGsAPMMInformationRequest,
-	decode.SGsAPReleaseRequest:       DecodeSGsAPReleaseRequest,
-	decode.SGsAPServiceAbortRequest:  DecodeSGsAPServiceAbortRequest,
-	decode.SGsAPStatus:               DecodeSGsAPStatus,
-	decode.SGsAPResetAck:             DecodeSGsAPResetAck,
-	decode.SGsAPResetIndication:      DecodeSGsAPResetIndication,
-	decode.SGsAPAlertAck:             DecodeSGsAPAlertAck,
-	decode.SGsAPAlertReject:          DecodeSGsAPAlertReject,
+	decode.SGsAPLocationUpdateAccept:     DecodeSGsAPLocationUpdateAccept,
+	decode.SGsAPLocationUpdateReject:     DecodeSGsAPLocationUpdateReject,
+	decode.SGsAPIMSIDetachAck:            DecodeSGsAPIMSIDetachAck,
+	decode.SGsAPPagingRequest:            DecodeSGsAPPagingRequest,
+	decode.SGsAPEPSDetachAck:             DecodeSGsAPEPSDetachAck,
+	decode.SGsAPAlertRequest:             DecodeSGsAPAlertRequest,
+	decode.SGsAPDownlinkUnitdata:         DecodeSGsAPDownlinkUnitdata,
+	decode.SGsAPMMInformationRequest:     DecodeSGsAPMMInformationRequest,
+	decode.SGsAPReleaseRequest:           DecodeSGsAPReleaseRequest,
+	decode.SGsAPServiceAbortRequest:      DecodeSGsAPServiceAbortRequest,
+	decode.SGsAPStatus:                   DecodeSGsAPStatus,
+	decode.SGsAPResetAck:                 DecodeSGsAPResetAck,
+	decode.SGsAPResetIndication:          DecodeSGsAPResetIndication,
+	decode.SGsAPAlertAck:                 DecodeSGsAPAlertAck,
+	decode.SGsAPAlertReject:              DecodeSGsAPAlertReject,
+	decode.SGsAPEPSDetachIndication:      DecodeSGsAPEPSDetachIndication,
+	decode.SGsAPIMSIDetachIndication:     DecodeSGsAPIMSIDetachIndication,
+	decode.SGsAPLocationUpdateRequest:    DecodeSGsAPLocationUpdateRequest,
+	decode.SGsAPPagingReject:             DecodeSGsAPPagingReject,
+	decode.SGsAPServiceRequest:           DecodeSGsAPServiceRequest,
+	decode.SGsAPTMSIReallocationComplete: DecodeSGsAPTMSIReallocationComplete,
+	decode.SGsAPUEActivityIndication:     DecodeSGsAPUEActivityIndication,
+	decode.SGsAPUEUnreachable:            DecodeSGsAPUEUnreachable,
+	decode.SGsAPUplinkUnitdata:           DecodeSGsAPUplinkUnitdata,
 }
 
 func SGsMessageDecoder(chunk []byte) (decode.SGsMessageType, *any.Any, error) {
@@ -617,6 +625,535 @@ func DecodeSGsAPAlertReject(chunk []byte) (*any.Any, error) {
 		Imsi:     imsi,
 		SgsCause: sgsCause,
 	})
+	if err != nil {
+		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
+	}
+
+	return marshalledMsg, nil
+}
+
+func DecodeSGsAPEPSDetachIndication(chunk []byte) (*any.Any, error) {
+	minLength := decode.IELengthMessageType + decode.IELengthIMSIMin + decode.IELengthMMEName + decode.IELengthIMSIDetachFromEPSServiceType
+	maxLength := decode.IELengthMessageType + decode.IELengthIMSIMax + decode.IELengthMMEName + decode.IELengthIMSIDetachFromEPSServiceType
+
+	err := validateMessageLength(chunk, minLength, maxLength)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	readIdx := decode.IELengthMessageType
+	imsi, imsiLength, err := ie.DecodeIMSI(chunk[readIdx:])
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += imsiLength
+
+	mmeName, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthMMEName, decode.IEIMMEName)
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += decode.IELengthMMEName
+
+	imsDetachFromEPSServiceType, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthIMSIDetachFromEPSServiceType,
+		decode.IEIIMSIDetachFromEPSServiceType)
+	if err != nil {
+		return &any.Any{}, err
+	}
+	marshalledMsg, err := ptypes.MarshalAny(&protos.EPSDetachIndication{
+		Imsi:                         imsi,
+		MmeName:                      string(mmeName),
+		ImsiDetachFromEpsServiceType: imsDetachFromEPSServiceType,
+	})
+	if err != nil {
+		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
+	}
+
+	return marshalledMsg, nil
+}
+
+func DecodeSGsAPIMSIDetachIndication(chunk []byte) (*any.Any, error) {
+	minLength := decode.IELengthMessageType + decode.IELengthIMSIMin + decode.IELengthMMEName + decode.IELengthIMSIDetachFromNonEPSServiceType
+	maxLength := decode.IELengthMessageType + decode.IELengthIMSIMax + decode.IELengthMMEName + decode.IELengthIMSIDetachFromNonEPSServiceType
+
+	err := validateMessageLength(chunk, minLength, maxLength)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	readIdx := decode.IELengthMessageType
+	imsi, imsiLength, err := ie.DecodeIMSI(chunk[readIdx:])
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += imsiLength
+
+	mmeName, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthMMEName, decode.IEIMMEName)
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += decode.IELengthMMEName
+
+	imsDetachFromNonEPSServiceType, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthIMSIDetachFromNonEPSServiceType,
+		decode.IEIIMSIDetachFromNonEPSServiceType)
+	if err != nil {
+		return &any.Any{}, err
+	}
+	marshalledMsg, err := ptypes.MarshalAny(&protos.IMSIDetachIndication{
+		Imsi:                            imsi,
+		MmeName:                         string(mmeName),
+		ImsiDetachFromNonEpsServiceType: imsDetachFromNonEPSServiceType,
+	})
+	if err != nil {
+		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
+	}
+
+	return marshalledMsg, nil
+}
+
+func DecodeSGsAPLocationUpdateRequest(chunk []byte) (*any.Any, error) {
+	minLength := decode.IELengthMessageType + decode.IELengthIMSIMin + decode.IELengthMMEName +
+		decode.IELengthEPSLocationUpdateType + decode.IELengthLocationAreaIdentifier
+	err := validateMessageMinLength(chunk, minLength)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	readIdx := decode.IELengthMessageType
+	imsi, imsiLength, err := ie.DecodeIMSI(chunk[readIdx:])
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += imsiLength
+
+	mmeName, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthMMEName,
+		decode.IEIMMEName)
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += decode.IELengthMMEName
+
+	epsLocationUpdateType, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthEPSLocationUpdateType,
+		decode.IEIEPSLocationUpdateType)
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += decode.IELengthEPSLocationUpdateType
+
+	newLocationAreaIdentifier, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthLocationAreaIdentifier,
+		decode.IEILocationAreaIdentifier)
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += decode.IELengthLocationAreaIdentifier
+
+	locationUpdateRequest := &protos.LocationUpdateRequest{
+		Imsi:                      imsi,
+		MmeName:                   string(mmeName),
+		EpsLocationUpdateType:     epsLocationUpdateType,
+		NewLocationAreaIdentifier: newLocationAreaIdentifier,
+	}
+
+	// rest of fields are optional
+	optionalFieldIEIOrder := []decode.InformationElementIdentifier{
+		decode.IEILocationAreaIdentifier,
+		decode.IEITMSIStatus,
+		decode.IEIIMEISV,
+		decode.IEITAI,
+		decode.IEIEUTRANCellGlobalIdentity,
+	}
+	optionalFieldIdx := 0
+	for optionalFieldIdx < len(optionalFieldIEIOrder) && readIdx < len(chunk) {
+		if optionalFieldIEIOrder[optionalFieldIdx] == decode.InformationElementIdentifier(chunk[readIdx]) {
+			switch decode.InformationElementIdentifier(chunk[readIdx]) {
+			case decode.IEILocationAreaIdentifier:
+				{
+					oldLocationAreaIdentifier, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthLocationAreaIdentifier,
+						decode.IEILocationAreaIdentifier)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					locationUpdateRequest.OldLocationAreaIdentifier = oldLocationAreaIdentifier
+					readIdx += decode.IELengthLocationAreaIdentifier
+				}
+			case decode.IEITMSIStatus:
+				{
+					tmsiStatus, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthTMSIStatus,
+						decode.IEITMSIStatus)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					locationUpdateRequest.TmsiStatus = tmsiStatus
+					readIdx += decode.IELengthTMSIStatus
+				}
+			case decode.IEIIMEISV:
+				{
+					imeisv, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthIMEISV,
+						decode.IEIIMEISV)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					locationUpdateRequest.Imeisv = imeisv
+					readIdx += decode.IELengthIMEISV
+				}
+			case decode.IEITAI:
+				{
+					tai, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthTAI, decode.IEITAI)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					locationUpdateRequest.Tai = tai
+					readIdx += decode.IELengthTAI
+				}
+			case decode.IEIEUTRANCellGlobalIdentity:
+				{
+					eCgi, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthEUTRANCellGlobalIdentity,
+						decode.IEIEUTRANCellGlobalIdentity)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					locationUpdateRequest.ECgi = eCgi
+					readIdx += decode.IELengthEUTRANCellGlobalIdentity
+				}
+			}
+		}
+		optionalFieldIdx += 1
+	}
+	if readIdx < len(chunk) {
+		return &any.Any{}, errors.New("tried all possible IE but still some bytes undecoded")
+	}
+
+	marshalledMsg, err := ptypes.MarshalAny(locationUpdateRequest)
+	if err != nil {
+		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
+	}
+
+	return marshalledMsg, nil
+}
+
+func DecodeSGsAPPagingReject(chunk []byte) (*any.Any, error) {
+	minLength := decode.IELengthMessageType + decode.IELengthIMSIMin + decode.IELengthSGsCause
+	maxLength := decode.IELengthMessageType + decode.IELengthIMSIMax + decode.IELengthSGsCause
+
+	err := validateMessageLength(chunk, minLength, maxLength)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	readIdx := decode.IELengthMessageType
+	imsi, imsiLength, err := ie.DecodeIMSI(chunk[readIdx:])
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += imsiLength
+
+	sgsCause, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthSGsCause, decode.IEISGsCause)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	marshalledMsg, err := ptypes.MarshalAny(&protos.PagingReject{
+		Imsi:     imsi,
+		SgsCause: sgsCause,
+	})
+	if err != nil {
+		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
+	}
+
+	return marshalledMsg, nil
+}
+
+func DecodeSGsAPServiceRequest(chunk []byte) (*any.Any, error) {
+	minLength := decode.IELengthMessageType + decode.IELengthIMSIMin + decode.IELengthServiceIndicator
+	err := validateMessageMinLength(chunk, minLength)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	readIdx := decode.IELengthMessageType
+	imsi, imsiLength, err := ie.DecodeIMSI(chunk[readIdx:])
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += imsiLength
+
+	serviceIndicator, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthServiceIndicator,
+		decode.IEIServiceIndicator)
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += decode.IELengthServiceIndicator
+
+	serviceRequest := &protos.ServiceRequest{
+		Imsi:             imsi,
+		ServiceIndicator: serviceIndicator,
+	}
+
+	// rest of fields are optional
+	optionalFieldIEIOrder := []decode.InformationElementIdentifier{
+		decode.IEIIMEISV,
+		decode.IEIUETimeZone,
+		decode.IEIMobileStationClassmark2,
+		decode.IEITAI,
+		decode.IEIEUTRANCellGlobalIdentity,
+		decode.IEIUEEMMMode,
+	}
+	optionalFieldIdx := 0
+	for optionalFieldIdx < len(optionalFieldIEIOrder) && readIdx < len(chunk) {
+		if optionalFieldIEIOrder[optionalFieldIdx] == decode.InformationElementIdentifier(chunk[readIdx]) {
+			switch decode.InformationElementIdentifier(chunk[readIdx]) {
+			case decode.IEIIMEISV:
+				{
+					imeIsv, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthIMEISV,
+						decode.IEIIMEISV)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					serviceRequest.Imeisv = imeIsv
+					readIdx += decode.IELengthIMEISV
+				}
+			case decode.IEIUETimeZone:
+				{
+					ueTimeZone, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthUETimeZone,
+						decode.IEIUETimeZone)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					serviceRequest.UeTimeZone = ueTimeZone
+					readIdx += decode.IELengthUETimeZone
+				}
+			case decode.IEIMobileStationClassmark2:
+				{
+					mobileStationClassmark2, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthMobileStationClassmark2,
+						decode.IEIMobileStationClassmark2)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					serviceRequest.MobileStationClassmark2 = mobileStationClassmark2
+					readIdx += decode.IELengthMobileStationClassmark2
+				}
+			case decode.IEITAI:
+				{
+					tai, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthTAI, decode.IEITAI)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					serviceRequest.Tai = tai
+					readIdx += decode.IELengthTAI
+				}
+			case decode.IEIEUTRANCellGlobalIdentity:
+				{
+					eCgi, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthEUTRANCellGlobalIdentity,
+						decode.IEIEUTRANCellGlobalIdentity)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					serviceRequest.ECgi = eCgi
+					readIdx += decode.IELengthEUTRANCellGlobalIdentity
+				}
+			case decode.IEIUEEMMMode:
+				{
+					ueEmmMode, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthUEEMMMode,
+						decode.IEIUEEMMMode)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					serviceRequest.UeEmmMode = ueEmmMode
+					readIdx += decode.IELengthUEEMMMode
+				}
+			}
+		}
+		optionalFieldIdx += 1
+	}
+	if readIdx < len(chunk) {
+		return &any.Any{}, errors.New("tried all possible IE but still some bytes undecoded")
+	}
+
+	marshalledMsg, err := ptypes.MarshalAny(serviceRequest)
+	if err != nil {
+		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
+	}
+
+	return marshalledMsg, nil
+}
+
+func DecodeSGsAPTMSIReallocationComplete(chunk []byte) (*any.Any, error) {
+	minLength := decode.IELengthMessageType + decode.IELengthIMSIMin
+	maxLength := decode.IELengthMessageType + decode.IELengthIMSIMax
+
+	err := validateMessageLength(chunk, minLength, maxLength)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	readIdx := decode.IELengthMessageType
+	imsi, _, err := ie.DecodeIMSI(chunk[readIdx:])
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	marshalledMsg, err := ptypes.MarshalAny(&protos.TMSIReallocationComplete{
+		Imsi: imsi,
+	})
+	if err != nil {
+		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
+	}
+
+	return marshalledMsg, nil
+}
+
+func DecodeSGsAPUEActivityIndication(chunk []byte) (*any.Any, error) {
+	minLength := decode.IELengthMessageType + decode.IELengthIMSIMin
+	maxLength := decode.IELengthMessageType + decode.IELengthIMSIMax
+
+	err := validateMessageLength(chunk, minLength, maxLength)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	readIdx := decode.IELengthMessageType
+	imsi, _, err := ie.DecodeIMSI(chunk[readIdx:])
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	marshalledMsg, err := ptypes.MarshalAny(&protos.UEActivityIndication{
+		Imsi: imsi,
+	})
+	if err != nil {
+		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
+	}
+
+	return marshalledMsg, nil
+}
+
+func DecodeSGsAPUEUnreachable(chunk []byte) (*any.Any, error) {
+	minLength := decode.IELengthMessageType + decode.IELengthIMSIMin + decode.IELengthSGsCause
+	maxLength := decode.IELengthMessageType + decode.IELengthIMSIMax + decode.IELengthSGsCause
+
+	err := validateMessageLength(chunk, minLength, maxLength)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	readIdx := decode.IELengthMessageType
+	imsi, imsiLength, err := ie.DecodeIMSI(chunk[readIdx:])
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += imsiLength
+
+	sgsCause, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthSGsCause, decode.IEISGsCause)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	marshalledMsg, err := ptypes.MarshalAny(&protos.UEUnreachable{
+		Imsi:     imsi,
+		SgsCause: sgsCause,
+	})
+	if err != nil {
+		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
+	}
+
+	return marshalledMsg, nil
+}
+
+func DecodeSGsAPUplinkUnitdata(chunk []byte) (*any.Any, error) {
+	minLength := decode.IELengthMessageType + decode.IELengthIMSIMin + decode.IELengthNASMessageContainerMin
+	err := validateMessageMinLength(chunk, minLength)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	readIdx := decode.IELengthMessageType
+	imsi, imsiLength, err := ie.DecodeIMSI(chunk[readIdx:])
+	if err != nil {
+		return &any.Any{}, err
+	}
+	readIdx += imsiLength
+	nasMessageContainer, nasMessageContainerLength, err := ie.DecodeLimitedLengthIE(chunk[readIdx:],
+		decode.IELengthNASMessageContainerMin, decode.IELengthNASMessageContainerMax,
+		decode.IEINASMessageContainer)
+	if err != nil {
+		return &any.Any{}, err
+	}
+
+	sgUplinkUnitData := &protos.UplinkUnitdata{
+		Imsi:                imsi,
+		NasMessageContainer: nasMessageContainer,
+	}
+	readIdx += nasMessageContainerLength
+
+	// rest of fields are optional
+	optionalFieldIEIOrder := []decode.InformationElementIdentifier{
+		decode.IEIIMEISV,
+		decode.IEIUETimeZone,
+		decode.IEIMobileStationClassmark2,
+		decode.IEITAI,
+		decode.IEIEUTRANCellGlobalIdentity,
+	}
+	optionalFieldIdx := 0
+	for optionalFieldIdx < len(optionalFieldIEIOrder) && readIdx < len(chunk) {
+		if optionalFieldIEIOrder[optionalFieldIdx] == decode.InformationElementIdentifier(chunk[readIdx]) {
+			switch decode.InformationElementIdentifier(chunk[readIdx]) {
+			case decode.IEIIMEISV:
+				{
+					imeIsv, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthIMEISV,
+						decode.IEIIMEISV)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					sgUplinkUnitData.Imeisv = imeIsv
+					readIdx += decode.IELengthIMEISV
+				}
+			case decode.IEIUETimeZone:
+				{
+					ueTimeZone, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthUETimeZone,
+						decode.IEIUETimeZone)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					sgUplinkUnitData.UeTimeZone = ueTimeZone
+					readIdx += decode.IELengthUETimeZone
+				}
+			case decode.IEIMobileStationClassmark2:
+				{
+					mobileStationClassmark2, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthMobileStationClassmark2,
+						decode.IEIMobileStationClassmark2)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					sgUplinkUnitData.MobileStationClassmark2 = mobileStationClassmark2
+					readIdx += decode.IELengthMobileStationClassmark2
+				}
+			case decode.IEITAI:
+				{
+					tai, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthTAI, decode.IEITAI)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					sgUplinkUnitData.Tai = tai
+					readIdx += decode.IELengthTAI
+				}
+			case decode.IEIEUTRANCellGlobalIdentity:
+				{
+					eCgi, err := ie.DecodeFixedLengthIE(chunk[readIdx:], decode.IELengthEUTRANCellGlobalIdentity,
+						decode.IEIEUTRANCellGlobalIdentity)
+					if err != nil {
+						return &any.Any{}, err
+					}
+					sgUplinkUnitData.ECgi = eCgi
+					readIdx += decode.IELengthEUTRANCellGlobalIdentity
+				}
+			}
+		}
+		optionalFieldIdx += 1
+	}
+	if readIdx < len(chunk) {
+		return &any.Any{}, errors.New("tried all possible IE but still some bytes undecoded")
+	}
+
+	marshalledMsg, err := ptypes.MarshalAny(sgUplinkUnitData)
 	if err != nil {
 		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
 	}

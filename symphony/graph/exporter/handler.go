@@ -64,6 +64,7 @@ func NewHandler(log log.Logger) (http.Handler, error) {
 	}{
 		{"equipment", exporter{log, equipmentRower{log}}},
 		{"ports", exporter{log, portsRower{log}}},
+		{"work_orders", exporter{log, woRower{log}}},
 		{"links", exporter{log, linksRower{log}}},
 		{"locations", exporter{log, locationsRower{log}}},
 		{"services", exporter{log, servicesRower{log}}},

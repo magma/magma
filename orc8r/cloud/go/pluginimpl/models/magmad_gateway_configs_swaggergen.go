@@ -43,6 +43,9 @@ type MagmadGatewayConfigs struct {
 
 	// feature flags
 	FeatureFlags map[string]bool `json:"feature_flags,omitempty"`
+
+	// logging
+	Logging *GatewayLoggingConfigs `json:"logging,omitempty"`
 }
 
 // Validate validates this magmad gateway configs
@@ -66,6 +69,10 @@ func (m *MagmadGatewayConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateDynamicServices(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateLogging(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -135,6 +142,24 @@ func (m *MagmadGatewayConfigs) validateDynamicServices(formats strfmt.Registry) 
 			return err
 		}
 
+	}
+
+	return nil
+}
+
+func (m *MagmadGatewayConfigs) validateLogging(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Logging) { // not required
+		return nil
+	}
+
+	if m.Logging != nil {
+		if err := m.Logging.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("logging")
+			}
+			return err
+		}
 	}
 
 	return nil

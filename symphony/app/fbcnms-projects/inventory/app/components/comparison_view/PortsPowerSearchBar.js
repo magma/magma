@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -18,6 +18,7 @@ import PowerSearchBar from '../power_search/PowerSearchBar';
 import React from 'react';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
+import {EntityTypeMap} from './ComparisonViewTypes';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {PortCriteriaConfig} from './PortSearchConfig';
 import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
@@ -57,6 +58,7 @@ const PortsPowerSearchBar = (props: Props) => {
       filterConfigs={filterConfigs}
       footer={footer}
       exportPath={'/ports'}
+      entity={EntityTypeMap.port}
     />
   );
 };

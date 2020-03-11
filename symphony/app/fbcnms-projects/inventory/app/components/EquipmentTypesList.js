@@ -43,7 +43,7 @@ type State = {
 
 const equipmentQuery = graphql`
   query EquipmentTypesListQuery {
-    equipmentTypes(first: 50) {
+    equipmentTypes {
       edges {
         node {
           id
@@ -66,6 +66,7 @@ class EquipmentTypesList extends React.Component<Props, State> {
   };
 
   componentDidMount() {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, equipmentQuery).then(response => {
       this.setState({
         equipmentTypes: response.equipmentTypes.edges.map(x => x.node),

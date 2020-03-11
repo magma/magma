@@ -32,17 +32,20 @@
 #include "sgw_messages_types.h"
 #include "spgw_state.h"
 
-int pgw_handle_create_bearer_request(
-  spgw_state_t *spgw_state,
-  const itti_s5_create_bearer_request_t *const bearer_req_p);
+void handle_s5_create_session_request(
+  spgw_state_t* spgw_state,
+  teid_t context_teid,
+  ebi_t eps_bearer_id);
 uint32_t pgw_handle_nw_init_activate_bearer_rsp(
   const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp);
 uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p);
+  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p,
+  imsi64_t imsi64);
 uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
   const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp);
 uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p);
+  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p,
+  imsi64_t imsi64);
 #endif /* FILE_PGW_HANDLERS_SEEN */

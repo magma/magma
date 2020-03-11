@@ -28,6 +28,7 @@ export type PositionDefinitionsTable_positionDefinitions$data = PositionDefiniti
 export type PositionDefinitionsTable_positionDefinitions$key = $ReadOnlyArray<{
   +$data?: PositionDefinitionsTable_positionDefinitions$data,
   +$fragmentRefs: PositionDefinitionsTable_positionDefinitions$ref,
+  ...
 }>;
 */
 

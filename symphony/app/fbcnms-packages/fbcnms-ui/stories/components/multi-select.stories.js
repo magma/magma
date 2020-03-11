@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -46,10 +46,12 @@ const Popover = () => {
 
 const INITIAL_OPTIONS = [
   {
+    key: 'option_1',
     label: 'Option 1',
     value: 'wow1',
   },
   {
+    key: 'option_2',
     label: 'Option 2',
     value: 'wow2',
   },

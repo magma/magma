@@ -8,9 +8,11 @@
  * @format
  */
 
-import type PowerSearchLinksResultsTable_links from './__generated__/PowerSearchLinksResultsTable_links.graphql';
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {ContextRouter} from 'react-router-dom';
+import type {PowerSearchLinksResultsTable_links} from './__generated__/PowerSearchLinksResultsTable_links.graphql';
+import type {TableIndex, TableSize} from './FilterUtils';
+import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -22,6 +24,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {AutoSizer, Column, Table} from 'react-virtualized';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {capitalize} from '@fbcnms/util/strings';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getPropertyValue} from '../../common/Property';
@@ -31,7 +34,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import 'react-virtualized/styles.css';
 
-const styles = theme => ({
+const styles = (theme: Theme) => ({
   root: {
     width: '100%',
     marginTop: theme.spacing(3),
@@ -85,6 +88,7 @@ const styles = theme => ({
 type Props = WithAlert &
   WithStyles<typeof styles> &
   ContextRouter & {
+    // $FlowFixMe (T62907961) Relay flow types
     links: PowerSearchLinksResultsTable_links,
   };
 
@@ -122,14 +126,10 @@ class PowerSearchLinksResultsTable extends React.Component<Props> {
           equipment={rowData.ports[index].parentEquipment}
           showSelfEquipment={true}
           onParentLocationClicked={locationId =>
-            history.push(
-              `inventory/` + (locationId ? `?location=${locationId}` : ''),
-            )
+            history.replace(InventoryAPIUrls.location(locationId))
           }
           onEquipmentClicked={equipmentId =>
-            history.push(
-              `inventory/` + (equipmentId ? `?equipment=${equipmentId}` : ''),
-            )
+            history.replace(InventoryAPIUrls.equipment(equipmentId))
           }
           size="small"
         />
@@ -177,17 +177,21 @@ class PowerSearchLinksResultsTable extends React.Component<Props> {
 
     return links.length > 0 ? (
       <AutoSizer>
-        {({height, width}) => (
+        {({height, width}: TableSize) => (
           <Table
             className={classes.table}
             height={height}
             width={width}
             headerHeight={50}
-            rowHeight={({index}) => this._getRowHeight(links[index])}
+            rowHeight={({index}: TableIndex) =>
+              this._getRowHeight(links[index])
+            }
             rowCount={links.length}
-            rowGetter={({index}) => links[index]}
+            rowGetter={({index}: TableIndex) => links[index]}
             gridClassName={classes.table}
-            rowClassName={({index}) => (index === -1 ? classes.header : '')}>
+            rowClassName={({index}: TableIndex) =>
+              index === -1 ? classes.header : ''
+            }>
             <Column
               label="Equipment A"
               dataKey="equipmentA"

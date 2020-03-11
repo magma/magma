@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type LocationType struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -35,33 +34,76 @@ type LocationType struct {
 	MapZoomLevel int `json:"map_zoom_level,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the LocationTypeQuery when eager-loading is set.
+	Edges LocationTypeEdges `json:"edges"`
+}
+
+// LocationTypeEdges holds the relations/edges for other nodes in the graph.
+type LocationTypeEdges struct {
+	// Locations holds the value of the locations edge.
+	Locations []*Location `gqlgen:"locations"`
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType `gqlgen:"propertyTypes"`
+	// SurveyTemplateCategories holds the value of the survey_template_categories edge.
+	SurveyTemplateCategories []*SurveyTemplateCategory `gqlgen:"surveyTemplateCategories"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// LocationsOrErr returns the Locations value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationTypeEdges) LocationsOrErr() ([]*Location, error) {
+	if e.loadedTypes[0] {
+		return e.Locations, nil
+	}
+	return nil, &NotLoadedError{edge: "locations"}
+}
+
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.PropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "property_types"}
+}
+
+// SurveyTemplateCategoriesOrErr returns the SurveyTemplateCategories value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationTypeEdges) SurveyTemplateCategoriesOrErr() ([]*SurveyTemplateCategory, error) {
+	if e.loadedTypes[2] {
+		return e.SurveyTemplateCategories, nil
+	}
+	return nil, &NotLoadedError{edge: "survey_template_categories"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*LocationType) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullBool{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullBool{},   // site
+		&sql.NullString{}, // name
+		&sql.NullString{}, // map_type
+		&sql.NullInt64{},  // map_zoom_level
+		&sql.NullInt64{},  // index
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the LocationType fields.
 func (lt *LocationType) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(locationtype.Columns); m != n {
+	if m, n := len(values), len(locationtype.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	lt.ID = strconv.FormatInt(value.Int64, 10)
+	lt.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -103,24 +145,24 @@ func (lt *LocationType) assignValues(values ...interface{}) error {
 
 // QueryLocations queries the locations edge of the LocationType.
 func (lt *LocationType) QueryLocations() *LocationQuery {
-	return (&LocationTypeClient{lt.config}).QueryLocations(lt)
+	return (&LocationTypeClient{config: lt.config}).QueryLocations(lt)
 }
 
 // QueryPropertyTypes queries the property_types edge of the LocationType.
 func (lt *LocationType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&LocationTypeClient{lt.config}).QueryPropertyTypes(lt)
+	return (&LocationTypeClient{config: lt.config}).QueryPropertyTypes(lt)
 }
 
 // QuerySurveyTemplateCategories queries the survey_template_categories edge of the LocationType.
 func (lt *LocationType) QuerySurveyTemplateCategories() *SurveyTemplateCategoryQuery {
-	return (&LocationTypeClient{lt.config}).QuerySurveyTemplateCategories(lt)
+	return (&LocationTypeClient{config: lt.config}).QuerySurveyTemplateCategories(lt)
 }
 
 // Update returns a builder for updating this LocationType.
 // Note that, you need to call LocationType.Unwrap() before calling this method, if this LocationType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (lt *LocationType) Update() *LocationTypeUpdateOne {
-	return (&LocationTypeClient{lt.config}).UpdateOne(lt)
+	return (&LocationTypeClient{config: lt.config}).UpdateOne(lt)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -155,12 +197,6 @@ func (lt *LocationType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", lt.Index))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (lt *LocationType) id() int {
-	id, _ := strconv.Atoi(lt.ID)
-	return id
 }
 
 // LocationTypes is a parsable slice of LocationType.

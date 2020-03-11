@@ -1,4 +1,12 @@
 ---
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
 - name: Set up Magma dev build environment on a local machine
   hosts: dev
   become: yes
@@ -9,9 +17,18 @@
     full_provision: true
 
   roles:
+    # This role is commented out for now because as it turns out, it's very
+    # difficult to install Debian on a box without also installing packages
+    # from an upstream mirror. Even if we pin a snapshot to before the 4.9.0-11
+    # cutover, a freshly installed box will still end up with some packages
+    # from after the cutover (e.g. libsystemd0). Pinning to the snapshot
+    # repository after these packages are installed will result in a situation
+    # where it's impossible to proceed with provisioning.
+    #- role: stretch_snapshot
     - role: gateway_dev
       vars:
         distribution: "stretch"
+        repo: "dev"
         config_dir: "lte/gateway/configs"
     - role: python_dev
     - role: dev_common

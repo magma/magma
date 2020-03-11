@@ -102,7 +102,15 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 			MinimumRequestThreshold:  1,
 			CPUUtilizationThreshold:  0.90,
 			MemoryAvailableThreshold: 0.90,
-		}}
+		},
+
+		Csfb: &models.Csfb{
+			Client: &models.SctpClientConfigs{
+				ServerAddress: "",
+				LocalAddress:  "",
+			},
+		},
+	}
 }
 
 func NewDefaultGatewayConfig() *models.GatewayFederationConfigs {

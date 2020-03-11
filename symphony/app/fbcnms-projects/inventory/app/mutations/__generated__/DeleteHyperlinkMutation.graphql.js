@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4957ba9f2df8b640e3c3af4cb0d044eb
+ * @relayHash 722d90799e171dd8a993919d96cc7adb
  */
 
 /* eslint-disable */
@@ -46,6 +46,7 @@ fragment HyperlinkTableRow_hyperlink on Hyperlink {
   category
   url
   displayName
+  createTime
 }
 */
 
@@ -133,6 +134,13 @@ return {
             "name": "displayName",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "createTime",
+            "args": null,
+            "storageKey": null
           }
         ]
       }
@@ -142,7 +150,7 @@ return {
     "operationKind": "mutation",
     "name": "DeleteHyperlinkMutation",
     "id": null,
-    "text": "mutation DeleteHyperlinkMutation(\n  $id: ID!\n) {\n  deleteHyperlink(id: $id) {\n    ...HyperlinkTableRow_hyperlink\n    id\n  }\n}\n\nfragment HyperlinkTableRow_hyperlink on Hyperlink {\n  id\n  category\n  url\n  displayName\n}\n",
+    "text": "mutation DeleteHyperlinkMutation(\n  $id: ID!\n) {\n  deleteHyperlink(id: $id) {\n    ...HyperlinkTableRow_hyperlink\n    id\n  }\n}\n\nfragment HyperlinkTableRow_hyperlink on Hyperlink {\n  id\n  category\n  url\n  displayName\n  createTime\n}\n",
     "metadata": {}
   }
 };

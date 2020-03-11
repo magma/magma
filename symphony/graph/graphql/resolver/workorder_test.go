@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -80,7 +81,7 @@ func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationRe
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   workOrder.OwnerName,
+		OwnerName:   &workOrder.OwnerName,
 		InstallDate: &workOrder.InstallDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityNone,
@@ -97,8 +98,7 @@ const (
 )
 
 func TestAddWorkOrderWithLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
@@ -115,8 +115,10 @@ func TestAddWorkOrderWithLocation(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	fetchedLocation, err := wr.Location(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -125,8 +127,7 @@ func TestAddWorkOrderWithLocation(t *testing.T) {
 }
 
 func TestAddWorkOrderWithType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
@@ -143,8 +144,10 @@ func TestAddWorkOrderWithType(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	fetchedWorkOrderType, err := wr.WorkOrderType(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -153,8 +156,7 @@ func TestAddWorkOrderWithType(t *testing.T) {
 }
 
 func TestAddWorkOrderWithAssignee(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
@@ -177,15 +179,17 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   workOrder.OwnerName,
+		OwnerName:   &workOrder.OwnerName,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityNone,
 		Assignee:    &assignee,
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 	require.Equal(t, &workOrder.Assignee, &assignee)
 
 	fetchedWorkOrderType, err := wr.WorkOrderType(ctx, fetchedWorkOrder)
@@ -195,37 +199,34 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 }
 
 func TestAddWorkOrderInvalidType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
 	name := longWorkOrderName
 	description := longWorkOrderDesc
-	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+	_, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name,
 		Description:     &description,
-		WorkOrderTypeID: "123",
+		WorkOrderTypeID: 123,
 		LocationID:      nil,
 	})
 	require.Error(t, err)
 }
 
 func TestEditInvalidWorkOrder(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	_, err = r.Mutation().EditWorkOrderType(ctx, models.EditWorkOrderTypeInput{
-		ID:   "234",
+	_, err := r.Mutation().EditWorkOrderType(ctx, models.EditWorkOrderTypeInput{
+		ID:   234,
 		Name: "foo",
 	})
 	require.Error(t, err)
 }
 
 func TestAddWorkOrderWithDescription(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -242,16 +243,18 @@ func TestAddWorkOrderWithDescription(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
+
 	assert.Equal(t, fetchedWorkOrder.Name, name)
 	assert.Equal(t, fetchedWorkOrder.Description, description)
 	assert.Equal(t, location.ID, workOrder.QueryLocation().OnlyX(ctx).ID)
 }
 
 func TestAddWorkOrderWithPriority(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
@@ -272,7 +275,7 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   workOrder.OwnerName,
+		OwnerName:   &workOrder.OwnerName,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityHigh,
 		Index:       pointer.ToInt(42),
@@ -283,15 +286,16 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 	require.EqualValues(t, input.Priority, workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 
-	workOrder, err = qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	workOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 	require.EqualValues(t, input.Priority, workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 }
 
 func TestAddWorkOrderWithProject(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, pr := r.Mutation(), r.Project()
@@ -331,7 +335,7 @@ func TestAddWorkOrderWithProject(t *testing.T) {
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:        workOrder.ID,
 		Name:      workOrder.Name,
-		OwnerName: workOrder.OwnerName,
+		OwnerName: &workOrder.OwnerName,
 	})
 	require.NoError(t, err)
 	fetchProject, err := workOrder.QueryProject().Only(ctx)
@@ -343,16 +347,16 @@ func TestAddWorkOrderWithProject(t *testing.T) {
 }
 
 func TestAddWorkOrderWithComment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 	w := createWorkOrder(ctx, t, *r, "Foo")
-	require.NoError(t, err)
 
-	w, err = qr.WorkOrder(ctx, w.ID)
+	node, err := qr.Node(ctx, w.ID)
 	require.NoError(t, err)
+	w, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 	comments, err := w.QueryComments().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, comments, 0)
@@ -366,8 +370,10 @@ func TestAddWorkOrderWithComment(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, ctxt, c.Text)
 
-	w, err = qr.WorkOrder(ctx, w.ID)
+	node, err = qr.Node(ctx, w.ID)
 	require.NoError(t, err)
+	w, ok = node.(*ent.WorkOrder)
+	require.True(t, ok)
 	comments, err = w.QueryComments().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
@@ -375,8 +381,7 @@ func TestAddWorkOrderWithComment(t *testing.T) {
 }
 
 func TestAddWorkOrderNoDescription(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -392,15 +397,17 @@ func TestAddWorkOrderNoDescription(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
+
 	assert.Equal(t, fetchedWorkOrder.Name, name)
 	assert.Empty(t, fetchedWorkOrder.Description)
 }
 
 func TestFetchWorkOrder(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -422,8 +429,10 @@ func TestFetchWorkOrder(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 	assert.Equal(t, fetchedWorkOrder.Name, name)
 
 	installedEquipment, err := wor.EquipmentToAdd(ctx, fetchedWorkOrder)
@@ -436,8 +445,7 @@ func TestFetchWorkOrder(t *testing.T) {
 }
 
 func TestFetchWorkOrders(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -461,13 +469,11 @@ func TestFetchWorkOrders(t *testing.T) {
 }
 
 func TestExecuteWorkOrderInstallEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr := r.Mutation(), r.Query()
-
 	workOrder := createWorkOrder(ctx, t, *r, "example_work_order")
 	location := workOrder.QueryLocation().FirstX(ctx)
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -500,8 +506,7 @@ func TestExecuteWorkOrderInstallEquipment(t *testing.T) {
 }
 
 func TestExecuteWorkOrderRemoveEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -569,8 +574,7 @@ func TestExecuteWorkOrderRemoveEquipment(t *testing.T) {
 }
 
 func TestExecuteWorkOrderInstallLink(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -623,8 +627,7 @@ func TestExecuteWorkOrderInstallLink(t *testing.T) {
 }
 
 func TestExecuteWorkOrderRemoveLink(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -687,13 +690,11 @@ func TestExecuteWorkOrderRemoveLink(t *testing.T) {
 }
 
 func TestExecuteWorkOrderInstallDependantEquipmentAndLink(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr, pr := r.Mutation(), r.Query(), r.EquipmentPort()
-
 	workOrder := createWorkOrder(ctx, t, *r, "example_work_order")
 	location := workOrder.QueryLocation().FirstX(ctx)
 	portInput := createPort()
@@ -741,8 +742,7 @@ func TestExecuteWorkOrderInstallDependantEquipmentAndLink(t *testing.T) {
 }
 
 func TestExecuteWorkOrderInstallEquipmentMultilayer(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -795,8 +795,7 @@ func TestExecuteWorkOrderInstallEquipmentMultilayer(t *testing.T) {
 }
 
 func TestExecuteWorkOrderRemoveEquipmentMultilayer(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -860,8 +859,7 @@ func TestExecuteWorkOrderRemoveEquipmentMultilayer(t *testing.T) {
 }
 
 func TestExecuteWorkOrderInstallChildOnUninstalledParent(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -919,8 +917,7 @@ func TestExecuteWorkOrderInstallChildOnUninstalledParent(t *testing.T) {
 }
 
 func TestExecuteWorkOrderInstallLinkOnUninstalledEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -991,8 +988,7 @@ func TestExecuteWorkOrderInstallLinkOnUninstalledEquipment(t *testing.T) {
 }
 
 func TestExecuteWorkOrderRemoveParentEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -1078,9 +1074,55 @@ func TestExecuteWorkOrderRemoveParentEquipment(t *testing.T) {
 	assert.Nil(t, fetchedPChildEquipment)
 }
 
-func TestDeleteWorkOrderWithAttachmentAndLinksAdded(t *testing.T) {
-	r, err := newTestResolver(t)
+func TestAddAndDeleteWorkOrderHyperlink(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, wor := r.Mutation(), r.WorkOrder()
+
+	workOrderType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "work_order_type_name_1",
+	})
 	require.NoError(t, err)
+	require.Equal(t, "work_order_type_name_1", workOrderType.Name)
+
+	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "work_order_name_1",
+		WorkOrderTypeID: workOrderType.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, workOrderType.ID, workOrder.QueryType().OnlyXID(ctx))
+
+	category := "TSS"
+	url := "http://some.url"
+	displayName := "link to some url"
+	hyperlink, err := mr.AddHyperlink(ctx, models.AddHyperlinkInput{
+		EntityType:  models.ImageEntityWorkOrder,
+		EntityID:    workOrder.ID,
+		URL:         url,
+		DisplayName: &displayName,
+		Category:    &category,
+	})
+	require.NoError(t, err)
+	require.Equal(t, url, hyperlink.URL, "verifying hyperlink url")
+	require.Equal(t, displayName, hyperlink.Name, "verifying hyperlink display name")
+	require.Equal(t, category, hyperlink.Category, "verifying 1st hyperlink category")
+
+	hyperlinks, err := wor.Hyperlinks(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 1, "verifying has 1 hyperlink")
+
+	deletedHyperlink, err := mr.DeleteHyperlink(ctx, hyperlink.ID)
+	require.NoError(t, err)
+	require.Equal(t, hyperlink.ID, deletedHyperlink.ID, "verifying return id of deleted hyperlink")
+
+	hyperlinks, err = wor.Hyperlinks(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, hyperlinks, 0, "verifying no hyperlinks remained")
+}
+
+func TestDeleteWorkOrderWithAttachmentAndLinksAdded(t *testing.T) {
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -1149,17 +1191,21 @@ func TestDeleteWorkOrderWithAttachmentAndLinksAdded(t *testing.T) {
 }
 
 func TestAddWorkOrderWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr, wr := r.Mutation(), r.Query(), r.WorkOrder()
-
-	strValue := "Foo"
 	strPropType := models.PropertyTypeInput{
 		Name: "str_prop",
 		Type: "string",
+	}
+	strFixedValue := "FixedFoo"
+	strFixedPropType := models.PropertyTypeInput{
+		Name:               "str_fixed_prop",
+		Type:               "string",
+		IsInstanceProperty: pointer.ToBool(false),
+		StringValue:        &strFixedValue,
 	}
 	intPropType := models.PropertyTypeInput{
 		Name: "int_prop",
@@ -1169,14 +1215,21 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 		Name: "rng_prop",
 		Type: "range",
 	}
-	propTypeInputs := []*models.PropertyTypeInput{&strPropType, &intPropType, &rangePropType}
+	propTypeInputs := []*models.PropertyTypeInput{&strPropType, &strFixedPropType, &intPropType, &rangePropType}
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type", Properties: propTypeInputs})
 	require.NoError(t, err, "Adding location type")
 
+	strValue := "Foo"
 	strProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyXID(ctx),
 		StringValue:    &strValue,
 	}
+
+	strFixedProp := models.PropertyInput{
+		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("str_fixed_prop")).OnlyXID(ctx),
+		StringValue:    &strFixedValue,
+	}
+
 	intValue := 5
 	intProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("int_prop")).OnlyXID(ctx),
@@ -1189,16 +1242,18 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 		RangeFromValue: &fl1,
 		RangeToValue:   &fl2,
 	}
-	propInputs := []*models.PropertyInput{&strProp, &intProp, &rngProp}
+	propInputs := []*models.PropertyInput{&strProp, &strFixedProp, &intProp, &rngProp}
 	wo, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            "location_name_1",
 		WorkOrderTypeID: woType.ID,
 		Properties:      propInputs,
 	})
-	require.NoError(t, err, "Adding location instance")
+	require.NoError(t, err)
 
-	fetchedWo, err := qr.WorkOrder(ctx, wo.ID)
-	require.NoError(t, err, "Querying location instance")
+	node, err := qr.Node(ctx, wo.ID)
+	require.NoError(t, err)
+	fetchedWo, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	intFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("int_prop"))).OnlyX(ctx)
 	require.Equal(t, intFetchProp.IntVal, *intProp.IntValue, "Comparing properties: int value")
@@ -1208,6 +1263,10 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
 	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
 
+	fixedStrFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
+	require.Equal(t, fixedStrFetchProp.StringVal, *strFixedProp.StringValue, "Comparing properties: fixed string value")
+	require.Equal(t, fixedStrFetchProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing properties: PropertyType value")
+
 	rngFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("rng_prop"))).OnlyX(ctx)
 	require.Equal(t, rngFetchProp.RangeFromVal, *rngProp.RangeFromValue, "Comparing properties: range value")
 	require.Equal(t, rngFetchProp.RangeToVal, *rngProp.RangeToValue, "Comparing properties: range value")
@@ -1215,27 +1274,100 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 
 	fetchedProps, err := wr.Properties(ctx, fetchedWo)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(fetchedProps))
+	require.Equal(t, len(propInputs), len(fetchedProps))
+
+	failProp := models.PropertyInput{PropertyTypeID: -1}
+	failEditInput := models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       "test",
+		Properties: []*models.PropertyInput{&failProp},
+	}
+	_, err = mr.EditWorkOrder(ctx, failEditInput)
+	require.Error(t, err, "editing Work Order instance property with wrong property type id")
+
+	failProp2 := models.PropertyInput{
+		ID:             &strFetchProp.ID,
+		PropertyTypeID: intProp.PropertyTypeID,
+	}
+	failEditInput2 := models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       "test",
+		Properties: []*models.PropertyInput{&failProp2},
+	}
+	_, err = mr.EditWorkOrder(ctx, failEditInput2)
+	require.Error(t, err, "editing Work Order instance property when id and property type id mismach")
+
+	newStrValue := "Foo"
+	prop := models.PropertyInput{
+		PropertyTypeID: strProp.PropertyTypeID,
+		StringValue:    &newStrValue,
+	}
+	newWorkOrderName := "updated test"
+	editInput := models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       newWorkOrderName,
+		Properties: []*models.PropertyInput{&prop},
+	}
+	_, err = mr.EditWorkOrder(ctx, editInput)
+	require.NoError(t, err)
+
+	newStrFixedValue := "updated FixedFoo"
+	newStrFixedProp := models.PropertyInput{
+		PropertyTypeID: strFixedProp.PropertyTypeID,
+		StringValue:    &newStrFixedValue,
+	}
+	editFixedPropInput := models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       newWorkOrderName,
+		Properties: []*models.PropertyInput{&newStrFixedProp},
+	}
+	updatedP, err := mr.EditWorkOrder(ctx, editFixedPropInput)
+	require.NoError(t, err)
+
+	updatedNode, err := qr.Node(ctx, updatedP.ID)
+	require.NoError(t, err, "querying updated Work Order node")
+	updatedWO, ok := updatedNode.(*ent.WorkOrder)
+	require.True(t, ok, "casting updated Work Order instance")
+
+	require.Equal(t, updatedWO.Name, newWorkOrderName, "Comparing updated Work Order name")
+
+	fetchedProps, _ = wr.Properties(ctx, updatedWO)
+	require.Equal(t, len(propInputs), len(fetchedProps), "number of properties should remain he same")
+
+	updatedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
+	require.Equal(t, updatedProp.StringVal, *prop.StringValue, "Comparing updated properties: string value")
+	require.Equal(t, updatedProp.QueryType().OnlyXID(ctx), prop.PropertyTypeID, "Comparing updated properties: PropertyType value")
+
+	notUpdatedFixedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
+	require.Equal(t, notUpdatedFixedProp.StringVal, *strFixedProp.StringValue, "Comparing not changed fixed property: string value")
+	require.Equal(t, notUpdatedFixedProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing updated properties: PropertyType value")
 }
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
-	t.Skip("skipping test until mandatory props are added - T57858029")
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
 	latlongPropType := models.PropertyTypeInput{
-		Name: "lat_long_prop",
-		Type: "gps_location",
+		Name:        "lat_long_prop",
+		Type:        "gps_location",
+		IsMandatory: pointer.ToBool(true),
 	}
 	propTypeInputs := []*models.PropertyTypeInput{&latlongPropType}
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type", Properties: propTypeInputs})
 	require.NoError(t, err)
 
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_fail",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.Error(t, err, "Adding work order instance with missing mandatory properties")
+
 	latlongProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("lat_long_prop")).OnlyXID(ctx),
+		LatitudeValue:  pointer.ToFloat64(32.6),
+		LongitudeValue: pointer.ToFloat64(34.7),
 	}
 	propInputs := []*models.PropertyInput{&latlongProp}
 	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -1243,12 +1375,148 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 		WorkOrderTypeID: woType.ID,
 		Properties:      propInputs,
 	})
-	require.Error(t, err, "Adding work order instance with invalid lat-long prop")
+	require.NoError(t, err)
+
+	// mandatory is deleted - should be ok
+	latlongPropType.IsDeleted = pointer.ToBool(true)
+	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type2", Properties: propTypeInputs})
+	deletedPropType := woType.QueryPropertyTypes().OnlyX(ctx)
+	require.NoError(t, err)
+
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_not_fail",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.NoError(t, err, "Adding work order instance of template with mandatory properties but deleted")
+
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_fail",
+		WorkOrderTypeID: woType.ID,
+		Properties: []*models.PropertyInput{{
+			PropertyTypeID: deletedPropType.ID,
+			StringValue:    pointer.ToString("new"),
+		}},
+	})
+	require.Errorf(t, err, "deleted property types")
+
+	// not mandatory props
+	notMandatoryProp := &models.PropertyTypeInput{
+		Name: "lat_long_prop",
+		Type: "gps_location",
+	}
+	props := []*models.PropertyTypeInput{notMandatoryProp}
+
+	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type3", Properties: props})
+	require.NoError(t, err)
+
+	wo, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_pass",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.NoError(t, err, "Adding work order instance with missing mandatory properties")
+	require.Len(t, wo.QueryProperties().AllX(ctx), 1)
+}
+
+func TestAddWorkOrderWithCheckListCategory(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, wr := r.Mutation(), r.WorkOrder()
+	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "example_type_a",
+	})
+	require.NoError(t, err)
+
+	indexValue := 1
+	fooCL := models.CheckListItemInput{
+		Title: "Foo",
+		Type:  "simple",
+		Index: &indexValue,
+	}
+	clInputs := []*models.CheckListItemInput{&fooCL}
+
+	barCLC := models.CheckListCategoryInput{
+		Title:     "Bar",
+		CheckList: clInputs,
+	}
+
+	clcInputs := []*models.CheckListCategoryInput{&barCLC}
+	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:                longWorkOrderName,
+		WorkOrderTypeID:     woType.ID,
+		CheckListCategories: clcInputs,
+	})
+	require.NoError(t, err)
+	cls := workOrder.QueryCheckListCategories().AllX(ctx)
+	require.Len(t, cls, 1)
+
+	barCLCFetched := workOrder.QueryCheckListCategories().Where(checklistcategory.Title("Bar")).OnlyX(ctx)
+	fooCLFetched := barCLCFetched.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
+	require.Equal(t, "Foo", fooCLFetched.Title, "verifying checklist name")
+
+	clcs, err := wr.CheckListCategories(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, clcs, 1)
+
+	clcr := r.CheckListCategory()
+	cl, err := clcr.CheckList(ctx, barCLCFetched)
+	require.NoError(t, err)
+	require.Len(t, cl, 1)
+}
+
+func TestEditWorkOrderWithCheckListCategory(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, wr := r.Mutation(), r.WorkOrder()
+	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "example_type_a",
+	})
+	require.NoError(t, err)
+	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            longWorkOrderName,
+		WorkOrderTypeID: woType.ID,
+	})
+	require.NoError(t, err)
+	indexValue := 1
+	fooCL := models.CheckListItemInput{
+		Title: "Foo",
+		Type:  "simple",
+		Index: &indexValue,
+	}
+	clInputs := []*models.CheckListItemInput{&fooCL}
+
+	barCLC := models.CheckListCategoryInput{
+		Title:     "Bar",
+		CheckList: clInputs,
+	}
+
+	clcInputs := []*models.CheckListCategoryInput{&barCLC}
+	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
+		ID:                  workOrder.ID,
+		Name:                longWorkOrderName,
+		CheckListCategories: clcInputs,
+	})
+	require.NoError(t, err)
+	cls := workOrder.QueryCheckListCategories().AllX(ctx)
+	require.Len(t, cls, 1)
+
+	barCLCFetched := workOrder.QueryCheckListCategories().Where(checklistcategory.Title("Bar")).OnlyX(ctx)
+	fooCLFetched := barCLCFetched.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
+	require.Equal(t, "Foo", fooCLFetched.Title, "verifying checklist name")
+
+	clcs, err := wr.CheckListCategories(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, clcs, 1)
+
+	clcr := r.CheckListCategory()
+	cl, err := clcr.CheckList(ctx, barCLCFetched)
+	require.NoError(t, err)
+	require.Len(t, cl, 1)
 }
 
 func TestAddWorkOrderWithCheckList(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, wr := r.Mutation(), r.WorkOrder()
@@ -1281,8 +1549,7 @@ func TestAddWorkOrderWithCheckList(t *testing.T) {
 }
 
 func TestEditWorkOrderWithCheckList(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, wr := r.Mutation(), r.WorkOrder()
@@ -1328,8 +1595,7 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 }
 
 func TestEditWorkOrderLocation(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr := r.Mutation()
@@ -1362,4 +1628,20 @@ func TestEditWorkOrderLocation(t *testing.T) {
 	locEx, err := workOrder.QueryLocation().Exist(ctx)
 	require.NoError(t, err)
 	require.False(t, locEx)
+}
+
+func TestTechnicianCheckinToWorkOrder(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr := r.Mutation()
+
+	w := createWorkOrder(ctx, t, *r, "Foo")
+	w, err := mr.TechnicianWorkOrderCheckIn(ctx, w.ID)
+	require.NoError(t, err)
+
+	assert.Equal(t, w.Status, models.WorkOrderStatusPending.String())
+	comments, err := w.QueryComments().All(ctx)
+	require.NoError(t, err)
+	assert.Len(t, comments, 1)
 }

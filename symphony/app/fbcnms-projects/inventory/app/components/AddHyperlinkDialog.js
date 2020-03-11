@@ -26,13 +26,13 @@ import isUrl from 'is-url';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   field: {
     '&:not(:last-child)': {
       marginBottom: '8px',
     },
   },
-});
+}));
 
 type Props = {
   isOpened: boolean,

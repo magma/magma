@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 #
 # Copyright (c) 2016-present, Facebook, Inc.
 # All rights reserved.
@@ -13,13 +13,13 @@
 
 import argparse
 import glob
+import os
+import shutil
 import subprocess
 from collections import namedtuple
 from subprocess import PIPE
 from typing import Iterable, List
 
-import os
-import shutil
 import yaml
 
 BUILD_CONTEXT = '/tmp/magma_orc8r_build'
@@ -69,8 +69,10 @@ def main() -> None:
         )
     elif args.tests:
         # Run unit tests
+        _run_docker(['up', '-d', 'postgres_test'])
         _run_docker(['build', 'test'])
         _run_docker(['run', '--rm', 'test', 'make test'])
+        _run_docker(['down'])
     else:
         _run_docker(files_args + _get_docker_build_args(args))
 
@@ -168,6 +170,15 @@ def _copy_module(module: MagmaModule) -> None:
         os.path.join(module.host_path, 'cloud'),
         os.path.join(dst, 'cloud'),
     )
+    if module.name == 'orc8r':
+        shutil.copytree(
+            os.path.join(module.host_path, 'lib'),
+            os.path.join(dst, 'lib'),
+        )
+        shutil.copytree(
+            os.path.join(module.host_path, 'gateway', 'go'),
+            os.path.join(dst, 'gateway', 'go'),
+        )
 
     if os.path.isdir(os.path.join(module.host_path, 'tools')):
         shutil.copytree(

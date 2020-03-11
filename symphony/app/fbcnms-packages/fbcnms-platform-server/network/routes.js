@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -128,6 +128,7 @@ router.post(
             dns: DEFAULT_DNS_CONFIG,
             federation: {
               aaa_server: {},
+              csfb: {},
               eap_aka: {},
               gx: {},
               gy: {},

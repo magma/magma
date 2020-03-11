@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -28,11 +27,11 @@ type EquipmentTypeCreate struct {
 	create_time          *time.Time
 	update_time          *time.Time
 	name                 *string
-	port_definitions     map[string]struct{}
-	position_definitions map[string]struct{}
-	property_types       map[string]struct{}
-	equipment            map[string]struct{}
-	category             map[string]struct{}
+	port_definitions     map[int]struct{}
+	position_definitions map[int]struct{}
+	property_types       map[int]struct{}
+	equipment            map[int]struct{}
+	category             map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -70,9 +69,9 @@ func (etc *EquipmentTypeCreate) SetName(s string) *EquipmentTypeCreate {
 }
 
 // AddPortDefinitionIDs adds the port_definitions edge to EquipmentPortDefinition by ids.
-func (etc *EquipmentTypeCreate) AddPortDefinitionIDs(ids ...string) *EquipmentTypeCreate {
+func (etc *EquipmentTypeCreate) AddPortDefinitionIDs(ids ...int) *EquipmentTypeCreate {
 	if etc.port_definitions == nil {
-		etc.port_definitions = make(map[string]struct{})
+		etc.port_definitions = make(map[int]struct{})
 	}
 	for i := range ids {
 		etc.port_definitions[ids[i]] = struct{}{}
@@ -82,7 +81,7 @@ func (etc *EquipmentTypeCreate) AddPortDefinitionIDs(ids ...string) *EquipmentTy
 
 // AddPortDefinitions adds the port_definitions edges to EquipmentPortDefinition.
 func (etc *EquipmentTypeCreate) AddPortDefinitions(e ...*EquipmentPortDefinition) *EquipmentTypeCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -90,9 +89,9 @@ func (etc *EquipmentTypeCreate) AddPortDefinitions(e ...*EquipmentPortDefinition
 }
 
 // AddPositionDefinitionIDs adds the position_definitions edge to EquipmentPositionDefinition by ids.
-func (etc *EquipmentTypeCreate) AddPositionDefinitionIDs(ids ...string) *EquipmentTypeCreate {
+func (etc *EquipmentTypeCreate) AddPositionDefinitionIDs(ids ...int) *EquipmentTypeCreate {
 	if etc.position_definitions == nil {
-		etc.position_definitions = make(map[string]struct{})
+		etc.position_definitions = make(map[int]struct{})
 	}
 	for i := range ids {
 		etc.position_definitions[ids[i]] = struct{}{}
@@ -102,7 +101,7 @@ func (etc *EquipmentTypeCreate) AddPositionDefinitionIDs(ids ...string) *Equipme
 
 // AddPositionDefinitions adds the position_definitions edges to EquipmentPositionDefinition.
 func (etc *EquipmentTypeCreate) AddPositionDefinitions(e ...*EquipmentPositionDefinition) *EquipmentTypeCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -110,9 +109,9 @@ func (etc *EquipmentTypeCreate) AddPositionDefinitions(e ...*EquipmentPositionDe
 }
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
-func (etc *EquipmentTypeCreate) AddPropertyTypeIDs(ids ...string) *EquipmentTypeCreate {
+func (etc *EquipmentTypeCreate) AddPropertyTypeIDs(ids ...int) *EquipmentTypeCreate {
 	if etc.property_types == nil {
-		etc.property_types = make(map[string]struct{})
+		etc.property_types = make(map[int]struct{})
 	}
 	for i := range ids {
 		etc.property_types[ids[i]] = struct{}{}
@@ -122,7 +121,7 @@ func (etc *EquipmentTypeCreate) AddPropertyTypeIDs(ids ...string) *EquipmentType
 
 // AddPropertyTypes adds the property_types edges to PropertyType.
 func (etc *EquipmentTypeCreate) AddPropertyTypes(p ...*PropertyType) *EquipmentTypeCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -130,9 +129,9 @@ func (etc *EquipmentTypeCreate) AddPropertyTypes(p ...*PropertyType) *EquipmentT
 }
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
-func (etc *EquipmentTypeCreate) AddEquipmentIDs(ids ...string) *EquipmentTypeCreate {
+func (etc *EquipmentTypeCreate) AddEquipmentIDs(ids ...int) *EquipmentTypeCreate {
 	if etc.equipment == nil {
-		etc.equipment = make(map[string]struct{})
+		etc.equipment = make(map[int]struct{})
 	}
 	for i := range ids {
 		etc.equipment[ids[i]] = struct{}{}
@@ -142,7 +141,7 @@ func (etc *EquipmentTypeCreate) AddEquipmentIDs(ids ...string) *EquipmentTypeCre
 
 // AddEquipment adds the equipment edges to Equipment.
 func (etc *EquipmentTypeCreate) AddEquipment(e ...*Equipment) *EquipmentTypeCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -150,16 +149,16 @@ func (etc *EquipmentTypeCreate) AddEquipment(e ...*Equipment) *EquipmentTypeCrea
 }
 
 // SetCategoryID sets the category edge to EquipmentCategory by id.
-func (etc *EquipmentTypeCreate) SetCategoryID(id string) *EquipmentTypeCreate {
+func (etc *EquipmentTypeCreate) SetCategoryID(id int) *EquipmentTypeCreate {
 	if etc.category == nil {
-		etc.category = make(map[string]struct{})
+		etc.category = make(map[int]struct{})
 	}
 	etc.category[id] = struct{}{}
 	return etc
 }
 
 // SetNillableCategoryID sets the category edge to EquipmentCategory by id if the given value is not nil.
-func (etc *EquipmentTypeCreate) SetNillableCategoryID(id *string) *EquipmentTypeCreate {
+func (etc *EquipmentTypeCreate) SetNillableCategoryID(id *int) *EquipmentTypeCreate {
 	if id != nil {
 		etc = etc.SetCategoryID(*id)
 	}
@@ -201,17 +200,17 @@ func (etc *EquipmentTypeCreate) SaveX(ctx context.Context) *EquipmentType {
 
 func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, error) {
 	var (
-		et   = &EquipmentType{config: etc.config}
-		spec = &sqlgraph.CreateSpec{
+		et    = &EquipmentType{config: etc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipmenttype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmenttype.FieldID,
 			},
 		}
 	)
 	if value := etc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmenttype.FieldCreateTime,
@@ -219,7 +218,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 		et.CreateTime = *value
 	}
 	if value := etc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmenttype.FieldUpdateTime,
@@ -227,7 +226,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 		et.UpdateTime = *value
 	}
 	if value := etc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmenttype.FieldName,
@@ -243,19 +242,15 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentportdefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := etc.position_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -266,19 +261,15 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentpositiondefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := etc.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -289,19 +280,15 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := etc.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -312,19 +299,15 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := etc.category; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -335,27 +318,23 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentcategory.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, etc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, etc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	et.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	et.ID = int(id)
 	return et, nil
 }

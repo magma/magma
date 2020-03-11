@@ -11,6 +11,7 @@
 import grammar from './__generated__/PromQLGrammar.js';
 import nearley from 'nearley';
 import {Expression} from './PromQL';
+import {SyntaxError} from './PromQLTypes';
 
 export function Parser() {
   return new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
@@ -24,5 +25,9 @@ export function Parse(input: ?string): ?Expression {
   // parser returns array of all possible parsing trees, so access the first
   // element of results since this grammar should only produce 1 for each
   // input
-  return parser.results[0];
+  const ast = parser.results[0];
+  if (ast === undefined) {
+    throw new SyntaxError('Malformed PromQL expression');
+  }
+  return ast;
 }

@@ -4,13 +4,13 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
 import type {TopBarContextType} from './TopBarContext';
 
-import React, {useContext} from 'react';
+import * as React from 'react';
 import classNames from 'classnames';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -60,13 +60,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  children: any,
+  children: React.Node,
   title?: string,
 };
 
 export default function TopBar(props: Props) {
   const classes = useStyles();
-  const context = useContext<TopBarContextType>(TopBarContext);
+  const context = React.useContext<TopBarContextType>(TopBarContext);
   return (
     <>
       <AppBar

@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -116,17 +115,17 @@ func (fprpc *FloorPlanReferencePointCreate) SaveX(ctx context.Context) *FloorPla
 
 func (fprpc *FloorPlanReferencePointCreate) sqlSave(ctx context.Context) (*FloorPlanReferencePoint, error) {
 	var (
-		fprp = &FloorPlanReferencePoint{config: fprpc.config}
-		spec = &sqlgraph.CreateSpec{
+		fprp  = &FloorPlanReferencePoint{config: fprpc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: floorplanreferencepoint.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanreferencepoint.FieldID,
 			},
 		}
 	)
 	if value := fprpc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplanreferencepoint.FieldCreateTime,
@@ -134,7 +133,7 @@ func (fprpc *FloorPlanReferencePointCreate) sqlSave(ctx context.Context) (*Floor
 		fprp.CreateTime = *value
 	}
 	if value := fprpc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: floorplanreferencepoint.FieldUpdateTime,
@@ -142,7 +141,7 @@ func (fprpc *FloorPlanReferencePointCreate) sqlSave(ctx context.Context) (*Floor
 		fprp.UpdateTime = *value
 	}
 	if value := fprpc.x; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanreferencepoint.FieldX,
@@ -150,7 +149,7 @@ func (fprpc *FloorPlanReferencePointCreate) sqlSave(ctx context.Context) (*Floor
 		fprp.X = *value
 	}
 	if value := fprpc.y; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: floorplanreferencepoint.FieldY,
@@ -158,7 +157,7 @@ func (fprpc *FloorPlanReferencePointCreate) sqlSave(ctx context.Context) (*Floor
 		fprp.Y = *value
 	}
 	if value := fprpc.latitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: floorplanreferencepoint.FieldLatitude,
@@ -166,20 +165,20 @@ func (fprpc *FloorPlanReferencePointCreate) sqlSave(ctx context.Context) (*Floor
 		fprp.Latitude = *value
 	}
 	if value := fprpc.longitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: floorplanreferencepoint.FieldLongitude,
 		})
 		fprp.Longitude = *value
 	}
-	if err := sqlgraph.CreateNode(ctx, fprpc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, fprpc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	fprp.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	fprp.ID = int(id)
 	return fprp, nil
 }

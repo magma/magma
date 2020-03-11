@@ -89,15 +89,18 @@ class ServiceTypeItem extends React.Component<Props> {
             },
           },
           store => {
+            // $FlowFixMe (T62907961) Relay flow types
             const rootQuery = store.getRoot();
             const serviceTypes = ConnectionHandler.getConnection(
               rootQuery,
               'ServiceTypes_serviceTypes',
             );
             ConnectionHandler.deleteNode(
+              // $FlowFixMe (T62907961) Relay flow types
               serviceTypes,
               this.props.serviceType.id,
             );
+            // $FlowFixMe (T62907961) Relay flow types
             store.delete(this.props.serviceType.id);
           },
         );

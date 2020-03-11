@@ -8,10 +8,13 @@
  * @format
  */
 
+import type {ChecklistItemsDialogStateType} from '../checkListCategory/ChecklistItemsDialogMutateState';
+
 import CheckCircle from '@material-ui/icons/CheckCircle';
 import CheckListItem from '../CheckListItem';
+import ChecklistItemsDialogMutateDispatchContext from '../checkListCategory/ChecklistItemsDialogMutateDispatchContext';
 import RadioButtonUnchecked from '@material-ui/icons/RadioButtonUnchecked';
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -19,17 +22,13 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
-import type {CheckListItem_item} from '../__generated__/CheckListItem_item.graphql';
-import type {CheckListTableFilling_list} from './__generated__/CheckListTableFilling_list.graphql';
 
 type Props = {
-  list: CheckListTableFilling_list,
-  onChecklistChanged?: (updatedList: CheckListTableFilling_list) => void,
+  items: ChecklistItemsDialogStateType,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     maxWidth: '1366px',
     overflowX: 'auto',
@@ -49,42 +48,14 @@ const useStyles = makeStyles({
   iconCell: {
     width: '20px',
   },
-});
+}));
 
-const CheckListTableFilling = (props: Props) => {
-  const {list, onChecklistChanged} = props;
+const CheckListTableFilling = ({items}: Props) => {
+  const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
   const classes = useStyles();
 
-  const _updateList = (updatedList: CheckListTableFilling_list) => {
-    if (!onChecklistChanged) {
-      return;
-    }
-
-    onChecklistChanged(updatedList);
-  };
-
-  const _editItem = itemIndex => (updatedChecklistItem: CheckListItem_item) => {
-    if (itemIndex < 0 || itemIndex >= list.length) {
-      return;
-    }
-
-    const newItem: CheckListItem_item = {
-      ...updatedChecklistItem,
-      stringValue: updatedChecklistItem.stringValue || '',
-      checked: updatedChecklistItem.checked || false,
-    };
-
-    const newList: CheckListTableFilling_list = [
-      ...Array.prototype.slice.call(list, 0, itemIndex),
-      newItem,
-      ...Array.prototype.slice.call(list, itemIndex + 1),
-    ];
-
-    _updateList(newList);
-  };
-
-  const checklistItemsCount = list.length;
-  const fullfilledItemsCount = list.reduce((fufilledSoFar, currentItem) => {
+  const checklistItemsCount = items.length;
+  const fullfilledItemsCount = items.reduce((fufilledSoFar, currentItem) => {
     if (currentItem.checked) {
       return fufilledSoFar + 1;
     }
@@ -112,7 +83,7 @@ const CheckListTableFilling = (props: Props) => {
     [checklistItemsCount, fullfilledItemsCount],
   );
 
-  const checklistItems = list.map((checkListItem, i) => (
+  const checklistItems = items.map((checkListItem, i) => (
     <TableRow id={checkListItem.id} index={i} key={checkListItem.id}>
       <TableCell className={classes.iconCell} size="small" component="div">
         {checkListItem.checked ? (
@@ -122,7 +93,15 @@ const CheckListTableFilling = (props: Props) => {
         )}
       </TableCell>
       <TableCell component="div">
-        <CheckListItem item={checkListItem || null} onChange={_editItem(i)} />
+        <CheckListItem
+          item={checkListItem || null}
+          onChange={updatedItem =>
+            dispatch({
+              type: 'EDIT_ITEM',
+              value: updatedItem,
+            })
+          }
+        />
       </TableCell>
     </TableRow>
   ));
@@ -137,12 +116,4 @@ const CheckListTableFilling = (props: Props) => {
   );
 };
 
-export default createFragmentContainer(CheckListTableFilling, {
-  list: graphql`
-    fragment CheckListTableFilling_list on CheckListItem @relay(plural: true) {
-      id
-      checked
-      ...CheckListItem_item
-    }
-  `,
-});
+export default CheckListTableFilling;

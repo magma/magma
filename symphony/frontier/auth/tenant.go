@@ -71,7 +71,7 @@ func TenantHandler(handler http.Handler, loader TenantLoader) http.Handler {
 				trace.StringAttribute("tenant", name),
 			)
 			handler.ServeHTTP(w, r.WithContext(ctx))
-		case *ent.ErrNotFound:
+		case *ent.NotFoundError:
 			http.Error(w, "tenant not found", http.StatusNotFound)
 		default:
 			http.Error(w, "cannot load tenant", http.StatusInternalServerError)

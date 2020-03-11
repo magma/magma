@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -12,10 +12,11 @@ import Sequelize from 'sequelize';
 
 import type {AssociateProp} from './AssociateTypes.flow';
 import type {DataTypes, Model} from 'sequelize';
+import type {Tab} from '@fbcnms/types/tabs';
 
 export type OrganizationRawType = {
   name: string,
-  tabs?: Array<string>,
+  tabs?: Array<Tab>,
   customDomains?: Array<string>,
   networkIDs: Array<string>,
   csvCharset: string,
@@ -25,6 +26,7 @@ export type OrganizationRawType = {
 };
 
 type OrganizationGetters = {
+  id: number,
   isMasterOrg: boolean,
 };
 

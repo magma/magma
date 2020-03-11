@@ -35,7 +35,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "assertions.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "mme_config.h"
@@ -86,9 +85,18 @@ void *mme_app_thread(void *args)
      * message is sent to the task.
      */
     itti_receive_msg(TASK_MME_APP, &received_message_p);
-    DevAssert(received_message_p);
+    if (received_message_p == NULL) {
+      OAILOG_ERROR(
+        TASK_MME_APP, "Received an invalid Message from ITTI message queue\n");
+      continue;
+    }
+
+    imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+    OAILOG_DEBUG(
+      LOG_MME_APP, "Received message with imsi: " IMSI_64_FMT, imsi64);
+
     OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
-    mme_app_desc_p = get_locked_mme_nas_state(false);
+    mme_app_desc_p = get_mme_nas_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
@@ -149,11 +157,10 @@ void *mme_app_thread(void *args)
             TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
-          if (ue_context_p->path_switch_req != true) {
+          if (!ue_context_p->path_switch_req) {
             /* Updating statistics */
             update_mme_app_stats_s1u_bearer_add();
-          }
-          if (ue_context_p->path_switch_req == true) {
+          } else {
             mme_app_handle_path_switch_req_ack(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
@@ -415,7 +422,7 @@ void *mme_app_thread(void *args)
 
      case TERMINATE_MESSAGE: {
        // Termination message received TODO -> release any data allocated
-        put_mme_nas_state(&mme_app_desc_p);
+        put_mme_nas_state();
         mme_app_exit();
         itti_free_msg_content(received_message_p);
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -424,20 +431,15 @@ void *mme_app_thread(void *args)
       } break;
 
       default: {
-        OAILOG_DEBUG(
+        OAILOG_ERROR(
           LOG_MME_APP,
-          "Unkwnon message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p),
-          ITTI_MSG_NAME(received_message_p));
-        AssertFatal(
-          0,
-          "Unkwnon message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p),
-          ITTI_MSG_NAME(received_message_p));
+          "Unknown message (%s) received with message Id: %d\n",
+          ITTI_MSG_NAME(received_message_p),
+          ITTI_MSG_ID(received_message_p));
       } break;
     }
 
-    put_mme_nas_state(&mme_app_desc_p);
+    put_mme_nas_state();
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;

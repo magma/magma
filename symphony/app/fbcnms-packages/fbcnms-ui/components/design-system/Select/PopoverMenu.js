@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -19,7 +19,7 @@ import classNames from 'classnames';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   menu: {
     margin: '8px 0px',
   },
@@ -27,7 +27,7 @@ const useStyles = makeStyles({
     position: 'absolute',
     right: '0',
   },
-});
+}));
 
 type Props<TValue> = {
   className?: string,

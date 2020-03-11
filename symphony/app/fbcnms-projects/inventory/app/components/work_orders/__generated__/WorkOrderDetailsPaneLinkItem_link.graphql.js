@@ -117,6 +117,7 @@ export type WorkOrderDetailsPaneLinkItem_link$data = WorkOrderDetailsPaneLinkIte
 export type WorkOrderDetailsPaneLinkItem_link$key = {
   +$data?: WorkOrderDetailsPaneLinkItem_link$data,
   +$fragmentRefs: WorkOrderDetailsPaneLinkItem_link$ref,
+  ...
 };
 */
 

@@ -12,14 +12,14 @@ import (
 	"context"
 	"time"
 
-	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/lib/go/registry"
 
 	"google.golang.org/grpc"
 )
 
 // GetConnectionWithAuthority provides a gRPC connection to a service in the registry with Authority header.
 func GetConnectionWithAuthority(service string) (*grpc.ClientConn, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpxMaxTimeoutSec*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
 	return registry.GetConnectionImpl(
 		ctx,

@@ -12,12 +12,12 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/logger"
 	"magma/orc8r/cloud/go/services/logger/exporters"
 	"magma/orc8r/cloud/go/services/logger/exporters/mocks"
 	"magma/orc8r/cloud/go/services/logger/servicers"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 )
 
 // this test init does not expose mockExporter, and caller does not do any handling

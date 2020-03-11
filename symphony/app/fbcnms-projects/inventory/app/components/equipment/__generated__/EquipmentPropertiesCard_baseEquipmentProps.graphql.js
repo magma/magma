@@ -25,12 +25,15 @@ export type EquipmentPropertiesCard_baseEquipmentProps = {
   +parentLocation: ?{
     +id: string,
     +name: string,
+    ...
   },
+  ...
 };
 export type EquipmentPropertiesCard_baseEquipmentProps$data = EquipmentPropertiesCard_baseEquipmentProps;
 export type EquipmentPropertiesCard_baseEquipmentProps$key = {
   +$data?: EquipmentPropertiesCard_baseEquipmentProps$data,
   +$fragmentRefs: EquipmentPropertiesCard_baseEquipmentProps$ref,
+  ...
 };
 */
 

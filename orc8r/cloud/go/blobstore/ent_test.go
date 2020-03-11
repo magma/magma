@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/blobstore"
-	magmaerrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	magmaerrors "magma/orc8r/lib/go/errors"
 
 	"github.com/stretchr/testify/require"
 )

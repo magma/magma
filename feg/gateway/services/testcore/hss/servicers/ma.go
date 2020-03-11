@@ -18,7 +18,6 @@ import (
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
@@ -62,7 +61,7 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return getRedirectMessage(msg, mar.SessionID, srv.Config.Server, aaaServer), err
 	}
 
-	lteAuthNextSeq, err := servicers.ResyncLteAuthSeq(subscriber, mar.AuthData.Authorization.Serialize(), srv.Config.LteAuthOp)
+	lteAuthNextSeq, err := ResyncLteAuthSeq(subscriber, mar.AuthData.Authorization.Serialize(), srv.Config.LteAuthOp)
 	if err == nil {
 		err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
 	}
@@ -133,22 +132,22 @@ func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *lteprotos.Su
 // GenerateSIPAuthVector returns the SIP auth vector and the next value of lteAuthNextSeq for the subscriber (or an error).
 func (srv *HomeSubscriberServer) GenerateSIPAuthVector(subscriber *lteprotos.SubscriberData) (*crypto.SIPAuthVector, uint64, error) {
 	lte := subscriber.Lte
-	if err := servicers.ValidateLteSubscription(lte); err != nil {
-		return nil, 0, servicers.NewAuthRejectedError(err.Error())
+	if err := ValidateLteSubscription(lte); err != nil {
+		return nil, 0, NewAuthRejectedError(err.Error())
 	}
 	if subscriber.State == nil {
-		return nil, 0, servicers.NewAuthRejectedError("Subscriber data missing subscriber state")
+		return nil, 0, NewAuthRejectedError("Subscriber data missing subscriber state")
 	}
 
-	opc, err := servicers.GetOrGenerateOpc(lte, srv.Config.LteAuthOp)
+	opc, err := GetOrGenerateOpc(lte, srv.Config.LteAuthOp)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	sqn := servicers.SeqToSqn(subscriber.State.LteAuthNextSeq, srv.AuthSqnInd)
+	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, srv.AuthSqnInd)
 	vector, err := srv.Milenage.GenerateSIPAuthVector(lte.AuthKey, opc, sqn)
 	if err != nil {
-		return nil, 0, servicers.NewAuthRejectedError(err.Error())
+		return nil, 0, NewAuthRejectedError(err.Error())
 	}
 	return vector, subscriber.State.LteAuthNextSeq + 1, err
 }

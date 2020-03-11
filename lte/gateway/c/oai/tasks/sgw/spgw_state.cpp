@@ -54,6 +54,14 @@ void put_spgw_state()
   SpgwStateManager::getInstance().write_state_to_db();
 }
 
+void put_spgw_imsi_map() {
+  SpgwStateManager::getInstance().put_spgw_imsi_map();
+}
+
+spgw_imsi_map_t* get_spgw_imsi_map() {
+  return SpgwStateManager::getInstance().get_spgw_imsi_map();
+}
+
 void sgw_free_s11_bearer_context_information(
   s_plus_p_gw_eps_bearer_context_information_t** context_p)
 {

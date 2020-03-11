@@ -10,7 +10,7 @@ import "orc8r/protos/common.proto";
 
 package magma.orc8r;
 
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 // --------------------------------------------------------------------------
 // Directory Service
@@ -18,52 +18,6 @@ option go_package = "magma/orc8r/cloud/go/protos";
 //
 //
 // --------------------------------------------------------------------------
-
-enum TableID {
-  IMSI_TO_HWID = 0;
-  HWID_TO_HOSTNAME = 1;
-}
-
-message GetLocationRequest {
-  string id = 1;
-  TableID table = 2;
-  string networkID = 3;
-}
-
-message DeleteLocationRequest {
-  string id = 1;
-  TableID table = 2;
-  string networkID = 3;
-}
-
-message LocationRecord {
-  // Object location. Client is responsible for location encoding and decoding
-  string location = 1;
-}
-
-message UpdateDirectoryLocationRequest {
-  string id = 1;
-  LocationRecord record = 2;
-  TableID table = 3;
-}
-
-
-// DirectoryService provides a central directory on the Orchestrator that
-// associates an ID with a location.
-service DirectoryService {
-
-  // Get location of an object from the directory service
-  // Throws UNKNOWN if object ID does not exist
-  rpc GetLocation (GetLocationRequest) returns (LocationRecord) {};
-
-  // Update the location record of an object in the directory service
-  rpc UpdateLocation (UpdateDirectoryLocationRequest) returns (Void) {};
-
-  // Delete location record of an object from the directory service
-  // Throws UNKNOWN if object ID does not exist
-  rpc DeleteLocation (DeleteLocationRequest) returns (Void) {};
-}
-
 message UpdateRecordRequest {
   string id = 1;
   string location = 2;

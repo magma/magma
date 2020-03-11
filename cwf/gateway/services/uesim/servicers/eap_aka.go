@@ -13,13 +13,13 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"magma/feg/gateway/services/testcore/hss/servicers"
 	"reflect"
 
 	"magma/cwf/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/lte/cloud/go/crypto"
-	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"

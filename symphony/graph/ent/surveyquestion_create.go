@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -44,10 +43,10 @@ type SurveyQuestionCreate struct {
 	float_data        *float64
 	int_data          *int
 	date_data         *time.Time
-	survey            map[string]struct{}
-	wifi_scan         map[string]struct{}
-	cell_scan         map[string]struct{}
-	photo_data        map[string]struct{}
+	survey            map[int]struct{}
+	wifi_scan         map[int]struct{}
+	cell_scan         map[int]struct{}
+	photo_data        map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -315,9 +314,9 @@ func (sqc *SurveyQuestionCreate) SetNillableDateData(t *time.Time) *SurveyQuesti
 }
 
 // SetSurveyID sets the survey edge to Survey by id.
-func (sqc *SurveyQuestionCreate) SetSurveyID(id string) *SurveyQuestionCreate {
+func (sqc *SurveyQuestionCreate) SetSurveyID(id int) *SurveyQuestionCreate {
 	if sqc.survey == nil {
-		sqc.survey = make(map[string]struct{})
+		sqc.survey = make(map[int]struct{})
 	}
 	sqc.survey[id] = struct{}{}
 	return sqc
@@ -329,9 +328,9 @@ func (sqc *SurveyQuestionCreate) SetSurvey(s *Survey) *SurveyQuestionCreate {
 }
 
 // AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
-func (sqc *SurveyQuestionCreate) AddWifiScanIDs(ids ...string) *SurveyQuestionCreate {
+func (sqc *SurveyQuestionCreate) AddWifiScanIDs(ids ...int) *SurveyQuestionCreate {
 	if sqc.wifi_scan == nil {
-		sqc.wifi_scan = make(map[string]struct{})
+		sqc.wifi_scan = make(map[int]struct{})
 	}
 	for i := range ids {
 		sqc.wifi_scan[ids[i]] = struct{}{}
@@ -341,7 +340,7 @@ func (sqc *SurveyQuestionCreate) AddWifiScanIDs(ids ...string) *SurveyQuestionCr
 
 // AddWifiScan adds the wifi_scan edges to SurveyWiFiScan.
 func (sqc *SurveyQuestionCreate) AddWifiScan(s ...*SurveyWiFiScan) *SurveyQuestionCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -349,9 +348,9 @@ func (sqc *SurveyQuestionCreate) AddWifiScan(s ...*SurveyWiFiScan) *SurveyQuesti
 }
 
 // AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
-func (sqc *SurveyQuestionCreate) AddCellScanIDs(ids ...string) *SurveyQuestionCreate {
+func (sqc *SurveyQuestionCreate) AddCellScanIDs(ids ...int) *SurveyQuestionCreate {
 	if sqc.cell_scan == nil {
-		sqc.cell_scan = make(map[string]struct{})
+		sqc.cell_scan = make(map[int]struct{})
 	}
 	for i := range ids {
 		sqc.cell_scan[ids[i]] = struct{}{}
@@ -361,7 +360,7 @@ func (sqc *SurveyQuestionCreate) AddCellScanIDs(ids ...string) *SurveyQuestionCr
 
 // AddCellScan adds the cell_scan edges to SurveyCellScan.
 func (sqc *SurveyQuestionCreate) AddCellScan(s ...*SurveyCellScan) *SurveyQuestionCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -369,9 +368,9 @@ func (sqc *SurveyQuestionCreate) AddCellScan(s ...*SurveyCellScan) *SurveyQuesti
 }
 
 // AddPhotoDatumIDs adds the photo_data edge to File by ids.
-func (sqc *SurveyQuestionCreate) AddPhotoDatumIDs(ids ...string) *SurveyQuestionCreate {
+func (sqc *SurveyQuestionCreate) AddPhotoDatumIDs(ids ...int) *SurveyQuestionCreate {
 	if sqc.photo_data == nil {
-		sqc.photo_data = make(map[string]struct{})
+		sqc.photo_data = make(map[int]struct{})
 	}
 	for i := range ids {
 		sqc.photo_data[ids[i]] = struct{}{}
@@ -381,7 +380,7 @@ func (sqc *SurveyQuestionCreate) AddPhotoDatumIDs(ids ...string) *SurveyQuestion
 
 // AddPhotoData adds the photo_data edges to File.
 func (sqc *SurveyQuestionCreate) AddPhotoData(f ...*File) *SurveyQuestionCreate {
-	ids := make([]string, len(f))
+	ids := make([]int, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -424,17 +423,17 @@ func (sqc *SurveyQuestionCreate) SaveX(ctx context.Context) *SurveyQuestion {
 
 func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, error) {
 	var (
-		sq   = &SurveyQuestion{config: sqc.config}
-		spec = &sqlgraph.CreateSpec{
+		sq    = &SurveyQuestion{config: sqc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: surveyquestion.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveyquestion.FieldID,
 			},
 		}
 	)
 	if value := sqc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveyquestion.FieldCreateTime,
@@ -442,7 +441,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.CreateTime = *value
 	}
 	if value := sqc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveyquestion.FieldUpdateTime,
@@ -450,7 +449,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.UpdateTime = *value
 	}
 	if value := sqc.form_name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveyquestion.FieldFormName,
@@ -458,7 +457,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.FormName = *value
 	}
 	if value := sqc.form_description; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveyquestion.FieldFormDescription,
@@ -466,7 +465,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.FormDescription = *value
 	}
 	if value := sqc.form_index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveyquestion.FieldFormIndex,
@@ -474,7 +473,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.FormIndex = *value
 	}
 	if value := sqc.question_type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveyquestion.FieldQuestionType,
@@ -482,7 +481,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.QuestionType = *value
 	}
 	if value := sqc.question_format; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveyquestion.FieldQuestionFormat,
@@ -490,7 +489,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.QuestionFormat = *value
 	}
 	if value := sqc.question_text; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveyquestion.FieldQuestionText,
@@ -498,7 +497,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.QuestionText = *value
 	}
 	if value := sqc.question_index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveyquestion.FieldQuestionIndex,
@@ -506,7 +505,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.QuestionIndex = *value
 	}
 	if value := sqc.bool_data; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: surveyquestion.FieldBoolData,
@@ -514,7 +513,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.BoolData = *value
 	}
 	if value := sqc.email_data; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveyquestion.FieldEmailData,
@@ -522,7 +521,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.EmailData = *value
 	}
 	if value := sqc.latitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: surveyquestion.FieldLatitude,
@@ -530,7 +529,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.Latitude = *value
 	}
 	if value := sqc.longitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: surveyquestion.FieldLongitude,
@@ -538,7 +537,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.Longitude = *value
 	}
 	if value := sqc.location_accuracy; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: surveyquestion.FieldLocationAccuracy,
@@ -546,7 +545,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.LocationAccuracy = *value
 	}
 	if value := sqc.altitude; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: surveyquestion.FieldAltitude,
@@ -554,7 +553,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.Altitude = *value
 	}
 	if value := sqc.phone_data; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveyquestion.FieldPhoneData,
@@ -562,7 +561,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.PhoneData = *value
 	}
 	if value := sqc.text_data; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveyquestion.FieldTextData,
@@ -570,7 +569,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.TextData = *value
 	}
 	if value := sqc.float_data; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Value:  *value,
 			Column: surveyquestion.FieldFloatData,
@@ -578,7 +577,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.FloatData = *value
 	}
 	if value := sqc.int_data; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: surveyquestion.FieldIntData,
@@ -586,7 +585,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		sq.IntData = *value
 	}
 	if value := sqc.date_data; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveyquestion.FieldDateData,
@@ -602,19 +601,15 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: survey.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sqc.wifi_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -625,19 +620,15 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveywifiscan.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sqc.cell_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -648,19 +639,15 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveycellscan.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sqc.photo_data; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -671,27 +658,23 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, sqc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, sqc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	sq.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	sq.ID = int(id)
 	return sq, nil
 }

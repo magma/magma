@@ -63,30 +63,6 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'upload_rural',
-    title: 'Bulk Upload: Rural',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'upload_xwf',
-    title: 'Bulk Upload: XWF',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'upload_ftth',
-    title: 'Bulk Upload: FTTH',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'python_api',
-    title: 'Download Puthon API',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
     id: 'lte_network_metrics',
     title: 'LTE Network Metrics',
     enabledByDefault: true,
@@ -140,22 +116,9 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'import_exported_equipemnt',
-    title: 'Imported Exported Equipment',
-    enabledByDefault: true,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'import_exported_links',
-    title: 'Imported Exported Links',
-    enabledByDefault: true,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'import_exported_ports',
-    title: 'Imported Exported Ports',
-    enabledByDefault: true,
-    rules: [AlwaysEnabledInTestEnvRule],
+    id: 'deprecated_imports',
+    title: 'Show Deprecated Imports',
+    enabledByDefault: false,
   },
   {
     id: 'work_order_map',
@@ -171,6 +134,7 @@ const arrayConfigs = [
     id: 'services',
     title: 'Services',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'coverage_maps',
@@ -205,8 +169,23 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'service_endpoints',
-    title: 'Service Endpoints',
+    id: 'checklistcategories',
+    title: 'Site Surveys - Work Order Checklist Categories',
+    enabledByDefault: false,
+  },
+  {
+    id: 'saved_searches',
+    title: 'Saved Searches',
+    enabledByDefault: false,
+  },
+  {
+    id: 'user_management',
+    title: 'User Management - Users and Permissions admin section',
+    enabledByDefault: false,
+  },
+  {
+    id: 'grafana_metrics',
+    title: 'Include tab for Grafana in the Metrics page',
     enabledByDefault: false,
   },
 ];

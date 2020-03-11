@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  *
  * Base component for rule editors to render. Handles rendering common elements
@@ -19,19 +19,18 @@ import Editor from '../common/Editor';
 import Grid from '@material-ui/core/Grid';
 import LabelsEditor from './LabelsEditor';
 import RuleContext from './RuleContext';
-import SelectReceiver from '../prometheus/Receivers/SelectReceiver';
+import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
 import SelectRuleType from './SelectRuleType';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import {useAlarmContext} from '../AlarmContext';
 import {useAlertRuleReceiver, useForm} from '../hooks';
-import type {ApiUtil} from '../AlarmsApi';
 import type {Props as EditorProps} from '../common/Editor';
 import type {Labels} from '../AlarmAPIType';
 
 type Props = EditorProps & {
   onChange: (form: RuleEditorBaseFields) => void,
   initialState: ?RuleEditorBaseFields,
-  apiUtil: ApiUtil,
 };
 
 // Fields for inputs which are standard between different rule editors
@@ -43,13 +42,13 @@ export type RuleEditorBaseFields = {
 
 export default function RuleEditorBase({
   isNew,
-  apiUtil,
   children,
   initialState,
   onChange,
   onSave,
   ...props
 }: Props) {
+  const {apiUtil} = useAlarmContext();
   const ruleContext = React.useContext(RuleContext);
   const {formState, handleInputChange, updateFormState} = useForm({
     initialState: initialState || defaultState(),
@@ -77,7 +76,11 @@ export default function RuleEditorBase({
   return (
     <Editor
       {...props}
-      title={formState?.name ?? 'New Alert Rule'}
+      title={
+        formState?.name == null || formState?.name.trim() === ''
+          ? 'New Alert Rule'
+          : formState.name
+      }
       description="Configure rules to fire alerts"
       isNew={isNew}
       onSave={handleSave}>
@@ -154,7 +157,6 @@ export default function RuleEditorBase({
                 <SelectReceiver
                   label="Send Notification To:"
                   fullWidth
-                  apiUtil={apiUtil}
                   receiver={receiver}
                   onChange={setReceiver}
                 />

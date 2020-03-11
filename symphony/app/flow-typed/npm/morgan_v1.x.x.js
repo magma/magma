@@ -1,7 +1,7 @@
 // flow-typed signature: aabff1126ddc67fe1e0d9ac53a4e890d
 // flow-typed version: da30fe6876/morgan_v1.x.x/flow_>=v0.25.x
 
-/* @flow */
+/* @flow strict-local */
 import type { Middleware, $Request, $Response } from "express";
 
 declare module "morgan" {

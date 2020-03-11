@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -25,7 +24,7 @@ type SurveyTemplateCategoryCreate struct {
 	update_time               *time.Time
 	category_title            *string
 	category_description      *string
-	survey_template_questions map[string]struct{}
+	survey_template_questions map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -69,9 +68,9 @@ func (stcc *SurveyTemplateCategoryCreate) SetCategoryDescription(s string) *Surv
 }
 
 // AddSurveyTemplateQuestionIDs adds the survey_template_questions edge to SurveyTemplateQuestion by ids.
-func (stcc *SurveyTemplateCategoryCreate) AddSurveyTemplateQuestionIDs(ids ...string) *SurveyTemplateCategoryCreate {
+func (stcc *SurveyTemplateCategoryCreate) AddSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryCreate {
 	if stcc.survey_template_questions == nil {
-		stcc.survey_template_questions = make(map[string]struct{})
+		stcc.survey_template_questions = make(map[int]struct{})
 	}
 	for i := range ids {
 		stcc.survey_template_questions[ids[i]] = struct{}{}
@@ -81,7 +80,7 @@ func (stcc *SurveyTemplateCategoryCreate) AddSurveyTemplateQuestionIDs(ids ...st
 
 // AddSurveyTemplateQuestions adds the survey_template_questions edges to SurveyTemplateQuestion.
 func (stcc *SurveyTemplateCategoryCreate) AddSurveyTemplateQuestions(s ...*SurveyTemplateQuestion) *SurveyTemplateCategoryCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -118,17 +117,17 @@ func (stcc *SurveyTemplateCategoryCreate) SaveX(ctx context.Context) *SurveyTemp
 
 func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyTemplateCategory, error) {
 	var (
-		stc  = &SurveyTemplateCategory{config: stcc.config}
-		spec = &sqlgraph.CreateSpec{
+		stc   = &SurveyTemplateCategory{config: stcc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: surveytemplatecategory.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveytemplatecategory.FieldID,
 			},
 		}
 	)
 	if value := stcc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveytemplatecategory.FieldCreateTime,
@@ -136,7 +135,7 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 		stc.CreateTime = *value
 	}
 	if value := stcc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: surveytemplatecategory.FieldUpdateTime,
@@ -144,7 +143,7 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 		stc.UpdateTime = *value
 	}
 	if value := stcc.category_title; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatecategory.FieldCategoryTitle,
@@ -152,7 +151,7 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 		stc.CategoryTitle = *value
 	}
 	if value := stcc.category_description; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: surveytemplatecategory.FieldCategoryDescription,
@@ -168,27 +167,23 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveytemplatequestion.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, stcc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, stcc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	stc.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	stc.ID = int(id)
 	return stc, nil
 }

@@ -19,7 +19,7 @@ import LocationMapSnippet from './LocationMapSnippet';
 import React, {useContext} from 'react';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   detailsHeaderContainer: {
     display: 'flex',
     flexDirection: 'row',
@@ -30,7 +30,7 @@ const useStyles = makeStyles({
   map: {
     minHeight: '232px',
   },
-});
+}));
 
 type Props = {
   className?: string,
@@ -61,13 +61,13 @@ const LocationDetailsCard = (props: Props) => {
                   value={location.externalId}
                 />
               )}
-              {location.latitude && (
+              {location.latitude !== 0 && (
                 <LocationDetailsCardProperty
                   title="Lat"
                   value={String(location.latitude)}
                 />
               )}
-              {location.longitude && (
+              {location.longitude !== 0 && (
                 <LocationDetailsCardProperty
                   title="Long"
                   value={String(location.longitude)}

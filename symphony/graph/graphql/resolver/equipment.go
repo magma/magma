@@ -7,11 +7,13 @@ package resolver
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
@@ -21,159 +23,275 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
-	"github.com/pkg/errors"
 )
 
 type equipmentPortResolver struct{}
 
-func (r equipmentPortResolver) ServiceEndpoints(ctx context.Context, obj *ent.EquipmentPort) ([]*ent.ServiceEndpoint, error) {
-	return obj.QueryEndpoints().All(ctx)
+func (equipmentPortResolver) ServiceEndpoints(ctx context.Context, ep *ent.EquipmentPort) ([]*ent.ServiceEndpoint, error) {
+	if endpoints, err := ep.Edges.EndpointsOrErr(); !ent.IsNotLoaded(err) {
+		return endpoints, err
+	}
+	return ep.QueryEndpoints().All(ctx)
 }
 
-func (equipmentPortResolver) Definition(ctx context.Context, obj *ent.EquipmentPort) (*ent.EquipmentPortDefinition, error) {
-	return obj.QueryDefinition().Only(ctx)
+func (equipmentPortResolver) Definition(ctx context.Context, ep *ent.EquipmentPort) (*ent.EquipmentPortDefinition, error) {
+	if definition, err := ep.Edges.DefinitionOrErr(); !ent.IsNotLoaded(err) {
+		return definition, err
+	}
+	return ep.QueryDefinition().Only(ctx)
 }
 
-func (equipmentPortResolver) ParentEquipment(ctx context.Context, obj *ent.EquipmentPort) (*ent.Equipment, error) {
-	return obj.QueryParent().Only(ctx)
+func (equipmentPortResolver) ParentEquipment(ctx context.Context, ep *ent.EquipmentPort) (*ent.Equipment, error) {
+	if e, err := ep.Edges.ParentOrErr(); !ent.IsNotLoaded(err) {
+		return e, err
+	}
+	return ep.QueryParent().Only(ctx)
 }
 
-func (equipmentPortResolver) Link(ctx context.Context, obj *ent.EquipmentPort) (*ent.Link, error) {
-	l, err := obj.QueryLink().Only(ctx)
+func (equipmentPortResolver) Link(ctx context.Context, ep *ent.EquipmentPort) (*ent.Link, error) {
+	l, err := ep.Edges.LinkOrErr()
+	if ent.IsNotLoaded(err) {
+		l, err = ep.QueryLink().Only(ctx)
+	}
 	return l, ent.MaskNotFound(err)
 }
 
-func (equipmentPortResolver) Properties(ctx context.Context, obj *ent.EquipmentPort) ([]*ent.Property, error) {
-	return obj.QueryProperties().All(ctx)
+func (equipmentPortResolver) Properties(ctx context.Context, ep *ent.EquipmentPort) ([]*ent.Property, error) {
+	if properties, err := ep.Edges.PropertiesOrErr(); !ent.IsNotLoaded(err) {
+		return properties, err
+	}
+	return ep.QueryProperties().All(ctx)
 }
 
 type equipmentPositionResolver struct{}
 
-func (equipmentPositionResolver) Definition(ctx context.Context, obj *ent.EquipmentPosition) (*ent.EquipmentPositionDefinition, error) {
-	return obj.QueryDefinition().Only(ctx)
+func (equipmentPositionResolver) Definition(ctx context.Context, ep *ent.EquipmentPosition) (*ent.EquipmentPositionDefinition, error) {
+	if definition, err := ep.Edges.DefinitionOrErr(); !ent.IsNotLoaded(err) {
+		return definition, err
+	}
+	return ep.QueryDefinition().Only(ctx)
 }
 
-func (equipmentPositionResolver) ParentEquipment(ctx context.Context, obj *ent.EquipmentPosition) (*ent.Equipment, error) {
-	return obj.QueryParent().Only(ctx)
+func (equipmentPositionResolver) ParentEquipment(ctx context.Context, ep *ent.EquipmentPosition) (*ent.Equipment, error) {
+	if parent, err := ep.Edges.ParentOrErr(); !ent.IsNotLoaded(err) {
+		return parent, err
+	}
+	return ep.QueryParent().Only(ctx)
 }
 
-func (equipmentPositionResolver) AttachedEquipment(ctx context.Context, obj *ent.EquipmentPosition) (*ent.Equipment, error) {
-	e, err := obj.QueryAttachment().Only(ctx)
+func (equipmentPositionResolver) AttachedEquipment(ctx context.Context, ep *ent.EquipmentPosition) (*ent.Equipment, error) {
+	e, err := ep.Edges.AttachmentOrErr()
+	if ent.IsNotLoaded(err) {
+		e, err = ep.QueryAttachment().Only(ctx)
+	}
 	return e, ent.MaskNotFound(err)
 }
 
 type equipmentPortDefinitionResolver struct{}
 
-func (equipmentPortDefinitionResolver) PortType(ctx context.Context, obj *ent.EquipmentPortDefinition) (*ent.EquipmentPortType, error) {
-	l, err := obj.QueryEquipmentPortType().Only(ctx)
+func (equipmentPortDefinitionResolver) PortType(ctx context.Context, epd *ent.EquipmentPortDefinition) (*ent.EquipmentPortType, error) {
+	l, err := epd.Edges.EquipmentPortTypeOrErr()
+	if ent.IsNotLoaded(err) {
+		l, err = epd.QueryEquipmentPortType().Only(ctx)
+	}
 	return l, ent.MaskNotFound(err)
 }
 
 type equipmentPortTypeResolver struct{}
 
-func (equipmentPortTypeResolver) PropertyTypes(ctx context.Context, obj *ent.EquipmentPortType) ([]*ent.PropertyType, error) {
-	return obj.QueryPropertyTypes().All(ctx)
+func (equipmentPortTypeResolver) PropertyTypes(ctx context.Context, ept *ent.EquipmentPortType) ([]*ent.PropertyType, error) {
+	if types, err := ept.Edges.PropertyTypesOrErr(); !ent.IsNotLoaded(err) {
+		return types, err
+	}
+	return ept.QueryPropertyTypes().All(ctx)
 }
 
-func (equipmentPortTypeResolver) LinkPropertyTypes(ctx context.Context, obj *ent.EquipmentPortType) ([]*ent.PropertyType, error) {
-	return obj.QueryLinkPropertyTypes().All(ctx)
+func (equipmentPortTypeResolver) LinkPropertyTypes(ctx context.Context, ept *ent.EquipmentPortType) ([]*ent.PropertyType, error) {
+	if types, err := ept.Edges.LinkPropertyTypesOrErr(); !ent.IsNotLoaded(err) {
+		return types, err
+	}
+	return ept.QueryLinkPropertyTypes().All(ctx)
 }
 
-func (equipmentPortTypeResolver) NumberOfPortDefinitions(ctx context.Context, obj *ent.EquipmentPortType) (int, error) {
-	return obj.QueryPortDefinitions().Count(ctx)
+func (equipmentPortTypeResolver) NumberOfPortDefinitions(ctx context.Context, ept *ent.EquipmentPortType) (int, error) {
+	if pds, err := ept.Edges.PortDefinitionsOrErr(); !ent.IsNotLoaded(err) {
+		return len(pds), nil
+	}
+	return ept.QueryPortDefinitions().Count(ctx)
 }
 
 type equipmentTypeResolver struct{}
 
-func (equipmentTypeResolver) Category(ctx context.Context, obj *ent.EquipmentType) (*string, error) {
-	c, err := obj.QueryCategory().Only(ctx)
-	if c != nil {
-		return &c.Name, err
+func (equipmentTypeResolver) Category(ctx context.Context, typ *ent.EquipmentType) (*string, error) {
+	c, err := typ.Edges.CategoryOrErr()
+	if ent.IsNotLoaded(err) {
+		c, err = typ.QueryCategory().Only(ctx)
+	}
+	if err == nil {
+		return &c.Name, nil
 	}
 	return nil, ent.MaskNotFound(err)
 }
 
-func (equipmentTypeResolver) PositionDefinitions(ctx context.Context, obj *ent.EquipmentType) ([]*ent.EquipmentPositionDefinition, error) {
-	return obj.QueryPositionDefinitions().All(ctx)
+func (equipmentTypeResolver) PositionDefinitions(ctx context.Context, typ *ent.EquipmentType) ([]*ent.EquipmentPositionDefinition, error) {
+	if pds, err := typ.Edges.PositionDefinitionsOrErr(); !ent.IsNotLoaded(err) {
+		return pds, err
+	}
+	return typ.QueryPositionDefinitions().All(ctx)
 }
 
-func (equipmentTypeResolver) PortDefinitions(ctx context.Context, obj *ent.EquipmentType) ([]*ent.EquipmentPortDefinition, error) {
-	return obj.QueryPortDefinitions().All(ctx)
+func (equipmentTypeResolver) PortDefinitions(ctx context.Context, typ *ent.EquipmentType) ([]*ent.EquipmentPortDefinition, error) {
+	if pds, err := typ.Edges.PortDefinitionsOrErr(); !ent.IsNotLoaded(err) {
+		return pds, err
+	}
+	return typ.QueryPortDefinitions().All(ctx)
 }
 
-func (equipmentTypeResolver) PropertyTypes(ctx context.Context, obj *ent.EquipmentType) ([]*ent.PropertyType, error) {
-	return obj.QueryPropertyTypes().All(ctx)
+func (equipmentTypeResolver) PropertyTypes(ctx context.Context, typ *ent.EquipmentType) ([]*ent.PropertyType, error) {
+	if pts, err := typ.Edges.PropertyTypesOrErr(); !ent.IsNotLoaded(err) {
+		return pts, err
+	}
+	return typ.QueryPropertyTypes().All(ctx)
 }
 
-func (equipmentTypeResolver) Equipments(ctx context.Context, obj *ent.EquipmentType) ([]*ent.Equipment, error) {
-	return obj.QueryEquipment().All(ctx)
+func (equipmentTypeResolver) Equipments(ctx context.Context, typ *ent.EquipmentType) ([]*ent.Equipment, error) {
+	if es, err := typ.Edges.EquipmentOrErr(); !ent.IsNotLoaded(err) {
+		return es, err
+	}
+	return typ.QueryEquipment().All(ctx)
 }
 
-func (equipmentTypeResolver) NumberOfEquipment(ctx context.Context, obj *ent.EquipmentType) (int, error) {
-	return obj.QueryEquipment().Count(ctx)
+func (equipmentTypeResolver) NumberOfEquipment(ctx context.Context, typ *ent.EquipmentType) (int, error) {
+	if es, err := typ.Edges.EquipmentOrErr(); !ent.IsNotLoaded(err) {
+		return len(es), err
+	}
+	return typ.QueryEquipment().Count(ctx)
 }
 
 type equipmentResolver struct{ resolver }
 
-func (equipmentResolver) ParentLocation(ctx context.Context, obj *ent.Equipment) (*ent.Location, error) {
-	l, err := obj.QueryLocation().Only(ctx)
+func (r equipmentResolver) DescendentsIncludingSelf(ctx context.Context, obj *ent.Equipment) ([]*ent.Equipment, error) {
+	equip := *obj
+	var err error
+	var ret []*ent.Equipment
+	children, err := equip.QueryPositions().QueryAttachment().All(ctx)
+	if err == nil {
+		for _, child := range children {
+			grandChildren, err := r.DescendentsIncludingSelf(ctx, child)
+			if err == nil {
+				ret = append(ret, grandChildren...)
+			}
+		}
+	}
+	ret = append(ret, obj)
+	return ret, err
+}
+
+func (equipmentResolver) ParentLocation(ctx context.Context, e *ent.Equipment) (*ent.Location, error) {
+	l, err := e.Edges.LocationOrErr()
+	if ent.IsNotLoaded(err) {
+		l, err = e.QueryLocation().Only(ctx)
+	}
 	return l, ent.MaskNotFound(err)
 }
 
-func (equipmentResolver) ParentPosition(ctx context.Context, obj *ent.Equipment) (*ent.EquipmentPosition, error) {
-	p, err := obj.QueryParentPosition().Only(ctx)
+func (equipmentResolver) ParentPosition(ctx context.Context, e *ent.Equipment) (*ent.EquipmentPosition, error) {
+	p, err := e.Edges.ParentPositionOrErr()
+	if ent.IsNotLoaded(err) {
+		p, err = e.QueryParentPosition().Only(ctx)
+	}
 	return p, ent.MaskNotFound(err)
 }
 
-func (equipmentResolver) EquipmentType(ctx context.Context, obj *ent.Equipment) (*ent.EquipmentType, error) {
-	return obj.QueryType().Only(ctx)
+func (equipmentResolver) EquipmentType(ctx context.Context, e *ent.Equipment) (*ent.EquipmentType, error) {
+	if typ, err := e.Edges.TypeOrErr(); !ent.IsNotLoaded(err) {
+		return typ, err
+	}
+	return e.QueryType().Only(ctx)
 }
 
-func (equipmentResolver) Positions(ctx context.Context, obj *ent.Equipment) ([]*ent.EquipmentPosition, error) {
-	return obj.QueryPositions().All(ctx)
+func (equipmentResolver) Positions(ctx context.Context, e *ent.Equipment) ([]*ent.EquipmentPosition, error) {
+	if positions, err := e.Edges.PositionsOrErr(); !ent.IsNotLoaded(err) {
+		return positions, err
+	}
+	return e.QueryPositions().All(ctx)
 }
 
-func (equipmentResolver) Ports(ctx context.Context, obj *ent.Equipment) ([]*ent.EquipmentPort, error) {
-	return obj.QueryPorts().All(ctx)
+func (equipmentResolver) Ports(ctx context.Context, e *ent.Equipment, availableOnly *bool) ([]*ent.EquipmentPort, error) {
+	if !pointer.GetBool(availableOnly) {
+		if ports, err := e.Edges.PortsOrErr(); !ent.IsNotLoaded(err) {
+			return ports, err
+		}
+	}
+	query := e.QueryPorts()
+	if pointer.GetBool(availableOnly) {
+		query.Where(equipmentport.Not(equipmentport.HasLink()))
+	}
+	return query.All(ctx)
 }
 
-func (equipmentResolver) Properties(ctx context.Context, obj *ent.Equipment) ([]*ent.Property, error) {
-	return obj.QueryProperties().All(ctx)
+func (equipmentResolver) Properties(ctx context.Context, e *ent.Equipment) ([]*ent.Property, error) {
+	if properties, err := e.Edges.PropertiesOrErr(); !ent.IsNotLoaded(err) {
+		return properties, err
+	}
+	return e.QueryProperties().All(ctx)
 }
 
-func (equipmentResolver) FutureState(ctx context.Context, obj *ent.Equipment) (*models.FutureState, error) {
-	fs := models.FutureState(obj.FutureState)
-	return &fs, nil
+func (equipmentResolver) FutureState(_ context.Context, e *ent.Equipment) (*models.FutureState, error) {
+	state := models.FutureState(e.FutureState)
+	return &state, nil
 }
 
-func (equipmentResolver) WorkOrder(ctx context.Context, obj *ent.Equipment) (*ent.WorkOrder, error) {
-	wo, err := obj.QueryWorkOrder().Only(ctx)
+func (equipmentResolver) WorkOrder(ctx context.Context, e *ent.Equipment) (*ent.WorkOrder, error) {
+	wo, err := e.Edges.WorkOrderOrErr()
+	if ent.IsNotLoaded(err) {
+		wo, err = e.QueryWorkOrder().Only(ctx)
+	}
 	return wo, ent.MaskNotFound(err)
 }
 
-func (equipmentResolver) Images(ctx context.Context, obj *ent.Equipment) ([]*ent.File, error) {
-	return obj.QueryFiles().Where(file.Type(models.FileTypeImage.String())).All(ctx)
+func (equipmentResolver) filesOfType(ctx context.Context, e *ent.Equipment, typ string) ([]*ent.File, error) {
+	fds, err := e.Edges.FilesOrErr()
+	if ent.IsNotLoaded(err) {
+		return e.QueryFiles().
+			Where(file.Type(typ)).
+			All(ctx)
+	}
+	files := make([]*ent.File, 0, len(fds))
+	for _, f := range fds {
+		if f.Type == typ {
+			files = append(files, f)
+		}
+	}
+	return files, nil
 }
 
-func (equipmentResolver) Files(ctx context.Context, obj *ent.Equipment) ([]*ent.File, error) {
-	return obj.QueryFiles().Where(file.Type(models.FileTypeFile.String())).All(ctx)
+func (r equipmentResolver) Images(ctx context.Context, e *ent.Equipment) ([]*ent.File, error) {
+	return r.filesOfType(ctx, e, models.FileTypeImage.String())
 }
 
-func (equipmentResolver) Hyperlinks(ctx context.Context, obj *ent.Equipment) ([]*ent.Hyperlink, error) {
-	return obj.QueryHyperlinks().All(ctx)
+func (r equipmentResolver) Files(ctx context.Context, e *ent.Equipment) ([]*ent.File, error) {
+	return r.filesOfType(ctx, e, models.FileTypeFile.String())
 }
 
-func (equipmentResolver) PositionHierarchy(ctx context.Context, eq *ent.Equipment) ([]*ent.EquipmentPosition, error) {
+func (equipmentResolver) Hyperlinks(ctx context.Context, e *ent.Equipment) ([]*ent.Hyperlink, error) {
+	if hls, err := e.Edges.HyperlinksOrErr(); !ent.IsNotLoaded(err) {
+		return hls, err
+	}
+	return e.QueryHyperlinks().All(ctx)
+}
+
+func (equipmentResolver) PositionHierarchy(ctx context.Context, e *ent.Equipment) ([]*ent.EquipmentPosition, error) {
 	var positions []*ent.EquipmentPosition
-	ppos, err := eq.QueryParentPosition().Only(ctx)
+	ppos, err := e.QueryParentPosition().Only(ctx)
 	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrap(err, "querying parent position")
+		return nil, fmt.Errorf("querying parent position: %w", err)
 	}
 	for ppos != nil {
 		positions = append([]*ent.EquipmentPosition{ppos}, positions...)
 		p, err := ppos.QueryParent().QueryParentPosition().Only(ctx)
 		if err != nil && !ent.IsNotFound(err) {
-			return nil, errors.Wrap(err, "querying parent position")
+			return nil, fmt.Errorf("querying parent position: %w", err)
 		}
 
 		ppos = p
@@ -181,37 +299,42 @@ func (equipmentResolver) PositionHierarchy(ctx context.Context, eq *ent.Equipmen
 	return positions, nil
 }
 
-func (r equipmentResolver) LocationHierarchy(ctx context.Context, eq *ent.Equipment) ([]*ent.Location, error) {
-	ph, err := r.PositionHierarchy(ctx, eq)
+func (r equipmentResolver) LocationHierarchy(ctx context.Context, e *ent.Equipment) ([]*ent.Location, error) {
+	positions, err := r.PositionHierarchy(ctx, e)
 	if err != nil {
 		return nil, err
 	}
-	var locs []*ent.Location
-	var pl *ent.Location
-	if len(ph) > 0 {
-		pl = ph[0].QueryParent().QueryLocation().OnlyX(ctx)
+	var (
+		locations []*ent.Location
+		query     *ent.LocationQuery
+	)
+	if len(positions) > 0 {
+		query = positions[0].QueryParent().QueryLocation()
 	} else {
-		pl = eq.QueryLocation().OnlyX(ctx)
+		query = e.QueryLocation()
 	}
-	for pl != nil {
-		locs = append([]*ent.Location{pl}, locs...)
-		l, err := pl.QueryParent().Only(ctx)
+	for parent := query.WithParent().OnlyX(ctx); parent != nil; {
+		locations = append([]*ent.Location{parent}, locations...)
+		grandparent, err := parent.Edges.ParentOrErr()
+		if ent.IsNotLoaded(err) {
+			grandparent, err = parent.QueryParent().WithParent().Only(ctx)
+		}
 		if err != nil && !ent.IsNotFound(err) {
 			return nil, err
 		}
-		pl = l
+		parent = grandparent
 	}
-	return locs, nil
+	return locations, nil
 }
 
-func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*models.Device, error) {
-	if eq.DeviceID == "" {
+func (r equipmentResolver) Device(ctx context.Context, e *ent.Equipment) (*models.Device, error) {
+	if e.DeviceID == "" {
 		return nil, nil
 	}
-	if r.orc8rClient == nil {
-		return nil, errors.New("unsupported orc8r field")
+	if r.orc8r.client == nil {
+		return nil, errors.New("unsupported field")
 	}
-	parts := strings.Split(eq.DeviceID, ".")
+	parts := strings.Split(e.DeviceID, ".")
 	if len(parts) < 2 {
 		return nil, errors.New("invalid equipment device id")
 	}
@@ -221,7 +344,7 @@ func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*mode
 	if err != nil {
 		return nil, fmt.Errorf("cannot create http request: %w", err)
 	}
-	rsp, err := r.orc8rClient.Do(req)
+	rsp, err := r.orc8r.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("performing orc8r status request: %w", err)
 	}
@@ -234,51 +357,51 @@ func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*mode
 		return nil, fmt.Errorf("decoding orc8r response: %w", err)
 	}
 
-	dev := models.Device{ID: eq.DeviceID}
+	dev := models.Device{ID: e.DeviceID}
 	if result.CheckinTime != 0 {
-		up := checkinTimeIsUp(result.CheckinTime, 3*time.Minute)
-		dev.Up = &up
+		dev.Up = pointer.ToBool(
+			checkinTimeIsUp(result.CheckinTime, 3*time.Minute),
+		)
 	}
 	return &dev, nil
 }
 
 // checkinTime is milliseconds since epoch
-func checkinTimeIsUp(checkinTime int64, buffer time.Duration) bool {
-	return checkinTime/1000+int64(buffer.Seconds()) > time.Now().Unix()
+func checkinTimeIsUp(checkinTime int64, duration time.Duration) bool {
+	secs := int64(duration.Seconds()) + checkinTime/1000
+	return time.Now().Before(time.Unix(secs, 0))
 }
 
-func (r equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error) {
-	eqPred := resolverutil.BuildGeneralEquipmentAncestorFilter(equipment.ID(obj.ID), 1, 4)
-	endpoints, err := r.ClientFrom(ctx).ServiceEndpoint.Query().Where(
-		serviceendpoint.HasPortWith(equipmentport.HasParentWith(eqPred))).All(ctx)
-
+func (r equipmentResolver) Services(ctx context.Context, e *ent.Equipment) ([]*ent.Service, error) {
+	eqPred := resolverutil.BuildGeneralEquipmentAncestorFilter(equipment.ID(e.ID), 1, 4)
+	eids, err := r.ClientFrom(ctx).ServiceEndpoint.Query().
+		Where(serviceendpoint.HasPortWith(
+			equipmentport.HasParentWith(eqPred),
+		)).
+		IDs(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "querying service endpoints")
-	}
-	eids := make([]string, len(endpoints))
-	for _, ep := range endpoints {
-		eids = append(eids, ep.ID)
+		return nil, fmt.Errorf("querying service endpoint ids: %w", err)
 	}
 
-	services, err := r.ClientFrom(ctx).Service.Query().Where(service.HasEndpointsWith(serviceendpoint.IDIn(eids...))).All(ctx)
+	services, err := r.ClientFrom(ctx).Service.Query().
+		Where(service.HasEndpointsWith(
+			serviceendpoint.IDIn(eids...),
+		),
+		).All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "querying services where equipment port is an endpoint")
+		return nil, fmt.Errorf("querying services where equipment port is an endpoint: %w", err)
 	}
-
-	ids := make([]string, len(services))
+	ids := make([]int, len(services))
 	for i, svc := range services {
 		ids[i] = svc.ID
 	}
 
 	linkServices, err := r.ClientFrom(ctx).Service.Query().Where(
 		service.HasLinksWith(link.HasPortsWith(equipmentport.HasParentWith(
-			resolverutil.BuildGeneralEquipmentAncestorFilter(equipment.ID(obj.ID), 1, 3)))),
+			resolverutil.BuildGeneralEquipmentAncestorFilter(equipment.ID(e.ID), 1, 3)))),
 		service.Not(service.IDIn(ids...))).All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "querying services where equipment connected to link of service")
+		return nil, fmt.Errorf("querying services where equipment connected to link of service: %w", err)
 	}
-
-	services = append(services, linkServices...)
-
-	return services, nil
+	return append(services, linkServices...), nil
 }

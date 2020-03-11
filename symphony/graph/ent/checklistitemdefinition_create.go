@@ -9,7 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
@@ -20,12 +20,42 @@ import (
 // CheckListItemDefinitionCreate is the builder for creating a CheckListItemDefinition entity.
 type CheckListItemDefinitionCreate struct {
 	config
+	create_time     *time.Time
+	update_time     *time.Time
 	title           *string
 	_type           *string
 	index           *int
 	enum_values     *string
 	help_text       *string
-	work_order_type map[string]struct{}
+	work_order_type map[int]struct{}
+}
+
+// SetCreateTime sets the create_time field.
+func (clidc *CheckListItemDefinitionCreate) SetCreateTime(t time.Time) *CheckListItemDefinitionCreate {
+	clidc.create_time = &t
+	return clidc
+}
+
+// SetNillableCreateTime sets the create_time field if the given value is not nil.
+func (clidc *CheckListItemDefinitionCreate) SetNillableCreateTime(t *time.Time) *CheckListItemDefinitionCreate {
+	if t != nil {
+		clidc.SetCreateTime(*t)
+	}
+	return clidc
+}
+
+// SetUpdateTime sets the update_time field.
+func (clidc *CheckListItemDefinitionCreate) SetUpdateTime(t time.Time) *CheckListItemDefinitionCreate {
+	clidc.update_time = &t
+	return clidc
+}
+
+// SetNillableUpdateTime sets the update_time field if the given value is not nil.
+func (clidc *CheckListItemDefinitionCreate) SetNillableUpdateTime(t *time.Time) *CheckListItemDefinitionCreate {
+	if t != nil {
+		clidc.SetUpdateTime(*t)
+	}
+	return clidc
 }
 
 // SetTitle sets the title field.
@@ -83,16 +113,16 @@ func (clidc *CheckListItemDefinitionCreate) SetNillableHelpText(s *string) *Chec
 }
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
-func (clidc *CheckListItemDefinitionCreate) SetWorkOrderTypeID(id string) *CheckListItemDefinitionCreate {
+func (clidc *CheckListItemDefinitionCreate) SetWorkOrderTypeID(id int) *CheckListItemDefinitionCreate {
 	if clidc.work_order_type == nil {
-		clidc.work_order_type = make(map[string]struct{})
+		clidc.work_order_type = make(map[int]struct{})
 	}
 	clidc.work_order_type[id] = struct{}{}
 	return clidc
 }
 
 // SetNillableWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id if the given value is not nil.
-func (clidc *CheckListItemDefinitionCreate) SetNillableWorkOrderTypeID(id *string) *CheckListItemDefinitionCreate {
+func (clidc *CheckListItemDefinitionCreate) SetNillableWorkOrderTypeID(id *int) *CheckListItemDefinitionCreate {
 	if id != nil {
 		clidc = clidc.SetWorkOrderTypeID(*id)
 	}
@@ -106,6 +136,14 @@ func (clidc *CheckListItemDefinitionCreate) SetWorkOrderType(w *WorkOrderType) *
 
 // Save creates the CheckListItemDefinition in the database.
 func (clidc *CheckListItemDefinitionCreate) Save(ctx context.Context) (*CheckListItemDefinition, error) {
+	if clidc.create_time == nil {
+		v := checklistitemdefinition.DefaultCreateTime()
+		clidc.create_time = &v
+	}
+	if clidc.update_time == nil {
+		v := checklistitemdefinition.DefaultUpdateTime()
+		clidc.update_time = &v
+	}
 	if clidc.title == nil {
 		return nil, errors.New("ent: missing required field \"title\"")
 	}
@@ -129,17 +167,33 @@ func (clidc *CheckListItemDefinitionCreate) SaveX(ctx context.Context) *CheckLis
 
 func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*CheckListItemDefinition, error) {
 	var (
-		clid = &CheckListItemDefinition{config: clidc.config}
-		spec = &sqlgraph.CreateSpec{
+		clid  = &CheckListItemDefinition{config: clidc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: checklistitemdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistitemdefinition.FieldID,
 			},
 		}
 	)
+	if value := clidc.create_time; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldCreateTime,
+		})
+		clid.CreateTime = *value
+	}
+	if value := clidc.update_time; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: checklistitemdefinition.FieldUpdateTime,
+		})
+		clid.UpdateTime = *value
+	}
 	if value := clidc.title; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldTitle,
@@ -147,7 +201,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		clid.Title = *value
 	}
 	if value := clidc._type; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldType,
@@ -155,7 +209,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		clid.Type = *value
 	}
 	if value := clidc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldIndex,
@@ -163,7 +217,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		clid.Index = *value
 	}
 	if value := clidc.enum_values; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldEnumValues,
@@ -171,7 +225,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		clid.EnumValues = value
 	}
 	if value := clidc.help_text; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: checklistitemdefinition.FieldHelpText,
@@ -187,27 +241,23 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, clidc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, clidc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	clid.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	clid.ID = int(id)
 	return clid, nil
 }

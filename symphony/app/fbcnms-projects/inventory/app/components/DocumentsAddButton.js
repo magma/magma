@@ -16,9 +16,11 @@ import type {
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {MutationCallbacks} from '../mutations/MutationCallbacks.js';
 import type {WithSnackbarProps} from 'notistack';
+import type {WithStyles} from '@material-ui/core';
 
 import AddImageMutation from '../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import FileUpload from './FileUpload';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import React from 'react';
@@ -26,11 +28,23 @@ import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Strings from '../common/CommonStrings';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {withSnackbar} from 'notistack';
+import {withStyles} from '@material-ui/core/styles';
+
+const styles = {
+  uploadCategory: {
+    padding: '0px',
+  },
+  uploadCategoryButton: {
+    padding: '6px 16px',
+    width: '100%',
+  },
+};
 
 type Props = {
   entityId: ?string,
   entityType: ImageEntity,
-} & WithSnackbarProps;
+} & WithSnackbarProps &
+  WithStyles<typeof styles>;
 
 type State = {
   isMenuOpened: boolean,
@@ -44,14 +58,13 @@ const FileTypeEnum = {
 class DocumentsAddButton extends React.Component<Props, State> {
   static contextType = AppContext;
   context: AppContextType;
-  menuButtonRef = React.createRef();
 
   state = {
     isMenuOpened: false,
   };
 
   render() {
-    const {entityId} = this.props;
+    const {entityId, classes} = this.props;
     const categoriesEnabled = this.context.isFeatureEnabled('file_categories');
 
     if (!entityId) {
@@ -65,20 +78,25 @@ class DocumentsAddButton extends React.Component<Props, State> {
             skin="primary"
             menuDockRight={true}
             options={Strings.documents.categories.map(category => ({
+              key: category,
               label: (
                 <FileUpload
+                  className={classes.uploadCategoryButton}
                   key={category}
                   button={category}
                   onFileUploaded={this.onDocumentUploaded(category)}
                 />
               ),
               value: category,
+              className: classes.uploadCategory,
             }))}>
             {Strings.documents.uploadButton}
           </PopoverMenu>
         ) : (
           <FileUpload
-            button={Strings.documents.uploadButton}
+            button={
+              <Button skin="primary">{Strings.documents.uploadButton}</Button>
+            }
             onFileUploaded={this.onDocumentUploaded(null)}
           />
         )}
@@ -105,14 +123,20 @@ class DocumentsAddButton extends React.Component<Props, State> {
     };
 
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addImage');
       const fileType = newNode.getValue('fileType');
+      // $FlowFixMe (T62907961) Relay flow types
       const entityProxy = store.get(this.props.entityId);
       if (fileType == FileTypeEnum.IMAGE) {
+        // $FlowFixMe (T62907961) Relay flow types
         const imageNodes = entityProxy.getLinkedRecords('images') || [];
+        // $FlowFixMe (T62907961) Relay flow types
         entityProxy.setLinkedRecords([...imageNodes, newNode], 'images');
       } else {
+        // $FlowFixMe (T62907961) Relay flow types
         const fileNodes = entityProxy.getLinkedRecords('files') || [];
+        // $FlowFixMe (T62907961) Relay flow types
         entityProxy.setLinkedRecords([...fileNodes, newNode], 'files');
       }
     };
@@ -138,4 +162,4 @@ class DocumentsAddButton extends React.Component<Props, State> {
   };
 }
 
-export default withSnackbar(DocumentsAddButton);
+export default withStyles(styles)(withSnackbar(DocumentsAddButton));

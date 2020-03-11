@@ -1,3 +1,6 @@
+<!--
+@generated
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -29,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.exceptions.get_location_id_msg"><code class="name flex">
-<span>def <span class="ident">get_location_id_msg</span></span>(<span>location_name=None, location_type=None, external_id=None)</span>
+<span>def <span class="ident">get_location_id_msg</span></span>(<span>location_name: Union[str, NoneType] = None, location_type: Union[str, NoneType] = None, external_id: Union[str, NoneType] = None) -> str</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -66,9 +69,21 @@
 <li><a title="pyinventory.exceptions.LocationCannotBeDeletedWithDependency" href="#pyinventory.exceptions.LocationCannotBeDeletedWithDependency">LocationCannotBeDeletedWithDependency</a></li>
 </ul>
 </dd>
+<dt id="pyinventory.exceptions.EntityNotFoundError"><code class="flex name class">
+<span>class <span class="ident">EntityNotFoundError</span></span>
+<span>(</span><span>entity: str, entity_id: Union[str, NoneType] = None, entity_name: Union[str, NoneType] = None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
 <dt id="pyinventory.exceptions.EquipmentIsNotUniqueException"><code class="flex name class">
 <span>class <span class="ident">EquipmentIsNotUniqueException</span></span>
-<span>(</span><span>equipment_name=None, parent_equipment_name=None, parent_position_name=None)</span>
+<span>(</span><span>equipment_name: Union[str, NoneType] = None, parent_equipment_name: Union[str, NoneType] = None, parent_position_name: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -81,7 +96,7 @@
 </dd>
 <dt id="pyinventory.exceptions.EquipmentNotFoundException"><code class="flex name class">
 <span>class <span class="ident">EquipmentNotFoundException</span></span>
-<span>(</span><span>equipment_name=None, parent_equipment_name=None, parent_position_name=None)</span>
+<span>(</span><span>equipment_name: Union[str, NoneType] = None, parent_equipment_name: Union[str, NoneType] = None, parent_position_name: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -94,7 +109,7 @@
 </dd>
 <dt id="pyinventory.exceptions.EquipmentPortIsNotUniqueException"><code class="flex name class">
 <span>class <span class="ident">EquipmentPortIsNotUniqueException</span></span>
-<span>(</span><span>equipment_name, port_name)</span>
+<span>(</span><span>equipment_name: str, port_name: str)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -107,7 +122,7 @@
 </dd>
 <dt id="pyinventory.exceptions.EquipmentPortNotFoundException"><code class="flex name class">
 <span>class <span class="ident">EquipmentPortNotFoundException</span></span>
-<span>(</span><span>equipment_name, port_name)</span>
+<span>(</span><span>equipment_name: str, port_name: str)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -120,7 +135,7 @@
 </dd>
 <dt id="pyinventory.exceptions.EquipmentPositionIsNotUniqueException"><code class="flex name class">
 <span>class <span class="ident">EquipmentPositionIsNotUniqueException</span></span>
-<span>(</span><span>parent_equipment_name, parent_position_name)</span>
+<span>(</span><span>parent_equipment_name: str, parent_position_name: str)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -133,7 +148,7 @@
 </dd>
 <dt id="pyinventory.exceptions.EquipmentPositionNotFoundException"><code class="flex name class">
 <span>class <span class="ident">EquipmentPositionNotFoundException</span></span>
-<span>(</span><span>parent_equipment_name, parent_position_name)</span>
+<span>(</span><span>parent_equipment_name: str, parent_position_name: str)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -146,7 +161,7 @@
 </dd>
 <dt id="pyinventory.exceptions.EquipmentTypeNotFoundException"><code class="flex name class">
 <span>class <span class="ident">EquipmentTypeNotFoundException</span></span>
-<span>(</span><span>equipment_type_name)</span>
+<span>(</span><span>equipment_type_name: str)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -159,7 +174,7 @@
 </dd>
 <dt id="pyinventory.exceptions.LinkNotFoundException"><code class="flex name class">
 <span>class <span class="ident">LinkNotFoundException</span></span>
-<span>(</span><span>equipment_name, port_name)</span>
+<span>(</span><span>equipment_name: str, port_name: str)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -172,7 +187,7 @@
 </dd>
 <dt id="pyinventory.exceptions.LocationCannotBeDeletedWithDependency"><code class="flex name class">
 <span>class <span class="ident">LocationCannotBeDeletedWithDependency</span></span>
-<span>(</span><span>location_name, dependency)</span>
+<span>(</span><span>location_name: str, dependency: str)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -185,7 +200,7 @@
 </dd>
 <dt id="pyinventory.exceptions.LocationIsNotUniqueException"><code class="flex name class">
 <span>class <span class="ident">LocationIsNotUniqueException</span></span>
-<span>(</span><span>location_name=None, location_type=None, external_id=None)</span>
+<span>(</span><span>location_name: Union[str, NoneType] = None, location_type: Union[str, NoneType] = None, external_id: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -198,7 +213,7 @@
 </dd>
 <dt id="pyinventory.exceptions.LocationNotFoundException"><code class="flex name class">
 <span>class <span class="ident">LocationNotFoundException</span></span>
-<span>(</span><span>location_name=None, location_type=None, external_id=None)</span>
+<span>(</span><span>location_name: Union[str, NoneType] = None, location_type: Union[str, NoneType] = None, external_id: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -211,7 +226,7 @@
 </dd>
 <dt id="pyinventory.exceptions.PortAlreadyOccupiedException"><code class="flex name class">
 <span>class <span class="ident">PortAlreadyOccupiedException</span></span>
-<span>(</span><span>equipment_name, port_name)</span>
+<span>(</span><span>equipment_name: str, port_name: str)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
@@ -245,6 +260,9 @@
 <ul>
 <li>
 <h4><code><a title="pyinventory.exceptions.CustomException" href="#pyinventory.exceptions.CustomException">CustomException</a></code></h4>
+</li>
+<li>
+<h4><code><a title="pyinventory.exceptions.EntityNotFoundError" href="#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code></h4>
 </li>
 <li>
 <h4><code><a title="pyinventory.exceptions.EquipmentIsNotUniqueException" href="#pyinventory.exceptions.EquipmentIsNotUniqueException">EquipmentIsNotUniqueException</a></code></h4>

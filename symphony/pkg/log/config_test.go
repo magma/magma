@@ -15,53 +15,68 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestConfigParsing(t *testing.T) {
-	t.Run("default", func(t *testing.T) {
-		var cfg Config
-		_, err := flags.ParseArgs(&cfg, nil)
+func TestConfigParse(t *testing.T) {
+	t.Run("Default", func(t *testing.T) {
+		var config Config
+		_, err := flags.ParseArgs(&config, nil)
 		assert.NoError(t, err)
-		assert.EqualValues(t, zap.InfoLevel, cfg.Level)
-		assert.Equal(t, "console", cfg.Format)
+		assert.Equal(t, "info", config.Level.String())
+		assert.Equal(t, "console", config.Format.String())
 	})
-	t.Run("ok", func(t *testing.T) {
-		var cfg Config
-		_, err := flags.ParseArgs(&cfg, []string{
+	t.Run("OK", func(t *testing.T) {
+		var config Config
+		_, err := flags.ParseArgs(&config, []string{
 			"--level", "error", "--format", "json",
 		})
 		assert.NoError(t, err)
-		assert.EqualValues(t, zap.ErrorLevel, cfg.Level)
-		assert.Equal(t, "json", cfg.Format)
+		assert.Equal(t, "error", config.Level.String())
+		assert.Equal(t, "json", config.Format.String())
 	})
-	t.Run("bad level", func(t *testing.T) {
+	t.Run("BadLevel", func(t *testing.T) {
 		var cfg Config
 		_, err := flags.ParseArgs(&cfg, []string{
-			"--level", "garbage",
+			"--level", "foo",
+		})
+		assert.Error(t, err)
+	})
+	t.Run("BadFormat", func(t *testing.T) {
+		var cfg Config
+		_, err := flags.ParseArgs(&cfg, []string{
+			"--format", "bar",
 		})
 		assert.Error(t, err)
 	})
 }
 
-func TestLoggerBuild(t *testing.T) {
+func TestNew(t *testing.T) {
 	tests := []struct {
 		name    string
-		cfg     Config
+		config  Config
 		wantErr bool
 	}{
 		{
 			name: "Production",
-			cfg:  Config{Level(zap.InfoLevel), "json"},
+			config: Config{
+				Level:  AllowedLevel(zap.InfoLevel),
+				Format: "json",
+			},
 		},
 		{
 			name: "Development",
-			cfg:  Config{Level(zap.DebugLevel), "console"},
+			config: Config{
+				Level:  AllowedLevel(zap.DebugLevel),
+				Format: "console",
+			},
 		},
 		{
-			name: "Discard",
-			cfg:  Config{},
+			name:   "Nop",
+			config: Config{},
 		},
 		{
-			name:    "NoFormat",
-			cfg:     Config{Level(zap.WarnLevel), ""},
+			name: "BadFormat",
+			config: Config{
+				Format: "fmt",
+			},
 			wantErr: true,
 		},
 	}
@@ -69,7 +84,7 @@ func TestLoggerBuild(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			logger, err := tc.cfg.Build()
+			logger, err := New(tc.config)
 			if !tc.wantErr {
 				assert.NotNil(t, logger)
 				assert.NoError(t, err)
@@ -80,10 +95,17 @@ func TestLoggerBuild(t *testing.T) {
 	}
 }
 
-func TestNewLogger(t *testing.T) {
+func TestMustNew(t *testing.T) {
+	var config Config
+	assert.NotPanics(t, func() { _ = MustNew(config) })
+	config.Format = "baz"
+	assert.Panics(t, func() { _ = MustNew(config) })
+}
+
+func TestProvider(t *testing.T) {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
-	logger, restorer, err := New(Config{})
+	logger, restorer, err := Provider(Config{})
 	require.NoError(t, err)
 	defer restorer()
 	assert.Equal(t, logger.Background(), zap.L())

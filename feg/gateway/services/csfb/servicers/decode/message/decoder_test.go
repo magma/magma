@@ -734,5 +734,453 @@ func TestDecodeSGsAPAlertReject(t *testing.T) {
 	)
 	assert.EqualError(t, err, errorMsg)
 	assert.Equal(t, &any.Any{}, msg)
+}
 
+func TestDecodeSGsAPEPSDetachIndication(t *testing.T) {
+	imsi, _ := test_utils.ConstructIMSI("111111")
+	mmeName := test_utils.ConstructDefaultMMEName()
+	imsiDetachFromEpsServiceType := test_utils.ConstructDefaultIE(decode.IEIIMSIDetachFromEPSServiceType, 1)
+	chunk := append([]byte{byte(decode.SGsAPEPSDetachIndication)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	chunk = append(chunk, imsiDetachFromEpsServiceType...)
+	msg, err := message.DecodeSGsAPEPSDetachIndication(chunk)
+	assert.NoError(t, err)
+	expectedMsg, _ := ptypes.MarshalAny(&protos.EPSDetachIndication{
+		Imsi:                         "111111",
+		MmeName:                      "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde",
+		ImsiDetachFromEpsServiceType: []byte{0x11},
+	})
+	assert.Equal(t, expectedMsg, msg)
+
+	// IMSI too short
+	imsi, _ = test_utils.ConstructIMSI("11111")
+	chunk = append([]byte{byte(decode.SGsAPEPSDetachIndication)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	chunk = append(chunk, imsiDetachFromEpsServiceType...)
+	msg, err = message.DecodeSGsAPEPSDetachIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// IMSI too long
+	imsi, _ = test_utils.ConstructIMSI("111111111111111111111")
+	chunk = append([]byte{byte(decode.SGsAPEPSDetachIndication)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	chunk = append(chunk, imsiDetachFromEpsServiceType...)
+	msg, err = message.DecodeSGsAPEPSDetachIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// missing mme
+	imsi, _ = test_utils.ConstructIMSI("111111")
+	chunk = append([]byte{byte(decode.SGsAPEPSDetachIndication)}, imsi...)
+	chunk = append(chunk, imsiDetachFromEpsServiceType...)
+	msg, err = message.DecodeSGsAPEPSDetachIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// missing eps service type
+	chunk = append([]byte{byte(decode.SGsAPEPSDetachIndication)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	msg, err = message.DecodeSGsAPEPSDetachIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+}
+
+func TestDecodeSGsAPIMSIDetachIndication(t *testing.T) {
+	imsi, _ := test_utils.ConstructIMSI("111111")
+	mmeName := test_utils.ConstructDefaultMMEName()
+	imsiDetachFromNonEpsServiceType := test_utils.ConstructDefaultIE(decode.IEIIMSIDetachFromNonEPSServiceType, 1)
+	chunk := append([]byte{byte(decode.SGsAPIMSIDetachIndication)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	chunk = append(chunk, imsiDetachFromNonEpsServiceType...)
+	msg, err := message.DecodeSGsAPIMSIDetachIndication(chunk)
+	assert.NoError(t, err)
+	expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachIndication{
+		Imsi:                            "111111",
+		MmeName:                         "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde",
+		ImsiDetachFromNonEpsServiceType: []byte{0x11},
+	})
+	assert.Equal(t, expectedMsg, msg)
+
+	// IMSI too short
+	imsi, _ = test_utils.ConstructIMSI("11111")
+	chunk = append([]byte{byte(decode.SGsAPIMSIDetachIndication)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	chunk = append(chunk, imsiDetachFromNonEpsServiceType...)
+	msg, err = message.DecodeSGsAPIMSIDetachIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// IMSI too long
+	imsi, _ = test_utils.ConstructIMSI("111111111111111111111")
+	chunk = append([]byte{byte(decode.SGsAPIMSIDetachIndication)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	chunk = append(chunk, imsiDetachFromNonEpsServiceType...)
+	msg, err = message.DecodeSGsAPIMSIDetachIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// missing mme
+	imsi, _ = test_utils.ConstructIMSI("111111")
+	chunk = append([]byte{byte(decode.SGsAPIMSIDetachIndication)}, imsi...)
+	chunk = append(chunk, imsiDetachFromNonEpsServiceType...)
+	msg, err = message.DecodeSGsAPIMSIDetachIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// missing eps service type
+	chunk = append([]byte{byte(decode.SGsAPIMSIDetachIndication)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	msg, err = message.DecodeSGsAPIMSIDetachIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+}
+
+func TestDecodeSGsAPLocationUpdateRequest(t *testing.T) {
+	// verify sanity with just mandatory fields
+	imsi, _ := test_utils.ConstructIMSI("111111")
+	mmeName := test_utils.ConstructDefaultMMEName()
+	epsLocationUpdateType := test_utils.ConstructDefaultIE(decode.IEIEPSLocationUpdateType, 1)
+	newLocationAreaIdentifier := test_utils.ConstructDefaultLocationAreaIdentifier()
+	chunk := append([]byte{byte(decode.SGsAPLocationUpdateRequest)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	chunk = append(chunk, epsLocationUpdateType...)
+	chunk = append(chunk, newLocationAreaIdentifier...)
+	msg, err := message.DecodeSGsAPLocationUpdateRequest(chunk)
+	expectedMsg, _ := ptypes.MarshalAny(&protos.LocationUpdateRequest{
+		Imsi:                      "111111",
+		MmeName:                   "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde",
+		EpsLocationUpdateType:     test_utils.DefaultVal(1),
+		NewLocationAreaIdentifier: []byte{0x11, 0x12, 0x13, 0x14, 0x15},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, msg, expectedMsg)
+
+	mandatoryChunk := make([]byte, len(chunk))
+	copy(mandatoryChunk, chunk)
+
+	// verify sanity with all optional fields
+	oldLocationAreaIdentifier := test_utils.ConstructDefaultLocationAreaIdentifier()
+	tmsiStatus := test_utils.ConstructDefaultIE(decode.IEITMSIStatus, 1)
+	imeIsv := test_utils.ConstructDefaultIE(decode.IEIIMEISV, 8)
+	tai := test_utils.ConstructDefaultIE(decode.IEITAI, 5)
+	eCgi := test_utils.ConstructDefaultIE(decode.IEIEUTRANCellGlobalIdentity, 7)
+	chunk = append(chunk, oldLocationAreaIdentifier...)
+	chunk = append(chunk, tmsiStatus...)
+	chunk = append(chunk, imeIsv...)
+	chunk = append(chunk, tai...)
+	chunk = append(chunk, eCgi...)
+	msg, err = message.DecodeSGsAPLocationUpdateRequest(chunk)
+	expectedMsg, _ = ptypes.MarshalAny(&protos.LocationUpdateRequest{
+		Imsi:                      "111111",
+		MmeName:                   "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde",
+		EpsLocationUpdateType:     test_utils.DefaultVal(1),
+		NewLocationAreaIdentifier: []byte{0x11, 0x12, 0x13, 0x14, 0x15},
+		OldLocationAreaIdentifier: []byte{0x11, 0x12, 0x13, 0x14, 0x15},
+		TmsiStatus:                test_utils.DefaultVal(1),
+		Imeisv:                    test_utils.DefaultVal(8),
+		Tai:                       test_utils.DefaultVal(5),
+		ECgi:                      test_utils.DefaultVal(7),
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, msg, expectedMsg)
+
+	// skip mandatory fields and verify error
+	chunk = append([]byte{byte(decode.SGsAPLocationUpdateRequest)}, imsi...)
+	chunk = append(chunk, epsLocationUpdateType...)
+	chunk = append(chunk, newLocationAreaIdentifier...)
+	chunk = append(chunk, oldLocationAreaIdentifier...)
+	chunk = append(chunk, tmsiStatus...)
+	chunk = append(chunk, imeIsv...)
+	chunk = append(chunk, tai...)
+	chunk = append(chunk, eCgi...)
+	msg, err = message.DecodeSGsAPLocationUpdateRequest(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
+
+	// Add a random field and ensure error
+	sgsCause := test_utils.ConstructDefaultIE(decode.IEISGsCause, 1)
+	chunk = make([]byte, len(mandatoryChunk))
+	copy(chunk, mandatoryChunk)
+	chunk = append(chunk, sgsCause...)
+	msg, err = message.DecodeSGsAPLocationUpdateRequest(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
+
+	// Add an optional field with wrong size and ensure error
+	chunk = make([]byte, len(mandatoryChunk))
+	copy(chunk, mandatoryChunk)
+	chunk = append(chunk, test_utils.ConstructDefaultIE(decode.IEITMSIStatus, 3)...)
+	msg, err = message.DecodeSGsAPLocationUpdateRequest(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
+
+	// Add a mandatory field with wrong size and ensure error
+	epsLocationUpdateType = test_utils.ConstructDefaultIE(decode.IEIEPSLocationUpdateType, 5)
+	chunk = append([]byte{byte(decode.SGsAPLocationUpdateRequest)}, imsi...)
+	chunk = append(chunk, mmeName...)
+	chunk = append(chunk, epsLocationUpdateType...)
+	chunk = append(chunk, newLocationAreaIdentifier...)
+	msg, err = message.DecodeSGsAPLocationUpdateRequest(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
+}
+
+func TestDecodeSGsAPPagingReject(t *testing.T) {
+	// Successfully decode message
+	imsi, _ := test_utils.ConstructIMSI("111111")
+	chunk := append([]byte{byte(decode.SGsAPPagingReject)}, imsi...)
+	sgsCause := test_utils.ConstructDefaultIE(decode.IEISGsCause, 1)
+	chunk = append(chunk, sgsCause...)
+	msg, err := message.DecodeSGsAPPagingReject(chunk)
+	assert.NoError(t, err)
+	expectedMsg, _ := ptypes.MarshalAny(&protos.PagingReject{
+		Imsi:     "111111",
+		SgsCause: sgsCause[2:],
+	})
+	assert.Equal(t, expectedMsg, msg)
+
+	// IMSI too short
+	imsi, _ = test_utils.ConstructIMSI("11111")
+	chunk = append([]byte{byte(decode.SGsAPPagingReject)}, imsi...)
+	chunk = append(chunk, sgsCause...)
+	msg, err = message.DecodeSGsAPPagingReject(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// IMSI too long
+	imsi, _ = test_utils.ConstructIMSI("111111111111111111111")
+	chunk = append([]byte{byte(decode.SGsAPPagingReject)}, imsi...)
+	msg, err = message.DecodeSGsAPPagingReject(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// sgsCause too short
+	imsi, _ = test_utils.ConstructIMSI("1111111111")
+	chunk = append([]byte{byte(decode.SGsAPPagingReject)}, imsi...)
+	chunk = append(chunk, sgsCause[:1]...)
+	msg, err = message.DecodeSGsAPPagingReject(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+}
+
+func TestDecodeSGsAPServiceRequest(t *testing.T) {
+	imsi, _ := test_utils.ConstructIMSI("111111")
+	serviceIndicator := test_utils.ConstructDefaultIE(decode.IEIServiceIndicator, 1)
+	chunk := append([]byte{byte(decode.SGsAPUplinkUnitdata)}, imsi...)
+	chunk = append(chunk, serviceIndicator...)
+	msg, err := message.DecodeSGsAPServiceRequest(chunk)
+	expectedMsg, _ := ptypes.MarshalAny(&protos.ServiceRequest{
+		Imsi:             "111111",
+		ServiceIndicator: test_utils.DefaultVal(1),
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, msg, expectedMsg)
+	mandatoryChunk := make([]byte, len(chunk))
+	copy(mandatoryChunk, chunk)
+
+	// test sanity for fully populated list of optional fields along with
+	// mandatory fields
+	imeIsv := test_utils.ConstructDefaultIE(decode.IEIIMEISV, 8)
+	ueTz := test_utils.ConstructDefaultIE(decode.IEIUETimeZone, 1)
+	mobileStationClassmark2 := test_utils.ConstructDefaultIE(decode.IEIMobileStationClassmark2, 3)
+	tai := test_utils.ConstructDefaultIE(decode.IEITAI, 5)
+	eCgi := test_utils.ConstructDefaultIE(decode.IEIEUTRANCellGlobalIdentity, 7)
+	ueEmmMode := test_utils.ConstructDefaultIE(decode.IEIUEEMMMode, 1)
+	chunk = append(chunk, imeIsv...)
+	chunk = append(chunk, ueTz...)
+	chunk = append(chunk, mobileStationClassmark2...)
+	chunk = append(chunk, tai...)
+	chunk = append(chunk, eCgi...)
+	chunk = append(chunk, ueEmmMode...)
+	msg, err = message.DecodeSGsAPServiceRequest(chunk)
+	expectedMsg, _ = ptypes.MarshalAny(&protos.ServiceRequest{
+		Imsi:                    "111111",
+		ServiceIndicator:        test_utils.DefaultVal(1),
+		Imeisv:                  test_utils.DefaultVal(8),
+		UeTimeZone:              test_utils.DefaultVal(1),
+		MobileStationClassmark2: test_utils.DefaultVal(3),
+		Tai:                     test_utils.DefaultVal(5),
+		ECgi:                    test_utils.DefaultVal(7),
+		UeEmmMode:               test_utils.DefaultVal(1),
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, msg, expectedMsg)
+
+	// skip mandatory fields and ensure error
+	chunk = append([]byte{byte(decode.SGsAPUplinkUnitdata)}, imsi...)
+	chunk = append(chunk, imeIsv...)
+	chunk = append(chunk, ueTz...)
+	chunk = append(chunk, mobileStationClassmark2...)
+	chunk = append(chunk, tai...)
+	msg, err = message.DecodeSGsAPServiceRequest(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
+
+	// Add an optional field with wrong size and ensure error
+	chunk = make([]byte, len(chunk))
+	copy(chunk, mandatoryChunk)
+	chunk = append(chunk, imeIsv[:7]...)
+	msg, err = message.DecodeSGsAPServiceRequest(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
+
+	// Add a mandatory field with wrong size and ensure error
+	chunk = append([]byte{byte(decode.SGsAPUplinkUnitdata)}, imsi...)
+	chunk = append(chunk, test_utils.ConstructDefaultIE(decode.IEIServiceIndicator, 2)...)
+	msg, err = message.DecodeSGsAPServiceRequest(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
+}
+
+func TestDecodeSGsAPTMSIReallocationComplete(t *testing.T) {
+	imsi, _ := test_utils.ConstructIMSI("111111")
+	chunk := append([]byte{byte(decode.SGsAPTMSIReallocationComplete)}, imsi...)
+	msg, err := message.DecodeSGsAPTMSIReallocationComplete(chunk)
+	assert.NoError(t, err)
+	expectedMsg, _ := ptypes.MarshalAny(&protos.TMSIReallocationComplete{
+		Imsi: "111111",
+	})
+	assert.Equal(t, expectedMsg, msg)
+
+	// imsi too short
+	imsi, _ = test_utils.ConstructIMSI("11111")
+	chunk = append([]byte{byte(decode.SGsAPTMSIReallocationComplete)}, imsi...)
+	msg, err = message.DecodeSGsAPTMSIReallocationComplete(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// IMSI too long
+	imsi, _ = test_utils.ConstructIMSI("111111111111111111111")
+	chunk = append([]byte{byte(decode.SGsAPTMSIReallocationComplete)}, imsi...)
+	msg, err = message.DecodeSGsAPTMSIReallocationComplete(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+}
+
+func TestDecodeSGsAPUEActivityIndication(t *testing.T) {
+	imsi, _ := test_utils.ConstructIMSI("111111")
+	chunk := append([]byte{byte(decode.SGsAPUEActivityIndication)}, imsi...)
+	msg, err := message.DecodeSGsAPUEActivityIndication(chunk)
+	assert.NoError(t, err)
+	expectedMsg, _ := ptypes.MarshalAny(&protos.UEActivityIndication{
+		Imsi: "111111",
+	})
+	assert.Equal(t, expectedMsg, msg)
+
+	// imsi too short
+	imsi, _ = test_utils.ConstructIMSI("11111")
+	chunk = append([]byte{byte(decode.SGsAPUEActivityIndication)}, imsi...)
+	msg, err = message.DecodeSGsAPUEActivityIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// IMSI too long
+	imsi, _ = test_utils.ConstructIMSI("111111111111111111111")
+	chunk = append([]byte{byte(decode.SGsAPUEActivityIndication)}, imsi...)
+	msg, err = message.DecodeSGsAPUEActivityIndication(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+}
+
+func TestDecodeSGsAPUEUnreachable(t *testing.T) {
+	imsi, _ := test_utils.ConstructIMSI("111111")
+	chunk := append([]byte{byte(decode.SGsAPUEUnreachable)}, imsi...)
+	sgsCause := test_utils.ConstructDefaultIE(decode.IEISGsCause, 1)
+	chunk = append(chunk, sgsCause...)
+	msg, err := message.DecodeSGsAPUEUnreachable(chunk)
+	assert.NoError(t, err)
+	expectedMsg, _ := ptypes.MarshalAny(&protos.UEUnreachable{
+		Imsi:     "111111",
+		SgsCause: sgsCause[2:],
+	})
+	assert.Equal(t, expectedMsg, msg)
+
+	// IMSI too short
+	imsi, _ = test_utils.ConstructIMSI("11111")
+	chunk = append([]byte{byte(decode.SGsAPUEUnreachable)}, imsi...)
+	chunk = append(chunk, sgsCause...)
+	msg, err = message.DecodeSGsAPUEUnreachable(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// IMSI too long
+	imsi, _ = test_utils.ConstructIMSI("111111111111111111111")
+	chunk = append([]byte{byte(decode.SGsAPUEUnreachable)}, imsi...)
+	msg, err = message.DecodeSGsAPUEUnreachable(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+
+	// sgsCause too short
+	imsi, _ = test_utils.ConstructIMSI("1111111111")
+	chunk = append([]byte{byte(decode.SGsAPUEUnreachable)}, imsi...)
+	chunk = append(chunk, sgsCause[:1]...)
+	msg, err = message.DecodeSGsAPUEUnreachable(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, &any.Any{}, msg)
+}
+
+func TestDecodeSGsAPUplinkUnitdata(t *testing.T) {
+	imsi, _ := test_utils.ConstructIMSI("111111")
+	nasMessageContainer := test_utils.ConstructDefaultIE(decode.IEINASMessageContainer, 2)
+	chunk := append([]byte{byte(decode.SGsAPUplinkUnitdata)}, imsi...)
+	chunk = append(chunk, nasMessageContainer...)
+	msg, err := message.DecodeSGsAPUplinkUnitdata(chunk)
+	expectedMsg, _ := ptypes.MarshalAny(&protos.UplinkUnitdata{
+		Imsi:                "111111",
+		NasMessageContainer: test_utils.DefaultVal(2),
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, msg, expectedMsg)
+
+	// test sanity for fully populated list of optional fields along with
+	// mandatory fields
+	imeIsv := test_utils.ConstructDefaultIE(decode.IEIIMEISV, 8)
+	ueTz := test_utils.ConstructDefaultIE(decode.IEIUETimeZone, 1)
+	mobileStationClassmark2 := test_utils.ConstructDefaultIE(decode.IEIMobileStationClassmark2, 3)
+	tai := test_utils.ConstructDefaultIE(decode.IEITAI, 5)
+	eCgi := test_utils.ConstructDefaultIE(decode.IEIEUTRANCellGlobalIdentity, 7)
+	chunk = append(chunk, imeIsv...)
+	chunk = append(chunk, ueTz...)
+	chunk = append(chunk, mobileStationClassmark2...)
+	chunk = append(chunk, tai...)
+	chunk = append(chunk, eCgi...)
+	msg, err = message.DecodeSGsAPUplinkUnitdata(chunk)
+	expectedMsg, _ = ptypes.MarshalAny(&protos.UplinkUnitdata{
+		Imsi:                    "111111",
+		NasMessageContainer:     test_utils.DefaultVal(2),
+		Imeisv:                  test_utils.DefaultVal(8),
+		UeTimeZone:              test_utils.DefaultVal(1),
+		MobileStationClassmark2: test_utils.DefaultVal(3),
+		Tai:                     test_utils.DefaultVal(5),
+		ECgi:                    test_utils.DefaultVal(7),
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, msg, expectedMsg)
+
+	// skip mandatory fields and ensure error
+	chunk = append([]byte{byte(decode.SGsAPUplinkUnitdata)}, imsi...)
+	chunk = append(chunk, imeIsv...)
+	chunk = append(chunk, ueTz...)
+	chunk = append(chunk, mobileStationClassmark2...)
+	chunk = append(chunk, tai...)
+	chunk = append(chunk, eCgi...)
+	msg, err = message.DecodeSGsAPUplinkUnitdata(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
+
+	// Add mandatory fields with wrong size and ensure error
+	chunk = append([]byte{byte(decode.SGsAPUplinkUnitdata)}, imsi...)
+	chunk = append(chunk, nasMessageContainer[:1]...)
+	msg, err = message.DecodeSGsAPUplinkUnitdata(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
+
+	// Add optional fields with wrong size and ensure error
+	chunk = append([]byte{byte(decode.SGsAPUplinkUnitdata)}, imsi...)
+	chunk = append(chunk, nasMessageContainer...)
+	chunk = append(chunk, imeIsv[:7]...)
+	msg, err = message.DecodeSGsAPUplinkUnitdata(chunk)
+	assert.NotEqual(t, err, nil)
+	assert.Equal(t, msg, &any.Any{})
 }

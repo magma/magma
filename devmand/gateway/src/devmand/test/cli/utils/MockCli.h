@@ -12,6 +12,7 @@
 
 #include <devmand/channels/cli/Cli.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
+#include <map>
 
 namespace devmand {
 namespace test {
@@ -107,6 +108,37 @@ shared_ptr<AsyncCli> getMockCli(
   vector<unsigned int> durations = {delay};
   return make_shared<AsyncCli>(make_shared<NESTED>(), exec, durations);
 }
+
+// responds to read commands using a pre populated map of commands -> outputs
+class MockedCli : public Cli {
+ private:
+  std::map<string, string> responseMap;
+
+ public:
+  MockedCli(std::map<string, string> map) : responseMap(map) {}
+
+  SemiFuture<Unit> destroy() override {
+    return makeSemiFuture(unit);
+  }
+
+  SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
+    if (responseMap.count(cmd.raw()) == 1) {
+      MLOG(MDEBUG) << "MockedCli.executeRead hit ('" << cmd.raw() << "')";
+      return responseMap.at(cmd.raw());
+    } else {
+      MLOG(MDEBUG) << "MockedCli.executeRead miss ('" << cmd.raw() << "')";
+      return Future<string>(runtime_error(cmd.raw()));
+    }
+  }
+
+  SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
+    return Future<string>(runtime_error(cmd.raw()));
+  }
+
+  void clear() {
+    responseMap.clear();
+  }
+};
 
 } // namespace cli
 } // namespace utils

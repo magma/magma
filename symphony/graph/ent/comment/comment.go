@@ -31,13 +31,19 @@ const (
 	Table = "comments"
 )
 
-// Columns holds all SQL columns are comment fields.
+// Columns holds all SQL columns for comment fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldAuthorName,
 	FieldText,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Comment type.
+var ForeignKeys = []string{
+	"project_comments",
+	"work_order_comments",
 }
 
 var (

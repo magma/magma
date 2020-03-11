@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from typing import Callable, Mapping, Union
 
 import aiohttp
@@ -9,11 +11,11 @@ class AsyncIOClient:
 
         headers = headers or {}
         self.__headers = {
-            **headers,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Accept-Encoding': 'gzip',
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip",
         }
+        self.__headers.update(headers)
         self.__session = None
 
     @property
@@ -23,23 +25,28 @@ class AsyncIOClient:
 
         return self.__session
 
-    async def call(self, query,
-                   variables=None,
-                   return_json=False,
-                   on_before_callback: Callable[[Mapping[str, str], Mapping[str, str]], None] = None) -> Union[dict, str]:
+    async def call(
+        self,
+        query,
+        variables=None,
+        return_json=False,
+        on_before_callback: Callable[
+            [Mapping[str, str], Mapping[str, str]], None
+        ] = None,
+    ) -> Union[dict, str]:
 
         headers = self.__headers.copy()
 
-        payload = {
-            'query': query
-        }
+        payload = {"query": query}
         if variables:
-            payload['variables'] = variables
+            payload["variables"] = variables
 
         if on_before_callback:
             on_before_callback(payload, headers)
 
-        async with self.session.post(self.endpoint, json=payload, headers=headers, raise_for_status=True) as resp:
+        async with self.session.post(
+            self.endpoint, json=payload, headers=headers, raise_for_status=True
+        ) as resp:
             if return_json:
                 return await resp.json()
 

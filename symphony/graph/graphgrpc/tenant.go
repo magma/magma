@@ -48,6 +48,7 @@ func (s TenantService) Create(ctx context.Context, name *wrappers.StringValue) (
 	case exist:
 		return nil, status.Errorf(codes.AlreadyExists, "tenant %q exists", name.Value)
 	}
+
 	if _, err := s.DB(ctx).ExecContext(ctx, fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_bin", viewer.DBName(name.Value))); err != nil {
 		return nil, status.FromContextError(err).Err()
 	}

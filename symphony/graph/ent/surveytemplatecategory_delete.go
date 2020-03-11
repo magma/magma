@@ -43,23 +43,23 @@ func (stcd *SurveyTemplateCategoryDelete) ExecX(ctx context.Context) int {
 }
 
 func (stcd *SurveyTemplateCategoryDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: surveytemplatecategory.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveytemplatecategory.FieldID,
 			},
 		},
 	}
 	if ps := stcd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, stcd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, stcd.driver, _spec)
 }
 
 // SurveyTemplateCategoryDeleteOne is the builder for deleting a single SurveyTemplateCategory entity.
@@ -74,7 +74,7 @@ func (stcdo *SurveyTemplateCategoryDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{surveytemplatecategory.Label}
+		return &NotFoundError{surveytemplatecategory.Label}
 	default:
 		return nil
 	}

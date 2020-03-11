@@ -28,7 +28,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-SpgwStateManager::SpgwStateManager(): config_(nullptr) {}
+SpgwStateManager::SpgwStateManager(): config_(nullptr), imsi_map_(nullptr) {}
 
 SpgwStateManager::~SpgwStateManager()
 {
@@ -70,7 +70,6 @@ void SpgwStateManager::create_state()
     nullptr,
     (void (*)(void**)) sgw_free_s11_bearer_context_information,
     b);
-  bdestroy_wrapper(&b);
 
   state_cache_p->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr =
     config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
@@ -91,6 +90,11 @@ void SpgwStateManager::create_state()
   state_cache_p->sgw_state.tunnel_id = 0;
 
   state_cache_p->sgw_state.gtpv1u_teid = 0;
+
+  bdestroy_wrapper(&b);
+
+  // Allocating SPGW UE ids => imsi map
+  create_spgw_imsi_map();
 }
 
 void SpgwStateManager::free_state()
@@ -128,6 +132,40 @@ void SpgwStateManager::free_state()
     hashtable_ts_destroy(state_cache_p->pgw_state.predefined_pcc_rules);
   }
   free_wrapper((void**) &state_cache_p);
+
+  free_spgw_imsi_map();
+}
+
+void SpgwStateManager::create_spgw_imsi_map() {
+  imsi_map_ = (spgw_imsi_map_t*) calloc(1, sizeof(spgw_imsi_map_t));
+
+  bstring b = bfromcstr(SPGW_TEID5_IMSI_HT_NAME);
+  imsi_map_->imsi_teid5_htbl =
+    hashtable_uint64_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr, b);
+  bdestroy_wrapper(&b);
+}
+
+void SpgwStateManager::free_spgw_imsi_map() {
+  if (imsi_map_ == nullptr) {
+    return;
+  }
+  hashtable_uint64_ts_destroy(imsi_map_->imsi_teid5_htbl);
+  free_wrapper((void **) &imsi_map_);
+}
+
+void SpgwStateManager::put_spgw_imsi_map()
+{
+  gateway::spgw::SpgwImsiMap imsi_proto = gateway::spgw::SpgwImsiMap();
+  SpgwStateConverter::spgw_imsi_map_to_proto(imsi_map_, &imsi_proto);
+  redis_client->write_proto(SPGW_IMSI_MAP_TABLE_NAME, imsi_proto);
+}
+
+spgw_imsi_map_t* SpgwStateManager::get_spgw_imsi_map()
+{
+  gateway::spgw::SpgwImsiMap imsi_proto = gateway::spgw::SpgwImsiMap();
+  redis_client->read_proto(SPGW_IMSI_MAP_TABLE_NAME, imsi_proto);
+  SpgwStateConverter::proto_to_spgw_imsi_map(imsi_proto, imsi_map_);
+  return imsi_map_;
 }
 
 } // namespace lte

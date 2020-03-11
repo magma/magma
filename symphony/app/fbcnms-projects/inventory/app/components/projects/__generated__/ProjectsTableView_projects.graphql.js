@@ -35,6 +35,7 @@ export type ProjectsTableView_projects$data = ProjectsTableView_projects;
 export type ProjectsTableView_projects$key = $ReadOnlyArray<{
   +$data?: ProjectsTableView_projects$data,
   +$fragmentRefs: ProjectsTableView_projects$ref,
+  ...
 }>;
 */
 

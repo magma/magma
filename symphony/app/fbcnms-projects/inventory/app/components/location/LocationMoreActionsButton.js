@@ -17,7 +17,9 @@ import type {
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
-import MoreActionsButton from '@fbcnms/ui/components/MoreActionsButton';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React from 'react';
 import RemoveLocationMutation from '../../mutations/RemoveLocationMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -38,15 +40,11 @@ type Props = {
 class LocationMoreActionsButton extends React.Component<Props> {
   render() {
     return (
-      <MoreActionsButton
-        variant="primary"
-        items={[
-          {
-            name: 'Delete location',
-            onClick: this.removeLocation,
-          },
-        ]}
-      />
+      <FormAction>
+        <Button variant="text" skin="gray" onClick={this.removeLocation}>
+          <DeleteOutlineIcon />
+        </Button>
+      </FormAction>
     );
   }
 
@@ -82,27 +80,36 @@ class LocationMoreActionsButton extends React.Component<Props> {
         const updater = store => {
           const {parentLocation} = location;
           if (!!parentLocation) {
+            // $FlowFixMe (T62907961) Relay flow types
             const parentProxy = store.get(parentLocation.id);
+            // $FlowFixMe (T62907961) Relay flow types
             const currNodes = parentProxy.getLinkedRecords('children') || [];
             const withoutCurrentLocation = currNodes.filter(
+              // $FlowFixMe (T62907961) Relay flow types
               child => child.getDataID() !== location.id,
             );
+            // $FlowFixMe (T62907961) Relay flow types
             parentProxy.setLinkedRecords(withoutCurrentLocation, 'children');
+            // $FlowFixMe (T62907961) Relay flow types
             parentProxy.setValue(
+              // $FlowFixMe (T62907961) Relay flow types
               parentProxy.getValue('numChildren') - 1,
               'numChildren',
             );
           } else {
+            // $FlowFixMe (T62907961) Relay flow types
             const rootQuery = store.getRoot();
             const locations = ConnectionHandler.getConnection(
               rootQuery,
               'LocationsTree_locations',
               {onlyTopLevel: true},
             );
+            // $FlowFixMe (T62907961) Relay flow types
             ConnectionHandler.deleteNode(locations, location.id);
           }
 
           this.props.onLocationRemoved(location);
+          // $FlowFixMe (T62907961) Relay flow types
           store.delete(location.id);
         };
 

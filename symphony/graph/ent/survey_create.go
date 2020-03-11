@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -29,9 +28,9 @@ type SurveyCreate struct {
 	owner_name           *string
 	creation_timestamp   *time.Time
 	completion_timestamp *time.Time
-	location             map[string]struct{}
-	source_file          map[string]struct{}
-	questions            map[string]struct{}
+	location             map[int]struct{}
+	source_file          map[int]struct{}
+	questions            map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -103,16 +102,16 @@ func (sc *SurveyCreate) SetCompletionTimestamp(t time.Time) *SurveyCreate {
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (sc *SurveyCreate) SetLocationID(id string) *SurveyCreate {
+func (sc *SurveyCreate) SetLocationID(id int) *SurveyCreate {
 	if sc.location == nil {
-		sc.location = make(map[string]struct{})
+		sc.location = make(map[int]struct{})
 	}
 	sc.location[id] = struct{}{}
 	return sc
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (sc *SurveyCreate) SetNillableLocationID(id *string) *SurveyCreate {
+func (sc *SurveyCreate) SetNillableLocationID(id *int) *SurveyCreate {
 	if id != nil {
 		sc = sc.SetLocationID(*id)
 	}
@@ -125,16 +124,16 @@ func (sc *SurveyCreate) SetLocation(l *Location) *SurveyCreate {
 }
 
 // SetSourceFileID sets the source_file edge to File by id.
-func (sc *SurveyCreate) SetSourceFileID(id string) *SurveyCreate {
+func (sc *SurveyCreate) SetSourceFileID(id int) *SurveyCreate {
 	if sc.source_file == nil {
-		sc.source_file = make(map[string]struct{})
+		sc.source_file = make(map[int]struct{})
 	}
 	sc.source_file[id] = struct{}{}
 	return sc
 }
 
 // SetNillableSourceFileID sets the source_file edge to File by id if the given value is not nil.
-func (sc *SurveyCreate) SetNillableSourceFileID(id *string) *SurveyCreate {
+func (sc *SurveyCreate) SetNillableSourceFileID(id *int) *SurveyCreate {
 	if id != nil {
 		sc = sc.SetSourceFileID(*id)
 	}
@@ -147,9 +146,9 @@ func (sc *SurveyCreate) SetSourceFile(f *File) *SurveyCreate {
 }
 
 // AddQuestionIDs adds the questions edge to SurveyQuestion by ids.
-func (sc *SurveyCreate) AddQuestionIDs(ids ...string) *SurveyCreate {
+func (sc *SurveyCreate) AddQuestionIDs(ids ...int) *SurveyCreate {
 	if sc.questions == nil {
-		sc.questions = make(map[string]struct{})
+		sc.questions = make(map[int]struct{})
 	}
 	for i := range ids {
 		sc.questions[ids[i]] = struct{}{}
@@ -159,7 +158,7 @@ func (sc *SurveyCreate) AddQuestionIDs(ids ...string) *SurveyCreate {
 
 // AddQuestions adds the questions edges to SurveyQuestion.
 func (sc *SurveyCreate) AddQuestions(s ...*SurveyQuestion) *SurveyCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -202,17 +201,17 @@ func (sc *SurveyCreate) SaveX(ctx context.Context) *Survey {
 
 func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 	var (
-		s    = &Survey{config: sc.config}
-		spec = &sqlgraph.CreateSpec{
+		s     = &Survey{config: sc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: survey.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: survey.FieldID,
 			},
 		}
 	)
 	if value := sc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: survey.FieldCreateTime,
@@ -220,7 +219,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.CreateTime = *value
 	}
 	if value := sc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: survey.FieldUpdateTime,
@@ -228,7 +227,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.UpdateTime = *value
 	}
 	if value := sc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: survey.FieldName,
@@ -236,7 +235,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.Name = *value
 	}
 	if value := sc.owner_name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: survey.FieldOwnerName,
@@ -244,7 +243,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.OwnerName = *value
 	}
 	if value := sc.creation_timestamp; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: survey.FieldCreationTimestamp,
@@ -252,7 +251,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		s.CreationTimestamp = *value
 	}
 	if value := sc.completion_timestamp; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: survey.FieldCompletionTimestamp,
@@ -268,19 +267,15 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sc.source_file; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -291,19 +286,15 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sc.questions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -314,27 +305,23 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, sc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, sc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	s.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	s.ID = int(id)
 	return s, nil
 }

@@ -11,12 +11,11 @@ import grpc
 import unittest
 import unittest.mock
 from concurrent import futures
-from lte.protos.policydb_pb2 import ChargingRuleNameSet
+from lte.protos.policydb_pb2 import ChargingRuleNameSet, \
+    EnableStaticRuleRequest, DisableStaticRuleRequest
 from lte.protos.policydb_pb2_grpc import PolicyDBStub
 from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
     PolicyReAuthAnswer, ReAuthResult
-from lte.protos.subscriberdb_pb2 import EnableStaticRuleRequest, \
-    DisableStaticRuleRequest
 from magma.policydb.reauth_handler import ReAuthHandler
 from magma.policydb.servicers.policy_servicer import PolicyRpcServicer
 from orc8r.protos.common_pb2 import Void

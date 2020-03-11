@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -20,12 +20,12 @@ export default function InventoryErrorBoundary(props: Props) {
   return (
     <ErrorBoundary
       {...props}
-      onError={error =>
+      onError={error => {
         ServerLogger.error(LogEvents.CLIENT_FATAL_ERROR, {
           message: error.message,
           stack: error.stack,
-        })
-      }
+        });
+      }}
     />
   );
 }

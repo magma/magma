@@ -55,14 +55,14 @@ func (fpsq *FloorPlanScaleQuery) Order(o ...Order) *FloorPlanScaleQuery {
 	return fpsq
 }
 
-// First returns the first FloorPlanScale entity in the query. Returns *ErrNotFound when no floorplanscale was found.
+// First returns the first FloorPlanScale entity in the query. Returns *NotFoundError when no floorplanscale was found.
 func (fpsq *FloorPlanScaleQuery) First(ctx context.Context) (*FloorPlanScale, error) {
 	fpsSlice, err := fpsq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(fpsSlice) == 0 {
-		return nil, &ErrNotFound{floorplanscale.Label}
+		return nil, &NotFoundError{floorplanscale.Label}
 	}
 	return fpsSlice[0], nil
 }
@@ -76,21 +76,21 @@ func (fpsq *FloorPlanScaleQuery) FirstX(ctx context.Context) *FloorPlanScale {
 	return fps
 }
 
-// FirstID returns the first FloorPlanScale id in the query. Returns *ErrNotFound when no id was found.
-func (fpsq *FloorPlanScaleQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first FloorPlanScale id in the query. Returns *NotFoundError when no id was found.
+func (fpsq *FloorPlanScaleQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fpsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{floorplanscale.Label}
+		err = &NotFoundError{floorplanscale.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (fpsq *FloorPlanScaleQuery) FirstXID(ctx context.Context) string {
+func (fpsq *FloorPlanScaleQuery) FirstXID(ctx context.Context) int {
 	id, err := fpsq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -108,9 +108,9 @@ func (fpsq *FloorPlanScaleQuery) Only(ctx context.Context) (*FloorPlanScale, err
 	case 1:
 		return fpsSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{floorplanscale.Label}
+		return nil, &NotFoundError{floorplanscale.Label}
 	default:
-		return nil, &ErrNotSingular{floorplanscale.Label}
+		return nil, &NotSingularError{floorplanscale.Label}
 	}
 }
 
@@ -124,8 +124,8 @@ func (fpsq *FloorPlanScaleQuery) OnlyX(ctx context.Context) *FloorPlanScale {
 }
 
 // OnlyID returns the only FloorPlanScale id in the query, returns an error if not exactly one id was returned.
-func (fpsq *FloorPlanScaleQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fpsq *FloorPlanScaleQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fpsq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -133,15 +133,15 @@ func (fpsq *FloorPlanScaleQuery) OnlyID(ctx context.Context) (id string, err err
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{floorplanscale.Label}
+		err = &NotFoundError{floorplanscale.Label}
 	default:
-		err = &ErrNotSingular{floorplanscale.Label}
+		err = &NotSingularError{floorplanscale.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (fpsq *FloorPlanScaleQuery) OnlyXID(ctx context.Context) string {
+func (fpsq *FloorPlanScaleQuery) OnlyXID(ctx context.Context) int {
 	id, err := fpsq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -164,8 +164,8 @@ func (fpsq *FloorPlanScaleQuery) AllX(ctx context.Context) []*FloorPlanScale {
 }
 
 // IDs executes the query and returns a list of FloorPlanScale ids.
-func (fpsq *FloorPlanScaleQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (fpsq *FloorPlanScaleQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := fpsq.Select(floorplanscale.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (fpsq *FloorPlanScaleQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fpsq *FloorPlanScaleQuery) IDsX(ctx context.Context) []string {
+func (fpsq *FloorPlanScaleQuery) IDsX(ctx context.Context) []int {
 	ids, err := fpsq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -267,30 +267,34 @@ func (fpsq *FloorPlanScaleQuery) Select(field string, fields ...string) *FloorPl
 
 func (fpsq *FloorPlanScaleQuery) sqlAll(ctx context.Context) ([]*FloorPlanScale, error) {
 	var (
-		nodes []*FloorPlanScale
-		spec  = fpsq.querySpec()
+		nodes = []*FloorPlanScale{}
+		_spec = fpsq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &FloorPlanScale{config: fpsq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, fpsq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, fpsq.driver, _spec); err != nil {
 		return nil, err
+	}
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := fpsq.querySpec()
-	return sqlgraph.CountNodes(ctx, fpsq.driver, spec)
+	_spec := fpsq.querySpec()
+	return sqlgraph.CountNodes(ctx, fpsq.driver, _spec)
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,12 +306,12 @@ func (fpsq *FloorPlanScaleQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (fpsq *FloorPlanScaleQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   floorplanscale.Table,
 			Columns: floorplanscale.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanscale.FieldID,
 			},
 		},
@@ -315,26 +319,26 @@ func (fpsq *FloorPlanScaleQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := fpsq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := fpsq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := fpsq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := fpsq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlQuery() *sql.Selector {

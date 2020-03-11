@@ -43,23 +43,23 @@ func (ptd *PropertyTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (ptd *PropertyTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: propertytype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: propertytype.FieldID,
 			},
 		},
 	}
 	if ps := ptd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ptd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ptd.driver, _spec)
 }
 
 // PropertyTypeDeleteOne is the builder for deleting a single PropertyType entity.
@@ -74,7 +74,7 @@ func (ptdo *PropertyTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{propertytype.Label}
+		return &NotFoundError{propertytype.Label}
 	default:
 		return nil
 	}

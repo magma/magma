@@ -37,17 +37,17 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "equipmentposition" package.
 	PositionsInverseTable = "equipment_positions"
 	// PositionsColumn is the table column denoting the positions relation/edge.
-	PositionsColumn = "definition_id"
+	PositionsColumn = "equipment_position_definition"
 	// EquipmentTypeTable is the table the holds the equipment_type relation/edge.
 	EquipmentTypeTable = "equipment_position_definitions"
 	// EquipmentTypeInverseTable is the table name for the EquipmentType entity.
 	// It exists in this package in order to avoid circular dependency with the "equipmenttype" package.
 	EquipmentTypeInverseTable = "equipment_types"
 	// EquipmentTypeColumn is the table column denoting the equipment_type relation/edge.
-	EquipmentTypeColumn = "equipment_type_id"
+	EquipmentTypeColumn = "equipment_type_position_definitions"
 )
 
-// Columns holds all SQL columns are equipmentpositiondefinition fields.
+// Columns holds all SQL columns for equipmentpositiondefinition fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -55,6 +55,11 @@ var Columns = []string{
 	FieldName,
 	FieldIndex,
 	FieldVisibilityLabel,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentPositionDefinition type.
+var ForeignKeys = []string{
+	"equipment_type_position_definitions",
 }
 
 var (

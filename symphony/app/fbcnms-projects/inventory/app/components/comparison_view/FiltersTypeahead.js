@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -99,8 +99,7 @@ const useStyles = makeStyles(theme => ({
     paddingTop: '4px',
     backgroundColor: theme.palette.common.white,
     boxShadow: theme.shadows[1],
-    position: 'absolute',
-    top: 40,
+    position: 'fixed',
     zIndex: 10,
   },
   expansionPanelRoot: {

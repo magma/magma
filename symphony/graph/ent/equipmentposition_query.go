@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -29,6 +30,11 @@ type EquipmentPositionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentPosition
+	// eager-loading edges.
+	withDefinition *EquipmentPositionDefinitionQuery
+	withParent     *EquipmentQuery
+	withAttachment *EquipmentQuery
+	withFKs        bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -93,14 +99,14 @@ func (epq *EquipmentPositionQuery) QueryAttachment() *EquipmentQuery {
 	return query
 }
 
-// First returns the first EquipmentPosition entity in the query. Returns *ErrNotFound when no equipmentposition was found.
+// First returns the first EquipmentPosition entity in the query. Returns *NotFoundError when no equipmentposition was found.
 func (epq *EquipmentPositionQuery) First(ctx context.Context) (*EquipmentPosition, error) {
 	eps, err := epq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(eps) == 0 {
-		return nil, &ErrNotFound{equipmentposition.Label}
+		return nil, &NotFoundError{equipmentposition.Label}
 	}
 	return eps[0], nil
 }
@@ -114,21 +120,21 @@ func (epq *EquipmentPositionQuery) FirstX(ctx context.Context) *EquipmentPositio
 	return ep
 }
 
-// FirstID returns the first EquipmentPosition id in the query. Returns *ErrNotFound when no id was found.
-func (epq *EquipmentPositionQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first EquipmentPosition id in the query. Returns *NotFoundError when no id was found.
+func (epq *EquipmentPositionQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = epq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{equipmentposition.Label}
+		err = &NotFoundError{equipmentposition.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (epq *EquipmentPositionQuery) FirstXID(ctx context.Context) string {
+func (epq *EquipmentPositionQuery) FirstXID(ctx context.Context) int {
 	id, err := epq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -146,9 +152,9 @@ func (epq *EquipmentPositionQuery) Only(ctx context.Context) (*EquipmentPosition
 	case 1:
 		return eps[0], nil
 	case 0:
-		return nil, &ErrNotFound{equipmentposition.Label}
+		return nil, &NotFoundError{equipmentposition.Label}
 	default:
-		return nil, &ErrNotSingular{equipmentposition.Label}
+		return nil, &NotSingularError{equipmentposition.Label}
 	}
 }
 
@@ -162,8 +168,8 @@ func (epq *EquipmentPositionQuery) OnlyX(ctx context.Context) *EquipmentPosition
 }
 
 // OnlyID returns the only EquipmentPosition id in the query, returns an error if not exactly one id was returned.
-func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = epq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -171,15 +177,15 @@ func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id string, err e
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{equipmentposition.Label}
+		err = &NotFoundError{equipmentposition.Label}
 	default:
-		err = &ErrNotSingular{equipmentposition.Label}
+		err = &NotSingularError{equipmentposition.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (epq *EquipmentPositionQuery) OnlyXID(ctx context.Context) string {
+func (epq *EquipmentPositionQuery) OnlyXID(ctx context.Context) int {
 	id, err := epq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -202,8 +208,8 @@ func (epq *EquipmentPositionQuery) AllX(ctx context.Context) []*EquipmentPositio
 }
 
 // IDs executes the query and returns a list of EquipmentPosition ids.
-func (epq *EquipmentPositionQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (epq *EquipmentPositionQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := epq.Select(equipmentposition.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -211,7 +217,7 @@ func (epq *EquipmentPositionQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (epq *EquipmentPositionQuery) IDsX(ctx context.Context) []string {
+func (epq *EquipmentPositionQuery) IDsX(ctx context.Context) []int {
 	ids, err := epq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -262,6 +268,39 @@ func (epq *EquipmentPositionQuery) Clone() *EquipmentPositionQuery {
 	}
 }
 
+//  WithDefinition tells the query-builder to eager-loads the nodes that are connected to
+// the "definition" edge. The optional arguments used to configure the query builder of the edge.
+func (epq *EquipmentPositionQuery) WithDefinition(opts ...func(*EquipmentPositionDefinitionQuery)) *EquipmentPositionQuery {
+	query := &EquipmentPositionDefinitionQuery{config: epq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	epq.withDefinition = query
+	return epq
+}
+
+//  WithParent tells the query-builder to eager-loads the nodes that are connected to
+// the "parent" edge. The optional arguments used to configure the query builder of the edge.
+func (epq *EquipmentPositionQuery) WithParent(opts ...func(*EquipmentQuery)) *EquipmentPositionQuery {
+	query := &EquipmentQuery{config: epq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	epq.withParent = query
+	return epq
+}
+
+//  WithAttachment tells the query-builder to eager-loads the nodes that are connected to
+// the "attachment" edge. The optional arguments used to configure the query builder of the edge.
+func (epq *EquipmentPositionQuery) WithAttachment(opts ...func(*EquipmentQuery)) *EquipmentPositionQuery {
+	query := &EquipmentQuery{config: epq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	epq.withAttachment = query
+	return epq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -305,30 +344,129 @@ func (epq *EquipmentPositionQuery) Select(field string, fields ...string) *Equip
 
 func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosition, error) {
 	var (
-		nodes []*EquipmentPosition
-		spec  = epq.querySpec()
+		nodes       = []*EquipmentPosition{}
+		withFKs     = epq.withFKs
+		_spec       = epq.querySpec()
+		loadedTypes = [3]bool{
+			epq.withDefinition != nil,
+			epq.withParent != nil,
+			epq.withAttachment != nil,
+		}
 	)
-	spec.ScanValues = func() []interface{} {
+	if epq.withDefinition != nil || epq.withParent != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, equipmentposition.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &EquipmentPosition{config: epq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, epq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, epq.driver, _spec); err != nil {
 		return nil, err
 	}
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := epq.withDefinition; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*EquipmentPosition)
+		for i := range nodes {
+			if fk := nodes[i].equipment_position_definition; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipmentpositiondefinition.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_position_definition" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Definition = n
+			}
+		}
+	}
+
+	if query := epq.withParent; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*EquipmentPosition)
+		for i := range nodes {
+			if fk := nodes[i].equipment_positions; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipment.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_positions" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Parent = n
+			}
+		}
+	}
+
+	if query := epq.withAttachment; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*EquipmentPosition)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Equipment(func(s *sql.Selector) {
+			s.Where(sql.InValues(equipmentposition.AttachmentColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.equipment_position_attachment
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "equipment_position_attachment" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_position_attachment" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Attachment = n
+		}
+	}
+
 	return nodes, nil
 }
 
 func (epq *EquipmentPositionQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := epq.querySpec()
-	return sqlgraph.CountNodes(ctx, epq.driver, spec)
+	_spec := epq.querySpec()
+	return sqlgraph.CountNodes(ctx, epq.driver, _spec)
 }
 
 func (epq *EquipmentPositionQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -340,12 +478,12 @@ func (epq *EquipmentPositionQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (epq *EquipmentPositionQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentposition.Table,
 			Columns: equipmentposition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentposition.FieldID,
 			},
 		},
@@ -353,26 +491,26 @@ func (epq *EquipmentPositionQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := epq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := epq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := epq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := epq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (epq *EquipmentPositionQuery) sqlQuery() *sql.Selector {

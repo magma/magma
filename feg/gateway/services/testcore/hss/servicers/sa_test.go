@@ -15,7 +15,7 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	lteprotos "magma/lte/cloud/go/protos"
 
 	definitions "magma/feg/gateway/services/swx_proxy/servicers"
@@ -29,7 +29,7 @@ import (
 
 func TestNewSAA_SuccessfulRegistration(t *testing.T) {
 	sar := createSAR("sub1", definitions.ServerAssignmentType_REGISTRATION)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.NoError(t, err)
 	checkSAASuccess(t, response)
@@ -41,7 +41,7 @@ func TestNewSAA_SuccessfulRegistration(t *testing.T) {
 
 func TestNewSAA_SuccessfulDeregistration(t *testing.T) {
 	sar := createSAR("sub1", definitions.ServerAssignnmentType_USER_DEREGISTRATION)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.NoError(t, err)
 	checkSAASuccessDeregistration(t, response)
@@ -54,7 +54,7 @@ func TestNewSAA_SuccessfulDeregistration(t *testing.T) {
 
 func TestNewSAA_SuccessfulUserDataRequest(t *testing.T) {
 	sar := createSAR("sub1", definitions.ServerAssignmentType_AAA_USER_DATA_REQUEST)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.NoError(t, err)
 	checkSAASuccess(t, response)
@@ -66,7 +66,7 @@ func TestNewSAA_SuccessfulUserDataRequest(t *testing.T) {
 
 func TestNewSAA_UnknownIMSI(t *testing.T) {
 	sar := createSAR("sub_unknown", definitions.ServerAssignmentType_REGISTRATION)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "Subscriber 'sub_unknown' not found")
 
@@ -76,7 +76,7 @@ func TestNewSAA_UnknownIMSI(t *testing.T) {
 
 func TestNewSAA_No3GPPAAAServer(t *testing.T) {
 	sar := createSAR("empty_sub", definitions.ServerAssignmentType_REGISTRATION)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "no 3GPP AAA server is already serving the user")
 
@@ -86,7 +86,7 @@ func TestNewSAA_No3GPPAAAServer(t *testing.T) {
 
 func TestNewSAA_Redirect(t *testing.T) {
 	sar := createSARExtended("sub1", definitions.ServerAssignmentType_REGISTRATION, "different_host")
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "diameter identity for AAA server already registered")
 
@@ -98,7 +98,7 @@ func TestNewSAA_Redirect(t *testing.T) {
 
 func TestNewSAA_MissingAPNConfig(t *testing.T) {
 	sar := createSAR("missing_auth_key", definitions.ServerAssignmentType_REGISTRATION)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "User has no non 3GPP subscription")
 
@@ -109,7 +109,7 @@ func TestNewSAA_MissingAPNConfig(t *testing.T) {
 func TestNewSAA_MissingAVP(t *testing.T) {
 	sar := createBaseSAR()
 	sar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "Missing server assignment type in message")
 

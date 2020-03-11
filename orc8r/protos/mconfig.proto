@@ -10,7 +10,7 @@ syntax = "proto3";
 import "google/protobuf/any.proto";
 
 package magma.orc8r;
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 // --------------------------------------------------------------------------
 // GatewayConfigs structure is a container for all Access Gateway's (AG) Cloud

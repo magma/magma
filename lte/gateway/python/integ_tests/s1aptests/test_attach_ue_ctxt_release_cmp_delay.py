@@ -17,7 +17,6 @@ import gpp_types
 
 
 class TestAttachDelayUeContextRelComplete(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -42,12 +41,13 @@ class TestAttachDelayUeContextRelComplete(unittest.TestCase):
 
         print("********Triggering Attach Request ")
 
-        self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.
-                                              UE_ATTACH_REQUEST,
-                                              attach_req)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response,
-                        s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+        )
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
@@ -55,19 +55,30 @@ class TestAttachDelayUeContextRelComplete(unittest.TestCase):
         sqnRecvd = s1ap_types.ueSqnRcvd_t()
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
-        self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_AUTH_RESP,
-                                              auth_res)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response,
-                        s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+        )
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete)
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+        )
+
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+        )
+
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+        )
 
         delay_ue_ctxt_rel_cmp = s1ap_types.UeDelayUeCtxtRelCmp()
         delay_ue_ctxt_rel_cmp.ue_Id = req.ue_id
@@ -77,17 +88,20 @@ class TestAttachDelayUeContextRelComplete(unittest.TestCase):
         print("*** Setting Delay for Ue context release complete ***")
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_DELAY_UE_CTXT_REL_CMP,
-            delay_ue_ctxt_rel_cmp)
+            delay_ue_ctxt_rel_cmp,
+        )
 
         # Trigger Attach Complete
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE,
-            attach_complete)
+            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete
+        )
         time.sleep(0.5)
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_EMM_INFORMATION.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_EMM_INFORMATION.value
+        )
 
         time.sleep(0.5)
         # Now detach the UE
@@ -95,27 +109,34 @@ class TestAttachDelayUeContextRelComplete(unittest.TestCase):
         detach_req.ue_Id = req.ue_id
         detach_req.ueDetType = s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
+        )
         response = self._s1ap_wrapper._s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
+        )
 
-        print("*** Sending UE context release request ",
-              "for UE id ***", req.ue_id)
+        print(
+            "*** Sending UE context release request ",
+            "for UE id ***",
+            req.ue_id,
+        )
 
         # Send UE context release request to move UE to idle mode
         # ue_ctxt_rel_req = s1ap_types.ueCntxtRelReq_t()
         uectxtrel_req = s1ap_types.ueCntxtRelReq_t()
         uectxtrel_req.ue_Id = req.ue_id
-        uectxtrel_req.cause.causeVal = (gpp_types.
-                                        CauseRadioNetwork.
-                                        RELEASE_DUE_TO_EUTRAN_GENERATED_REASON.
-                                        value)
+        uectxtrel_req.cause.causeVal = (
+            gpp_types.CauseRadioNetwork.RELEASE_DUE_TO_EUTRAN_GENERATED_REASON.value
+        )
 
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, uectxtrel_req)
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, uectxtrel_req
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
 
         time.sleep(10)
 

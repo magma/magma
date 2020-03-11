@@ -38,6 +38,7 @@ export type ServiceEndpointsView_endpoints$data = ServiceEndpointsView_endpoints
 export type ServiceEndpointsView_endpoints$key = $ReadOnlyArray<{
   +$data?: ServiceEndpointsView_endpoints$data,
   +$fragmentRefs: ServiceEndpointsView_endpoints$ref,
+  ...
 }>;
 */
 

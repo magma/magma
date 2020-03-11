@@ -16,40 +16,10 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "ServiceAction.h"
+#include "StoredState.h"
 #include "CreditKey.h"
 
 namespace magma {
-
-/**
- * A bucket is a counter used for tracking credit volume across sessiond.
- * These are independently incremented and reset
- * Each value is in terms of a volume unit - either bytes or seconds
- */
-enum Bucket {
-  USED_TX = 0,
-  USED_RX = 1,
-  ALLOWED_TOTAL = 2,
-  ALLOWED_TX = 3,
-  ALLOWED_RX = 4,
-  REPORTING_TX = 5,
-  REPORTING_RX = 6,
-  REPORTED_TX = 7,
-  REPORTED_RX = 8,
-  MAX_VALUES = 9,
-};
-
-enum ReAuthState {
-  REAUTH_NOT_NEEDED = 0,
-  REAUTH_REQUIRED = 1,
-  REAUTH_PROCESSING = 2,
-};
-
-enum ServiceState {
-  SERVICE_ENABLED = 0,
-  SERVICE_NEEDS_DEACTIVATION = 1,
-  SERVICE_DISABLED = 2,
-  SERVICE_NEEDS_ACTIVATION = 3,
-};
 
 enum CreditUpdateType {
   CREDIT_NO_UPDATE = 0,
@@ -80,6 +50,12 @@ class SessionCredit {
     RedirectServer redirect_server;
   };
 
+  static std::unique_ptr<SessionCredit> unmarshal(
+    const StoredSessionCredit &marshaled,
+    CreditType credit_type);
+
+  StoredSessionCredit marshal();
+
   SessionCredit(CreditType credit_type);
 
   SessionCredit(CreditType credit_type, ServiceState start_state);
@@ -96,9 +72,8 @@ class SessionCredit {
   void add_used_credit(uint64_t used_tx, uint64_t used_rx);
 
   /**
-   * reset_reporting_credit resets the REPORTING_* to 0 when there is some kind
-   * of error in reporting. After this, during the next update the credit will
-   * become eligible to update once again.
+   * reset_reporting_credit resets the REPORTING_* to 0
+   * Also marks the session as not in reporting.
    */
   void reset_reporting_credit();
 
@@ -116,7 +91,7 @@ class SessionCredit {
     uint64_t tx_volume,
     uint64_t rx_volume,
     uint32_t validity_time,
-    bool is_final,
+    bool is_final_grant,
     FinalActionInfo final_action_info);
 
   /**
@@ -156,14 +131,46 @@ class SessionCredit {
   void reauth();
 
   /**
-   * Returns true when there will be no more quota granted
-   */
-  bool no_more_grant();
-
-  /**
    * Returns
    */
   RedirectServer get_redirect_server();
+
+  /**
+   * Mark SessionCredit as having been given the final grant.
+   * NOTE: Use only for merging updates into SessionStore
+   * @param is_final_grant
+   */
+  void set_is_final_grant(bool is_final_grant);
+
+  /**
+   * Set ReAuthState.
+   * NOTE: Use only for merging updates into SessionStore
+   * @param reauth_state
+   */
+  void set_reauth(ReAuthState reauth_state);
+
+  /**
+   * Set ServiceState.
+   * NOTE: Use only for merging updates into SessionStore
+   * @param service_state
+   */
+  void set_service_state(ServiceState service_state);
+
+  /**
+   * Set expiry time of SessionCredit
+   * NOTE: Use only for merging updates into SessionStore
+   * @param expiry_time
+   */
+  void set_expiry_time(std::time_t expiry_time);
+
+  /**
+   * Add credit to the specified bucket. This does not necessarily correspond
+   * to allowed or used credit.
+   * NOTE: Use only for merging updates into SessionStore
+   * @param credit
+   * @param bucket
+   */
+  void add_credit(uint64_t credit, Bucket bucket);
 
   /**
    * A threshold represented as a ratio for triggering usage update before
@@ -190,7 +197,7 @@ class SessionCredit {
 
  private:
   bool reporting_;
-  bool is_final_;
+  bool is_final_grant_;
   bool unlimited_quota_;
   FinalActionInfo final_action_info_;
   ReAuthState reauth_state_;
@@ -206,7 +213,26 @@ class SessionCredit {
   CreditType credit_type_;
 
  private:
-  bool quota_exhausted(
+  /**
+   * is_quota_exhausted checks if any of the tx, rx, or combined tx+rx are
+   * exhausted. The exception to this is if ALLOWED_RX or ALLOWED_TX are 0,
+   * which occurs for an OCS/PCRF which do not individually track tx/rx. In this
+   * scenario, only the total matters.
+   *
+   * Quota usage is measured by reporting from pipelined since the last
+   * SessionUpdate.
+   * We mark quota as exhausted if usage_reporting_threshold * available quota
+   * is reached. (so the default is 100% of quota)
+   * We will also add a extra_quota_margin on to the available quota if it is
+   * specified.
+   * Check if the session has exhausted its quota granted since the last report.
+   *
+   * @param usage_reporting_threshold
+   * @param extra_quota_margin Extra bytes of usage allowable before quota
+   *        is exhausted.
+   * @return true if quota is exhausted for the session
+   */
+  bool is_quota_exhausted(
     float usage_reporting_threshold = 1, uint64_t extra_quota_margin = 0);
 
   bool should_deactivate_service();

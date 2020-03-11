@@ -19,6 +19,9 @@ import (
 // swagger:model subscriber
 type Subscriber struct {
 
+	// active apns
+	ActiveApns ApnList `json:"active_apns,omitempty"`
+
 	// Base names which are active for this subscriber
 	ActiveBaseNames []BaseName `json:"active_base_names,omitempty"`
 
@@ -37,6 +40,10 @@ type Subscriber struct {
 // Validate validates this subscriber
 func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateActiveApns(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateActiveBaseNames(formats); err != nil {
 		res = append(res, err)
@@ -57,6 +64,22 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *Subscriber) validateActiveApns(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ActiveApns) { // not required
+		return nil
+	}
+
+	if err := m.ActiveApns.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_apns")
+		}
+		return err
+	}
+
 	return nil
 }
 

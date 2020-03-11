@@ -16,7 +16,11 @@
     - role: pkgrepo
       vars:
         distribution: "bionic"
+        repo: "cwf"
     - role: ovs
+    - role: resolv_conf
+      vars:
+        override_nameserver: 8.8.8.8
     - role: golang
     - role: cwag_test
   tasks:

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 8123e0da6c809f1ee0e2d2eb06792355
+ * @relayHash d644c4faa42256a14a2d749b66e15df8
  */
 
 /* eslint-disable */
@@ -23,6 +23,7 @@ export type AddLinkInput = {|
   sides: $ReadOnlyArray<LinkSide>,
   workOrder?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
+  serviceIds?: ?$ReadOnlyArray<string>,
 |};
 export type LinkSide = {|
   equipment: string,
@@ -49,7 +50,7 @@ export type AddLinkMutationVariables = {|
   input: AddLinkInput
 |};
 export type AddLinkMutationResponse = {|
-  +addLink: ?{|
+  +addLink: {|
     +id: string,
     +futureState: ?FutureState,
     +ports: $ReadOnlyArray<?{|

@@ -20,3 +20,13 @@ pushd "$ROOT_DIR/xplat/fbc/fbcnms-projects/inventory" >/dev/null
     exit 1
   fi
 popd >/dev/null
+
+pushd "$ROOT_DIR/xplat/fbc-mobile-app" >/dev/null
+  "$YARN_BINARY" "$@"
+  "$YARN_BINARY" relay "$@"
+  repo_status=$(hg status | wc -l)
+  if [ "$repo_status" -ne 0 ]; then
+    echo "'yarn relay' modified changes. Please run 'yarn relay' from xplat/fbc-mobile-app" >&2
+    exit 1
+  fi
+popd >/dev/null

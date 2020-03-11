@@ -5,8 +5,12 @@ project (devmand CXX)
 cmake_minimum_required(VERSION 3.7.2)
 
 set(MGM_COM_DIR /usr/lib/)
-# Pass libyang plugins dir
+# Pass libyang plugins dir for YDK libyang
 add_definitions(-DLIBYANG_PLUGINS_DIR="/usr/lib/libyang/")
+
+# Pass libyang extensions and user_types for non-YDK libyang
+add_definitions(-DLLLIBYANG_EXTENSIONS_PLUGINS_DIR="/usr/lib/libyang/extensions")
+add_definitions(-DLIBYANG_USER_TYPES_PLUGINS_DIR="/usr/lib/libyang/user_types")
 
 add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
 
@@ -59,6 +63,7 @@ target_link_libraries(devman
   boost_context
   boost_thread
   boost_system
+  boost_filesystem
   crypto
   folly
   pthread
@@ -73,9 +78,9 @@ target_link_libraries(devman
   ssh
   ssh_threads
   pcre
+  yang
   ydk
   ydk_openconfig
-  ydk_ietf
   curl
   xslt
   xml2
@@ -117,7 +122,20 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/PlaintextCliDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/ParsingUtils.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/StructuredUbntDevice.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/ModelRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/UbntStpPlugin.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/UbntNetworksPlugin.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/UbntInterfacePlugin.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/ModelRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/Model.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/Path.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/SchemaContext.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/BindingContext.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/ReaderRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/BindingReaderRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/BindingWriterRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/WriterRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/DeviceAccess.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/PluginRegistry.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/Spd2Glog.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/IoConfigurationBuilder.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReadCachingCli.cpp
@@ -127,12 +145,43 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReconnectingCli.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliThreadWheelTimekeeper.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliTimekeeperWrapper.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CancelableWTCallback.h
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/LoggingCli.cpp
-  )
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CancelableWTCallback.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/TreeCacheCli.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/TreeCache.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/Datastore.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/Datastore.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreState.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreTransaction.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreTransaction.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/BindingAwareDatastoreTransaction.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/BindingAwareDatastoreTransaction.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreDiff.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/BindingAwareDatastore.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/BindingAwareDatastore.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/Common.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/Common.grpc.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/ReaderPlugin.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/ReaderPlugin.grpc.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/WriterPlugin.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/WriterPlugin.grpc.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/PluginRegistration.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/plugin/protocpp/PluginRegistration.grpc.pb.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcReader.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcListReader.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcWriter.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcCliHandler.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcPlugin.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/DeviceType.cpp
+)
 
 target_link_libraries(devman_channel_cli
-  devman)
+  devman
+  protobuf
+  grpc
+  grpc++
+  grpc++_reflection
+)
 
 find_library(MGM_ASYNC_GRPC ASYNC_GRPC ${MGM_COM_DIR}/async_grpc)
 find_library(MGM_CONFIG CONFIG HINTS ${MGM_COM_DIR}/config)
@@ -231,7 +280,13 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Ssh.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Log.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/CommandTest.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ModelRegistryTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PathTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/SchemaContextTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ReaderRegistryTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/WriterRegistryTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PluginRegistryTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/BindingContextTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/DatastoreTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PlaintextCliDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/StructuredUbntDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DemoDeviceTest.cpp
@@ -245,7 +300,12 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/PingChannelTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/SnmpChannelTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ReconnectingSshTest.cpp
-        )
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/TreeCacheCliTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/TreeCacheTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/GrpcReaderTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/GrpcListReaderTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/EngineTest.cpp
+)
 
 target_link_libraries(devmantest
   devman
@@ -253,7 +313,8 @@ target_link_libraries(devmantest
   devman_channel_cli
   gtest
   gtest_main
-  devman_service_magma)
+  devman_service_magma
+)
 
 install(TARGETS devmand devmantest
   RUNTIME DESTINATION bin)

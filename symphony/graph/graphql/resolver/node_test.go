@@ -5,75 +5,52 @@
 package resolver
 
 import (
-	"context"
 	"strconv"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/graphql/directive"
-	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestQueryNode(t *testing.T) {
-	resolver, err := newTestResolver(t)
-	require.NoError(t, err)
+	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
-
-	c := client.New(handler.GraphQL(
-		generated.NewExecutableSchema(
-			generated.Config{
-				Resolvers:  resolver,
-				Directives: directive.New(logtest.NewTestLogger(t)),
-			},
-		),
-		handler.RequestMiddleware(
-			func(ctx context.Context, next func(context.Context) []byte) []byte {
-				ctx = ent.NewContext(ctx, resolver.client)
-				return next(ctx)
-			},
-		),
-	))
+	c := newGraphClient(t, resolver)
 
 	var lt struct{ AddLocationType struct{ ID string } }
-	err = c.Post(
+	c.MustPost(
 		`mutation($input: AddLocationTypeInput!) { addLocationType(input: $input) { id } }`,
 		&lt,
 		client.Var("input", models.AddLocationTypeInput{Name: "city"}),
 	)
+	id, err := strconv.Atoi(lt.AddLocationType.ID)
 	require.NoError(t, err)
 
 	var l struct{ AddLocation struct{ ID string } }
-	err = c.Post(
+	c.MustPost(
 		`mutation($input: AddLocationInput!) { addLocation(input: $input) { id } }`,
 		&l,
-		client.Var("input", models.AddLocationInput{Name: "tlv", Type: lt.AddLocationType.ID}),
+		client.Var("input", models.AddLocationInput{Name: "tlv", Type: id}),
 	)
-	require.NoError(t, err)
 
 	t.Run("LocationType", func(t *testing.T) {
 		var rsp struct{ Node struct{ Name string } }
-		err := c.Post(
+		c.MustPost(
 			`query($id: ID!) { node(id: $id) { ... on LocationType { name } } }`,
 			&rsp,
 			client.Var("id", lt.AddLocationType.ID),
 		)
-		require.NoError(t, err)
 		assert.Equal(t, "city", rsp.Node.Name)
 	})
 	t.Run("Location", func(t *testing.T) {
 		var rsp struct{ Node struct{ Name string } }
-		err := c.Post(
+		c.MustPost(
 			`query($id: ID!) { node(id: $id) { ... on Location { name } } }`,
 			&rsp,
 			client.Var("id", l.AddLocation.ID),
 		)
-		require.NoError(t, err)
 		assert.Equal(t, "tlv", rsp.Node.Name)
 	})
 	t.Run("NonExistent", func(t *testing.T) {
@@ -92,7 +69,7 @@ func TestQueryNode(t *testing.T) {
 		assert.Nil(t, v)
 	})
 	t.Run("BadID", func(t *testing.T) {
-		rsp, err := c.RawPost(`query { node(id: "_") { id } }`)
+		rsp, err := c.RawPost(`query { node(id: "-1") { id } }`)
 		require.NoError(t, err)
 		assert.Empty(t, rsp.Errors)
 		v, ok := rsp.Data.(map[string]interface{})["node"]

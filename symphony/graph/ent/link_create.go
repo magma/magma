@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -27,10 +26,10 @@ type LinkCreate struct {
 	create_time  *time.Time
 	update_time  *time.Time
 	future_state *string
-	ports        map[string]struct{}
-	work_order   map[string]struct{}
-	properties   map[string]struct{}
-	service      map[string]struct{}
+	ports        map[int]struct{}
+	work_order   map[int]struct{}
+	properties   map[int]struct{}
+	service      map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -76,9 +75,9 @@ func (lc *LinkCreate) SetNillableFutureState(s *string) *LinkCreate {
 }
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
-func (lc *LinkCreate) AddPortIDs(ids ...string) *LinkCreate {
+func (lc *LinkCreate) AddPortIDs(ids ...int) *LinkCreate {
 	if lc.ports == nil {
-		lc.ports = make(map[string]struct{})
+		lc.ports = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.ports[ids[i]] = struct{}{}
@@ -88,7 +87,7 @@ func (lc *LinkCreate) AddPortIDs(ids ...string) *LinkCreate {
 
 // AddPorts adds the ports edges to EquipmentPort.
 func (lc *LinkCreate) AddPorts(e ...*EquipmentPort) *LinkCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -96,16 +95,16 @@ func (lc *LinkCreate) AddPorts(e ...*EquipmentPort) *LinkCreate {
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
-func (lc *LinkCreate) SetWorkOrderID(id string) *LinkCreate {
+func (lc *LinkCreate) SetWorkOrderID(id int) *LinkCreate {
 	if lc.work_order == nil {
-		lc.work_order = make(map[string]struct{})
+		lc.work_order = make(map[int]struct{})
 	}
 	lc.work_order[id] = struct{}{}
 	return lc
 }
 
 // SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
-func (lc *LinkCreate) SetNillableWorkOrderID(id *string) *LinkCreate {
+func (lc *LinkCreate) SetNillableWorkOrderID(id *int) *LinkCreate {
 	if id != nil {
 		lc = lc.SetWorkOrderID(*id)
 	}
@@ -118,9 +117,9 @@ func (lc *LinkCreate) SetWorkOrder(w *WorkOrder) *LinkCreate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (lc *LinkCreate) AddPropertyIDs(ids ...string) *LinkCreate {
+func (lc *LinkCreate) AddPropertyIDs(ids ...int) *LinkCreate {
 	if lc.properties == nil {
-		lc.properties = make(map[string]struct{})
+		lc.properties = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.properties[ids[i]] = struct{}{}
@@ -130,7 +129,7 @@ func (lc *LinkCreate) AddPropertyIDs(ids ...string) *LinkCreate {
 
 // AddProperties adds the properties edges to Property.
 func (lc *LinkCreate) AddProperties(p ...*Property) *LinkCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -138,9 +137,9 @@ func (lc *LinkCreate) AddProperties(p ...*Property) *LinkCreate {
 }
 
 // AddServiceIDs adds the service edge to Service by ids.
-func (lc *LinkCreate) AddServiceIDs(ids ...string) *LinkCreate {
+func (lc *LinkCreate) AddServiceIDs(ids ...int) *LinkCreate {
 	if lc.service == nil {
-		lc.service = make(map[string]struct{})
+		lc.service = make(map[int]struct{})
 	}
 	for i := range ids {
 		lc.service[ids[i]] = struct{}{}
@@ -150,7 +149,7 @@ func (lc *LinkCreate) AddServiceIDs(ids ...string) *LinkCreate {
 
 // AddService adds the service edges to Service.
 func (lc *LinkCreate) AddService(s ...*Service) *LinkCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -184,17 +183,17 @@ func (lc *LinkCreate) SaveX(ctx context.Context) *Link {
 
 func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 	var (
-		l    = &Link{config: lc.config}
-		spec = &sqlgraph.CreateSpec{
+		l     = &Link{config: lc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: link.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: link.FieldID,
 			},
 		}
 	)
 	if value := lc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: link.FieldCreateTime,
@@ -202,7 +201,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 		l.CreateTime = *value
 	}
 	if value := lc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: link.FieldUpdateTime,
@@ -210,7 +209,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 		l.UpdateTime = *value
 	}
 	if value := lc.future_state; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: link.FieldFutureState,
@@ -226,19 +225,15 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -249,19 +244,15 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -272,19 +263,15 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lc.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -295,27 +282,23 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, lc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, lc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	l.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	l.ID = int(id)
 	return l, nil
 }

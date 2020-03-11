@@ -13,34 +13,33 @@ import type {TableColumnType} from './Table';
 import ArrowDownIcon from '../Icons/ArrowDown';
 import ArrowUpIcon from '../Icons/ArrowUp';
 import React from 'react';
-import SymphonyTheme from '../../../theme/symphony';
 import TableHeaderCheckbox from './TableHeaderCheckbox';
 import Text from '../Text';
 import classNames from 'classnames';
+import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 import {useTable} from './TableContext';
+import {useTableCommonStyles} from './TableCommons';
 
-const useStyles = makeStyles(_theme => ({
+const useStyles = makeStyles(() => ({
   root: {
-    backgroundColor: SymphonyTheme.palette.white,
-  },
-  cell: {
-    padding: '4px 8px 4px 16px',
-    minHeight: '40px',
-    height: '40px',
+    backgroundColor: symphony.palette.white,
+    borderLeft: `2px solid transparent`,
   },
   cellText: {
     display: 'flex',
     justifyContent: 'flex-start',
-    color: SymphonyTheme.palette.D400,
+    color: symphony.palette.D400,
   },
   checkBox: {
-    width: '24px',
-    paddingLeft: '8px',
+    width: '28px',
+    paddingLeft: '12px',
   },
   cellContent: {
     display: 'flex',
     alignItems: 'center',
+    color: symphony.palette.D400,
+    ...symphony.typography.body2,
   },
   sortIcon: {
     width: '24px',
@@ -52,7 +51,7 @@ const useStyles = makeStyles(_theme => ({
   sortableCell: {
     cursor: 'pointer',
     '&:hover $cellText': {
-      color: SymphonyTheme.palette.primary,
+      color: symphony.palette.primary,
     },
     '&:hover $hidden': {
       visibility: 'visible',
@@ -66,10 +65,18 @@ const useStyles = makeStyles(_theme => ({
 type Props<T> = {
   columns: Array<TableColumnType<T>>,
   onSortClicked?: (colKey: string) => void,
+  cellClassName?: string,
+  paddingRight?: ?number,
 };
 
-const TableHeader = <T>({onSortClicked, columns}: Props<T>) => {
+const TableHeader = <T>({
+  onSortClicked,
+  columns,
+  cellClassName,
+  paddingRight,
+}: Props<T>) => {
   const classes = useStyles();
+  const commonClasses = useTableCommonStyles();
   const {showSelection} = useTable();
 
   const getSortIcon = col => {
@@ -88,7 +95,7 @@ const TableHeader = <T>({onSortClicked, columns}: Props<T>) => {
   };
 
   return (
-    <thead className={classes.root}>
+    <thead className={classes.root} style={{paddingRight: paddingRight || 0}}>
       <tr>
         {showSelection && (
           <th className={classes.checkBox}>
@@ -98,9 +105,14 @@ const TableHeader = <T>({onSortClicked, columns}: Props<T>) => {
         {columns.map(col => (
           <th
             key={col.key}
-            className={classNames(classes.cell, {
-              [classes.sortableCell]: col.sortable,
-            })}
+            className={classNames(
+              commonClasses.cell,
+              col.titleClassName,
+              cellClassName,
+              {
+                [classes.sortableCell]: col.sortable,
+              },
+            )}
             onClick={() =>
               col.sortable && onSortClicked && onSortClicked(col.key)
             }>

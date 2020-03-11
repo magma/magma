@@ -8,20 +8,20 @@
  * @format
  */
 
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
-import React, {useContext} from 'react';
+import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
-import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
-import type {FreeTextCheckListItemFilling_item} from './__generated__/FreeTextCheckListItemFilling_item.graphql';
 
 type Props = {
-  item: FreeTextCheckListItemFilling_item,
-  onChange?: (updatedChecklistItem: FreeTextCheckListItemFilling_item) => void,
+  item: CheckListItem,
+  onChange?: (updatedChecklistItem: CheckListItem) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -37,10 +37,9 @@ const useStyles = makeStyles({
       marginRight: '8px',
     },
   },
-});
+}));
 
-const FreeTextCheckListItemFilling = (props: Props) => {
-  const {item, onChange} = props;
+const FreeTextCheckListItemFilling = ({item, onChange}: Props) => {
   const classes = useStyles();
 
   const _updateOnChange = newValue => {
@@ -55,33 +54,22 @@ const FreeTextCheckListItemFilling = (props: Props) => {
     onChange(updatedItem);
   };
 
-  const validationContext = useContext(FormValidationContext);
-
   return (
     <div className={classes.container}>
       <Text className={classes.expandindPart} variant="body2" weight="regular">
         {item.title}
       </Text>
-      <TextInput
-        disabled={validationContext.editLock.detected}
-        className={classes.expandindPart}
-        type="string"
-        placeholder={item.helpText || ''}
-        value={item.stringValue || ''}
-        onChange={event => _updateOnChange(event.target.value)}
-      />
+      <FormField>
+        <TextInput
+          className={classes.expandindPart}
+          type="string"
+          placeholder={item.helpText || ''}
+          value={item.stringValue || ''}
+          onChange={event => _updateOnChange(event.target.value)}
+        />
+      </FormField>
     </div>
   );
 };
 
-export default createFragmentContainer(FreeTextCheckListItemFilling, {
-  item: graphql`
-    fragment FreeTextCheckListItemFilling_item on CheckListItem {
-      title
-      helpText
-      stringValue
-      checked
-      ...CheckListItem_item
-    }
-  `,
-});
+export default FreeTextCheckListItemFilling;

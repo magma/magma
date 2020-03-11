@@ -16,33 +16,32 @@ import (
 	"os"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/importer"
-
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-
-	"github.com/AlekSi/pointer"
+	"github.com/facebookincubator/ent/dialect"
+	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
+	"github.com/facebookincubator/symphony/graph/importer"
+	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 
-	"github.com/facebookincubator/ent/dialect"
-	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/ent/dialect/sql/schema"
+	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
 )
 
 var debug = flag.Bool("debug", false, "run database driver on debug mode")
 
 const (
-	tenantHeader               = "x-auth-organization"
+	tenantHeader               = viewer.TenantHeader
 	equipmentTypeName          = "equipmentType"
 	equipmentType2Name         = "equipmentType2"
 	parentEquip                = "parentEquipmentName"
@@ -91,29 +90,31 @@ type TestExporterResolver struct {
 	exporter exporter
 }
 
-func newExporterTestResolver(t *testing.T) (*TestExporterResolver, error) {
+func newExporterTestResolver(t *testing.T) *TestExporterResolver {
 	db, name, err := testdb.Open()
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
 	return newResolver(t, sql.OpenDB(name, db))
 }
 
-func newResolver(t *testing.T, drv dialect.Driver) (*TestExporterResolver, error) {
+func newResolver(t *testing.T, drv dialect.Driver) *TestExporterResolver {
 	if *debug {
 		drv = dialect.Debug(drv)
 	}
 	client := ent.NewClient(ent.Driver(drv))
-	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
-
-	r, err := resolver.New(logtest.NewTestLogger(t))
+	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
 	require.NoError(t, err)
-	log := logtest.NewTestLogger(t)
 
-	e := exporter{log, equipmentRower{log}}
-	if err != nil {
-		return nil, err
-	}
-	return &TestExporterResolver{r, drv, client, e}, nil
+	logger := logtest.NewTestLogger(t)
+	emitter, subscriber := event.Pipe()
+	r := resolver.New(resolver.Config{
+		Logger:     logger,
+		Emitter:    emitter,
+		Subscriber: subscriber,
+	})
+
+	e := exporter{logger, equipmentRower{logger}}
+	return &TestExporterResolver{r, drv, client, e}
 }
 
 func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
@@ -353,7 +354,7 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	*/
 }
 
-func prepareLinksPortsAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
+func prepareHandlerAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
@@ -371,19 +372,25 @@ func prepareLinksPortsAndExport(t *testing.T, r *TestExporterResolver, e http.Ha
 	return ctx, res
 }
 
-func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity importer.ImportEntity, method method) {
+func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity importer.ImportEntity, method method, skipLines, withVerify bool) {
 	readr := csv.NewReader(r)
 	var buf *bytes.Buffer
 	var contentType, url string
 	switch entity {
 	case importer.ImportEntityLink:
-		buf, contentType = writeModifiedLinksCSV(t, readr, method)
+		buf, contentType = writeModifiedLinksCSV(t, readr, method, skipLines, withVerify)
 	case importer.ImportEntityPort:
-		buf, contentType = writeModifiedPortsCSV(t, readr)
-		fmt.Println("contentType", contentType)
+		buf, contentType = writeModifiedPortsCSV(t, readr, skipLines, withVerify)
 	}
 
-	h, _ := importer.NewHandler(logtest.NewTestLogger(t))
+	emitter, subscriber := event.Pipe()
+	h, _ := importer.NewHandler(
+		importer.Config{
+			Logger:     logtest.NewTestLogger(t),
+			Emitter:    emitter,
+			Subscriber: subscriber,
+		},
+	)
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
 	server := httptest.NewServer(th)
 	defer server.Close()
@@ -399,7 +406,6 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 
 	req.Header.Set(tenantHeader, "fb-test")
 	req.Header.Set("Content-Type", contentType)
-
 	resp, err := http.DefaultClient.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, resp.StatusCode, http.StatusOK)

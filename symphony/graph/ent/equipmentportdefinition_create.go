@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -29,9 +28,9 @@ type EquipmentPortDefinitionCreate struct {
 	index               *int
 	bandwidth           *string
 	visibility_label    *string
-	equipment_port_type map[string]struct{}
-	ports               map[string]struct{}
-	equipment_type      map[string]struct{}
+	equipment_port_type map[int]struct{}
+	ports               map[int]struct{}
+	equipment_type      map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -111,16 +110,16 @@ func (epdc *EquipmentPortDefinitionCreate) SetNillableVisibilityLabel(s *string)
 }
 
 // SetEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id.
-func (epdc *EquipmentPortDefinitionCreate) SetEquipmentPortTypeID(id string) *EquipmentPortDefinitionCreate {
+func (epdc *EquipmentPortDefinitionCreate) SetEquipmentPortTypeID(id int) *EquipmentPortDefinitionCreate {
 	if epdc.equipment_port_type == nil {
-		epdc.equipment_port_type = make(map[string]struct{})
+		epdc.equipment_port_type = make(map[int]struct{})
 	}
 	epdc.equipment_port_type[id] = struct{}{}
 	return epdc
 }
 
 // SetNillableEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id if the given value is not nil.
-func (epdc *EquipmentPortDefinitionCreate) SetNillableEquipmentPortTypeID(id *string) *EquipmentPortDefinitionCreate {
+func (epdc *EquipmentPortDefinitionCreate) SetNillableEquipmentPortTypeID(id *int) *EquipmentPortDefinitionCreate {
 	if id != nil {
 		epdc = epdc.SetEquipmentPortTypeID(*id)
 	}
@@ -133,9 +132,9 @@ func (epdc *EquipmentPortDefinitionCreate) SetEquipmentPortType(e *EquipmentPort
 }
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
-func (epdc *EquipmentPortDefinitionCreate) AddPortIDs(ids ...string) *EquipmentPortDefinitionCreate {
+func (epdc *EquipmentPortDefinitionCreate) AddPortIDs(ids ...int) *EquipmentPortDefinitionCreate {
 	if epdc.ports == nil {
-		epdc.ports = make(map[string]struct{})
+		epdc.ports = make(map[int]struct{})
 	}
 	for i := range ids {
 		epdc.ports[ids[i]] = struct{}{}
@@ -145,7 +144,7 @@ func (epdc *EquipmentPortDefinitionCreate) AddPortIDs(ids ...string) *EquipmentP
 
 // AddPorts adds the ports edges to EquipmentPort.
 func (epdc *EquipmentPortDefinitionCreate) AddPorts(e ...*EquipmentPort) *EquipmentPortDefinitionCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -153,16 +152,16 @@ func (epdc *EquipmentPortDefinitionCreate) AddPorts(e ...*EquipmentPort) *Equipm
 }
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
-func (epdc *EquipmentPortDefinitionCreate) SetEquipmentTypeID(id string) *EquipmentPortDefinitionCreate {
+func (epdc *EquipmentPortDefinitionCreate) SetEquipmentTypeID(id int) *EquipmentPortDefinitionCreate {
 	if epdc.equipment_type == nil {
-		epdc.equipment_type = make(map[string]struct{})
+		epdc.equipment_type = make(map[int]struct{})
 	}
 	epdc.equipment_type[id] = struct{}{}
 	return epdc
 }
 
 // SetNillableEquipmentTypeID sets the equipment_type edge to EquipmentType by id if the given value is not nil.
-func (epdc *EquipmentPortDefinitionCreate) SetNillableEquipmentTypeID(id *string) *EquipmentPortDefinitionCreate {
+func (epdc *EquipmentPortDefinitionCreate) SetNillableEquipmentTypeID(id *int) *EquipmentPortDefinitionCreate {
 	if id != nil {
 		epdc = epdc.SetEquipmentTypeID(*id)
 	}
@@ -207,17 +206,17 @@ func (epdc *EquipmentPortDefinitionCreate) SaveX(ctx context.Context) *Equipment
 
 func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*EquipmentPortDefinition, error) {
 	var (
-		epd  = &EquipmentPortDefinition{config: epdc.config}
-		spec = &sqlgraph.CreateSpec{
+		epd   = &EquipmentPortDefinition{config: epdc.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipmentportdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentportdefinition.FieldID,
 			},
 		}
 	)
 	if value := epdc.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldCreateTime,
@@ -225,7 +224,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.CreateTime = *value
 	}
 	if value := epdc.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldUpdateTime,
@@ -233,7 +232,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.UpdateTime = *value
 	}
 	if value := epdc.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldName,
@@ -241,7 +240,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.Name = *value
 	}
 	if value := epdc.index; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldIndex,
@@ -249,7 +248,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.Index = *value
 	}
 	if value := epdc.bandwidth; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldBandwidth,
@@ -257,7 +256,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		epd.Bandwidth = *value
 	}
 	if value := epdc.visibility_label; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentportdefinition.FieldVisibilityLabel,
@@ -273,19 +272,15 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epdc.ports; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -296,19 +291,15 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := epdc.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -319,27 +310,23 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, epdc.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, epdc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	epd.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	epd.ID = int(id)
 	return epd, nil
 }

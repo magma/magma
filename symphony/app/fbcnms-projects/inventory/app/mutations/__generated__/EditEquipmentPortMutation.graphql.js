@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b6af8bdc07a270c7e3034b77edeb504d
+ * @relayHash 3775d7340982b42d1f5f7833d5a743c2
  */
 
 /* eslint-disable */
@@ -49,7 +49,7 @@ export type EditEquipmentPortMutationVariables = {|
   input: EditEquipmentPortInput
 |};
 export type EditEquipmentPortMutationResponse = {|
-  +editEquipmentPort: ?{|
+  +editEquipmentPort: {|
     +id: string,
     +definition: {|
       +id: string,

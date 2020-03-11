@@ -38,13 +38,13 @@ test: ## Run integration tests
 	@echo "DEPRECATED: run the command 'docker-compose build && docker-compose up && docker-compose run --use-aliases test go test -v ./...' instead"
 
 pytest: ## Run integration tests
-	@echo "DEPRECATED: run the command 'docker-compose -f docker-compose.yaml -f docker-compose.testing.yaml build && docker-compose -f docker-compose.yaml -f docker-compose.testing.yaml up -d && docker-compose -f docker-compose.yaml -f docker-compose.testing.yaml run --use-aliases pytest python -m unittest discover -v' instead"
+	@echo "DEPRECATED: run the command 'docker-compose -f docker-compose.yaml -f docker-compose.testing.yaml build && docker-compose -f docker-compose.yaml -f docker-compose.testing.yaml up -d && docker-compose -f docker-compose.yaml -f docker-compose.testing.yaml run --use-aliases pytest' instead"
 
 cover: ## Run go test coverage
 	@-go test ../... -coverprofile ./cover.tmp >/dev/null
 	@go tool cover -func=./cover.tmp | tail -n 1
 	@find .. -name '*.go' | xargs wc -l | tail -n 1
-	@rm ./cover.tmp	
+	@rm ./cover.tmp
 
 
 ### These targets set up connecting the nms to the local docker instance of orc8r cloud controller

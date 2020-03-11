@@ -8,31 +8,31 @@
  * @format
  */
 
+import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import React, {useCallback} from 'react';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
-import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
-import type {BasicCheckListItemDefinition_item} from './__generated__/BasicCheckListItemDefinition_item.graphql';
 
 type Props = {
-  item: BasicCheckListItemDefinition_item,
-  onChange: (updatedChecklistItem: BasicCheckListItemDefinition_item) => void,
+  item: CheckListItem,
+  onChange?: (updatedItem: CheckListItem) => void,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'row',
   },
-  expandindPart: {
+  expandingPart: {
     flexGrow: 1,
     flexBasis: 0,
   },
-});
+}));
 
-const BasicCheckListItemDefinition = (props: Props) => {
-  const {item, onChange} = props;
+const BasicCheckListItemDefinition = ({item, onChange}: Props) => {
   const classes = useStyles();
 
   const _updateOnChange = useCallback(
@@ -41,33 +41,26 @@ const BasicCheckListItemDefinition = (props: Props) => {
         ...item,
         title: newTitle,
       };
-      onChange(newItem);
+      onChange && onChange(newItem);
     },
     [item, onChange],
   );
 
   return (
     <div className={classes.container}>
-      <TextInput
-        className={classes.expandindPart}
-        type="string"
-        placeholder={fbt(
-          'What needs to be done?',
-          'Placeholder for checkbox field title (user needs to type the title of the checkbox in this field).',
-        )}
-        value={item.title || ''}
-        onChange={event => _updateOnChange(event.target.value)}
-      />
+      <FormField className={classes.expandingPart}>
+        <TextInput
+          type="string"
+          placeholder={fbt(
+            'What needs to be done?',
+            'Placeholder for checkbox field title (user needs to type the title of the checkbox in this field).',
+          )}
+          value={item.title || ''}
+          onChange={event => _updateOnChange(event.target.value)}
+        />
+      </FormField>
     </div>
   );
 };
 
-export default createFragmentContainer(BasicCheckListItemDefinition, {
-  item: graphql`
-    fragment BasicCheckListItemDefinition_item on CheckListItem {
-      title
-      checked
-      ...CheckListItem_item
-    }
-  `,
-});
+export default BasicCheckListItemDefinition;

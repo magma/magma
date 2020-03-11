@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -32,9 +31,9 @@ type EquipmentPositionDefinitionUpdate struct {
 	clearindex            bool
 	visibility_label      *string
 	clearvisibility_label bool
-	positions             map[string]struct{}
-	equipment_type        map[string]struct{}
-	removedPositions      map[string]struct{}
+	positions             map[int]struct{}
+	equipment_type        map[int]struct{}
+	removedPositions      map[int]struct{}
 	clearedEquipmentType  bool
 	predicates            []predicate.EquipmentPositionDefinition
 }
@@ -105,9 +104,9 @@ func (epdu *EquipmentPositionDefinitionUpdate) ClearVisibilityLabel() *Equipment
 }
 
 // AddPositionIDs adds the positions edge to EquipmentPosition by ids.
-func (epdu *EquipmentPositionDefinitionUpdate) AddPositionIDs(ids ...string) *EquipmentPositionDefinitionUpdate {
+func (epdu *EquipmentPositionDefinitionUpdate) AddPositionIDs(ids ...int) *EquipmentPositionDefinitionUpdate {
 	if epdu.positions == nil {
-		epdu.positions = make(map[string]struct{})
+		epdu.positions = make(map[int]struct{})
 	}
 	for i := range ids {
 		epdu.positions[ids[i]] = struct{}{}
@@ -117,7 +116,7 @@ func (epdu *EquipmentPositionDefinitionUpdate) AddPositionIDs(ids ...string) *Eq
 
 // AddPositions adds the positions edges to EquipmentPosition.
 func (epdu *EquipmentPositionDefinitionUpdate) AddPositions(e ...*EquipmentPosition) *EquipmentPositionDefinitionUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -125,16 +124,16 @@ func (epdu *EquipmentPositionDefinitionUpdate) AddPositions(e ...*EquipmentPosit
 }
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
-func (epdu *EquipmentPositionDefinitionUpdate) SetEquipmentTypeID(id string) *EquipmentPositionDefinitionUpdate {
+func (epdu *EquipmentPositionDefinitionUpdate) SetEquipmentTypeID(id int) *EquipmentPositionDefinitionUpdate {
 	if epdu.equipment_type == nil {
-		epdu.equipment_type = make(map[string]struct{})
+		epdu.equipment_type = make(map[int]struct{})
 	}
 	epdu.equipment_type[id] = struct{}{}
 	return epdu
 }
 
 // SetNillableEquipmentTypeID sets the equipment_type edge to EquipmentType by id if the given value is not nil.
-func (epdu *EquipmentPositionDefinitionUpdate) SetNillableEquipmentTypeID(id *string) *EquipmentPositionDefinitionUpdate {
+func (epdu *EquipmentPositionDefinitionUpdate) SetNillableEquipmentTypeID(id *int) *EquipmentPositionDefinitionUpdate {
 	if id != nil {
 		epdu = epdu.SetEquipmentTypeID(*id)
 	}
@@ -147,9 +146,9 @@ func (epdu *EquipmentPositionDefinitionUpdate) SetEquipmentType(e *EquipmentType
 }
 
 // RemovePositionIDs removes the positions edge to EquipmentPosition by ids.
-func (epdu *EquipmentPositionDefinitionUpdate) RemovePositionIDs(ids ...string) *EquipmentPositionDefinitionUpdate {
+func (epdu *EquipmentPositionDefinitionUpdate) RemovePositionIDs(ids ...int) *EquipmentPositionDefinitionUpdate {
 	if epdu.removedPositions == nil {
-		epdu.removedPositions = make(map[string]struct{})
+		epdu.removedPositions = make(map[int]struct{})
 	}
 	for i := range ids {
 		epdu.removedPositions[ids[i]] = struct{}{}
@@ -159,7 +158,7 @@ func (epdu *EquipmentPositionDefinitionUpdate) RemovePositionIDs(ids ...string) 
 
 // RemovePositions removes positions edges to EquipmentPosition.
 func (epdu *EquipmentPositionDefinitionUpdate) RemovePositions(e ...*EquipmentPosition) *EquipmentPositionDefinitionUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -207,66 +206,66 @@ func (epdu *EquipmentPositionDefinitionUpdate) ExecX(ctx context.Context) {
 }
 
 func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentpositiondefinition.Table,
 			Columns: equipmentpositiondefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentpositiondefinition.FieldID,
 			},
 		},
 	}
 	if ps := epdu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if value := epdu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldUpdateTime,
 		})
 	}
 	if value := epdu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldName,
 		})
 	}
 	if value := epdu.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
 	if value := epdu.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
 	if epdu.clearindex {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
 	if value := epdu.visibility_label; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
 		})
 	}
 	if epdu.clearvisibility_label {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
 		})
@@ -280,19 +279,15 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentposition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epdu.positions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -303,19 +298,15 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentposition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if epdu.clearedEquipmentType {
 		edge := &sqlgraph.EdgeSpec{
@@ -326,12 +317,12 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epdu.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -342,22 +333,20 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, epdu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, epdu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentpositiondefinition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -368,7 +357,7 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 // EquipmentPositionDefinitionUpdateOne is the builder for updating a single EquipmentPositionDefinition entity.
 type EquipmentPositionDefinitionUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time           *time.Time
 	name                  *string
@@ -377,9 +366,9 @@ type EquipmentPositionDefinitionUpdateOne struct {
 	clearindex            bool
 	visibility_label      *string
 	clearvisibility_label bool
-	positions             map[string]struct{}
-	equipment_type        map[string]struct{}
-	removedPositions      map[string]struct{}
+	positions             map[int]struct{}
+	equipment_type        map[int]struct{}
+	removedPositions      map[int]struct{}
 	clearedEquipmentType  bool
 }
 
@@ -443,9 +432,9 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) ClearVisibilityLabel() *Equip
 }
 
 // AddPositionIDs adds the positions edge to EquipmentPosition by ids.
-func (epduo *EquipmentPositionDefinitionUpdateOne) AddPositionIDs(ids ...string) *EquipmentPositionDefinitionUpdateOne {
+func (epduo *EquipmentPositionDefinitionUpdateOne) AddPositionIDs(ids ...int) *EquipmentPositionDefinitionUpdateOne {
 	if epduo.positions == nil {
-		epduo.positions = make(map[string]struct{})
+		epduo.positions = make(map[int]struct{})
 	}
 	for i := range ids {
 		epduo.positions[ids[i]] = struct{}{}
@@ -455,7 +444,7 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) AddPositionIDs(ids ...string)
 
 // AddPositions adds the positions edges to EquipmentPosition.
 func (epduo *EquipmentPositionDefinitionUpdateOne) AddPositions(e ...*EquipmentPosition) *EquipmentPositionDefinitionUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -463,16 +452,16 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) AddPositions(e ...*EquipmentP
 }
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
-func (epduo *EquipmentPositionDefinitionUpdateOne) SetEquipmentTypeID(id string) *EquipmentPositionDefinitionUpdateOne {
+func (epduo *EquipmentPositionDefinitionUpdateOne) SetEquipmentTypeID(id int) *EquipmentPositionDefinitionUpdateOne {
 	if epduo.equipment_type == nil {
-		epduo.equipment_type = make(map[string]struct{})
+		epduo.equipment_type = make(map[int]struct{})
 	}
 	epduo.equipment_type[id] = struct{}{}
 	return epduo
 }
 
 // SetNillableEquipmentTypeID sets the equipment_type edge to EquipmentType by id if the given value is not nil.
-func (epduo *EquipmentPositionDefinitionUpdateOne) SetNillableEquipmentTypeID(id *string) *EquipmentPositionDefinitionUpdateOne {
+func (epduo *EquipmentPositionDefinitionUpdateOne) SetNillableEquipmentTypeID(id *int) *EquipmentPositionDefinitionUpdateOne {
 	if id != nil {
 		epduo = epduo.SetEquipmentTypeID(*id)
 	}
@@ -485,9 +474,9 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) SetEquipmentType(e *Equipment
 }
 
 // RemovePositionIDs removes the positions edge to EquipmentPosition by ids.
-func (epduo *EquipmentPositionDefinitionUpdateOne) RemovePositionIDs(ids ...string) *EquipmentPositionDefinitionUpdateOne {
+func (epduo *EquipmentPositionDefinitionUpdateOne) RemovePositionIDs(ids ...int) *EquipmentPositionDefinitionUpdateOne {
 	if epduo.removedPositions == nil {
-		epduo.removedPositions = make(map[string]struct{})
+		epduo.removedPositions = make(map[int]struct{})
 	}
 	for i := range ids {
 		epduo.removedPositions[ids[i]] = struct{}{}
@@ -497,7 +486,7 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) RemovePositionIDs(ids ...stri
 
 // RemovePositions removes positions edges to EquipmentPosition.
 func (epduo *EquipmentPositionDefinitionUpdateOne) RemovePositions(e ...*EquipmentPosition) *EquipmentPositionDefinitionUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -545,60 +534,60 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) (epd *EquipmentPositionDefinition, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentpositiondefinition.Table,
 			Columns: equipmentpositiondefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  epduo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentpositiondefinition.FieldID,
 			},
 		},
 	}
 	if value := epduo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldUpdateTime,
 		})
 	}
 	if value := epduo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldName,
 		})
 	}
 	if value := epduo.index; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
 	if value := epduo.addindex; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
 	if epduo.clearindex {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
 	if value := epduo.visibility_label; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
 		})
 	}
 	if epduo.clearvisibility_label {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
 		})
@@ -612,19 +601,15 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentposition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epduo.positions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -635,19 +620,15 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentposition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if epduo.clearedEquipmentType {
 		edge := &sqlgraph.EdgeSpec{
@@ -658,12 +639,12 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := epduo.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -674,25 +655,23 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	epd = &EquipmentPositionDefinition{config: epduo.config}
-	spec.Assign = epd.assignValues
-	spec.ScanValues = epd.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, epduo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = epd.assignValues
+	_spec.ScanValues = epd.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, epduo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentpositiondefinition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

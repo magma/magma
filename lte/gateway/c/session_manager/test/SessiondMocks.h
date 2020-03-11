@@ -14,6 +14,7 @@
 
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/pipelined.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include <folly/io/async/EventBase.h>
@@ -63,39 +64,64 @@ class MockPipelinedClient : public PipelinedClient {
  public:
   MockPipelinedClient()
   {
-    ON_CALL(*this, setup(_,_,_)).WillByDefault(Return(true));
+    ON_CALL(*this, setup_cwf(_,_,_,_,_,_,_,_)).WillByDefault(Return(true));
+    ON_CALL(*this, setup_lte(_,_,_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _))
       .WillByDefault(Return(true));
     ON_CALL(*this, activate_flows_for_rules(_, _, _, _))
       .WillByDefault(Return(true));
-    ON_CALL(*this, add_ue_mac_flow(_, _)).WillByDefault(Return(true));
+    ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _)).WillByDefault(Return(true));
+    ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
+    ON_CALL(*this, update_subscriber_quota_state(_))
+      .WillByDefault(Return(true));
   }
 
-  MOCK_METHOD3(setup,
+  MOCK_METHOD8(setup_cwf,
     bool(
-      const std::vector<SessionState::SessionInfo> &infos,
-      const std::uint64_t &epoch,
+      const std::vector<SessionState::SessionInfo>& infos,
+      const std::vector<SubscriberQuotaUpdate>& quota_updates,
+      const std::vector<std::string> ue_mac_addrs,
+      const std::vector<std::string> msisdns,
+      const std::vector<std::string> apn_mac_addrs,
+      const std::vector<std::string> apn_names,
+      const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback));
-  MOCK_METHOD1(deactivate_all_flows, bool(const std::string &imsi));
+  MOCK_METHOD3(setup_lte,
+    bool(
+      const std::vector<SessionState::SessionInfo>& infos,
+      const std::uint64_t& epoch,
+      std::function<void(Status status, SetupFlowsResult)> callback));
+  MOCK_METHOD1(deactivate_all_flows, bool(const std::string& imsi));
   MOCK_METHOD3(
     deactivate_flows_for_rules,
     bool(
-      const std::string &imsi,
-      const std::vector<std::string> &rule_ids,
-      const std::vector<PolicyRule> &dynamic_rules));
+      const std::string& imsi,
+      const std::vector<std::string>& rule_ids,
+      const std::vector<PolicyRule>& dynamic_rules));
   MOCK_METHOD4(
     activate_flows_for_rules,
     bool(
-      const std::string &imsi,
-      const std::string &ip_addr,
-      const std::vector<std::string> &static_rules,
-      const std::vector<PolicyRule> &dynamic_rules));
-  MOCK_METHOD2(
+      const std::string& imsi,
+      const std::string& ip_addr,
+      const std::vector<std::string>& static_rules,
+      const std::vector<PolicyRule>& dynamic_rules));
+  MOCK_METHOD5(
     add_ue_mac_flow,
     bool(
       const SubscriberID &sid,
-      const std::string &mac_addr));
+      const std::string &ue_mac_addr,
+      const std::string &msisdn,
+      const std::string &ap_mac_addr,
+      const std::string &ap_name));
+  MOCK_METHOD2(
+    delete_ue_mac_flow,
+    bool(
+      const SubscriberID &sid,
+      const std::string &ue_mac_addr));
+  MOCK_METHOD1(
+    update_subscriber_quota_state,
+    bool(const std::vector<SubscriberQuotaUpdate>& updates));
 };
 
 class MockDirectorydClient : public AsyncDirectorydClient {
@@ -142,10 +168,10 @@ class MockCallback {
  public:
   MOCK_METHOD2(
     update_callback,
-    void(Status status, const UpdateSessionResponse &));
+    void(Status status, const UpdateSessionResponse& ));
   MOCK_METHOD2(
     create_callback,
-    void(Status status, const CreateSessionResponse &));
+    void(Status status, const CreateSessionResponse& ));
 };
 
 /**
@@ -182,19 +208,19 @@ class MockSessionReporter : public SessionReporter {
     MOCK_METHOD2(
       report_updates,
       void(
-        const UpdateSessionRequest &,
+        const UpdateSessionRequest& ,
         std::function<void(grpc::Status, UpdateSessionResponse)>));
 
     MOCK_METHOD2(
       report_create_session,
       void(
-        const CreateSessionRequest &,
+        const CreateSessionRequest& ,
         std::function<void(Status, CreateSessionResponse)>));
 
     MOCK_METHOD2(
       report_terminate_session,
       void(
-        const SessionTerminateRequest &,
+        const SessionTerminateRequest& ,
         std::function<void(Status, SessionTerminateResponse)>));
 
 };
@@ -209,8 +235,8 @@ class MockAAAClient : public aaa::AAAClient {
   MOCK_METHOD2(
     terminate_session,
     bool(
-      const std::string &radius_session_id,
-      const std::string &imsi));
+      const std::string& radius_session_id,
+      const std::string& imsi));
 };
 
 class MockSpgwServiceClient : public SpgwServiceClient {
@@ -226,17 +252,17 @@ class MockSpgwServiceClient : public SpgwServiceClient {
     MOCK_METHOD4(
       delete_dedicated_bearer,
       bool(
-        const std::string &,
-        const std::string &,
+        const std::string& ,
+        const std::string& ,
         const uint32_t,
-        const std::vector<uint32_t> &));
+        const std::vector<uint32_t>& ));
     MOCK_METHOD4(
       create_dedicated_bearer,
       bool(
-        const std::string &,
-        const std::string &,
+        const std::string& ,
+        const std::string& ,
         const uint32_t,
-        const std::vector<PolicyRule> &));
+        const std::vector<PolicyRule>& ));
 };
 
 } // namespace magma

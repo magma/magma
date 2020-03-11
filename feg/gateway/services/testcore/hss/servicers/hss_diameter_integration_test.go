@@ -17,7 +17,7 @@ import (
 	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
@@ -128,7 +128,7 @@ func testDiameterMessage(t *testing.T, clientHandler diam.HandlerFunc, msg *diam
 func getTestHSSDiameterServer(t *testing.T) *hss.HomeSubscriberServer {
 	// Start s6a diameter server
 	result := make(chan error)
-	hss := test.NewTestHomeSubscriberServer(t)
+	hss := test_utils.NewTestHomeSubscriberServer(t)
 	started := make(chan string)
 	go func() {
 		err := hss.Start(started)

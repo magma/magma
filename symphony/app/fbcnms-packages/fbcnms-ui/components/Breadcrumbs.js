@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -15,9 +15,12 @@ import Breadcrumb from './Breadcrumb';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popover from '@material-ui/core/Popover';
-import React, {useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import Text from './design-system/Text';
 import classNames from 'classnames';
+// flowlint untyped-import:off
+import fbt from 'fbt';
+import useResize from './design-system/hooks/useResize';
 import {gray8} from '@fbcnms/ui/theme/colors';
 import {makeStyles} from '@material-ui/styles';
 
@@ -25,7 +28,10 @@ const useStyles = makeStyles(theme => ({
   breadcrumbs: {
     display: 'flex',
     alignItems: 'flex-start',
-    minWidth: '200px',
+    overflow: 'hidden',
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
   },
   moreIcon: {
     display: 'flex',
@@ -62,8 +68,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const MAX_NUM_BREADCRUMBS = 3;
-
 type Props = {
   breadcrumbs: Array<BreadcrumbData>,
   className?: string,
@@ -72,75 +76,133 @@ type Props = {
   variant?: TextVariant,
 };
 
-const Breadcrumbs = (props: Props) => {
-  const {breadcrumbs, size, className, textClassName, variant} = props;
-  const classes = useStyles();
+const KEEP_UNCOLLAPSED_AT_END = 1;
 
+const Breadcrumbs = (props: Props) => {
+  const {
+    breadcrumbs,
+    size = 'default',
+    className,
+    textClassName,
+    variant,
+  } = props;
+  const classes = useStyles();
   const [isBreadcrumbsMenuOpen, toggleBreadcrumbsMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = React.useState(null);
-
-  let collapsedBreadcrumbs = [];
-  if (breadcrumbs.length > MAX_NUM_BREADCRUMBS) {
-    collapsedBreadcrumbs = breadcrumbs.slice(1, breadcrumbs.length - 2);
-  }
-  const hasCollapsedBreadcrumbs = collapsedBreadcrumbs.length > 0;
-  const startBreadcrumbs = hasCollapsedBreadcrumbs
-    ? breadcrumbs.slice(0, 1)
-    : [];
-  const endBreadcrumbs = breadcrumbs.slice(
-    collapsedBreadcrumbs.length + (hasCollapsedBreadcrumbs ? 1 : 0),
+  const breadcrumbsContainer = useRef(null);
+  const [collapsedBreadcrumbsCount, setCollapsedBreadcrumbsCount] = useState(0);
+  const maximalCollapsedBreadcrumbsCount =
+    breadcrumbs.length - KEEP_UNCOLLAPSED_AT_END;
+  const ellipsisBreadcrumb = useMemo(
+    () => ({
+      id: 'collapsed',
+      name: '...',
+      subtext: fbt(
+        'Click to see hidden parts',
+        `tooltip for ellipsis control, showing hidden parts on click`,
+      ),
+      onClick: (_, clickTarget) => {
+        toggleBreadcrumbsMenuOpen(true);
+        setAnchorEl(clickTarget);
+      },
+    }),
+    [],
   );
+  useResize(breadcrumbsContainer, eventArgs => {
+    if (eventArgs.width.expanded) {
+      setCollapsedBreadcrumbsCount(0);
+    }
+    const parentContainer: ?HTMLElement = breadcrumbsContainer.current;
+    if (!parentContainer) {
+      return;
+    }
+    let breadcrumbsWidth = 0;
+    for (
+      let badcrumbIndex = 0;
+      badcrumbIndex < parentContainer.children.length;
+      badcrumbIndex++
+    ) {
+      breadcrumbsWidth += parentContainer.children[badcrumbIndex].clientWidth;
+    }
+    if (
+      breadcrumbsWidth > parentContainer.clientWidth &&
+      collapsedBreadcrumbsCount < maximalCollapsedBreadcrumbsCount
+    ) {
+      setCollapsedBreadcrumbsCount(collapsedBreadcrumbsCount + 1);
+    }
+  });
+
+  const keepUncollapsedAtStart =
+    collapsedBreadcrumbsCount > 0 &&
+    collapsedBreadcrumbsCount < maximalCollapsedBreadcrumbsCount
+      ? 1
+      : 0;
+  const [
+    startBreadcrumbs,
+    collapsedBreadcrumbs,
+    endBreadcrumbs,
+  ] = useMemo(() => {
+    return [
+      breadcrumbs.slice(0, keepUncollapsedAtStart),
+      breadcrumbs.slice(
+        keepUncollapsedAtStart,
+        collapsedBreadcrumbsCount + keepUncollapsedAtStart,
+      ),
+      breadcrumbs.slice(
+        keepUncollapsedAtStart + collapsedBreadcrumbsCount,
+        breadcrumbs.length,
+      ),
+    ];
+  }, [breadcrumbs, collapsedBreadcrumbsCount, keepUncollapsedAtStart]);
 
   return (
-    <div className={classNames(classes.breadcrumbs, className)}>
-      {startBreadcrumbs.map(b => (
+    <div
+      aria-id="container"
+      ref={breadcrumbsContainer}
+      className={classNames(classes.breadcrumbs, className)}>
+      {startBreadcrumbs.map(b => {
+        return (
+          <Breadcrumb
+            key={b.id}
+            data={b}
+            size={size}
+            className={textClassName}
+            isLastBreadcrumb={false}
+            variant={variant}
+          />
+        );
+      })}
+      {collapsedBreadcrumbs.length > 0 && (
         <Breadcrumb
-          key={b.id}
-          data={b}
+          key={'collapsed'}
+          data={ellipsisBreadcrumb}
+          size={size}
+          variant={variant}
+          className={textClassName}
           isLastBreadcrumb={false}
-          size={size}
-          onClick={b.onClick}
-          className={textClassName}
-          variant={variant}
         />
-      ))}
-      {hasCollapsedBreadcrumbs && (
-        <div className={classes.moreIcon}>
-          <Text
-            variant={variant ? variant : size === 'small' ? 'subtitle2' : 'h6'}
-            className={classes.moreIconButton}
-            onClick={e => {
-              toggleBreadcrumbsMenuOpen(true);
-              setAnchorEl(e.currentTarget);
-            }}>
-            {'...'}
-          </Text>
-          <Text
-            variant={variant ? variant : size === 'small' ? 'subtitle2' : 'h6'}
-            className={classes.slash}>
-            {'/'}
-          </Text>
-        </div>
       )}
-      {endBreadcrumbs.map((b, i) => (
-        <Breadcrumb
-          key={b.id}
-          data={b}
-          isLastBreadcrumb={i === endBreadcrumbs.length - 1}
-          useEllipsis={
-            startBreadcrumbs.length + i > 0 && i < endBreadcrumbs.length - 1
-          }
-          size={size}
-          variant={variant}
-          className={textClassName}
-        />
-      ))}
+      {endBreadcrumbs.map((b, i) => {
+        const isLast = i === endBreadcrumbs.length - 1;
+        const isSingle =
+          startBreadcrumbs.length === 0 && endBreadcrumbs.length === 1;
+        return (
+          <Breadcrumb
+            key={b.id}
+            data={b}
+            isLastBreadcrumb={isLast}
+            useEllipsis={isSingle}
+            size={size}
+            className={textClassName}
+            variant={variant}
+          />
+        );
+      })}
       <Popover
         open={isBreadcrumbsMenuOpen}
         anchorEl={anchorEl}
         onClose={() => {
           toggleBreadcrumbsMenuOpen(false);
-          setAnchorEl(null);
         }}
         anchorOrigin={{
           vertical: 'bottom',
@@ -155,10 +217,9 @@ const Breadcrumbs = (props: Props) => {
             <ListItem
               key={`list_item_${b.id}`}
               button
-              onClick={() => {
-                b.onClick && b.onClick(b.id);
+              onClick={e => {
+                b.onClick && b.onClick(b.id, e.currentTarget);
                 toggleBreadcrumbsMenuOpen(false);
-                setAnchorEl(null);
               }}>
               <Text>{b.name}</Text>
               <Text className={classes.subtext}>{b.subtext}</Text>
@@ -168,11 +229,6 @@ const Breadcrumbs = (props: Props) => {
       </Popover>
     </div>
   );
-};
-
-Breadcrumbs.defaultProps = {
-  size: 'default',
-  showTypes: true,
 };
 
 export default Breadcrumbs;

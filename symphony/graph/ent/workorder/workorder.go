@@ -49,80 +49,87 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "workordertype" package.
 	TypeInverseTable = "work_order_types"
 	// TypeColumn is the table column denoting the type relation/edge.
-	TypeColumn = "type_id"
+	TypeColumn = "work_order_type"
 	// EquipmentTable is the table the holds the equipment relation/edge.
 	EquipmentTable = "equipment"
 	// EquipmentInverseTable is the table name for the Equipment entity.
 	// It exists in this package in order to avoid circular dependency with the "equipment" package.
 	EquipmentInverseTable = "equipment"
 	// EquipmentColumn is the table column denoting the equipment relation/edge.
-	EquipmentColumn = "work_order_id"
+	EquipmentColumn = "equipment_work_order"
 	// LinksTable is the table the holds the links relation/edge.
 	LinksTable = "links"
 	// LinksInverseTable is the table name for the Link entity.
 	// It exists in this package in order to avoid circular dependency with the "link" package.
 	LinksInverseTable = "links"
 	// LinksColumn is the table column denoting the links relation/edge.
-	LinksColumn = "work_order_id"
+	LinksColumn = "link_work_order"
 	// FilesTable is the table the holds the files relation/edge.
 	FilesTable = "files"
 	// FilesInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
 	FilesInverseTable = "files"
 	// FilesColumn is the table column denoting the files relation/edge.
-	FilesColumn = "work_order_file_id"
+	FilesColumn = "work_order_files"
 	// HyperlinksTable is the table the holds the hyperlinks relation/edge.
 	HyperlinksTable = "hyperlinks"
 	// HyperlinksInverseTable is the table name for the Hyperlink entity.
 	// It exists in this package in order to avoid circular dependency with the "hyperlink" package.
 	HyperlinksInverseTable = "hyperlinks"
 	// HyperlinksColumn is the table column denoting the hyperlinks relation/edge.
-	HyperlinksColumn = "work_order_hyperlink_id"
+	HyperlinksColumn = "work_order_hyperlinks"
 	// LocationTable is the table the holds the location relation/edge.
 	LocationTable = "work_orders"
 	// LocationInverseTable is the table name for the Location entity.
 	// It exists in this package in order to avoid circular dependency with the "location" package.
 	LocationInverseTable = "locations"
 	// LocationColumn is the table column denoting the location relation/edge.
-	LocationColumn = "location_id"
+	LocationColumn = "work_order_location"
 	// CommentsTable is the table the holds the comments relation/edge.
 	CommentsTable = "comments"
 	// CommentsInverseTable is the table name for the Comment entity.
 	// It exists in this package in order to avoid circular dependency with the "comment" package.
 	CommentsInverseTable = "comments"
 	// CommentsColumn is the table column denoting the comments relation/edge.
-	CommentsColumn = "work_order_comment_id"
+	CommentsColumn = "work_order_comments"
 	// PropertiesTable is the table the holds the properties relation/edge.
 	PropertiesTable = "properties"
 	// PropertiesInverseTable is the table name for the Property entity.
 	// It exists in this package in order to avoid circular dependency with the "property" package.
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
-	PropertiesColumn = "work_order_id"
+	PropertiesColumn = "work_order_properties"
+	// CheckListCategoriesTable is the table the holds the check_list_categories relation/edge.
+	CheckListCategoriesTable = "check_list_categories"
+	// CheckListCategoriesInverseTable is the table name for the CheckListCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "checklistcategory" package.
+	CheckListCategoriesInverseTable = "check_list_categories"
+	// CheckListCategoriesColumn is the table column denoting the check_list_categories relation/edge.
+	CheckListCategoriesColumn = "work_order_check_list_categories"
 	// CheckListItemsTable is the table the holds the check_list_items relation/edge.
 	CheckListItemsTable = "check_list_items"
 	// CheckListItemsInverseTable is the table name for the CheckListItem entity.
 	// It exists in this package in order to avoid circular dependency with the "checklistitem" package.
 	CheckListItemsInverseTable = "check_list_items"
 	// CheckListItemsColumn is the table column denoting the check_list_items relation/edge.
-	CheckListItemsColumn = "work_order_id"
+	CheckListItemsColumn = "work_order_check_list_items"
 	// TechnicianTable is the table the holds the technician relation/edge.
 	TechnicianTable = "work_orders"
 	// TechnicianInverseTable is the table name for the Technician entity.
 	// It exists in this package in order to avoid circular dependency with the "technician" package.
 	TechnicianInverseTable = "technicians"
 	// TechnicianColumn is the table column denoting the technician relation/edge.
-	TechnicianColumn = "technician_id"
+	TechnicianColumn = "work_order_technician"
 	// ProjectTable is the table the holds the project relation/edge.
 	ProjectTable = "work_orders"
 	// ProjectInverseTable is the table name for the Project entity.
 	// It exists in this package in order to avoid circular dependency with the "project" package.
 	ProjectInverseTable = "projects"
 	// ProjectColumn is the table column denoting the project relation/edge.
-	ProjectColumn = "project_id"
+	ProjectColumn = "project_work_orders"
 )
 
-// Columns holds all SQL columns are workorder fields.
+// Columns holds all SQL columns for workorder fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -136,6 +143,14 @@ var Columns = []string{
 	FieldCreationDate,
 	FieldAssignee,
 	FieldIndex,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the WorkOrder type.
+var ForeignKeys = []string{
+	"project_work_orders",
+	"work_order_type",
+	"work_order_location",
+	"work_order_technician",
 }
 
 var (

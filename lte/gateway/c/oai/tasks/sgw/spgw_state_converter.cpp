@@ -36,6 +36,7 @@ using magma::lte::gateway::spgw::SgwPdnConnection;
 using magma::lte::gateway::spgw::SgwState;
 using magma::lte::gateway::spgw::SpgwState;
 using magma::lte::gateway::spgw::TrafficFlowTemplate;
+using magma::lte::gateway::spgw::SpgwImsiMap;
 
 namespace magma {
 namespace lte {
@@ -59,6 +60,25 @@ void SpgwStateConverter::proto_to_state(
 {
   sgw_proto_to_state(proto.sgw_state(), &spgw_state->sgw_state);
   pgw_proto_to_state(proto.pgw_state(), &spgw_state->pgw_state);
+}
+
+void SpgwStateConverter::spgw_imsi_map_to_proto(
+  const spgw_imsi_map_t* spgw_imsi_map,
+  SpgwImsiMap* spgw_imsi_proto)
+{
+  hashtable_uint64_ts_to_proto(
+    spgw_imsi_map->imsi_teid5_htbl,
+    spgw_imsi_proto->mutable_imsi_teid5_map());
+}
+
+void SpgwStateConverter::proto_to_spgw_imsi_map(
+  const SpgwImsiMap& spgw_imsi_proto,
+  spgw_imsi_map_t* spgw_imsi_map)
+{
+  if(!spgw_imsi_proto.imsi_teid5_map().empty()) {
+    proto_to_hashtable_uint64_ts(
+      spgw_imsi_proto.imsi_teid5_map(), spgw_imsi_map->imsi_teid5_htbl);
+  }
 }
 
 /**********************************************************/
@@ -1005,6 +1025,20 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
       sgw_eps_bearer_entry_wrapper,
       entries);
   }
+}
+
+void SpgwStateConverter::ue_to_proto(
+  const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
+  gateway::spgw::S11BearerContext* ue_proto)
+{
+  spgw_bearer_context_to_proto(ue_state, ue_proto);
+}
+
+void SpgwStateConverter::proto_to_ue(
+  const gateway::spgw::S11BearerContext& spgw_bearer_proto,
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state)
+{
+  proto_to_spgw_bearer_context(spgw_bearer_proto, spgw_bearer_state);
 }
 
 } // namespace lte

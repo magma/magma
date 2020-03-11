@@ -8,11 +8,11 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 )
 
@@ -20,7 +20,7 @@ import (
 type SurveyTemplateQuestion struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -33,32 +33,66 @@ type SurveyTemplateQuestion struct {
 	QuestionType string `json:"question_type,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyTemplateQuestionQuery when eager-loading is set.
+	Edges                                              SurveyTemplateQuestionEdges `json:"edges"`
+	survey_template_category_survey_template_questions *int
+}
+
+// SurveyTemplateQuestionEdges holds the relations/edges for other nodes in the graph.
+type SurveyTemplateQuestionEdges struct {
+	// Category holds the value of the category edge.
+	Category *SurveyTemplateCategory
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// CategoryOrErr returns the Category value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyTemplateQuestionEdges) CategoryOrErr() (*SurveyTemplateCategory, error) {
+	if e.loadedTypes[0] {
+		if e.Category == nil {
+			// The edge category was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: surveytemplatecategory.Label}
+		}
+		return e.Category, nil
+	}
+	return nil, &NotLoadedError{edge: "category"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SurveyTemplateQuestion) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // question_title
+		&sql.NullString{}, // question_description
+		&sql.NullString{}, // question_type
+		&sql.NullInt64{},  // index
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyTemplateQuestion) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // survey_template_category_survey_template_questions
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the SurveyTemplateQuestion fields.
 func (stq *SurveyTemplateQuestion) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(surveytemplatequestion.Columns); m != n {
+	if m, n := len(values), len(surveytemplatequestion.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	stq.ID = strconv.FormatInt(value.Int64, 10)
+	stq.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -90,19 +124,28 @@ func (stq *SurveyTemplateQuestion) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		stq.Index = int(value.Int64)
 	}
+	values = values[6:]
+	if len(values) == len(surveytemplatequestion.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_template_category_survey_template_questions", value)
+		} else if value.Valid {
+			stq.survey_template_category_survey_template_questions = new(int)
+			*stq.survey_template_category_survey_template_questions = int(value.Int64)
+		}
+	}
 	return nil
 }
 
 // QueryCategory queries the category edge of the SurveyTemplateQuestion.
 func (stq *SurveyTemplateQuestion) QueryCategory() *SurveyTemplateCategoryQuery {
-	return (&SurveyTemplateQuestionClient{stq.config}).QueryCategory(stq)
+	return (&SurveyTemplateQuestionClient{config: stq.config}).QueryCategory(stq)
 }
 
 // Update returns a builder for updating this SurveyTemplateQuestion.
 // Note that, you need to call SurveyTemplateQuestion.Unwrap() before calling this method, if this SurveyTemplateQuestion
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (stq *SurveyTemplateQuestion) Update() *SurveyTemplateQuestionUpdateOne {
-	return (&SurveyTemplateQuestionClient{stq.config}).UpdateOne(stq)
+	return (&SurveyTemplateQuestionClient{config: stq.config}).UpdateOne(stq)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -135,12 +178,6 @@ func (stq *SurveyTemplateQuestion) String() string {
 	builder.WriteString(fmt.Sprintf("%v", stq.Index))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (stq *SurveyTemplateQuestion) id() int {
-	id, _ := strconv.Atoi(stq.ID)
-	return id
 }
 
 // SurveyTemplateQuestions is a parsable slice of SurveyTemplateQuestion.

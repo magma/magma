@@ -1,4 +1,7 @@
-#!/bin/bash 
+#!/bin/bash
+dirname="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd ${dirname}
 
 DEVMANDDOCKERNET="devmanddevelnet"
 DEVMANDIP="172.8.0.85"
@@ -13,4 +16,11 @@ else
     docker network create --subnet=${DEVMANDSUBNET} ${DEVMANDDOCKERNET}
 fi
 
-docker run -h devmanddevel --net ${DEVMANDDOCKERNET} --ip ${DEVMANDIP} -it "facebookconnectivity-southpoll-dev-docker.jfrog.io/devmand" /bin/bash -c "/usr/sbin/service ssh start && bash"
+docker run -d -h devmanddevel --net ${DEVMANDDOCKERNET}  \
+      --ip ${DEVMANDIP} \
+      --name 85 \
+      -v "$(realpath ../../):/cache/devmand/repo:rw" \
+      -v "$(realpath ~/cache_devmand_build):/cache/devmand/build:rw" \
+      --entrypoint /bin/bash \
+      "facebookconnectivity-southpoll-dev-docker.jfrog.io/devmand" \
+      -c 'mkdir -p /run/sshd && /usr/sbin/sshd && bash -c "sleep infinity && ls"'

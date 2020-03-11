@@ -36,13 +36,16 @@ const (
 	ImportEntityPortInLink ImportEntity = "PORT_IN_LINK"
 	// ImportEntityService specifies a service for import
 	ImportEntityService ImportEntity = "SERVICE"
+	// ImportEntityLocation specifies a location for import
+	ImportEntityLocation ImportEntity = "LOCATION"
 )
 
 // SuccessMessage is the type returns to client on success import
 type SuccessMessage struct {
-	MessageCode  int `json:"messageCode"`
-	SuccessLines int `json:"successLines"`
-	AllLines     int `json:"allLines"`
+	MessageCode  int  `json:"messageCode"`
+	SuccessLines int  `json:"successLines"`
+	AllLines     int  `json:"allLines"`
+	Committed    bool `json:"committed"`
 }
 
 type ReturnMessage struct {
@@ -50,25 +53,23 @@ type ReturnMessage struct {
 	Errors  Errors         `json:"errors"`
 }
 
-func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, isSuccess bool) error {
+func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, isSuccess, startSaving bool) error {
 	w.Header().Set("Content-Type", "application/json")
 	messageCode := int(SuccessfullyUploaded)
 	if !isSuccess {
 		messageCode = int(FailedToUpload)
 	}
-	msg, err := json.Marshal(ReturnMessage{
-		Summary: SuccessMessage{
-			MessageCode:  messageCode,
-			SuccessLines: success,
-			AllLines:     all,
+	return json.NewEncoder(w).Encode(
+		ReturnMessage{
+			Summary: SuccessMessage{
+				MessageCode:  messageCode,
+				SuccessLines: success,
+				AllLines:     all,
+				Committed:    startSaving,
+			},
+			Errors: errs,
 		},
-		Errors: errs,
-	})
-	if err != nil {
-		return err
-	}
-	w.Write(msg)
-	return nil
+	)
 }
 
 // ErrorLine represents a line which failed to validate
@@ -81,11 +82,38 @@ type ErrorLine struct {
 // ErrorLine represents a summary of the errors while uploading a CSV file
 type Errors []ErrorLine
 
+func getLinesToSkip(r *http.Request) ([]int, error) {
+	var skipLines []int
+	arg := r.FormValue("skip_lines")
+	if arg != "" {
+		err := json.Unmarshal([]byte(arg), &skipLines)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(skipLines) > 0 {
+		skipLines = sortSlice(skipLines, true)
+	}
+	return skipLines, nil
+}
+
 func shouldSkipLine(a []int, currRow, nextLineToSkipIndex int) bool {
 	if nextLineToSkipIndex >= 0 && nextLineToSkipIndex < len(a) {
 		return currRow == a[nextLineToSkipIndex]
 	}
 	return false
+}
+
+func getVerifyBeforeCommitParam(r *http.Request) (*bool, error) {
+	verifyBeforeCommit := false
+	commitParam := r.FormValue("verify_before_commit")
+	if commitParam != "" {
+		err := json.Unmarshal([]byte(commitParam), &verifyBeforeCommit)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &verifyBeforeCommit, nil
 }
 
 // nolint: unparam
@@ -112,24 +140,47 @@ func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int,
 }
 
 // nolint: unparam
-func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord) (*ent.Location, error) {
-	var currParentID *string
+func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord, commit bool, limit *int) (*ent.Location, error) {
+	var currParentID *int
 	var loc *ent.Location
 	ic := getImportContext(ctx)
-	locStart, _ := l.Header().LocationsRangeIdx()
+
+	locStart, indexToStopLoop := l.Header().LocationsRangeIdx()
+	if limit != nil {
+		indexToStopLoop = *limit
+	}
+
 	for i, locName := range l.LocationsRangeArr() {
 		if locName == "" {
 			continue
+		}
+		if i >= indexToStopLoop {
+			break
 		}
 		typID := ic.indexToLocationTypeID[i+locStart] // the actual index
 		typ, err := m.r.Query().LocationType(ctx, typID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "missing location type: id=%q", typID)
 		}
-		loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+		if commit {
+			loc, _, err = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
+			if err != nil {
+				return nil, errors.Wrapf(err, "querying or creating location: id=%v", typID)
+			}
+		} else {
+			loc, err = m.queryLocationForTypeAndParent(ctx, locName, typ, currParentID)
+
+			if loc == nil {
+				if !ent.IsNotFound(err) {
+					return nil, errors.Wrapf(err, "querying or creating location name: %v", locName)
+				}
+				// no location but no error (dry run mode)
+				return nil, nil
+			}
+		}
 		currParentID = &loc.ID
 	}
-	if loc == nil {
+	if loc == nil && limit != nil {
 		return nil, errors.Errorf("equipment with no locations specified. id:%q, name: %q", l.ID(), l.Name())
 	}
 	return loc, nil
@@ -179,7 +230,7 @@ func (m *importer) verifyPositionHierarchy(ctx context.Context, equipment *ent.E
 	return nil
 }
 
-func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord, mustBeEmpty bool) (*string, *string, error) {
+func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord, mustBeEmpty bool) (*int, *int, error) {
 	l := importLine.line
 	title := importLine.title
 	if importLine.Position() == "" {
@@ -237,9 +288,12 @@ func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *en
 }
 
 func (m *importer) validatePropertiesForPortType(ctx context.Context, line ImportRecord, portType *ent.EquipmentPortType, entity ImportEntity) ([]*models.PropertyInput, error) {
-	var pInputs []*models.PropertyInput
-	var propTypes []*ent.PropertyType
-	var err error
+	var (
+		pInputs   []*models.PropertyInput
+		propTypes []*ent.PropertyType
+		err       error
+	)
+
 	switch entity {
 	case ImportEntityPort:
 		propTypes, err = portType.QueryPropertyTypes().All(ctx)
@@ -257,7 +311,9 @@ func (m *importer) validatePropertiesForPortType(ctx context.Context, line Impor
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }
@@ -268,7 +324,7 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		return errors.Wrapf(err, "fetching equipment port definition")
 	}
 	if def.Name != portData.Name {
-		return errors.Wrapf(err, "wrong port type. should be %q, but %q", def.Name, portData.Name)
+		return errors.Errorf("wrong port type. should be %q, but %q", def.Name, portData.Name)
 	}
 	portType, err := def.QueryEquipmentPortType().Only(ctx)
 	if ent.MaskNotFound(err) != nil {
@@ -281,7 +337,7 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		tempPortType = portType.Name
 	}
 	if tempPortType != portData.TypeName {
-		return errors.Wrapf(err, "wrong port type. should be %q, but %q", tempPortType, portData.TypeName)
+		return errors.Errorf("wrong port type. should be %q, but %q", tempPortType, portData.TypeName)
 	}
 
 	equipment, err := port.QueryParent().Only(ctx)
@@ -289,14 +345,41 @@ func (m *importer) validatePort(ctx context.Context, portData PortData, port ent
 		return errors.Wrapf(err, "fetching equipment for port")
 	}
 	if equipment.Name != portData.EquipmentName {
-		return errors.Wrapf(err, "wrong equipment. should be %q, but %q", equipment.Name, portData.EquipmentName)
+		return errors.Errorf("wrong equipment. should be %q, but %q", equipment.Name, portData.EquipmentName)
 	}
 	equipmentType, err := equipment.QueryType().Only(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "fetching equipment type for equipment")
 	}
 	if equipmentType.Name != portData.EquipmentTypeName {
-		return errors.Wrapf(err, "wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
+		return errors.Errorf("wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
 	}
 	return nil
+}
+
+func (m *importer) parseImportArgs(r *http.Request) ([]int, *bool, error) {
+	err := r.ParseForm()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	skipLines, err := getLinesToSkip(r)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
+	if err != nil {
+		return nil, nil, err
+	}
+	return skipLines, verifyBeforeCommit, nil
+}
+
+func isEmptyRow(s []string) bool {
+	for _, v := range s {
+		if v != "" {
+			return false
+		}
+	}
+	return true
 }

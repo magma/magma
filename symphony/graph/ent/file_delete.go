@@ -43,23 +43,23 @@ func (fd *FileDelete) ExecX(ctx context.Context) int {
 }
 
 func (fd *FileDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: file.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: file.FieldID,
 			},
 		},
 	}
 	if ps := fd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, fd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, fd.driver, _spec)
 }
 
 // FileDeleteOne is the builder for deleting a single File entity.
@@ -74,7 +74,7 @@ func (fdo *FileDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{file.Label}
+		return &NotFoundError{file.Label}
 	default:
 		return nil
 	}

@@ -54,7 +54,7 @@ services:
         /usr/bin/ovs-vsctl --if-exists del-br uplink_br0 &&
         /usr/bin/ovs-vsctl --if-exists del-port cwag_br0 cwag_patch &&
         /usr/bin/ovs-vsctl --if-exists del-port cwag_br0 eth2 &&
-        /usr/bin/ovs-vsctl --may-exist add-port cwag_br0 gre0 -- set interface gre0 ofport_request=32768 type=gre options:remote_ip=flow options:key=flow &&
+        /usr/bin/ovs-vsctl --may-exist add-port cwag_br0 gre0 -- set interface gre0 ofport_request=32768 type=gre options:remote_ip=flow &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
 
@@ -75,6 +75,8 @@ services:
     depends_on:
       - pcrf
       - ocs
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
 
   hss:

@@ -14,12 +14,18 @@ magma_services:
   - eap_aka
   - aaa_server
   - redis
+  - radius
   - radiusd
+  - redirectd
+  - directoryd
+  - policydb
+  - state
 
 # List of services that don't provide service303 interface
 non_service303_services:
   - control_proxy
   - redis
+  - radius
 
 # List of all possible dynamic services (enabled from gateway.mconfig)
 registered_dynamic_services:
@@ -78,3 +84,5 @@ metricsd:
     - eap_aka
     - aaa_server
     - radiusd
+    - directoryd
+    - state

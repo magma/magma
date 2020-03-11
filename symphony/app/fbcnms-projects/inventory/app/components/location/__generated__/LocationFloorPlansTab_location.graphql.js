@@ -33,6 +33,7 @@ export type LocationFloorPlansTab_location$data = LocationFloorPlansTab_location
 export type LocationFloorPlansTab_location$key = {
   +$data?: LocationFloorPlansTab_location$data,
   +$fragmentRefs: LocationFloorPlansTab_location$ref,
+  ...
 };
 */
 

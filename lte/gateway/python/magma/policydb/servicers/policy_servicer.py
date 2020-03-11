@@ -10,13 +10,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 import grpc
 import logging
 from typing import List
-from lte.protos.policydb_pb2_grpc import PolicyDBServicer, \
-    add_PolicyDBServicer_to_server
+from lte.protos.policydb_pb2 import EnableStaticRuleRequest, \
+    DisableStaticRuleRequest
+from lte.protos.policydb_pb2_grpc import PolicyAssignmentControllerStub, \
+    PolicyDBServicer, add_PolicyDBServicer_to_server
 from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
     StaticRuleInstall
-from lte.protos.subscriberdb_pb2 import EnableStaticRuleRequest, \
-    DisableStaticRuleRequest
-from lte.protos.subscriberdb_pb2_grpc import PolicyAssignmentControllerStub
 from magma.policydb.basename_store import BaseNameDict
 from magma.policydb.reauth_handler import ReAuthHandler
 from orc8r.protos.common_pb2 import Void

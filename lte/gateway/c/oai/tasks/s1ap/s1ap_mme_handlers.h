@@ -84,9 +84,10 @@ int s1ap_mme_handle_ue_context_release_request(
   struct s1ap_message_s *message_p);
 
 int s1ap_handle_ue_context_release_command(
-  s1ap_state_t *state,
-  const itti_s1ap_ue_context_release_command_t
-    *const ue_context_release_command_pP);
+  s1ap_state_t* state,
+  const itti_s1ap_ue_context_release_command_t* const
+    ue_context_release_command_pP,
+  imsi64_t imsi64);
 
 int s1ap_mme_handle_ue_context_release_complete(
   s1ap_state_t *state,
@@ -96,7 +97,8 @@ int s1ap_mme_handle_ue_context_release_complete(
 
 int s1ap_handle_ue_context_mod_req(
   s1ap_state_t *state,
-  const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP);
+  const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP,
+  imsi64_t imsi64);
 
 int s1ap_mme_handle_initial_context_setup_failure(
   s1ap_state_t *state,
@@ -148,7 +150,8 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
 
 void s1ap_mme_release_ue_context(
   s1ap_state_t *state,
-  ue_description_t *ue_ref_p);
+  ue_description_t *ue_ref_p,
+  imsi64_t imsi64);
 
 int s1ap_mme_handle_error_ind_message(
   s1ap_state_t *state,
@@ -163,7 +166,8 @@ int s1ap_mme_handle_enb_reset(
   struct s1ap_message_s *message);
 
 int s1ap_handle_enb_initiated_reset_ack(
-  const itti_s1ap_enb_initiated_reset_ack_t *const enb_reset_ack_p);
+  const itti_s1ap_enb_initiated_reset_ack_t *const enb_reset_ack_p,
+  imsi64_t imsi64);
 
 void s1ap_enb_assoc_clean_up_timer_expiry(
   s1ap_state_t *state,
@@ -171,7 +175,8 @@ void s1ap_enb_assoc_clean_up_timer_expiry(
 
 int s1ap_handle_paging_request(
   s1ap_state_t* state,
-  const itti_s1ap_paging_request_t* paging_request);
+  const itti_s1ap_paging_request_t* paging_request,
+  imsi64_t imsi64);
 
 int s1ap_mme_handle_ue_context_modification_response(
   s1ap_state_t *state,
@@ -199,10 +204,12 @@ int s1ap_mme_handle_enb_configuration_transfer(
 
 int s1ap_handle_path_switch_req_ack(
   s1ap_state_t *state,
-  const itti_s1ap_path_switch_request_ack_t *path_switch_req_ack_p);
+  const itti_s1ap_path_switch_request_ack_t *path_switch_req_ack_p,
+  imsi64_t imsi64);
 
 int s1ap_handle_path_switch_req_failure(
   s1ap_state_t *state,
-  const itti_s1ap_path_switch_request_failure_t *path_switch_req_failure_p);
+  const itti_s1ap_path_switch_request_failure_t *path_switch_req_failure_p,
+  imsi64_t imsi64);
 
 #endif /* FILE_S1AP_MME_HANDLERS_SEEN */

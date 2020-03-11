@@ -11,8 +11,8 @@ package registry
 import (
 	"log"
 
-	platform_registry "magma/orc8r/cloud/go/registry"
-	"magma/orc8r/cloud/go/service/serviceregistry"
+	platform_registry "magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/serviceregistry"
 
 	"google.golang.org/grpc"
 )

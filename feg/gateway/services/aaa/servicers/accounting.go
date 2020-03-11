@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"magma/orc8r/gateway/directoryd"
+	"magma/gateway/directoryd"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -28,7 +28,7 @@ import (
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
 	lte_protos "magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 type accountingService struct {

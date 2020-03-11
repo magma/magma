@@ -43,23 +43,23 @@ func (clid *CheckListItemDelete) ExecX(ctx context.Context) int {
 }
 
 func (clid *CheckListItemDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: checklistitem.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistitem.FieldID,
 			},
 		},
 	}
 	if ps := clid.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, clid.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, clid.driver, _spec)
 }
 
 // CheckListItemDeleteOne is the builder for deleting a single CheckListItem entity.
@@ -74,7 +74,7 @@ func (clido *CheckListItemDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{checklistitem.Label}
+		return &NotFoundError{checklistitem.Label}
 	default:
 		return nil
 	}

@@ -9,16 +9,17 @@
  */
 
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from './FormAction';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import React, {useContext} from 'react';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   cancelButton: {
     marginRight: '8px',
   },
-});
+}));
 
 type Props = {
   isDisabled?: boolean,
@@ -50,13 +51,15 @@ const FormSaveCancelPanel = (props: Props) => {
         skin="regular">
         {props.captions?.cancelButton || 'Cancel'}
       </Button>
-      <Button
-        className={props.classes?.saveButton}
-        onClick={props.onSave}
-        tooltip={validationContext.error.message}
-        disabled={props.isDisabled || validationContext.error.detected}>
-        {props.captions?.saveButton || 'Save'}
-      </Button>
+      <FormAction>
+        <Button
+          className={props.classes?.saveButton}
+          onClick={props.onSave}
+          tooltip={validationContext.error.message}
+          disabled={props.isDisabled || validationContext.error.detected}>
+          {props.captions?.saveButton || 'Save'}
+        </Button>
+      </FormAction>
     </div>
   );
 };

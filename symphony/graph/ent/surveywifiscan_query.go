@@ -29,6 +29,10 @@ type SurveyWiFiScanQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyWiFiScan
+	// eager-loading edges.
+	withSurveyQuestion *SurveyQuestionQuery
+	withLocation       *LocationQuery
+	withFKs            bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -81,14 +85,14 @@ func (swfsq *SurveyWiFiScanQuery) QueryLocation() *LocationQuery {
 	return query
 }
 
-// First returns the first SurveyWiFiScan entity in the query. Returns *ErrNotFound when no surveywifiscan was found.
+// First returns the first SurveyWiFiScan entity in the query. Returns *NotFoundError when no surveywifiscan was found.
 func (swfsq *SurveyWiFiScanQuery) First(ctx context.Context) (*SurveyWiFiScan, error) {
 	swfsSlice, err := swfsq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(swfsSlice) == 0 {
-		return nil, &ErrNotFound{surveywifiscan.Label}
+		return nil, &NotFoundError{surveywifiscan.Label}
 	}
 	return swfsSlice[0], nil
 }
@@ -102,21 +106,21 @@ func (swfsq *SurveyWiFiScanQuery) FirstX(ctx context.Context) *SurveyWiFiScan {
 	return swfs
 }
 
-// FirstID returns the first SurveyWiFiScan id in the query. Returns *ErrNotFound when no id was found.
-func (swfsq *SurveyWiFiScanQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first SurveyWiFiScan id in the query. Returns *NotFoundError when no id was found.
+func (swfsq *SurveyWiFiScanQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = swfsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{surveywifiscan.Label}
+		err = &NotFoundError{surveywifiscan.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (swfsq *SurveyWiFiScanQuery) FirstXID(ctx context.Context) string {
+func (swfsq *SurveyWiFiScanQuery) FirstXID(ctx context.Context) int {
 	id, err := swfsq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -134,9 +138,9 @@ func (swfsq *SurveyWiFiScanQuery) Only(ctx context.Context) (*SurveyWiFiScan, er
 	case 1:
 		return swfsSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{surveywifiscan.Label}
+		return nil, &NotFoundError{surveywifiscan.Label}
 	default:
-		return nil, &ErrNotSingular{surveywifiscan.Label}
+		return nil, &NotSingularError{surveywifiscan.Label}
 	}
 }
 
@@ -150,8 +154,8 @@ func (swfsq *SurveyWiFiScanQuery) OnlyX(ctx context.Context) *SurveyWiFiScan {
 }
 
 // OnlyID returns the only SurveyWiFiScan id in the query, returns an error if not exactly one id was returned.
-func (swfsq *SurveyWiFiScanQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (swfsq *SurveyWiFiScanQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = swfsq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -159,15 +163,15 @@ func (swfsq *SurveyWiFiScanQuery) OnlyID(ctx context.Context) (id string, err er
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{surveywifiscan.Label}
+		err = &NotFoundError{surveywifiscan.Label}
 	default:
-		err = &ErrNotSingular{surveywifiscan.Label}
+		err = &NotSingularError{surveywifiscan.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (swfsq *SurveyWiFiScanQuery) OnlyXID(ctx context.Context) string {
+func (swfsq *SurveyWiFiScanQuery) OnlyXID(ctx context.Context) int {
 	id, err := swfsq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -190,8 +194,8 @@ func (swfsq *SurveyWiFiScanQuery) AllX(ctx context.Context) []*SurveyWiFiScan {
 }
 
 // IDs executes the query and returns a list of SurveyWiFiScan ids.
-func (swfsq *SurveyWiFiScanQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (swfsq *SurveyWiFiScanQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := swfsq.Select(surveywifiscan.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +203,7 @@ func (swfsq *SurveyWiFiScanQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (swfsq *SurveyWiFiScanQuery) IDsX(ctx context.Context) []string {
+func (swfsq *SurveyWiFiScanQuery) IDsX(ctx context.Context) []int {
 	ids, err := swfsq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -250,6 +254,28 @@ func (swfsq *SurveyWiFiScanQuery) Clone() *SurveyWiFiScanQuery {
 	}
 }
 
+//  WithSurveyQuestion tells the query-builder to eager-loads the nodes that are connected to
+// the "survey_question" edge. The optional arguments used to configure the query builder of the edge.
+func (swfsq *SurveyWiFiScanQuery) WithSurveyQuestion(opts ...func(*SurveyQuestionQuery)) *SurveyWiFiScanQuery {
+	query := &SurveyQuestionQuery{config: swfsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	swfsq.withSurveyQuestion = query
+	return swfsq
+}
+
+//  WithLocation tells the query-builder to eager-loads the nodes that are connected to
+// the "location" edge. The optional arguments used to configure the query builder of the edge.
+func (swfsq *SurveyWiFiScanQuery) WithLocation(opts ...func(*LocationQuery)) *SurveyWiFiScanQuery {
+	query := &LocationQuery{config: swfsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	swfsq.withLocation = query
+	return swfsq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -293,30 +319,100 @@ func (swfsq *SurveyWiFiScanQuery) Select(field string, fields ...string) *Survey
 
 func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan, error) {
 	var (
-		nodes []*SurveyWiFiScan
-		spec  = swfsq.querySpec()
+		nodes       = []*SurveyWiFiScan{}
+		withFKs     = swfsq.withFKs
+		_spec       = swfsq.querySpec()
+		loadedTypes = [2]bool{
+			swfsq.withSurveyQuestion != nil,
+			swfsq.withLocation != nil,
+		}
 	)
-	spec.ScanValues = func() []interface{} {
+	if swfsq.withSurveyQuestion != nil || swfsq.withLocation != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, surveywifiscan.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &SurveyWiFiScan{config: swfsq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, swfsq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, swfsq.driver, _spec); err != nil {
 		return nil, err
 	}
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := swfsq.withSurveyQuestion; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyWiFiScan)
+		for i := range nodes {
+			if fk := nodes[i].survey_wi_fi_scan_survey_question; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(surveyquestion.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_wi_fi_scan_survey_question" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.SurveyQuestion = n
+			}
+		}
+	}
+
+	if query := swfsq.withLocation; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyWiFiScan)
+		for i := range nodes {
+			if fk := nodes[i].survey_wi_fi_scan_location; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(location.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_wi_fi_scan_location" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Location = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
 func (swfsq *SurveyWiFiScanQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := swfsq.querySpec()
-	return sqlgraph.CountNodes(ctx, swfsq.driver, spec)
+	_spec := swfsq.querySpec()
+	return sqlgraph.CountNodes(ctx, swfsq.driver, _spec)
 }
 
 func (swfsq *SurveyWiFiScanQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -328,12 +424,12 @@ func (swfsq *SurveyWiFiScanQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (swfsq *SurveyWiFiScanQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   surveywifiscan.Table,
 			Columns: surveywifiscan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveywifiscan.FieldID,
 			},
 		},
@@ -341,26 +437,26 @@ func (swfsq *SurveyWiFiScanQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := swfsq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := swfsq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := swfsq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := swfsq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (swfsq *SurveyWiFiScanQuery) sqlQuery() *sql.Selector {

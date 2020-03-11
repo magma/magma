@@ -8,9 +8,11 @@
  * @format
  */
 
-import type PowerSearchLocationsResultsTable_locations from './__generated__/PowerSearchLocationsResultsTable_locations.graphql';
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {ContextRouter} from 'react-router-dom';
+import type {PowerSearchLocationsResultsTable_locations} from './__generated__/PowerSearchLocationsResultsTable_locations.graphql';
+import type {TableIndex, TableSize} from './FilterUtils';
+import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -22,6 +24,7 @@ import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {AutoSizer, Column, Table} from 'react-virtualized';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getPropertyValue} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
@@ -29,7 +32,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import 'react-virtualized/styles.css';
 
-const styles = theme => ({
+const styles = (theme: Theme) => ({
   root: {
     width: '100%',
     marginTop: theme.spacing(3),
@@ -83,6 +86,7 @@ const styles = theme => ({
 type Props = WithAlert &
   WithStyles<typeof styles> &
   ContextRouter & {
+    // $FlowFixMe (T62907961) Relay flow types
     locations: PowerSearchLocationsResultsTable_locations,
   };
 
@@ -101,7 +105,7 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
 
   _onLocationClickedCallback = locationId => {
     const {history} = this.props;
-    history.push(`inventory/` + (locationId ? `?location=${locationId}` : ''));
+    history.replace(InventoryAPIUrls.location(locationId));
   };
 
   _cellRenderer = ({dataKey, rowData, cellData}) => {
@@ -156,17 +160,21 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
 
     return locations.length > 0 ? (
       <AutoSizer>
-        {({height, width}) => (
+        {({height, width}: TableSize) => (
           <Table
             className={classes.table}
             height={height}
             width={width}
             headerHeight={50}
-            rowHeight={({index}) => this._getRowHeight(locations[index])}
+            rowHeight={({index}: TableIndex) =>
+              this._getRowHeight(locations[index])
+            }
             rowCount={locations.length}
-            rowGetter={({index}) => locations[index]}
+            rowGetter={({index}: TableIndex) => locations[index]}
             gridClassName={classes.table}
-            rowClassName={({index}) => (index === -1 ? classes.header : '')}>
+            rowClassName={({index}: TableIndex) =>
+              index === -1 ? classes.header : ''
+            }>
             <Column
               label="Location Name"
               dataKey="name"

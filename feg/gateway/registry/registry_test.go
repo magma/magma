@@ -17,8 +17,8 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
-	platform_registry "magma/orc8r/cloud/go/registry"
-	"magma/orc8r/cloud/go/service/config"
+	platform_registry "magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"

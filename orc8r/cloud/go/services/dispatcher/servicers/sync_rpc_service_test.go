@@ -17,14 +17,14 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	directorydTestInit "magma/orc8r/cloud/go/services/directoryd/test_init"
 	"magma/orc8r/cloud/go/services/dispatcher"
 	"magma/orc8r/cloud/go/services/dispatcher/test_init"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -63,6 +63,12 @@ func TestSyncRPC(t *testing.T) {
 	conn, err := registry.GetConnection(dispatcher.ServiceName)
 	assert.NoError(t, err)
 	syncRPCClient := protos.NewSyncRPCServiceClient(conn)
+
+	// Test GetHostnameForHwid -- values seeded during dispatcher test service init
+	hostname, err := syncRPCClient.GetHostnameForHwid(context.Background(), &protos.HardwareID{Hwid: "some_hwid_0"})
+	assert.NoError(t, err)
+	assert.Equal(t, "some_hostname_0", hostname.Name)
+
 	stream, err := syncRPCClient.EstablishSyncRPCStream(context.Background())
 	assert.NoError(t, err)
 	waitc := make(chan struct{})

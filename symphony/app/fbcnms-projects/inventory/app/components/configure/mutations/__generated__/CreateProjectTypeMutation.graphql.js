@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 2773c34e6ac82ab7997e6a82216cabd4
+ * @relayHash 54e1e9a764754c4d8b98aaaad5324326
  */
 
 /* eslint-disable */
@@ -52,7 +52,7 @@ export type CreateProjectTypeMutationVariables = {|
   input: AddProjectTypeInput
 |};
 export type CreateProjectTypeMutationResponse = {|
-  +createProjectType: ?{|
+  +createProjectType: {|
     +$fragmentRefs: ProjectTypeCard_projectType$ref & AddEditProjectTypeCard_editingProjectType$ref
   |}
 |};

@@ -90,7 +90,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     host = env.hosts[0]
     cwag_test_br_mac = cwag_test_host_to_mac[host]
     execute(_set_cwag_test_configs)
-    execute(_start_ue_simulator)
 
     # Get back to the gateway vm to setup static arp
     if not gateway_host:
@@ -104,6 +103,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         vagrant_setup("cwag_test", destroy_vm)
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+    execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
     execute(_run_integ_tests, test_host, trf_host)
 

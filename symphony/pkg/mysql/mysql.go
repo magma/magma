@@ -8,7 +8,6 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"sync"
 	"time"
 
 	"contrib.go.opencensus.io/integrations/ocsql"
@@ -23,11 +22,8 @@ func Open(dsn string) *sql.DB {
 	return sql.OpenDB(connector{dsn})
 }
 
-var viewsOnce sync.Once
-
 // RecordStats records database statistics for provided sql.DB.
 func RecordStats(db *sql.DB) func() {
-	viewsOnce.Do(func() { ocsql.RegisterAllViews() })
 	return ocsql.RecordStats(db, 10*time.Second)
 }
 
@@ -62,3 +58,6 @@ func (connector) Driver() driver.Driver {
 		),
 	)
 }
+
+// DefaultViews are predefined views for opencensus metrics.
+var DefaultViews = ocsql.DefaultViews

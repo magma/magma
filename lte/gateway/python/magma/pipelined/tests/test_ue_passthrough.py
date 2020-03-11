@@ -58,7 +58,7 @@ class UEMacAddressTest(unittest.TestCase):
         """
         super(UEMacAddressTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([], include_ue_mac=True)
+        cls.service_manager = create_service_manager([], ['ue_mac', 'arpd'])
         cls._tbl_num = cls.service_manager.get_table_num(
             UEMacAddressController.APP_NAME)
         cls._ingress_tbl_num = cls.service_manager.get_table_num(INGRESS)
@@ -93,6 +93,7 @@ class UEMacAddressTest(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'virtual_interface': 'testing_br',
                 'local_ue_eth_addr': False,
+                'quota_check_ip': '1.2.3.4',
                 'clean_restart': True,
             },
             mconfig=PipelineD(
@@ -169,7 +170,7 @@ class UEMacAddressTest(unittest.TestCase):
                 FlowTest(FlowQuery(self._ingress_tbl_num,
                                    self.testing_controller), 4, 2),
                 FlowTest(FlowQuery(self._egress_tbl_num,
-                                   self.testing_controller), 0, 2),
+                                   self.testing_controller), 3, 2),
                 FlowTest(flow_queries[0], 4, 4),
             ], lambda: wait_after_send(self.testing_controller))
 

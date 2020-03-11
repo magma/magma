@@ -68,17 +68,8 @@ class PipelinedController(Enum):
     Testing = Controller(
         'magma.pipelined.app.testing', 'testing'
     )
-    Meter = Controller(
-        'magma.pipelined.app.meter', 'meter'
-    )
-    MeterStats = Controller(
-        'magma.pipelined.app.meter_stats', 'meter_stats'
-    )
     AccessControl = Controller(
         'magma.pipelined.app.access_control', 'access_control'
-    )
-    Subscriber = Controller(
-        'magma.pipelined.app.subscriber', 'subscriber'
     )
     UEMac = Controller(
         'magma.pipelined.app.ue_mac', 'ue_mac'
@@ -86,11 +77,23 @@ class PipelinedController(Enum):
     TunnelLearnController = Controller(
         'magma.pipelined.app.tunnel_learn', 'tunnel_learn'
     )
+    VlanLearn = Controller(
+        'magma.pipelined.app.vlan_learn', 'vlan_learn'
+    )
+    CheckQuotaController = Controller(
+        'magma.pipelined.app.check_quota', 'check_quota'
+    )
+    IPFIX = Controller(
+        'magma.pipelined.app.ipfix', 'ipfix'
+    )
     PacketTracer = Controller(
         'magma.pipelined.app.packet_tracer', 'packet_tracer'
     )
     StartupFlows = Controller(
         'magma.pipelined.app.startup_flows', 'startup_flows'
+    )
+    DPI = Controller(
+        'magma.pipelined.app.dpi', 'dpi'
     )
 
 

@@ -16,20 +16,22 @@ import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DraggableTableRow from '../draggable/DraggableTableRow';
 import DroppableTableBody from '../draggable/DroppableTableBody';
-import IconButton from '@material-ui/core/IconButton';
-import MenuItem from '@material-ui/core/MenuItem';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import PropertyValueInput from './PropertyValueInput';
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import TextField from '@material-ui/core/TextField';
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import inventoryTheme from '../../common/theme';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {removeItem, setItem, updateItem} from '@fbcnms/util/arrays';
 import {reorder} from '../draggable/DraggableUtils';
 import {withStyles} from '@material-ui/core/styles';
@@ -55,7 +57,15 @@ const styles = _theme => ({
     width: 'unset',
   },
   addButton: {
-    marginBottom: '12px',
+    padding: '4px 18px',
+    height: '32px',
+    borderRadius: '4px',
+    border: '1px solid',
+    borderColor: symphony.palette.primary,
+    '&:hover': {
+      borderColor: symphony.palette.B800,
+      backgroundColor: symphony.palette.B50,
+    },
   },
   selectMenu: {
     height: '14px',
@@ -133,56 +143,49 @@ class PropertyTypeTable extends React.Component<Props> {
             </TableRow>
           </TableHead>
           <DroppableTableBody onDragEnd={this._onDragEnd}>
-            {propertyTypes
-              .filter(property => !property.isDeleted)
-              .map((property, i) => (
-                <DraggableTableRow id={property.id} index={i} key={i}>
+            {propertyTypes.map((property, i) =>
+              property.isDeleted ? null : (
+                <DraggableTableRow id={property.id} index={i} key={property.id}>
                   <TableCell
                     className={classes.cell}
                     component="div"
                     scope="row">
-                    <TextField
-                      autoFocus={true}
-                      placeholder="Name"
-                      variant="outlined"
-                      className={classes.input}
-                      value={property.name}
-                      onChange={this._handleChange('name', i)}
-                      onBlur={() => this._handleNameBlur(i)}
-                      margin="dense"
-                    />
+                    <FormField>
+                      <TextInput
+                        autoFocus={true}
+                        placeholder="Name"
+                        variant="outlined"
+                        className={classes.input}
+                        value={property.name}
+                        onChange={this._handleNameChange(i)}
+                        onBlur={() => this._handleNameBlur(i)}
+                      />
+                    </FormField>
                   </TableCell>
                   <TableCell
                     className={classes.cell}
                     component="div"
                     scope="row">
-                    <TextField
-                      select
-                      variant="outlined"
-                      className={classes.input}
-                      value={property.type}
-                      onChange={this._handleChange('type', i)}
-                      SelectProps={{
-                        classes: {selectMenu: classes.selectMenu},
-                        MenuProps: {
-                          className: classes.menu,
-                        },
-                      }}
-                      margin="dense">
-                      {Object.keys(propertyTypeLabels)
-                        .filter(
-                          type =>
-                            !propertyTypeLabels[type].featureFlag ||
-                            this.context.isFeatureEnabled(
-                              propertyTypeLabels[type].featureFlag,
-                            ),
-                        )
-                        .map(type => (
-                          <MenuItem key={type} value={type}>
-                            {propertyTypeLabels[type].label}
-                          </MenuItem>
-                        ))}
-                    </TextField>
+                    <FormField>
+                      <Select
+                        className={classes.input}
+                        options={Object.keys(propertyTypeLabels)
+                          .filter(
+                            type =>
+                              !propertyTypeLabels[type].featureFlag ||
+                              this.context.isFeatureEnabled(
+                                propertyTypeLabels[type].featureFlag,
+                              ),
+                          )
+                          .map(type => ({
+                            key: type,
+                            value: type,
+                            label: propertyTypeLabels[type].label,
+                          }))}
+                        selectedValue={property.type}
+                        onChange={this._handleTypeChange(i)}
+                      />
+                    </FormField>
                   </TableCell>
                   <TableCell
                     className={classes.cell}
@@ -198,45 +201,54 @@ class PropertyTypeTable extends React.Component<Props> {
                     />
                   </TableCell>
                   <TableCell padding="checkbox" component="div">
-                    <Checkbox
-                      checked={!property.isInstanceProperty}
-                      onChange={this._handleChecked(i)}
-                      color="primary"
-                    />
+                    <FormField>
+                      <Checkbox
+                        checked={!property.isInstanceProperty}
+                        onChange={this._handleChecked(i)}
+                      />
+                    </FormField>
                   </TableCell>
                   {supportMandatory && (
                     <TableCell padding="checkbox" component="div">
-                      <Checkbox
-                        checked={!!property.isMandatory}
-                        onChange={this._handleIsMandatoryChecked(i)}
-                        color="primary"
-                      />
+                      <FormField>
+                        <Checkbox
+                          checked={!!property.isMandatory}
+                          onChange={this._handleIsMandatoryChecked(i)}
+                        />
+                      </FormField>
                     </TableCell>
                   )}
                   <TableCell
                     className={classes.actionsBar}
                     align="right"
                     component="div">
-                    <IconButton
-                      onClick={this._onRemovePropertyClicked(i, property)}
-                      disabled={
-                        !this.props.supportDelete &&
-                        !property.id.includes('@tmp')
-                      }>
-                      <DeleteIcon />
-                    </IconButton>
+                    <FormAction>
+                      <Button
+                        variant="text"
+                        skin="primary"
+                        onClick={this._onRemovePropertyClicked(i, property)}
+                        disabled={
+                          !this.props.supportDelete &&
+                          !property.id.includes('@tmp')
+                        }>
+                        <DeleteIcon />
+                      </Button>
+                    </FormAction>
                   </TableCell>
                 </DraggableTableRow>
-              ))}
+              ),
+            )}
           </DroppableTableBody>
         </Table>
-        <Button
-          className={classes.addButton}
-          color="primary"
-          variant="outlined"
-          onClick={this._onAddProperty}>
-          Add Property
-        </Button>
+        <FormAction>
+          <Button
+            className={classes.addButton}
+            color="primary"
+            variant="text"
+            onClick={this._onAddProperty}>
+            Add Property
+          </Button>
+        </FormAction>
       </div>
     );
   }
@@ -253,14 +265,26 @@ class PropertyTypeTable extends React.Component<Props> {
     );
   };
 
-  _handleChange = (changedProp: 'name' | 'type', index) => event => {
+  _handleNameChange = index => event => {
     this.props.onPropertiesChanged(
-      updateItem<PropertyType, typeof changedProp>(
+      updateItem<PropertyType, 'name'>(
         this.props.propertyTypes,
         index,
-        changedProp,
+        'name',
         // $FlowFixMe: need to figure out how to cast string to PropertyKind
         event.target.value,
+      ),
+    );
+  };
+
+  _handleTypeChange = index => value => {
+    this.props.onPropertiesChanged(
+      updateItem<PropertyType, 'type'>(
+        this.props.propertyTypes,
+        index,
+        'type',
+        // $FlowFixMe: need to figure out how to cast string to PropertyKind
+        value,
       ),
     );
   };
@@ -282,24 +306,24 @@ class PropertyTypeTable extends React.Component<Props> {
     );
   };
 
-  _handleChecked = index => event => {
+  _handleChecked = index => checkedNewValue => {
     this.props.onPropertiesChanged(
       updateItem<PropertyType, 'isInstanceProperty'>(
         this.props.propertyTypes,
         index,
         'isInstanceProperty',
-        !event.target.checked,
+        checkedNewValue !== 'checked',
       ),
     );
   };
 
-  _handleIsMandatoryChecked = index => event => {
+  _handleIsMandatoryChecked = index => checkedNewValue => {
     this.props.onPropertiesChanged(
       updateItem<PropertyType, 'isMandatory'>(
         this.props.propertyTypes,
         index,
         'isMandatory',
-        event.target.checked,
+        checkedNewValue === 'checked',
       ),
     );
   };

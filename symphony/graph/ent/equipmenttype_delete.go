@@ -43,23 +43,23 @@ func (etd *EquipmentTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (etd *EquipmentTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: equipmenttype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmenttype.FieldID,
 			},
 		},
 	}
 	if ps := etd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, etd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, etd.driver, _spec)
 }
 
 // EquipmentTypeDeleteOne is the builder for deleting a single EquipmentType entity.
@@ -74,7 +74,7 @@ func (etdo *EquipmentTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{equipmenttype.Label}
+		return &NotFoundError{equipmenttype.Label}
 	default:
 		return nil
 	}

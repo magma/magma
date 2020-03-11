@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -13,32 +13,29 @@ import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     minWidth: '24px',
     minHeight: '24px',
     width: '24px',
     height: '24px',
   },
-  regularColor: {
-    fill: symphony.palette.secondary,
-  },
   lightColor: {
     fill: symphony.palette.white,
   },
   regularColor: {
-    fill: symphony.palette.D900,
+    fill: symphony.palette.secondary,
   },
   primaryColor: {
     fill: symphony.palette.primary,
   },
   grayColor: {
-    fill: symphony.palette.D400,
+    fill: symphony.palette.D500,
   },
   errorColor: {
     fill: symphony.palette.R600,
   },
-});
+}));
 
 export type SvgIconStyleProps = {
   className?: string,

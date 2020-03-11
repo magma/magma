@@ -1,0 +1,127 @@
+---
+#
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+# This configuration represents an access gateway with a local internal OVS
+# device as the "default route", with a single "uplink" port acting as an L2
+# device on port 1. You might need to change this based on the situation.
+# OpenFlow ports can be numerical ports, or they can be 'local', which
+# corresponds to an 'internal' OVS port; we'll translate into the relevant
+# constant for the supported OF protocol by the pipeline.
+
+###############
+## IMPORTANT ##
+###############
+# Changes to this file has to be replicated in pipelined.yml_prod
+
+# Differentiate between the setup type(CWF or LTE)
+setup_type: CWF
+
+log_level: INFO
+# Enable the services in PipelineD. Tables will be assigned to the services in
+# the same order as the list. Cloud managed services will be initialized
+# after these static services.
+static_services: [
+  'tunnel_learn',
+  'vlan_learn',
+  'ryu_rest_service',
+  'startup_flows',
+]
+
+of_server_port: 3333
+
+default_priority: 10
+default_rule_tag: 0x1
+
+# Pipeline application level configs
+access_control:
+  # Traffic to ip blocks in the specified direction in the blacklist will be
+  # dropped. Each entry in the blacklist should consist of an ip and a
+  # direction('inbound' or 'outbound'). If direction is not specified, then
+  # both inbound traffic to and outbound traffic from the ip will be blocked.
+  # The ip block can be simply an address or an address with a netmask.
+  # Examples:
+  # ip_blacklist:
+  #   - ip: '127.0.0.1'
+  #     direction: 'inbound'
+  #   - ip: '127.0.0.1/24'
+  #     direction: 'outbound
+  #   - ip: '127.0.0.1/255.255.255.0'
+  ip_blacklist: []
+
+meter:
+  enabled: true
+  poll_interval: 5
+  idle_timeout: 0
+
+enforcement:
+  poll_interval: 2
+
+# Enable polling mobilityd to identify which subscriber sessions need to be
+# terminated. If disabling this, make sure to set a valid idle_timeout for
+# metering for auto-clearing the sessions
+subscriber:
+  enabled: false
+  poll_interval: 5
+
+dpi:
+  enabled: false
+  mon_port: mon1
+  mon_port_number: 32769
+
+# Interface to address L2 traffic to and answer ARP for UE subnet
+virtual_interface: cwag_br0
+
+# For CWF UE does have an eth src so we don't need to fake it
+local_ue_eth_addr: False
+
+# For CWF, allow unknown uplink ARPs to passthrough
+allow_unknown_arps: true
+
+# Configuration for IPFIX sampling
+ipfix:
+  enabled: true
+  collector_ip: '10.22.20.116'
+  collector_port: 4740
+  probability: 30000
+  collector_set_id: 1
+  obs_domain_id: 1
+  obs_point_id: 1
+
+# Interface to NAT traffic to
+nat_iface: eth0
+
+# Interface to WAC
+enodeb_iface: eth1
+
+# Bridge name comes from CWAG ansible role
+bridge_name: cwag_br0
+# Bridge ip comes from 99-ovscfg.yaml
+bridge_ip_address: 192.168.128.1
+
+#QoS Queue Programming
+enable_queue_pgm: true
+
+monitored_ifaces: ['cwag_br0',
+                   'gre0',
+                   'gre_sys'
+                  ]
+
+# Whether pipelined should cleanup flows on restarts
+clean_restart: true
+
+# Information for cwf check quota servers
+quota_check_ip: '192.168.128.99'
+has_quota_port: 51115
+no_quota_port: 51125
+
+###############
+## IMPORTANT ##
+###############
+ovs_gtp_port_number: 32768
+ovs_uplink_port_name: cwag_patch

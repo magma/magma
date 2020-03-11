@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -12,7 +12,7 @@ import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import FBCAlarms from '@fbcnms/alarms/components/Alarms';
 import {MagmaAlarmsApiUtil} from './AlarmApi';
-import type {FiringAlarm, Labels} from '@fbcnms/alarms/components/AlarmAPIType';
+import type {Labels} from '@fbcnms/alarms/components/AlarmAPIType';
 
 export default function Alarms() {
   const {isFeatureEnabled} = React.useContext(AppContext);
@@ -41,7 +41,7 @@ export default function Alarms() {
 /**
  * Filters out hidden system labels from the firing alerts table
  */
-function filterSymphonyLabels(labels: Labels, _alarm: FiringAlarm) {
+function filterSymphonyLabels(labels: Labels) {
   const labelsToFilter = ['monitor', 'networkID'];
   const filtered = {...labels};
   for (const label of labelsToFilter) {

@@ -51,7 +51,7 @@ additional prerequisite tools (replace `brew` with your OS-appropriate package
 manager as necessary):
 
 ```bash
-brew install aws-iam-authenticator kubernetes-cli kubernetes-helm terraform
+brew install aws-iam-authenticator boto3 kubernetes-cli kubernetes-helm terraform
 pip3 install awscli
 aws configure
 ```

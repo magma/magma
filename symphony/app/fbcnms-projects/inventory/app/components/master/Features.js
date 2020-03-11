@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -28,6 +28,7 @@ import renderList from '@fbcnms/util/renderList';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
+import {useRelativePath, useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(_ => ({
@@ -43,7 +44,9 @@ const useStyles = makeStyles(_ => ({
 
 export default function Features() {
   const classes = useStyles();
-  const {relativePath, relativeUrl, history} = useRouter();
+  const relativeUrl = useRelativeUrl();
+  const relativePath = useRelativePath();
+  const {history} = useRouter();
   const [featureFlags, setFeatureFlags] = useState<?(FeatureFlag[])>(null);
   useEffect(() => {
     axios.get('/master/feature/async').then(({data}) => setFeatureFlags(data));
@@ -78,7 +81,7 @@ export default function Features() {
 
   return (
     <div className={classes.paper}>
-      <Paper className={classes.tableRoot} elevation={2}>
+      <Paper elevation={2}>
         <Table>
           <TableHead>
             <TableRow>

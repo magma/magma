@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -49,7 +49,7 @@ type Props = {
   top: number,
   width: number,
   isShown: boolean,
-  children: any,
+  children: React.Node,
   onClose: () => void,
   className?: string,
   backButton?: (props: {onClose: () => void}) => React.Node,

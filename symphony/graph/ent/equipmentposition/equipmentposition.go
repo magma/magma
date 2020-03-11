@@ -31,28 +31,34 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "equipmentpositiondefinition" package.
 	DefinitionInverseTable = "equipment_position_definitions"
 	// DefinitionColumn is the table column denoting the definition relation/edge.
-	DefinitionColumn = "definition_id"
+	DefinitionColumn = "equipment_position_definition"
 	// ParentTable is the table the holds the parent relation/edge.
 	ParentTable = "equipment_positions"
 	// ParentInverseTable is the table name for the Equipment entity.
 	// It exists in this package in order to avoid circular dependency with the "equipment" package.
 	ParentInverseTable = "equipment"
 	// ParentColumn is the table column denoting the parent relation/edge.
-	ParentColumn = "parent_id"
+	ParentColumn = "equipment_positions"
 	// AttachmentTable is the table the holds the attachment relation/edge.
 	AttachmentTable = "equipment"
 	// AttachmentInverseTable is the table name for the Equipment entity.
 	// It exists in this package in order to avoid circular dependency with the "equipment" package.
 	AttachmentInverseTable = "equipment"
 	// AttachmentColumn is the table column denoting the attachment relation/edge.
-	AttachmentColumn = "parent_position_id"
+	AttachmentColumn = "equipment_position_attachment"
 )
 
-// Columns holds all SQL columns are equipmentposition fields.
+// Columns holds all SQL columns for equipmentposition fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentPosition type.
+var ForeignKeys = []string{
+	"equipment_positions",
+	"equipment_position_definition",
 }
 
 var (

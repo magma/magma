@@ -43,23 +43,23 @@ func (hd *HyperlinkDelete) ExecX(ctx context.Context) int {
 }
 
 func (hd *HyperlinkDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: hyperlink.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: hyperlink.FieldID,
 			},
 		},
 	}
 	if ps := hd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, hd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, hd.driver, _spec)
 }
 
 // HyperlinkDeleteOne is the builder for deleting a single Hyperlink entity.
@@ -74,7 +74,7 @@ func (hdo *HyperlinkDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{hyperlink.Label}
+		return &NotFoundError{hyperlink.Label}
 	default:
 		return nil
 	}

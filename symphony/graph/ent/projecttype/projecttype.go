@@ -35,24 +35,24 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "project" package.
 	ProjectsInverseTable = "projects"
 	// ProjectsColumn is the table column denoting the projects relation/edge.
-	ProjectsColumn = "type_id"
+	ProjectsColumn = "project_type_projects"
 	// PropertiesTable is the table the holds the properties relation/edge.
 	PropertiesTable = "property_types"
 	// PropertiesInverseTable is the table name for the PropertyType entity.
 	// It exists in this package in order to avoid circular dependency with the "propertytype" package.
 	PropertiesInverseTable = "property_types"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
-	PropertiesColumn = "project_type_id"
+	PropertiesColumn = "project_type_properties"
 	// WorkOrdersTable is the table the holds the work_orders relation/edge.
 	WorkOrdersTable = "work_order_definitions"
 	// WorkOrdersInverseTable is the table name for the WorkOrderDefinition entity.
 	// It exists in this package in order to avoid circular dependency with the "workorderdefinition" package.
 	WorkOrdersInverseTable = "work_order_definitions"
 	// WorkOrdersColumn is the table column denoting the work_orders relation/edge.
-	WorkOrdersColumn = "project_type_id"
+	WorkOrdersColumn = "project_type_work_orders"
 )
 
-// Columns holds all SQL columns are projecttype fields.
+// Columns holds all SQL columns for projecttype fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,

@@ -16,7 +16,7 @@ import (
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	"magma/feg/gateway/services/csfb/servicers/mocks"
 	"magma/feg/gateway/services/csfb/test_init"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"

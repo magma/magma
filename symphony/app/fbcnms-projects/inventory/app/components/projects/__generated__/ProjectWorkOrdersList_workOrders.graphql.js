@@ -38,6 +38,7 @@ export type ProjectWorkOrdersList_workOrders$data = ProjectWorkOrdersList_workOr
 export type ProjectWorkOrdersList_workOrders$key = $ReadOnlyArray<{
   +$data?: ProjectWorkOrdersList_workOrders$data,
   +$fragmentRefs: ProjectWorkOrdersList_workOrders$ref,
+  ...
 }>;
 */
 

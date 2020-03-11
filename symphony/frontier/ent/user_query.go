@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -28,6 +29,8 @@ type UserQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.User
+	// eager-loading edges.
+	withTokens *TokenQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -68,14 +71,14 @@ func (uq *UserQuery) QueryTokens() *TokenQuery {
 	return query
 }
 
-// First returns the first User entity in the query. Returns *ErrNotFound when no user was found.
+// First returns the first User entity in the query. Returns *NotFoundError when no user was found.
 func (uq *UserQuery) First(ctx context.Context) (*User, error) {
 	us, err := uq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(us) == 0 {
-		return nil, &ErrNotFound{user.Label}
+		return nil, &NotFoundError{user.Label}
 	}
 	return us[0], nil
 }
@@ -89,14 +92,14 @@ func (uq *UserQuery) FirstX(ctx context.Context) *User {
 	return u
 }
 
-// FirstID returns the first User id in the query. Returns *ErrNotFound when no id was found.
+// FirstID returns the first User id in the query. Returns *NotFoundError when no id was found.
 func (uq *UserQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = uq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{user.Label}
+		err = &NotFoundError{user.Label}
 		return
 	}
 	return ids[0], nil
@@ -121,9 +124,9 @@ func (uq *UserQuery) Only(ctx context.Context) (*User, error) {
 	case 1:
 		return us[0], nil
 	case 0:
-		return nil, &ErrNotFound{user.Label}
+		return nil, &NotFoundError{user.Label}
 	default:
-		return nil, &ErrNotSingular{user.Label}
+		return nil, &NotSingularError{user.Label}
 	}
 }
 
@@ -146,9 +149,9 @@ func (uq *UserQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{user.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = &ErrNotSingular{user.Label}
+		err = &NotSingularError{user.Label}
 	}
 	return
 }
@@ -237,6 +240,17 @@ func (uq *UserQuery) Clone() *UserQuery {
 	}
 }
 
+//  WithTokens tells the query-builder to eager-loads the nodes that are connected to
+// the "tokens" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithTokens(opts ...func(*TokenQuery)) *UserQuery {
+	query := &TokenQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withTokens = query
+	return uq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -280,30 +294,67 @@ func (uq *UserQuery) Select(field string, fields ...string) *UserSelect {
 
 func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	var (
-		nodes []*User
-		spec  = uq.querySpec()
+		nodes       = []*User{}
+		_spec       = uq.querySpec()
+		loadedTypes = [1]bool{
+			uq.withTokens != nil,
+		}
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &User{config: uq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, uq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, uq.driver, _spec); err != nil {
 		return nil, err
 	}
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := uq.withTokens; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Token(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.TokensColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_tokens
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_tokens" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_tokens" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Tokens = append(node.Edges.Tokens, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := uq.querySpec()
-	return sqlgraph.CountNodes(ctx, uq.driver, spec)
+	_spec := uq.querySpec()
+	return sqlgraph.CountNodes(ctx, uq.driver, _spec)
 }
 
 func (uq *UserQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -315,7 +366,7 @@ func (uq *UserQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   user.Table,
 			Columns: user.Columns,
@@ -328,26 +379,26 @@ func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := uq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := uq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := uq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := uq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (uq *UserQuery) sqlQuery() *sql.Selector {

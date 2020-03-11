@@ -40,6 +40,9 @@ type DiameterClientConfigs struct {
 	// Pattern: [0-9a-f\:\.]*(:[0-9]{1,5})?
 	LocalAddress string `json:"local_address,omitempty"`
 
+	// overwrite dest host
+	OverwriteDestHost bool `json:"overwrite_dest_host,omitempty"`
+
 	// product name
 	// Min Length: 1
 	ProductName string `json:"product_name,omitempty"`

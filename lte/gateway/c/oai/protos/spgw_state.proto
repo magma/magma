@@ -237,3 +237,9 @@ message SpgwState {
     SgwState sgw_state = 1;
     PgwState pgw_state = 2;
 }
+
+// spgw_imsi_map_t
+// Used for quick retrieval of teid using imsi on itti messages
+message SpgwImsiMap {
+    map<uint64, uint64> imsi_teid5_map = 1;
+}

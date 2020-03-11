@@ -43,23 +43,23 @@ func (cd *CustomerDelete) ExecX(ctx context.Context) int {
 }
 
 func (cd *CustomerDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: customer.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: customer.FieldID,
 			},
 		},
 	}
 	if ps := cd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, cd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, cd.driver, _spec)
 }
 
 // CustomerDeleteOne is the builder for deleting a single Customer entity.
@@ -74,7 +74,7 @@ func (cdo *CustomerDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{customer.Label}
+		return &NotFoundError{customer.Label}
 	default:
 		return nil
 	}

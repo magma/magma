@@ -18,8 +18,8 @@ import (
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/testcore/hss"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
 	registryTestUtils "magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-redis/redis"
 	"github.com/golang/glog"
@@ -53,9 +53,10 @@ type pipelinedClient struct {
 
 // Wrapper for PolicyDB objects
 type policyDBWrapper struct {
-	redisClient object_store.RedisClient
-	policyMap   object_store.ObjectMap
-	baseNameMap object_store.ObjectMap
+	redisClient      object_store.RedisClient
+	policyMap        object_store.ObjectMap
+	baseNameMap      object_store.ObjectMap
+	omniPresentRules object_store.ObjectMap
 }
 
 /**  ========== HSS Helpers ========== **/
@@ -150,7 +151,7 @@ func addPCRFRules(rules *fegprotos.AccountRules) error {
 	return err
 }
 
-func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorInfo) error {
+func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorConfiguration) error {
 	cli, err := getPCRFClient()
 	if err != nil {
 		return err
@@ -177,6 +178,17 @@ func getOCSClient() (*ocsClient, error) {
 	}, err
 }
 
+// setNewOCSConfig tries to override the default ocs settings
+// Input: ocsConfig data
+func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
+	cli, err := getOCSClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetOCSSettings(context.Background(), ocsConfig)
+	return err
+}
+
 // addSubscriber tries to add this subscriber to the OCS server.
 // Input: The subscriber data which will be added.
 func addSubscriberToOCS(sub *lteprotos.SubscriberID) error {
@@ -194,6 +206,17 @@ func clearSubscribersFromOCS() error {
 		return err
 	}
 	_, err = cli.ClearSubscribers(context.Background(), &protos.Void{})
+	return err
+}
+
+// setCreditOCS tries to set a credit for this subscriber to the OCS server
+// Input: The credit info data which will be set
+func setCreditOnOCS(creditInfo *fegprotos.CreditInfo) error {
+	cli, err := getOCSClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetCredit(context.Background(), creditInfo)
 	return err
 }
 
@@ -260,9 +283,16 @@ func initializePolicyDBWrapper() (*policyDBWrapper, error) {
 		policydb.GetBaseNameSerializer(),
 		policydb.GetBaseNameDeserializer(),
 	)
+	omniPresentRules := object_store.NewRedisMap(
+		redisClientImpl,
+		"policydb:omnipresent_rules",
+		policydb.GetRuleMappingSerializer(),
+		policydb.GetRuleMappingDeserializer(),
+	)
 	return &policyDBWrapper{
-		redisClient: redisClientImpl,
-		policyMap:   policyMap,
-		baseNameMap: baseNameMap,
+		redisClient:      redisClientImpl,
+		policyMap:        policyMap,
+		baseNameMap:      baseNameMap,
+		omniPresentRules: omniPresentRules,
 	}, nil
 }

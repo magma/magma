@@ -132,6 +132,8 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
      */
     itti_receive_msg(TASK_S1AP, &received_message_p);
 
+    imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+
     state = get_s1ap_state(false);
     AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
@@ -212,7 +214,8 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
           state,
           S1AP_NAS_DL_DATA_REQ(received_message_p).enb_ue_s1ap_id,
           S1AP_NAS_DL_DATA_REQ(received_message_p).mme_ue_s1ap_id,
-          &S1AP_NAS_DL_DATA_REQ(received_message_p).nas_msg);
+          &S1AP_NAS_DL_DATA_REQ(received_message_p).nas_msg,
+          imsi64);
       } break;
 
       case S1AP_E_RAB_SETUP_REQ: {
@@ -223,50 +226,62 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
       // From MME_APP task
       case S1AP_UE_CONTEXT_RELEASE_COMMAND: {
         s1ap_handle_ue_context_release_command(
-          state, &received_message_p->ittiMsg.s1ap_ue_context_release_command);
+          state,
+          &received_message_p->ittiMsg.s1ap_ue_context_release_command,
+          imsi64);
       } break;
 
       case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
         s1ap_handle_conn_est_cnf(
-          state, &MME_APP_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
+          state,
+          &MME_APP_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
       } break;
 
       case MME_APP_S1AP_MME_UE_ID_NOTIFICATION: {
         s1ap_handle_mme_ue_id_notification(
-          state, &MME_APP_S1AP_MME_UE_ID_NOTIFICATION(received_message_p));
+          state,
+          &MME_APP_S1AP_MME_UE_ID_NOTIFICATION(received_message_p));
       } break;
 
       case S1AP_ENB_INITIATED_RESET_ACK: {
         s1ap_handle_enb_initiated_reset_ack(
-          &S1AP_ENB_INITIATED_RESET_ACK(received_message_p));
+          &S1AP_ENB_INITIATED_RESET_ACK(received_message_p), imsi64);
       } break;
 
       case S1AP_PAGING_REQUEST: {
         if (
           s1ap_handle_paging_request(
-            state, &S1AP_PAGING_REQUEST(received_message_p)) != RETURNok) {
+            state, &S1AP_PAGING_REQUEST(received_message_p), imsi64) !=
+          RETURNok) {
           OAILOG_ERROR(LOG_S1AP, "Failed to send paging message\n");
         }
       } break;
 
       case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
         s1ap_handle_ue_context_mod_req(
-          state, &received_message_p->ittiMsg.s1ap_ue_context_mod_request);
+          state,
+          &received_message_p->ittiMsg.s1ap_ue_context_mod_request,
+          imsi64);
       } break;
 
       case S1AP_E_RAB_REL_CMD: {
         s1ap_generate_s1ap_e_rab_rel_cmd(
-          state, &S1AP_E_RAB_REL_CMD(received_message_p));
+          state,
+          &S1AP_E_RAB_REL_CMD(received_message_p));
       } break;
 
       case S1AP_PATH_SWITCH_REQUEST_ACK: {
         s1ap_handle_path_switch_req_ack(
-          state, &received_message_p->ittiMsg.s1ap_path_switch_request_ack);
+          state,
+          &received_message_p->ittiMsg.s1ap_path_switch_request_ack,
+          imsi64);
       } break;
 
       case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
         s1ap_handle_path_switch_req_failure(
-          state, &received_message_p->ittiMsg.s1ap_path_switch_request_failure);
+          state,
+          &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
+          imsi64);
       } break;
 
       case TIMER_HAS_EXPIRED: {
@@ -349,6 +364,7 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
 
       case TERMINATE_MESSAGE: {
         put_s1ap_state();
+        put_s1ap_imsi_map();
         s1ap_mme_exit();
         itti_free_msg_content(received_message_p);
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -366,6 +382,7 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
     }
 
     put_s1ap_state();
+    put_s1ap_imsi_map();
 
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -613,6 +630,12 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref)
   ue_ref->s1_ue_state = S1AP_UE_INVALID_STATE;
   hashtable_ts_free(&enb_ref->ue_coll, ue_ref->enb_ue_s1ap_id);
   hashtable_ts_free(&state->mmeid2associd, mme_ue_s1ap_id);
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_remove(
+    imsi_map->mme_ue_id_imsi_htbl,
+    (const hash_key_t) mme_ue_s1ap_id);
+
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
