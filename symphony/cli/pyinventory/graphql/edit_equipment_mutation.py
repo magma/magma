@@ -11,13 +11,13 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from .add_equipment_input import AddEquipmentInput
+from .edit_equipment_input import EditEquipmentInput
 
 
 @dataclass
-class AddEquipmentMutation(DataClassJsonMixin):
+class EditEquipmentMutation(DataClassJsonMixin):
     @dataclass
-    class AddEquipmentMutationData(DataClassJsonMixin):
+    class EditEquipmentMutationData(DataClassJsonMixin):
         @dataclass
         class Equipment(DataClassJsonMixin):
             @dataclass
@@ -29,13 +29,13 @@ class AddEquipmentMutation(DataClassJsonMixin):
             name: str
             equipmentType: EquipmentType
 
-        addEquipment: Equipment
+        editEquipment: Equipment
 
-    data: AddEquipmentMutationData
+    data: EditEquipmentMutationData
 
     __QUERY__: str = """
-    mutation AddEquipmentMutation($input: AddEquipmentInput!) {
-  addEquipment(input: $input) {
+    mutation EditEquipmentMutation($input: EditEquipmentInput!) {
+  editEquipment(input: $input) {
     id
     name
     equipmentType {
@@ -49,7 +49,7 @@ class AddEquipmentMutation(DataClassJsonMixin):
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddEquipmentInput) -> AddEquipmentMutationData:
+    def execute(cls, client: GraphqlClient, input: EditEquipmentInput) -> EditEquipmentMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

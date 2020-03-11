@@ -22,13 +22,18 @@ def _get_one_level_attachments_of_equipment(
     attachments = []
     for position in equipment_with_positions.positions:
         attached_equipment = position.attachedEquipment
-        if attached_equipment:
+        if attached_equipment is not None:
             attachments.append(
                 (
-                    position.definition.name,
-                    Equipment(name=attached_equipment.name, id=attached_equipment.id),
+                    position.definition.id,
+                    Equipment(
+                        id=attached_equipment.id,
+                        name=attached_equipment.name,
+                        equipment_type_name=attached_equipment.equipmentType.name,
+                    ),
                 )
             )
+
     return attachments
 
 
@@ -81,7 +86,11 @@ def apply_location_template_to_location(
             entity=Entity.Location, entity_id=template_location.id
         )
     equipments = [
-        Equipment(id=equipment.id, name=equipment.name)
+        Equipment(
+            id=equipment.id,
+            name=equipment.name,
+            equipment_type_name=equipment.equipmentType.name,
+        )
         for equipment in location_with_equipments.equipments
     ]
     equipments_to_new_equipments = {}

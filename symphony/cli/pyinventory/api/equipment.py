@@ -19,6 +19,8 @@ from ..exceptions import (
 )
 from ..graphql.add_equipment_input import AddEquipmentInput
 from ..graphql.add_equipment_mutation import AddEquipmentMutation
+from ..graphql.edit_equipment_input import EditEquipmentInput
+from ..graphql.edit_equipment_mutation import EditEquipmentMutation
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.equipment_search_query import EquipmentSearchQuery
 from ..graphql.equipment_type_and_properties_query import (
@@ -30,6 +32,7 @@ from ..graphql.remove_equipment_mutation import RemoveEquipmentMutation
 
 ADD_EQUIPMENT_MUTATION_NAME = "addEquipment"
 ADD_EQUIPMENT_TO_POSITION_MUTATION_NAME = "addEquipmentToPosition"
+EDIT_EQUIPMENT_MUTATION_NAME = "editEquipment"
 NUM_EQUIPMENTS_TO_SEARCH = 10
 
 
@@ -52,7 +55,11 @@ def _get_equipment_if_exists(
 
     if len(equipments) == 0:
         return None
-    return Equipment(equipments[0].name, equipments[0].id)
+    return Equipment(
+        id=equipments[0].id,
+        name=equipments[0].name,
+        equipment_type_name=equipments[0].equipmentType.name,
+    )
 
 
 def get_equipment(client: SymphonyClient, name: str, location: Location) -> Equipment:
@@ -198,7 +205,69 @@ def add_equipment(
             add_equipment_input.__dict__,
         )
 
-    return Equipment(equipment.name, equipment.id)
+    return Equipment(
+        id=equipment.id,
+        name=equipment.name,
+        equipment_type_name=equipment.equipmentType.name,
+    )
+
+
+def edit_equipment(
+    client: SymphonyClient,
+    equipment: Equipment,
+    new_name: Optional[str] = None,
+    new_properties: Optional[Dict[str, PropertyValue]] = None,
+) -> Equipment:
+    """Edit existing equipment.
+
+        Args:
+            new_name (Optional[str]): equipment new name
+            new_properties (Optional[Dict[str, pyinventory.consts.PropertyValue]]): Dict, where
+                str - property name
+                PropertyValue - new value of the same type for this property
+
+        Returns:
+            EquipmentType object
+
+        Raises:
+            FailedOperationException for internal inventory error
+
+        Example:
+            ```
+            location = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            equipment = client.get_equipment("indProdCpy1_AIO", location) 
+            edited_equipment = client.edit_equipment(equipment=equipment, new_name="new_name", new_properties={"Z AIO - Number": 123})
+            ```
+    """
+    properties = []
+    property_types = client.equipmentTypes[equipment.equipment_type_name].propertyTypes
+    if new_properties:
+        properties = get_graphql_property_inputs(property_types, new_properties)
+    edit_equipment_input = EditEquipmentInput(
+        id=equipment.id,
+        name=new_name if new_name else equipment.name,
+        properties=properties,
+    )
+
+    try:
+        result = EditEquipmentMutation.execute(client, edit_equipment_input).__dict__[
+            EDIT_EQUIPMENT_MUTATION_NAME
+        ]
+        client.reporter.log_successful_operation(
+            EDIT_EQUIPMENT_MUTATION_NAME, edit_equipment_input.__dict__
+        )
+
+    except OperationException as e:
+        raise FailedOperationException(
+            client.reporter,
+            e.err_msg,
+            e.err_id,
+            EDIT_EQUIPMENT_MUTATION_NAME,
+            edit_equipment_input.__dict__,
+        )
+    return Equipment(
+        id=result.id, name=result.name, equipment_type_name=result.equipmentType.name
+    )
 
 
 def _find_position_definition_id(
@@ -234,7 +303,11 @@ def _find_position_definition_id(
         if attached_equipment is not None:
             return (
                 position.id,
-                Equipment(id=attached_equipment.id, name=attached_equipment.name),
+                Equipment(
+                    id=attached_equipment.id,
+                    name=attached_equipment.name,
+                    equipment_type_name=attached_equipment.equipmentType.name,
+                ),
             )
     return position.id, None
 
@@ -327,7 +400,11 @@ def add_equipment_to_position(
             add_equipment_input.__dict__,
         )
 
-    return Equipment(equipment.name, equipment.id)
+    return Equipment(
+        id=equipment.id,
+        name=equipment.name,
+        equipment_type_name=equipment.equipmentType.name,
+    )
 
 
 def delete_equipment(client: SymphonyClient, equipment: Equipment) -> None:
@@ -344,7 +421,11 @@ def search_for_equipments(
 
     total_count = equipments.count
     equipments = [
-        Equipment(id=equipment.id, name=equipment.name)
+        Equipment(
+            id=equipment.id,
+            name=equipment.name,
+            equipment_type_name=equipment.equipmentType.name,
+        )
         for equipment in equipments.equipment
     ]
     return equipments, total_count

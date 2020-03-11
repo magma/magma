@@ -342,6 +342,13 @@ def delete_equipment_type_with_equipments(
             entity=Entity.EquipmentType, entity_id=equipment_type.id
         )
     for equipment in equipment_type_with_equipments.equipments:
-        delete_equipment(client, Equipment(id=equipment.id, name=equipment.name))
+        delete_equipment(
+            client,
+            Equipment(
+                id=equipment.id,
+                name=equipment.name,
+                equipment_type_name=equipment.equipmentType.name,
+            ),
+        )
 
     RemoveEquipmentTypeMutation.execute(client, id=equipment_type.id)
