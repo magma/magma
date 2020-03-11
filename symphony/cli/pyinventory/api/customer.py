@@ -13,12 +13,41 @@ from ..graphql.remove_customer_mutation import RemoveCustomerMutation
 def add_customer(
     client: SymphonyClient, name: str, external_id: Optional[str]
 ) -> Customer:
+    """This function adds Customer.
+
+        Args:
+            name (str): name for the Customer
+            external_id (Optional[str]): external ID for the Customer
+
+        Returns:
+            pyinventory.consts.Customer object
+
+        Example:
+            ```
+            new_customers = client.add_customer(name="new_customer") 
+            ```
+            or
+            ```
+            new_customers = client.add_customer(name="new_customer", external_id="12345678") 
+            ```
+    """
     customer_input = AddCustomerInput(name=name, externalId=external_id)
     result = AddCustomerMutation.execute(client, input=customer_input).addCustomer
     return Customer(name=result.name, id=result.id, externalId=result.externalId)
 
 
 def get_all_customers(client: SymphonyClient) -> List[Customer]:
+
+    """This function returns all Customers.
+
+        Returns:
+            List[ `pyinventory.consts.Customer` ]
+
+        Example:
+            ```
+            customers = client.get_all_customers() 
+            ```
+    """
     customers = CustomersQuery.execute(client).customers
     if not customers:
         return []
@@ -33,4 +62,14 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
 
 
 def delete_customer(client: SymphonyClient, customer: Customer) -> None:
+    """This function delete Customer.
+        
+        Args:
+            customer (pyinventory.consts.Customer object): customer object
+        
+        Example:
+            ```
+            client.delete_customer(customer) 
+            ```
+    """
     RemoveCustomerMutation.execute(client, id=customer.id)
