@@ -29,7 +29,7 @@ func getHealthClient(cloudRegistry registry.CloudRegistry) (protos.HealthClient,
 	if cloudRegistry == nil {
 		return nil, nil, fmt.Errorf("Nil cloud registry provided")
 	}
-	conn, err := cloudRegistry.GetCloudConnection("HEALTH")
+	conn, err := cloudRegistry.GetConnection("HEALTH")
 	if err != nil {
 		initErr := errors.NewInitError(err, "HEALTH")
 		glog.Error(initErr)

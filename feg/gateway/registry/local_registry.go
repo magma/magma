@@ -11,10 +11,10 @@ package registry
 import (
 	"log"
 
+	"google.golang.org/grpc"
+
 	platform_registry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/serviceregistry"
-
-	"google.golang.org/grpc"
 )
 
 const (
@@ -45,25 +45,29 @@ const (
 // Add a new service.
 // If the service already exists, overwrites the service config.
 func AddService(serviceType, host string, port int) {
-	platform_registry.AddService(platform_registry.ServiceLocation{Name: serviceType, Host: host, Port: port})
+	fegRegistry.AddService(platform_registry.ServiceLocation{Name: serviceType, Host: host, Port: port})
 }
 
 // Returns the RPC address of the service.
 // The service needs to be added to the registry before this.
 func GetServiceAddress(service string) (string, error) {
-	return platform_registry.GetServiceAddress(service)
+	return fegRegistry.GetServiceAddress(service)
 }
 
 // Provides a gRPC connection to a service in the registry.
 func GetConnection(service string) (*grpc.ClientConn, error) {
-	return platform_registry.GetConnection(service)
+	return fegRegistry.GetConnection(service)
 }
 
 func addLocalService(serviceType string, port int) {
 	AddService(serviceType, "localhost", port)
 }
 
+var fegRegistry = NewCloudRegistry()
+
 func init() {
+	fegRegistry = NewCloudRegistry()
+
 	// Add default Local Service Locations
 	addLocalService(REDIS, 6380)
 
@@ -92,6 +96,6 @@ func init() {
 	if err != nil {
 		log.Printf("Error loading FeG service_registry.yml: %v", err)
 	} else if len(locations) > 0 {
-		platform_registry.AddServices(locations...)
+		fegRegistry.AddServices(locations...)
 	}
 }

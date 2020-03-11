@@ -18,7 +18,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"magma/gateway/cloud_registry"
+	"magma/gateway/service_registry"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 	"net"
@@ -29,7 +29,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"golang.org/x/net/http2"
 )
 
@@ -39,6 +38,14 @@ const (
 	// https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
 	GRPC_MSGLEN_SZ  = 5
 	GRPC_LEN_OFFSET = 1
+
+	MinRetryInterval      = time.Millisecond * 500
+	MaxRetryInterval      = time.Second * 30
+	RetryBackoffIncrement = MinRetryInterval
+
+	DefaultSyncRpcHeartbeatInterval = time.Second * 30
+	DefaultGatewayKeepaliveInterval = time.Second * 10
+	DefaultGatewayResponseTimeout   = time.Second * 120
 )
 
 type Config struct {
@@ -59,11 +66,11 @@ type Config struct {
 
 // SyncRpcClient opens a bidirectional connection with the cloud
 type SyncRpcClient struct {
-	// address of the dispatcher
-	cloudRegistry cloud_registry.ProxiedCloudRegistry
+	// service registry to coonect to the cloud
+	serviceRegistry service_registry.GatewayRegistry
 
 	// responseTimeout in seconds
-	cfg *Config
+	cfg Config
 
 	// requests which have been terminated
 	terminatedReqs map[uint32]bool
@@ -86,30 +93,45 @@ type SyncRpcClient struct {
 	client protos.SyncRPCServiceClient
 }
 
-func NewSyncRpcClient(cfg *Config) *SyncRpcClient {
+// NewClient returns a new SyncRPC client using given service registry
+// If given registry is nil - use shared GW Service Registry config values
+func NewClient(reg service_registry.GatewayRegistry) *SyncRpcClient {
 	// create a new grpc connection to the dispatcher in the cloud??
+	if reg == nil {
+		reg = service_registry.Get()
+	}
+	cfg := &Config{
+		SyncRpcHeartbeatInterval: DefaultSyncRpcHeartbeatInterval,
+		GatewayKeepaliveInterval: DefaultGatewayKeepaliveInterval,
+		GatewayResponseTimeout:   DefaultGatewayResponseTimeout,
+	}
 	client := &SyncRpcClient{
-		cloudRegistry:  cloud_registry.ProxiedCloudRegistry{},
-		cfg:            cfg,
-		terminatedReqs: make(map[uint32]bool),
-		respCh:         make(chan *protos.SyncRPCResponse),
-		broker:         newbrokerImpl(cfg),
+		serviceRegistry: reg,
+		cfg:             *cfg, // copy configs
+		terminatedReqs:  make(map[uint32]bool),
+		respCh:          make(chan *protos.SyncRPCResponse),
+		broker:          newbrokerImpl(cfg),
 	}
 	return client
 }
 
+// Run starts SyncRPC worker loop and blocks forever
 func (c *SyncRpcClient) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	for {
-		conn, err := c.cloudRegistry.GetCloudConnection(definitions.DispatcherServiceName)
+	for currentBackoffInterval := MinRetryInterval; ; currentBackoffInterval = (currentBackoffInterval + RetryBackoffIncrement) % MaxRetryInterval {
+
+		conn, err := c.serviceRegistry.GetCloudConnection(definitions.DispatcherServiceName)
 		if err != nil {
 			// TODO
 			// Continue for retryable grpc errors
 			// Add a delay/jitter for retrying cloud connection for non retryable grpc errors
-			log.Printf("[SyncRpc] error %v creating cloud connection", err)
+			log.Printf("[SyncRpc] error creating cloud connection: %v", err)
+			time.Sleep(currentBackoffInterval)
 			continue
+		} else {
+			currentBackoffInterval = MinRetryInterval // reset backoff interval
 		}
 
 		// this should simply wait here for requests and process responses
@@ -130,14 +152,14 @@ func (c *SyncRpcClient) runSyncRpcClient(ctx context.Context, client protos.Sync
 	c.client = client
 	stream, err := c.client.EstablishSyncRPCStream(ctx)
 	if err != nil {
-		log.Printf("[SyncRPC] error: %v, Failed establishing SyncRpc stream", err)
+		log.Printf("[SyncRPC] Failed establishing SyncRpc stream; error: %v", err)
+		return err
 	}
 
 	// close connection if error
 	errChan := make(chan error)
 	go func() {
-		err := c.processStream(ctx, stream)
-		errChan <- err
+		errChan <- c.processStream(ctx, stream)
 	}()
 
 	timer := time.NewTimer(c.cfg.SyncRpcHeartbeatInterval)
@@ -148,7 +170,7 @@ func (c *SyncRpcClient) runSyncRpcClient(ctx context.Context, client protos.Sync
 			if !c.isReqTerminated(resp.ReqId) {
 				err := stream.Send(resp)
 				if err != nil {
-					log.Printf("[SyncRpc] send to dispatcher failed %v", err)
+					log.Printf("[SyncRpc] send to dispatcher failed: %v", err)
 					return err
 				}
 				timer.Reset(c.cfg.SyncRpcHeartbeatInterval)
@@ -217,7 +239,7 @@ func (c *SyncRpcClient) removeOutstandingReqs(reqID uint32) {
 // handleSyncRpcRequest forwards the incoming request to the appropriate destination
 func (c *SyncRpcClient) handleSyncRpcRequest(inCtx context.Context, req *protos.SyncRPCRequest) {
 	if req == nil {
-		log.Printf("[SyncRpc] error empty request recd")
+		log.Printf("[SyncRpc] error empty request received")
 		return
 	}
 
@@ -245,9 +267,9 @@ func (c *SyncRpcClient) handleSyncRpcRequest(inCtx context.Context, req *protos.
 	c.removeTerminatedReqs(req.ReqId)
 	c.updateOutstandingdReqs(req.ReqId, cancelFn)
 	gatewayReq := req.GetReqBody()
-	serviceAddr, err := cloud_registry.GetServiceAddress(gatewayReq.Authority)
+	serviceAddr, err := c.serviceRegistry.GetServiceAddress(gatewayReq.Authority)
 	if err != nil {
-		log.Printf("[SyncRpc] error: %v getting service address", err)
+		log.Printf("[SyncRpc] error getting service address: %v", err)
 		return
 	}
 
@@ -331,8 +353,8 @@ func (p *brokerImpl) sendInternal(ctx context.Context, serviceAddr string, req *
 	defer func() {
 		// handle and send error
 		if respErr != nil {
-			respErr = errors.Wrap(respErr, fmt.Sprintf("ReqID %d failed", req.ReqId))
-			log.Printf("[SyncRPC] error %v", respErr)
+			respErr = fmt.Errorf("ReqID %d failed: %v", req.ReqId, respErr)
+			log.Printf("[SyncRPC] error: %v", respErr)
 			respCh <- buildSyncRpcErrorResponse(req.ReqId, respErr.Error())
 		}
 	}()
@@ -363,11 +385,12 @@ func (p *brokerImpl) sendInternal(ctx context.Context, serviceAddr string, req *
 
 	resp, err := client.Do(brokerReq)
 	if err != nil {
-		respErr = errors.Wrap(err, " grpc request failed ")
+		respErr = fmt.Errorf("grpc request failed: %v", err)
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
-		respErr = errors.Wrap(err, fmt.Sprintf(" http response error status %s  statuscode %d ", resp.Status, resp.StatusCode))
+		respErr = fmt.Errorf(
+			"http response error, status %s statuscode %d, err: %v", resp.Status, resp.StatusCode, err)
 		return
 	}
 
@@ -390,13 +413,11 @@ func (p *brokerImpl) sendInternal(ctx context.Context, serviceAddr string, req *
 					},
 				}
 			} else {
-				respErr = errors.Wrap(err, "failed reading length prefix of grpc message")
+				respErr = fmt.Errorf("failed reading length prefix of grpc message: %v", err)
 			}
 			return
 		}
-
 		msgLen := binary.BigEndian.Uint32(buf[GRPC_LEN_OFFSET:])
-
 		msgBuf := make([]byte, msgLen)
 		_, err = io.ReadFull(reader, msgBuf)
 		if err != nil {
@@ -409,11 +430,10 @@ func (p *brokerImpl) sendInternal(ctx context.Context, serviceAddr string, req *
 					},
 				}
 			} else {
-				respErr = errors.Wrap(err, fmt.Sprintf("failed reading data of %d size", msgLen))
+				respErr = fmt.Errorf("failed reading data of %d size: %v", msgLen, err)
 			}
 			return
 		}
-
 		respCh <- &protos.SyncRPCResponse{
 			ReqId: req.ReqId,
 			RespBody: &protos.GatewayResponse{
@@ -422,7 +442,6 @@ func (p *brokerImpl) sendInternal(ctx context.Context, serviceAddr string, req *
 				Payload: append(buf, msgBuf...),
 			},
 		}
-
 		// check if context is being terminated
 		select {
 		case <-ctx.Done():
@@ -433,7 +452,9 @@ func (p *brokerImpl) sendInternal(ctx context.Context, serviceAddr string, req *
 	}
 }
 
-func (p *brokerImpl) send(ctx context.Context, serviceAddr string, req *protos.SyncRPCRequest, respCh chan *protos.SyncRPCResponse) {
+func (p *brokerImpl) send(
+	ctx context.Context, serviceAddr string, req *protos.SyncRPCRequest, respCh chan *protos.SyncRPCResponse) {
+
 	clientRespCh := make(chan *protos.SyncRPCResponse)
 	go p.sendInternal(ctx, serviceAddr, req, clientRespCh)
 
@@ -449,7 +470,6 @@ func (p *brokerImpl) send(ctx context.Context, serviceAddr string, req *protos.S
 			}
 			respCh <- resp
 			timer.Reset(p.cfg.GatewayKeepaliveInterval)
-
 		case <-timer.C:
 			if time.Now().Sub(lastMsgReadTime) > p.cfg.GatewayResponseTimeout {
 				// max request timeout exceeded send error back to the caller
@@ -457,7 +477,9 @@ func (p *brokerImpl) send(ctx context.Context, serviceAddr string, req *protos.S
 				return
 			} else {
 				// construct SyncRpcResponse and keep connection active
-				respCh <- &protos.SyncRPCResponse{ReqId: req.ReqId, RespBody: &protos.GatewayResponse{KeepConnActive: true}}
+				respCh <- &protos.SyncRPCResponse{
+					ReqId:    req.ReqId,
+					RespBody: &protos.GatewayResponse{KeepConnActive: true}}
 				timer.Reset(p.cfg.GatewayKeepaliveInterval)
 			}
 		case <-ctx.Done():

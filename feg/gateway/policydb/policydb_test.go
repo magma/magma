@@ -14,6 +14,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	"magma/feg/gateway/policydb"
 	fegstreamer "magma/gateway/streamer"
 	"magma/lte/cloud/go/protos"
@@ -24,11 +29,6 @@ import (
 	orcprotos "magma/orc8r/lib/go/protos"
 	platform_registry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 )
 
 // Mock Cloud Streamer
@@ -90,7 +90,9 @@ func (m *mockStreamProvider) GetExtraArgs() *any.Any {
 }
 
 // Mock GW Cloud Service registry
-type mockCloudRegistry struct{}
+type mockCloudRegistry struct {
+	*platform_registry.ServiceRegistry
+}
 
 func (cr mockCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
 	if service != definitions.StreamerServiceName {

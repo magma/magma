@@ -10,8 +10,11 @@ LICENSE file in the root directory of this source tree.
 package definitions
 
 const (
-	MagmadServiceName       = "magmad"
+	MconfigStreamName = "configs"
+
+	// service names
 	ControlProxyServiceName = "control_proxy"
-	MconfigStreamName       = "configs"
 	DispatcherServiceName   = "dispatcher"
+	MagmadServiceName       = "magmad"
+	StreamerServiceName     = "streamer"
 )
