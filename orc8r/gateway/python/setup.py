@@ -82,6 +82,6 @@ setup(
         'requests==2.22.0',
         'jsonpickle',
         'bravado-core==5.16.1',
-        'jsonschema==3.2.0',
+        'jsonschema==3.1.0',
     ]
 )
