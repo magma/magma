@@ -18,7 +18,6 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-
 #pragma once
 
 #include <arpa/inet.h>
@@ -129,9 +128,24 @@ class MobilityServiceClient : public GRPCReceiver {
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::shared_ptr<MobilityService::Stub> stub_{};
 
+  /**
+  * Helper function to chain callback for gRPC response
+  * @param request AllocateIP gRPC Request proto
+  * @param callback std::function that returns Status and actual gRPC response
+  */
   void AllocateIPv4AddressRPC(
     const AllocateIPRequest& request,
     const std::function<void(grpc::Status, IPAddress)>& callback);
+
+  /**
+ * Helper function to chain callback for gRPC response
+ * @param request ReleaseIP gRPC Request proto
+ * @param callback std::function that returns Status and actual gRPC response
+ */
+  void ReleaseIPv4AddressRPC(
+    const ReleaseIPRequest& request,
+    const std::function<void(grpc::Status, magma::orc8r::Void)>& callback);
+
 };
 
 } // namespace lte

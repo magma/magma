@@ -23,8 +23,8 @@
 
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 #include <string>
 #include <memory>
 

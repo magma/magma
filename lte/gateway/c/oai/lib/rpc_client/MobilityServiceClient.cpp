@@ -93,16 +93,13 @@ int MobilityServiceClient::ReleaseIPv4Address(
   ip->set_version(IPAddress::IPV4);
   ip->set_address(&addr, sizeof(struct in_addr));
 
-  // TODO: Convert sync to async call for ReleaseIPAddress
-  ClientContext context;
-  Void resp;
-  Status status = stub_->ReleaseIPAddress(&context, request, &resp);
-  if (!status.ok()) {
-    // TODO: use logging
-    std::cout << "ReleaseIPAddress fails with code " << status.error_code()
-              << ", msg: " << status.error_message() << std::endl;
-    return status.error_code();
-  }
+  ReleaseIPv4AddressRPC(request, [](const Status& status, Void resp) {
+    if (!status.ok()) {
+      // TODO: use logging
+      std::cout << "ReleaseIPAddress fails with code " << status.error_code()
+                << ", msg: " << status.error_message() << std::endl;
+    }
+  });
   return 0;
 }
 
@@ -194,6 +191,16 @@ void MobilityServiceClient::AllocateIPv4AddressRPC(
     new AsyncLocalResponse<IPAddress>(std::move(callback), RESPONSE_TIMEOUT);
   localResp->set_response_reader(std::move(
     stub_->AsyncAllocateIPAddress(localResp->get_context(), request, &queue_)));
+}
+
+void MobilityServiceClient::ReleaseIPv4AddressRPC(
+  const ReleaseIPRequest& request,
+  const std::function<void(grpc::Status, magma::orc8r::Void)>& callback)
+{
+  auto localResp =
+    new AsyncLocalResponse<Void>(callback, RESPONSE_TIMEOUT);
+  localResp->set_response_reader(std::move(
+    stub_->AsyncReleaseIPAddress(localResp->get_context(), request, &queue_)));
 }
 
 MobilityServiceClient::MobilityServiceClient()
