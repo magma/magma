@@ -20,8 +20,8 @@ import (
 var initializedRegistry atomic.Value
 
 // Get returns default service registry which can be shared by all GW process services
-func Get() *ProxiedRegistry {
-	reg, ok := initializedRegistry.Load().(*ProxiedRegistry)
+func Get() GatewayRegistry {
+	reg, ok := initializedRegistry.Load().(GatewayRegistry)
 	if (!ok) || reg == nil {
 		reg = NewDefaultRegistry()
 		// Overwrite/Add from /etc/magma/service_registry.yml if it exists
@@ -41,10 +41,11 @@ func Get() *ProxiedRegistry {
 }
 
 // NewDefaultRegistry returns a new service registry populated by default services
-func NewDefaultRegistry() *ProxiedRegistry {
-	reg := &ProxiedRegistry{}
-	reg.addLocal(controlProxyServiceName, 5053)
-
+func NewDefaultRegistry() GatewayRegistry {
+	reg := platform_registry.Get()
+	if _, err := reg.GetServiceAddress(platform_registry.ControlProxyServiceName); err != nil {
+		addLocal(reg, platform_registry.ControlProxyServiceName, 5053)
+	}
 	return reg
 }
 
@@ -54,6 +55,6 @@ func GetServiceAddress(service string) (string, error) {
 	return Get().GetServiceAddress(service)
 }
 
-func (reg *ProxiedRegistry) addLocal(serviceType string, port int) {
+func addLocal(reg GatewayRegistry, serviceType string, port int) {
 	reg.AddService(platform_registry.ServiceLocation{Name: serviceType, Host: "localhost", Port: port})
 }

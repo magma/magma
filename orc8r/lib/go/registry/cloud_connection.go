@@ -5,9 +5,9 @@ All rights reserved.
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
-// package cloud_registry provides Registry interface for Go based gateways
+// package registry provides Registry interface for Go based gateways
 // as well as cloud connection routines
-package service_registry
+package registry
 
 import (
 	"crypto/tls"
@@ -27,18 +27,25 @@ import (
 	"magma/orc8r/lib/go/service/config"
 )
 
+const (
+	ControlProxyServiceName = "CONTROL_PROXY"
+
+	grpcMaxTimeoutSec = 60
+	grpcMaxDelaySec   = 20
+)
+
 // control proxy config map
 // it'll be initialized on demand and used thereafter
 // any changed to the control proxy service config file would require process restart to take effect
 var controlProxyConfig atomic.Value
 
-// GetCloudConnection returns a connection to a cloud service through the control
-// proxy setup
+// GetCloudConnection Creates and returns a new GRPC service connection to the service in the cloud for a gateway
+// either directly or via control proxy
 // Input: service - name of cloud service to connect to
 //
 // Output: *grpc.ClientConn with connection to cloud service
 //         error if it exists
-func (reg *ProxiedRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
+func (reg *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
 	cpc, ok := controlProxyConfig.Load().(*config.ConfigMap)
 	if (!ok) || cpc == nil {
 		var err error
@@ -62,7 +69,7 @@ func (reg *ProxiedRegistry) GetCloudConnection(service string) (*grpc.ClientConn
 //
 // Output: *grpc.ClientConn with connection to cloud service
 //         error if it exists
-func (reg *ProxiedRegistry) GetCloudConnectionFromServiceConfig(
+func (reg *ServiceRegistry) GetCloudConnectionFromServiceConfig(
 	controlProxyConfig *config.ConfigMap, service string) (*grpc.ClientConn, error) {
 
 	authority, err := getAuthority(controlProxyConfig, service)
@@ -106,12 +113,12 @@ func getAuthority(
 	return fmt.Sprintf("%s-%s", service, cloudAddr), nil
 }
 
-func (reg *ProxiedRegistry) getProxyAddress(serviceConfig *config.ConfigMap) (string, error) {
+func (reg *ServiceRegistry) getProxyAddress(serviceConfig *config.ConfigMap) (string, error) {
 	localPort, err := serviceConfig.GetIntParam("local_port")
 	if err != nil {
 		return "", err
 	}
-	localAddress, err := reg.GetServiceAddress(controlProxyServiceName)
+	localAddress, err := reg.GetServiceAddress(ControlProxyServiceName)
 	if err != nil {
 		return "", err
 	}

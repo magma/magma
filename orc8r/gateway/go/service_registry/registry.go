@@ -13,12 +13,7 @@ import (
 	"google.golang.org/grpc"
 
 	platform_registry "magma/orc8r/lib/go/registry"
-)
-
-const (
-	grpcMaxTimeoutSec       = 60
-	grpcMaxDelaySec         = 20
-	controlProxyServiceName = "CONTROL_PROXY"
+	"magma/orc8r/lib/go/service/config"
 )
 
 // ServiceRegistry defines interface for gateway's registry of local services
@@ -36,6 +31,17 @@ type GatewayRegistry interface {
 	// GetCloudConnection Creates and returns a new GRPC service connection to the service.
 	// GetCloudConnection always creates a new connection & it's responsibility of the caller to close it.
 	GetCloudConnection(service string) (*grpc.ClientConn, error)
+	// GetCloudConnectionFromServiceConfig returns a connection to the cloud
+	// using a specific control_proxy service config map. This map must contain the cloud_address
+	// and local_port params
+	// Input: serviceConfig - ConfigMap containing cloud_address and local_port
+	//        and optional proxy_cloud_connections, cloud_port, rootca_cert, gateway_cert/key fields if direct
+	//        cloud connection is needed
+	//        service - name of cloud service to connect to
+	//
+	// Output: *grpc.ClientConn with connection to cloud service
+	//         error if it exists
+	GetCloudConnectionFromServiceConfig(controlProxyConfig *config.ConfigMap, service string) (*grpc.ClientConn, error)
 
 	// GetConnection provides a gRPC connection to a service in the registry.
 	GetConnection(service string) (*grpc.ClientConn, error)
@@ -43,13 +49,9 @@ type GatewayRegistry interface {
 }
 
 // ProxiedRegistry a GW service registry which supports direct and proxied cloud connections
-type ProxiedRegistry struct {
-	platform_registry.ServiceRegistry
-}
+type ProxiedRegistry platform_registry.ServiceRegistry
 
 // New returns a new ProxiedRegistry initialized with empty service & connection maps
-func New() *ProxiedRegistry {
-	reg := &ProxiedRegistry{}
-	reg.Initialize()
-	return reg
+func New() GatewayRegistry {
+	return platform_registry.New()
 }

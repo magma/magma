@@ -38,7 +38,7 @@ func getSwxProxyClient() (*swxProxyClient, error) {
 	var conn *grpc.ClientConn
 	var err error
 	if os.Getenv("USE_REMOTE_SWX_PROXY") == "1" {
-		conn, err = registry.NewCloudRegistry().GetCloudConnection(strings.ToLower(registry.SWX_PROXY))
+		conn, err = registry.Get().GetCloudConnection(strings.ToLower(registry.SWX_PROXY))
 	} else {
 		conn, err = registry.GetConnection(registry.SWX_PROXY)
 	}

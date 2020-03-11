@@ -63,10 +63,9 @@ func addLocalService(serviceType string, port int) {
 	AddService(serviceType, "localhost", port)
 }
 
-var fegRegistry = NewCloudRegistry()
+var fegRegistry = Get()
 
 func init() {
-	fegRegistry = NewCloudRegistry()
 
 	// Add default Local Service Locations
 	addLocalService(REDIS, 6380)

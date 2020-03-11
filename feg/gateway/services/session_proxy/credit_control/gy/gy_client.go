@@ -15,8 +15,6 @@ import (
 	"strconv"
 	"time"
 
-	"magma/feg/gateway/registry"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
@@ -25,6 +23,7 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/metrics"
+	"magma/gateway/service_registry"
 )
 
 const (
@@ -67,7 +66,7 @@ func NewConnectedGyClient(
 	diamClient *diameter.Client,
 	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
-	cloudRegistry registry.CloudRegistry,
+	cloudRegistry service_registry.GatewayRegistry,
 	globalConfig *GyGlobalConfig,
 ) *GyClient {
 	diamClient.RegisterAnswerHandlerForAppID(diam.CreditControl, diam.CHARGING_CONTROL_APP_ID, getCCAHandler())
@@ -98,7 +97,7 @@ func NewGyClient(
 	clientCfg *diameter.DiameterClientConfig,
 	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
-	cloudRegistry registry.CloudRegistry,
+	cloudRegistry service_registry.GatewayRegistry,
 	globalConfig *GyGlobalConfig,
 ) *GyClient {
 	diamClient := diameter.NewClient(clientCfg)

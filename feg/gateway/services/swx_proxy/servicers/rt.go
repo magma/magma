@@ -21,7 +21,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/registry"
+	"magma/gateway/service_registry"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 )
 
 type fegRelayClient struct {
-	registry registry.CloudRegistry
+	registry service_registry.GatewayRegistry
 }
 
 type CloseableSwxGatewayServiceResponderClient struct {
@@ -44,7 +44,7 @@ func (client *CloseableSwxGatewayServiceResponderClient) Close() {
 
 // GetSwxGatewayServiceResponderClient returns a client to the local terminate registration client
 func GetSwxGatewayServiceResponderClient(
-	cloudRegistry registry.CloudRegistry) (*CloseableSwxGatewayServiceResponderClient, error) {
+	cloudRegistry service_registry.GatewayRegistry) (*CloseableSwxGatewayServiceResponderClient, error) {
 
 	conn, err := cloudRegistry.GetCloudConnection(feg_relay.ServiceName)
 	if err != nil {
