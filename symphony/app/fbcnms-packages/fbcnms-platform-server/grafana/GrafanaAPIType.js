@@ -71,6 +71,20 @@ export type CreateUserResponse = {
   message: string,
 };
 
+export type Dashboard = {
+  dashboard: mixed,
+  folderId: number,
+  overwrite: boolean,
+};
+
+export type CreateDashboardResponse = {
+  id: number,
+  uid: string,
+  url: string,
+  status: string,
+  version: number,
+};
+
 export type PostDatasource = {
   orgId: number,
   name: string,
