@@ -11,7 +11,6 @@ package registry
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -29,21 +28,17 @@ type ServiceLocation struct {
 	ProxyAliases map[string]int
 }
 
-const (
-	GrpcMaxDelaySec        = 10
-	GrpcMaxLocalTimeoutSec = 30
-	GrpcMaxTimeoutSec      = 60
-)
-
-type serviceRegistry struct {
+type ServiceRegistry struct {
 	sync.RWMutex
-	serviceConnections map[string]*grpc.ClientConn
-	serviceLocations   map[string]ServiceLocation
+	ServiceConnections map[string]*grpc.ClientConn
+	ServiceLocations   map[string]ServiceLocation
 }
 
-var registry = &serviceRegistry{
-	serviceConnections: map[string]*grpc.ClientConn{},
-	serviceLocations:   map[string]ServiceLocation{},
+// New creates and returns a new registry
+func New() *ServiceRegistry {
+	return &ServiceRegistry{
+		ServiceConnections: map[string]*grpc.ClientConn{},
+		ServiceLocations:   map[string]ServiceLocation{}}
 }
 
 // String implements ServiceLocation stringer interface
@@ -60,36 +55,41 @@ func (sl ServiceLocation) String() string {
 	return fmt.Sprintf("%s @ %s:%d%s", sl.Name, sl.Host, sl.Port, alsoKnown)
 }
 
+// Initialize initializes the registry maps
+func (registry *ServiceRegistry) Initialize() *ServiceRegistry {
+	if registry == nil {
+		return New()
+	}
+	registry.ServiceConnections = map[string]*grpc.ClientConn{}
+	registry.ServiceLocations = map[string]ServiceLocation{}
+	return registry
+}
+
 // AddServices adds new services to the registry.
 // If any services already exist, their locations will be overwritten
-func AddServices(locations ...ServiceLocation) {
+func (registry *ServiceRegistry) AddServices(locations ...ServiceLocation) {
 	registry.Lock()
 	defer registry.Unlock()
 	for _, location := range locations {
-		addUnsafe(location)
+		registry.addUnsafe(location)
 	}
 }
 
 // AddService add a new service.
 // If the service already exists, overwrites the service config.
-func AddService(location ServiceLocation) {
+func (registry *ServiceRegistry) AddService(location ServiceLocation) {
 	registry.Lock()
 	defer registry.Unlock()
-	addUnsafe(location)
-}
-
-func addUnsafe(location ServiceLocation) {
-	registry.serviceLocations[location.Name] = location
-	delete(registry.serviceConnections, location.Name)
+	registry.addUnsafe(location)
 }
 
 // GetServiceAddress returns the RPC address of the service.
 // The service needs to be added to the registry before this.
-func GetServiceAddress(service string) (string, error) {
+func (registry *ServiceRegistry) GetServiceAddress(service string) (string, error) {
 	registry.RLock()
 	defer registry.RUnlock()
 
-	location, ok := registry.serviceLocations[service]
+	location, ok := registry.ServiceLocations[service]
 	if !ok {
 		return "", fmt.Errorf("Service '%s' not registered", service)
 	}
@@ -99,12 +99,23 @@ func GetServiceAddress(service string) (string, error) {
 	return fmt.Sprintf("%s:%d", location.Host, location.Port), nil
 }
 
-// GetServiceProxyAliases returns the proxy_aliases, if any, of the service.
-// The service needs to be added to the registry before this.
-func GetServiceProxyAliases(service string) (map[string]int, error) {
+// ListAllServices lists all services' name.
+func (registry *ServiceRegistry) ListAllServices() []string {
 	registry.RLock()
 	defer registry.RUnlock()
-	location, ok := registry.serviceLocations[service]
+	services := make([]string, 0, len(registry.ServiceLocations))
+	for service := range registry.ServiceLocations {
+		services = append(services, service)
+	}
+	return services
+}
+
+// GetServiceProxyAliases returns the proxy_aliases, if any, of the service.
+// The service needs to be added to the registry before this.
+func (registry *ServiceRegistry) GetServiceProxyAliases(service string) (map[string]int, error) {
+	registry.RLock()
+	defer registry.RUnlock()
+	location, ok := registry.ServiceLocations[service]
 	if !ok {
 		return nil, fmt.Errorf("failed to retrieve proxy alias: Service '%s' not registered", service)
 	}
@@ -113,10 +124,10 @@ func GetServiceProxyAliases(service string) (map[string]int, error) {
 
 // GetServicePort returns the listening port for the RPC service.
 // The service needs to be added to the registry before this.
-func GetServicePort(service string) (int, error) {
+func (registry *ServiceRegistry) GetServicePort(service string) (int, error) {
 	registry.RLock()
 	defer registry.RUnlock()
-	location, ok := registry.serviceLocations[strings.ToUpper(string(service))]
+	location, ok := registry.ServiceLocations[strings.ToUpper(string(service))]
 	if !ok {
 		return 0, fmt.Errorf("failed to get service port: Service '%s' not registered", service)
 	}
@@ -127,11 +138,19 @@ func GetServicePort(service string) (int, error) {
 	return location.Port, nil
 }
 
+func (registry *ServiceRegistry) addUnsafe(location ServiceLocation) {
+	if registry.ServiceLocations == nil {
+		registry.ServiceLocations = map[string]ServiceLocation{}
+	}
+	registry.ServiceLocations[location.Name] = location
+	delete(registry.ServiceConnections, location.Name)
+}
+
 // GetConnection provides a gRPC connection to a service in the registry.
-func GetConnection(service string) (*grpc.ClientConn, error) {
+func (registry *ServiceRegistry) GetConnection(service string) (*grpc.ClientConn, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
-	return GetConnectionImpl(
+	return registry.GetConnectionImpl(
 		ctx,
 		service,
 		grpc.WithBackoffMaxDelay(GrpcMaxDelaySec*time.Second),
@@ -139,14 +158,14 @@ func GetConnection(service string) (*grpc.ClientConn, error) {
 	)
 }
 
-func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-	addr, err := GetServiceAddress(service)
+func (registry *ServiceRegistry) GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+	addr, err := registry.GetServiceAddress(service)
 	if err != nil {
 		return nil, err
 	}
 	// First try to get an existing connection with reader lock
 	registry.RLock()
-	conn, ok := registry.serviceConnections[service]
+	conn, ok := registry.ServiceConnections[service]
 	registry.RUnlock()
 	if ok && conn != nil {
 		return conn, nil
@@ -155,7 +174,7 @@ func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOpt
 	registry.Lock()
 	defer registry.Unlock()
 	// Re-check after taking the lock
-	conn, ok = registry.serviceConnections[service]
+	conn, ok = registry.ServiceConnections[service]
 	if ok && conn != nil {
 		return conn, nil
 	}
@@ -163,7 +182,7 @@ func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOpt
 	if err != nil {
 		err = fmt.Errorf("Service %v connection error: %s", service, err)
 	} else {
-		registry.serviceConnections[service] = conn
+		registry.ServiceConnections[service] = conn
 	}
 	return conn, err
 }
@@ -180,26 +199,14 @@ func GetClientConnection(ctx context.Context, addr string, opts ...grpc.DialOpti
 	return conn, nil
 }
 
-// ListAllServices lists all services' name.
-func ListAllServices() []string {
-	registry.RLock()
-	defer registry.RUnlock()
-	services := make([]string, 0, len(registry.serviceLocations))
-	for service := range registry.serviceLocations {
-		services = append(services, service)
+// GetCloudConnection Creates and returns a new GRPC service connection to the service.
+// GetCloudConnection always creates a new connection & it's responsibility of the caller to close it.
+func (registry *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
+	addr, err := registry.GetServiceAddress(service)
+	if err != nil {
+		return nil, err
 	}
-	return services
-}
-
-// ListControllerServices list all services that should run on a controller instances
-// This is a comma separated list in an env var named CONTROLLER_SERVICES. This
-// will be used for metricsd on controller to determine
-// what services to pull metrics from.
-func ListControllerServices() []string {
-	ret := make([]string, 0)
-	controllerServices, ok := os.LookupEnv("CONTROLLER_SERVICES")
-	if !ok {
-		return ret
-	}
-	return strings.Split(controllerServices, ",")
+	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
+	defer cancel()
+	return GetClientConnection(ctx, addr, grpc.WithBackoffMaxDelay(GrpcMaxDelaySec*time.Second), grpc.WithBlock())
 }
