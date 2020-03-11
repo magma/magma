@@ -22,6 +22,8 @@
 #ifndef RPC_CLIENT_H
 #define RPC_CLIENT_H
 
+#include "stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,8 +59,8 @@ extern "C" {
  */
 int get_assigned_ipv4_block(
   int index,
-  struct in_addr *netaddr,
-  uint32_t *netmask);
+  struct in_addr* netaddr,
+  uint32_t* netmask);
 
 /*
  * Allocate an IP address from the MobilityService over gRPC
@@ -72,8 +74,10 @@ int get_assigned_ipv4_block(
  * @return -RPC_STATUS_ALREADY_EXISTS if an IP has been allocated for the
  *         subscriber
  */
-int allocate_ipv4_address(const char *subscriber_id, const char *apn,
-                          struct in_addr *addr);
+int allocate_ipv4_address(
+  const char* subscriber_id,
+  const char* apn,
+  struct in_addr* addr);
 
 /*
  * Release an allocated IP address.
@@ -86,8 +90,10 @@ int allocate_ipv4_address(const char *subscriber_id, const char *apn,
  * @return 0 on success
  * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
-int release_ipv4_address(const char *subscriber_id, const char *apn,
-                         const struct in_addr *addr);
+int release_ipv4_address(
+  const char* subscriber_id,
+  const char* apn,
+  const struct in_addr* addr);
 
 /*
  * Get the allocated IPv4 address for a subscriber
@@ -97,9 +103,9 @@ int release_ipv4_address(const char *subscriber_id, const char *apn,
  * @return -RPC_STATUS_NOT_FOUND if the SID is not found
  */
 int get_ipv4_address_for_subscriber(
-  const char *subscriber_id,
-  const char *apn,
-  struct in_addr *addr);
+  const char* subscriber_id,
+  const char* apn,
+  struct in_addr* addr);
 
 /*
  * Get the subscriber id given its allocated IPv4 address. If the address
@@ -111,8 +117,8 @@ int get_ipv4_address_for_subscriber(
  * @return -RPC_STATUS_NOT_FOUND if IPv4 address is not found
  */
 int get_subscriber_id_from_ipv4(
-  const struct in_addr *addr,
-  char **subscriber_id);
+  const struct in_addr* addr,
+  char** subscriber_id);
 
 #ifdef __cplusplus
 }

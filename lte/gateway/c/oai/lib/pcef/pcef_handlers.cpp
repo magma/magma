@@ -26,7 +26,7 @@
 
 #include "pcef_handlers.h"
 #include "PCEFClient.h"
-#include "rpc_client.h"
+#include "RpcClient.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"

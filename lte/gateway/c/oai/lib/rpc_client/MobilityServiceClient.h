@@ -19,37 +19,32 @@
  *      contact@openairinterface.org
  */
 
-#ifndef MOBILITY_CLIENT_H
-#define MOBILITY_CLIENT_H
+#pragma once
 
 #include <arpa/inet.h>
 #include <grpc++/grpc++.h>
-#include <stdint.h>
+#include <cstdint>
 #include <memory>
 #include <string>
 
 #include "lte/protos/mobilityd.grpc.pb.h"
 
+#include "GRPCReceiver.h"
+
 namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-}  // namespace grpc
-
-using grpc::Channel;
-using grpc::ClientContext;
-using grpc::Status;
-using magma::lte::MobilityService;
+} // namespace grpc
 
 namespace magma {
-using namespace lte;
+namespace lte {
 /*
  * gRPC client for MobilityService
  */
-class MobilityServiceClient {
+class MobilityServiceClient : public GRPCReceiver {
  public:
-  explicit MobilityServiceClient(const std::shared_ptr<Channel> &channel);
-
+  virtual ~MobilityServiceClient() = default;
   /*
      * Get the address and netmask of an assigned IPv4 block
      *
@@ -63,8 +58,8 @@ class MobilityServiceClient {
      */
   int GetAssignedIPv4Block(
     int index,
-    struct in_addr *netaddr,
-    uint32_t *netmask);
+    struct in_addr* netaddr,
+    uint32_t* netmask);
 
   /*
      * Allocate an IPv4 address from the free IP pool
@@ -78,8 +73,10 @@ class MobilityServiceClient {
      * @return -RPC_STATUS_ALREADY_EXISTS if an IP has been allocated for the
      *         subscriber
      */
-  int AllocateIPv4Address(const std::string &imsi, const std::string &apn,
-                          struct in_addr *addr);
+  int AllocateIPv4Address(
+    const std::string& imsi,
+    const std::string& apn,
+    struct in_addr* addr);
 
   /*
      * Release an allocated IPv4 address.
@@ -93,8 +90,10 @@ class MobilityServiceClient {
      * @return 0 on success
      * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
      */
-  int ReleaseIPv4Address(const std::string &imsi, const std::string &apn,
-                         const struct in_addr &addr);
+  int ReleaseIPv4Address(
+    const std::string& imsi,
+    const std::string& apn,
+    const struct in_addr& addr);
 
   /*
      * Get the allocated IPv4 address for a subscriber
@@ -104,9 +103,9 @@ class MobilityServiceClient {
      * @return -RPC_STATUS_NOT_FOUND if the SID is not found
      */
   int GetIPv4AddressForSubscriber(
-    const std::string &imsi,
-    const std::string &apn,
-    struct in_addr *addr);
+    const std::string& imsi,
+    const std::string& apn,
+    struct in_addr* addr);
 
   /*
      * Get the subscriber id given its allocated IPv4 address. If the address
@@ -117,11 +116,23 @@ class MobilityServiceClient {
      * @return 0 on success
      * @return -RPC_STATUS_NOT_FOUND if IPv4 address is not found
      */
-  int GetSubscriberIDFromIPv4(const struct in_addr &addr, std::string *imsi);
+  int GetSubscriberIDFromIPv4(const struct in_addr& addr, std::string* imsi);
+
+ public:
+  static MobilityServiceClient &getInstance();
+
+  MobilityServiceClient(MobilityServiceClient const &) = delete;
+  void operator=(MobilityServiceClient const &) = delete;
 
  private:
-  std::shared_ptr<MobilityService::Stub> stub_;
+  MobilityServiceClient();
+  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
+  std::shared_ptr<MobilityService::Stub> stub_{};
+
+  void AllocateIPv4AddressRPC(
+    const AllocateIPRequest& request,
+    const std::function<void(grpc::Status, IPAddress)>& callback);
 };
 
+} // namespace lte
 } // namespace magma
-#endif // MOBILITY_CLIENT_H
