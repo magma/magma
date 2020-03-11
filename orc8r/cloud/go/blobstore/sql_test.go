@@ -164,6 +164,76 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 	runCase(t, queryError)
 }
 
+func TestSqlBlobStorage_Search(t *testing.T) {
+	happyPath := &testCase{
+		setup: func(mock sqlmock.Sqlmock) {
+			mock.ExpectQuery("SELECT network_id, type, \"key\", value, version FROM network_table").
+				WithArgs("network", "t1", "t2", "t3", "k1", "k2", "k3").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "type", "key", "value", "version"}).
+						AddRow("network", "t1", "k1", []byte("value1"), 42).
+						AddRow("network", "t2", "k2", []byte("value2"), 43),
+				)
+		},
+
+		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+			return store.Search(blobstore.CreateSearchFilter(strPtr("network"), []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}))
+		},
+
+		expectedError: nil,
+		expectedResult: map[string][]blobstore.Blob{
+			"network": {
+				{Type: "t1", Key: "k1", Value: []byte("value1"), Version: 42},
+				{Type: "t2", Key: "k2", Value: []byte("value2"), Version: 43},
+			},
+		},
+	}
+
+	multipleNetworks := &testCase{
+		setup: func(mock sqlmock.Sqlmock) {
+			mock.ExpectQuery("SELECT network_id, type, \"key\", value, version FROM network_table").
+				WithArgs("t1", "t2", "t3", "k1", "k2", "k3").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "type", "key", "value", "version"}).
+						AddRow("network1", "t1", "k1", []byte("value1"), 42).
+						AddRow("network2", "t2", "k2", []byte("value2"), 43),
+				)
+		},
+
+		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+			return store.Search(blobstore.CreateSearchFilter(nil, []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}))
+		},
+
+		expectedError: nil,
+		expectedResult: map[string][]blobstore.Blob{
+			"network1": {
+				{Type: "t1", Key: "k1", Value: []byte("value1"), Version: 42},
+			},
+			"network2": {
+				{Type: "t2", Key: "k2", Value: []byte("value2"), Version: 43},
+			},
+		},
+	}
+
+	queryError := &testCase{
+		setup: func(mock sqlmock.Sqlmock) {
+			mock.ExpectQuery("SELECT network_id, type, \"key\", value, version FROM network_table").
+				WithArgs("network", "t1", "t2", "t3", "k1", "k2", "k3").
+				WillReturnError(errors.New("mock error"))
+		},
+
+		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+			return store.Search(blobstore.CreateSearchFilter(strPtr("network"), []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}))
+		},
+
+		expectedError: errors.New("failed to query DB: mock error"),
+	}
+
+	runCase(t, happyPath)
+	runCase(t, multipleNetworks)
+	runCase(t, queryError)
+}
+
 func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 	// (t1, k1) exists, (t2, k2) does not
 	happyPath := &testCase{
@@ -430,7 +500,6 @@ func runCase(t *testing.T, test *testCase) {
 	if err != nil {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
-	defer db.Close()
 
 	factory := blobstore.NewSQLBlobStorageFactory("network_table", db, sqorc.GetSqlBuilder())
 	expectCreateTable(mock)

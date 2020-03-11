@@ -35,7 +35,7 @@ resource "aws_elasticsearch_domain_policy" "es_management_access" {
 }
 
 resource "aws_iam_service_linked_role" "es" {
-  count = var.deploy_elasticsearch ? 1 : 0
+  count = var.deploy_elasticsearch && var.deploy_elasticsearch_service_linked_role ? 1 : 0
 
   aws_service_name = "es.amazonaws.com"
 }
@@ -56,7 +56,7 @@ resource "aws_elasticsearch_domain" "es" {
 
     zone_awareness_enabled = true
     zone_awareness_config {
-      availability_zone_count = 3
+      availability_zone_count = var.elasticsearch_az_count
     }
   }
 
@@ -65,7 +65,7 @@ resource "aws_elasticsearch_domain" "es" {
   }
 
   vpc_options {
-    subnet_ids         = module.vpc.private_subnets
+    subnet_ids         = slice(module.vpc.private_subnets, 0, min(var.elasticsearch_az_count, 3))
     security_group_ids = [aws_security_group.default.id]
   }
 
@@ -88,5 +88,5 @@ resource "aws_elasticsearch_domain" "es" {
     var.elasticsearch_domain_tags,
   )
 
-  depends_on = [aws_iam_service_linked_role.es[0]]
+  depends_on = [aws_iam_service_linked_role.es]
 }

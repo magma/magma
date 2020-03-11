@@ -40,8 +40,6 @@ spec:
       affinity:
 {{ toYaml . | indent 8 }}
       {{- end }}
-      nodeSelector:
-        {{ .Values.magmalte.labels.node_selector_key }}: {{ .Values.magmalte.labels.node_selector_value | quote }}
       terminationGracePeriodSeconds: 60
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

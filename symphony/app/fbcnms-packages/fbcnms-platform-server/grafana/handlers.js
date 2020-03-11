@@ -14,7 +14,7 @@ import MagmaV1API from '@fbcnms/platform-server/magma/index';
 import {Organization} from '@fbcnms/sequelize-models';
 import {apiCredentials} from '../config';
 
-import type {Datasource} from './GrafanaAPIType';
+import type {Datasource, PostDatasource} from './GrafanaAPIType';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {GrafanaClient} from './GrafanaAPI';
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
@@ -254,25 +254,40 @@ export async function syncDatasource(
       },
     };
   }
-  const dsExists = checkDatasourceExists(getDSResp.data);
+  const newDSParams: DatasourceParams = {
+    grafanaOrgID,
+    nmsOrgID,
+    apiHost,
+    cert: creds.cert,
+    key: creds.key,
+  };
+
+  const ds = getOrc8rDatasource(getDSResp.data);
   completedTasks.push({
     name: 'Checked datasource exists in org',
     status: 200,
-    message: dsExists ? 'Datsource exists' : 'Datasource does not exist',
+    message: ds ? 'Datsource exists' : 'Datasource does not exist',
   });
-  if (dsExists) {
+  if (ds) {
+    // Update Datasource if parameters have changed
+    const updateDSResp = await updateDatasourceIfChanged({
+      oldDS: ds,
+      newDSParams,
+      client,
+    });
+    completedTasks.push(...updateDSResp.completedTasks);
+    if (updateDSResp.errorTask) {
+      return {
+        completedTasks,
+        errorTask: updateDSResp.errorTask,
+      };
+    }
     return {completedTasks};
   }
 
   // Create new datasource in Grafana
   const addDSResp = await client.createDatasource(
-    makeDatasourceConfig({
-      grafanaOrgID,
-      nmsOrgID,
-      apiHost,
-      cert: creds.cert,
-      key: creds.key,
-    }),
+    makeDatasourceConfig(newDSParams),
     grafanaOrgID,
   );
   if (addDSResp.status !== 200) {
@@ -289,6 +304,49 @@ export async function syncDatasource(
     name: 'Create datasource',
     status: addDSResp.status,
     message: addDSResp.data,
+  });
+  return {completedTasks};
+}
+
+type updateDatasourceArgs = {
+  oldDS: Datasource,
+  newDSParams: DatasourceParams,
+  client: GrafanaClient,
+};
+
+async function updateDatasourceIfChanged({
+  oldDS,
+  newDSParams,
+  client,
+}: updateDatasourceArgs): Promise<{
+  completedTasks: Array<Task>,
+  errorTask?: Task,
+}> {
+  const completedTasks: Array<Task> = [];
+  // Make sure API Endpoint matches
+  if (oldDS.url === makeAPIUrl(newDSParams.apiHost, newDSParams.nmsOrgID)) {
+    return {completedTasks};
+  }
+  const updatedDS = makeDatasourceConfig(newDSParams);
+  const updateDSResp = await client.updateDatasource(
+    oldDS.id,
+    newDSParams.grafanaOrgID,
+    updatedDS,
+  );
+  if (updateDSResp.status !== 200) {
+    return {
+      completedTasks,
+      errorTask: {
+        name: 'Update datasource',
+        status: updateDSResp.status,
+        message: updateDSResp.data,
+      },
+    };
+  }
+  completedTasks.push({
+    name: 'Update datasource',
+    status: updateDSResp.status,
+    message: updateDSResp.data,
   });
   return {completedTasks};
 }
@@ -373,8 +431,8 @@ async function checkIfUserInOrg(
   return getUsersResp.data.some(user => user.login === username);
 }
 
-function checkDatasourceExists(datasources: Array<Datasource>): boolean {
-  return datasources.some(ds => ds.name.startsWith(ORC8R_DATASOURCE_NAME));
+function getOrc8rDatasource(datasources: Array<Datasource>): ?Datasource {
+  return datasources.find(ds => ds.name.startsWith(ORC8R_DATASOURCE_NAME));
 }
 
 async function getUserGrafanaOrgID(
@@ -391,19 +449,21 @@ async function getUserGrafanaOrgID(
   return NaN;
 }
 
-function makeDatasourceConfig(params: {
+type DatasourceParams = {
   grafanaOrgID: number,
   nmsOrgID: number,
   apiHost: string,
   cert: string | Buffer,
   key: string | Buffer,
-}): Datasource {
+};
+
+function makeDatasourceConfig(params: DatasourceParams): PostDatasource {
   return {
     name: ORC8R_DATASOURCE_NAME + '_' + params.grafanaOrgID,
     orgId: params.grafanaOrgID,
     type: 'orchestrator-grafana-datasource',
     access: 'proxy',
-    url: `https://${params.apiHost}/magma/v1/tenants/${params.nmsOrgID}`,
+    url: makeAPIUrl(params.apiHost, params.nmsOrgID),
     jsonData: {
       tlsAuth: true,
       tlsSkipVerify: true,
@@ -416,6 +476,10 @@ function makeDatasourceConfig(params: {
       tlsClientKey: params.key.toString(),
     },
   };
+}
+
+function makeAPIUrl(apiHost: string, nmsOrgID: number): string {
+  return `https://${apiHost}/magma/v1/tenants/${nmsOrgID}`;
 }
 
 function organizationsEqual(

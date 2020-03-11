@@ -55,7 +55,7 @@ type RouteTab = {
 
 export default function Configure() {
   const relativeUrl = useRelativeUrl();
-  const {history} = useRouter();
+  const {history, location} = useRouter();
   const classes = useStyles();
   const servicesEnabled = useContext(AppContext).isFeatureEnabled('services');
   const tabBars: Array<RouteTab> = useMemo(
@@ -95,7 +95,11 @@ export default function Configure() {
     ],
     [servicesEnabled],
   );
-  const [activeTabBar, setActiveTabBar] = useState<number>(0);
+  const tabURI = location.pathname.match(/([^\/]*)\/*$/)[1];
+  const tabIndex = tabBars.findIndex(el => el.id == tabURI);
+  const [activeTabBar, setActiveTabBar] = useState<number>(
+    tabIndex !== -1 ? tabIndex : 0,
+  );
 
   useEffect(() => {
     ServerLogger.info(LogEvents.CONFIGURE_TAB_NAVIGATION_CLICKED, {

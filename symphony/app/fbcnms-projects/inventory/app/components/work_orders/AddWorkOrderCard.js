@@ -13,12 +13,15 @@ import type {
   AddWorkOrderMutationVariables,
   CheckListCategoryInput,
 } from '../../mutations/__generated__/AddWorkOrderMutation.graphql';
+import type {ChecklistCategoriesMutateStateActionType} from '../checklist/ChecklistCategoriesMutateAction';
+import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {WorkOrder, WorkOrderType} from '../../common/WorkOrder';
 
 import AddWorkOrderMutation from '../../mutations/AddWorkOrderMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
+import ChecklistCategoriesMutateDispatchContext from '../checklist/ChecklistCategoriesMutateDispatchContext';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
@@ -30,7 +33,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import ProjectTypeahead from '../typeahead/ProjectTypeahead';
 import PropertyValueInput from '../form/PropertyValueInput';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useReducer, useState} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import TextField from '@material-ui/core/TextField';
 import UserTypeahead from '../typeahead/UserTypeahead';
@@ -41,6 +44,7 @@ import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 import {priorityValues, statusValues} from '../../common/WorkOrder';
+import {reducer} from '../checklist/ChecklistCategoriesMutateReducer';
 import {removeTempIDs} from '../../common/EntUtils';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -147,6 +151,11 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
   const enqueueSnackbar = useEnqueueSnackbar();
   const history = useHistory();
   const match = useRouteMatch();
+
+  const [editingCategories, dispatch] = useReducer<
+    ChecklistCategoriesStateType,
+    ChecklistCategoriesMutateStateActionType,
+  >(reducer, []);
 
   const _enqueueError = useCallback(
     (message: string) => {
@@ -486,10 +495,13 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
                             ))}
                         </Grid>
                       </ExpandingPanel>
-                      <CheckListCategoryExpandingPanel
-                        list={workOrder.checkListCategories}
-                        onListChanged={_checkListCategoryChangedHandler}
-                      />
+                      <ChecklistCategoriesMutateDispatchContext.Provider
+                        value={dispatch}>
+                        <CheckListCategoryExpandingPanel
+                          categories={editingCategories}
+                          onListChanged={_checkListCategoryChangedHandler}
+                        />
+                      </ChecklistCategoriesMutateDispatchContext.Provider>
                     </Grid>
                     <Grid item xs={4} sm={4} lg={4} xl={4}>
                       <ExpandingPanel title="Team">

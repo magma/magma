@@ -15,7 +15,6 @@ import type {
   CreateDatasourceResponse,
   CreateOrgResponse,
   CreateUserResponse,
-  Datasource,
   DeleteOrgResponse,
   GetDatasourcesResponse,
   GetHealthResponse,
@@ -23,6 +22,7 @@ import type {
   GetUserResponse,
   OrgUser,
   Organization,
+  PostDatasource,
   User,
 } from './GrafanaAPIType';
 
@@ -47,8 +47,13 @@ export type GrafanaClient = {
   getUsersInOrg: (orgID: number) => GrafanaPromise<GetOrgUsersResponse>,
 
   createDatasource: (
-    ds: Datasource,
+    ds: PostDatasource,
     orgID: number,
+  ) => GrafanaPromise<CreateDatasourceResponse>,
+  updateDatasource: (
+    dsID: number,
+    orgID: number,
+    ds: PostDatasource,
   ) => GrafanaPromise<CreateDatasourceResponse>,
   getDatasources: (orgID: number) => GrafanaPromise<GetDatasourcesResponse>,
 
@@ -140,7 +145,7 @@ const client = (
   },
 
   async createDatasource(
-    ds: Datasource,
+    ds: PostDatasource,
     orgId: number,
   ): GrafanaPromise<CreateDatasourceResponse> {
     return request({
@@ -148,6 +153,19 @@ const client = (
       method: 'POST',
       data: ds,
       headers: {...constHeaders, 'X-Grafana-Org-Id': orgId.toString()},
+    });
+  },
+
+  async updateDatasource(
+    dsID: number,
+    orgID: number,
+    ds: PostDatasource,
+  ): GrafanaPromise<CreateDatasourceResponse> {
+    return request({
+      url: apiURL + `/api/datasources/${dsID}`,
+      method: 'PUT',
+      data: ds,
+      headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
     });
   },
 

@@ -125,7 +125,7 @@ class MagmaController(app_manager.RyuApp):
 
         if self.init_finished:
             self.logger.warning('Controller already initialized, ignoring')
-            return SetupFlowsResult.FAILURE
+            return SetupFlowsResult.SUCCESS
 
         return SetupFlowsResult.SUCCESS
 

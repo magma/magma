@@ -8,14 +8,14 @@
  * @format
  */
 
+import type {CheckListItem} from './checkListCategory/ChecklistItemsDialogMutateState';
+
 import BasicCheckListItemDefinition from './checklistDefinition/BasicCheckListItemDefinition';
 import BasicCheckListItemFilling from './checklistFilling/BasicCheckListItemFilling';
 import FreeTextCheckListItemDefinition from './checklistDefinition/FreeTextCheckListItemDefinition';
 import FreeTextCheckListItemFilling from './checklistFilling/FreeTextCheckListItemFilling';
 import React from 'react';
 import fbt from 'fbt';
-import {createFragmentContainer, graphql} from 'react-relay';
-import type {CheckListItem_item} from './__generated__/CheckListItem_item.graphql';
 
 export const CHECKLIST_ITEM_TYPES = {
   simple: {
@@ -51,12 +51,12 @@ export const GetValidChecklistItemType = (
 };
 
 type Props = {
-  item: CheckListItem_item,
+  item: CheckListItem,
   designMode?: boolean,
-  onChange?: (updatedChecklistItem: CheckListItem_item) => void,
+  onChange?: (updatedItem: CheckListItem) => void,
 };
 
-const CheckListItem = (props: Props) => {
+const CheckListItemBase = (props: Props) => {
   const {item, designMode} = props;
 
   const itemTypeKey = item && GetValidChecklistItemType(item.type);
@@ -77,17 +77,4 @@ const CheckListItem = (props: Props) => {
   return <CheckListItemComponent {...checkListItemComponentProps} />;
 };
 
-export default createFragmentContainer(CheckListItem, {
-  item: graphql`
-    fragment CheckListItem_item on CheckListItem {
-      id
-      title
-      type
-      index
-      helpText
-      enumValues
-      stringValue
-      checked
-    }
-  `,
-});
+export default CheckListItemBase;

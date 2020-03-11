@@ -472,7 +472,7 @@ func createSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Subscriber{}
+	payload := &ltemodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -521,7 +521,7 @@ func updateSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Subscriber{}
+	payload := &ltemodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}

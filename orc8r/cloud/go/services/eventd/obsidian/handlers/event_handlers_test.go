@@ -51,10 +51,10 @@ var (
 				Tag:        "critical",
 			},
 			expected: elastic.NewBoolQuery().
-				Filter(elastic.NewTermQuery("stream_name", "streamOne")).
-				Filter(elastic.NewTermQuery("event_type", "an_event")).
+				Filter(elastic.NewTermQuery("stream_name.keyword", "streamOne")).
+				Filter(elastic.NewTermQuery("event_type.keyword", "an_event")).
 				Filter(elastic.NewTermQuery("hw_id.keyword", "hardware-2")).
-				Filter(elastic.NewTermQuery("event_tag", "critical")),
+				Filter(elastic.NewTermQuery("event_tag.keyword", "critical")),
 		},
 		{
 			name: "partial query params",
@@ -63,8 +63,8 @@ var (
 				EventType:  "an_event",
 			},
 			expected: elastic.NewBoolQuery().
-				Filter(elastic.NewTermQuery("stream_name", "streamTwo")).
-				Filter(elastic.NewTermQuery("event_type", "an_event")),
+				Filter(elastic.NewTermQuery("stream_name.keyword", "streamTwo")).
+				Filter(elastic.NewTermQuery("event_type.keyword", "an_event")),
 		},
 		{
 			name: "only StreamName",
@@ -72,7 +72,7 @@ var (
 				StreamName: "streamThree",
 			},
 			expected: elastic.NewBoolQuery().
-				Filter(elastic.NewTermQuery("stream_name", "streamThree")),
+				Filter(elastic.NewTermQuery("stream_name.keyword", "streamThree")),
 		},
 	}
 
@@ -123,7 +123,7 @@ var (
 				"stream_name": "a",
 				"event_type": "b",
 				"hw_id": "c",
-				"tag": "d",
+				"event_tag": "d",
 				"value":"{ \"some_property\": true }"
 			}`,
 			expectedMaps: []map[string]interface{}{

@@ -376,6 +376,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if ret != SetupFlowsResult.SUCCESS:
             return SetupFlowsResult(result=ret)
 
+        fut = Future()
+        self._loop.call_soon_threadsafe(self._setup_quota,
+                                        request, fut)
+        return fut.result()
+
     def _setup_quota(self, request: SetupQuotaRequest,
                      fut: 'Future(SetupFlowsResult)'
                      ) -> SetupFlowsResult:

@@ -61,7 +61,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			glog.Errorf("Failed to unmarshal CCR %s", err)
 			return
 		}
-		imsi, err := getIMSI(ccr)
+		imsi, err := ccr.GetIMSI()
 		if err != nil {
 			glog.Errorf("Could not parse CCR: %s", err.Error())
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
@@ -79,7 +79,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			// Install all rules attached to the subscriber for the initial answer
 			ruleInstalls := toRuleInstallAVPs(account.RuleNames, account.RuleBaseNames, account.RuleDefinitions)
 			// Install all monitors attached to the subscriber for the initial answer
-			usageMonitors := toUsageMonitoringInfoAVPs(account.UsageMonitors)
+			usageMonitors := toUsageMonitorAVPs(account.UsageMonitors)
 			avps = append(ruleInstalls, usageMonitors...)
 		} else {
 			// Update the subscriber state with the usage updates in CCR-U/T
@@ -87,7 +87,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			if err != nil {
 				glog.Errorf("Failed to update quota: %v", err)
 			}
-			avps = toUsageMonitoringInfoAVPs(creditByMkey)
+			avps = toUsageMonitorAVPs(creditByMkey)
 		}
 		sendAnswer(ccr, c, m, diam.Success, avps...)
 	}
@@ -123,8 +123,8 @@ func sendAnswer(
 	glog.V(2).Infof("Sent CCA to %s:\n", conn.RemoteAddr())
 }
 
-func getIMSI(message ccrMessage) (string, error) {
-	for _, subID := range message.SubscriptionIDs {
+func (m *ccrMessage) GetIMSI() (string, error) {
+	for _, subID := range m.SubscriptionIDs {
 		if subID.IDType == credit_control.EndUserIMSI {
 			return subID.IDData, nil
 		}
@@ -144,22 +144,22 @@ func updateSubscriberAccountWithUsageUpdates(account *subscriberAccount, monitor
 	return credits, nil
 }
 
-func updateSubscriberQuota(credit *protos.UsageMonitorCredit, usedServiceUnit *usageMonitorRequestAVP) *protos.UsageMonitorCredit {
-	total := credit.TotalQuota
+func updateSubscriberQuota(credit *protos.UsageMonitor, usedServiceUnit *usageMonitorRequestAVP) *protos.UsageMonitor {
+	total := credit.GetTotalQuota()
 	update := usedServiceUnit.UsedServiceUnit
-	credit.TotalQuota.TotalOctets = decrementOrZero(total.TotalOctets, update.TotalOctets)
-	credit.TotalQuota.InputOctets = decrementOrZero(total.InputOctets, update.InputOctets)
-	credit.TotalQuota.OutputOctets = decrementOrZero(total.OutputOctets, update.OutputOctets)
+	credit.TotalQuota.TotalOctets = decrementOrZero(total.GetTotalOctets(), update.TotalOctets)
+	credit.TotalQuota.InputOctets = decrementOrZero(total.GetInputOctets(), update.InputOctets)
+	credit.TotalQuota.OutputOctets = decrementOrZero(total.GetOutputOctets(), update.OutputOctets)
 	return credit
 }
 
-func getQuotaGrant(monitorCredit *protos.UsageMonitorCredit) protos.Octets {
-	total := monitorCredit.TotalQuota
-	perRequest := monitorCredit.QuotaGrantPerRequest
-	return protos.Octets{
-		TotalOctets:  getMin(total.TotalOctets, perRequest.TotalOctets),
-		InputOctets:  getMin(total.InputOctets, perRequest.InputOctets),
-		OutputOctets: getMin(total.OutputOctets, perRequest.OutputOctets),
+func getQuotaGrant(monitorCredit *protos.UsageMonitor) *protos.Octets {
+	total := monitorCredit.GetTotalQuota()
+	perRequest := monitorCredit.GetMonitorInfoPerRequest().GetOctets()
+	return &protos.Octets{
+		TotalOctets:  getMin(total.GetTotalOctets(), perRequest.TotalOctets),
+		InputOctets:  getMin(total.GetInputOctets(), perRequest.InputOctets),
+		OutputOctets: getMin(total.GetOutputOctets(), perRequest.OutputOctets),
 	}
 }
 

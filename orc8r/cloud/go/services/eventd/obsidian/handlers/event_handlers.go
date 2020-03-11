@@ -30,10 +30,15 @@ const (
 	queryParamHardwareID = "hardware_id"
 	queryParamTag        = "tag"
 
-	defaultQuerySize        = 50
-	timestamp               = "timestamp"
-	elasticFilterEventTag   = "event_tag"
-	elasticFilterHardwareID = "hw_id.keyword" // Uses the ES "keyword" type for exact match
+	defaultQuerySize = 50
+	timestamp        = "timestamp"
+
+	// We use the ES "keyword" type for exact match
+	dotKeyword              = ".keyword"
+	elasticFilterStreamName = pathParamStreamName + dotKeyword
+	elasticFilterEventType  = queryParamEventType + dotKeyword
+	elasticFilterHardwareID = "hw_id" + dotKeyword
+	elasticFilterEventTag   = "event_tag" + dotKeyword // We use event_tag as fluentd uses the "tag" field
 )
 
 // Returns a Hander that uses the provided elastic client
@@ -82,9 +87,10 @@ type eventResult struct {
 	EventType  string `json:"event_type"`
 	// FluentBit logs sent from AGW are tagged with hw_id
 	HardwareID string `json:"hw_id"`
-	Tag        string `json:"tag"`
-	Timestamp  string `json:"@timestamp"`
-	Value      string `json:"value"`
+	// We use event_tag as fluentd uses the "tag" field
+	Tag       string `json:"event_tag"`
+	Timestamp string `json:"@timestamp"`
+	Value     string `json:"value"`
 }
 
 // Retrieve Event properties from the _source of
@@ -148,9 +154,9 @@ type eventQueryParams struct {
 
 func (b *eventQueryParams) ToElasticBoolQuery() *elastic.BoolQuery {
 	query := elastic.NewBoolQuery()
-	query.Filter(elastic.NewTermQuery(pathParamStreamName, b.StreamName))
+	query.Filter(elastic.NewTermQuery(elasticFilterStreamName, b.StreamName))
 	if len(b.EventType) > 0 {
-		query.Filter(elastic.NewTermQuery(queryParamEventType, b.EventType))
+		query.Filter(elastic.NewTermQuery(elasticFilterEventType, b.EventType))
 	}
 	if len(b.HardwareID) > 0 {
 		query.Filter(elastic.NewTermQuery(elasticFilterHardwareID, b.HardwareID))

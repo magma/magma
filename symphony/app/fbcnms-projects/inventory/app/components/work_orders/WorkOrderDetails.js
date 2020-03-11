@@ -10,19 +10,18 @@
 
 import type {AddImageMutationResponse} from '../../mutations/__generated__/AddImageMutation.graphql';
 import type {AddImageMutationVariables} from '../../mutations/__generated__/AddImageMutation.graphql';
-import type {
-  // $FlowFixMe (T62907961) Relay flow types
-  CheckListCategoryExpandingPanel_list,
-  WorkOrderDetails_workOrder,
-} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+import type {ChecklistCategoriesMutateStateActionType} from '../checklist/ChecklistCategoriesMutateAction';
+import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
 import type {ContextRouter} from 'react-router-dom';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 
 import AddHyperlinkButton from '../AddHyperlinkButton';
 import AddImageMutation from '../../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
+import ChecklistCategoriesMutateDispatchContext from '../checklist/ChecklistCategoriesMutateDispatchContext';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import CommentsBox from '../comments/CommentsBox';
@@ -41,7 +40,7 @@ import LocationTypeahead from '../typeahead/LocationTypeahead';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import ProjectTypeahead from '../typeahead/ProjectTypeahead';
 import PropertyValueInput from '../form/PropertyValueInput';
-import React, {useContext, useState} from 'react';
+import React, {useContext, useReducer, useState} from 'react';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Strings from '../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -55,6 +54,10 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {doneStatus, priorityValues, statusValues} from '../../common/WorkOrder';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
+import {
+  getInitialState,
+  reducer,
+} from '../checklist/ChecklistCategoriesMutateReducer';
 import {makeStyles} from '@material-ui/styles';
 import {sortPropertiesByIndex} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
@@ -150,15 +153,15 @@ const WorkOrderDetails = ({
     // eslint-disable-next-line flowtype/no-weak-types
     ([...propsWorkOrder.properties]: any).sort(sortPropertiesByIndex),
   );
-  const [
-    checkListCategories,
-    setCheckListCategories,
-  ] = useState<CheckListCategoryExpandingPanel_list>(
-    propsWorkOrder.checkListCategories,
-  );
   const [locationId, setLocationId] = useState(propsWorkOrder.location?.id);
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);
   const {user, isFeatureEnabled} = useContext(AppContext);
+
+  const [editingCategories, dispatch] = useReducer<
+    ChecklistCategoriesStateType,
+    ChecklistCategoriesMutateStateActionType,
+    $ElementType<WorkOrderDetails_workOrder, 'checkListCategories'>,
+  >(reducer, propsWorkOrder.checkListCategories, getInitialState);
 
   const onDocumentUploaded = (file, key) => {
     const workOrderId = propsWorkOrder.id;
@@ -263,7 +266,7 @@ const WorkOrderDetails = ({
           workOrderName={propsWorkOrder.name}
           workOrder={workOrder}
           properties={properties}
-          checkListCategories={checkListCategories}
+          checkListCategories={editingCategories}
           locationId={locationId}
           onWorkOrderRemoved={onWorkOrderRemoved}
           onCancelClicked={onCancelClicked}
@@ -524,10 +527,12 @@ const WorkOrderDetails = ({
                         hyperlinks={propsWorkOrder.hyperlinks}
                       />
                     </ExpandingPanel>
-                    <CheckListCategoryExpandingPanel
-                      list={checkListCategories}
-                      onListChanged={setCheckListCategories}
-                    />
+                    <ChecklistCategoriesMutateDispatchContext.Provider
+                      value={dispatch}>
+                      <CheckListCategoryExpandingPanel
+                        categories={editingCategories}
+                      />
+                    </ChecklistCategoriesMutateDispatchContext.Provider>
                   </Grid>
                   <Grid item xs={4} sm={4} lg={4} xl={4}>
                     <ExpandingPanel title="Team" className={classes.card}>
@@ -633,7 +638,19 @@ export default withRouter(
             }
           }
           checkListCategories {
-            ...CheckListCategoryExpandingPanel_list
+            id
+            title
+            description
+            checkList {
+              id
+              index
+              type
+              title
+              helpText
+              checked
+              enumValues
+              stringValue
+            }
           }
         }
       `,

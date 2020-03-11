@@ -8,22 +8,17 @@
  * @format
  */
 
-import type {CheckListItemType} from '../../../mutations/__generated__/AddWorkOrderMutation.graphql';
-import type {CheckListTableDefinition_list} from './__generated__/CheckListTableDefinition_list.graphql';
-// $FlowFixMe (T62907961) Relay flow types
-import type {ChecklistItemInput} from '../../../mutations/__generated__/AddWorkOrderMutation.graphql';
+import type {ChecklistItemsDialogStateType} from '../checkListCategory/ChecklistItemsDialogMutateState';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
-import CheckListItem, {
-  CHECKLIST_ITEM_TYPES,
-  GetValidChecklistItemType,
-} from '../CheckListItem';
+import CheckListItem, {CHECKLIST_ITEM_TYPES} from '../CheckListItem';
+import ChecklistItemsDialogMutateDispatchContext from '../checkListCategory/ChecklistItemsDialogMutateDispatchContext';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DraggableTableRow from '../../draggable/DraggableTableRow';
 import DroppableTableBody from '../../draggable/DroppableTableBody';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import React, {useMemo, useState} from 'react';
+import React, {useContext, useMemo} from 'react';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
@@ -31,13 +26,10 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
-import {reorder} from '../../draggable/DraggableUtils';
 
 type Props = {
-  list: CheckListTableDefinition_list,
-  onChecklistChanged?: (updatedList: CheckListTableDefinition_list) => void,
+  items: ChecklistItemsDialogStateType,
 };
 
 const useStyles = makeStyles(() => ({
@@ -78,83 +70,9 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const CheckListTableDefinition = (props: Props) => {
-  const {list, onChecklistChanged} = props;
+const CheckListTableDefinition = ({items}: Props) => {
   const classes = useStyles();
-  const [nextNewItemTempId, setNextNewItemTempId] = useState(1);
-
-  const _updateList = (updatedList: CheckListTableDefinition_list) => {
-    if (!onChecklistChanged) {
-      return;
-    }
-
-    onChecklistChanged(updatedList);
-  };
-
-  const _removeItem = (item, itemIndex) => {
-    _updateList([...list.slice(0, itemIndex), ...list.slice(itemIndex + 1)]);
-  };
-
-  const _createNewItem: () => ChecklistItemInput = () => {
-    const newId = nextNewItemTempId;
-    setNextNewItemTempId(newId + 1);
-    return {
-      id: `@tmp${newId}`,
-      title: '',
-      type: 'simple',
-      index: list.length,
-    };
-  };
-
-  const _addItem = () => _updateList([...list, _createNewItem()]);
-
-  const _editItem = itemIndex => (updatedChecklistItem: ChecklistItemInput) => {
-    if (itemIndex < 0 || itemIndex >= list.length) {
-      return;
-    }
-
-    const newList: CheckListTableDefinition_list = [
-      ...Array.prototype.slice.call(list, 0, itemIndex),
-      updatedChecklistItem,
-      ...Array.prototype.slice.call(list, itemIndex + 1),
-    ];
-
-    _updateList(newList);
-  };
-
-  const _changeItemType = (checklistItemIndex: number, newType: string) => {
-    const checklistItemType: ?CheckListItemType = GetValidChecklistItemType(
-      newType,
-    );
-    if (!checklistItemType) {
-      return;
-    }
-    const newItem = {
-      ...list[checklistItemIndex],
-      type: checklistItemType,
-    };
-
-    _editItem(checklistItemIndex)(newItem);
-  };
-
-  const _changeItemPosition = positionChange => {
-    if (!positionChange.destination) {
-      return;
-    }
-
-    const updatedList = reorder(
-      list,
-      positionChange.source.index,
-      positionChange.destination.index,
-    ).map((item, index) => {
-      return {
-        ...item,
-        index,
-      };
-    });
-
-    _updateList(updatedList);
-  };
+  const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
 
   const tableHeader = useMemo(
     () => (
@@ -187,7 +105,7 @@ const CheckListTableDefinition = (props: Props) => {
       })),
     [],
   );
-  const checklistItems = list.map((checkListItem, i) => (
+  const checklistItems = items.map((checkListItem, i) => (
     <DraggableTableRow id={checkListItem.id} index={i} key={i}>
       <TableCell className={classes.cell} size="small" component="div">
         <FormField>
@@ -195,7 +113,15 @@ const CheckListTableDefinition = (props: Props) => {
             className={classes.selectMenu}
             options={checklistTypes}
             selectedValue={checkListItem.type}
-            onChange={value => _changeItemType(i, value)}
+            onChange={value =>
+              dispatch({
+                type: 'EDIT_ITEM',
+                value: {
+                  ...checkListItem,
+                  type: value,
+                },
+              })
+            }
           />
         </FormField>
       </TableCell>
@@ -203,7 +129,12 @@ const CheckListTableDefinition = (props: Props) => {
         <CheckListItem
           item={checkListItem}
           designMode={true}
-          onChange={_editItem(i)}
+          onChange={item =>
+            dispatch({
+              type: 'EDIT_ITEM',
+              value: item,
+            })
+          }
         />
       </TableCell>
       <TableCell className={classes.iconCell} align="right" component="div">
@@ -211,7 +142,12 @@ const CheckListTableDefinition = (props: Props) => {
           <Button
             skin="primary"
             variant="text"
-            onClick={() => _removeItem(checkListItem, i)}>
+            onClick={() =>
+              dispatch({
+                type: 'REMOVE_ITEM',
+                itemId: checkListItem.id,
+              })
+            }>
             <DeleteIcon />
           </Button>
         </FormAction>
@@ -223,7 +159,14 @@ const CheckListTableDefinition = (props: Props) => {
     <div className={classes.container}>
       <Table component="div" className={classes.table}>
         <TableHead component="div">{tableHeader}</TableHead>
-        <DroppableTableBody onDragEnd={_changeItemPosition}>
+        <DroppableTableBody
+          onDragEnd={positionChange =>
+            dispatch({
+              type: 'CHANGE_ITEM_POSITION',
+              sourceIndex: positionChange.source.index,
+              destinationIndex: positionChange.destination.index,
+            })
+          }>
           {checklistItems}
         </DroppableTableBody>
       </Table>
@@ -232,7 +175,7 @@ const CheckListTableDefinition = (props: Props) => {
           className={classes.addButton}
           color="primary"
           variant="text"
-          onClick={_addItem}>
+          onClick={() => dispatch({type: 'ADD_ITEM'})}>
           {fbt(
             'Add Item',
             'Caption of the Add Checklist Item button (under the checklist table)',
@@ -243,14 +186,4 @@ const CheckListTableDefinition = (props: Props) => {
   );
 };
 
-export default createFragmentContainer(CheckListTableDefinition, {
-  list: graphql`
-    fragment CheckListTableDefinition_list on CheckListItem
-      @relay(plural: true) {
-      id
-      type
-      index
-      ...CheckListItem_item
-    }
-  `,
-});
+export default CheckListTableDefinition;

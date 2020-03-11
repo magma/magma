@@ -73,6 +73,8 @@ func main() {
 	ocsDiamCfg := gy.GetOCSConfiguration()
 	pcrfDiamCfg := gx.GetPCRFConfiguration()
 
+	gyGlobalConfig := gy.GetGyGlobalConfig()
+
 	var gxClnt *gx.GxClient
 	var gyClnt *gy.GyClient
 
@@ -93,7 +95,8 @@ func main() {
 			diamClient,
 			ocsDiamCfg,
 			gy.GetGyReAuthHandler(cloudReg),
-			cloudReg)
+			cloudReg,
+			gyGlobalConfig)
 		gxClnt = gx.NewConnectedGxClient(
 			diamClient,
 			ocsDiamCfg,
@@ -105,7 +108,7 @@ func main() {
 		gyClnt = gy.NewGyClient(
 			gy.GetGyClientConfiguration(),
 			ocsDiamCfg,
-			gy.GetGyReAuthHandler(cloudReg), cloudReg)
+			gy.GetGyReAuthHandler(cloudReg), cloudReg, gyGlobalConfig)
 		gxClnt = gx.NewGxClient(
 			gx.GetGxClientConfiguration(),
 			pcrfDiamCfg,

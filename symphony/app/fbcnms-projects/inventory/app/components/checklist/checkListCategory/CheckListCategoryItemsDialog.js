@@ -8,11 +8,13 @@
  * @format
  */
 
-import type {CheckListCategoryItemsDialog_items} from './__generated__/CheckListCategoryItemsDialog_items.graphql';
+import type {ChecklistItemsDialogMutateStateActionType} from './ChecklistItemsDialogMutateAction';
+import type {ChecklistItemsDialogStateType} from './ChecklistItemsDialogMutateState';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CheckListTable from '../CheckListTable';
+import ChecklistItemsDialogMutateDispatchContext from './ChecklistItemsDialogMutateDispatchContext';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -22,22 +24,20 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
-import {createFragmentContainer, graphql} from 'react-relay';
-import {useState} from 'react';
+import {getInitialState, reducer} from './ChecklistItemsDialogMutateReducer';
+import {useReducer, useState} from 'react';
 
 type Props = {
   isOpened?: boolean,
-  onClose?: () => void,
+  onCancel?: () => void,
+  onSave?: (items: ChecklistItemsDialogStateType) => void,
   categoryTitle: string,
-  items: ?CheckListCategoryItemsDialog_items,
-  onChecklistChanged?: (
-    updatedList: CheckListCategoryItemsDialog_items,
-  ) => void,
+  initialItems: ChecklistItemsDialogStateType,
 };
 
 type View = {
   label: string,
-  labelSuffix: (?CheckListCategoryItemsDialog_items) => string,
+  labelSuffix: (?ChecklistItemsDialogStateType) => string,
   value: number,
 };
 
@@ -54,7 +54,7 @@ const RESPONSE_VIEW: View = {
   labelSuffix: itemsList =>
     itemsList
       ? ` (${itemsList.reduce(
-          (responsesCount, clItem) =>
+          (responsesCount: number, clItem) =>
             clItem.checked ? responsesCount + 1 : responsesCount,
           0,
         )})`
@@ -63,48 +63,56 @@ const RESPONSE_VIEW: View = {
 };
 const VIEWS = [DESIGN_VIEW, RESPONSE_VIEW];
 
-const CheckListCategoryItemsDialog = (props: Props) => {
-  const {items} = props;
-  const [pickedView, setPickedView] = useState(DESIGN_VIEW.value);
+const CheckListCategoryItemsDialog = ({
+  initialItems,
+  onCancel,
+  onSave,
+  categoryTitle,
+}: Props) => {
+  const [editingItems, dispatch] = useReducer<
+    ChecklistItemsDialogStateType,
+    ChecklistItemsDialogMutateStateActionType,
+    ChecklistItemsDialogStateType,
+  >(reducer, initialItems, getInitialState);
+
+  const [pickedView, setPickedView] = useState<number>(DESIGN_VIEW.value);
   return (
     <Dialog fullWidth={true} maxWidth="md" open={true}>
       <DialogTitle disableTypography={true}>
         <Text variant="h6">
           <fbt desc="">Checklist</fbt>
-          {` / ${props.categoryTitle}`}
+          {` / ${categoryTitle}`}
         </Text>
       </DialogTitle>
       <DialogContent>
         <Tabs
           value={pickedView}
-          onChange={(_e, newValue) => setPickedView(newValue)}
+          onChange={(_e, newValue: number) => setPickedView(newValue)}
           indicatorColor="primary">
           {VIEWS.map(view => (
             <Tab
               value={view.value}
-              label={`${view.label}${view.labelSuffix(items)}`}
+              label={`${view.label}${view.labelSuffix(editingItems)}`}
             />
           ))}
         </Tabs>
-        <CheckListTable
-          list={items}
-          onChecklistChanged={props.onChecklistChanged}
-          onDesignMode={pickedView === DESIGN_VIEW.value}
-        />
+        <ChecklistItemsDialogMutateDispatchContext.Provider value={dispatch}>
+          <CheckListTable
+            items={editingItems}
+            onDesignMode={pickedView === DESIGN_VIEW.value}
+          />
+        </ChecklistItemsDialogMutateDispatchContext.Provider>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose}>{Strings.common.closeButton}</Button>
+        <Button skin="gray" onClick={onCancel}>
+          {Strings.common.cancelButton}
+        </Button>
+        <Button onClick={() => onSave && onSave(editingItems)}>
+          {Strings.common.saveButton}
+        </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default createFragmentContainer(CheckListCategoryItemsDialog, {
-  items: graphql`
-    fragment CheckListCategoryItemsDialog_items on CheckListItem
-      @relay(plural: true) {
-      ...CheckListTable_list
-      checked
-    }
-  `,
-});
+export default CheckListCategoryItemsDialog;

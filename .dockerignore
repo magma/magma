@@ -26,6 +26,8 @@
 !devmand/gateway/
 !devmand/protos/
 
+!fb/src/dpi/
+
 !orc8r/cloud/configs/
 !orc8r/lib/
 !orc8r/cloud/go/

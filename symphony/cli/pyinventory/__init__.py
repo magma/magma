@@ -108,7 +108,7 @@ class InventoryClient(SymphonyClient):
         edit_equipment_port_type,
         delete_equipment_port_type,
     )
-    from .api.port import get_port, edit_port_properties
+    from .api.port import get_port, edit_port_properties, edit_link_properties
 
     def __init__(
         self,
