@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 17e09e807a2c12128d0b96dfbf2f5ed0
+ * @relayHash 77a9d8aceca2a00a17e6b70ef1fa0b2b
  */
 
 /* eslint-disable */
@@ -21,7 +21,6 @@ export type EditUserInput = {|
   id: string,
   firstName?: ?string,
   lastName?: ?string,
-  email?: ?string,
   status?: ?UserStatus,
   role?: ?UserRole,
 |};

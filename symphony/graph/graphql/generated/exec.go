@@ -6138,7 +6138,6 @@ input EditUserInput {
   id: ID!
   firstName: String
   lastName: String
-  email: String
   status: UserStatus
   role: UserRole
 }
@@ -35292,12 +35291,6 @@ func (ec *executionContext) unmarshalInputEditUserInput(ctx context.Context, obj
 		case "lastName":
 			var err error
 			it.LastName, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "email":
-			var err error
-			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

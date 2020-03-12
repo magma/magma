@@ -119,7 +119,7 @@ function UsersSettings(props: Props) {
     setUsers(newUsers);
   };
 
-  const editUserInfo = (id, email, role) => {
+  const editUserInfo = (id, role) => {
     return new Promise((resolve, reject) => {
       const callbacks: MutationCallbacks<EditUserMutationResponse> = {
         onCompleted: (response, errors) => {
@@ -136,7 +136,6 @@ function UsersSettings(props: Props) {
         {
           input: {
             id: id,
-            email: email,
             role: role === UserRoles.SUPERUSER ? 'OWNER' : 'USER',
           },
         },
@@ -148,7 +147,7 @@ function UsersSettings(props: Props) {
   const fetchAndEditUser = (email, role) => {
     return fetchQuery(RelayEnvironment, userQuery, {
       authID: email,
-    }).then(data => editUserInfo(data.user.id, email, role));
+    }).then(data => editUserInfo(data.user.id, role));
   };
 
   const rows = users.map(row => (

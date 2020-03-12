@@ -12,13 +12,19 @@
 import caller from 'grpc-caller';
 import path from 'path';
 
-export async function createGraphUser(tenant: string, email: string) {
+export async function createGraphUser(
+  tenant: string,
+  email: string,
+  isOwner: boolean,
+) {
   const user = caller(
     `${process.env.GRAPH_HOST || 'graph'}:443`,
     path.resolve(__dirname, 'graph.proto'),
     'UserService',
   );
-  await user.Create({tenant, id: email}).catch(err => console.error(err));
+  await user
+    .Create({tenant, id: email, isOwner})
+    .catch(err => console.error(err));
 }
 
 export async function deleteGraphUser(tenant: string, email: string) {
