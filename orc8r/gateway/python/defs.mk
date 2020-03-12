@@ -18,7 +18,6 @@ TESTS=magma/common/redis/tests \
       magma/magmad/check/machine_check/tests \
       magma/magmad/check/network_check/tests \
       magma/magmad/tests \
-      magma/magmad/logging/tests \
       magma/magmad/upgrade/tests \
       magma/magmad/generic_command/tests \
       magma/state/tests \

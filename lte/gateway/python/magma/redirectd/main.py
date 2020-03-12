@@ -13,21 +13,14 @@ import threading
 from magma.common.service import MagmaService
 from magma.configuration.service_configs import get_service_config_value
 from magma.redirectd.redirect_server import run_flask
-from magma.redirectd.scribe_logging import RedirectScribeLogger
 from lte.protos.mconfig import mconfigs_pb2
 
 
 def main():
     """
-    main() for redirectd
-
-    Initializes the scribe logger, starts the server threads
+    main() for redirectd. Starts the server threads.
     """
     service = MagmaService('redirectd', mconfigs_pb2.RedirectD())
-
-    scribe_logger = None
-    if service.config.get('scribe_logging_enabled', False):
-        scribe_logger = RedirectScribeLogger(service.loop)
 
     redirect_ip = get_service_config_value(
         'pipelined',
@@ -40,8 +33,7 @@ def main():
 
     http_port = service.config['http_port']
     exit_callback = get_exit_server_thread_callback(service)
-    run_server_thread(
-        run_flask, redirect_ip, http_port, scribe_logger, exit_callback)
+    run_server_thread(run_flask, redirect_ip, http_port, exit_callback)
 
     # Run the service loop
     service.run()
@@ -57,11 +49,11 @@ def get_exit_server_thread_callback(service):
     return on_exit_server_thread
 
 
-def run_server_thread(target, ip, port, scribe_logger, exit_callback):
+def run_server_thread(target, ip, port, exit_callback):
     """ Start redirectd service server thread """
     thread = threading.Thread(
         target=target,
-        args=(ip, port, scribe_logger, exit_callback))
+        args=(ip, port, exit_callback))
     thread.daemon = True
     thread.start()
 
