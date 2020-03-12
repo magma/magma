@@ -184,7 +184,7 @@ const AddServiceDetails = (props: Props) => {
     const variables: AddServiceMutationVariables = {
       data: {
         name,
-        externalId,
+        externalId: externalId != null && externalId !== '' ? externalId : null,
         serviceTypeId,
         customerId: customer?.id,
         properties: toPropertyInput(properties),
