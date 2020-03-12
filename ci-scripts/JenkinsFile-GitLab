@@ -82,7 +82,7 @@ pipeline {
         script {
           echo "Git URL         is ${GIT_URL}"
           echo "GitLab Act      is ${env.gitlabActionType}"
-          sh "git clean -x -d -f > /dev/null 2>&1"
+          sh "git clean -x -d -e .cache -e lte/gateway/.vagrant -f > /dev/null 2>&1"
           if ("MERGE".equals(env.gitlabActionType)) {
             // since a bit, in push events, gitlabUserEmail is not populated
             gitCommitAuthorEmailAddr = env.gitlabUserEmail
@@ -108,6 +108,8 @@ pipeline {
           sh "mv /tmp/converged_mme.tar.bz2 ."
           copyTo2ndServer('converged_mme.tar.bz2', new_host_flag, new_host_user, new_host)
           myShCmd('git checkout -f ' + TEMP_COMMIT, new_host_flag, new_host_user, new_host)
+          myShCmd('git clean -x -d -e .cache -e lte/gateway/.vagrant -f', new_host_flag, new_host_user, new_host)
+          myShCmd('git status --ignored', new_host_flag, new_host_user, new_host)
           sh "mkdir -p archives"
         }
       }
