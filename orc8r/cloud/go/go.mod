@@ -33,6 +33,7 @@ require (
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
+	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/handlers v1.4.0 // indirect
 	github.com/hpcloud/tail v1.0.0
@@ -42,6 +43,8 @@ require (
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/olivere/elastic/v7 v7.0.6
+	github.com/onsi/ginkgo v1.7.0 // indirect
+	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/alertmanager v0.17.0
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
@@ -58,9 +61,11 @@ require (
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	golang.org/x/tools v0.0.0-20191012152004-8de300cfc20a
+	google.golang.org/api v0.3.1 // indirect
 	google.golang.org/grpc v1.27.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/yaml.v2 v2.2.8
+	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc // indirect
 	magma/gateway v0.0.0
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go/protos v0.0.0
