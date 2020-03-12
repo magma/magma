@@ -87,7 +87,7 @@ class CheckQuotaController(MagmaController):
         self._install_default_flows(self._datapath)
         self.update_subscriber_quota_state(quota_updates)
 
-        return SetupFlowsResult.SUCCESS
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def initialize_on_connect(self, datapath: Datapath):
         self._datapath = datapath

@@ -16,12 +16,38 @@ from .equipment_filter_input import EquipmentFilterInput
 
 @dataclass
 class EquipmentSearchQuery(DataClassJsonMixin):
+    @dataclass
+    class EquipmentSearchQueryData(DataClassJsonMixin):
+        @dataclass
+        class EquipmentSearchResult(DataClassJsonMixin):
+            @dataclass
+            class Equipment(DataClassJsonMixin):
+                @dataclass
+                class EquipmentType(DataClassJsonMixin):
+                    id: str
+                    name: str
+
+                id: str
+                name: str
+                equipmentType: EquipmentType
+
+            equipment: List[Equipment]
+            count: int
+
+        equipmentSearch: EquipmentSearchResult
+
+    data: EquipmentSearchQueryData
+
     __QUERY__: str = """
     query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
   equipmentSearch(filters: $filters, limit: $limit) {
     equipment {
       id
       name
+      equipmentType {
+        id
+        name
+      }
     }
     count
   }
@@ -29,25 +55,9 @@ class EquipmentSearchQuery(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class EquipmentSearchQueryData(DataClassJsonMixin):
-        @dataclass
-        class EquipmentSearchResult(DataClassJsonMixin):
-            @dataclass
-            class Equipment(DataClassJsonMixin):
-                id: str
-                name: str
-
-            equipment: List[Equipment]
-            count: int
-
-        equipmentSearch: EquipmentSearchResult
-
-    data: Optional[EquipmentSearchQueryData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, filters: List[EquipmentFilterInput] = [], limit: Optional[int] = None):
+    def execute(cls, client: GraphqlClient, filters: List[EquipmentFilterInput] = [], limit: Optional[int] = None) -> EquipmentSearchQueryData:
         # fmt: off
         variables = {"filters": filters, "limit": limit}
         response_text = client.call(cls.__QUERY__, variables=variables)

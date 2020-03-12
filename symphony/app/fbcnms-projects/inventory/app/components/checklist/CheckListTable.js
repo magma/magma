@@ -8,23 +8,22 @@
  * @format
  */
 
+import type {ChecklistItemsDialogStateType} from './checkListCategory/ChecklistItemsDialogMutateState';
+
 import CheckListTableDefinition from './checklistDefinition/CheckListTableDefinition';
 import CheckListTableFilling from './checklistFilling/CheckListTableFilling';
 import React from 'react';
 import {CHECKLIST_ITEM_TYPES} from './CheckListItem';
-import {createFragmentContainer, graphql} from 'react-relay';
 import {sortByIndex} from '../draggable/DraggableUtils';
-import type {CheckListTable_list} from './__generated__/CheckListTable_list.graphql';
 
 type Props = {
-  list: ?CheckListTable_list,
-  onChecklistChanged?: (updatedList: CheckListTable_list) => void,
+  items: ChecklistItemsDialogStateType,
   onDesignMode?: boolean,
 };
 
 const CheckListTable = (props: Props) => {
   const checkListTableItems = Array.prototype.filter
-    .call(props.list || [], item =>
+    .call(props.items || [], item =>
       CHECKLIST_ITEM_TYPES.hasOwnProperty(item.type),
     )
     .sort(sortByIndex);
@@ -35,21 +34,10 @@ const CheckListTable = (props: Props) => {
 
   const checkListTableProps = {
     ...props,
-    list: checkListTableItems,
+    items: checkListTableItems,
   };
 
   return <CheckListTableComponent {...checkListTableProps} />;
 };
 
-export default createFragmentContainer(CheckListTable, {
-  list: graphql`
-    fragment CheckListTable_list on CheckListItem @relay(plural: true) {
-      id
-      index
-      type
-      title
-      checked
-      ...CheckListItem_item
-    }
-  `,
-});
+export default CheckListTable;

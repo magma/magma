@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -26,6 +27,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
@@ -50,6 +52,8 @@ type mutationResolver struct{ resolver }
 func (mutationResolver) Me(ctx context.Context) *viewer.Viewer {
 	return viewer.FromContext(ctx)
 }
+
+var BadID = -1
 
 func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) (bool, error) {
 	var (
@@ -312,7 +316,8 @@ func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.
 	return scans, nil
 }
 
-func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (*int, error) {
+func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
+
 	client := r.ClientFrom(ctx)
 	query := client.Survey.
 		Create().
@@ -325,7 +330,7 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 	}
 	srv, err := query.Save(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating survey")
+		return BadID, errors.Wrap(err, "creating survey")
 	}
 
 	for _, sr := range data.SurveyResponses {
@@ -369,14 +374,14 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 					},
 				)
 			if err != nil {
-				return nil, err
+				return BadID, err
 			}
 			query.AddPhotoData(f)
 		}
 
 		question, err := query.Save(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "creating survey question")
+			return BadID, errors.Wrap(err, "creating survey question")
 		}
 
 		switch *sr.QuestionFormat {
@@ -386,10 +391,10 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			_, err = r.CreateCellScans(ctx, sr.CellData, &question.ID, nil)
 		}
 		if err != nil {
-			return nil, err
+			return BadID, err
 		}
 	}
-	return &srv.ID, nil
+	return srv.ID, nil
 }
 
 func (r mutationResolver) validateRootLocationUniqueness(ctx context.Context, typeid int, name string) error {
@@ -980,19 +985,6 @@ func (r mutationResolver) MoveEquipmentToPosition(
 	return ep, nil
 }
 
-func (r mutationResolver) createHyperlink(ctx context.Context, input *models.AddHyperlinkInput) (*ent.Hyperlink, error) {
-	hyperlink, err := r.ClientFrom(ctx).
-		Hyperlink.Create().
-		SetURL(input.URL).
-		SetNillableName(input.DisplayName).
-		SetNillableCategory(input.Category).
-		Save(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "creating hyperlink: url=%q", input.URL)
-	}
-	return hyperlink, nil
-}
-
 func (r mutationResolver) createImage(ctx context.Context, input *models.AddImageInput) (*ent.File, error) {
 	img, err := r.ClientFrom(ctx).
 		File.Create().
@@ -1011,144 +1003,84 @@ func (r mutationResolver) createImage(ctx context.Context, input *models.AddImag
 		SetNillableCategory(input.Category).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "creating image: key=%q", input.ImgKey)
+		return nil, fmt.Errorf("creating image for key %q: %w", input.ImgKey, err)
 	}
 	return img, nil
 }
 
-func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error) {
-	client := r.ClientFrom(ctx)
-
-	switch input.EntityType {
-	case models.ImageEntityLocation:
-		l, err := client.Location.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying location: id=%q", input.EntityID)
-		}
-		hyperlink, err := r.createHyperlink(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.Location.
-			UpdateOne(l).
-			AddHyperlinks(hyperlink).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding location hyperlink: location=%q, url=%q", input.EntityID, input.URL)
-		}
-		return hyperlink, nil
-	case models.ImageEntityWorkOrder:
-		wo, err := client.WorkOrder.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying work order: id=%q", input.EntityID)
-		}
-		hyperlink, err := r.createHyperlink(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.WorkOrder.
-			UpdateOne(wo).
-			AddHyperlinks(hyperlink).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding work order hyperlink: workOrder=%q, url=%q", wo.ID, input.URL)
-		}
-		return hyperlink, nil
-	case models.ImageEntityEquipment:
-		eq, err := client.Equipment.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying equipment: id=%q", input.EntityID)
-		}
-		hyperlink, err := r.createHyperlink(ctx, &input)
-		if err != nil {
-			return nil, errors.Wrapf(err, "creating img: key=%q", eq.ID)
-		}
-		if err := client.Equipment.
-			UpdateOne(eq).
-			AddHyperlinks(hyperlink).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding work order hyperlink: workOrder=%q, url=%q", eq.ID, input.URL)
-		}
-		return hyperlink, nil
-	}
-	return nil, nil
-}
+type execer interface{ Exec(context.Context) error }
 
 func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInput) (*ent.File, error) {
-	client := r.ClientFrom(ctx)
-
+	image, err := r.createImage(ctx, &input)
+	if err != nil {
+		return nil, err
+	}
+	var (
+		client = r.ClientFrom(ctx)
+		execer execer
+	)
 	switch input.EntityType {
 	case models.ImageEntityLocation:
-		l, err := client.Location.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying location: id=%q", input.EntityID)
-		}
-		img, err := r.createImage(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.Location.
-			UpdateOne(l).
-			AddFiles(img).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding location image: location=%q, key=%q", input.EntityID, input.ImgKey)
-		}
-		return img, nil
+		execer = client.Location.
+			UpdateOneID(input.EntityID).
+			AddFiles(image)
 	case models.ImageEntitySiteSurvey:
-		srv, err := client.Survey.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying survey: id=%q", input.EntityID)
-		}
-		switch exist, err := srv.QuerySourceFile().Exist(ctx); {
-		case err != nil:
-			return nil, errors.Wrapf(err, "querying survey file: id=%q", srv.ID)
-		case exist:
-			return nil, errors.Errorf("survey source file already exist: id=%q", srv.ID)
-		}
-
-		img, err := r.createImage(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.Survey.
-			UpdateOne(srv).
-			SetSourceFile(img).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "set survey image: survey=%q, key=%q", srv.ID, input.ImgKey)
-		}
-		return img, nil
+		execer = client.Survey.
+			UpdateOneID(input.EntityID).
+			SetSourceFile(image)
 	case models.ImageEntityWorkOrder:
-		wo, err := client.WorkOrder.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying work order: id=%q", input.EntityID)
-		}
-		img, err := r.createImage(ctx, &input)
-		if err != nil {
-			return nil, err
-		}
-		if err := client.WorkOrder.
-			UpdateOne(wo).
-			AddFiles(img).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding work order image: workOrder=%q, key=%q", wo.ID, input.ImgKey)
-		}
-		return img, nil
+		execer = client.WorkOrder.
+			UpdateOneID(input.EntityID).
+			AddFiles(image)
 	case models.ImageEntityEquipment:
-		eq, err := client.Equipment.Get(ctx, input.EntityID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying equipment: id=%q", input.EntityID)
-		}
-		img, err := r.createImage(ctx, &input)
-		if err != nil {
-			return nil, errors.Wrapf(err, "creating img: key=%q", eq.ID)
-		}
-		if err := client.Equipment.
-			UpdateOne(eq).
-			AddFiles(img).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "adding work order image: workOrder=%q, key=%q", eq.ID, input.ImgKey)
-		}
-		return img, nil
+		execer = client.Equipment.
+			UpdateOneID(input.EntityID).
+			AddFiles(image)
+	case models.ImageEntityUser:
+		execer = client.User.
+			UpdateOneID(input.EntityID).
+			SetProfilePhoto(image)
+	default:
+		return nil, fmt.Errorf("unknown image owner type: %s", input.EntityType)
 	}
-	return nil, nil
+	if err := execer.Exec(ctx); err != nil {
+		return nil, fmt.Errorf("adding image to type %s: %w", input.EntityType, err)
+	}
+	return image, nil
+}
+
+func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error) {
+	client := r.ClientFrom(ctx)
+	hyperlink, err := client.Hyperlink.
+		Create().
+		SetURL(input.URL).
+		SetNillableName(input.DisplayName).
+		SetNillableCategory(input.Category).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating hyperlink for url %q: %w", input.URL, err)
+	}
+	var execer execer
+	switch input.EntityType {
+	case models.ImageEntityLocation:
+		execer = client.Location.
+			UpdateOneID(input.EntityID).
+			AddHyperlinks(hyperlink)
+	case models.ImageEntityWorkOrder:
+		execer = client.WorkOrder.
+			UpdateOneID(input.EntityID).
+			AddHyperlinks(hyperlink)
+	case models.ImageEntityEquipment:
+		execer = client.Equipment.
+			UpdateOneID(input.EntityID).
+			AddHyperlinks(hyperlink)
+	default:
+		return nil, fmt.Errorf("unknown hyperlink owner type: %s", input.EntityType)
+	}
+	if err := execer.Exec(ctx); err != nil {
+		return nil, fmt.Errorf("adding hyperlink to type %s: %w", input.EntityType, err)
+	}
+	return hyperlink, nil
 }
 
 func (r mutationResolver) DeleteHyperlink(ctx context.Context, id int) (*ent.Hyperlink, error) {
@@ -1182,27 +1114,25 @@ func (r mutationResolver) AddComment(ctx context.Context, input models.CommentIn
 		SetText(input.Text).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating comment")
+		return nil, fmt.Errorf("creating comment: %w", err)
 	}
-
+	var execer execer
 	switch input.EntityType {
 	case models.CommentEntityWorkOrder:
-		wo, err := client.WorkOrder.Get(ctx, input.ID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying work order id=%q", input.ID)
-		}
-		err = client.WorkOrder.UpdateOne(wo).AddComments(c).Exec(ctx)
-		return c, err
+		execer = client.WorkOrder.
+			UpdateOneID(input.ID).
+			AddComments(c)
 	case models.CommentEntityProject:
-		p, err := client.Project.Get(ctx, input.ID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "querying project id=%q", input.ID)
-		}
-		err = client.Project.UpdateOne(p).AddComments(c).Exec(ctx)
-		return c, err
+		execer = client.Project.
+			UpdateOneID(input.ID).
+			AddComments(c)
 	default:
-		return nil, errors.New("entity type does not exist")
+		return nil, fmt.Errorf("unknown comment owner type: %s", input.EntityType)
 	}
+	if err := execer.Exec(ctx); err != nil {
+		return nil, fmt.Errorf("adding comment to type %s: %w", input.EntityType, err)
+	}
+	return c, nil
 }
 
 func (r mutationResolver) AddLink(
@@ -2666,13 +2596,13 @@ func (r mutationResolver) updateSurveyTemplateQuestion(ctx context.Context, inpu
 	return nil
 }
 
-func (r mutationResolver) MarkLocationPropertyAsExternalID(ctx context.Context, name string) (*string, error) {
+func (r mutationResolver) MarkLocationPropertyAsExternalID(ctx context.Context, name string) (string, error) {
 	client := r.ClientFrom(ctx)
 	sites, err := client.Location.Query().
 		Where(location.HasPropertiesWith(property.HasTypeWith(propertytype.Name(name)))).
 		All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "querying locations with property")
+		return "", errors.Wrap(err, "querying locations with property")
 	}
 
 	for _, site := range sites {
@@ -2680,15 +2610,15 @@ func (r mutationResolver) MarkLocationPropertyAsExternalID(ctx context.Context, 
 			Where(property.HasTypeWith(propertytype.Name(name))).
 			Only(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "querying property type")
+			return "", errors.Wrap(err, "querying property type")
 		}
 		if err := client.Location.UpdateOne(site).
 			SetExternalID(p.StringVal).
 			Exec(ctx); err != nil {
-			return nil, errors.Wrap(err, "updating external id")
+			return "", errors.Wrap(err, "updating external id")
 		}
 	}
-	return &name, nil
+	return name, nil
 }
 
 func (r mutationResolver) deleteLocationHierarchy(ctx context.Context, l *ent.Location) error {
@@ -2967,4 +2897,53 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 		return nil, fmt.Errorf("adding technician check-in comment: %w", err)
 	}
 	return wo, nil
+}
+
+func validateFilterTypeEntity(input models.ReportFilterInput) error {
+	var validator interface{ IsValid() bool }
+	for _, f := range input.Filters {
+		switch input.Entity {
+		case models.FilterEntityEquipment:
+			validator = models.EquipmentFilterType(f.FilterType)
+		case models.FilterEntityLink:
+			validator = models.LinkFilterType(f.FilterType)
+		case models.FilterEntityLocation:
+			validator = models.LocationFilterType(f.FilterType)
+		case models.FilterEntityPort:
+			validator = models.PortFilterType(f.FilterType)
+		case models.FilterEntityService:
+			validator = models.ServiceFilterType(f.FilterType)
+		case models.FilterEntityWorkOrder:
+			validator = models.WorkOrderFilterType(f.FilterType)
+		}
+		if validator == nil || !validator.IsValid() {
+			return fmt.Errorf("entity %q and filter type %q does not match", input.Entity, f.FilterType)
+		}
+	}
+	return nil
+}
+
+func (r mutationResolver) AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error) {
+	if err := validateFilterTypeEntity(input); err != nil {
+		return nil, err
+	}
+	filters, err := json.Marshal(input.Filters)
+	if err != nil {
+		return nil, err
+	}
+	return r.ClientFrom(ctx).
+		ReportFilter.
+		Create().
+		SetName(input.Name).
+		SetEntity(reportfilter.Entity(input.Entity)).
+		SetFilters(string(filters)).
+		Save(ctx)
+}
+
+func (r mutationResolver) EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error) {
+	return r.ClientFrom(ctx).
+		ReportFilter.
+		UpdateOneID(input.ID).
+		SetName(input.Name).
+		Save(ctx)
 }

@@ -151,7 +151,7 @@ func addPCRFRules(rules *fegprotos.AccountRules) error {
 	return err
 }
 
-func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorInfo) error {
+func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorConfiguration) error {
 	cli, err := getPCRFClient()
 	if err != nil {
 		return err

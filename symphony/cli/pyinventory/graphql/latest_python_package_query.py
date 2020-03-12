@@ -14,6 +14,21 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class LatestPythonPackageQuery(DataClassJsonMixin):
+    @dataclass
+    class LatestPythonPackageQueryData(DataClassJsonMixin):
+        @dataclass
+        class LatestPythonPackageResult(DataClassJsonMixin):
+            @dataclass
+            class PythonPackage(DataClassJsonMixin):
+                version: str
+
+            lastPythonPackage: Optional[PythonPackage] = None
+            lastBreakingPythonPackage: Optional[PythonPackage] = None
+
+        latestPythonPackage: Optional[LatestPythonPackageResult] = None
+
+    data: LatestPythonPackageQueryData
+
     __QUERY__: str = """
     query LatestPythonPackageQuery {
   latestPythonPackage {
@@ -28,24 +43,9 @@ class LatestPythonPackageQuery(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class LatestPythonPackageQueryData(DataClassJsonMixin):
-        @dataclass
-        class LatestPythonPackageResult(DataClassJsonMixin):
-            @dataclass
-            class PythonPackage(DataClassJsonMixin):
-                version: str
-
-            lastPythonPackage: Optional[PythonPackage] = None
-            lastBreakingPythonPackage: Optional[PythonPackage] = None
-
-        latestPythonPackage: Optional[LatestPythonPackageResult] = None
-
-    data: Optional[LatestPythonPackageQueryData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient):
+    def execute(cls, client: GraphqlClient) -> LatestPythonPackageQueryData:
         # fmt: off
         variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)

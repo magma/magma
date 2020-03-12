@@ -148,14 +148,14 @@ func (clid *CheckListItemDefinition) assignValues(values ...interface{}) error {
 
 // QueryWorkOrderType queries the work_order_type edge of the CheckListItemDefinition.
 func (clid *CheckListItemDefinition) QueryWorkOrderType() *WorkOrderTypeQuery {
-	return (&CheckListItemDefinitionClient{clid.config}).QueryWorkOrderType(clid)
+	return (&CheckListItemDefinitionClient{config: clid.config}).QueryWorkOrderType(clid)
 }
 
 // Update returns a builder for updating this CheckListItemDefinition.
 // Note that, you need to call CheckListItemDefinition.Unwrap() before calling this method, if this CheckListItemDefinition
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (clid *CheckListItemDefinition) Update() *CheckListItemDefinitionUpdateOne {
-	return (&CheckListItemDefinitionClient{clid.config}).UpdateOne(clid)
+	return (&CheckListItemDefinitionClient{config: clid.config}).UpdateOne(clid)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

@@ -14,6 +14,27 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class EquipmentTypeEquipmentQuery(DataClassJsonMixin):
+    @dataclass
+    class EquipmentTypeEquipmentQueryData(DataClassJsonMixin):
+        @dataclass
+        class Node(DataClassJsonMixin):
+            @dataclass
+            class Equipment(DataClassJsonMixin):
+                @dataclass
+                class EquipmentType(DataClassJsonMixin):
+                    id: str
+                    name: str
+
+                id: str
+                name: str
+                equipmentType: EquipmentType
+
+            equipments: List[Equipment]
+
+        equipmentType: Optional[Node] = None
+
+    data: EquipmentTypeEquipmentQueryData
+
     __QUERY__: str = """
     query EquipmentTypeEquipmentQuery($id: ID!) {
   equipmentType: node(id: $id) {
@@ -21,6 +42,10 @@ class EquipmentTypeEquipmentQuery(DataClassJsonMixin):
       equipments {
         id
         name
+        equipmentType {
+          id
+          name
+        }
       }
     }
   }
@@ -28,24 +53,9 @@ class EquipmentTypeEquipmentQuery(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class EquipmentTypeEquipmentQueryData(DataClassJsonMixin):
-        @dataclass
-        class Node(DataClassJsonMixin):
-            @dataclass
-            class Equipment(DataClassJsonMixin):
-                id: str
-                name: str
-
-            equipments: List[Equipment]
-
-        equipmentType: Optional[Node] = None
-
-    data: Optional[EquipmentTypeEquipmentQueryData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, id: str):
+    def execute(cls, client: GraphqlClient, id: str) -> EquipmentTypeEquipmentQueryData:
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

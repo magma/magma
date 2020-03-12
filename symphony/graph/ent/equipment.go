@@ -268,54 +268,54 @@ func (e *Equipment) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the Equipment.
 func (e *Equipment) QueryType() *EquipmentTypeQuery {
-	return (&EquipmentClient{e.config}).QueryType(e)
+	return (&EquipmentClient{config: e.config}).QueryType(e)
 }
 
 // QueryLocation queries the location edge of the Equipment.
 func (e *Equipment) QueryLocation() *LocationQuery {
-	return (&EquipmentClient{e.config}).QueryLocation(e)
+	return (&EquipmentClient{config: e.config}).QueryLocation(e)
 }
 
 // QueryParentPosition queries the parent_position edge of the Equipment.
 func (e *Equipment) QueryParentPosition() *EquipmentPositionQuery {
-	return (&EquipmentClient{e.config}).QueryParentPosition(e)
+	return (&EquipmentClient{config: e.config}).QueryParentPosition(e)
 }
 
 // QueryPositions queries the positions edge of the Equipment.
 func (e *Equipment) QueryPositions() *EquipmentPositionQuery {
-	return (&EquipmentClient{e.config}).QueryPositions(e)
+	return (&EquipmentClient{config: e.config}).QueryPositions(e)
 }
 
 // QueryPorts queries the ports edge of the Equipment.
 func (e *Equipment) QueryPorts() *EquipmentPortQuery {
-	return (&EquipmentClient{e.config}).QueryPorts(e)
+	return (&EquipmentClient{config: e.config}).QueryPorts(e)
 }
 
 // QueryWorkOrder queries the work_order edge of the Equipment.
 func (e *Equipment) QueryWorkOrder() *WorkOrderQuery {
-	return (&EquipmentClient{e.config}).QueryWorkOrder(e)
+	return (&EquipmentClient{config: e.config}).QueryWorkOrder(e)
 }
 
 // QueryProperties queries the properties edge of the Equipment.
 func (e *Equipment) QueryProperties() *PropertyQuery {
-	return (&EquipmentClient{e.config}).QueryProperties(e)
+	return (&EquipmentClient{config: e.config}).QueryProperties(e)
 }
 
 // QueryFiles queries the files edge of the Equipment.
 func (e *Equipment) QueryFiles() *FileQuery {
-	return (&EquipmentClient{e.config}).QueryFiles(e)
+	return (&EquipmentClient{config: e.config}).QueryFiles(e)
 }
 
 // QueryHyperlinks queries the hyperlinks edge of the Equipment.
 func (e *Equipment) QueryHyperlinks() *HyperlinkQuery {
-	return (&EquipmentClient{e.config}).QueryHyperlinks(e)
+	return (&EquipmentClient{config: e.config}).QueryHyperlinks(e)
 }
 
 // Update returns a builder for updating this Equipment.
 // Note that, you need to call Equipment.Unwrap() before calling this method, if this Equipment
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (e *Equipment) Update() *EquipmentUpdateOne {
-	return (&EquipmentClient{e.config}).UpdateOne(e)
+	return (&EquipmentClient{config: e.config}).UpdateOne(e)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

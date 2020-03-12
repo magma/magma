@@ -56,7 +56,6 @@
       "relayEnabled": false,
       "apps": [],
       "services": [
-        "METERING",
         "DPI",
         "ENFORCEMENT"
        ],

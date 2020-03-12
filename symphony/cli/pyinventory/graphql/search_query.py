@@ -14,6 +14,27 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class SearchQuery(DataClassJsonMixin):
+    @dataclass
+    class SearchQueryData(DataClassJsonMixin):
+        @dataclass
+        class SearchEntriesConnection(DataClassJsonMixin):
+            @dataclass
+            class SearchEntryEdge(DataClassJsonMixin):
+                @dataclass
+                class SearchEntry(DataClassJsonMixin):
+                    entityId: str
+                    entityType: str
+                    name: str
+                    type: str
+
+                node: Optional[SearchEntry] = None
+
+            edges: List[SearchEntryEdge]
+
+        searchForEntity: SearchEntriesConnection
+
+    data: SearchQueryData
+
     __QUERY__: str = """
     query SearchQuery(
   $name: String!
@@ -42,30 +63,9 @@ class SearchQuery(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class SearchQueryData(DataClassJsonMixin):
-        @dataclass
-        class SearchEntriesConnection(DataClassJsonMixin):
-            @dataclass
-            class SearchEntryEdge(DataClassJsonMixin):
-                @dataclass
-                class SearchEntry(DataClassJsonMixin):
-                    entityId: str
-                    entityType: str
-                    name: str
-                    type: str
-
-                node: Optional[SearchEntry] = None
-
-            edges: List[SearchEntryEdge]
-
-        searchForEntity: SearchEntriesConnection
-
-    data: Optional[SearchQueryData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, name: str, after: Optional[str] = None, first: Optional[int] = 10, before: Optional[str] = None, last: Optional[int] = None):
+    def execute(cls, client: GraphqlClient, name: str, after: Optional[str] = None, first: Optional[int] = 10, before: Optional[str] = None, last: Optional[int] = None) -> SearchQueryData:
         # fmt: off
         variables = {"name": name, "after": after, "first": first, "before": before, "last": last}
         response_text = client.call(cls.__QUERY__, variables=variables)

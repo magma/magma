@@ -150,6 +150,7 @@ export default function FEGGatewayDialog(props: Props) {
 
   const getFederationConfigs = (): gateway_federation_configs => ({
     aaa_server: {},
+    csfb: {},
     eap_aka: {},
     gx: getDiameterConfigs(gx),
     gy: {server: getDiameterConfigs(gy).server, init_method: 2},

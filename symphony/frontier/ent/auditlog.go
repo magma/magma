@@ -156,7 +156,7 @@ func (al *AuditLog) assignValues(values ...interface{}) error {
 // Note that, you need to call AuditLog.Unwrap() before calling this method, if this AuditLog
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (al *AuditLog) Update() *AuditLogUpdateOne {
-	return (&AuditLogClient{al.config}).UpdateOne(al)
+	return (&AuditLogClient{config: al.config}).UpdateOne(al)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

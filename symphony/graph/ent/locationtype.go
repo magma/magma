@@ -145,24 +145,24 @@ func (lt *LocationType) assignValues(values ...interface{}) error {
 
 // QueryLocations queries the locations edge of the LocationType.
 func (lt *LocationType) QueryLocations() *LocationQuery {
-	return (&LocationTypeClient{lt.config}).QueryLocations(lt)
+	return (&LocationTypeClient{config: lt.config}).QueryLocations(lt)
 }
 
 // QueryPropertyTypes queries the property_types edge of the LocationType.
 func (lt *LocationType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&LocationTypeClient{lt.config}).QueryPropertyTypes(lt)
+	return (&LocationTypeClient{config: lt.config}).QueryPropertyTypes(lt)
 }
 
 // QuerySurveyTemplateCategories queries the survey_template_categories edge of the LocationType.
 func (lt *LocationType) QuerySurveyTemplateCategories() *SurveyTemplateCategoryQuery {
-	return (&LocationTypeClient{lt.config}).QuerySurveyTemplateCategories(lt)
+	return (&LocationTypeClient{config: lt.config}).QuerySurveyTemplateCategories(lt)
 }
 
 // Update returns a builder for updating this LocationType.
 // Note that, you need to call LocationType.Unwrap() before calling this method, if this LocationType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (lt *LocationType) Update() *LocationTypeUpdateOne {
-	return (&LocationTypeClient{lt.config}).UpdateOne(lt)
+	return (&LocationTypeClient{config: lt.config}).UpdateOne(lt)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

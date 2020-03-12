@@ -96,7 +96,7 @@ func (fprp *FloorPlanReferencePoint) assignValues(values ...interface{}) error {
 // Note that, you need to call FloorPlanReferencePoint.Unwrap() before calling this method, if this FloorPlanReferencePoint
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (fprp *FloorPlanReferencePoint) Update() *FloorPlanReferencePointUpdateOne {
-	return (&FloorPlanReferencePointClient{fprp.config}).UpdateOne(fprp)
+	return (&FloorPlanReferencePointClient{config: fprp.config}).UpdateOne(fprp)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

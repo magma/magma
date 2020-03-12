@@ -7,6 +7,8 @@
  * @flow strict-local
  * @format
  */
+
+import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
@@ -35,24 +37,25 @@ const handleReact = tab =>
       res.redirect(organization.tabs.length ? `/${organization.tabs[0]}` : '/');
       return;
     }
+    const appData: AppContextAppData = {
+      csrfToken: req.csrfToken(),
+      tabs: organization?.tabs || [],
+      user: req.user
+        ? {
+            tenant: organization?.name || '',
+            email: req.user.email,
+            isSuperUser: req.user.isSuperUser,
+            isReadOnlyUser: req.user.isReadOnlyUser,
+          }
+        : {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
+      enabledFeatures: await getEnabledFeatures(req, organization?.name),
+      ssoEnabled: !!organization?.ssoEntrypoint,
+      csvCharset: organization?.csvCharset,
+    };
     res.render('index', {
       staticDist,
       configJson: JSON.stringify({
-        appData: {
-          csrfToken: req.csrfToken(),
-          tabs: organization?.tabs || [],
-          user: req.user
-            ? {
-                tenant: organization?.name,
-                email: req.user.email,
-                isSuperUser: req.user.isSuperUser,
-                isReadOnlyUser: req.user.isReadOnlyUser,
-              }
-            : null,
-          enabledFeatures: await getEnabledFeatures(req, organization?.name),
-          ssoEnabled: !!organization?.ssoEntrypoint,
-          csvCharset: organization?.csvCharset,
-        },
+        appData,
         MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
       }),
     });
@@ -94,15 +97,22 @@ const masterRouter = require('@fbcnms/platform-server/master/routes');
 router.use('/master', masterOrgMiddleware, masterRouter.default);
 
 async function handleMaster(req: FBCNMSRequest, res) {
+  const appData: AppContextAppData = {
+    csrfToken: req.csrfToken(),
+    user: {
+      tenant: 'master',
+      email: req.user.email,
+      isSuperUser: req.user.isSuperUser,
+      isReadOnlyUser: req.user.isReadOnlyUser,
+    },
+    enabledFeatures: await getEnabledFeatures(req, 'master'),
+    tabs: [],
+    ssoEnabled: false,
+    csvCharset: null,
+  };
   res.render('master', {
     staticDist,
-    configJson: JSON.stringify({
-      appData: {
-        csrfToken: req.csrfToken(),
-        user: {email: req.user.email},
-        enabledFeatures: await getEnabledFeatures(req, 'master'),
-      },
-    }),
+    configJson: JSON.stringify({appData}),
   });
 }
 

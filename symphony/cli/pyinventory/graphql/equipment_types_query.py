@@ -17,47 +17,6 @@ from .property_kind_enum import PropertyKind
 
 @dataclass
 class EquipmentTypesQuery(DataClassJsonMixin):
-    __QUERY__: str = """
-    query EquipmentTypesQuery {
-  equipmentTypes {
-    edges {
-      node {
-        id
-        name
-        category
-        propertyTypes {
-          id
-          name
-          type
-          index
-          stringValue
-          intValue
-          booleanValue
-          floatValue
-          latitudeValue
-          longitudeValue
-          isEditable
-          isInstanceProperty
-        }
-        positionDefinitions {
-          id
-          name
-          index
-          visibleLabel
-        }
-        portDefinitions {
-          id
-          name
-          index
-          visibleLabel
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @dataclass
     class EquipmentTypesQueryData(DataClassJsonMixin):
         @dataclass
@@ -108,11 +67,52 @@ class EquipmentTypesQuery(DataClassJsonMixin):
 
         equipmentTypes: EquipmentTypeConnection
 
-    data: Optional[EquipmentTypesQueryData] = None
+    data: EquipmentTypesQueryData
+
+    __QUERY__: str = """
+    query EquipmentTypesQuery {
+  equipmentTypes {
+    edges {
+      node {
+        id
+        name
+        category
+        propertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          isEditable
+          isInstanceProperty
+        }
+        positionDefinitions {
+          id
+          name
+          index
+          visibleLabel
+        }
+        portDefinitions {
+          id
+          name
+          index
+          visibleLabel
+        }
+      }
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient):
+    def execute(cls, client: GraphqlClient) -> EquipmentTypesQueryData:
         # fmt: off
         variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)

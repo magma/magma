@@ -21,7 +21,7 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 
-#include "rpc_client.h"
+#include "RpcClient.h"
 
 int main(int argc, char **argv)
 {

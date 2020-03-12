@@ -122,24 +122,24 @@ func (pt *ProjectType) assignValues(values ...interface{}) error {
 
 // QueryProjects queries the projects edge of the ProjectType.
 func (pt *ProjectType) QueryProjects() *ProjectQuery {
-	return (&ProjectTypeClient{pt.config}).QueryProjects(pt)
+	return (&ProjectTypeClient{config: pt.config}).QueryProjects(pt)
 }
 
 // QueryProperties queries the properties edge of the ProjectType.
 func (pt *ProjectType) QueryProperties() *PropertyTypeQuery {
-	return (&ProjectTypeClient{pt.config}).QueryProperties(pt)
+	return (&ProjectTypeClient{config: pt.config}).QueryProperties(pt)
 }
 
 // QueryWorkOrders queries the work_orders edge of the ProjectType.
 func (pt *ProjectType) QueryWorkOrders() *WorkOrderDefinitionQuery {
-	return (&ProjectTypeClient{pt.config}).QueryWorkOrders(pt)
+	return (&ProjectTypeClient{config: pt.config}).QueryWorkOrders(pt)
 }
 
 // Update returns a builder for updating this ProjectType.
 // Note that, you need to call ProjectType.Unwrap() before calling this method, if this ProjectType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pt *ProjectType) Update() *ProjectTypeUpdateOne {
-	return (&ProjectTypeClient{pt.config}).UpdateOne(pt)
+	return (&ProjectTypeClient{config: pt.config}).UpdateOne(pt)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

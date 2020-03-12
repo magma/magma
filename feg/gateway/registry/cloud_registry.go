@@ -9,15 +9,10 @@ LICENSE file in the root directory of this source tree.
 package registry
 
 import (
-	"magma/gateway/cloud_registry"
+	"magma/gateway/service_registry"
 )
 
-// CloudRegistry interface for FeG scoped users, see cloud_registry.CloudRegistry
-type CloudRegistry interface {
-	cloud_registry.CloudRegistry
-}
-
-// NewCloudRegistry returns a new instance of gateway's cloud registry
-func NewCloudRegistry() CloudRegistry {
-	return cloud_registry.New()
+// Get returns a singleton of gateway's registry
+func Get() service_registry.GatewayRegistry {
+	return service_registry.Get()
 }

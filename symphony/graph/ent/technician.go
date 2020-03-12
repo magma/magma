@@ -99,14 +99,14 @@ func (t *Technician) assignValues(values ...interface{}) error {
 
 // QueryWorkOrders queries the work_orders edge of the Technician.
 func (t *Technician) QueryWorkOrders() *WorkOrderQuery {
-	return (&TechnicianClient{t.config}).QueryWorkOrders(t)
+	return (&TechnicianClient{config: t.config}).QueryWorkOrders(t)
 }
 
 // Update returns a builder for updating this Technician.
 // Note that, you need to call Technician.Unwrap() before calling this method, if this Technician
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Technician) Update() *TechnicianUpdateOne {
-	return (&TechnicianClient{t.config}).UpdateOne(t)
+	return (&TechnicianClient{config: t.config}).UpdateOne(t)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

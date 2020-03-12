@@ -158,34 +158,34 @@ func (et *EquipmentType) assignValues(values ...interface{}) error {
 
 // QueryPortDefinitions queries the port_definitions edge of the EquipmentType.
 func (et *EquipmentType) QueryPortDefinitions() *EquipmentPortDefinitionQuery {
-	return (&EquipmentTypeClient{et.config}).QueryPortDefinitions(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryPortDefinitions(et)
 }
 
 // QueryPositionDefinitions queries the position_definitions edge of the EquipmentType.
 func (et *EquipmentType) QueryPositionDefinitions() *EquipmentPositionDefinitionQuery {
-	return (&EquipmentTypeClient{et.config}).QueryPositionDefinitions(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryPositionDefinitions(et)
 }
 
 // QueryPropertyTypes queries the property_types edge of the EquipmentType.
 func (et *EquipmentType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&EquipmentTypeClient{et.config}).QueryPropertyTypes(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryPropertyTypes(et)
 }
 
 // QueryEquipment queries the equipment edge of the EquipmentType.
 func (et *EquipmentType) QueryEquipment() *EquipmentQuery {
-	return (&EquipmentTypeClient{et.config}).QueryEquipment(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryEquipment(et)
 }
 
 // QueryCategory queries the category edge of the EquipmentType.
 func (et *EquipmentType) QueryCategory() *EquipmentCategoryQuery {
-	return (&EquipmentTypeClient{et.config}).QueryCategory(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryCategory(et)
 }
 
 // Update returns a builder for updating this EquipmentType.
 // Note that, you need to call EquipmentType.Unwrap() before calling this method, if this EquipmentType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (et *EquipmentType) Update() *EquipmentTypeUpdateOne {
-	return (&EquipmentTypeClient{et.config}).UpdateOne(et)
+	return (&EquipmentTypeClient{config: et.config}).UpdateOne(et)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

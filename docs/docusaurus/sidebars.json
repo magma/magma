@@ -8,9 +8,8 @@
         "ids": [
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
-          "orc8r/deploy_terraform",
           "orc8r/deploy_install",
-          "orc8r/deploy_dns"
+          "orc8r/deploy_upgrade"
         ]
       }
     ],

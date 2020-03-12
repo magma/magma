@@ -17,6 +17,17 @@ from .image_entity_enum import ImageEntity
 
 @dataclass
 class DeleteImageMutation(DataClassJsonMixin):
+    @dataclass
+    class DeleteImageMutationData(DataClassJsonMixin):
+        @dataclass
+        class File(DataClassJsonMixin):
+            id: str
+            fileName: str
+
+        deleteImage: File
+
+    data: DeleteImageMutationData
+
     __QUERY__: str = """
     mutation DeleteImageMutation(
   $entityType: ImageEntity!
@@ -31,20 +42,9 @@ class DeleteImageMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class DeleteImageMutationData(DataClassJsonMixin):
-        @dataclass
-        class File(DataClassJsonMixin):
-            id: str
-            fileName: str
-
-        deleteImage: Optional[File] = None
-
-    data: Optional[DeleteImageMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, entityType: ImageEntity, entityId: str, id: str):
+    def execute(cls, client: GraphqlClient, entityType: ImageEntity, entityId: str, id: str) -> DeleteImageMutationData:
         # fmt: off
         variables = {"entityType": entityType, "entityId": entityId, "id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

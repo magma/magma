@@ -15,12 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const DownloadIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <g transform="translate(2,3)">
-      <path
-        d="M18 16v-4h2v6H0v-6h2v4h16zM11 0v9.225L14.313 6l1.437 1.4-5.052 4.92a1 1 0 01-1.396 0L4.25 7.4 5.688 6 9 9.225V0h2z"
-        fillRule="evenodd"
-      />
-    </g>
+    <path d="M20 19v-4h2v6H2v-6h2v4h16zM13 3v9.225L16.313 9l1.437 1.4-5.052 4.92a1 1 0 01-1.396 0L6.25 10.4 7.688 9 11 12.225V3h2z" />
   </SvgIcon>
 );
 

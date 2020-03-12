@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
@@ -76,18 +75,8 @@ def add_equipment_port_type(
             client,
             AddEquipmentPortTypeInput(
                 name=name,
-                properties=[
-                    from_dict(
-                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
-                    )
-                    for p in formated_property_types
-                ],
-                linkProperties=[
-                    from_dict(
-                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
-                    )
-                    for p in formated_link_property_types
-                ],
+                properties=formated_property_types,
+                linkProperties=formated_link_property_types,
             ),
         ).__dict__[ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME]
         client.reporter.log_successful_operation(

@@ -51,7 +51,7 @@ additional prerequisite tools (replace `brew` with your OS-appropriate package
 manager as necessary):
 
 ```bash
-brew install aws-iam-authenticator kubernetes-cli kubernetes-helm terraform
+brew install aws-iam-authenticator boto3 kubernetes-cli kubernetes-helm terraform
 pip3 install awscli
 aws configure
 ```
@@ -96,7 +96,11 @@ Orchestrator deployment depends on the following components:
 
 1. An AWS account
 2. A Docker image repository (e.g. Docker Hub, JFrog)
-3. A registered domain for Orchestrator endpoints
+3. A Helm chart repository (e.g. JFrog, Github)*
+4. A registered domain for Orchestrator endpoints
+
+\* See https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7
+to set up a private Github repository as a Helm repository.
 
 We recommend deploying the Orchestrator cloud component of magma into AWS.
 Our open-source Terraform scripts target an AWS deployment environment, but if
@@ -105,7 +109,3 @@ run on any public/private cloud with a Kubernetes cluster available to use.
 The deployment documentation will assume an AWS deployment environment - if
 this is your first time using or deploying Orchestrator, we recommend that you
 follow this guide before attempting to deploy it elsewhere.
-
-You will also need a Docker image repository available to publish the various
-Orchestrator NMS containers to. We recommend using a private repository for
-this.

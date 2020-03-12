@@ -98,6 +98,10 @@ func (resolver) File() generated.FileResolver {
 	return fileResolver{}
 }
 
+func (resolver) User() generated.UserResolver {
+	return userResolver{}
+}
+
 func (resolver) Link() generated.LinkResolver {
 	return linkResolver{}
 }
@@ -225,4 +229,12 @@ func (resolver) ActionsRuleFilter() generated.ActionsRuleFilterResolver {
 
 func (resolver) ActionsTrigger() generated.ActionsTriggerResolver {
 	return actionsTriggerResolver{}
+}
+
+func (resolver) Viewer() generated.ViewerResolver {
+	return viewerResolver{}
+}
+
+func (r resolver) ReportFilter() generated.ReportFilterResolver {
+	return reportFilterResolver{}
 }

@@ -68,6 +68,8 @@ type Tx struct {
 	Property *PropertyClient
 	// PropertyType is the client for interacting with the PropertyType builders.
 	PropertyType *PropertyTypeClient
+	// ReportFilter is the client for interacting with the ReportFilter builders.
+	ReportFilter *ReportFilterClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
 	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
@@ -88,6 +90,8 @@ type Tx struct {
 	SurveyWiFiScan *SurveyWiFiScanClient
 	// Technician is the client for interacting with the Technician builders.
 	Technician *TechnicianClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 	// WorkOrder is the client for interacting with the WorkOrder builders.
 	WorkOrder *WorkOrderClient
 	// WorkOrderDefinition is the client for interacting with the WorkOrderDefinition builders.
@@ -137,6 +141,7 @@ func (tx *Tx) Client() *Client {
 		ProjectType:                 NewProjectTypeClient(tx.config),
 		Property:                    NewPropertyClient(tx.config),
 		PropertyType:                NewPropertyTypeClient(tx.config),
+		ReportFilter:                NewReportFilterClient(tx.config),
 		Service:                     NewServiceClient(tx.config),
 		ServiceEndpoint:             NewServiceEndpointClient(tx.config),
 		ServiceType:                 NewServiceTypeClient(tx.config),
@@ -147,6 +152,7 @@ func (tx *Tx) Client() *Client {
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(tx.config),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(tx.config),
 		Technician:                  NewTechnicianClient(tx.config),
+		User:                        NewUserClient(tx.config),
 		WorkOrder:                   NewWorkOrderClient(tx.config),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(tx.config),
 		WorkOrderType:               NewWorkOrderTypeClient(tx.config),

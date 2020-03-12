@@ -19,6 +19,8 @@ import (
 	"magma/gateway/services/bootstrapper/gateway_info"
 	bootstrapper "magma/gateway/services/bootstrapper/service"
 	configurator "magma/gateway/services/configurator/service"
+	"magma/gateway/services/magmad/service_manager"
+	sync_rpc "magma/gateway/services/sync_rpc/service"
 )
 
 const (
@@ -68,6 +70,11 @@ func main() {
 	}
 
 	eventChan := make(chan interface{}, 2)
+
+	// Start event loop in a dedicated routine
+	go mainEventLoop(eventChan)
+
+	// Create bootstrapper
 	b := bootstrapper.NewBootstrapper(eventChan)
 	if err := b.Initialize(); err != nil {
 		controlProxyConfigJson, _ := json.MarshalIndent(config.GetControlProxyConfigs(), "", "  ")
@@ -76,25 +83,7 @@ func main() {
 			"gateway '%s' bootstrap initialization error: %v, for configuration:\ncontrol_proxy: %s\nmagmad: %s",
 			b.HardwareId, err, string(controlProxyConfigJson), string(magmadProxyConfigJson))
 	}
-
-	go func() {
-		for i := range eventChan {
-			switch e := i.(type) {
-			case bootstrapper.BootstrapCompletion:
-				if e.Result != nil {
-					log.Printf("bootstrap failure: %v for Gateway ID: %s", e.Result, e.HardwareId)
-				} else {
-					log.Printf("bootstrapped GW %s", e.HardwareId)
-				}
-			case configurator.UpdateCompletion:
-				log.Printf("mconfigs updated successfully for services: %v", e)
-			default:
-				log.Printf("unknown completion type: %T", e)
-			}
-		}
-	}()
-
-	// Main bootstrapper loop
+	// Start bootstrapper
 	log.Print("Starting Bootstrapper")
 	go func() {
 		for {
@@ -109,10 +98,59 @@ func main() {
 		}
 	}()
 
-	// Start configurator
+	// Start SyncRPC service if it's enabled
+	if config.GetMagmadConfigs().EnableSyncRpc {
+		log.Printf("Starting SynRPC service")
+		syncRpcService := sync_rpc.NewClient(nil)
+		go syncRpcService.Run()
+	}
+
+	// Start configurator & block on main()
 	cfg := configurator.NewConfigurator(eventChan)
 	log.Printf("Starting Configurator")
 	if err := cfg.Start(); err != nil {
 		log.Fatalf("configurator start error: %v", err)
+	}
+}
+
+func mainEventLoop(eventChan chan interface{}) {
+	for i := range eventChan {
+		switch e := i.(type) {
+		case bootstrapper.BootstrapCompletion:
+			if e.Result != nil {
+				log.Printf("bootstrap failure: %v for Gateway ID: %s", e.Result, e.HardwareId)
+			} else {
+				log.Printf("bootstrapped GW %s", e.HardwareId)
+				if config.GetControlProxyConfigs().ProxyCloudConnection {
+					// TODO: restart control proxy only
+				} else {
+					// Restart all magma services
+					go func() {
+						controller := service_manager.Get()
+						for _, service := range config.GetMagmadConfigs().MagmaServices {
+							controller.Restart(service)
+						}
+					}()
+				}
+			}
+		case configurator.UpdateCompletion:
+			log.Printf("mconfigs updated successfully for services: %v", e)
+			// Restart all services with updated configs
+			go func() {
+				magmaServiceTable := map[string]struct{}{}
+				for _, service := range config.GetMagmadConfigs().MagmaServices {
+					magmaServiceTable[service] = struct{}{}
+				}
+				controller := service_manager.Get()
+				for _, service := range e {
+					// restart only if it's this GW's service
+					if _, ok := magmaServiceTable[service]; ok {
+						controller.Restart(service)
+					}
+				}
+			}()
+		default:
+			log.Printf("unknown completion type: %T", e)
+		}
 	}
 }

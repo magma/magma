@@ -57,7 +57,7 @@ def process_file(
             raise
 
 
-def run(schema_library: str, graphql_library: str):
+def run(schema_library: str, graphql_library: str) -> None:
     schema = compile_schema_library(schema_library)
     filenames = glob.glob(os.path.join(graphql_library, "**/*.graphql"), recursive=True)
 

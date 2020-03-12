@@ -328,7 +328,7 @@ bool ActualReadRequest::MergePartialFromCodedStream(
               input, this->mutable_path()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->path().data(),
-(int)              this->path().length(),
+              (int)this->path().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ActualReadRequest.path"));
         } else {
@@ -370,7 +370,7 @@ void ActualReadRequest::SerializeWithCachedSizes(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualReadRequest.path");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -390,7 +390,7 @@ ActualReadRequest::InternalSerializeWithCachedSizesToArray(
   if (this->path().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->path().data(),
-(int)        this->path().length(),
+        (int)this->path().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualReadRequest.path");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -1077,7 +1077,7 @@ bool ActualReadResponse::MergePartialFromCodedStream(
               input, this->mutable_json()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->json().data(),
-(int)              this->json().length(),
+              (int)this->json().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.ActualReadResponse.json"));
         } else {
@@ -1119,7 +1119,7 @@ void ActualReadResponse::SerializeWithCachedSizes(
   if (this->json().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->json().data(),
-(int)        this->json().length(),
+        (int)this->json().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualReadResponse.json");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -1139,7 +1139,7 @@ ActualReadResponse::InternalSerializeWithCachedSizesToArray(
   if (this->json().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->json().data(),
-(int)        this->json().length(),
+        (int)this->json().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.ActualReadResponse.json");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(

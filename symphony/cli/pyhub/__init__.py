@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 import urllib3
 from gql.gql.graphql_client import GraphqlClient

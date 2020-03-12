@@ -124,14 +124,14 @@ func (clc *CheckListCategory) assignValues(values ...interface{}) error {
 
 // QueryCheckListItems queries the check_list_items edge of the CheckListCategory.
 func (clc *CheckListCategory) QueryCheckListItems() *CheckListItemQuery {
-	return (&CheckListCategoryClient{clc.config}).QueryCheckListItems(clc)
+	return (&CheckListCategoryClient{config: clc.config}).QueryCheckListItems(clc)
 }
 
 // Update returns a builder for updating this CheckListCategory.
 // Note that, you need to call CheckListCategory.Unwrap() before calling this method, if this CheckListCategory
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (clc *CheckListCategory) Update() *CheckListCategoryUpdateOne {
-	return (&CheckListCategoryClient{clc.config}).UpdateOne(clc)
+	return (&CheckListCategoryClient{config: clc.config}).UpdateOne(clc)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

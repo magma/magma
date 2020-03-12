@@ -16,6 +16,17 @@ from .add_image_input import AddImageInput
 
 @dataclass
 class AddImageMutation(DataClassJsonMixin):
+    @dataclass
+    class AddImageMutationData(DataClassJsonMixin):
+        @dataclass
+        class File(DataClassJsonMixin):
+            id: str
+            fileName: str
+
+        addImage: File
+
+    data: AddImageMutationData
+
     __QUERY__: str = """
     mutation AddImageMutation($input: AddImageInput!) {
   addImage(input: $input) {
@@ -26,20 +37,9 @@ class AddImageMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class AddImageMutationData(DataClassJsonMixin):
-        @dataclass
-        class File(DataClassJsonMixin):
-            id: str
-            fileName: str
-
-        addImage: Optional[File] = None
-
-    data: Optional[AddImageMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddImageInput):
+    def execute(cls, client: GraphqlClient, input: AddImageInput) -> AddImageMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

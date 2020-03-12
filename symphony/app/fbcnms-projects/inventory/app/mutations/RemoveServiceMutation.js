@@ -13,8 +13,7 @@ import {commitMutation, graphql} from 'react-relay';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
   RemoveServiceMutation,
-  // $FlowFixMe (T62907961) Relay flow types
-  RemoveServiceMutationMutationResponse,
+  RemoveServiceMutationResponse,
   RemoveServiceMutationVariables,
 } from './__generated__/RemoveServiceMutation.graphql';
 import type {StoreUpdater} from '../common/RelayEnvironment';
@@ -27,7 +26,7 @@ const mutation = graphql`
 
 export default (
   variables: RemoveServiceMutationVariables,
-  callbacks?: MutationCallbacks<RemoveServiceMutationMutationResponse>,
+  callbacks?: MutationCallbacks<RemoveServiceMutationResponse>,
   updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};

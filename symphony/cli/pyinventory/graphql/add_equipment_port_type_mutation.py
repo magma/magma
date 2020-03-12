@@ -19,6 +19,34 @@ from .add_equipment_port_type_input import AddEquipmentPortTypeInput
 
 @dataclass
 class AddEquipmentPortTypeMutation(DataClassJsonMixin):
+    @dataclass
+    class AddEquipmentPortTypeMutationData(DataClassJsonMixin):
+        @dataclass
+        class EquipmentPortType(DataClassJsonMixin):
+            @dataclass
+            class PropertyType(DataClassJsonMixin):
+                id: str
+                name: str
+                type: PropertyKind = enum_field(PropertyKind)
+                index: Optional[int] = None
+                stringValue: Optional[str] = None
+                intValue: Optional[int] = None
+                booleanValue: Optional[bool] = None
+                floatValue: Optional[Number] = None
+                latitudeValue: Optional[Number] = None
+                longitudeValue: Optional[Number] = None
+                isEditable: Optional[bool] = None
+                isInstanceProperty: Optional[bool] = None
+
+            id: str
+            name: str
+            propertyTypes: List[PropertyType]
+            linkPropertyTypes: List[PropertyType]
+
+        addEquipmentPortType: EquipmentPortType
+
+    data: AddEquipmentPortTypeMutationData
+
     __QUERY__: str = """
     mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
   addEquipmentPortType(input: $input) {
@@ -57,37 +85,9 @@ class AddEquipmentPortTypeMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class AddEquipmentPortTypeMutationData(DataClassJsonMixin):
-        @dataclass
-        class EquipmentPortType(DataClassJsonMixin):
-            @dataclass
-            class PropertyType(DataClassJsonMixin):
-                id: str
-                name: str
-                type: PropertyKind = enum_field(PropertyKind)
-                index: Optional[int] = None
-                stringValue: Optional[str] = None
-                intValue: Optional[int] = None
-                booleanValue: Optional[bool] = None
-                floatValue: Optional[Number] = None
-                latitudeValue: Optional[Number] = None
-                longitudeValue: Optional[Number] = None
-                isEditable: Optional[bool] = None
-                isInstanceProperty: Optional[bool] = None
-
-            id: str
-            name: str
-            propertyTypes: List[PropertyType]
-            linkPropertyTypes: List[PropertyType]
-
-        addEquipmentPortType: Optional[EquipmentPortType] = None
-
-    data: Optional[AddEquipmentPortTypeMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddEquipmentPortTypeInput):
+    def execute(cls, client: GraphqlClient, input: AddEquipmentPortTypeInput) -> AddEquipmentPortTypeMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

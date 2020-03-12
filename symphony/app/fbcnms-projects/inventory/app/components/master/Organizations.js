@@ -91,7 +91,9 @@ function Organizations(props: Props) {
           <Link to={relativePath(`/detail/${row.name}`)}>{row.name}</Link>
         </TableCell>
         <TableCell>{renderList(row.networkIDs)}</TableCell>
-        <TableCell>{row.tabs && renderList(row.tabs)}</TableCell>
+        <TableCell>
+          {row.tabs && renderList(row.tabs.map(tab => tab.toString()))}
+        </TableCell>
         <TableCell>
           <IconButton onClick={() => onDelete(row)}>
             <DeleteIcon />

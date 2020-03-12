@@ -35,7 +35,10 @@ std::unique_ptr<devices::Device> PlaintextCliDevice::createDeviceWithEngine(
     Application& app,
     const cartography::DeviceConfig& deviceConfig,
     Engine& engine) {
-  IoConfigurationBuilder ioConfigurationBuilder(deviceConfig, engine);
+  DeviceType deviceType = DeviceType::create(deviceConfig);
+  shared_ptr<CliFlavour> cliFlavour = engine.getCliFlavour(deviceType);
+  IoConfigurationBuilder ioConfigurationBuilder(
+      deviceConfig, engine, cliFlavour);
 
   auto cmdCache = ReadCachingCli::createCache();
   auto treeCache = make_shared<TreeCache>(

@@ -14,6 +14,22 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class LocationDocumentsQuery(DataClassJsonMixin):
+    @dataclass
+    class LocationDocumentsQueryData(DataClassJsonMixin):
+        @dataclass
+        class Node(DataClassJsonMixin):
+            @dataclass
+            class File(DataClassJsonMixin):
+                id: str
+                fileName: str
+                category: Optional[str] = None
+
+            files: List[File]
+
+        location: Optional[Node] = None
+
+    data: LocationDocumentsQueryData
+
     __QUERY__: str = """
     query LocationDocumentsQuery($id: ID!) {
   location: node(id: $id) {
@@ -29,25 +45,9 @@ class LocationDocumentsQuery(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class LocationDocumentsQueryData(DataClassJsonMixin):
-        @dataclass
-        class Node(DataClassJsonMixin):
-            @dataclass
-            class File(DataClassJsonMixin):
-                id: str
-                fileName: str
-                category: Optional[str] = None
-
-            files: List[File]
-
-        location: Optional[Node] = None
-
-    data: Optional[LocationDocumentsQueryData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, id: str):
+    def execute(cls, client: GraphqlClient, id: str) -> LocationDocumentsQueryData:
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

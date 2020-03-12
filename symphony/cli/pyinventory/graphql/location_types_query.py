@@ -17,35 +17,6 @@ from .property_kind_enum import PropertyKind
 
 @dataclass
 class LocationTypesQuery(DataClassJsonMixin):
-    __QUERY__: str = """
-    query LocationTypesQuery {
-  locationTypes {
-    edges {
-      node {
-        id
-        name
-        propertyTypes {
-          id
-          name
-          type
-          index
-          category
-          stringValue
-          intValue
-          booleanValue
-          floatValue
-          latitudeValue
-          longitudeValue
-          isEditable
-          isInstanceProperty
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @dataclass
     class LocationTypesQueryData(DataClassJsonMixin):
         @dataclass
@@ -80,11 +51,40 @@ class LocationTypesQuery(DataClassJsonMixin):
 
         locationTypes: Optional[LocationTypeConnection] = None
 
-    data: Optional[LocationTypesQueryData] = None
+    data: LocationTypesQueryData
+
+    __QUERY__: str = """
+    query LocationTypesQuery {
+  locationTypes {
+    edges {
+      node {
+        id
+        name
+        propertyTypes {
+          id
+          name
+          type
+          index
+          category
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          isEditable
+          isInstanceProperty
+        }
+      }
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient):
+    def execute(cls, client: GraphqlClient) -> LocationTypesQueryData:
         # fmt: off
         variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)

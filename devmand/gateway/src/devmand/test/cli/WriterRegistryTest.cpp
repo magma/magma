@@ -110,48 +110,49 @@ class IfcConfigWriter : public BindingWriter<Ifc::Config> {
 };
 
 TEST_F(WriterRegistryTest, api) {
-//  ModelRegistry models;
-//  auto executor = make_shared<CPUThreadPoolExecutor>(2);
-//  DeviceAccess mockDevice{make_shared<EchoCli>(), "rest", executor};
-//  WriterRegistryBuilder reg;
-//
-//  BindingContext& bindingCtx =
-//      models.getBindingContext(Model::OPENCONFIG_2_4_3);
-//  BINDING_W(reg, bindingCtx)
-//      .add(
-//          "/openconfig-interfaces:interfaces/interface/config",
-//          make_shared<IfcConfigWriter>(),
-//          {"/openconfig-network-instance:network-instances"});
-//  reg.add(
-//      "/openconfig-network-instance:network-instances",
-//      make_shared<NoopWriter>());
-//  auto r = reg.build();
-//
-//  MLOG(MDEBUG) << *r;
-//
-//  const shared_ptr<Ifc::Config>& before = make_shared<Ifc::Config>();
-//  before->name = "eth 0/1";
-//  const shared_ptr<Ifc::Config>& after = make_shared<Ifc::Config>();
-//  after->name = "eth 0/1";
-//  after->description = "descr";
-//
-//  std::multimap<Path, DatastoreDiff> diff = {
-//      {"/openconfig-interfaces:interfaces/interface/config",
-//       DatastoreDiff(
-//           bindingCtx.getCodec().toDom(
-//               "/openconfig-interfaces:interfaces/interface[name='eth 0/1']/config",
-//               *before),
-//           bindingCtx.getCodec().toDom(
-//               "/openconfig-interfaces:interfaces/interface[name='eth 0/1']/config",
-//               *after),
-//           DatastoreDiffType::update,
-//           "/openconfig-interfaces:interfaces/interface[name='eth 0/1']/config")},
-//  };
-//  r->write(diff, mockDevice);
-//
-//  // Let the executor finish
-//  via(executor.get(), []() {}).get();
-//  executor->join();
+  //  ModelRegistry models;
+  //  auto executor = make_shared<CPUThreadPoolExecutor>(2);
+  //  DeviceAccess mockDevice{make_shared<EchoCli>(), "rest", executor};
+  //  WriterRegistryBuilder reg;
+  //
+  //  BindingContext& bindingCtx =
+  //      models.getBindingContext(Model::OPENCONFIG_2_4_3);
+  //  BINDING_W(reg, bindingCtx)
+  //      .add(
+  //          "/openconfig-interfaces:interfaces/interface/config",
+  //          make_shared<IfcConfigWriter>(),
+  //          {"/openconfig-network-instance:network-instances"});
+  //  reg.add(
+  //      "/openconfig-network-instance:network-instances",
+  //      make_shared<NoopWriter>());
+  //  auto r = reg.build();
+  //
+  //  MLOG(MDEBUG) << *r;
+  //
+  //  const shared_ptr<Ifc::Config>& before = make_shared<Ifc::Config>();
+  //  before->name = "eth 0/1";
+  //  const shared_ptr<Ifc::Config>& after = make_shared<Ifc::Config>();
+  //  after->name = "eth 0/1";
+  //  after->description = "descr";
+  //
+  //  std::multimap<Path, DatastoreDiff> diff = {
+  //      {"/openconfig-interfaces:interfaces/interface/config",
+  //       DatastoreDiff(
+  //           bindingCtx.getCodec().toDom(
+  //               "/openconfig-interfaces:interfaces/interface[name='eth
+  //               0/1']/config", *before),
+  //           bindingCtx.getCodec().toDom(
+  //               "/openconfig-interfaces:interfaces/interface[name='eth
+  //               0/1']/config", *after),
+  //           DatastoreDiffType::update,
+  //           "/openconfig-interfaces:interfaces/interface[name='eth
+  //           0/1']/config")},
+  //  };
+  //  r->write(diff, mockDevice);
+  //
+  //  // Let the executor finish
+  //  via(executor.get(), []() {}).get();
+  //  executor->join();
 }
 
 TEST_F(WriterRegistryTest, writerDependencyLoop) {

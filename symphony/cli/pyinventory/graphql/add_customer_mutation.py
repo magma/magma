@@ -16,6 +16,18 @@ from .add_customer_input import AddCustomerInput
 
 @dataclass
 class AddCustomerMutation(DataClassJsonMixin):
+    @dataclass
+    class AddCustomerMutationData(DataClassJsonMixin):
+        @dataclass
+        class Customer(DataClassJsonMixin):
+            id: str
+            name: str
+            externalId: Optional[str] = None
+
+        addCustomer: Customer
+
+    data: AddCustomerMutationData
+
     __QUERY__: str = """
     mutation AddCustomerMutation($input: AddCustomerInput!) {
   addCustomer(input: $input) {
@@ -27,21 +39,9 @@ class AddCustomerMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class AddCustomerMutationData(DataClassJsonMixin):
-        @dataclass
-        class Customer(DataClassJsonMixin):
-            id: str
-            name: str
-            externalId: Optional[str] = None
-
-        addCustomer: Optional[Customer] = None
-
-    data: Optional[AddCustomerMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddCustomerInput):
+    def execute(cls, client: GraphqlClient, input: AddCustomerInput) -> AddCustomerMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

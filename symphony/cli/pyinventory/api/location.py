@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from typing import Any, Dict, List, Optional, Tuple
 
-from dacite import Config, from_dict
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 
 from .._utils import deprecated, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..consts import Document, ImageEntity, Location
+from ..consts import Document, Entity, ImageEntity, Location
 from ..exceptions import (
+    EntityNotFoundError,
     LocationCannotBeDeletedWithDependency,
     LocationIsNotUniqueException,
     LocationNotFoundException,
@@ -43,14 +42,16 @@ def add_location(
     externalID: Optional[str] = None,
 ) -> Location:
     """Create a new location of a specific type with a specific name.
-        It will also get the requested location specifiers for hirerchy leading to it and will create all
-        the hirerchy.
+        It will also get the requested location specifiers for hirerchy 
+        leading to it and will create all the hirerchy.
         However the lat,long and propertiesDict would only apply for the last location in the chain.
-        If a location with his name in this place already exists the existing location is returned
+        If a location with its name in this place already exists the existing location is returned
 
         Args:
             location_hirerchy (List[Tuple[str, str]]): An hirerchy of locations.
-                The first str is location type name. The second str is location name
+            - str - location type name
+            - str - location name
+
             properties_dict: dict of property name to property value. the property value should match
                             the property type. Otherwise exception is raised
             lat (float): latitude
@@ -64,27 +65,28 @@ def add_location(
             LocationIsNotUniqueException: if there is two possible locations
                 inside the chain and it is not clear where to create or what to return
             FailedOperationException: for internal inventory error
+            `pyinventory.exceptions.EntityNotFoundError`: parent location in the chain does not exist
 
         Example:
-        ```
-        location = client.add_location(
-            [
-                ('Country', 'England'),
-                ('City', 'Milton Keynes'),
-                ('Site', 'Bletchley Park')
-            ],
-            {
-                'Date Property ': date.today(),
-                'Lat/Lng Property: ': (-1.23,9.232),
-                'E-mail Property ': "user@fb.com",
-                'Number Property ': 11,
-                'String Property ': "aa",
-                'Float Property': 1.23
-            },
-            -11.32,
-            98.32,
-            None)
-        ```
+            ```
+            location = client.add_location(
+                [
+                    ('Country', 'England'),
+                    ('City', 'Milton Keynes'),
+                    ('Site', 'Bletchley Park')
+                ],
+                {
+                    'Date Property ': date.today(),
+                    'Lat/Lng Property: ': (-1.23,9.232),
+                    'E-mail Property ': "user@fb.com",
+                    'Number Property ': 11,
+                    'String Property ': "aa",
+                    'Float Property': 1.23
+                },
+                -11.32,
+                98.32,
+                None)
+            ```
     """
 
     last_location = None
@@ -110,8 +112,11 @@ def add_location(
             locations = [
                 location.node
                 for location in locations
+                # pyre-fixme[16]: `Optional` has no attribute `entityType`.
                 if location.node.entityType == "location"
+                # pyre-fixme[16]: `Optional` has no attribute `type`.
                 and location.node.type == location_type
+                # pyre-fixme[16]: `Optional` has no attribute `name`.
                 and location.node.name == location_name
             ]
             if len(locations) > 1:
@@ -120,8 +125,14 @@ def add_location(
                 )
             if len(locations) == 1:
                 location_details = LocationDetailsQuery.execute(
-                    client, id=locations[0].entityId
+                    client,
+                    # pyre-fixme[16]: `Optional` has no attribute `entityId`.
+                    id=locations[0].entityId,
                 ).location
+                if location_details is None:
+                    raise EntityNotFoundError(
+                        entity=Entity.Location, entity_id=locations[0].entityId
+                    )
                 last_location = Location(
                     name=location_details.name,
                     id=location_details.id,
@@ -165,12 +176,15 @@ def add_location(
                 )
         else:
             location_id = last_location.id
-            result = LocationChildrenQuery.execute(client, id=location_id)
-            locations = result.location.children
+            location_with_children = LocationChildrenQuery.execute(
+                client, id=location_id
+            ).location
+            if location_with_children is None:
+                raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
 
             locations = [
                 location
-                for location in locations
+                for location in location_with_children.children
                 if location.locationType.name == location_type
                 and location.name == location_name
             ]
@@ -182,8 +196,8 @@ def add_location(
                 last_location = Location(
                     name=locations[0].name,
                     id=locations[0].id,
-                    latitude=location[0].latitude,
-                    longitude=location[0].longitude,
+                    latitude=locations[0].latitude,
+                    longitude=locations[0].longitude,
                     externalId=locations[0].externalId,
                     locationTypeName=locations[0].locationType.name,
                 )
@@ -233,29 +247,34 @@ def get_location(
         It can get only the requested location specifiers or the hirerchy leading to it
 
         Args:
-            location_hirerchy (list of tuple(str, str)):
-                the first str is location type name
-                the second str is location name
+            location_hirerchy (List[Tuple[str, str]]): An hirerchy of locations.
+            - str - location type name
+            - str - location name
 
-        Returns: pyinventory.consts.Location object
+        Returns:
+            pyinventory.consts.Location object
 
-        Raises: LocationIsNotUniqueException if there is more than one correct
+
+        Raises:
+            LocationIsNotUniqueException: if there is more than one correct
                 location to return
-                or LocationNotFoundException if no location was found
+            LocationNotFoundException: if no location was found
+            `pyinventory.exceptions.EntityNotFoundError`: location in the chain does not exist
+            FailedOperationException: for internal inventory error
 
         Example:
-        ```
-        location = client.get_location([
-            ('Country', 'England'),
-            ('City', 'Milton Keynes'),
-            ('Site', 'Bletchley Park')
-        ])
-        ```
-        or
-        ```
-        # this call will fail if there is Bletchley Park in two cities in london
-        location = client.get_location([('Site', 'Bletchley Park')])
-        ```
+            ```
+            location = client.get_location([
+                ('Country', 'England'),
+                ('City', 'Milton Keynes'),
+                ('Site', 'Bletchley Park')
+            ])
+            ```
+            or
+            ```
+            # this call will fail if there is Bletchley Park in two cities
+            location = client.get_location([('Site', 'Bletchley Park')])
+            ```
     """
 
     last_location = None
@@ -265,16 +284,18 @@ def get_location(
         location_name = location[1]
 
         if last_location is None:
-            locations = SearchQuery.execute(
+            entities = SearchQuery.execute(
                 client, name=location_name
             ).searchForEntity.edges
+            nodes = [entity.node for entity in entities]
 
             locations = [
-                location.node
-                for location in locations
-                if location.node.entityType == "location"
-                and location.node.type == location_type
-                and location.node.name == location_name
+                node
+                for node in nodes
+                if node is not None
+                and node.entityType == "location"
+                and node.type == location_type
+                and node.name == location_name
             ]
             if len(locations) == 0:
                 raise LocationNotFoundException(
@@ -287,6 +308,10 @@ def get_location(
             location_details = LocationDetailsQuery.execute(
                 client, id=locations[0].entityId
             ).location
+            if location_details is None:
+                raise EntityNotFoundError(
+                    entity=Entity.Location, entity_id=locations[0].entityId
+                )
             last_location = Location(
                 name=location_details.name,
                 id=location_details.id,
@@ -298,12 +323,14 @@ def get_location(
         else:
             location_id = last_location.id
 
-            result = LocationChildrenQuery.execute(client, id=location_id)
-            locations = result.location.children
-
+            location_with_children = LocationChildrenQuery.execute(
+                client, id=location_id
+            ).location
+            if location_with_children is None:
+                raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
             locations = [
                 location
-                for location in locations
+                for location in location_with_children.children
                 if location.locationType.name == location_type
                 and location.name == location_name
             ]
@@ -328,27 +355,30 @@ def get_location(
 
 
 def get_location_children(client: SymphonyClient, location_id: str) -> List[Location]:
-    """This function returns all locations that are children of the given location
+    """This function returns all children locations of the given location
 
         Args:
-            location_id (str):
-                id of the parent location
+            location_id (str): parent location ID
 
-        Returns: List of pyinventory.consts.Location objects
+        Returns:
+            List[ pyinventory.consts.Location ]
+
+        Raises: `pyinventory.exceptions.EntityNotFoundError`: location does not exist
 
         Example:
-        ```
-        client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
-        client.addLocation([('Country', 'England'), ('City', 'London')], {})
-        locations = client.get_location_children([('Country', 'England')])
-        # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
-        ```
+            ```
+            client.add_location([('Country', 'England'), ('City', 'Milton Keynes')], {})
+            client.add_location([('Country', 'England'), ('City', 'London')], {})
+            parent_location = client.get_location([('Country', 'England')])
+            children_locations = client.get_location_children(parent_location.id)
+            # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
+            ```
     """
-    result = LocationChildrenQuery.execute(client, id=location_id)
-    locations = result.location.children
-
-    if len(locations) == 0:
-        return []
+    location_with_children = LocationChildrenQuery.execute(
+        client, id=location_id
+    ).location
+    if not location_with_children:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
 
     return [
         Location(
@@ -359,7 +389,7 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
             externalId=location.externalId,
             locationTypeName=location.locationType.name,
         )
-        for location in locations
+        for location in location_with_children.children
     ]
 
 
@@ -372,7 +402,38 @@ def edit_location(
     new_external_id: Optional[str] = None,
     new_properties: Optional[Dict[str, Any]] = None,
 ) -> Location:
+    """This function returns edited location.
 
+        Args:
+            location (pyinventory.consts.Location): location object
+            new_name (Optional[str]): location new name
+            new_lat (Optional[float]): location new latitude
+            new_long (Optional[float]): location new longitude
+            new_external_id (Optional[float]): location new external ID
+            new_properties (Optional[Dict[str, Any]]): dict of property name to property value
+            - str - property name
+            - Any - new value of the same type for this property
+
+        Returns:
+            pyinventory.consts.Location object
+
+        Raises:
+            FailedOperationException: for internal inventory error
+
+        Example:
+            ```
+            # this call will fail if there is Bletchley Park in two cities
+            location = client.get_location([('Site', 'Bletchley Park')])
+            edited_location = client.edit_location(
+                location=location,
+                new_name="New Bletchley Park",
+                new_lat=10,
+                new_long=20,
+                new_external_id=None,
+                new_properties={"Contact": "new_contact@info.com"},
+            )
+            ```
+    """
     properties = []
     location_type = location.locationTypeName
     property_types = client.locationTypes[location_type].propertyTypes
@@ -417,14 +478,16 @@ def edit_location(
 
 
 def delete_location(client: SymphonyClient, location: Location) -> None:
-    deps = LocationDepsQuery.execute(client, id=location.id).location
-    if len(deps.files) > 0:
+    location_with_deps = LocationDepsQuery.execute(client, id=location.id).location
+    if location_with_deps is None:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
+    if len(location_with_deps.files) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "files")
-    if len(deps.children) > 0:
+    if len(location_with_deps.children) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "children")
-    if len(deps.surveys) > 0:
+    if len(location_with_deps.surveys) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "surveys")
-    if len(deps.equipments) > 0:
+    if len(location_with_deps.equipments) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "equipment")
     RemoveLocationMutation.execute(client, id=location.id)
 
@@ -432,6 +495,28 @@ def delete_location(client: SymphonyClient, location: Location) -> None:
 def move_location(
     client: SymphonyClient, location_id: str, new_parent_id: Optional[str]
 ) -> Location:
+    """This function moves existing location to another existing parent location.
+
+        Args:
+            location_id (str): existing location ID to be moved
+            new_parent_id (Optional[str]): new existing parent location ID
+
+        Returns:
+            pyinventory.consts.Location object
+
+        Raises:
+            FailedOperationException: for internal inventory error
+
+        Example:
+            ```
+            # this call will fail if there is Bletchley Park in two cities
+            location = client.get_location([('Site', 'Bletchley Park')])
+            moved_location = client.move_locatoin(
+                location_id=location.id, 
+                new_parent_id="12345"
+            )
+            ```
+    """
     params = {"locationID": location_id, "parentLocationID": new_parent_id}
     try:
         result = MoveLocationMutation.execute(
@@ -464,16 +549,38 @@ def get_locations_by_external_id(
 
 
 def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Location:
+    """This function returns location by external ID.
+
+        Args:
+            external_id (str): location external ID
+
+        Returns:
+            pyinventory.consts.Location object
+
+        Raises:
+            LocationNotFoundException: location with this external ID does not exists
+            FailedOperationException: for internal inventory error
+
+        Example:
+            ```
+            location = client.get_location_by_external_id(external_id="12345")
+            ```
+    """
     locations = SearchQuery.execute(client, name=external_id).searchForEntity.edges
     if not locations:
         raise LocationNotFoundException()
 
     location_details = None
     for location in locations:
-        if location.node.entityType == "location":
+        node = location.node
+        if node is not None and node.entityType == "location":
             location_details = LocationDetailsQuery.execute(
-                client, id=locations[0].node.entityId
+                client, id=node.entityId
             ).location
+            if location_details is None:
+                raise EntityNotFoundError(
+                    entity=Entity.Location, entity_id=node.entityId
+                )
             if location_details.externalId == external_id:
                 break
             else:
@@ -495,8 +602,30 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
 def get_location_documents(
     client: SymphonyClient, location: Location
 ) -> List[Document]:
-    result = LocationDocumentsQuery.execute(client, id=location.id)
-    files = result.location.files
+    """This function returns locations documents.
+
+        Args:
+            location (pyinventory.consts.Location): location object
+
+        Returns:
+            List[ pyinventory.consts.Document ]
+
+        Raises:
+            LocationNotFoundException: location with this external ID does not exists
+            FailedOperationException: for internal inventory error
+
+        Example:
+            ```
+            # this call will fail if there is Bletchley Park in two cities
+            location = client.get_location([('Site', 'Bletchley Park')])
+            location = client.get_location_documents(location=location)
+            ```
+    """
+    location_with_documents = LocationDocumentsQuery.execute(
+        client, id=location.id
+    ).location
+    if not location_with_documents:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
     return [
         Document(
             name=file.fileName,
@@ -505,5 +634,5 @@ def get_location_documents(
             parentEntity=ImageEntity.LOCATION,
             category=file.category,
         )
-        for file in files
+        for file in location_with_documents.files
     ]

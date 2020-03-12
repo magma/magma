@@ -139,19 +139,19 @@ func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
 
 // QueryPort queries the port edge of the ServiceEndpoint.
 func (se *ServiceEndpoint) QueryPort() *EquipmentPortQuery {
-	return (&ServiceEndpointClient{se.config}).QueryPort(se)
+	return (&ServiceEndpointClient{config: se.config}).QueryPort(se)
 }
 
 // QueryService queries the service edge of the ServiceEndpoint.
 func (se *ServiceEndpoint) QueryService() *ServiceQuery {
-	return (&ServiceEndpointClient{se.config}).QueryService(se)
+	return (&ServiceEndpointClient{config: se.config}).QueryService(se)
 }
 
 // Update returns a builder for updating this ServiceEndpoint.
 // Note that, you need to call ServiceEndpoint.Unwrap() before calling this method, if this ServiceEndpoint
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (se *ServiceEndpoint) Update() *ServiceEndpointUpdateOne {
-	return (&ServiceEndpointClient{se.config}).UpdateOne(se)
+	return (&ServiceEndpointClient{config: se.config}).UpdateOne(se)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

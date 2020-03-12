@@ -14,6 +14,19 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class VersionQuery(DataClassJsonMixin):
+    @dataclass
+    class VersionQueryData(DataClassJsonMixin):
+        @dataclass
+        class Version(DataClassJsonMixin):
+            major: int
+            minor: int
+            patch: int
+            string: str
+
+        version: Version
+
+    data: VersionQueryData
+
     __QUERY__: str = """
     query VersionQuery {
   version {
@@ -26,22 +39,9 @@ class VersionQuery(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class VersionQueryData(DataClassJsonMixin):
-        @dataclass
-        class Version(DataClassJsonMixin):
-            major: int
-            minor: int
-            patch: int
-            string: str
-
-        version: Version
-
-    data: Optional[VersionQueryData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient):
+    def execute(cls, client: GraphqlClient) -> VersionQueryData:
         # fmt: off
         variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)

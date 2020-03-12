@@ -21,8 +21,7 @@ using namespace std::chrono_literals;
 using devmand::test::utils::cli::MockedCli;
 using folly::CPUThreadPoolExecutor;
 
-static const shared_ptr<CliFlavour> ubiquitiFlavour =
-    CliFlavour::create(UBIQUITI);
+static const shared_ptr<CliFlavour> ubiquitiFlavour = CliFlavour::getUbiquiti();
 static const char* showRunningCommand = "show running-config";
 
 class TreeCacheCliTest : public ::testing::Test {

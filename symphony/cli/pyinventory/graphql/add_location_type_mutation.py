@@ -19,6 +19,33 @@ from .add_location_type_input import AddLocationTypeInput
 
 @dataclass
 class AddLocationTypeMutation(DataClassJsonMixin):
+    @dataclass
+    class AddLocationTypeMutationData(DataClassJsonMixin):
+        @dataclass
+        class LocationType(DataClassJsonMixin):
+            @dataclass
+            class PropertyType(DataClassJsonMixin):
+                id: str
+                name: str
+                type: PropertyKind = enum_field(PropertyKind)
+                index: Optional[int] = None
+                stringValue: Optional[str] = None
+                intValue: Optional[int] = None
+                booleanValue: Optional[bool] = None
+                floatValue: Optional[Number] = None
+                latitudeValue: Optional[Number] = None
+                longitudeValue: Optional[Number] = None
+                isEditable: Optional[bool] = None
+                isInstanceProperty: Optional[bool] = None
+
+            id: str
+            name: str
+            propertyTypes: List[PropertyType]
+
+        addLocationType: LocationType
+
+    data: AddLocationTypeMutationData
+
     __QUERY__: str = """
     mutation AddLocationTypeMutation($input: AddLocationTypeInput!) {
   addLocationType(input: $input) {
@@ -43,36 +70,9 @@ class AddLocationTypeMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class AddLocationTypeMutationData(DataClassJsonMixin):
-        @dataclass
-        class LocationType(DataClassJsonMixin):
-            @dataclass
-            class PropertyType(DataClassJsonMixin):
-                id: str
-                name: str
-                type: PropertyKind = enum_field(PropertyKind)
-                index: Optional[int] = None
-                stringValue: Optional[str] = None
-                intValue: Optional[int] = None
-                booleanValue: Optional[bool] = None
-                floatValue: Optional[Number] = None
-                latitudeValue: Optional[Number] = None
-                longitudeValue: Optional[Number] = None
-                isEditable: Optional[bool] = None
-                isInstanceProperty: Optional[bool] = None
-
-            id: str
-            name: str
-            propertyTypes: List[PropertyType]
-
-        addLocationType: Optional[LocationType] = None
-
-    data: Optional[AddLocationTypeMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddLocationTypeInput):
+    def execute(cls, client: GraphqlClient, input: AddLocationTypeInput) -> AddLocationTypeMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

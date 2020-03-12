@@ -36,13 +36,14 @@ class GrpcReaderTest : public ::testing::Test {
  protected:
   shared_ptr<CPUThreadPoolExecutor> testExec;
   shared_ptr<MockedCli> mockedCli;
+  Path somePath = "/somepath";
 
   void SetUp() override {
     devmand::test::utils::log::initLog();
     testExec = make_shared<CPUThreadPoolExecutor>(5);
     map<string, string> mockedResponses;
     for (int i = 3; i > 0; i--) {
-      const string& s = to_string(i);
+      const string& s = somePath.str() + to_string(i);
       mockedResponses[s] = s;
     }
     mockedResponses.insert(make_pair(
@@ -89,9 +90,9 @@ class DummyReader : public ReaderPlugin::Service {
         if (readRequest.has_actualreadrequest()) {
           MLOG(MDEBUG) << "Got actualreadrequest";
           gotActualReadRequest = true;
-          // handle request
           path = readRequest.actualreadrequest().path();
-          sendCommandRequest(to_string(remainingCommands), stream);
+          // handle request
+          sendCommandRequest(path + to_string(remainingCommands), stream);
         } else {
           MLOG(MWARNING) << "First request must be ActualReadRequest";
           return Status(
@@ -103,15 +104,15 @@ class DummyReader : public ReaderPlugin::Service {
         // output should be same output as input
         string output = readRequest.cliresponse().output();
         MLOG(MDEBUG) << "Got cliresponse " << output;
-        if (to_string(remainingCommands) != output) {
+        if (path + to_string(remainingCommands) != output) {
           throw runtime_error("Equality fail");
         }
         remainingCommands -= 1;
         if (remainingCommands > 0) {
-          sendCommandRequest(to_string(remainingCommands), stream);
+          sendCommandRequest(path + to_string(remainingCommands), stream);
         } else {
           // send final response
-          MLOG(MDEBUG) << "Sending actualReadResponse";
+          MLOG(MDEBUG) << "Sending actualReadResponse:" << path;
           sendActualResponse("{\"path\":\"" + path + "\"}", stream);
           break;
         }
@@ -143,10 +144,9 @@ TEST_F(GrpcReaderTest, testDummyReader) {
   auto grpcClientChannel =
       grpc::CreateChannel(address, grpc::InsecureChannelCredentials());
   GrpcReader tested(grpcClientChannel, "tested", testExec);
-  Path path = "/somepath";
   DeviceAccess deviceAccess = DeviceAccess(mockedCli, "test", testExec);
-  dynamic result = tested.read(path, deviceAccess).get();
-  EXPECT_EQ(result["path"], path.str());
+  dynamic result = tested.read(somePath, deviceAccess).get();
+  EXPECT_EQ(result["path"], somePath.str());
 }
 
 // integration test for debugging remote plugins

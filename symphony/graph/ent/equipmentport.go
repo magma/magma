@@ -178,34 +178,34 @@ func (ep *EquipmentPort) assignValues(values ...interface{}) error {
 
 // QueryDefinition queries the definition edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryDefinition() *EquipmentPortDefinitionQuery {
-	return (&EquipmentPortClient{ep.config}).QueryDefinition(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryDefinition(ep)
 }
 
 // QueryParent queries the parent edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryParent() *EquipmentQuery {
-	return (&EquipmentPortClient{ep.config}).QueryParent(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryParent(ep)
 }
 
 // QueryLink queries the link edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryLink() *LinkQuery {
-	return (&EquipmentPortClient{ep.config}).QueryLink(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryLink(ep)
 }
 
 // QueryProperties queries the properties edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryProperties() *PropertyQuery {
-	return (&EquipmentPortClient{ep.config}).QueryProperties(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryProperties(ep)
 }
 
 // QueryEndpoints queries the endpoints edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryEndpoints() *ServiceEndpointQuery {
-	return (&EquipmentPortClient{ep.config}).QueryEndpoints(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryEndpoints(ep)
 }
 
 // Update returns a builder for updating this EquipmentPort.
 // Note that, you need to call EquipmentPort.Unwrap() before calling this method, if this EquipmentPort
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ep *EquipmentPort) Update() *EquipmentPortUpdateOne {
-	return (&EquipmentPortClient{ep.config}).UpdateOne(ep)
+	return (&EquipmentPortClient{config: ep.config}).UpdateOne(ep)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

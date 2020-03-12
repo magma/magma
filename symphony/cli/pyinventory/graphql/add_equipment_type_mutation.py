@@ -19,43 +19,6 @@ from .add_equipment_type_input import AddEquipmentTypeInput
 
 @dataclass
 class AddEquipmentTypeMutation(DataClassJsonMixin):
-    __QUERY__: str = """
-    mutation AddEquipmentTypeMutation($input: AddEquipmentTypeInput!) {
-  addEquipmentType(input: $input) {
-    id
-    name
-    category
-    propertyTypes {
-      id
-      name
-      type
-      index
-      stringValue
-      intValue
-      booleanValue
-      floatValue
-      latitudeValue
-      longitudeValue
-      isEditable
-      isInstanceProperty
-    }
-    positionDefinitions {
-      id
-      name
-      index
-      visibleLabel
-    }
-    portDefinitions {
-      id
-      name
-      index
-      visibleLabel
-    }
-  }
-}
-
-    """
-
     @dataclass
     class AddEquipmentTypeMutationData(DataClassJsonMixin):
         @dataclass
@@ -96,13 +59,50 @@ class AddEquipmentTypeMutation(DataClassJsonMixin):
             portDefinitions: List[EquipmentPortDefinition]
             category: Optional[str] = None
 
-        addEquipmentType: Optional[EquipmentType] = None
+        addEquipmentType: EquipmentType
 
-    data: Optional[AddEquipmentTypeMutationData] = None
+    data: AddEquipmentTypeMutationData
+
+    __QUERY__: str = """
+    mutation AddEquipmentTypeMutation($input: AddEquipmentTypeInput!) {
+  addEquipmentType(input: $input) {
+    id
+    name
+    category
+    propertyTypes {
+      id
+      name
+      type
+      index
+      stringValue
+      intValue
+      booleanValue
+      floatValue
+      latitudeValue
+      longitudeValue
+      isEditable
+      isInstanceProperty
+    }
+    positionDefinitions {
+      id
+      name
+      index
+      visibleLabel
+    }
+    portDefinitions {
+      id
+      name
+      index
+      visibleLabel
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddEquipmentTypeInput):
+    def execute(cls, client: GraphqlClient, input: AddEquipmentTypeInput) -> AddEquipmentTypeMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

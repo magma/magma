@@ -14,6 +14,25 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class MoveLocationMutation(DataClassJsonMixin):
+    @dataclass
+    class MoveLocationMutationData(DataClassJsonMixin):
+        @dataclass
+        class Location(DataClassJsonMixin):
+            @dataclass
+            class LocationType(DataClassJsonMixin):
+                name: str
+
+            id: str
+            name: str
+            latitude: Number
+            longitude: Number
+            locationType: LocationType
+            externalId: Optional[str] = None
+
+        moveLocation: Location
+
+    data: MoveLocationMutationData
+
     __QUERY__: str = """
     mutation MoveLocationMutation($locationID: ID!, $parentLocationID: ID) {
   moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {
@@ -30,28 +49,9 @@ class MoveLocationMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class MoveLocationMutationData(DataClassJsonMixin):
-        @dataclass
-        class Location(DataClassJsonMixin):
-            @dataclass
-            class LocationType(DataClassJsonMixin):
-                name: str
-
-            id: str
-            name: str
-            latitude: Number
-            longitude: Number
-            locationType: LocationType
-            externalId: Optional[str] = None
-
-        moveLocation: Optional[Location] = None
-
-    data: Optional[MoveLocationMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, locationID: str, parentLocationID: Optional[str] = None):
+    def execute(cls, client: GraphqlClient, locationID: str, parentLocationID: Optional[str] = None) -> MoveLocationMutationData:
         # fmt: off
         variables = {"locationID": locationID, "parentLocationID": parentLocationID}
         response_text = client.call(cls.__QUERY__, variables=variables)

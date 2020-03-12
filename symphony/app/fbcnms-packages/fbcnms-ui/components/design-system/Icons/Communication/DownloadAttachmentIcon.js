@@ -15,12 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const DownloadAttachmentIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <g transform="translate(2,2)">
-      <path
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm0 2C4.477 20 0 15.523 0 10S4.477 0 10 0s10 4.477 10 10-4.477 10-10 10zm1-15v7.589L13.563 10l1.187 1.2L11 14.988V15h-.012l-.277.282a1 1 0 01-1.422 0L9.011 15H9v-.011L5.25 11.2 6.438 10 9 12.589V5h2z"
-        fillRule="evenodd"
-      />
-    </g>
+    <path d="M12 20a8 8 0 100-16 8 8 0 000 16zm0 2C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm1-15v7.589L15.563 12l1.187 1.2L13 16.988V17h-.012l-.277.282a1 1 0 01-1.422 0L11.011 17H11v-.011L7.25 13.2 8.438 12 11 14.589V7h2z" />
   </SvgIcon>
 );
 

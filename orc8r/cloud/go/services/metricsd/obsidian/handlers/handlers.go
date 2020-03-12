@@ -43,6 +43,12 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			obsidian.Handler{Path: promH.TenantV1QueryURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 			obsidian.Handler{Path: promH.TenantV1QueryRangeURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 			obsidian.Handler{Path: promH.TenantV1SeriesURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+
+			// Tenant Prometheus API
+			obsidian.Handler{Path: promH.TenantPromV1QueryURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+			obsidian.Handler{Path: promH.TenantPromV1QueryRangeURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+			obsidian.Handler{Path: promH.TenantPromV1SeriesURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+			obsidian.Handler{Path: promH.TenantPromV1ValuesURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 		)
 	} else {
 		pAPI := v1.NewAPI(client)
@@ -55,6 +61,12 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			obsidian.Handler{Path: promH.TenantV1QueryURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantQueryHandler(pAPI)},
 			obsidian.Handler{Path: promH.TenantV1QueryRangeURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantQueryRangeHandler(pAPI)},
 			obsidian.Handler{Path: promH.TenantV1SeriesURL, Methods: obsidian.GET, HandlerFunc: promH.TenantSeriesHandlerProvider(pAPI)},
+
+			// Tenant Prometheus API
+			obsidian.Handler{Path: promH.TenantPromV1QueryURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromQueryHandler(pAPI)},
+			obsidian.Handler{Path: promH.TenantPromV1QueryRangeURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromQueryRangeHandler(pAPI)},
+			obsidian.Handler{Path: promH.TenantPromV1SeriesURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromSeriesHandler(pAPI)},
+			obsidian.Handler{Path: promH.TenantPromV1ValuesURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromValuesHandler(pAPI)},
 		)
 	}
 

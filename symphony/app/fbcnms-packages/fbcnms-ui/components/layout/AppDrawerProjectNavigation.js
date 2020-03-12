@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {Tab} from '@fbcnms/ui/context/AppContext';
+import type {Tab} from '@fbcnms/types/tabs';
 
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import IconButton from '@material-ui/core/IconButton';

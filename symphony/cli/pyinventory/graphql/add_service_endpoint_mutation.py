@@ -19,32 +19,6 @@ from .add_service_endpoint_input import AddServiceEndpointInput
 
 @dataclass
 class AddServiceEndpointMutation(DataClassJsonMixin):
-    __QUERY__: str = """
-    mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
-  addServiceEndpoint(input: $input) {
-    id
-    name
-    externalId
-    customer {
-      id
-      name
-      externalId
-    }
-    endpoints {
-      id
-      port {
-        id
-      }
-      role
-    }
-    links {
-      id
-    }
-  }
-}
-
-    """
-
     @dataclass
     class AddServiceEndpointMutationData(DataClassJsonMixin):
         @dataclass
@@ -76,13 +50,39 @@ class AddServiceEndpointMutation(DataClassJsonMixin):
             externalId: Optional[str] = None
             customer: Optional[Customer] = None
 
-        addServiceEndpoint: Optional[Service] = None
+        addServiceEndpoint: Service
 
-    data: Optional[AddServiceEndpointMutationData] = None
+    data: AddServiceEndpointMutationData
+
+    __QUERY__: str = """
+    mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
+  addServiceEndpoint(input: $input) {
+    id
+    name
+    externalId
+    customer {
+      id
+      name
+      externalId
+    }
+    endpoints {
+      id
+      port {
+        id
+      }
+      role
+    }
+    links {
+      id
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddServiceEndpointInput):
+    def execute(cls, client: GraphqlClient, input: AddServiceEndpointInput) -> AddServiceEndpointMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

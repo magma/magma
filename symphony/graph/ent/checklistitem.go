@@ -154,14 +154,14 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 
 // QueryWorkOrder queries the work_order edge of the CheckListItem.
 func (cli *CheckListItem) QueryWorkOrder() *WorkOrderQuery {
-	return (&CheckListItemClient{cli.config}).QueryWorkOrder(cli)
+	return (&CheckListItemClient{config: cli.config}).QueryWorkOrder(cli)
 }
 
 // Update returns a builder for updating this CheckListItem.
 // Note that, you need to call CheckListItem.Unwrap() before calling this method, if this CheckListItem
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (cli *CheckListItem) Update() *CheckListItemUpdateOne {
-	return (&CheckListItemClient{cli.config}).UpdateOne(cli)
+	return (&CheckListItemClient{config: cli.config}).UpdateOne(cli)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

@@ -38,7 +38,7 @@ func main() {
 	protos.RegisterHSSConfiguratorServer(srv.GrpcServer, servicer)
 
 	if config.StreamSubscribers {
-		streamerClient := streamer.NewStreamerClient(registry.NewCloudRegistry())
+		streamerClient := streamer.NewStreamerClient(registry.Get())
 		l := storage.NewSubscriberListener(store)
 		if err = streamerClient.AddListener(l); err != nil {
 			log.Printf("Failed to start subscriber streaming: %s", err.Error())

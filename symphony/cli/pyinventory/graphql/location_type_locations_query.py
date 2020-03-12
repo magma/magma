@@ -14,30 +14,6 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class LocationTypeLocationsQuery(DataClassJsonMixin):
-    __QUERY__: str = """
-    query LocationTypeLocationsQuery($id: ID!) {
-  locationType: node(id: $id) {
-    ... on LocationType {
-      locations {
-        edges {
-          node {
-            id
-            name
-            latitude
-            longitude
-            externalId
-            locationType {
-              name
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @dataclass
     class LocationTypeLocationsQueryData(DataClassJsonMixin):
         @dataclass
@@ -67,11 +43,35 @@ class LocationTypeLocationsQuery(DataClassJsonMixin):
 
         locationType: Optional[Node] = None
 
-    data: Optional[LocationTypeLocationsQueryData] = None
+    data: LocationTypeLocationsQueryData
+
+    __QUERY__: str = """
+    query LocationTypeLocationsQuery($id: ID!) {
+  locationType: node(id: $id) {
+    ... on LocationType {
+      locations {
+        edges {
+          node {
+            id
+            name
+            latitude
+            longitude
+            externalId
+            locationType {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, id: str):
+    def execute(cls, client: GraphqlClient, id: str) -> LocationTypeLocationsQueryData:
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

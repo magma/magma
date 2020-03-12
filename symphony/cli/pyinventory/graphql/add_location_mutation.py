@@ -16,6 +16,25 @@ from .add_location_input import AddLocationInput
 
 @dataclass
 class AddLocationMutation(DataClassJsonMixin):
+    @dataclass
+    class AddLocationMutationData(DataClassJsonMixin):
+        @dataclass
+        class Location(DataClassJsonMixin):
+            @dataclass
+            class LocationType(DataClassJsonMixin):
+                name: str
+
+            id: str
+            name: str
+            latitude: Number
+            longitude: Number
+            locationType: LocationType
+            externalId: Optional[str] = None
+
+        addLocation: Location
+
+    data: AddLocationMutationData
+
     __QUERY__: str = """
     mutation AddLocationMutation($input: AddLocationInput!) {
   addLocation(input: $input) {
@@ -32,28 +51,9 @@ class AddLocationMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class AddLocationMutationData(DataClassJsonMixin):
-        @dataclass
-        class Location(DataClassJsonMixin):
-            @dataclass
-            class LocationType(DataClassJsonMixin):
-                name: str
-
-            id: str
-            name: str
-            latitude: Number
-            longitude: Number
-            locationType: LocationType
-            externalId: Optional[str] = None
-
-        addLocation: Optional[Location] = None
-
-    data: Optional[AddLocationMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddLocationInput):
+    def execute(cls, client: GraphqlClient, input: AddLocationInput) -> AddLocationMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

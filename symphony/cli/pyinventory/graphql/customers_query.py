@@ -14,21 +14,6 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class CustomersQuery(DataClassJsonMixin):
-    __QUERY__: str = """
-    query CustomersQuery {
-  customers {
-    edges {
-      node {
-        id
-        name
-        externalId
-      }
-    }
-  }
-}
-
-    """
-
     @dataclass
     class CustomersQueryData(DataClassJsonMixin):
         @dataclass
@@ -47,11 +32,26 @@ class CustomersQuery(DataClassJsonMixin):
 
         customers: Optional[CustomerConnection] = None
 
-    data: Optional[CustomersQueryData] = None
+    data: CustomersQueryData
+
+    __QUERY__: str = """
+    query CustomersQuery {
+  customers {
+    edges {
+      node {
+        id
+        name
+        externalId
+      }
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient):
+    def execute(cls, client: GraphqlClient) -> CustomersQueryData:
         # fmt: off
         variables = {}
         response_text = client.call(cls.__QUERY__, variables=variables)

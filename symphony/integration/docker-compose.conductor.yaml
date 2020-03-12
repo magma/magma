@@ -1,0 +1,73 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+version: "3.7"
+
+services:
+  conductor-server:
+    environment:
+      - CONFIG_PROP=config.properties
+    image: thesymphony/conductor-server
+    entrypoint: /bin/sh
+    command: -c 'apk add --no-cache curl || /bin/true && /app/startup.sh'
+    networks:
+      - public
+      - private
+    ports:
+      - 5080:8080
+    depends_on:
+      - elasticsearch
+      - dynomite
+    restart: on-failure
+    healthcheck:
+      test: curl -If localhost:8080/index.html
+      interval: 15s
+      timeout: 5s
+      retries: 12
+
+  conductor-ui:
+    environment:
+      - WF_SERVER=http://conductor-server:8080/api/
+    image: thesymphony/conductor-ui
+    networks:
+      - public
+    ports:
+      - 5000:5000
+    depends_on:
+      - conductor-server
+    healthcheck:
+      test: timeout -t 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/5000'
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  dynomite:
+    image: v1r3n/dynomite
+    networks:
+      private:
+        aliases:
+          - dyno1
+    healthcheck:
+      test: timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/8102'
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  # https://www.elastic.co/guide/en/elasticsearch/reference/5.6/docker.html
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.8
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - transport.host=0.0.0.0
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    networks:
+      private:
+        aliases:
+          - es
+    healthcheck:
+      test: timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/9300'
+      interval: 5s
+      timeout: 5s
+      retries: 12

@@ -44,8 +44,10 @@ class CliResponse;
 
 // ===================================================================
 
-class CliRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CliRequest)
-                                                       */
+class CliRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CliRequest)
+                   */
 {
  public:
   CliRequest();
@@ -154,8 +156,10 @@ class CliRequest : public ::google::protobuf::Message /* @@protoc_insertion_poin
 };
 // -------------------------------------------------------------------
 
-class CliResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CliResponse)
-                                                        */
+class CliResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CliResponse)
+                   */
 {
  public:
   CliResponse();

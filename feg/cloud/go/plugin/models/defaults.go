@@ -77,15 +77,17 @@ func newDefaultEapAka() *EapAka {
 
 func newDefaultGx() *Gx {
 	return &Gx{
-		Server: newDefaultDiameterClientConfigs(),
+		Server:       newDefaultDiameterClientConfigs(),
+		OverwriteApn: "",
 	}
 }
 
 func newDefaultGy() *Gy {
 	initMethod := uint32(float32(1))
 	return &Gy{
-		InitMethod: &initMethod,
-		Server:     newDefaultDiameterClientConfigs(),
+		InitMethod:   &initMethod,
+		Server:       newDefaultDiameterClientConfigs(),
+		OverwriteApn: "",
 	}
 }
 

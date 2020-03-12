@@ -14,26 +14,6 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class ServiceTypeServicesQuery(DataClassJsonMixin):
-    __QUERY__: str = """
-    query ServiceTypeServicesQuery($id: ID!) {
-  serviceType: node(id: $id) {
-    ... on ServiceType {
-      services {
-        id
-        name
-        externalId
-        customer {
-          id
-          name
-          externalId
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @dataclass
     class ServiceTypeServicesQueryData(DataClassJsonMixin):
         @dataclass
@@ -55,11 +35,31 @@ class ServiceTypeServicesQuery(DataClassJsonMixin):
 
         serviceType: Optional[Node] = None
 
-    data: Optional[ServiceTypeServicesQueryData] = None
+    data: ServiceTypeServicesQueryData
+
+    __QUERY__: str = """
+    query ServiceTypeServicesQuery($id: ID!) {
+  serviceType: node(id: $id) {
+    ... on ServiceType {
+      services {
+        id
+        name
+        externalId
+        customer {
+          id
+          name
+          externalId
+        }
+      }
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, id: str):
+    def execute(cls, client: GraphqlClient, id: str) -> ServiceTypeServicesQueryData:
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

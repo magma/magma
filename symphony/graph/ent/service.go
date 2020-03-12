@@ -197,44 +197,44 @@ func (s *Service) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the Service.
 func (s *Service) QueryType() *ServiceTypeQuery {
-	return (&ServiceClient{s.config}).QueryType(s)
+	return (&ServiceClient{config: s.config}).QueryType(s)
 }
 
 // QueryDownstream queries the downstream edge of the Service.
 func (s *Service) QueryDownstream() *ServiceQuery {
-	return (&ServiceClient{s.config}).QueryDownstream(s)
+	return (&ServiceClient{config: s.config}).QueryDownstream(s)
 }
 
 // QueryUpstream queries the upstream edge of the Service.
 func (s *Service) QueryUpstream() *ServiceQuery {
-	return (&ServiceClient{s.config}).QueryUpstream(s)
+	return (&ServiceClient{config: s.config}).QueryUpstream(s)
 }
 
 // QueryProperties queries the properties edge of the Service.
 func (s *Service) QueryProperties() *PropertyQuery {
-	return (&ServiceClient{s.config}).QueryProperties(s)
+	return (&ServiceClient{config: s.config}).QueryProperties(s)
 }
 
 // QueryLinks queries the links edge of the Service.
 func (s *Service) QueryLinks() *LinkQuery {
-	return (&ServiceClient{s.config}).QueryLinks(s)
+	return (&ServiceClient{config: s.config}).QueryLinks(s)
 }
 
 // QueryCustomer queries the customer edge of the Service.
 func (s *Service) QueryCustomer() *CustomerQuery {
-	return (&ServiceClient{s.config}).QueryCustomer(s)
+	return (&ServiceClient{config: s.config}).QueryCustomer(s)
 }
 
 // QueryEndpoints queries the endpoints edge of the Service.
 func (s *Service) QueryEndpoints() *ServiceEndpointQuery {
-	return (&ServiceClient{s.config}).QueryEndpoints(s)
+	return (&ServiceClient{config: s.config}).QueryEndpoints(s)
 }
 
 // Update returns a builder for updating this Service.
 // Note that, you need to call Service.Unwrap() before calling this method, if this Service
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (s *Service) Update() *ServiceUpdateOne {
-	return (&ServiceClient{s.config}).UpdateOne(s)
+	return (&ServiceClient{config: s.config}).UpdateOne(s)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

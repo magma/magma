@@ -39,6 +39,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
@@ -49,6 +50,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -115,6 +117,8 @@ type Client struct {
 	Property *PropertyClient
 	// PropertyType is the client for interacting with the PropertyType builders.
 	PropertyType *PropertyTypeClient
+	// ReportFilter is the client for interacting with the ReportFilter builders.
+	ReportFilter *ReportFilterClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
 	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
@@ -135,6 +139,8 @@ type Client struct {
 	SurveyWiFiScan *SurveyWiFiScanClient
 	// Technician is the client for interacting with the Technician builders.
 	Technician *TechnicianClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 	// WorkOrder is the client for interacting with the WorkOrder builders.
 	WorkOrder *WorkOrderClient
 	// WorkOrderDefinition is the client for interacting with the WorkOrderDefinition builders.
@@ -179,6 +185,7 @@ func NewClient(opts ...Option) *Client {
 		ProjectType:                 NewProjectTypeClient(c),
 		Property:                    NewPropertyClient(c),
 		PropertyType:                NewPropertyTypeClient(c),
+		ReportFilter:                NewReportFilterClient(c),
 		Service:                     NewServiceClient(c),
 		ServiceEndpoint:             NewServiceEndpointClient(c),
 		ServiceType:                 NewServiceTypeClient(c),
@@ -189,6 +196,7 @@ func NewClient(opts ...Option) *Client {
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(c),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(c),
 		Technician:                  NewTechnicianClient(c),
+		User:                        NewUserClient(c),
 		WorkOrder:                   NewWorkOrderClient(c),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(c),
 		WorkOrderType:               NewWorkOrderTypeClient(c),
@@ -249,6 +257,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
+		ReportFilter:                NewReportFilterClient(cfg),
 		Service:                     NewServiceClient(cfg),
 		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
@@ -259,6 +268,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
 		Technician:                  NewTechnicianClient(cfg),
+		User:                        NewUserClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
 		WorkOrderType:               NewWorkOrderTypeClient(cfg),
@@ -306,6 +316,7 @@ func (c *Client) Debug() *Client {
 		ProjectType:                 NewProjectTypeClient(cfg),
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
+		ReportFilter:                NewReportFilterClient(cfg),
 		Service:                     NewServiceClient(cfg),
 		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
@@ -316,6 +327,7 @@ func (c *Client) Debug() *Client {
 		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
 		Technician:                  NewTechnicianClient(cfg),
+		User:                        NewUserClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
 		WorkOrderType:               NewWorkOrderTypeClient(cfg),
@@ -3181,6 +3193,70 @@ func (c *PropertyTypeClient) QueryProjectType(pt *PropertyType) *ProjectTypeQuer
 	return query
 }
 
+// ReportFilterClient is a client for the ReportFilter schema.
+type ReportFilterClient struct {
+	config
+}
+
+// NewReportFilterClient returns a client for the ReportFilter from the given config.
+func NewReportFilterClient(c config) *ReportFilterClient {
+	return &ReportFilterClient{config: c}
+}
+
+// Create returns a create builder for ReportFilter.
+func (c *ReportFilterClient) Create() *ReportFilterCreate {
+	return &ReportFilterCreate{config: c.config}
+}
+
+// Update returns an update builder for ReportFilter.
+func (c *ReportFilterClient) Update() *ReportFilterUpdate {
+	return &ReportFilterUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportFilterClient) UpdateOne(rf *ReportFilter) *ReportFilterUpdateOne {
+	return c.UpdateOneID(rf.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportFilterClient) UpdateOneID(id int) *ReportFilterUpdateOne {
+	return &ReportFilterUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for ReportFilter.
+func (c *ReportFilterClient) Delete() *ReportFilterDelete {
+	return &ReportFilterDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ReportFilterClient) DeleteOne(rf *ReportFilter) *ReportFilterDeleteOne {
+	return c.DeleteOneID(rf.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ReportFilterClient) DeleteOneID(id int) *ReportFilterDeleteOne {
+	return &ReportFilterDeleteOne{c.Delete().Where(reportfilter.ID(id))}
+}
+
+// Create returns a query builder for ReportFilter.
+func (c *ReportFilterClient) Query() *ReportFilterQuery {
+	return &ReportFilterQuery{config: c.config}
+}
+
+// Get returns a ReportFilter entity by its id.
+func (c *ReportFilterClient) Get(ctx context.Context, id int) (*ReportFilter, error) {
+	return c.Query().Where(reportfilter.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportFilterClient) GetX(ctx context.Context, id int) *ReportFilter {
+	rf, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return rf
+}
+
 // ServiceClient is a client for the Service schema.
 type ServiceClient struct {
 	config
@@ -4167,6 +4243,84 @@ func (c *TechnicianClient) QueryWorkOrders(t *Technician) *WorkOrderQuery {
 		sqlgraph.Edge(sqlgraph.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
 	)
 	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
+
+	return query
+}
+
+// UserClient is a client for the User schema.
+type UserClient struct {
+	config
+}
+
+// NewUserClient returns a client for the User from the given config.
+func NewUserClient(c config) *UserClient {
+	return &UserClient{config: c}
+}
+
+// Create returns a create builder for User.
+func (c *UserClient) Create() *UserCreate {
+	return &UserCreate{config: c.config}
+}
+
+// Update returns an update builder for User.
+func (c *UserClient) Update() *UserUpdate {
+	return &UserUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
+	return c.UpdateOneID(u.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
+	return &UserUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for User.
+func (c *UserClient) Delete() *UserDelete {
+	return &UserDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
+	return c.DeleteOneID(u.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
+	return &UserDeleteOne{c.Delete().Where(user.ID(id))}
+}
+
+// Create returns a query builder for User.
+func (c *UserClient) Query() *UserQuery {
+	return &UserQuery{config: c.config}
+}
+
+// Get returns a User entity by its id.
+func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
+	return c.Query().Where(user.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserClient) GetX(ctx context.Context, id int) *User {
+	u, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return u
+}
+
+// QueryProfilePhoto queries the profile_photo edge of a User.
+func (c *UserClient) QueryProfilePhoto(u *User) *FileQuery {
+	query := &FileQuery{config: c.config}
+	id := u.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(user.Table, user.FieldID, id),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, user.ProfilePhotoTable, user.ProfilePhotoColumn),
+	)
+	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
 
 	return query
 }

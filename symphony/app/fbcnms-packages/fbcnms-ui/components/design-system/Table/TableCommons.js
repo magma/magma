@@ -14,6 +14,9 @@ const styles = {
     padding: '4px 8px 4px 16px',
     minHeight: '48px',
     height: '48px',
+    width: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
 };
 

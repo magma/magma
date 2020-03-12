@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from typing import Any, Dict
 
 import requests
 from gql.gql import gql
 from gql.gql.client import Client
-from graphql.language.ast import DocumentNode
 
 from .reporter import DUMMY_REPORTER, Reporter
-from .session import RequestsHTTPSessionTransport
+from .transport.session import RequestsHTTPSessionTransport
 
 
 class GraphqlClient:
@@ -49,11 +47,4 @@ class GraphqlClient:
         )
 
     def call(self, query: str, variables: Dict[str, Any]) -> str:
-        return self.client.execute(
-            gql(query), variable_values=variables, return_json=False
-        )
-
-    def query(
-        self, query_name: str, query: DocumentNode, variables: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        return self.client.execute(query, variable_values=variables)[query_name]
+        return self.client.execute(gql(query), variable_values=variables)

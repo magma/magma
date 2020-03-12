@@ -19,43 +19,6 @@ from .edit_equipment_type_input import EditEquipmentTypeInput
 
 @dataclass
 class EditEquipmentTypeMutation(DataClassJsonMixin):
-    __QUERY__: str = """
-    mutation EditEquipmentTypeMutation($input: EditEquipmentTypeInput!) {
-  editEquipmentType(input: $input) {
-    id
-    name
-    category
-    propertyTypes {
-      id
-      name
-      type
-      index
-      stringValue
-      intValue
-      booleanValue
-      floatValue
-      latitudeValue
-      longitudeValue
-      isEditable
-      isInstanceProperty
-    }
-    positionDefinitions {
-      id
-      name
-      index
-      visibleLabel
-    }
-    portDefinitions {
-      id
-      name
-      index
-      visibleLabel
-    }
-  }
-}
-
-    """
-
     @dataclass
     class EditEquipmentTypeMutationData(DataClassJsonMixin):
         @dataclass
@@ -96,13 +59,50 @@ class EditEquipmentTypeMutation(DataClassJsonMixin):
             portDefinitions: List[EquipmentPortDefinition]
             category: Optional[str] = None
 
-        editEquipmentType: Optional[EquipmentType] = None
+        editEquipmentType: EquipmentType
 
-    data: Optional[EditEquipmentTypeMutationData] = None
+    data: EditEquipmentTypeMutationData
+
+    __QUERY__: str = """
+    mutation EditEquipmentTypeMutation($input: EditEquipmentTypeInput!) {
+  editEquipmentType(input: $input) {
+    id
+    name
+    category
+    propertyTypes {
+      id
+      name
+      type
+      index
+      stringValue
+      intValue
+      booleanValue
+      floatValue
+      latitudeValue
+      longitudeValue
+      isEditable
+      isInstanceProperty
+    }
+    positionDefinitions {
+      id
+      name
+      index
+      visibleLabel
+    }
+    portDefinitions {
+      id
+      name
+      index
+      visibleLabel
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: EditEquipmentTypeInput):
+    def execute(cls, client: GraphqlClient, input: EditEquipmentTypeInput) -> EditEquipmentTypeMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

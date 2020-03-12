@@ -16,6 +16,12 @@ from .survey_create_data_input import SurveyCreateData
 
 @dataclass
 class CreateSurveyMutation(DataClassJsonMixin):
+    @dataclass
+    class CreateSurveyMutationData(DataClassJsonMixin):
+        createSurvey: str
+
+    data: CreateSurveyMutationData
+
     __QUERY__: str = """
     mutation CreateSurveyMutation($data: SurveyCreateData!) {
   createSurvey(data: $data)
@@ -23,15 +29,9 @@ class CreateSurveyMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class CreateSurveyMutationData(DataClassJsonMixin):
-        createSurvey: Optional[str] = None
-
-    data: Optional[CreateSurveyMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, data: SurveyCreateData):
+    def execute(cls, client: GraphqlClient, data: SurveyCreateData) -> CreateSurveyMutationData:
         # fmt: off
         variables = {"data": data}
         response_text = client.call(cls.__QUERY__, variables=variables)

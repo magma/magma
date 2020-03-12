@@ -280,69 +280,69 @@ func (l *Location) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the Location.
 func (l *Location) QueryType() *LocationTypeQuery {
-	return (&LocationClient{l.config}).QueryType(l)
+	return (&LocationClient{config: l.config}).QueryType(l)
 }
 
 // QueryParent queries the parent edge of the Location.
 func (l *Location) QueryParent() *LocationQuery {
-	return (&LocationClient{l.config}).QueryParent(l)
+	return (&LocationClient{config: l.config}).QueryParent(l)
 }
 
 // QueryChildren queries the children edge of the Location.
 func (l *Location) QueryChildren() *LocationQuery {
-	return (&LocationClient{l.config}).QueryChildren(l)
+	return (&LocationClient{config: l.config}).QueryChildren(l)
 }
 
 // QueryFiles queries the files edge of the Location.
 func (l *Location) QueryFiles() *FileQuery {
-	return (&LocationClient{l.config}).QueryFiles(l)
+	return (&LocationClient{config: l.config}).QueryFiles(l)
 }
 
 // QueryHyperlinks queries the hyperlinks edge of the Location.
 func (l *Location) QueryHyperlinks() *HyperlinkQuery {
-	return (&LocationClient{l.config}).QueryHyperlinks(l)
+	return (&LocationClient{config: l.config}).QueryHyperlinks(l)
 }
 
 // QueryEquipment queries the equipment edge of the Location.
 func (l *Location) QueryEquipment() *EquipmentQuery {
-	return (&LocationClient{l.config}).QueryEquipment(l)
+	return (&LocationClient{config: l.config}).QueryEquipment(l)
 }
 
 // QueryProperties queries the properties edge of the Location.
 func (l *Location) QueryProperties() *PropertyQuery {
-	return (&LocationClient{l.config}).QueryProperties(l)
+	return (&LocationClient{config: l.config}).QueryProperties(l)
 }
 
 // QuerySurvey queries the survey edge of the Location.
 func (l *Location) QuerySurvey() *SurveyQuery {
-	return (&LocationClient{l.config}).QuerySurvey(l)
+	return (&LocationClient{config: l.config}).QuerySurvey(l)
 }
 
 // QueryWifiScan queries the wifi_scan edge of the Location.
 func (l *Location) QueryWifiScan() *SurveyWiFiScanQuery {
-	return (&LocationClient{l.config}).QueryWifiScan(l)
+	return (&LocationClient{config: l.config}).QueryWifiScan(l)
 }
 
 // QueryCellScan queries the cell_scan edge of the Location.
 func (l *Location) QueryCellScan() *SurveyCellScanQuery {
-	return (&LocationClient{l.config}).QueryCellScan(l)
+	return (&LocationClient{config: l.config}).QueryCellScan(l)
 }
 
 // QueryWorkOrders queries the work_orders edge of the Location.
 func (l *Location) QueryWorkOrders() *WorkOrderQuery {
-	return (&LocationClient{l.config}).QueryWorkOrders(l)
+	return (&LocationClient{config: l.config}).QueryWorkOrders(l)
 }
 
 // QueryFloorPlans queries the floor_plans edge of the Location.
 func (l *Location) QueryFloorPlans() *FloorPlanQuery {
-	return (&LocationClient{l.config}).QueryFloorPlans(l)
+	return (&LocationClient{config: l.config}).QueryFloorPlans(l)
 }
 
 // Update returns a builder for updating this Location.
 // Note that, you need to call Location.Unwrap() before calling this method, if this Location
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (l *Location) Update() *LocationUpdateOne {
-	return (&LocationClient{l.config}).UpdateOne(l)
+	return (&LocationClient{config: l.config}).UpdateOne(l)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

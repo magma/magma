@@ -174,24 +174,24 @@ func (s *Survey) assignValues(values ...interface{}) error {
 
 // QueryLocation queries the location edge of the Survey.
 func (s *Survey) QueryLocation() *LocationQuery {
-	return (&SurveyClient{s.config}).QueryLocation(s)
+	return (&SurveyClient{config: s.config}).QueryLocation(s)
 }
 
 // QuerySourceFile queries the source_file edge of the Survey.
 func (s *Survey) QuerySourceFile() *FileQuery {
-	return (&SurveyClient{s.config}).QuerySourceFile(s)
+	return (&SurveyClient{config: s.config}).QuerySourceFile(s)
 }
 
 // QueryQuestions queries the questions edge of the Survey.
 func (s *Survey) QueryQuestions() *SurveyQuestionQuery {
-	return (&SurveyClient{s.config}).QueryQuestions(s)
+	return (&SurveyClient{config: s.config}).QueryQuestions(s)
 }
 
 // Update returns a builder for updating this Survey.
 // Note that, you need to call Survey.Unwrap() before calling this method, if this Survey
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (s *Survey) Update() *SurveyUpdateOne {
-	return (&SurveyClient{s.config}).UpdateOne(s)
+	return (&SurveyClient{config: s.config}).UpdateOne(s)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

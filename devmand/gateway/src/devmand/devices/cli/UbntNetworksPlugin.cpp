@@ -33,7 +33,7 @@ using namespace folly;
 using namespace ydk;
 
 DeviceType UbntNetworksPlugin::getDeviceType() const {
-  return {"ubnt", "*"};
+  return {"ubiquiti", "*"};
 }
 
 static Future<string> invokeRead(

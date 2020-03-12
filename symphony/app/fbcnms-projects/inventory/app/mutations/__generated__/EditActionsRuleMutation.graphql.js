@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 1c7dad697c8ec8505a4fcc0be7fa5e3b
+ * @relayHash 415a9f27c274e7a48d2828737974242a
  */
 
 /* eslint-disable */
@@ -38,7 +38,7 @@ export type EditActionsRuleMutationVariables = {|
   input: AddActionsRuleInput,
 |};
 export type EditActionsRuleMutationResponse = {|
-  +editActionsRule: ?{|
+  +editActionsRule: {|
     +$fragmentRefs: ActionsListCard_actionsRule$ref
   |}
 |};

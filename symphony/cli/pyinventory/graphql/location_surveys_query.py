@@ -17,40 +17,6 @@ from .survey_question_type_enum import SurveyQuestionType
 
 @dataclass
 class LocationSurveysQuery(DataClassJsonMixin):
-    __QUERY__: str = """
-    query LocationSurveysQuery($id: ID!) {
-  location: node(id: $id) {
-    ... on Location {
-      surveys {
-        id
-        name
-        completionTimestamp
-        sourceFile {
-          id
-          fileName
-          storeKey
-        }
-        surveyResponses {
-          formName
-          questionFormat
-          questionText
-          boolData
-          emailData
-          latitude
-          longitude
-          phoneData
-          textData
-          floatData
-          intData
-          dateData
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @dataclass
     class LocationSurveysQueryData(DataClassJsonMixin):
         @dataclass
@@ -88,11 +54,45 @@ class LocationSurveysQuery(DataClassJsonMixin):
 
         location: Optional[Node] = None
 
-    data: Optional[LocationSurveysQueryData] = None
+    data: LocationSurveysQueryData
+
+    __QUERY__: str = """
+    query LocationSurveysQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      surveys {
+        id
+        name
+        completionTimestamp
+        sourceFile {
+          id
+          fileName
+          storeKey
+        }
+        surveyResponses {
+          formName
+          questionFormat
+          questionText
+          boolData
+          emailData
+          latitude
+          longitude
+          phoneData
+          textData
+          floatData
+          intData
+          dateData
+        }
+      }
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, id: str):
+    def execute(cls, client: GraphqlClient, id: str) -> LocationSurveysQueryData:
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

@@ -291,19 +291,19 @@ func (scs *SurveyCellScan) assignValues(values ...interface{}) error {
 
 // QuerySurveyQuestion queries the survey_question edge of the SurveyCellScan.
 func (scs *SurveyCellScan) QuerySurveyQuestion() *SurveyQuestionQuery {
-	return (&SurveyCellScanClient{scs.config}).QuerySurveyQuestion(scs)
+	return (&SurveyCellScanClient{config: scs.config}).QuerySurveyQuestion(scs)
 }
 
 // QueryLocation queries the location edge of the SurveyCellScan.
 func (scs *SurveyCellScan) QueryLocation() *LocationQuery {
-	return (&SurveyCellScanClient{scs.config}).QueryLocation(scs)
+	return (&SurveyCellScanClient{config: scs.config}).QueryLocation(scs)
 }
 
 // Update returns a builder for updating this SurveyCellScan.
 // Note that, you need to call SurveyCellScan.Unwrap() before calling this method, if this SurveyCellScan
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (scs *SurveyCellScan) Update() *SurveyCellScanUpdateOne {
-	return (&SurveyCellScanClient{scs.config}).UpdateOne(scs)
+	return (&SurveyCellScanClient{config: scs.config}).UpdateOne(scs)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

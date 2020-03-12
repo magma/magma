@@ -75,71 +75,75 @@ const TablesRoot = () => {
 
   return (
     <div className={classes.root}>
-      <Table
-        className={classes.table}
-        data={DATA}
-        columns={[
-          {key: '0', title: 'First Name', render: row => row.firstName},
-          {key: '1', title: 'Last Name', render: row => row.lastName},
-          {key: '2', title: 'Birth Date', render: row => row.birthDate},
-          {key: '3', title: 'City', render: row => row.city},
-        ]}
-      />
-      <Table
-        className={classes.table}
-        showSelection
-        selectedIds={selectedIds}
-        onSelectionChanged={ids => setSelectedIds(ids)}
-        data={DATA}
-        columns={[
-          {key: '0', title: 'First Name', render: row => row.firstName},
-          {key: '1', title: 'Last Name', render: row => row.lastName},
-          {key: '2', title: 'Birth Date', render: row => row.birthDate},
-          {key: '3', title: 'City', render: row => row.city},
-        ]}
-      />
-      <Table
-        className={classes.table}
-        data={sortedData}
-        columns={[
-          {
-            key: 'firstName',
-            title: 'First Name',
-            render: row => row.firstName,
-            sortable: true,
-            sortDirection:
-              sortColumn === 'firstName' ? sortDirection : undefined,
-          },
-          {
-            key: 'lastName',
-            title: 'Last Name',
-            render: row => row.lastName,
-            sortable: true,
-            sortDirection:
-              sortColumn === 'lastName' ? sortDirection : undefined,
-          },
-          {
-            key: 'birthDate',
-            title: 'Birth Date',
-            render: row => row.birthDate,
-          },
-          {
-            key: 'city',
-            title: 'City',
-            render: row => row.city,
-            sortable: true,
-            sortDirection: sortColumn === 'city' ? sortDirection : undefined,
-          },
-        ]}
-        onSortClicked={col => {
-          if (sortColumn === col) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-          } else {
-            setSortColumn(col);
-            setSortDirection('desc');
-          }
-        }}
-      />
+      <div className={classes.table}>
+        <Table
+          data={DATA}
+          columns={[
+            {key: '0', title: 'First Name', render: row => row.firstName},
+            {key: '1', title: 'Last Name', render: row => row.lastName},
+            {key: '2', title: 'Birth Date', render: row => row.birthDate},
+            {key: '3', title: 'City', render: row => row.city},
+          ]}
+        />
+      </div>
+      <div className={classes.table}>
+        <Table
+          showSelection
+          selectedIds={selectedIds}
+          onSelectionChanged={ids => setSelectedIds(ids)}
+          data={DATA}
+          columns={[
+            {key: '0', title: 'First Name', render: row => row.firstName},
+            {key: '1', title: 'Last Name', render: row => row.lastName},
+            {key: '2', title: 'Birth Date', render: row => row.birthDate},
+            {key: '3', title: 'City', render: row => row.city},
+          ]}
+        />
+      </div>
+      <div className={classes.table}>
+        <Table
+          className={classes.table}
+          data={sortedData}
+          columns={[
+            {
+              key: 'firstName',
+              title: 'First Name',
+              render: row => row.firstName,
+              sortable: true,
+              sortDirection:
+                sortColumn === 'firstName' ? sortDirection : undefined,
+            },
+            {
+              key: 'lastName',
+              title: 'Last Name',
+              render: row => row.lastName,
+              sortable: true,
+              sortDirection:
+                sortColumn === 'lastName' ? sortDirection : undefined,
+            },
+            {
+              key: 'birthDate',
+              title: 'Birth Date',
+              render: row => row.birthDate,
+            },
+            {
+              key: 'city',
+              title: 'City',
+              render: row => row.city,
+              sortable: true,
+              sortDirection: sortColumn === 'city' ? sortDirection : undefined,
+            },
+          ]}
+          onSortClicked={col => {
+            if (sortColumn === col) {
+              setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+            } else {
+              setSortColumn(col);
+              setSortDirection('desc');
+            }
+          }}
+        />
+      </div>
     </div>
   );
 };

@@ -6,6 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import shlex
 import subprocess
 from typing import NamedTuple, Dict
 
@@ -34,7 +35,8 @@ class IPFIXController(MagmaController):
         'IPFIXConfig',
         [('enabled', bool), ('collector_ip', str), ('collector_port', int),
          ('probability', int), ('collector_set_id', int),
-         ('obs_domain_id', int), ('obs_point_id', int), ('gtp_port', int)],
+         ('obs_domain_id', int), ('obs_point_id', int), ('cache_timeout', int),
+         ('gtp_port', int)],
     )
 
     def __init__(self, *args, **kwargs):
@@ -60,6 +62,7 @@ class IPFIXController(MagmaController):
             collector_set_id=config_dict['ipfix']['collector_set_id'],
             obs_domain_id=config_dict['ipfix']['obs_domain_id'],
             obs_point_id=config_dict['ipfix']['obs_point_id'],
+            cache_timeout=config_dict['ipfix']['cache_timeout'],
             gtp_port=config_dict['ovs_gtp_port_number']
         )
 
@@ -74,26 +77,31 @@ class IPFIXController(MagmaController):
         self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
 
+        rm_cmd = "ovs-vsctl destroy Flow_Sample_Collector_Set {}" \
+            .format(self.ipfix_config.collector_set_id)
+
+        args = shlex.split(rm_cmd)
+        ret = subprocess.call(args)
+        self.logger.debug("Removed old Flow_Sample_Collector_Set ret %d", ret)
+
         action_str = (
             'ovs-vsctl -- --id=@{} get Bridge {} -- --id=@cs create '
             'Flow_Sample_Collector_Set id={} bridge=@{} ipfix=@i -- --id=@i '
-            'create IPFIX targets=\"{}\\:{}\" obs_domain_id={} obs_point_id={}'
+            'create IPFIX targets=\"{}\\:{}\" obs_domain_id={} obs_point_id={} '
+            'cache_active_timeout={}'
         ).format(
             self._bridge_name, self._bridge_name,
             self.ipfix_config.collector_set_id, self._bridge_name,
             self.ipfix_config.collector_ip, self.ipfix_config.collector_port,
-            self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id
+            self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
+            self.ipfix_config.cache_timeout
         )
         try:
             p = subprocess.Popen(action_str, shell=True,
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, err = p.communicate()
             err_str = err.decode('utf-8')
-            # There is a benign double init error that we ignore
-            if 'Transaction causes multiple rows in' in err_str:
-                self.logger.info("IPFIX flow sample collector already created")
-            else:
-                self.logger.error(err_str)
+            self.logger.error(err_str)
         except subprocess.CalledProcessError as e:
             raise Exception('Error: {} failed with: {}'.format(action_str, e))
 
@@ -146,13 +154,13 @@ class IPFIXController(MagmaController):
             'ovs-ofctl add-flow {} "table={},priority={},metadata={},'
             'actions=sample(probability={},collector_set_id={},'
             'obs_domain_id={},obs_point_id={},apn_mac_addr={},msisdn={},'
-            'apn_name={},sampling_port={}),resubmit(,{})"'
+            'apn_name={}),resubmit(,{})"'
         ).format(
             self._bridge_name, self.tbl_num, flows.UE_FLOW_PRIORITY, imsi_hex,
             self.ipfix_config.probability, self.ipfix_config.collector_set_id,
             self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
             apn_mac_addr.replace("-", ":"), msisdn, apn_name,
-            self.ipfix_config.gtp_port, self.next_main_table
+            self.next_main_table
         )
         try:
             subprocess.Popen(action_str, shell=True).wait()

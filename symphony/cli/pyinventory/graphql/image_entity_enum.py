@@ -8,6 +8,7 @@ class ImageEntity(Enum):
     WORK_ORDER = "WORK_ORDER"
     SITE_SURVEY = "SITE_SURVEY"
     EQUIPMENT = "EQUIPMENT"
+    USER = "USER"
     MISSING_ENUM = ""
 
     @classmethod

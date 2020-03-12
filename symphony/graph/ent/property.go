@@ -33,21 +33,21 @@ type Property struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// IntVal holds the value of the "int_val" field.
-	IntVal int `json:"int_val,omitempty" gqlgen:"intValue"`
+	IntVal int `json:"intValue" gqlgen:"intValue"`
 	// BoolVal holds the value of the "bool_val" field.
-	BoolVal bool `json:"bool_val,omitempty" gqlgen:"booleanValue"`
+	BoolVal bool `json:"booleanValue" gqlgen:"booleanValue"`
 	// FloatVal holds the value of the "float_val" field.
-	FloatVal float64 `json:"float_val,omitempty" gqlgen:"floatValue"`
+	FloatVal float64 `json:"floatValue" gqlgen:"floatValue"`
 	// LatitudeVal holds the value of the "latitude_val" field.
-	LatitudeVal float64 `json:"latitude_val,omitempty" gqlgen:"latitudeValue"`
+	LatitudeVal float64 `json:"latitudeValue" gqlgen:"latitudeValue"`
 	// LongitudeVal holds the value of the "longitude_val" field.
-	LongitudeVal float64 `json:"longitude_val,omitempty" gqlgen:"longitudeValue"`
+	LongitudeVal float64 `json:"longitudeValue" gqlgen:"longitudeValue"`
 	// RangeFromVal holds the value of the "range_from_val" field.
-	RangeFromVal float64 `json:"range_from_val,omitempty" gqlgen:"rangeFromValue"`
+	RangeFromVal float64 `json:"rangeFromValue" gqlgen:"rangeFromValue"`
 	// RangeToVal holds the value of the "range_to_val" field.
-	RangeToVal float64 `json:"range_to_val,omitempty" gqlgen:"rangeToValue"`
+	RangeToVal float64 `json:"rangeToValue" gqlgen:"rangeToValue"`
 	// StringVal holds the value of the "string_val" field.
-	StringVal string `json:"string_val,omitempty" gqlgen:"stringValue"`
+	StringVal string `json:"stringValue" gqlgen:"stringValue"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PropertyQuery when eager-loading is set.
 	Edges                     PropertyEdges `json:"edges"`
@@ -417,64 +417,64 @@ func (pr *Property) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the Property.
 func (pr *Property) QueryType() *PropertyTypeQuery {
-	return (&PropertyClient{pr.config}).QueryType(pr)
+	return (&PropertyClient{config: pr.config}).QueryType(pr)
 }
 
 // QueryLocation queries the location edge of the Property.
 func (pr *Property) QueryLocation() *LocationQuery {
-	return (&PropertyClient{pr.config}).QueryLocation(pr)
+	return (&PropertyClient{config: pr.config}).QueryLocation(pr)
 }
 
 // QueryEquipment queries the equipment edge of the Property.
 func (pr *Property) QueryEquipment() *EquipmentQuery {
-	return (&PropertyClient{pr.config}).QueryEquipment(pr)
+	return (&PropertyClient{config: pr.config}).QueryEquipment(pr)
 }
 
 // QueryService queries the service edge of the Property.
 func (pr *Property) QueryService() *ServiceQuery {
-	return (&PropertyClient{pr.config}).QueryService(pr)
+	return (&PropertyClient{config: pr.config}).QueryService(pr)
 }
 
 // QueryEquipmentPort queries the equipment_port edge of the Property.
 func (pr *Property) QueryEquipmentPort() *EquipmentPortQuery {
-	return (&PropertyClient{pr.config}).QueryEquipmentPort(pr)
+	return (&PropertyClient{config: pr.config}).QueryEquipmentPort(pr)
 }
 
 // QueryLink queries the link edge of the Property.
 func (pr *Property) QueryLink() *LinkQuery {
-	return (&PropertyClient{pr.config}).QueryLink(pr)
+	return (&PropertyClient{config: pr.config}).QueryLink(pr)
 }
 
 // QueryWorkOrder queries the work_order edge of the Property.
 func (pr *Property) QueryWorkOrder() *WorkOrderQuery {
-	return (&PropertyClient{pr.config}).QueryWorkOrder(pr)
+	return (&PropertyClient{config: pr.config}).QueryWorkOrder(pr)
 }
 
 // QueryProject queries the project edge of the Property.
 func (pr *Property) QueryProject() *ProjectQuery {
-	return (&PropertyClient{pr.config}).QueryProject(pr)
+	return (&PropertyClient{config: pr.config}).QueryProject(pr)
 }
 
 // QueryEquipmentValue queries the equipment_value edge of the Property.
 func (pr *Property) QueryEquipmentValue() *EquipmentQuery {
-	return (&PropertyClient{pr.config}).QueryEquipmentValue(pr)
+	return (&PropertyClient{config: pr.config}).QueryEquipmentValue(pr)
 }
 
 // QueryLocationValue queries the location_value edge of the Property.
 func (pr *Property) QueryLocationValue() *LocationQuery {
-	return (&PropertyClient{pr.config}).QueryLocationValue(pr)
+	return (&PropertyClient{config: pr.config}).QueryLocationValue(pr)
 }
 
 // QueryServiceValue queries the service_value edge of the Property.
 func (pr *Property) QueryServiceValue() *ServiceQuery {
-	return (&PropertyClient{pr.config}).QueryServiceValue(pr)
+	return (&PropertyClient{config: pr.config}).QueryServiceValue(pr)
 }
 
 // Update returns a builder for updating this Property.
 // Note that, you need to call Property.Unwrap() before calling this method, if this Property
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pr *Property) Update() *PropertyUpdateOne {
-	return (&PropertyClient{pr.config}).UpdateOne(pr)
+	return (&PropertyClient{config: pr.config}).UpdateOne(pr)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

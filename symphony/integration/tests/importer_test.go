@@ -24,13 +24,13 @@ import (
 
 func TestImportLocations(t *testing.T) {
 	organization := uuid.New().String()
-	c := newClient(t, organization, "user@test.com")
+	c := newClient(t, organization, testUser)
 
 	c.log.Debug("adding location types")
 	addLocationTypes(t, c)
 
 	c.log.Debug("importing locations")
-	importLocations(t, organization, "ExampleLocation.csv")
+	importLocations(t, organization, testUser, "ExampleLocation.csv")
 
 	c.log.Debug("loading locations")
 	locations, err := c.QueryLocations()
@@ -70,14 +70,14 @@ func TestImportLocations(t *testing.T) {
 
 func TestImportLocationsEdit(t *testing.T) {
 	organization := uuid.New().String()
-	c := newClient(t, organization, "user@test.com")
+	c := newClient(t, organization, testUser)
 
 	c.log.Debug("adding location types")
 	addLocationTypes(t, c)
 
 	c.log.Debug("importing locations[1]")
-	importLocations(t, organization, "ExampleLocation.csv")
-	importLocations(t, organization, "EditLocation.csv")
+	importLocations(t, organization, testUser, "ExampleLocation.csv")
+	importLocations(t, organization, testUser, "EditLocation.csv")
 
 	c.log.Debug("loading locations")
 	locations, err := c.QueryLocations()
@@ -111,7 +111,7 @@ func TestImportLocationsEdit(t *testing.T) {
 	assert.Equal(t, 2, casesFound)
 }
 
-func importLocations(t *testing.T, organization, filename string) {
+func importLocations(t *testing.T, organization, user, filename string) {
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 
@@ -131,6 +131,7 @@ func importLocations(t *testing.T, organization, filename string) {
 	require.NoError(t, err)
 
 	req.Header.Set("x-auth-organization", organization)
+	req.Header.Set("x-auth-user-email", user)
 	req.Header.Set("Content-Type", contentType)
 
 	rsp, err := http.DefaultClient.Do(req)

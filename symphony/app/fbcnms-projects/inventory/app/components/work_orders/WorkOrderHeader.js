@@ -20,8 +20,6 @@ import {useRouter} from '@fbcnms/ui/hooks';
 import type {
   // $FlowFixMe (T62907961) Relay flow types
   CheckListCategoryTable_list,
-  // $FlowFixMe (T62907961) Relay flow types
-  ChecklistViewer_checkListItems,
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 import type {Property} from '../../common/Property';
@@ -55,7 +53,6 @@ type Props = {
   workOrderName: string,
   workOrder: WorkOrderDetails_workOrder,
   properties: Array<Property>,
-  checklist: ChecklistViewer_checkListItems,
   checkListCategories: CheckListCategoryTable_list,
   locationId: ?string,
   onWorkOrderRemoved: () => void,
@@ -69,7 +66,6 @@ const WorkOrderHeader = (props: Props) => {
     workOrderName,
     workOrder,
     properties,
-    checklist,
     checkListCategories,
     locationId,
     onWorkOrderRemoved,
@@ -118,7 +114,6 @@ const WorkOrderHeader = (props: Props) => {
         <WorkOrderSaveButton
           workOrder={workOrder}
           properties={properties}
-          checklist={checklist}
           checkListCategories={checkListCategories}
           locationId={locationId}
         />

@@ -41,6 +41,12 @@ magma-gen-meta:
       filename: subscriber_swaggergen.go
     - go-struct-name: LteSubscription
       filename: lte_subscription_swaggergen.go
+    - go-struct-name: SubscriberStatus
+      filename: subscriber_status_swaggergen.go
+    - go-struct-name: IcmpStatus
+      filename: icmp_status_swaggergen.go
+    - go-struct-name: MutableSubscriber
+      filename: mutable_subscriber_swaggergen.go
     - go-struct-name: EnodebState
       filename: enodeb_state_swaggergen.go
     - go-struct-name: SubProfile
@@ -1359,7 +1365,7 @@ paths:
           description: Subscriber that needs to be added
           required: true
           schema:
-            $ref: '#/definitions/subscriber'
+            $ref: '#/definitions/mutable_subscriber'
       responses:
         '201':
           description: Success
@@ -1393,7 +1399,7 @@ paths:
           description: Subscriber Info
           required: true
           schema:
-            $ref: '#/definitions/subscriber'
+            $ref: '#/definitions/mutable_subscriber'
       responses:
         '204':
           description: Success
@@ -1984,11 +1990,9 @@ definitions:
         items:
           type: string
           enum:
-            - 'metering'
             - 'dpi'
             - 'policy_enforcement'
         example:
-          - 'metering'
           - 'dpi'
           - 'policy_enforcement'
       mobility:
@@ -2333,6 +2337,40 @@ definitions:
           - 'rule2'
       active_apns:
         $ref: '#/definitions/apn_list'
+      monitoring:
+        $ref: '#/definitions/subscriber_status'
+
+  mutable_subscriber:
+    description: Subset of subscriber field which are mutable
+    type: object
+    required:
+      - id
+      - lte
+    properties:
+      id:
+        $ref: '#/definitions/subscriber_id'
+      lte:
+        $ref: '#/definitions/lte_subscription'
+      active_base_names:
+        type: array
+        items:
+          $ref: '#/definitions/base_name'
+        x-omitempty: true
+        description: 'Base names which are active for this subscriber'
+        example:
+          - 'base_name_1'
+          - 'base_name_2'
+      active_policies:
+        type: array
+        items:
+          $ref: '#/definitions/policy_id'
+        x-omitempty: true
+        description: 'Policies which are active for this subscriber'
+        example:
+          - 'rule1'
+          - 'rule2'
+      active_apns:
+        $ref: '#/definitions/apn_list'
 
   lte_subscription:
     type: object
@@ -2369,6 +2407,28 @@ definitions:
     type: string
     minLength: 1
     example: 'default'
+
+  subscriber_status:
+    type: object
+    description: Status of a subscriber device
+    properties:
+      icmp:
+        $ref: '#/definitions/icmp_status'
+
+  icmp_status:
+    type: object
+    description: ICMP status of a subscriber device
+    required:
+      - latency_ms
+      - last_reported_time
+    properties:
+      latency_ms:
+        type: number
+        format: float
+        example: 12.34
+      last_reported_time:
+        type: integer
+        format: int64
 
   enodeb_state:
     description: Single Enodeb State

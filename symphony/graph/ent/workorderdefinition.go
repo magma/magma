@@ -139,19 +139,19 @@ func (wod *WorkOrderDefinition) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the WorkOrderDefinition.
 func (wod *WorkOrderDefinition) QueryType() *WorkOrderTypeQuery {
-	return (&WorkOrderDefinitionClient{wod.config}).QueryType(wod)
+	return (&WorkOrderDefinitionClient{config: wod.config}).QueryType(wod)
 }
 
 // QueryProjectType queries the project_type edge of the WorkOrderDefinition.
 func (wod *WorkOrderDefinition) QueryProjectType() *ProjectTypeQuery {
-	return (&WorkOrderDefinitionClient{wod.config}).QueryProjectType(wod)
+	return (&WorkOrderDefinitionClient{config: wod.config}).QueryProjectType(wod)
 }
 
 // Update returns a builder for updating this WorkOrderDefinition.
 // Note that, you need to call WorkOrderDefinition.Unwrap() before calling this method, if this WorkOrderDefinition
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (wod *WorkOrderDefinition) Update() *WorkOrderDefinitionUpdateOne {
-	return (&WorkOrderDefinitionClient{wod.config}).UpdateOne(wod)
+	return (&WorkOrderDefinitionClient{config: wod.config}).UpdateOne(wod)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

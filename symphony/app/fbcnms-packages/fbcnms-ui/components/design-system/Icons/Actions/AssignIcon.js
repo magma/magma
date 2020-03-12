@@ -21,9 +21,7 @@ const AddIcon = (props: SvgIconStyleProps) => (
         id="assignIcon"
       />
     </defs>
-    <g>
-      <use xlinkHref="#assignIcon" fillRule="evenodd" />
-    </g>
+    <use xlinkHref="#assignIcon" />
   </SvgIcon>
 );
 

@@ -283,29 +283,29 @@ func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
 
 // QuerySurvey queries the survey edge of the SurveyQuestion.
 func (sq *SurveyQuestion) QuerySurvey() *SurveyQuery {
-	return (&SurveyQuestionClient{sq.config}).QuerySurvey(sq)
+	return (&SurveyQuestionClient{config: sq.config}).QuerySurvey(sq)
 }
 
 // QueryWifiScan queries the wifi_scan edge of the SurveyQuestion.
 func (sq *SurveyQuestion) QueryWifiScan() *SurveyWiFiScanQuery {
-	return (&SurveyQuestionClient{sq.config}).QueryWifiScan(sq)
+	return (&SurveyQuestionClient{config: sq.config}).QueryWifiScan(sq)
 }
 
 // QueryCellScan queries the cell_scan edge of the SurveyQuestion.
 func (sq *SurveyQuestion) QueryCellScan() *SurveyCellScanQuery {
-	return (&SurveyQuestionClient{sq.config}).QueryCellScan(sq)
+	return (&SurveyQuestionClient{config: sq.config}).QueryCellScan(sq)
 }
 
 // QueryPhotoData queries the photo_data edge of the SurveyQuestion.
 func (sq *SurveyQuestion) QueryPhotoData() *FileQuery {
-	return (&SurveyQuestionClient{sq.config}).QueryPhotoData(sq)
+	return (&SurveyQuestionClient{config: sq.config}).QueryPhotoData(sq)
 }
 
 // Update returns a builder for updating this SurveyQuestion.
 // Note that, you need to call SurveyQuestion.Unwrap() before calling this method, if this SurveyQuestion
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (sq *SurveyQuestion) Update() *SurveyQuestionUpdateOne {
-	return (&SurveyQuestionClient{sq.config}).UpdateOne(sq)
+	return (&SurveyQuestionClient{config: sq.config}).UpdateOne(sq)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

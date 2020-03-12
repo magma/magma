@@ -10,9 +10,9 @@
 
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {
-  RemoveProjectMutationResponse,
-  RemoveProjectMutationVariables,
-} from '../../mutations/__generated__/RemoveProjectMutation.graphql';
+  RemoveProjectTypeMutationResponse,
+  RemoveProjectTypeMutationVariables,
+} from '../../mutations/__generated__/RemoveProjectTypeMutation.graphql';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
@@ -63,7 +63,7 @@ class ProjectTypeDeleteButton extends React.Component<Props> {
           return;
         }
 
-        const variables: RemoveProjectMutationVariables = {
+        const variables: RemoveProjectTypeMutationVariables = {
           id: nullthrows(projectTypeId),
         };
 
@@ -72,7 +72,7 @@ class ProjectTypeDeleteButton extends React.Component<Props> {
           store.delete(projectTypeId);
         };
 
-        const callbacks: MutationCallbacks<RemoveProjectMutationResponse> = {
+        const callbacks: MutationCallbacks<RemoveProjectTypeMutationResponse> = {
           onCompleted: (response, errors) => {
             if (errors && errors[0]) {
               this.props.alert('Failed removing project template');

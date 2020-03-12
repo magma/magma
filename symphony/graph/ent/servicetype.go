@@ -110,19 +110,19 @@ func (st *ServiceType) assignValues(values ...interface{}) error {
 
 // QueryServices queries the services edge of the ServiceType.
 func (st *ServiceType) QueryServices() *ServiceQuery {
-	return (&ServiceTypeClient{st.config}).QueryServices(st)
+	return (&ServiceTypeClient{config: st.config}).QueryServices(st)
 }
 
 // QueryPropertyTypes queries the property_types edge of the ServiceType.
 func (st *ServiceType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&ServiceTypeClient{st.config}).QueryPropertyTypes(st)
+	return (&ServiceTypeClient{config: st.config}).QueryPropertyTypes(st)
 }
 
 // Update returns a builder for updating this ServiceType.
 // Note that, you need to call ServiceType.Unwrap() before calling this method, if this ServiceType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (st *ServiceType) Update() *ServiceTypeUpdateOne {
-	return (&ServiceTypeClient{st.config}).UpdateOne(st)
+	return (&ServiceTypeClient{config: st.config}).UpdateOne(st)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

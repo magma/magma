@@ -141,19 +141,19 @@ func (epd *EquipmentPositionDefinition) assignValues(values ...interface{}) erro
 
 // QueryPositions queries the positions edge of the EquipmentPositionDefinition.
 func (epd *EquipmentPositionDefinition) QueryPositions() *EquipmentPositionQuery {
-	return (&EquipmentPositionDefinitionClient{epd.config}).QueryPositions(epd)
+	return (&EquipmentPositionDefinitionClient{config: epd.config}).QueryPositions(epd)
 }
 
 // QueryEquipmentType queries the equipment_type edge of the EquipmentPositionDefinition.
 func (epd *EquipmentPositionDefinition) QueryEquipmentType() *EquipmentTypeQuery {
-	return (&EquipmentPositionDefinitionClient{epd.config}).QueryEquipmentType(epd)
+	return (&EquipmentPositionDefinitionClient{config: epd.config}).QueryEquipmentType(epd)
 }
 
 // Update returns a builder for updating this EquipmentPositionDefinition.
 // Note that, you need to call EquipmentPositionDefinition.Unwrap() before calling this method, if this EquipmentPositionDefinition
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (epd *EquipmentPositionDefinition) Update() *EquipmentPositionDefinitionUpdateOne {
-	return (&EquipmentPositionDefinitionClient{epd.config}).UpdateOne(epd)
+	return (&EquipmentPositionDefinitionClient{config: epd.config}).UpdateOne(epd)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

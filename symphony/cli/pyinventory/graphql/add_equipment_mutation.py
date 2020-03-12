@@ -16,30 +16,40 @@ from .add_equipment_input import AddEquipmentInput
 
 @dataclass
 class AddEquipmentMutation(DataClassJsonMixin):
+    @dataclass
+    class AddEquipmentMutationData(DataClassJsonMixin):
+        @dataclass
+        class Equipment(DataClassJsonMixin):
+            @dataclass
+            class EquipmentType(DataClassJsonMixin):
+                id: str
+                name: str
+
+            id: str
+            name: str
+            equipmentType: EquipmentType
+
+        addEquipment: Equipment
+
+    data: AddEquipmentMutationData
+
     __QUERY__: str = """
     mutation AddEquipmentMutation($input: AddEquipmentInput!) {
   addEquipment(input: $input) {
     id
     name
+    equipmentType {
+      id
+      name
+    }
   }
 }
 
     """
 
-    @dataclass
-    class AddEquipmentMutationData(DataClassJsonMixin):
-        @dataclass
-        class Equipment(DataClassJsonMixin):
-            id: str
-            name: str
-
-        addEquipment: Optional[Equipment] = None
-
-    data: Optional[AddEquipmentMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddEquipmentInput):
+    def execute(cls, client: GraphqlClient, input: AddEquipmentInput) -> AddEquipmentMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

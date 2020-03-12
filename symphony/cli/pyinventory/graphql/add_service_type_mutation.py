@@ -19,6 +19,34 @@ from .service_type_create_data_input import ServiceTypeCreateData
 
 @dataclass
 class AddServiceTypeMutation(DataClassJsonMixin):
+    @dataclass
+    class AddServiceTypeMutationData(DataClassJsonMixin):
+        @dataclass
+        class ServiceType(DataClassJsonMixin):
+            @dataclass
+            class PropertyType(DataClassJsonMixin):
+                id: str
+                name: str
+                type: PropertyKind = enum_field(PropertyKind)
+                index: Optional[int] = None
+                stringValue: Optional[str] = None
+                intValue: Optional[int] = None
+                booleanValue: Optional[bool] = None
+                floatValue: Optional[Number] = None
+                latitudeValue: Optional[Number] = None
+                longitudeValue: Optional[Number] = None
+                isEditable: Optional[bool] = None
+                isInstanceProperty: Optional[bool] = None
+
+            id: str
+            name: str
+            hasCustomer: bool
+            propertyTypes: List[PropertyType]
+
+        addServiceType: ServiceType
+
+    data: AddServiceTypeMutationData
+
     __QUERY__: str = """
     mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {
   addServiceType(data: $data) {
@@ -44,37 +72,9 @@ class AddServiceTypeMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class AddServiceTypeMutationData(DataClassJsonMixin):
-        @dataclass
-        class ServiceType(DataClassJsonMixin):
-            @dataclass
-            class PropertyType(DataClassJsonMixin):
-                id: str
-                name: str
-                type: PropertyKind = enum_field(PropertyKind)
-                index: Optional[int] = None
-                stringValue: Optional[str] = None
-                intValue: Optional[int] = None
-                booleanValue: Optional[bool] = None
-                floatValue: Optional[Number] = None
-                latitudeValue: Optional[Number] = None
-                longitudeValue: Optional[Number] = None
-                isEditable: Optional[bool] = None
-                isInstanceProperty: Optional[bool] = None
-
-            id: str
-            name: str
-            hasCustomer: bool
-            propertyTypes: List[PropertyType]
-
-        addServiceType: Optional[ServiceType] = None
-
-    data: Optional[AddServiceTypeMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, data: ServiceTypeCreateData):
+    def execute(cls, client: GraphqlClient, data: ServiceTypeCreateData) -> AddServiceTypeMutationData:
         # fmt: off
         variables = {"data": data}
         response_text = client.call(cls.__QUERY__, variables=variables)

@@ -12,11 +12,53 @@ mutation AddServiceMutation($data: ServiceCreateData!) {
       id
       port {
         id
+        properties {
+          id
+          propertyType {
+            id
+            name
+            type
+            index
+            stringValue
+            intValue
+            booleanValue
+            floatValue
+            latitudeValue
+            longitudeValue
+            isEditable
+            isInstanceProperty
+          }
+          stringValue
+          intValue
+          floatValue
+          booleanValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+        }
+        definition {
+          id
+          name
+          portType {
+            id
+            name
+          }
+        }
+        link {
+          id
+          services {
+            id
+          }
+        }
       }
       role
     }
     links {
       id
+      services {
+        id
+      }
     }
   }
 }

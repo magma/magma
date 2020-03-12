@@ -147,24 +147,24 @@ func (ep *EquipmentPosition) assignValues(values ...interface{}) error {
 
 // QueryDefinition queries the definition edge of the EquipmentPosition.
 func (ep *EquipmentPosition) QueryDefinition() *EquipmentPositionDefinitionQuery {
-	return (&EquipmentPositionClient{ep.config}).QueryDefinition(ep)
+	return (&EquipmentPositionClient{config: ep.config}).QueryDefinition(ep)
 }
 
 // QueryParent queries the parent edge of the EquipmentPosition.
 func (ep *EquipmentPosition) QueryParent() *EquipmentQuery {
-	return (&EquipmentPositionClient{ep.config}).QueryParent(ep)
+	return (&EquipmentPositionClient{config: ep.config}).QueryParent(ep)
 }
 
 // QueryAttachment queries the attachment edge of the EquipmentPosition.
 func (ep *EquipmentPosition) QueryAttachment() *EquipmentQuery {
-	return (&EquipmentPositionClient{ep.config}).QueryAttachment(ep)
+	return (&EquipmentPositionClient{config: ep.config}).QueryAttachment(ep)
 }
 
 // Update returns a builder for updating this EquipmentPosition.
 // Note that, you need to call EquipmentPosition.Unwrap() before calling this method, if this EquipmentPosition
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ep *EquipmentPosition) Update() *EquipmentPositionUpdateOne {
-	return (&EquipmentPositionClient{ep.config}).UpdateOne(ep)
+	return (&EquipmentPositionClient{config: ep.config}).UpdateOne(ep)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

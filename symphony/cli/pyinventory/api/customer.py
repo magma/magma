@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from typing import List, Optional
 
@@ -14,21 +13,63 @@ from ..graphql.remove_customer_mutation import RemoveCustomerMutation
 def add_customer(
     client: SymphonyClient, name: str, external_id: Optional[str]
 ) -> Customer:
+    """This function adds Customer.
+
+        Args:
+            name (str): name for the Customer
+            external_id (Optional[str]): external ID for the Customer
+
+        Returns:
+            pyinventory.consts.Customer object
+
+        Example:
+            ```
+            new_customers = client.add_customer(name="new_customer") 
+            ```
+            or
+            ```
+            new_customers = client.add_customer(name="new_customer", external_id="12345678") 
+            ```
+    """
     customer_input = AddCustomerInput(name=name, externalId=external_id)
     result = AddCustomerMutation.execute(client, input=customer_input).addCustomer
     return Customer(name=result.name, id=result.id, externalId=result.externalId)
 
 
 def get_all_customers(client: SymphonyClient) -> List[Customer]:
-    customer_edges = CustomersQuery.execute(client).customers.edges
 
-    customers = [edge.node for edge in customer_edges]
+    """This function returns all Customers.
 
-    return [
-        Customer(name=customer.name, id=customer.id, externalId=customer.externalId)
-        for customer in customers
-    ]
+        Returns:
+            List[ `pyinventory.consts.Customer` ]
+
+        Example:
+            ```
+            customers = client.get_all_customers() 
+            ```
+    """
+    customers = CustomersQuery.execute(client).customers
+    if not customers:
+        return []
+    result = []
+    for customer in customers.edges:
+        node = customer.node
+        if node:
+            result.append(
+                Customer(name=node.name, id=node.id, externalId=node.externalId)
+            )
+    return result
 
 
 def delete_customer(client: SymphonyClient, customer: Customer) -> None:
+    """This function delete Customer.
+        
+        Args:
+            customer (pyinventory.consts.Customer object): customer object
+        
+        Example:
+            ```
+            client.delete_customer(customer) 
+            ```
+    """
     RemoveCustomerMutation.execute(client, id=customer.id)

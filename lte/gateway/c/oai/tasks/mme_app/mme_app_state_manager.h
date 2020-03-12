@@ -25,9 +25,7 @@ extern "C" {
 #include "mme_config.h"
 }
 
-#include <redis_utils/redis_client.h>
 #include <state_manager.h>
-
 #include "mme_app_state_converter.h"
 #include "ServiceConfigLoader.h"
 
@@ -57,19 +55,6 @@ class MmeNasStateManager :
   int initialize_state(const mme_config_t* mme_config_p);
 
   /**
-   * Write MME NAS state to redis. This function releases the lock on MME NAS
-   * state, which was acquired by get_locked_mme_nas_state.
-   */
-  void write_state_to_db(mme_app_desc_t** task_state_ptr);
-
-  /**
-    * This is a thread-safe call to lock the state and retrieve the pointer to
-    * MME Nas state from state manager. The read_from_db flag is a debug flag;
-    * if set to true, the state is loaded from the data store on every get.
-    */
-  mme_app_desc_t* get_locked_mme_nas_state(bool read_from_db);
-
-  /**
     * Retrieve the state pointer from state manager. The read_from_db flag is a
     * debug flag; if set to true, the state is loaded from the data store on
     * every get.
@@ -97,14 +82,8 @@ class MmeNasStateManager :
   // Destructor for MME NAS state manager
   ~MmeNasStateManager();
 
-  // flag to assert if singleton instance has been initialized
-  bool is_initialized_;
-  mme_app_desc_t* mme_nas_state_p_; // TODO: convert to unique_ptr
-  bool persist_state_;
-  std::unique_ptr<cpp_redis::client> mme_nas_db_client_;
   int max_ue_htbl_lists_;
   uint32_t mme_statistic_timer_;
-  bool mme_nas_state_dirty_; // TODO: convert this to version numbers
 
   // Initialize state that is non-persistent, e.g. mutex locks and timers
   void mme_nas_state_init_local_state();
@@ -114,12 +93,6 @@ class MmeNasStateManager :
 
   // Write an empty value to data store, if needed for debugging
   void clear_db_state();
-
-  // Acquire lock on the complete MME NAS state
-  void lock_mme_nas_state();
-
-  // Release lock on the complete MME NAS state
-  void unlock_mme_nas_state();
 
   /**
    * Initialize memory for MME state before reading from data-store, the state

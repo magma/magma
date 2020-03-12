@@ -16,28 +16,36 @@ from .add_link_input import AddLinkInput
 
 @dataclass
 class AddLinkMutation(DataClassJsonMixin):
+    @dataclass
+    class AddLinkMutationData(DataClassJsonMixin):
+        @dataclass
+        class Link(DataClassJsonMixin):
+            @dataclass
+            class Service(DataClassJsonMixin):
+                id: str
+
+            id: str
+            services: List[Service]
+
+        addLink: Link
+
+    data: AddLinkMutationData
+
     __QUERY__: str = """
     mutation AddLinkMutation($input: AddLinkInput!) {
   addLink(input: $input) {
     id
+    services {
+      id
+    }
   }
 }
 
     """
 
-    @dataclass
-    class AddLinkMutationData(DataClassJsonMixin):
-        @dataclass
-        class Link(DataClassJsonMixin):
-            id: str
-
-        addLink: Optional[Link] = None
-
-    data: Optional[AddLinkMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, input: AddLinkInput):
+    def execute(cls, client: GraphqlClient, input: AddLinkInput) -> AddLinkMutationData:
         # fmt: off
         variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)

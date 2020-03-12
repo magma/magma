@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 43cbe89a2c0232070e90f0f815943de4
+ * @relayHash 657efef3d2de26e52629af7f2c087efc
  */
 
 /* eslint-disable */
@@ -45,7 +45,7 @@ export type EditServiceTypeMutationVariables = {|
   data: ServiceTypeEditData
 |};
 export type EditServiceTypeMutationResponse = {|
-  +editServiceType: ?{|
+  +editServiceType: {|
     +id: string,
     +name: string,
     +propertyTypes: $ReadOnlyArray<?{|

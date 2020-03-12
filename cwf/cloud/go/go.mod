@@ -34,7 +34,6 @@ require (
 
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
-	magma/gateway v0.0.0
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0

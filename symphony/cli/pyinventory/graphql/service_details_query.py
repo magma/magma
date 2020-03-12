@@ -18,66 +18,6 @@ from .service_endpoint_role_enum import ServiceEndpointRole
 
 @dataclass
 class ServiceDetailsQuery(DataClassJsonMixin):
-    __QUERY__: str = """
-    query ServiceDetailsQuery($id: ID!) {
-  service: node(id: $id) {
-    ... on Service {
-      id
-      name
-      externalId
-      customer {
-        id
-        name
-        externalId
-      }
-      endpoints {
-        id
-        port {
-          id
-          properties {
-            id
-            propertyType {
-              id
-              name
-              type
-              index
-              stringValue
-              intValue
-              booleanValue
-              floatValue
-              latitudeValue
-              longitudeValue
-              isEditable
-              isInstanceProperty
-            }
-            stringValue
-            intValue
-            floatValue
-            booleanValue
-            latitudeValue
-            longitudeValue
-            rangeFromValue
-            rangeToValue
-          }
-          definition {
-            id
-            name
-          }
-          link {
-            id
-          }
-        }
-        role
-      }
-      links {
-        id
-      }
-    }
-  }
-}
-
-    """
-
     @dataclass
     class ServiceDetailsQueryData(DataClassJsonMixin):
         @dataclass
@@ -127,7 +67,12 @@ class ServiceDetailsQuery(DataClassJsonMixin):
 
                     @dataclass
                     class Link(DataClassJsonMixin):
+                        @dataclass
+                        class Service(DataClassJsonMixin):
+                            id: str
+
                         id: str
+                        services: List[Service]
 
                     id: str
                     properties: List[Property]
@@ -140,7 +85,12 @@ class ServiceDetailsQuery(DataClassJsonMixin):
 
             @dataclass
             class Link(DataClassJsonMixin):
+                @dataclass
+                class Service(DataClassJsonMixin):
+                    id: str
+
                 id: str
+                services: List[Service]
 
             id: str
             name: str
@@ -151,11 +101,77 @@ class ServiceDetailsQuery(DataClassJsonMixin):
 
         service: Optional[Node] = None
 
-    data: Optional[ServiceDetailsQueryData] = None
+    data: ServiceDetailsQueryData
+
+    __QUERY__: str = """
+    query ServiceDetailsQuery($id: ID!) {
+  service: node(id: $id) {
+    ... on Service {
+      id
+      name
+      externalId
+      customer {
+        id
+        name
+        externalId
+      }
+      endpoints {
+        id
+        port {
+          id
+          properties {
+            id
+            propertyType {
+              id
+              name
+              type
+              index
+              stringValue
+              intValue
+              booleanValue
+              floatValue
+              latitudeValue
+              longitudeValue
+              isEditable
+              isInstanceProperty
+            }
+            stringValue
+            intValue
+            floatValue
+            booleanValue
+            latitudeValue
+            longitudeValue
+            rangeFromValue
+            rangeToValue
+          }
+          definition {
+            id
+            name
+          }
+          link {
+            id
+            services {
+              id
+            }
+          }
+        }
+        role
+      }
+      links {
+        id
+        services {
+          id
+        }
+      }
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, id: str):
+    def execute(cls, client: GraphqlClient, id: str) -> ServiceDetailsQueryData:
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

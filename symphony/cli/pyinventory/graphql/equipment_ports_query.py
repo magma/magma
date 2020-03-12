@@ -17,55 +17,6 @@ from .property_kind_enum import PropertyKind
 
 @dataclass
 class EquipmentPortsQuery(DataClassJsonMixin):
-    __QUERY__: str = """
-    query EquipmentPortsQuery($id: ID!) {
-  equipment: node(id: $id) {
-    ... on Equipment {
-      ports {
-        id
-        properties {
-          id
-          propertyType {
-            id
-            name
-            type
-            index
-            stringValue
-            intValue
-            booleanValue
-            floatValue
-            latitudeValue
-            longitudeValue
-            isEditable
-            isInstanceProperty
-          }
-          stringValue
-          intValue
-          floatValue
-          booleanValue
-          latitudeValue
-          longitudeValue
-          rangeFromValue
-          rangeToValue
-        }
-        definition {
-          id
-          name
-          portType {
-            id
-            name
-          }
-        }
-        link {
-          id
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @dataclass
     class EquipmentPortsQueryData(DataClassJsonMixin):
         @dataclass
@@ -113,7 +64,12 @@ class EquipmentPortsQuery(DataClassJsonMixin):
 
                 @dataclass
                 class Link(DataClassJsonMixin):
+                    @dataclass
+                    class Service(DataClassJsonMixin):
+                        id: str
+
                     id: str
+                    services: List[Service]
 
                 id: str
                 properties: List[Property]
@@ -124,11 +80,63 @@ class EquipmentPortsQuery(DataClassJsonMixin):
 
         equipment: Optional[Node] = None
 
-    data: Optional[EquipmentPortsQueryData] = None
+    data: EquipmentPortsQueryData
+
+    __QUERY__: str = """
+    query EquipmentPortsQuery($id: ID!) {
+  equipment: node(id: $id) {
+    ... on Equipment {
+      ports {
+        id
+        properties {
+          id
+          propertyType {
+            id
+            name
+            type
+            index
+            stringValue
+            intValue
+            booleanValue
+            floatValue
+            latitudeValue
+            longitudeValue
+            isEditable
+            isInstanceProperty
+          }
+          stringValue
+          intValue
+          floatValue
+          booleanValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+        }
+        definition {
+          id
+          name
+          portType {
+            id
+            name
+          }
+        }
+        link {
+          id
+          services {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, id: str):
+    def execute(cls, client: GraphqlClient, id: str) -> EquipmentPortsQueryData:
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

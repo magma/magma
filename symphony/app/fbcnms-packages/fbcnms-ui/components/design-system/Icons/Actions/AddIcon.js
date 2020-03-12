@@ -15,12 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const AddIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <g transform="translate(2,2)">
-      <path
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm0 2C4.477 20 0 15.523 0 10S4.477 0 10 0s10 4.477 10 10-4.477 10-10 10zm1-15v4h4v2h-4v4H9v-4H5V9h4V5h2z"
-        fillRule="evenodd"
-      />
-    </g>
+    <path d="M12 20a8 8 0 100-16 8 8 0 000 16zm0 2C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm1-15v4h4v2h-4v4h-2v-4H7v-2h4V7h2z" />
   </SvgIcon>
 );
 

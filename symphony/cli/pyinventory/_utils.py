@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
@@ -195,15 +194,19 @@ def _get_property_default_value(
 
 def _make_property_types(
     properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
-) -> List[Dict[str, PropertyValue]]:
+) -> List[PropertyTypeInput]:
     property_types = [
-        {
-            "name": arg[0],
-            "type": arg[1],
-            "index": i,
-            **_get_property_default_value(arg[0], arg[1], arg[2]),
-            "isInstanceProperty": arg[3],
-        }
+        from_dict(
+            data_class=PropertyTypeInput,
+            data={
+                "name": arg[0],
+                "type": PropertyKind(arg[1]),
+                "index": i,
+                **_get_property_default_value(arg[0], arg[1], arg[2]),
+                "isInstanceProperty": arg[3],
+            },
+            config=Config(strict=True),
+        )
         for i, arg in enumerate(properties)
     ]
     return property_types
@@ -219,27 +222,28 @@ def property_type_to_kind(
 # TODO(T63055378): remove and change usage to format_property_definitions
 def format_properties(
     properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
-) -> List[Dict[str, Union[PropertyValue, PropertyKind]]]:
+) -> List[PropertyTypeInput]:
     property_types = _make_property_types(properties)
-    return [
-        {k: property_type_to_kind(k, v) for k, v in property_type.items()}
-        for property_type in property_types
-    ]
+    return property_types
 
 
 def format_property_definitions(
     properties: List[PropertyDefinition]
-) -> List[Dict[str, Union[PropertyValue, PropertyKind]]]:
+) -> List[PropertyTypeInput]:
     property_types = [
-        {
-            "name": prop.property_name,
-            "type": prop.property_kind,
-            "index": i,
-            **_get_property_default_value(
-                prop.property_name, prop.property_kind.value, prop.default_value
-            ),
-            "isInstanceProperty": prop.is_fixed,
-        }
+        from_dict(
+            data_class=PropertyTypeInput,
+            data={
+                "name": prop.property_name,
+                "type": PropertyKind(prop.property_kind),
+                "index": i,
+                **_get_property_default_value(
+                    prop.property_name, prop.property_kind.value, prop.default_value
+                ),
+                "isInstanceProperty": prop.is_fixed,
+            },
+            config=Config(strict=True),
+        )
         for i, prop in enumerate(properties)
     ]
     return property_types

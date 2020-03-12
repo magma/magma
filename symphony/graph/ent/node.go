@@ -41,6 +41,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
@@ -51,6 +52,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -2502,6 +2504,57 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (rf *ReportFilter) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     rf.ID,
+		Type:   "ReportFilter",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(rf.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(rf.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(rf.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(rf.Entity); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "reportfilter.Entity",
+		Name:  "Entity",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(rf.Filters); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "Filters",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
 func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     s.ID,
@@ -3593,6 +3646,93 @@ func (t *Technician) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (u *User) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     u.ID,
+		Type:   "User",
+		Fields: make([]*Field, 8),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(u.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.AuthID); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "AuthID",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.FirstName); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "FirstName",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.LastName); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "LastName",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.Email); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "Email",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "user.Status",
+		Name:  "Status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.Role); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "user.Role",
+		Name:  "Role",
+		Value: string(buf),
+	}
+	var ids []int
+	ids, err = u.QueryProfilePhoto().
+		Select(file.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "File",
+		Name: "ProfilePhoto",
+	}
+	return node, nil
+}
+
 func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     wo.ID,
@@ -4238,6 +4378,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 			return nil, err
 		}
 		return n, nil
+	case reportfilter.Table:
+		n, err := c.ReportFilter.Query().
+			Where(reportfilter.ID(id)).
+			CollectFields(ctx, "ReportFilter").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case service.Table:
 		n, err := c.Service.Query().
 			Where(service.ID(id)).
@@ -4323,6 +4472,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.Technician.Query().
 			Where(technician.ID(id)).
 			CollectFields(ctx, "Technician").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case user.Table:
+		n, err := c.User.Query().
+			Where(user.ID(id)).
+			CollectFields(ctx, "User").
 			Only(ctx)
 		if err != nil {
 			return nil, err

@@ -14,6 +14,12 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class RemoveEquipmentTypeMutation(DataClassJsonMixin):
+    @dataclass
+    class RemoveEquipmentTypeMutationData(DataClassJsonMixin):
+        removeEquipmentType: str
+
+    data: RemoveEquipmentTypeMutationData
+
     __QUERY__: str = """
     mutation RemoveEquipmentTypeMutation($id: ID!) {
   removeEquipmentType(id: $id)
@@ -21,15 +27,9 @@ class RemoveEquipmentTypeMutation(DataClassJsonMixin):
 
     """
 
-    @dataclass
-    class RemoveEquipmentTypeMutationData(DataClassJsonMixin):
-        removeEquipmentType: str
-
-    data: Optional[RemoveEquipmentTypeMutationData] = None
-
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, id: str):
+    def execute(cls, client: GraphqlClient, id: str) -> RemoveEquipmentTypeMutationData:
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

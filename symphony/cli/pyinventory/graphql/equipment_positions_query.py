@@ -14,32 +14,6 @@ from dataclasses_json import DataClassJsonMixin
 
 @dataclass
 class EquipmentPositionsQuery(DataClassJsonMixin):
-    __QUERY__: str = """
-    query EquipmentPositionsQuery($id: ID!) {
-  equipment: node(id: $id) {
-    ... on Equipment {
-      equipmentType {
-        positionDefinitions {
-          id
-          name
-        }
-      }
-      positions {
-        definition {
-          id
-          name
-        }
-        attachedEquipment {
-          id
-          name
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @dataclass
     class EquipmentPositionsQueryData(DataClassJsonMixin):
         @dataclass
@@ -62,8 +36,14 @@ class EquipmentPositionsQuery(DataClassJsonMixin):
 
                 @dataclass
                 class Equipment(DataClassJsonMixin):
+                    @dataclass
+                    class EquipmentType(DataClassJsonMixin):
+                        id: str
+                        name: str
+
                     id: str
                     name: str
+                    equipmentType: EquipmentType
 
                 definition: EquipmentPositionDefinition
                 attachedEquipment: Optional[Equipment] = None
@@ -73,11 +53,41 @@ class EquipmentPositionsQuery(DataClassJsonMixin):
 
         equipment: Optional[Node] = None
 
-    data: Optional[EquipmentPositionsQueryData] = None
+    data: EquipmentPositionsQueryData
+
+    __QUERY__: str = """
+    query EquipmentPositionsQuery($id: ID!) {
+  equipment: node(id: $id) {
+    ... on Equipment {
+      equipmentType {
+        positionDefinitions {
+          id
+          name
+        }
+      }
+      positions {
+        definition {
+          id
+          name
+        }
+        attachedEquipment {
+          id
+          name
+          equipmentType {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+}
+
+    """
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, id: str):
+    def execute(cls, client: GraphqlClient, id: str) -> EquipmentPositionsQueryData:
         # fmt: off
         variables = {"id": id}
         response_text = client.call(cls.__QUERY__, variables=variables)

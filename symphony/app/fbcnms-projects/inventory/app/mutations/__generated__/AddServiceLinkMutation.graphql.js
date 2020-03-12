@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ec5bb89a61ef81dbfbf62ff34b178dc1
+ * @relayHash 4b128ae1ea27ba19238b956b7b845fe4
  */
 
 /* eslint-disable */
@@ -21,7 +21,7 @@ export type AddServiceLinkMutationVariables = {|
   linkId: string,
 |};
 export type AddServiceLinkMutationResponse = {|
-  +addServiceLink: ?{|
+  +addServiceLink: {|
     +$fragmentRefs: ServiceCard_service$ref
   |}
 |};

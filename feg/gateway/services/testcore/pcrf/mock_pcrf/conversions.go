@@ -99,15 +99,15 @@ func toRedirectionAVP(redirection *lteprotos.RedirectInformation) []*diam.AVP {
 	}
 }
 
-func toUsageMonitoringInfoAVP(monitoringKey string, quotaGrant protos.Octets, level protos.UsageMonitorCredit_MonitoringLevel) *diam.AVP {
+func toUsageMonitoringInfoAVP(monitoringKey string, quotaGrant *protos.Octets, level protos.MonitoringLevel) *diam.AVP {
 	return diam.NewAVP(avp.UsageMonitoringInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.MonitoringKey, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(monitoringKey)),
 			diam.NewAVP(avp.GrantedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
-					diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.TotalOctets)),
-					diam.NewAVP(avp.CCInputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.InputOctets)),
-					diam.NewAVP(avp.CCOutputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.OutputOctets)),
+					diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetTotalOctets())),
+					diam.NewAVP(avp.CCInputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetInputOctets())),
+					diam.NewAVP(avp.CCOutputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetOutputOctets())),
 				},
 			}),
 			diam.NewAVP(avp.UsageMonitoringLevel, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(level)),
@@ -135,10 +135,11 @@ func toRuleInstallAVPs(
 	return avps
 }
 
-func toUsageMonitoringInfoAVPs(monitors map[string]*protos.UsageMonitorCredit) []*diam.AVP {
+func toUsageMonitorAVPs(monitors map[string]*protos.UsageMonitor) []*diam.AVP {
 	avps := make([]*diam.AVP, 0, len(monitors))
 	for key, monitor := range monitors {
-		avps = append(avps, toUsageMonitoringInfoAVP(key, getQuotaGrant(monitor), monitor.MonitoringLevel))
+		avps = append(avps,
+			toUsageMonitoringInfoAVP(key, getQuotaGrant(monitor), monitor.GetMonitorInfoPerRequest().GetMonitoringLevel()))
 	}
 	return avps
 }

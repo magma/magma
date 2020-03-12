@@ -10,12 +10,11 @@ package serviceregistry
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-
-	"github.com/golang/glog"
 )
 
 const (
@@ -36,11 +35,11 @@ func LoadServiceRegistryConfig(moduleName string) ([]registry.ServiceLocation, e
 		// file is empty
 		return nil, err
 	}
-	locations, err := convertToServiceLocations(rawMap, len(config.RawMap))
+	locations, err := convertToServiceLocations(rawMap)
 	if err != nil {
-		glog.Fatalf("Failed to load in service registry for %s:%s.yml: %v", moduleName, serviceRegistryFilename, err)
+		log.Printf("Failed to load in service registry for %s:%s.yml: %v", moduleName, serviceRegistryFilename, err)
 	}
-	return locations, nil
+	return locations, err
 }
 
 func getProxyAliases(rawMap map[interface{}]interface{}) map[string]int {
@@ -69,8 +68,8 @@ func getRawMap(serviceRegistry *config.ConfigMap) (map[interface{}]interface{}, 
 	return rawMap, nil
 }
 
-func convertToServiceLocations(rawMap rawMapType, len int) ([]registry.ServiceLocation, error) {
-	serviceLocations := make([]registry.ServiceLocation, len)
+func convertToServiceLocations(rawMap rawMapType) ([]registry.ServiceLocation, error) {
+	serviceLocations := make([]registry.ServiceLocation, 0, len(rawMap))
 	for k, v := range rawMap {
 		name, ok := k.(string)
 		if !ok {

@@ -14,15 +14,15 @@ import (
 	"golang.org/x/net/context"
 
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/relay"
+	"magma/gateway/service_registry"
 	"magma/lte/cloud/go/protos"
 )
 
 // GetGyReAuthHandler returns the default handler for RAR messages by relaying
 // them to the gateway, where session proxy will initiate a credit update and respond
 // with an RAA
-func GetGyReAuthHandler(cloudRegistry registry.CloudRegistry) ReAuthHandler {
+func GetGyReAuthHandler(cloudRegistry service_registry.GatewayRegistry) ReAuthHandler {
 	return ReAuthHandler(func(request *ReAuthRequest) *ReAuthAnswer {
 		sid := diameter.DecodeSessionID(request.SessionID)
 		imsi, err := relay.GetIMSIFromSessionID(sid)

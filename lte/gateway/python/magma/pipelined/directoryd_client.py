@@ -11,6 +11,7 @@ import logging
 from ryu.lib import hub
 
 from magma.common.service_registry import ServiceRegistry
+from orc8r.protos.common_pb2 import Void
 from orc8r.protos.directoryd_pb2 import UpdateRecordRequest, \
     GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
@@ -88,7 +89,7 @@ def get_all_records(retries: int = 3, sleep_time: float = 0.1) -> [dict]:
     client = GatewayDirectoryServiceStub(chan)
     for _ in range(0, retries):
         try:
-            res = client.GetAllDirectoryRecords(DEFAULT_GRPC_TIMEOUT)
+            res = client.GetAllDirectoryRecords(Void(), DEFAULT_GRPC_TIMEOUT)
             if res.records is not None:
                 return res.records
             hub.sleep(sleep_time)

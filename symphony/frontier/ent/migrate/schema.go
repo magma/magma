@@ -65,7 +65,7 @@ var (
 		{Name: "createdAt", Type: field.TypeTime},
 		{Name: "updatedAt", Type: field.TypeTime},
 		{Name: "value", Type: field.TypeString},
-		{Name: "user_id", Type: field.TypeInt, Nullable: true},
+		{Name: "user_tokens", Type: field.TypeInt, Nullable: true},
 	}
 	// TokensTable holds the schema information for the "tokens" table.
 	TokensTable = &schema.Table{
@@ -83,7 +83,7 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "token_value_user_id",
+				Name:    "token_value_user_tokens",
 				Unique:  true,
 				Columns: []*schema.Column{TokensColumns[3], TokensColumns[4]},
 			},

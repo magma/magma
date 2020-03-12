@@ -52,8 +52,11 @@ GrpcPlugin::GrpcPlugin(
       capabilities(_capabilities) {}
 
 DeviceType GrpcPlugin::getDeviceType() const {
-  return {capabilities.devicetype().device(),
-          capabilities.devicetype().version()};
+  if (capabilities.has_devicetype()) {
+    return {capabilities.devicetype().device(),
+            capabilities.devicetype().version()};
+  }
+  return DeviceType::getDefaultInstance();
 }
 
 void GrpcPlugin::provideReaders(ReaderRegistryBuilder& registry) const {
@@ -82,6 +85,33 @@ void GrpcPlugin::provideWriters(WriterRegistryBuilder& registry) const {
     auto remoteWriterPlugin = make_shared<GrpcWriter>(channel, id, executor);
     registry.add(path, remoteWriterPlugin, dependencies);
   }
+}
+
+static Optional<char> sanitizeSingleIndentChar(const string& str) {
+  if (str.size() == 1) {
+    return Optional<char>(str[0]);
+  } else if (not str.empty()) {
+    MLOG(MWARNING)
+        << "sanitizeSingleIndentChar expected 0 or 1 character, got '" << str
+        << "'";
+  }
+  return folly::none;
+}
+
+Optional<CliFlavourParameters> GrpcPlugin::getCliFlavourParameters() const {
+  if (capabilities.has_devicetype() &&
+      capabilities.devicetype().has_cliflavourparams()) {
+    CliFlavourParameters result = {
+        capabilities.devicetype().cliflavourparams().newline(),
+        regex(
+            capabilities.devicetype().cliflavourparams().baseshowconfigregex()),
+        capabilities.devicetype().cliflavourparams().baseshowconfigidx(),
+        sanitizeSingleIndentChar(
+            capabilities.devicetype().cliflavourparams().singleindentchar()),
+        capabilities.devicetype().cliflavourparams().configsubsectionend()};
+    return result;
+  }
+  return none;
 }
 
 } // namespace cli

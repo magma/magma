@@ -104,7 +104,7 @@ func (ar *ActionsRule) assignValues(values ...interface{}) error {
 // Note that, you need to call ActionsRule.Unwrap() before calling this method, if this ActionsRule
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ar *ActionsRule) Update() *ActionsRuleUpdateOne {
-	return (&ActionsRuleClient{ar.config}).UpdateOne(ar)
+	return (&ActionsRuleClient{config: ar.config}).UpdateOne(ar)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
