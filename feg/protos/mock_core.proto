@@ -188,15 +188,16 @@ enum CCRequestType {
     TERMINATION = 3;
 }
 
+enum UnexpectedRequestBehavior {
+    // Answer with a permanent failure diameter code, then the session will
+    // be terminated. This will be the default behavior unless a default answer
+    // is specified
+    CONTINUE_WITH_ERROR = 0;
+    CONTINUE_WITH_DEFAULT_ANSWER = 1;
+}
+
 message GxCreditControlExpectations {
     repeated GxCreditControlExpectation expectations = 1;
-    enum UnexpectedRequestBehavior {
-        // Answer with a permanent failure diameter code, then the session will
-        // be terminated. This will be the default behavior unless default CCAs
-        // are specified
-        CONTINUE_WITH_ERROR = 0;
-        CONTINUE_WITH_DEFAULT_ANSWER = 1;
-    }
     UnexpectedRequestBehavior unexpected_request_behavior = 2;
     GxCreditControlAnswer gx_default_cca = 3;
     Octets total_expected_usage = 4;
