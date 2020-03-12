@@ -56,7 +56,7 @@
 #include "PdnType.h"
 #include "s11_ie_formatter.h"
 #include "sgw_ie_defs.h"
-#include <gtpv2c_ie_formatter.h>
+#include "gtpv2c_ie_formatter.h"
 
 //------------------------------------------------------------------------------
 nw_rc_t
@@ -366,7 +366,7 @@ gtpv2c_pti_ie_set (
 {
   nw_rc_t                                 rc;
 
-  rc = nwGtpv2cMsgAddIe (*msg, NW_GTPV2C_IE_PROCEDURE_TRANSACTION_ID, 1, instance, &pti);
+  rc = nwGtpv2cMsgAddIe (*msg, NW_GTPV2C_IE_PROCEDURE_TRANSACTION_ID, 1, instance, (pti_t*) (& pti));
   DevAssert (NW_OK == rc);
   return RETURNok;
 }
@@ -445,9 +445,9 @@ gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_get (
       break;
 
     case NW_GTPV2C_IE_BEARER_TFT:
-      if(!bearer_context->tft)
-        bearer_context->tft = calloc(1, sizeof(traffic_flow_template_t));
-      rc = gtpv2c_tft_ie_get (ie_p->t, ntohs (ie_p->l), ie_p->i, &ieValue[read + sizeof (nw_gtpv2c_ie_tlv_t)], bearer_context->tft);
+      //if(!bearer_context->tft)
+       // bearer_context->tft = calloc(1, sizeof(struct traffic_flow_template_s));
+      rc = gtpv2c_tft_ie_get (ie_p->t, ntohs (ie_p->l), ie_p->i, &ieValue[read + sizeof (nw_gtpv2c_ie_tlv_t)], &bearer_context->tft);
       DevAssert (NW_OK == rc);
       break;
 
@@ -692,7 +692,7 @@ gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_get (
   DevAssert (bearer_contexts );
   DevAssert (0 <= bearer_contexts->num_bearer_context);
   DevAssert (MSG_UPDATE_BEARER_REQUEST_MAX_BEARER_CONTEXTS >= bearer_contexts->num_bearer_context);
-  bearer_context_to_be_updated_t        *bearer_context  = &bearer_contexts->bearer_contexts[bearer_contexts->num_bearer_context];
+  bearer_context_to_be_updated_t        *bearer_context  = &bearer_contexts->bearer_context[bearer_contexts->num_bearer_context];
   uint16_t                                 read = 0;
   nw_rc_t                                   rc;
 
@@ -755,8 +755,8 @@ gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_set (
   if (bearer_context->pco.num_protocol_or_container_id) {
     gtpv2c_pco_ie_set(msg, &bearer_context->pco);
   }
-  gtpv2c_bearer_qos_ie_set(msg, &bearer_context->bearer_level_qos);
-  gtpv2c_tft_ie_set(msg, &bearer_context->tft);
+  gtpv2c_bearer_qos_ie_set(msg, (const bearer_qos_t *const)&bearer_context->bearer_level_qos);
+  gtpv2c_tft_ie_set(msg, (const traffic_flow_template_t *const)&bearer_context->tft);
 
   /*
    * End section for grouped IE: bearer context to create
@@ -813,7 +813,7 @@ gtpv2c_bearer_context_within_update_bearer_response_ie_get (
   DevAssert (bearer_contexts);
   DevAssert (0 <= bearer_contexts->num_bearer_context);
   DevAssert (MSG_MODIFY_BEARER_REQUEST_MAX_BEARER_CONTEXTS >= bearer_contexts->num_bearer_context);
-  bearer_context_within_update_bearer_response_t        *bearer_context = &bearer_contexts->bearer_contexts[bearer_contexts->num_bearer_context];
+  bearer_context_within_update_bearer_response_t        *bearer_context = &bearer_contexts->bearer_context[bearer_contexts->num_bearer_context];
   uint16_t                                 read = 0;
   nw_rc_t                                   rc;
 
@@ -1012,7 +1012,7 @@ gtpv2c_bearer_context_within_delete_bearer_response_ie_get (
   DevAssert (bearer_contexts);
   DevAssert (0 <= bearer_contexts->num_bearer_context);
   DevAssert (MSG_MODIFY_BEARER_REQUEST_MAX_BEARER_CONTEXTS >= bearer_contexts->num_bearer_context);
-  bearer_context_within_delete_bearer_response_t        *bearer_context = &bearer_contexts->bearer_contexts[bearer_contexts->num_bearer_context];
+  bearer_context_within_delete_bearer_response_t        *bearer_context = &bearer_contexts->bearer_context[bearer_contexts->num_bearer_context];
   uint16_t                                 read = 0;
   nw_rc_t                                   rc;
 

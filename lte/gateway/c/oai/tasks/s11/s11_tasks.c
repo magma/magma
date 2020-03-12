@@ -105,13 +105,13 @@ s11_mme_ulp_process_stack_req_cb (
         ret = s11_mme_handle_release_access_bearer_response (&s11_mme_stack_handle, pUlpApi);
         break;
 
-      case NW_GTP_BEARER_RESOURCE_FAILURE_IND:
-        ret = s11_mme_handle_bearer_resource_failure_indication (&s11_mme_stack_handle, pUlpApi);
-        break;
+      //case NW_GTP_BEARER_RESOURCE_FAILURE_IND:
+        //ret = s11_mme_handle_bearer_resource_failure_indication (&s11_mme_stack_handle, pUlpApi);
+        //break;
 
-      case NW_GTP_DELETE_BEARER_FAILURE_IND:
-        ret = s11_mme_handle_delete_bearer_failure_indication (&s11_mme_stack_handle, pUlpApi);
-        break;
+      //case NW_GTP_DELETE_BEARER_FAILURE_IND:
+       // ret = s11_mme_handle_delete_bearer_failure_indication (&s11_mme_stack_handle, pUlpApi);
+       // break;
 
         default:
         OAILOG_ERROR(LOG_S11, "Received unhandled TRIGGERED_RSP_IND message type %d\n", pUlpApi->u_api_info.triggeredRspIndInfo.msgType);
@@ -125,9 +125,9 @@ s11_mme_ulp_process_stack_req_cb (
           ret = s11_mme_handle_create_bearer_request (&s11_mme_stack_handle, pUlpApi);
           break;
 
-        case NW_GTP_UPDATE_BEARER_REQ:
-          ret = s11_mme_handle_update_bearer_request (&s11_mme_stack_handle, pUlpApi);
-          break;
+       // case NW_GTP_UPDATE_BEARER_REQ:
+          //ret = s11_mme_handle_update_bearer_request (&s11_mme_stack_handle, pUlpApi);
+       //   break;
 
         case NW_GTP_DELETE_BEARER_REQ:
           ret = s11_mme_handle_delete_bearer_request (&s11_mme_stack_handle, pUlpApi);
@@ -310,9 +310,8 @@ s11_mme_thread (
             udp_data_ind = &received_message_p->ittiMsg.udp_data_ind;
             rc = nwGtpv2cProcessUdpReq (s11_mme_stack_handle,
             		udp_data_ind->msgBuf, udp_data_ind->buffer_length,
-    				udp_data_ind->local_port, udp_data_ind->peer_port,
-    				
-            (union sock_addr_t *)&udp_data_ind->sock_addr);
+    				udp_data_ind->local_port, udp_data_ind->peer_port,    				
+            (struct sockaddr *)&udp_data_ind->sock_addr);
             DevAssert (rc == NW_OK);
     }
     break;

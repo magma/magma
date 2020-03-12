@@ -129,6 +129,11 @@ MESSAGE_DEF(
   itti_s11_nw_init_deactv_bearer_rsp_t,
   s11_nw_init_deactv_bearer_rsp)
 MESSAGE_DEF(
+  S11_DOWNLINK_DATA_NOTIFICATION, 
+  MESSAGE_PRIORITY_MED,
+  itti_s11_downlink_data_notification_t,
+  s11_downlink_data_notification)
+MESSAGE_DEF(
   S11_DOWNLINK_DATA_NOTIFICATION_ACKNOWLEDGE,
    MESSAGE_PRIORITY_MED,
    itti_s11_downlink_data_notification_acknowledge_t,

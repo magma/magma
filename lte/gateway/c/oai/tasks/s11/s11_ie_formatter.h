@@ -87,8 +87,8 @@ nw_rc_t gtpv2c_bearer_context_within_create_bearer_response_ie_get(uint8_t ieTyp
 int gtpv2c_ebis_within_delete_bearer_request_ie_set (nw_gtpv2c_msg_handle_t * msg, const ebis_to_be_deleted_t * ebis_tbd);
 nw_rc_t gtpv2c_ebis_to_be_deleted_within_delete_bearer_request_ie_get (uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t *ieValue, void *arg);
 
-//int gtpv2c_bearer_context_within_delete_bearer_response_ie_set (nw_gtpv2c_msg_handle_t * msg, const bearer_context_within_delete_bearer_response_t * bearer_context);
-//nw_rc_t gtpv2c_bearer_context_within_delete_bearer_response_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t *ieValue, void *arg);
+int gtpv2c_bearer_context_within_delete_bearer_response_ie_set (nw_gtpv2c_msg_handle_t * msg, const bearer_context_within_delete_bearer_response_t * bearer_context);
+nw_rc_t gtpv2c_bearer_context_within_delete_bearer_response_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t *ieValue, void *arg);
 
 int gtpv2c_bearer_context_ebi_only_ie_set ( nw_gtpv2c_msg_handle_t * const msg, const ebi_t ebi);
 
